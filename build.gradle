@@ -1,0 +1,28 @@
+allprojects  {
+	apply plugin: 'maven'
+	group = 'uk.co.strangeskies'
+	version = '0.0.1-SNAPSHOT'
+}
+
+def javaProjects() {
+	return subprojects.findAll { new File(it.projectDir, "src/main/java").exists() }
+}
+
+configure(javaProjects()) {
+	apply plugin: 'java'
+	apply plugin: 'osgi'
+
+	sourceCompatibility = 1.7
+	targetCompatibility = 1.7
+
+	repositories {
+		mavenCentral()
+		mavenLocal()
+	}
+
+	dependencies {
+		testCompile group: 'junit', name: 'junit', version: '4.+'
+		compile group: 'org.osgi', name: 'org.osgi.core', version:'5.+'
+		compile group: 'org.osgi', name: 'org.osgi.enterprise', version:'5.+'
+	}
+}

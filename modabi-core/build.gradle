@@ -1,0 +1,5 @@
+description = 'Modabi Core'
+
+dependencies {
+		compile group: 'uk.co.strangeskies', name: 'gears-utilities', version:'1.+'
+}

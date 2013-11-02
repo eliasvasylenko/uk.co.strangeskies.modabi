@@ -1,0 +1,5 @@
+description = 'Modabi - XML Components'
+
+dependencies {
+	compile project(':modabi-core')
+}
