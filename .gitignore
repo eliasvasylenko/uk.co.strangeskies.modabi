@@ -45,6 +45,7 @@ bin/
 gen/
 target/
 build/
+.gradle/
 
 # Local configuration file (sdk path, etc) #
 ############################################
