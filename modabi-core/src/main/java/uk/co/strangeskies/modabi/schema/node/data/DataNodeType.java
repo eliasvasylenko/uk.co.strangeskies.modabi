@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi;
+package uk.co.strangeskies.modabi.schema.node.data;
 
 public interface DataNodeType<T> {
 	public String getName();
