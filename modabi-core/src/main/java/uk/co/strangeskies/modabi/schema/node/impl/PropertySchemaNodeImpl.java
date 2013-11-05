@@ -1,7 +1,7 @@
-package uk.co.strangeskies.modabi.schema.node.data.impl;
+package uk.co.strangeskies.modabi.schema.node.impl;
 
+import uk.co.strangeskies.modabi.schema.node.PropertySchemaNode;
 import uk.co.strangeskies.modabi.schema.node.data.DataNodeType;
-import uk.co.strangeskies.modabi.schema.node.data.PropertySchemaNode;
 
 public class PropertySchemaNodeImpl extends DataSchemaNodeImpl implements
 		PropertySchemaNode {
