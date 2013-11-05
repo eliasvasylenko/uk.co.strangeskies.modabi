@@ -1,80 +1,89 @@
 <?xml version="1.1"?>
 <modelSchema>
 
-	<type name="integerRange"></type>
+	<types>
+		<type name="integerRange"></type>
+	</types>
 
-	<model name="include" occurences="0..">
-		<data inMethod="" />
-	</model>
+	<models>
+		<model name="include">
+			<data inMethod="" />
+		</model>
 
-	<model name="node" class="uk.co.strangeskies.modabi.schema.node.SchemaNode" />
+		<model name="node" class="uk.co.strangeskies.modabi.schema.node.SchemaNode" />
 
-	<model name="branch" abstract="true"
-		class="uk.co.strangeskies.modabi.schema.node.BranchingSchemaNode"
-		factoryClass="uk.co.strangeskies.modabi.schema.node.builder.BranchingSchemaNodeBuilder">
-		<any name="children" inMethod="addChild"
-			class="uk.co.strangeskies.modabi.schema.node.SchemaNode" occurences="1.." />
+		<model name="branch" model="node" abstract="true"
+			class="uk.co.strangeskies.modabi.schema.node.BranchingSchemaNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.BranchingSchemaNodeBuilder">
+			<any name="children" inMethod="addChild"
+				class="uk.co.strangeskies.modabi.schema.node.SchemaNode" occurences="1.." />
 
-		<property name="choice" type="boolean" />
+			<property name="choice" type="boolean" />
 
-		<property name="inMethod" />
-	</model>
+			<property name="inMethod" />
+		</model>
 
-	<model name="model" model="group"
-		class="uk.co.strangeskies.modabi.schema.node.ElementSchemaNode"
-		factoryClass="uk.co.strangeskies.modabi.schema.node.builder.ElementSchemaNodeBuilder">
-		<property name="name" optional="true" />
+		<model name="choice" model="branch">
+			<property name="choice">true</property>
+		</model>
 
-		<property name="base" type="reference" optional="true" />
+		<model name="sequence" model="branch">
+			<property name="choice">false</property>
 
-		<property name="occurances" type="integerRange" optional="true" />
+			<any name="children" occurences="0.." />
+		</model>
 
-		<property name="dataClass" type="class" optional="true" />
+		<model name="element" model="sequence"
+			class="uk.co.strangeskies.modabi.schema.node.ElementSchemaNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.ElementSchemaNodeBuilder">
+			<property name="name" optional="true" />
 
-		<property name="factoryClass" type="class" optional="true" />
+			<property name="base" type="reference" optional="true" />
 
-		<property name="outMethod" optional="true" />
+			<property name="occurances" type="integerRange" optional="true" />
 
-		<property name="iterable" type="boolean" optional="true" />
+			<property name="dataClass" type="class" optional="true" />
 
-		<property name="buildMethod" optional="true" />
-	</model>
+			<property name="factoryClass" type="class" optional="true" />
 
-	<model name="choice" model="branch">
-		<property name="choice">true</property>
-	</model>
+			<property name="outMethod" optional="true" />
 
-	<model name="group" model="branch">
-		<property name="choice">false</property>
+			<property name="iterable" type="boolean" optional="true" />
 
-		<any name="children" occurences="0.." />
-	</model>
+			<property name="buildMethod" optional="true" />
+		</model>
 
-	<model name="data" class="uk.co.strangeskies.modabi.schema.node.DataSchemaNode"
-		factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder">
-		<property name="type" />
+		<model name="data" model="node"
+			class="uk.co.strangeskies.modabi.schema.node.DataSchemaNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder">
+			<property name="type" />
 
-		<property name="optional" optional="true" type="boolean" />
-	</model>
+			<property name="optional" optional="true" type="boolean" />
+		</model>
 
-	<model name="data" class="uk.co.strangeskies.modabi.schema.node.DataSchemaNode"
-		factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder">
-	</model>
+		<model name="property" model="data"
+			class="uk.co.strangeskies.modabi.schema.node.DataSchemaNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder">
+			<property name="name" />
 
-	<model name="property" class="uk.co.strangeskies.modabi.schema.node.DataSchemaNode"
-		factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder">
-		<property name="name" />
-
-		<data optional="true" />
-	</model>
+			<data optional="true" />
+		</model>
+	</models>
 
 	<root name="modelSchema" class="uk.co.strangeskies.modabi.schema.SchemaGraph"
 		factoryClass="uk.co.strangeskies.modabi.schema.SchemaGraphBuilder">
-		<element model="include" />
+		<element name="includes" occurences="0..1">
+			<element model="include" occurences="0.." />
+		</element>
 
-		<element name="type" model="type" occurences="0.." />
+		<element name="types" occurences="0..1">
+			<element name="type" model="type" occurences="0.."
+				outIterator="getTypes" />
+		</element>
 
-		<element name="model" model="element" occurences="0.." />
+		<element name="models" occurences="0..1">
+			<element name="model" model="element" occurences="0.." />
+		</element>
 
 		<element name="root" model="element" occurences="0..1" />
 	</root>

@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.schema.SchemaGraph;
+import uk.co.strangeskies.modabi.schema.BindingSchema;
 import uk.co.strangeskies.modabi.schema.node.ElementSchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessor;
 
@@ -22,7 +22,7 @@ public class XMLSchemaProcessor implements SchemaProcessor {
 	}
 
 	@Override
-	public <T> T processInput(SchemaGraph<T> schema, InputStream input) {
+	public <T> T processInput(BindingSchema<T> schema, InputStream input) {
 		Set<ElementSchemaNode<?>> models = schema.getModelSet();
 
 		ElementSchemaNode<T> root = schema.getRoot();
@@ -37,7 +37,7 @@ public class XMLSchemaProcessor implements SchemaProcessor {
 	}
 
 	@Override
-	public <T> void processOutput(T data, SchemaGraph<T> schema,
+	public <T> void processOutput(T data, BindingSchema<T> schema,
 			OutputStream output) {
 		// TODO Auto-generated method stub
 
