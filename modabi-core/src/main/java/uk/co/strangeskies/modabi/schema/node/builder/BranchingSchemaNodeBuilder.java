@@ -1,13 +1,15 @@
 package uk.co.strangeskies.modabi.schema.node.builder;
 
-import uk.co.strangeskies.modabi.schema.node.BranchingSchemaNode;
+import java.util.Collection;
+
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public interface BranchingSchemaNodeBuilder extends
-		SchemaNodeBuilder<BranchingSchemaNode> {
-	public BranchingSchemaNodeBuilder addChild(SchemaNode child);
+public interface BranchingSchemaNodeBuilder<S extends BranchingSchemaNodeBuilder<S, N, U>, N extends SchemaNode<U>, U extends SchemaProcessingContext<? extends U>>
+		extends SchemaNodeBuilder<N, U> {
+	public S addChild(SchemaNode<? super U> child);
 
-	public BranchingSchemaNodeBuilder choice(boolean isChoice);
+	public S addChildren(Collection<? extends SchemaNode<? super U>> children);
 
-	public BranchingSchemaNodeBuilder inMethod(String inMethodName);
+	public S inMethod(String inMethodName);
 }

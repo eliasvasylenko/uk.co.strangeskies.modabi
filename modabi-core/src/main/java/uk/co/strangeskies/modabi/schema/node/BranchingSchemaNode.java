@@ -2,10 +2,11 @@ package uk.co.strangeskies.modabi.schema.node;
 
 import java.util.List;
 
-public interface BranchingSchemaNode extends SchemaNode {
-	public List<SchemaNode> getChildren();
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-	public boolean isChoice();
-
+public interface BranchingSchemaNode<T extends SchemaProcessingContext<? extends T>>
+		extends SchemaNode<T> {
 	public String getInMethod();
+
+	public List<SchemaNode<? super T>> getChildren();
 }

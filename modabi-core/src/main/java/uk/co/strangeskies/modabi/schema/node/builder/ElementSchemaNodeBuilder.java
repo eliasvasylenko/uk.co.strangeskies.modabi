@@ -2,29 +2,26 @@ package uk.co.strangeskies.modabi.schema.node.builder;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.node.ElementSchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public interface ElementSchemaNodeBuilder<T> extends
-		SchemaNodeBuilder<ElementSchemaNode<? extends T>> {
-	public ElementSchemaNodeBuilder<T> name(String name);
+public interface ElementSchemaNodeBuilder<T, U extends SchemaProcessingContext<? extends U>>
+		extends
+		BranchingSchemaNodeBuilder<ElementSchemaNodeBuilder<T, U>, ElementSchemaNode<T, U>, U> {
+	public ElementSchemaNodeBuilder<T, U> name(String name);
 
-	public ElementSchemaNodeBuilder<T> base(ElementSchemaNode<? super T> base);
+	public <V extends T> ElementSchemaNodeBuilder<V, U> base(
+			ElementSchemaNode<? super V, U> base);
 
-	public ElementSchemaNodeBuilder<T> occurances(Range<Integer> occuranceRange);
+	public ElementSchemaNodeBuilder<T, U> occurances(Range<Integer> occuranceRange);
 
-	public <U extends T> ElementSchemaNodeBuilder<U> dataClass(Class<U> dataClass);
+	public <V extends T> ElementSchemaNodeBuilder<V, U> dataClass(
+			Class<V> dataClass);
 
-	public ElementSchemaNodeBuilder<T> factoryClass(Class<?> factoryClass);
+	public ElementSchemaNodeBuilder<T, U> factoryClass(Class<?> factoryClass);
 
-	public ElementSchemaNodeBuilder<T> addChild(SchemaNode child);
+	public ElementSchemaNodeBuilder<T, U> outMethod(String outMethodName);
 
-	public ElementSchemaNodeBuilder<T> choice(boolean isChoice);
+	public ElementSchemaNodeBuilder<T, U> iterable(boolean isIterable);
 
-	public ElementSchemaNodeBuilder<T> inMethod(String inMethodName);
-
-	public ElementSchemaNodeBuilder<T> outMethod(String outMethodName);
-
-	public ElementSchemaNodeBuilder<T> iterable(boolean isIterable);
-
-	public ElementSchemaNodeBuilder<T> buildMethod(String buildMethodName);
+	public ElementSchemaNodeBuilder<T, U> buildMethod(String buildMethodName);
 }
