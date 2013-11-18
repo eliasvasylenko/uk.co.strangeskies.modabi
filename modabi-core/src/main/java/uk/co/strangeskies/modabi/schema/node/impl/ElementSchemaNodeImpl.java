@@ -73,7 +73,7 @@ public class ElementSchemaNodeImpl<T, U extends SchemaProcessingContext<? extend
 	}
 
 	@Override
-	public String getBuildMethod() {
+	public String getFactoryMethod() {
 		return buildMethod;
 	}
 

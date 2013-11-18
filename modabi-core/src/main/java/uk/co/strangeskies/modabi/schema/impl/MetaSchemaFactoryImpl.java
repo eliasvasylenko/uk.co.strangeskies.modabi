@@ -21,6 +21,7 @@ import uk.co.strangeskies.modabi.schema.node.builder.PropertySchemaNodeBuilder;
 import uk.co.strangeskies.modabi.schema.node.builder.SchemaNodeBuilderFactory;
 import uk.co.strangeskies.modabi.schema.node.builder.impl.SchemaNodeBuilderFactoryImpl;
 import uk.co.strangeskies.modabi.schema.node.data.SchemaDataType;
+import uk.co.strangeskies.modabi.schema.node.data.SchemaDataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public class MetaSchemaFactoryImpl implements
@@ -31,6 +32,10 @@ public class MetaSchemaFactoryImpl implements
 
 	private BindingSchemaBuilder<Object, ? extends SchemaProcessingContext<?>> schema() {
 		return new BindingSchemaBuilderImpl<>();
+	}
+
+	private SchemaDataTypeBuilder<Object> dataType() {
+		return new SchemaDataTypeBuilderImpl<>();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -59,7 +64,7 @@ public class MetaSchemaFactoryImpl implements
 				.element().name("node").dataClass(SchemaNode.class).create();
 		modelSet.add(nodeModel);
 
-		SchemaDataType<Boolean> booleanType = null;
+		SchemaDataType<Boolean> booleanType = new SchemaDataTypeBuilder();
 		SchemaDataType<Class> classType = null;
 		SchemaDataType<Range> rangeType = null;
 		SchemaDataType<ElementSchemaNode> referenceType = null;

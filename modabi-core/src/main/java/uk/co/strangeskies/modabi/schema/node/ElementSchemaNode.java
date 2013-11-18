@@ -19,5 +19,5 @@ public interface ElementSchemaNode<T, U extends SchemaProcessingContext<? extend
 
 	public boolean isIterable();
 
-	public String getBuildMethod();
+	public String getFactoryMethod();
 }

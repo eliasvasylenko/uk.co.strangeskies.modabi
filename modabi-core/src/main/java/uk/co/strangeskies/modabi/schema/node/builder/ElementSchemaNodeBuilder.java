@@ -23,5 +23,5 @@ public interface ElementSchemaNodeBuilder<T, U extends SchemaProcessingContext<?
 
 	public ElementSchemaNodeBuilder<T, U> iterable(boolean isIterable);
 
-	public ElementSchemaNodeBuilder<T, U> buildMethod(String buildMethodName);
+	public ElementSchemaNodeBuilder<T, U> factoryMethod(String buildMethodName);
 }

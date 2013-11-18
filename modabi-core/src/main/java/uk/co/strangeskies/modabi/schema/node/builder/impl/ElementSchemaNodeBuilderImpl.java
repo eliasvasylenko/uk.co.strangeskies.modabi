@@ -111,7 +111,7 @@ public class ElementSchemaNodeBuilderImpl<T, U extends SchemaProcessingContext<?
 	}
 
 	@Override
-	public ElementSchemaNodeBuilder<T, U> buildMethod(String buildMethodName) {
+	public ElementSchemaNodeBuilder<T, U> factoryMethod(String buildMethodName) {
 		this.buildMethodName = buildMethodName;
 
 		return this;
