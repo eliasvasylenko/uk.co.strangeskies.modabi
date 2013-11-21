@@ -5,16 +5,16 @@ import uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder;
 import uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder;
 import uk.co.strangeskies.modabi.schema.node.builder.PropertyNodeBuilder;
 import uk.co.strangeskies.modabi.schema.node.builder.SchemaNodeBuilderFactory;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
 public class SchemaNodeBuilderFactoryImpl implements SchemaNodeBuilderFactory {
 	@Override
-	public BindingNodeBuilder<Object, SchemaProcessingContext<?>> element() {
+	public BindingNodeBuilder<Object, DataInput<?>> element() {
 		return new ElementSchemaNodeBuilderImpl<>();
 	}
 
 	@Override
-	public BranchNodeBuilder<SchemaProcessingContext<?>> branch() {
+	public BranchNodeBuilder<DataInput<?>> branch() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -6,7 +6,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.Schema;
 
-public interface SchemaProcessor<U extends SchemaProcessingContext<? extends U>> {
+public interface SchemaProcessor<U extends DataInput<? extends U>> {
 	public <T> T processInput(Schema<T, ? super U> schema,
 			InputStream input);
 

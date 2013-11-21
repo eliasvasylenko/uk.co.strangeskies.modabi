@@ -1,8 +1,8 @@
 package uk.co.strangeskies.modabi.schema.node;
 
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
-public interface InputNode<T extends SchemaProcessingContext<? extends T>>
+public interface InputNode<T extends DataInput<? extends T>>
 		extends SchemaNode<T> {
 	public String getInMethod();
 

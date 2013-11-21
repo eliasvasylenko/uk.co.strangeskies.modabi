@@ -9,9 +9,9 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder;
 import uk.co.strangeskies.modabi.schema.node.impl.BindingNodeImpl;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
-public class ElementSchemaNodeBuilderImpl<T, U extends SchemaProcessingContext<? extends U>>
+public class ElementSchemaNodeBuilderImpl<T, U extends DataInput<? extends U>>
 		implements BindingNodeBuilder<T, U> {
 	private String name;
 	private final Set<SchemaNode<? super U>> children;

@@ -5,9 +5,9 @@ import java.util.Collection;
 import uk.co.strangeskies.gears.utilities.Factory;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.data.DataType;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
-public interface SchemaBuilder<T, U extends SchemaProcessingContext<U>>
+public interface SchemaBuilder<T, U extends DataInput<U>>
 		extends Factory<Schema<T, U>> {
 	public SchemaBuilder<T, U> includes(
 			Collection<? extends Schema<?, ? super U>> includes);

@@ -2,9 +2,9 @@ package uk.co.strangeskies.modabi.schema.node.builder;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
-public interface BindingNodeBuilder<T, U extends SchemaProcessingContext<? extends U>>
+public interface BindingNodeBuilder<T, U extends DataInput<? extends U>>
 		extends
 		BranchingNodeBuilder<BindingNodeBuilder<T, U>, BindingNode<T, U>, U> {
 	public BindingNodeBuilder<T, U> name(String name);

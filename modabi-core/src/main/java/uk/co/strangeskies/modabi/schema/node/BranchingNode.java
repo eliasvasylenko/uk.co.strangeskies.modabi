@@ -2,9 +2,9 @@ package uk.co.strangeskies.modabi.schema.node;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
-public interface BranchingNode<T extends SchemaProcessingContext<? extends T>>
+public interface BranchingNode<T extends DataInput<? extends T>>
 		extends InputNode<T> {
 	public List<SchemaNode<? super T>> getChildren();
 }

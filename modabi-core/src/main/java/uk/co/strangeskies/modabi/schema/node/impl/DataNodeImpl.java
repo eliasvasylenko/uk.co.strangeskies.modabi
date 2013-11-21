@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.schema.node.impl;
 
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.data.DataType;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
 public class DataNodeImpl<T> implements DataNode<T> {
 	private final DataType<T> type;
@@ -26,7 +26,7 @@ public class DataNodeImpl<T> implements DataNode<T> {
 	}
 
 	@Override
-	public void process(SchemaProcessingContext<?> context) {
+	public void process(DataInput<?> context) {
 		context.data(this);
 	}
 

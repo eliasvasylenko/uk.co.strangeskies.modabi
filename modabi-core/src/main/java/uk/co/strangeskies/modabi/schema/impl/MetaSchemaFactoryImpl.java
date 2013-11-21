@@ -22,15 +22,15 @@ import uk.co.strangeskies.modabi.schema.node.builder.SchemaNodeBuilderFactory;
 import uk.co.strangeskies.modabi.schema.node.builder.impl.SchemaNodeBuilderFactoryImpl;
 import uk.co.strangeskies.modabi.schema.node.data.DataType;
 import uk.co.strangeskies.modabi.schema.node.data.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.DataInput;
 
 public class MetaSchemaFactoryImpl implements
-		MetaSchemaFactory<SchemaProcessingContext<?>, SchemaProcessingContext<?>> {
+		MetaSchemaFactory<DataInput<?>, DataInput<?>> {
 	private SchemaNodeBuilderFactory node() {
 		return new SchemaNodeBuilderFactoryImpl();
 	}
 
-	private SchemaBuilder<Object, ? extends SchemaProcessingContext<?>> schema() {
+	private SchemaBuilder<Object, ? extends DataInput<?>> schema() {
 		return new BindingSchemaBuilderImpl<>();
 	}
 
@@ -40,7 +40,7 @@ public class MetaSchemaFactoryImpl implements
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public Schema<Schema<?, SchemaProcessingContext<?>>, SchemaProcessingContext<?>> create(
+	public Schema<Schema<?, DataInput<?>>, DataInput<?>> create(
 			SchemaNodeBuilderFactory factory) {
 		/*
 		 * Types
@@ -50,17 +50,17 @@ public class MetaSchemaFactoryImpl implements
 		/*
 		 * Models
 		 */
-		Set<BindingNode<?, SchemaProcessingContext<?>>> modelSet = new HashSet<>();
+		Set<BindingNode<?, DataInput<?>>> modelSet = new HashSet<>();
 
-		BindingNode<Object, SchemaProcessingContext<?>> includeModel = node()
+		BindingNode<Object, DataInput<?>> includeModel = node()
 				.element().name("include").create();
 		modelSet.add(includeModel);
 
-		BindingNode<DataType, SchemaProcessingContext<?>> typeModel = node()
+		BindingNode<DataType, DataInput<?>> typeModel = node()
 				.element().dataClass(DataType.class).name("type").create();
 		modelSet.add(typeModel);
 
-		BindingNode<SchemaNode, SchemaProcessingContext<?>> nodeModel = node()
+		BindingNode<SchemaNode, DataInput<?>> nodeModel = node()
 				.element().name("node").dataClass(SchemaNode.class).create();
 		modelSet.add(nodeModel);
 
@@ -69,7 +69,7 @@ public class MetaSchemaFactoryImpl implements
 		DataType<Range> rangeType = null;
 		DataType<BindingNode> referenceType = null;
 
-		BindingNode<BranchingNode, SchemaProcessingContext<?>> branchModel = node()
+		BindingNode<BranchingNode, DataInput<?>> branchModel = node()
 				.element()
 				.name("branch")
 				.base(nodeModel)
@@ -82,7 +82,7 @@ public class MetaSchemaFactoryImpl implements
 				.addChild(node().property().name("inMethod").create()).create();
 		modelSet.add(branchModel);
 
-		BindingNode<SequenceNode, SchemaProcessingContext<?>> sequenceModel = node()
+		BindingNode<SequenceNode, DataInput<?>> sequenceModel = node()
 				.element().name("sequence").base(branchModel)
 				.dataClass(SequenceNode.class)
 				.factoryClass(BranchNodeBuilder.class)
@@ -90,13 +90,13 @@ public class MetaSchemaFactoryImpl implements
 				.create();
 		modelSet.add(sequenceModel);
 
-		BindingNode<SequenceNode, SchemaProcessingContext<?>> choiceModel = node()
+		BindingNode<SequenceNode, DataInput<?>> choiceModel = node()
 				.element().name("choice").base(sequenceModel)
 				.addChild(node().property().name("choice").data(true).create())
 				.create();
 		modelSet.add(choiceModel);
 
-		BindingNode<BindingNode, SchemaProcessingContext<?>> modelModel = node()
+		BindingNode<BindingNode, DataInput<?>> modelModel = node()
 				.element()
 				.name("model")
 				.base(branchModel)
@@ -123,11 +123,11 @@ public class MetaSchemaFactoryImpl implements
 								.create()).create();
 		modelSet.add(modelModel);
 
-		BindingNode<BindingNode, SchemaProcessingContext<?>> elementModel = node()
+		BindingNode<BindingNode, DataInput<?>> elementModel = node()
 				.element().name("element").base(modelModel).create();
 		modelSet.add(elementModel);
 
-		BindingNode<DataNode, SchemaProcessingContext<?>> dataModel = node()
+		BindingNode<DataNode, DataInput<?>> dataModel = node()
 				.element()
 				.name("data")
 				.base(nodeModel)
@@ -140,14 +140,14 @@ public class MetaSchemaFactoryImpl implements
 				.create();
 		modelSet.add(dataModel);
 
-		BindingNode<PropertyNode, SchemaProcessingContext<?>> propertyModel = node()
+		BindingNode<PropertyNode, DataInput<?>> propertyModel = node()
 				.element().name("property").base(dataModel)
 				.dataClass(PropertyNode.class)
 				.factoryClass(PropertyNodeBuilder.class)
 				.addChild(node().property().name("name").create()).create();
 		modelSet.add(propertyModel);
 
-		BindingNode<Set, SchemaProcessingContext<?>> includesModel = node()
+		BindingNode<Set, DataInput<?>> includesModel = node()
 				.element()
 				.name("includes")
 				.occurances(Range.create(0, 1))
@@ -156,7 +156,7 @@ public class MetaSchemaFactoryImpl implements
 						node().element().base(includeModel)
 								.occurances(Range.create(0, null)).create()).create();
 
-		BindingNode<Set, SchemaProcessingContext<?>> typesModel = node()
+		BindingNode<Set, DataInput<?>> typesModel = node()
 				.element()
 				.name("types")
 				.occurances(Range.create(0, 1))
@@ -165,7 +165,7 @@ public class MetaSchemaFactoryImpl implements
 						node().element().base(typeModel).occurances(Range.create(0, null))
 								.create()).create();
 
-		BindingNode<Set, SchemaProcessingContext<?>> modelsModel = node()
+		BindingNode<Set, DataInput<?>> modelsModel = node()
 				.element()
 				.name("models")
 				.occurances(Range.create(0, 1))
@@ -174,13 +174,13 @@ public class MetaSchemaFactoryImpl implements
 						node().element().base(modelModel).occurances(Range.create(0, null))
 								.create()).create();
 
-		BindingNode<Set, SchemaProcessingContext<?>> rootModel = node()
+		BindingNode<Set, DataInput<?>> rootModel = node()
 				.element().name("models").occurances(Range.create(0, 1))
 				.dataClass(Set.class)
 				.addChild(node().element().occurances(Range.create(0, null)).create())
 				.create();
 
-		BindingNode<Schema, SchemaProcessingContext<?>> scehmaModel = node()
+		BindingNode<Schema, DataInput<?>> scehmaModel = node()
 				.element().name("modelSchema").dataClass(Schema.class)
 				.factoryClass(SchemaBuilder.class).addChild(includesModel)
 				.addChild(typesModel).addChild(modelsModel).addChild(rootModel)
@@ -190,9 +190,9 @@ public class MetaSchemaFactoryImpl implements
 		 * Schema
 		 */
 
-		Schema<? extends Schema<?, SchemaProcessingContext<?>>, SchemaProcessingContext<?>> schema = (Schema<? extends Schema<?, SchemaProcessingContext<?>>, SchemaProcessingContext<?>>) schema()
+		Schema<? extends Schema<?, DataInput<?>>, DataInput<?>> schema = (Schema<? extends Schema<?, DataInput<?>>, DataInput<?>>) schema()
 				.types(typeSet).models(modelSet).root(scehmaModel).create();
 
-		return (Schema<Schema<?, SchemaProcessingContext<?>>, SchemaProcessingContext<?>>) schema;
+		return (Schema<Schema<?, DataInput<?>>, DataInput<?>>) schema;
 	}
 }
