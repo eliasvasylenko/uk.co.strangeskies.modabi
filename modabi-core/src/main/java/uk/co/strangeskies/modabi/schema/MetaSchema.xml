@@ -14,27 +14,26 @@
 			<property name="name" />
 
 			<property name="dataClass"
-				class="uk.co.strangeskies.modabi.schema.node.data.SchemaDataType" />
+				bindingClass="uk.co.strangeskies.modabi.schema.node.data.DataType" />
 
 			<choice>
 
 			</choice>
 		</model>
 
-		<model name="node" class="uk.co.strangeskies.modabi.schema.node.SchemaNode" />
+		<model name="node" bindingClass="uk.co.strangeskies.modabi.schema.node.SchemaNode" />
 
-		<model name="branch" model="node" abstract="true"
-			class="uk.co.strangeskies.modabi.schema.node.BranchingSchemaNode"
-			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.BranchingSchemaNodeBuilder">
+		<model name="input" bindingClass="uk.co.strangeskies.modabi.schema.node.InputNode" />
+
+		<model name="branch" model="input" abstract="true"
+			bindingClass="uk.co.strangeskies.modabi.schema.node.BranchingNode">
 			<any name="children" inMethod="addChild" model="node" occurences="1.." />
-
-			<property name="choice" type="boolean" />
-
-			<property name="inMethod" />
 		</model>
 
 		<model name="choice" model="branch">
 			<property name="choice">true</property>
+
+			<any name="children" occurences="2.." />
 		</model>
 
 		<model name="sequence" model="branch">
@@ -43,16 +42,16 @@
 			<any name="children" occurences="0.." />
 		</model>
 
-		<model name="element" model="sequence"
-			class="uk.co.strangeskies.modabi.schema.node.ElementSchemaNode"
-			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.ElementSchemaNodeBuilder">
+		<model name="binding" model="sequence"
+			bindingClass="uk.co.strangeskies.modabi.schema.node.BindingNode"
+			builderClass="uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder">
 			<property name="name" />
 
 			<property name="base" type="reference" optional="true" />
 
 			<property name="occurances" type="integerRange" optional="true" />
 
-			<property name="dataClass" type="class" optional="true" />
+			<property name="bindingClass" type="class" optional="true" />
 
 			<property name="outMethod" optional="true" />
 
@@ -69,10 +68,11 @@
 			</choice>
 		</model>
 
-		<model name="model" model="element"></model>
+		<model name="model" model="element" />
 
 		<model name="data" model="node"
-			class="uk.co.strangeskies.modabi.schema.node.DataSchemaNode" factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder">
+			bindingClass="uk.co.strangeskies.modabi.schema.node.DataNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder">
 			<property name="type" />
 
 			<property name="optional" optional="true" type="boolean" />
@@ -81,13 +81,13 @@
 		</model>
 
 		<model name="property" model="data"
-			class="uk.co.strangeskies.modabi.schema.node.PropertySchemaNode"
-			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.PropertySchemaNodeBuilder">
+			bindingClass="uk.co.strangeskies.modabi.schema.node.PropertyNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.PropertyNodeBuilder">
 			<property name="name" />
 		</model>
 	</models>
 
-	<root name="modelSchema" class="uk.co.strangeskies.modabi.schema.SchemaGraph"
+	<root name="modelSchema" bindingClass="uk.co.strangeskies.modabi.schema.SchemaGraph"
 		factoryClass="uk.co.strangeskies.modabi.schema.SchemaGraphBuilder">
 		<element name="includes" occurences="0..1">
 			<element model="include" occurences="0.." />

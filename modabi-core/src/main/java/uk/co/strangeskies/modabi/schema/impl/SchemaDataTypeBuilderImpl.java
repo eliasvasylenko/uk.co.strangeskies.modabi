@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import uk.co.strangeskies.modabi.schema.node.data.SchemaDataTypeBuilder;
+import uk.co.strangeskies.modabi.schema.node.data.DataTypeBuilder;
 
-public class SchemaDataTypeBuilderImpl<T> implements SchemaDataTypeBuilder<T> {
+public class SchemaDataTypeBuilderImpl<T> implements DataTypeBuilder<T> {
 
 }

@@ -4,9 +4,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public interface BranchingSchemaNode<T extends SchemaProcessingContext<? extends T>>
-		extends SchemaNode<T> {
-	public String getInMethod();
-
+public interface BranchingNode<T extends SchemaProcessingContext<? extends T>>
+		extends InputNode<T> {
 	public List<SchemaNode<? super T>> getChildren();
 }

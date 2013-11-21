@@ -1,5 +1,5 @@
 package uk.co.strangeskies.modabi.schema.node;
 
-public interface PropertySchemaNode<T> extends DataSchemaNode<T> {
+public interface PropertyNode<T> extends DataNode<T> {
 	public String getName();
 }

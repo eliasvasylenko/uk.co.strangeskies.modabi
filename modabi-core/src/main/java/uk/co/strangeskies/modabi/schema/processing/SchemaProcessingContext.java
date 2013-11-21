@@ -1,16 +1,16 @@
 package uk.co.strangeskies.modabi.schema.processing;
 
-import uk.co.strangeskies.modabi.schema.node.BranchSchemaNode;
-import uk.co.strangeskies.modabi.schema.node.DataSchemaNode;
-import uk.co.strangeskies.modabi.schema.node.ElementSchemaNode;
-import uk.co.strangeskies.modabi.schema.node.PropertySchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.BindingNode;
+import uk.co.strangeskies.modabi.schema.node.PropertyNode;
 
 public interface SchemaProcessingContext<T extends SchemaProcessingContext<T>> {
-	public void data(DataSchemaNode<?> node);
+	public void data(DataNode<?> node);
 
-	public void property(PropertySchemaNode<?> node);
+	public void property(PropertyNode<?> node);
 
-	public void branch(BranchSchemaNode<? super T> node);
+	public void branch(SequenceNode<? super T> node);
 
-	public void element(ElementSchemaNode<?, ? super T> node);
+	public void element(BindingNode<?, ? super T> node);
 }

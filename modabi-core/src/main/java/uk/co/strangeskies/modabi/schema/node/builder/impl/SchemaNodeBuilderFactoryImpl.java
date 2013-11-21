@@ -1,32 +1,32 @@
 package uk.co.strangeskies.modabi.schema.node.builder.impl;
 
-import uk.co.strangeskies.modabi.schema.node.builder.BranchSchemaNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.DataSchemaNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.ElementSchemaNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.PropertySchemaNodeBuilder;
+import uk.co.strangeskies.modabi.schema.node.builder.BranchNodeBuilder;
+import uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder;
+import uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder;
+import uk.co.strangeskies.modabi.schema.node.builder.PropertyNodeBuilder;
 import uk.co.strangeskies.modabi.schema.node.builder.SchemaNodeBuilderFactory;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public class SchemaNodeBuilderFactoryImpl implements SchemaNodeBuilderFactory {
 	@Override
-	public ElementSchemaNodeBuilder<Object, SchemaProcessingContext<?>> element() {
+	public BindingNodeBuilder<Object, SchemaProcessingContext<?>> element() {
 		return new ElementSchemaNodeBuilderImpl<>();
 	}
 
 	@Override
-	public BranchSchemaNodeBuilder<SchemaProcessingContext<?>> branch() {
+	public BranchNodeBuilder<SchemaProcessingContext<?>> branch() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public DataSchemaNodeBuilder<Object> data() {
+	public DataNodeBuilder<Object> data() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public PropertySchemaNodeBuilder<Object> property() {
+	public PropertyNodeBuilder<Object> property() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -1,22 +1,22 @@
 package uk.co.strangeskies.modabi.schema.node.impl;
 
-import uk.co.strangeskies.modabi.schema.node.DataSchemaNode;
-import uk.co.strangeskies.modabi.schema.node.data.SchemaDataType;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.data.DataType;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public class DataSchemaNodeImpl<T> implements DataSchemaNode<T> {
-	private final SchemaDataType<T> type;
+public class DataNodeImpl<T> implements DataNode<T> {
+	private final DataType<T> type;
 	private final T data;
 	private final boolean optional;
 
-	public DataSchemaNodeImpl(SchemaDataType<T> type, T data, boolean optional) {
+	public DataNodeImpl(DataType<T> type, T data, boolean optional) {
 		this.type = type;
 		this.data = data;
 		this.optional = optional;
 	}
 
 	@Override
-	public SchemaDataType<T> getType() {
+	public DataType<T> getType() {
 		return type;
 	}
 
@@ -38,5 +38,17 @@ public class DataSchemaNodeImpl<T> implements DataSchemaNode<T> {
 	@Override
 	public T getData() {
 		return data;
+	}
+
+	@Override
+	public String getInMethod() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isInMethodChained() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
