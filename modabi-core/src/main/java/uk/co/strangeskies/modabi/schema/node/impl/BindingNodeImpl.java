@@ -5,9 +5,9 @@ import java.util.Collection;
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.processing.DataInput;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public class BindingNodeImpl<T, U extends DataInput<? extends U>>
+public class BindingNodeImpl<T, U extends SchemaProcessingContext<? extends U>>
 		extends BranchingNodeImpl<U> implements BindingNode<T, U> {
 	private final boolean iterable;
 	private final String buildMethod;
@@ -84,6 +84,6 @@ public class BindingNodeImpl<T, U extends DataInput<? extends U>>
 
 	@Override
 	public void process(U context) {
-		context.element(this);
+		context.accept(this);
 	}
 }

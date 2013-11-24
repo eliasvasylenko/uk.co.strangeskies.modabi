@@ -6,9 +6,9 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.node.BranchingNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.processing.DataInput;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public abstract class BranchingNodeImpl<T extends DataInput<? extends T>>
+public abstract class BranchingNodeImpl<T extends SchemaProcessingContext<? extends T>>
 		implements BranchingNode<T> {
 	private final List<SchemaNode<? super T>> children;
 

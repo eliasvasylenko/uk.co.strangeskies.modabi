@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessor;
+import uk.co.strangeskies.modabi.schema.processing.SchamaBinder;
 
-public class YAMLSchemaProcessor implements SchemaProcessor {
+public class YAMLSchemaProcessor implements SchamaBinder {
 	@Override
 	public String getFormatName() {
 		return "YAML";

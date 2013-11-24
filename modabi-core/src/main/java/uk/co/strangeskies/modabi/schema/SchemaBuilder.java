@@ -3,11 +3,11 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.Collection;
 
 import uk.co.strangeskies.gears.utilities.Factory;
+import uk.co.strangeskies.modabi.schema.data.DataType;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.data.DataType;
-import uk.co.strangeskies.modabi.schema.processing.DataInput;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public interface SchemaBuilder<T, U extends DataInput<U>>
+public interface SchemaBuilder<T, U extends SchemaProcessingContext<U>>
 		extends Factory<Schema<T, U>> {
 	public SchemaBuilder<T, U> includes(
 			Collection<? extends Schema<?, ? super U>> includes);

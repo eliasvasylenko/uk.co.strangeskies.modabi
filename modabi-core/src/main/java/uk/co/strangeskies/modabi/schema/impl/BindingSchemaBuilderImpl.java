@@ -4,11 +4,11 @@ import java.util.Collection;
 
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
+import uk.co.strangeskies.modabi.schema.data.DataType;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.data.DataType;
-import uk.co.strangeskies.modabi.schema.processing.DataInput;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public class BindingSchemaBuilderImpl<T, U extends DataInput<U>>
+public class BindingSchemaBuilderImpl<T, U extends SchemaProcessingContext<U>>
 		implements SchemaBuilder<T, U> {
 	@Override
 	public Schema<T, U> create() {

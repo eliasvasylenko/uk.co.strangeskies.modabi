@@ -23,23 +23,24 @@
 
 		<model name="node" bindingClass="uk.co.strangeskies.modabi.schema.node.SchemaNode" />
 
-		<model name="input" bindingClass="uk.co.strangeskies.modabi.schema.node.InputNode">
-			<property name="inMethod" />
-
-			<property name="inMethodChains" type="boolean" />
-		</model>
+		<model name="input" bindingClass="uk.co.strangeskies.modabi.schema.node.InputNode" />
 
 		<model name="branch" model="input" abstract="true"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.BranchingNode">
-			<binding name="child" inMethod="addChild" model="node"
-				occurences="0.." />
+			<any name="children" inMethod="addChild" model="node" occurences="1.." />
 		</model>
 
 		<model name="choice" model="branch">
-			<binding name="child" occurences="2.." />
+			<property name="choice">true</property>
+
+			<any name="children" occurences="2.." />
 		</model>
 
-		<model name="sequence" model="branch" />
+		<model name="sequence" model="branch">
+			<property name="choice">false</property>
+
+			<any name="children" occurences="0.." />
+		</model>
 
 		<model name="binding" model="sequence"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.BindingNode"
@@ -67,7 +68,7 @@
 			</choice>
 		</model>
 
-		<model name="model" model="binding" />
+		<model name="model" model="element" />
 
 		<model name="data" model="node"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.DataNode"
@@ -88,20 +89,19 @@
 
 	<root name="modelSchema" bindingClass="uk.co.strangeskies.modabi.schema.SchemaGraph"
 		factoryClass="uk.co.strangeskies.modabi.schema.SchemaGraphBuilder">
-		<binding name="includes" occurences="0..1">
-			<binding model="include" occurences="0.." />
-		</binding>
+		<element name="includes" occurences="0..1">
+			<element model="include" occurences="0.." />
+		</element>
 
-		<binding name="types" occurences="0..1">
-			<binding name="type" model="type" occurences="0.."
-				outIterator="getTypes" />
-		</binding>
+		<element name="types" occurences="0..1">
+			<element name="type" model="type" occurences="0.." outIterator="getTypes" />
+		</element>
 
-		<binding name="models" occurences="0..1">
-			<binding name="model" model="binding" occurences="0.." />
-		</binding>
+		<element name="models" occurences="0..1">
+			<element name="model" model="element" occurences="0.." />
+		</element>
 
-		<binding name="root" model="binding" occurences="0..1" />
+		<element name="root" model="element" occurences="0..1" />
 	</root>
 
 </modelSchema>

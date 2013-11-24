@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.schema.node.builder;
 
+import uk.co.strangeskies.modabi.schema.data.DataType;
 import uk.co.strangeskies.modabi.schema.node.PropertyNode;
-import uk.co.strangeskies.modabi.schema.node.data.DataType;
-import uk.co.strangeskies.modabi.schema.processing.DataInput;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface PropertyNodeBuilder<T> extends
-		SchemaNodeBuilder<PropertyNode<T>, DataInput<?>> {
+		SchemaNodeBuilder<PropertyNode<T>, SchemaProcessingContext<?>> {
 	PropertyNodeBuilder<T> name(String name);
 
 	<U extends T> DataNodeBuilder<U> type(DataType<U> type);
