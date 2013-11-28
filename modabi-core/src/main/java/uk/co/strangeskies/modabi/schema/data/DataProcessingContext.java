@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.schema.data;
 
-public interface DataProcessingContext {
+public interface DataProcessingContext<E extends > {
 	void processChild(String name);
 
 	void processProperty(String name);
@@ -9,17 +9,7 @@ public interface DataProcessingContext {
 
 	void processData(String data);
 
-	void processData(byte data);
-
-	void processData(short data);
-
-	void processData(int data);
-
-	void processData(long data);
-
-	void processData(float data);
-
-	void processData(double data);
+	<T> void processData(T data);
 
 	void processEnd();
 }

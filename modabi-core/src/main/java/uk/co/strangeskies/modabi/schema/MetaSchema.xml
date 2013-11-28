@@ -2,7 +2,7 @@
 <modelSchema>
 
 	<types>
-		<type name="integerRange"></type>
+		<type name="integerRange" dataClass="java.lang.Integer"></type>
 	</types>
 
 	<models>
@@ -10,12 +10,9 @@
 			<data inMethod="" />
 		</model>
 
-		<model name="type">
+		<model name="type" bindingClass="uk.co.strangeskies.modabi.schema.node.data.DataType">
 			<property name="name" />
-
-			<property name="dataClass"
-				bindingClass="uk.co.strangeskies.modabi.schema.node.data.DataType" />
-
+			<property name="dataClass" type="class" />
 			<choice>
 
 			</choice>
@@ -27,56 +24,42 @@
 
 		<model name="branch" model="input" abstract="true"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.BranchingNode">
-			<any name="children" inMethod="addChild" model="node" occurences="1.." />
+			<any name="child" inMethod="addChild" model="node" occurences="1.." />
 		</model>
 
 		<model name="choice" model="branch">
 			<property name="choice">true</property>
-
-			<any name="children" occurences="2.." />
+			<any name="child" occurences="2.." />
 		</model>
 
 		<model name="sequence" model="branch">
 			<property name="choice">false</property>
-
-			<any name="children" occurences="0.." />
+			<any name="child" occurences="0.." />
 		</model>
 
 		<model name="binding" model="sequence"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.BindingNode"
 			builderClass="uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder">
 			<property name="name" />
-
 			<property name="base" type="reference" optional="true" />
-
 			<property name="occurances" type="integerRange" optional="true" />
-
 			<property name="bindingClass" type="class" optional="true" />
-
 			<property name="outMethod" optional="true" />
-
 			<property name="iterable" type="boolean" optional="true" />
-
 			<choice>
 				<sequence />
-
 				<sequence>
 					<property name="factoryClass" type="class" />
-
 					<property name="factoryMethod" optional="true" />
 				</sequence>
 			</choice>
 		</model>
 
-		<model name="model" model="element" />
-
 		<model name="data" model="node"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.DataNode"
 			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder">
 			<property name="type" />
-
 			<property name="optional" optional="true" type="boolean" />
-
 			<data optional="true" />
 		</model>
 
