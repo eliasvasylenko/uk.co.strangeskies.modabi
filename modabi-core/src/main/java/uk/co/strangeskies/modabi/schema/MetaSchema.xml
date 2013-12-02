@@ -10,7 +10,8 @@
 			<data inMethod="" />
 		</model>
 
-		<model name="type" bindingClass="uk.co.strangeskies.modabi.schema.node.data.DataType">
+		<model name="type"
+			bindingClass="uk.co.strangeskies.modabi.schema.node.data.DataType">
 			<property name="name" />
 			<property name="dataClass" type="class" />
 			<choice>
@@ -18,23 +19,26 @@
 			</choice>
 		</model>
 
-		<model name="node" bindingClass="uk.co.strangeskies.modabi.schema.node.SchemaNode" />
+		<model name="node" bindingClass="uk.co.strangeskies.modabi.schema.node.SchemaNode"
+			abstract="true" />
 
-		<model name="input" bindingClass="uk.co.strangeskies.modabi.schema.node.InputNode" />
+		<model name="input" model="node"
+			bindingClass="uk.co.strangeskies.modabi.schema.node.InputNode" />
 
-		<model name="branch" model="input" abstract="true"
+		<model name="branch" model="input"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.BranchingNode">
-			<any name="child" inMethod="addChild" model="node" occurences="1.." />
+			<binding name="child" inMethod="addChild" model="node"
+				occurences="1.." />
 		</model>
 
-		<model name="choice" model="branch">
+		<model name="choice" model="branch" abstract="false">
 			<property name="choice">true</property>
-			<any name="child" occurences="2.." />
+			<binding name="child" occurences="2.." />
 		</model>
 
-		<model name="sequence" model="branch">
+		<model name="sequence" model="branch" abstract="false">
 			<property name="choice">false</property>
-			<any name="child" occurences="0.." />
+			<binding name="child" occurences="0.." />
 		</model>
 
 		<model name="binding" model="sequence"
@@ -55,7 +59,7 @@
 			</choice>
 		</model>
 
-		<model name="data" model="node"
+		<model name="data" model="node" abstract="false"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.DataNode"
 			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder">
 			<property name="type" />
@@ -77,7 +81,8 @@
 		</element>
 
 		<element name="types" occurences="0..1">
-			<element name="type" model="type" occurences="0.." outIterator="getTypes" />
+			<element name="type" model="type" occurences="0.."
+				outIterator="getTypes" />
 		</element>
 
 		<element name="models" occurences="0..1">
