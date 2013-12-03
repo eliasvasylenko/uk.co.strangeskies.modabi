@@ -14,8 +14,7 @@ public interface BindingNodeBuilder<T, U extends SchemaProcessingContext<? exten
 
 	public BindingNodeBuilder<T, U> occurances(Range<Integer> occuranceRange);
 
-	public <V extends T> BindingNodeBuilder<V, U> dataClass(
-			Class<V> dataClass);
+	public <V extends T> BindingNodeBuilder<V, U> dataClass(Class<V> dataClass);
 
 	public BindingNodeBuilder<T, U> factoryClass(Class<?> factoryClass);
 
