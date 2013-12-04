@@ -1,5 +1,5 @@
 <?xml version="1.1"?>
-<modelSchema>
+<modelSchema xmlns="http://strangeskies.co.uk/modabi/schema">
 
 	<types>
 		<type id="integerRange" dataClass="java.lang.Integer"></type>
@@ -7,6 +7,7 @@
 
 	<models>
 		<model id="include">
+			<property id="namespace" />
 			<data inMethod="" />
 		</model>
 
@@ -24,6 +25,8 @@
 		<model id="input" model="node"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.InputNode">
 			<property id="inMethod" optional="true" />
+			<property id="inMethodChain" optional="true" type="boolean" />
+			<property id="inMethodNest" optional="true" type="boolean" />
 		</model>
 
 		<model id="output" model="node"
@@ -34,12 +37,13 @@
 
 		<model id="branch" model="node"
 			bindingClass="uk.co.strangeskies.modabi.schema.node.BranchingNode">
-			<binding id="child" inMethod="addChild" model="node" occurences="0.." />
+			<binding id="child" inMethod="addChild" model="node"
+				occurences="0.." />
 		</model>
 
 		<model id="choice" model="branch, input"
-			bindingClass="uk.co.strangeskies.modabi.schema.node.ChoiceNode"
-			builderClass="uk.co.strangeskies.modabi.schema.node.builder.ChoiceNodeBuilder"
+			bindingClass="uk.co.strangeskies.modabi.schema.node.choiceNode"
+			builderClass="uk.co.strangeskies.modabi.schema.node.builder.choiceNodeBuilder"
 			abstract="false">
 			<property id="mandatory" type="boolean" />
 			<binding id="child" occurences="2.." />
@@ -52,8 +56,8 @@
 		</model>
 
 		<model id="model" model="branch"
-			bindingClass="uk.co.strangeskies.modabi.schema.node.BindingNode"
-			builderClass="uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder">
+			bindingClass="uk.co.strangeskies.modabi.schema.node.bindingNode"
+			builderClass="uk.co.strangeskies.modabi.schema.node.builder.bindingNodeBuilder">
 			<property id="id" />
 			<property id="abstract" type="boolean" />
 			<property id="base" type="reference" optional="true" />
@@ -68,8 +72,8 @@
 		</model>
 
 		<model id="binding" model="model, input, output" abstract="false"
-			bindingClass="uk.co.strangeskies.modabi.schema.node.BindingNode"
-			builderClass="uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder">
+			bindingClass="uk.co.strangeskies.modabi.schema.node.bindingNode"
+			builderClass="uk.co.strangeskies.modabi.schema.node.builder.bindingNodeBuilder">
 			<property id="occurances" type="integerRange" optional="true" />
 		</model>
 
@@ -82,27 +86,29 @@
 		</model>
 
 		<model id="property" model="data"
-			bindingClass="uk.co.strangeskies.modabi.schema.node.PropertyNode"
-			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.PropertyNodeBuilder">
+			bindingClass="uk.co.strangeskies.modabi.schema.node.propertyNode"
+			factoryClass="uk.co.strangeskies.modabi.schema.node.builder.propertyNodeBuilder">
 			<property id="id" />
 		</model>
 	</models>
 
 	<root id="modelSchema" bindingClass="uk.co.strangeskies.modabi.schema.SchemaGraph"
 		factoryClass="uk.co.strangeskies.modabi.schema.SchemaGraphBuilder">
-		<element id="includes" occurences="0..1">
-			<element model="include" occurences="0.." />
-		</element>
+		<property id="xmlns" />
 
-		<element id="types" occurences="0..1">
-			<element id="type" model="type" occurences="0.." outIterator="getTypes" />
-		</element>
+		<binding id="includes" occurences="0..1">
+			<binding model="include" occurences="0.." />
+		</binding>
 
-		<element id="models" occurences="0..1">
-			<element id="model" model="model" occurences="0.." />
-		</element>
+		<binding id="types" occurences="0..1">
+			<binding id="type" model="type" occurences="0.." outIterator="getTypes" />
+		</binding>
 
-		<element id="root" model="model" occurences="0..1" />
+		<binding id="models" occurences="0..1">
+			<binding id="model" model="model" occurences="0.." />
+		</binding>
+
+		<binding id="root" model="model" occurences="0..1" />
 	</root>
 
 </modelSchema>
