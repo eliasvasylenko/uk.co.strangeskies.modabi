@@ -1,6 +1,6 @@
-package uk.co.strangeskies.modabi.schema.node.builder;
+package uk.co.strangeskies.modabi.node.builder;
 
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface SchemaNodeBuilderFactory {
 	public BindingNodeBuilder<Object, SchemaProcessingContext<?>> element();

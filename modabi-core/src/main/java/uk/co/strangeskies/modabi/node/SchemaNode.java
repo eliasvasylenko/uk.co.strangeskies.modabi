@@ -1,6 +1,6 @@
-package uk.co.strangeskies.modabi.schema.node;
+package uk.co.strangeskies.modabi.node;
 
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface SchemaNode<T extends SchemaProcessingContext<? extends T>> {
 	public void process(T context);

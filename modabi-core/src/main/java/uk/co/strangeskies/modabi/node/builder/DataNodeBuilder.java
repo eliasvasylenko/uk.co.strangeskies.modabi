@@ -1,8 +1,8 @@
-package uk.co.strangeskies.modabi.schema.node.builder;
+package uk.co.strangeskies.modabi.node.builder;
 
-import uk.co.strangeskies.modabi.schema.data.DataType;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.node.DataNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface DataNodeBuilder<T> extends
 		SchemaNodeBuilder<DataNode<T>, SchemaProcessingContext<?>> {

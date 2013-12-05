@@ -1,10 +1,10 @@
-package uk.co.strangeskies.modabi.schema.node.impl;
+package uk.co.strangeskies.modabi.node.impl;
 
 import java.util.Collection;
 
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.node.SchemaNode;
+import uk.co.strangeskies.modabi.node.SequenceNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SequenceNodeImpl<T extends SchemaProcessingContext<T>> extends
 		BranchingNodeImpl<T> implements SequenceNode<T> {

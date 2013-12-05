@@ -1,15 +1,15 @@
-package uk.co.strangeskies.modabi.schema.node.builder.impl;
+package uk.co.strangeskies.modabi.node.builder.impl;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.impl.BindingNodeImpl;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.node.BindingNode;
+import uk.co.strangeskies.modabi.node.SchemaNode;
+import uk.co.strangeskies.modabi.node.builder.BindingNodeBuilder;
+import uk.co.strangeskies.modabi.node.impl.BindingNodeImpl;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class ElementSchemaNodeBuilderImpl<T, U extends SchemaProcessingContext<? extends U>>
 		implements BindingNodeBuilder<T, U> {

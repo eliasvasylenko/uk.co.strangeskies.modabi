@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.data;
+package uk.co.strangeskies.modabi.data;
 
 public interface DataProcessingContext<E extends > {
 	void processChild(String name);

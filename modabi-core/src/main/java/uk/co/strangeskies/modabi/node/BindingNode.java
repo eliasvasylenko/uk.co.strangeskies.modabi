@@ -1,7 +1,7 @@
-package uk.co.strangeskies.modabi.schema.node;
+package uk.co.strangeskies.modabi.node;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface BindingNode<T, U extends SchemaProcessingContext<? extends U>>
 		extends BranchingNode<U> {

@@ -1,19 +1,19 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.processing.impl;
 
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.data.DataInput;
-import uk.co.strangeskies.modabi.schema.data.DataOutput;
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.BranchingNode;
-import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.PropertyNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.processing.SchamaBinder;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.data.DataInput;
+import uk.co.strangeskies.modabi.data.DataOutput;
+import uk.co.strangeskies.modabi.node.BindingNode;
+import uk.co.strangeskies.modabi.node.BranchingNode;
+import uk.co.strangeskies.modabi.node.ChoiceNode;
+import uk.co.strangeskies.modabi.node.DataNode;
+import uk.co.strangeskies.modabi.node.PropertyNode;
+import uk.co.strangeskies.modabi.node.SchemaNode;
+import uk.co.strangeskies.modabi.node.SequenceNode;
+import uk.co.strangeskies.modabi.processing.SchemaBinder;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 class SchemaLoadingContext implements
 		SchemaProcessingContext<SchemaLoadingContext> {
@@ -104,7 +104,7 @@ class SchemaSavingContext implements
 }
 
 public class SchemaBinderImpl implements
-		SchamaBinder<SchemaProcessingContext<?>> {
+		SchemaBinder<SchemaProcessingContext<?>> {
 	@Override
 	public <T> T processInput(
 			Schema<T, ? super SchemaProcessingContext<?>> schema, DataInput input) {

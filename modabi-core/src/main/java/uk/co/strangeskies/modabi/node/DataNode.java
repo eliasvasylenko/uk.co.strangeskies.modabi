@@ -1,7 +1,7 @@
-package uk.co.strangeskies.modabi.schema.node;
+package uk.co.strangeskies.modabi.node;
 
-import uk.co.strangeskies.modabi.schema.data.DataType;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface DataNode<T> extends InputNode<SchemaProcessingContext<?>> {
 	public DataType<T> getType();

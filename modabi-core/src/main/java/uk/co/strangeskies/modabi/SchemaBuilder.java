@@ -1,11 +1,11 @@
-package uk.co.strangeskies.modabi.schema;
+package uk.co.strangeskies.modabi;
 
 import java.util.Collection;
 
 import uk.co.strangeskies.gears.utilities.Factory;
-import uk.co.strangeskies.modabi.schema.data.DataType;
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.node.BindingNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface SchemaBuilder<T, U extends SchemaProcessingContext<U>>
 		extends Factory<Schema<T, U>> {

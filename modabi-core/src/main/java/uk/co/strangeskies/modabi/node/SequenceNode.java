@@ -1,6 +1,6 @@
-package uk.co.strangeskies.modabi.schema.node;
+package uk.co.strangeskies.modabi.node;
 
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface SequenceNode<T extends SchemaProcessingContext<? extends T>>
 		extends BranchingNode<T> {

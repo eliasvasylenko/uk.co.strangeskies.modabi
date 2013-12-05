@@ -1,29 +1,29 @@
-package uk.co.strangeskies.modabi.schema.impl;
+package uk.co.strangeskies.modabi.impl;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.schema.MetaSchemaFactory;
-import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.SchemaBuilder;
-import uk.co.strangeskies.modabi.schema.data.DataType;
-import uk.co.strangeskies.modabi.schema.data.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.data.impl.DataTypeBuilderImpl;
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.BranchingNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.PropertyNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.BranchNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.BranchingNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.PropertyNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.SchemaNodeBuilderFactory;
-import uk.co.strangeskies.modabi.schema.node.builder.impl.SchemaNodeBuilderFactoryImpl;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.MetaSchemaFactory;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.DataTypeBuilder;
+import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
+import uk.co.strangeskies.modabi.node.BindingNode;
+import uk.co.strangeskies.modabi.node.BranchingNode;
+import uk.co.strangeskies.modabi.node.DataNode;
+import uk.co.strangeskies.modabi.node.PropertyNode;
+import uk.co.strangeskies.modabi.node.SchemaNode;
+import uk.co.strangeskies.modabi.node.SequenceNode;
+import uk.co.strangeskies.modabi.node.builder.BindingNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.BranchNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.BranchingNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.DataNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.PropertyNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.SchemaNodeBuilderFactory;
+import uk.co.strangeskies.modabi.node.builder.impl.SchemaNodeBuilderFactoryImpl;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class MetaSchemaFactoryImpl implements
 		MetaSchemaFactory<SchemaProcessingContext<?>, SchemaProcessingContext<?>> {

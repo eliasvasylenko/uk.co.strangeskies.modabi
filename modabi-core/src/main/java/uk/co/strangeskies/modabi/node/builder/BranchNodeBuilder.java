@@ -1,7 +1,7 @@
-package uk.co.strangeskies.modabi.schema.node.builder;
+package uk.co.strangeskies.modabi.node.builder;
 
-import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.node.SequenceNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public interface BranchNodeBuilder<U extends SchemaProcessingContext<? extends U>>
 		extends

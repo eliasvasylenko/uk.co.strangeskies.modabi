@@ -1,11 +1,11 @@
-package uk.co.strangeskies.modabi.schema.node.builder.impl;
+package uk.co.strangeskies.modabi.node.builder.impl;
 
-import uk.co.strangeskies.modabi.schema.node.builder.BranchNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.DataNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.BindingNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.PropertyNodeBuilder;
-import uk.co.strangeskies.modabi.schema.node.builder.SchemaNodeBuilderFactory;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.node.builder.BindingNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.BranchNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.DataNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.PropertyNodeBuilder;
+import uk.co.strangeskies.modabi.node.builder.SchemaNodeBuilderFactory;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SchemaNodeBuilderFactoryImpl implements SchemaNodeBuilderFactory {
 	@Override

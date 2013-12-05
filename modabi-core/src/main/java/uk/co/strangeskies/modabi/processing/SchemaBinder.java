@@ -1,12 +1,18 @@
-package uk.co.strangeskies.modabi.schema.processing;
+package uk.co.strangeskies.modabi.processing;
 
-import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.data.DataInput;
-import uk.co.strangeskies.modabi.schema.data.DataOutput;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.data.DataInput;
+import uk.co.strangeskies.modabi.data.DataOutput;
 
-public interface SchamaBinder<U extends SchemaProcessingContext<? extends U>> {
+public interface SchemaBinder<U extends SchemaProcessingContext<? extends U>> {
+	public void registerSchema(Schema<?, ? super U> schema);
+
 	public <T> T processInput(Schema<T, ? super U> schema, DataInput input);
+
+	public Object processInput(DataInput input);
 
 	public <T> void processOutput(T data, Schema<T, ? super U> schema,
 			DataOutput output);
+
+	public void processOutput(Object data, DataOutput output);
 }

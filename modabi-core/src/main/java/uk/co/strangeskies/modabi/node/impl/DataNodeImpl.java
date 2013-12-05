@@ -1,8 +1,8 @@
-package uk.co.strangeskies.modabi.schema.node.impl;
+package uk.co.strangeskies.modabi.node.impl;
 
-import uk.co.strangeskies.modabi.schema.data.DataType;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.node.DataNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class DataNodeImpl<T> implements DataNode<T> {
 	private final DataType<T> type;

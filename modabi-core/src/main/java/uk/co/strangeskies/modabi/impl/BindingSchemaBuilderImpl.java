@@ -1,12 +1,12 @@
-package uk.co.strangeskies.modabi.schema.impl;
+package uk.co.strangeskies.modabi.impl;
 
 import java.util.Collection;
 
-import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.SchemaBuilder;
-import uk.co.strangeskies.modabi.schema.data.DataType;
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.node.BindingNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class BindingSchemaBuilderImpl<T, U extends SchemaProcessingContext<U>>
 		implements SchemaBuilder<T, U> {

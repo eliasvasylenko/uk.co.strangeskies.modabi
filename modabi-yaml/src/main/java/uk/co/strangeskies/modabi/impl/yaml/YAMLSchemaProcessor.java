@@ -5,10 +5,10 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.processing.SchamaBinder;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.processing.SchemaBinder;
 
-public class YAMLSchemaProcessor implements SchamaBinder {
+public class YAMLSchemaProcessor implements SchemaBinder {
 	@Override
 	public String getFormatName() {
 		return "YAML";
