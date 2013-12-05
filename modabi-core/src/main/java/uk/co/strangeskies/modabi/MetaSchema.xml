@@ -1,19 +1,30 @@
 <?xml version="1.1"?>
-<modelSchema schemans="modabi.strangeskies.co.uk" xmlns="modabi.strangeskies.co.uk">
+<modelSchema xmlns="modabi.strangeskies.co.uk" schemans="modabi.strangeskies.co.uk">
 
-	<types>
-		<type id="integer" dataClass="java.math.BigInteger"></type>
-		<type id="int" dataClass="java.lang.Integer"></type>
-		<type id="double" dataClass="java.lang.Double"></type>
-		<type id="boolean" dataClass="java.lang.Boolean"></type>
-	</types>
+	<root id="modelSchema" bindingClass=".SchemaGraph" builderClass="SchemaGraphBuilder">
+		<property id="xmlns" optional="true" /> <!-- The namespace this schema belongs to. -->
+
+		<binding id="root" model="model" occurences="1" />
+
+		<binding id="includes" occurences="0..1">
+			<binding model="include" bindingClass=".SchemaGraph"
+				occurences="0.." />
+		</binding>
+
+		<binding id="types" occurences="0..1">
+			<binding id="type" model="type" occurences="0.." outIterator="getTypes" />
+		</binding>
+
+		<binding id="models" occurences="0..1">
+			<binding id="model" model="model" occurences="0.." />
+		</binding>
+	</root>
+
+	<includes>
+		<include id="baseSchema" />
+	</includes>
 
 	<models>
-		<model id="include" builderClass=".processing.SchemaBinder">
-			<property id="ns" optional="true" />
-			<property id="id" />
-		</model>
-
 		<model id="type" bindingClass=".node.data.DataType">
 			<property id="id" />
 			<property id="dataClass" type="class" />
@@ -36,7 +47,8 @@
 		</model>
 
 		<model id="branch" model="node" bindingClass=".node.BranchingNode">
-			<binding id="child" inMethod="addChild" model="node" occurences="0.." />
+			<binding id="child" inMethod="addChild" model="node"
+				occurences="0.." />
 		</model>
 
 		<model id="choice" model="branch, input" bindingClass=".node.choiceNode"
@@ -68,8 +80,8 @@
 			<property id="occurances" type="integerRange" optional="true" />
 		</model>
 
-		<model id="data" model="node, input" abstract="false" bindingClass=".node.DataNode"
-			builderClass="node.builder.DataNodeBuilder">
+		<model id="data" model="node, input" abstract="false"
+			bindingClass=".node.DataNode" builderClass="node.builder.DataNodeBuilder">
 			<property id="type" />
 			<property id="optional" optional="true" type="boolean" />
 			<data optional="true" />
@@ -80,23 +92,5 @@
 			<property id="id" />
 		</model>
 	</models>
-
-	<root id="modelSchema" bindingClass=".SchemaGraph" builderClass="SchemaGraphBuilder">
-		<property id="xmlns" />
-
-		<binding id="includes" occurences="0..1">
-			<binding model="include" occurences="0.." />
-		</binding>
-
-		<binding id="types" occurences="0..1">
-			<binding id="type" model="type" occurences="0.." outIterator="getTypes" />
-		</binding>
-
-		<binding id="models" occurences="0..1">
-			<binding id="model" model="model" occurences="0.." />
-		</binding>
-
-		<binding id="root" model="model" occurences="0..1" />
-	</root>
 
 </modelSchema>

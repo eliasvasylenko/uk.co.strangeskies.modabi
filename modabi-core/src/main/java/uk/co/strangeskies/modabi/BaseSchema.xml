@@ -1,0 +1,20 @@
+<?xml version="1.1"?>
+<modelSchema xmlns="modabi.strangeskies.co.uk" schemans="modabi.strangeskies.co.uk">
+
+	<root id="baseSchema" abstract="true" />
+
+	<types>
+		<type id="integer" dataClass="java.math.BigInteger"></type>
+		<type id="int" dataClass="java.lang.Integer"></type>
+		<type id="double" dataClass="java.lang.Double"></type>
+		<type id="boolean" dataClass="java.lang.Boolean"></type>
+	</types>
+
+	<models>
+		<model id="include" builderClass=".processing.SchemaBinder">
+			<property id="ns" optional="true" />
+			<property id="id" />
+		</model>
+	</models>
+
+</modelSchema>
