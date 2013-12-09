@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.node;
 
+import java.lang.reflect.Method;
+
 import uk.co.strangeskies.gears.mathematics.Range;
 
 public interface BindingNode<T> extends BranchingNode {
@@ -13,7 +15,7 @@ public interface BindingNode<T> extends BranchingNode {
 
 	public Class<?> getBuilderClass();
 
-	public String getOutMethod();
+	public Method getOutMethod();
 
 	public boolean isIterable();
 
@@ -26,5 +28,5 @@ public interface BindingNode<T> extends BranchingNode {
 	 * 
 	 * @return
 	 */
-	public String getBuildMethod();
+	public Method getBuildMethod();
 }
