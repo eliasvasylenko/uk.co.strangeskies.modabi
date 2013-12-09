@@ -7,17 +7,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import uk.co.strangeskies.gears.mathematics.functions.Function;
+import uk.co.strangeskies.gears.mathematics.functions.collections.ListTransformationFunction;
 import uk.co.strangeskies.gears.utilities.collections.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collections.SetMultiMap;
 import uk.co.strangeskies.modabi.BaseSchemaFactory;
 import uk.co.strangeskies.modabi.MetaSchemaFactory;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.data.DataInput;
+import uk.co.strangeskies.modabi.data.DataInputBuffer;
 import uk.co.strangeskies.modabi.data.DataOutput;
+import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
 import uk.co.strangeskies.modabi.node.BindingNode;
 import uk.co.strangeskies.modabi.node.BranchingNode;
 import uk.co.strangeskies.modabi.node.ChoiceNode;
 import uk.co.strangeskies.modabi.node.DataNode;
+import uk.co.strangeskies.modabi.node.InputNode;
 import uk.co.strangeskies.modabi.node.PropertyNode;
 import uk.co.strangeskies.modabi.node.SchemaNode;
 import uk.co.strangeskies.modabi.node.SequenceNode;
@@ -49,7 +54,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			}
 		}
 
-		protected <T> void save() {
+		protected void save() {
 			schema.getRoot();
 		}
 
@@ -83,19 +88,21 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	private class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		private final Schema<T> schema;
-		private final DataInput input;
+		private final DataInputBuffer input;
 		private final Deque<Object> bindingStack;
 
-		public SchemaLoadingContext(DataInput input) {
-			schema = null;
-			this.input = input;
+		public SchemaLoadingContext() {
 			bindingStack = new ArrayDeque<>();
+		}
+
+		public SchemaLoadingContext(DataInput input) {
+			this();
+			this.input = new DataInputBufferImpl(input);
 		}
 
 		public SchemaLoadingContext(Schema<T> schema, DataInput input) {
 			this.schema = schema;
-			this.input = input;
-			bindingStack = new ArrayDeque<>();
+			this.input = new DataInputBufferImpl(input);
 		}
 
 		protected T load() {
@@ -106,13 +113,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(DataNode<U> node) {
-
+			invokeInMethod(node, input.getData(node.getType()));
 		}
 
 		@Override
 		public <U> void accept(PropertyNode<U> node) {
-			// TODO Auto-generated method stub
-
+			invokeInMethod(node, input.getProperty(node.getName(), node.getType()));
 		}
 
 		@Override
@@ -126,6 +132,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		public <U> U bind(BindingNode<U> node) {
+			String name = input.nextChild();
+			String namespace = input.getProperty("xmlns", null);
+
 			bindingStack.push(provideInstance(node.getBuilderClass()));
 			processChildren(node);
 			@SuppressWarnings("unchecked")
@@ -135,12 +144,23 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(BindingNode<U> node) {
-			U boundObject = bind(node);
+			invokeInMethod(node, bind(node));
+		}
 
+		private void invokeInMethod(InputNode node, Object... parameters) {
 			try {
-				Object object = bindingStack.peek().getClass()
-						.getMethod(node.getInMethod(), node.getBindingClass())
-						.invoke(bindingStack.peek(), boundObject);
+				Object object = bindingStack
+						.peek()
+						.getClass()
+						.getMethod(
+								node.getInMethod(),
+								ListTransformationFunction.<Class<?>, Object> applyTo(
+										parameters, new Function<Class<?>, Object>() {
+											@Override
+											public Class<?> applyTo(Object input) {
+												return input.getClass();
+											}
+										})).invoke(bindingStack.peek(), parameters);
 				if (node.isInMethodChained()) {
 					bindingStack.pop();
 					bindingStack.push(object);
