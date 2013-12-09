@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.data;
 
-public interface DataProcessingContext<E extends > {
+public interface DataProcessingContext {
 	void processChild(String name);
 
 	void processProperty(String name);

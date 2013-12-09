@@ -6,40 +6,34 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.node.BindingNode;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public class BindingSchemaBuilderImpl<T, U extends SchemaProcessingContext<U>>
-		implements SchemaBuilder<T, U> {
+public class SchemaBuilderImpl<T> implements SchemaBuilder<T> {
 	@Override
-	public Schema<T, U> create() {
+	public Schema<T> create() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public SchemaBuilder<T, U> includes(
-			Collection<? extends Schema<?, ? super U>> includes) {
+	public SchemaBuilder<T> includes(Collection<? extends Schema<?>> includes) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public SchemaBuilder<T, U> types(
-			Collection<? extends DataType<?>> types) {
+	public SchemaBuilder<T> types(Collection<? extends DataType<?>> types) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public SchemaBuilder<T, U> models(
-			Collection<? extends BindingNode<?, ? super U>> models) {
+	public SchemaBuilder<T> models(Collection<? extends BindingNode<?>> models) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <V extends T> SchemaBuilder<V, U> root(
-			BindingNode<V, ? super U> rootNode) {
+	public <V extends T> SchemaBuilder<V> root(BindingNode<V> rootNode) {
 		// TODO Auto-generated method stub
 		return null;
 	}

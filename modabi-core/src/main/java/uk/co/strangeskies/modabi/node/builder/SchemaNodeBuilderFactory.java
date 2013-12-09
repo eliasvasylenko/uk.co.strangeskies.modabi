@@ -1,11 +1,9 @@
 package uk.co.strangeskies.modabi.node.builder;
 
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-
 public interface SchemaNodeBuilderFactory {
-	public BindingNodeBuilder<Object, SchemaProcessingContext<?>> element();
+	public BindingNodeBuilder<Object> element();
 
-	public BranchNodeBuilder<SchemaProcessingContext<?>> branch();
+	public BranchNodeBuilder branch();
 
 	public DataNodeBuilder<Object> data();
 

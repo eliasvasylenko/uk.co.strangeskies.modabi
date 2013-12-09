@@ -6,15 +6,14 @@ import uk.co.strangeskies.modabi.node.SchemaNode;
 import uk.co.strangeskies.modabi.node.SequenceNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public class SequenceNodeImpl<T extends SchemaProcessingContext<T>> extends
-		BranchingNodeImpl<T> implements SequenceNode<T> {
-	public SequenceNodeImpl(Collection<? extends SchemaNode<? super T>> children,
+public class SequenceNodeImpl extends BranchingNodeImpl implements SequenceNode {
+	public SequenceNodeImpl(Collection<? extends SchemaNode> children,
 			String inMethod, boolean inMethodChained) {
 		super(children, inMethod, inMethodChained);
 	}
 
 	@Override
-	public void process(T context) {
+	public void process(SchemaProcessingContext context) {
 		context.accept(this);
 	}
 }

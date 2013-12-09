@@ -1,14 +1,14 @@
 <?xml version="1.1"?>
 <modelSchema xmlns="modabi.strangeskies.co.uk" schemans="modabi.strangeskies.co.uk">
 
-	<root id="modelSchema" bindingClass=".SchemaGraph" builderClass="SchemaGraphBuilder">
-		<property id="xmlns" optional="true" /> <!-- The namespace this schema belongs to. -->
+	<root id="modelSchema" bindingClass=".SchemaGraph" builderClass=".SchemaGraphBuilder">
+		<property id="xmlns" inMethod="namespace" outMethod="getNamespace"
+			optional="true" /> <!-- The namespace this schema belongs to. -->
 
 		<binding id="root" model="model" occurences="1" />
 
-		<binding id="includes" occurences="0..1">
-			<binding model="include" bindingClass=".SchemaGraph"
-				occurences="0.." />
+		<binding id="dependencies" occurences="0..1">
+			<binding model="dependency" bindingClass=".SchemaGraph" occurences="0.." />
 		</binding>
 
 		<binding id="types" occurences="0..1">
@@ -20,9 +20,9 @@
 		</binding>
 	</root>
 
-	<includes>
-		<include id="baseSchema" />
-	</includes>
+	<dependencies>
+		<dependency id="baseSchema" />
+	</dependencies>
 
 	<models>
 		<model id="type" bindingClass=".node.data.DataType">
@@ -47,8 +47,7 @@
 		</model>
 
 		<model id="branch" model="node" bindingClass=".node.BranchingNode">
-			<binding id="child" inMethod="addChild" model="node"
-				occurences="0.." />
+			<binding id="child" inMethod="addChild" model="node" occurences="0.." />
 		</model>
 
 		<model id="choice" model="branch, input" bindingClass=".node.choiceNode"
@@ -80,8 +79,8 @@
 			<property id="occurances" type="integerRange" optional="true" />
 		</model>
 
-		<model id="data" model="node, input" abstract="false"
-			bindingClass=".node.DataNode" builderClass="node.builder.DataNodeBuilder">
+		<model id="data" model="node, input" abstract="false" bindingClass=".node.DataNode"
+			builderClass="node.builder.DataNodeBuilder">
 			<property id="type" />
 			<property id="optional" optional="true" type="boolean" />
 			<data optional="true" />

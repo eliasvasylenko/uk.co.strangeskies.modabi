@@ -6,25 +6,22 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.node.BranchingNode;
 import uk.co.strangeskies.modabi.node.SchemaNode;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public abstract class BranchingNodeImpl<T extends SchemaProcessingContext<? extends T>>
-		implements BranchingNode<T> {
-	private final List<SchemaNode<? super T>> children;
+public abstract class BranchingNodeImpl implements BranchingNode {
+	private final List<SchemaNode> children;
 
 	private final String inMethod;
 	private final boolean inMethodChained;
 
-	public BranchingNodeImpl(
-			Collection<? extends SchemaNode<? super T>> children, String inMethod,
-			boolean inMethodChained) {
+	public BranchingNodeImpl(Collection<? extends SchemaNode> children,
+			String inMethod, boolean inMethodChained) {
 		this.children = new ArrayList<>(children);
 		this.inMethod = inMethod;
 		this.inMethodChained = inMethodChained;
 	}
 
 	@Override
-	public List<SchemaNode<? super T>> getChildren() {
+	public List<SchemaNode> getChildren() {
 		return children;
 	}
 

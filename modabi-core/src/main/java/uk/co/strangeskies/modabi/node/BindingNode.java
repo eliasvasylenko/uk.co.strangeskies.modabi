@@ -1,13 +1,11 @@
 package uk.co.strangeskies.modabi.node;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public interface BindingNode<T, U extends SchemaProcessingContext<? extends U>>
-		extends BranchingNode<U> {
+public interface BindingNode<T> extends BranchingNode {
 	public String getName();
 
-	public BindingNode<? super T, ? super U> getBase();
+	public BindingNode<? super T> getBase();
 
 	public Range<Integer> getOccurances();
 

@@ -6,14 +6,14 @@ import uk.co.strangeskies.modabi.node.DataNode;
 import uk.co.strangeskies.modabi.node.PropertyNode;
 import uk.co.strangeskies.modabi.node.SequenceNode;
 
-public interface SchemaProcessingContext<T extends SchemaProcessingContext<T>> {
-	public void accept(DataNode<?> node);
+public interface SchemaProcessingContext {
+	public <T> void accept(DataNode<T> node);
 
-	public void accept(PropertyNode<?> node);
+	public <T> void accept(PropertyNode<T> node);
 
-	public void accept(ChoiceNode<? super T> node);
+	public void accept(ChoiceNode node);
 
-	public void accept(SequenceNode<? super T> node);
+	public void accept(SequenceNode node);
 
-	public void accept(BindingNode<?, ? super T> node);
+	public <T> void accept(BindingNode<T> node);
 }

@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.node.BindingNode;
 import uk.co.strangeskies.modabi.node.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public class BindingNodeImpl<T, U extends SchemaProcessingContext<? extends U>>
-		extends BranchingNodeImpl<U> implements BindingNode<T, U> {
+public class BindingNodeImpl<T> extends BranchingNodeImpl implements
+		BindingNode<T> {
 	private final boolean iterable;
 	private final String buildMethod;
 	private final String outMethod;
@@ -16,13 +16,13 @@ public class BindingNodeImpl<T, U extends SchemaProcessingContext<? extends U>>
 	private final Class<T> dataClass;
 	private final Range<Integer> occurances;
 	private final String name;
-	private final BindingNode<? super T, ? super U> base;
+	private final BindingNode<? super T> base;
 
-	public BindingNodeImpl(String name, BindingNode<? super T, ? super U> base,
-			Collection<? extends SchemaNode<? super U>> children,
-			Range<Integer> occurances, Class<T> dataClass, Class<?> buildClass,
-			String inMethod, boolean inMethodChained, String buildMethod,
-			boolean iterable, String outMethod) {
+	public BindingNodeImpl(String name, BindingNode<? super T> base,
+			Collection<? extends SchemaNode> children, Range<Integer> occurances,
+			Class<T> dataClass, Class<?> buildClass, String inMethod,
+			boolean inMethodChained, String buildMethod, boolean iterable,
+			String outMethod) {
 		super(children, inMethod, inMethodChained);
 
 		this.name = name;
@@ -78,12 +78,12 @@ public class BindingNodeImpl<T, U extends SchemaProcessingContext<? extends U>>
 	}
 
 	@Override
-	public BindingNode<? super T, ? super U> getBase() {
+	public BindingNode<? super T> getBase() {
 		return base;
 	}
 
 	@Override
-	public void process(U context) {
+	public void process(SchemaProcessingContext context) {
 		context.accept(this);
 	}
 }

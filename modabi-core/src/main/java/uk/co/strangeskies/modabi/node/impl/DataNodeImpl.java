@@ -26,7 +26,7 @@ public class DataNodeImpl<T> implements DataNode<T> {
 	}
 
 	@Override
-	public void process(SchemaProcessingContext<?> context) {
+	public void process(SchemaProcessingContext context) {
 		context.accept(this);
 	}
 

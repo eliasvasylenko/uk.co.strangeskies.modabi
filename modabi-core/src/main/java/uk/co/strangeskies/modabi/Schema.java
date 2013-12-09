@@ -2,11 +2,18 @@ package uk.co.strangeskies.modabi;
 
 import java.util.Set;
 
+import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.node.BindingNode;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.QualifiedName;
 
-public interface Schema<T, U extends SchemaProcessingContext<? extends U>> {
-	public Set<BindingNode<?, ? super U>> getModelSet();
+public interface Schema<T> {
+	public QualifiedName getQualifiedName();
 
-	public BindingNode<T, ? super U> getRoot();
+	public Set<Schema<?>> getDependencies();
+
+	public Set<DataType<?>> getTypeSet();
+
+	public Set<BindingNode<?>> getModelSet();
+
+	public BindingNode<T> getRoot();
 }
