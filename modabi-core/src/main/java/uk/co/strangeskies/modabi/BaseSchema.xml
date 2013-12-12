@@ -4,16 +4,46 @@
 	<root id="baseSchema" abstract="true" />
 
 	<types>
-		<type id="integer" dataClass="java.math.BigInteger"></type>
-		<type id="int" dataClass="java.lang.Integer"></type>
-		<type id="double" dataClass="java.lang.Double"></type>
-		<type id="boolean" dataClass="java.lang.Boolean"></type>
+		<type name="data" dataClass=".data.DataSource" /> <!-- provided -->
+
+		<type name="dataType" dataClass=".data.DataType" source="data"></type>
+
+		<type name="string" dataClass="java.lang.String"></type>
+		<type name="integer" dataClass="java.math.BigInteger"></type>
+		<type name="int" dataClass="java.lang.Integer"></type>
+		<type name="double" dataClass="java.lang.Double"></type>
+		<type name="boolean" dataClass="java.lang.Boolean"></type>
+
+		<type name="list" dataClass="java.util.List">
+			<requiredProperties>
+				<choice>
+					<sequence>
+						<property id="elementType">string</property>
+						<property id="spacer" optional="true" />
+					</sequence>
+					<property id="elementType" />
+				</choice>
+			</requiredProperties>
+		</type>
+		<type name="set" dataClass="java.util.Set">
+			<requiredProperties>
+				<property id="elementType" />
+			</requiredProperties>
+		</type>
 	</types>
 
 	<models>
 		<model id="include" builderClass=".processing.SchemaBinder">
 			<property id="ns" optional="true" />
 			<property id="id" />
+		</model>
+
+		<model id="map" occurences="0..1" class="java.util.Map" abstract="true">
+			<element id="element" occurences="1.." in="put" isIterableOut="true"
+				out="elementSet">
+				<data id="key" out="key" />
+				<data id="value" out="value" />
+			</element>
 		</model>
 	</models>
 

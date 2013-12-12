@@ -1,0 +1,33 @@
+<?xml version="1.1"?>
+<modelSchema xmlns="modabi.strangeskies.co.uk" schemans="modabi.strangeskies.co.uk">
+
+	<models>
+		<model id="stringMap" model="map" abstract="false">
+			<element id="element">
+				<simpleElement id="key" type="string" />
+				<simpleElement id="value" type="string" />
+			</element>
+		</model>
+		<!-- <stringMap> <element> <key>something</key> <value>a value</value> </element> 
+			<element> <key>another thing</key> <value>a value</value> </element> </stringMap> -->
+
+		<model id="stringMap2" model="map" abstract="false">
+			<element id="element">
+				<property id="key" type="string" />
+				<property id="value" type="string" />
+			</element>
+		</model>
+		<!-- <stringMap2> <element key="A" value="somethingelse" /> <element key="B" 
+			value="somethingelse" /> </stringMap2> -->
+
+		<model id="mixedMap" model="map" abstract="false">
+			<element id="element" name="entry">
+				<property id="key" type="string" />
+				<simpleElement id="value" type="string" />
+			</element>
+		</model>
+		<!-- <mixedMap> <entry key="first key">some value</entry> <entry key="second 
+			key">some other value</entry> </mixedMap> -->
+	</models>
+
+</modelSchema>

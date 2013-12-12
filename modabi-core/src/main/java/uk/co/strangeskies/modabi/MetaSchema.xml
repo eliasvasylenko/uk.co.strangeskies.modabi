@@ -1,39 +1,46 @@
 <?xml version="1.1"?>
-<modelSchema xmlns="modabi.strangeskies.co.uk" namespace="modabi.strangeskies.co.uk">
-
-	<root id="modelSchema" bindingClass=".SchemaGraph" builderClass=".SchemaGraphBuilder">
-		<property id="namespace" inMethod="namespace" outMethod="getNamespace"
-			optional="true" /> <!-- The namespace this schema belongs to. -->
-
-		<binding id="root" model="model" occurences="1" />
-
-		<binding id="dependencies" occurences="0..1">
-			<binding model="dependency" bindingClass=".SchemaGraph" occurences="0.." />
-		</binding>
-
-		<binding id="types" occurences="0..1">
-			<binding id="type" model="type" occurences="0.." outIterator="getTypes" />
-		</binding>
-
-		<binding id="models" occurences="0..1">
-			<binding id="model" model="model" occurences="0.." />
-		</binding>
-	</root>
+<modelSchema xmlns="modabi.strangeskies.co.uk">
 
 	<dependencies>
 		<dependency id="baseSchema" namespace="modabi.strangeskies.co.uk" />
 	</dependencies>
 
 	<models>
-		<model id="type" bindingClass=".node.data.DataType">
-			<property id="id" />
-			<property id="dataClass" type="class" />
-			<choice>
+		<model id="modelSchema" bindingClass=".SchemaGraph" builderClass=".SchemaGraphBuilder">
+			<!-- The namespace this schema belongs to. (Assumed default namespace if omitted.) -->
+			<property id="namespace" inMethod="namespace" outMethod="getNamespace"
+				optional="true" />
 
-			</choice>
+			<!-- The namespace of the schema to which this data belongs. (Assumed default 
+				namespace if omitted.) -->
+			<property id="schemaNamespace" inMethod="schemaNamespace"
+				outMethod="getSchemaNamespace" optional="true" />
+
+			<element id="dependencies" occurences="0..1">
+				<element model="dependency" bindingClass=".SchemaGraph"
+					occurences="0.." />
+			</element>
+
+			<element id="types" occurences="0..1">
+				<element id="type" model="type" occurences="0.." outIterator="getTypes" />
+			</element>
+
+			<element id="models" occurences="0..1">
+				<element id="model" model="model" occurences="0.." abstract="false" />
+			</element>
 		</model>
 
-		<model id="node" bindingClass=".node.SchemaNode" abstract="true" />
+		<model id="type" bindingClass=".node.data.DataType">
+			<property id="name" />
+			<property id="dataClass" type="class" />
+			<element id="requiredProperties" occurances="0..1">
+				<element id="property" model="property" occurances="0.." />
+			</element>
+		</model>
+
+		<model id="node" bindingClass=".node.SchemaNode" abstract="true">
+			<property id="id" optional="true" />
+		</model>
 
 		<model id="input" model="node" bindingClass=".node.InputNode">
 			<property id="inMethod" optional="true" />
@@ -43,17 +50,18 @@
 
 		<model id="output" model="node" bindingClass=".node.OutputNode">
 			<property id="outMethod" optional="true" />
-			<property id="iterable" type="boolean" optional="true" />
+			<property id="isIterableOut" type="boolean" optional="true" />
 		</model>
 
 		<model id="branch" model="node" bindingClass=".node.BranchingNode">
-			<binding id="child" inMethod="addChild" model="node" occurences="0.." />
+			<element id="child" inMethod="addChild" outMethod="getChildren"
+				isIterableOut="true" model="node" occurences="0.." />
 		</model>
 
 		<model id="choice" model="branch, input" bindingClass=".node.choiceNode"
 			builderClass=".node.builder.choiceNodeBuilder" abstract="false">
 			<property id="mandatory" type="boolean" />
-			<binding id="child" occurences="2.." />
+			<element id="child" occurences="2.." />
 		</model>
 
 		<model id="sequence" model="branch, input" bindingClass=".node.SequenceNode"
@@ -62,7 +70,7 @@
 
 		<model id="model" model="branch" bindingClass=".node.BindingNode"
 			builderClass=".node.builder.BindingNodeBuilder">
-			<property id="id" />
+			<property id="id" optional="false" />
 			<property id="abstract" type="boolean" />
 			<property id="model" type="reference" optional="true" />
 			<property id="bindingClass" type="class" optional="true" />
@@ -75,20 +83,32 @@
 			</choice>
 		</model>
 
-		<model id="binding" model="model, input, output" abstract="false">
+		<model id="repeatable" model="node">
 			<property id="occurances" type="integerRange" optional="true" />
 		</model>
 
-		<model id="data" model="node, input" abstract="false" bindingClass=".node.DataNode"
-			builderClass="node.builder.DataNodeBuilder">
-			<property id="type" />
-			<property id="optional" optional="true" type="boolean" />
-			<data optional="true" />
+		<model id="data" model="node, input, output" />
+
+		<model id="element" model="model, data repeatable" abstract="false" />
+
+		<model id="typedData" model="data">
+			<property id="type" type="dataType" />
+			<simpleElement id="value" type="data" />
 		</model>
 
-		<model id="property" model="data" bindingClass=".node.PropertyNode"
-			builderClass="node.builder.PropertyNodeBuilder">
-			<property id="id" />
+		<model id="simpleElement" model="typedData repeatable" abstract="false"
+			bindingClass=".node.DataNode" builderClass="node.builder.DataNodeBuilder">
+			<property id="id" optional="false" />
+		</model>
+
+		<model id="content" model="typedData" abstract="false" bindingClass=".node.DataNode"
+			builderClass="node.builder.DataNodeBuilder">
+			<property id="optional" optional="true" type="boolean" />
+		</model>
+
+		<model id="property" model="content" bindingClass=".node.PropertyNode"
+			builderClass="node.builder.PropertyNodeBuilder" abstract="false">
+			<property id="id" optional="false" />
 		</model>
 	</models>
 
