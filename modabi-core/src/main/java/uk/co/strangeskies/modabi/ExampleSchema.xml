@@ -17,8 +17,8 @@
 				<property id="value" type="string" />
 			</element>
 		</model>
-		<!-- <stringMap2> <element key="A" value="somethingelse" /> <element key="B" 
-			value="somethingelse" /> </stringMap2> -->
+		<!-- <stringMap2> <element key="A" value="something else" /> <element key="B" 
+			value="something else" /> </stringMap2> -->
 
 		<model id="mixedMap" model="map" abstract="false">
 			<element id="element" name="entry">

@@ -1,19 +1,15 @@
 package uk.co.strangeskies.modabi;
 
-import java.util.Set;
+import uk.co.strangeskies.modabi.data.DataTypes;
+import uk.co.strangeskies.modabi.model.Models;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
-import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.node.BindingNode;
-import uk.co.strangeskies.modabi.processing.QualifiedName;
-
-public interface Schema<T> {
+public interface Schema {
 	public QualifiedName getQualifiedName();
 
-	public Set<Schema<?>> getDependencies();
+	public Schemata getDependencies();
 
-	public Set<DataType<?>> getTypeSet();
+	public DataTypes getDataTypes();
 
-	public Set<BindingNode<?>> getModelSet();
-
-	public BindingNode<T> getRoot();
+	public Models getModels();
 }

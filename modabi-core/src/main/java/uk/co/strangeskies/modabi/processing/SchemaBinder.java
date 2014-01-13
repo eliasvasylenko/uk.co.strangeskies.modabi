@@ -1,15 +1,14 @@
 package uk.co.strangeskies.modabi.processing;
 
-import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.data.DataInput;
-import uk.co.strangeskies.modabi.data.DataOutput;
+import uk.co.strangeskies.modabi.data.StructuredDataInput;
+import uk.co.strangeskies.modabi.data.StructuredDataOutput;
+import uk.co.strangeskies.modabi.model.Binding;
+import uk.co.strangeskies.modabi.model.Model;
 
 public interface SchemaBinder {
-	public <T> T processInput(Schema<T> schema, DataInput input);
+	public Binding<?> processInput(StructuredDataInput input);
 
-	public Object processInput(DataInput input);
+	public <T> T processInput(Model<T> model, StructuredDataInput input);
 
-	public <T> void processOutput(T data, Schema<T> schema, DataOutput output);
-
-	public void processOutput(Object data, DataOutput output);
+	public <T> void processOutput(Model<T> model, StructuredDataOutput output, T data);
 }

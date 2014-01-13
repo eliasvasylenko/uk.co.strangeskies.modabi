@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.data.impl;
 
-import uk.co.strangeskies.modabi.data.DataInput;
+import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.DataInputBuffer;
 import uk.co.strangeskies.modabi.data.DataType;
 
 public class DataInputBufferImpl implements DataInputBuffer {
-	public DataInputBufferImpl(DataInput input) {
+	public DataInputBufferImpl(StructuredDataInput input) {
 
 	}
 

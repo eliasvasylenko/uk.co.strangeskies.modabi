@@ -1,13 +1,10 @@
 <?xml version="1.1"?>
-<modelSchema xmlns="modabi.strangeskies.co.uk" schemans="modabi.strangeskies.co.uk">
-
-	<root id="baseSchema" abstract="true" />
+<modelSchema xmlns="modabi.strangeskies.co.uk">
 
 	<types>
-		<type name="data" dataClass=".data.DataSource" /> <!-- provided -->
+		<type name="data" dataClass=".data.DataSource" abstract="true" /> <!-- provided -->
 
-		<type name="dataType" dataClass=".data.DataType" source="data"></type>
-
+		<type name="binary" dataClass="byte[]"></type>
 		<type name="string" dataClass="java.lang.String"></type>
 		<type name="integer" dataClass="java.math.BigInteger"></type>
 		<type name="int" dataClass="java.lang.Integer"></type>
@@ -15,20 +12,37 @@
 		<type name="boolean" dataClass="java.lang.Boolean"></type>
 
 		<type name="list" dataClass="java.util.List">
-			<requiredProperties>
-				<choice>
-					<sequence>
-						<property id="elementType">string</property>
-						<property id="spacer" optional="true" />
-					</sequence>
-					<property id="elementType" />
-				</choice>
-			</requiredProperties>
+			<properties>
+				<property id="elementType" type="string" />
+			</properties>
 		</type>
 		<type name="set" dataClass="java.util.Set">
-			<requiredProperties>
-				<property id="elementType" />
-			</requiredProperties>
+			<properties>
+				<property id="elementType" type="string" />
+			</properties>
+		</type>
+
+		<type name="class" dataClass="java.lang.Class"></type>
+		<type name="classes">
+			<baseType type="set" elementType="class" />
+		</type>
+		<type name="enum" dataClass="java.lang.Enum">
+			<baseType type="string" />
+			<properties>
+				<property id="enumClass" type="class" />
+			</properties>
+		</type>
+
+		<type name="reference" dataClass="java.lang.Object">
+			<properties>
+				<property id="targetDomain" type="qualifiedName" />
+				<property id="targetIdProperty" type="string" />
+				<property id="domain" type="qualifiedName" />
+			</properties>
+		</type>
+
+		<type name="softReference">
+			<baseType type="reference" />
 		</type>
 	</types>
 
@@ -38,12 +52,32 @@
 			<property id="id" />
 		</model>
 
-		<model id="map" occurences="0..1" class="java.util.Map" abstract="true">
-			<element id="element" occurences="1.." in="put" isIterableOut="true"
-				out="elementSet">
-				<data id="key" out="key" />
-				<data id="value" out="value" />
-			</element>
+		<model id="map" class="java.util.Map" abstract="true">
+			<sequence inMethod="put" outMethod="elementSet"
+				outMethodIterable="true">
+				<data id="key" />
+				<data id="value" />
+			</sequence>
+		</model>
+
+		<model id="logic" />
+		<model id="and" model="logic">
+			<model model="logic" occurances="2.." />
+		</model>
+		<model id="or" model="logic">
+			<model model="logic" occurances="2.." />
+		</model>
+		<model id="xor" model="logic">
+			<model model="logic" occurances="2" />
+		</model>
+		<model id="nor" model="logic">
+			<model model="logic" occurances="2" />
+		</model>
+		<model id="nand" model="logic">
+			<model model="logic" occurances="2" />
+		</model>
+		<model id="condition" model="logic">
+
 		</model>
 	</models>
 
