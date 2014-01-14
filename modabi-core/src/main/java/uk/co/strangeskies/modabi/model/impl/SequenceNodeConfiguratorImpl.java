@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import uk.co.strangeskies.modabi.model.SequenceNode;
-import uk.co.strangeskies.modabi.model.build.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SequenceNodeConfiguratorImpl extends

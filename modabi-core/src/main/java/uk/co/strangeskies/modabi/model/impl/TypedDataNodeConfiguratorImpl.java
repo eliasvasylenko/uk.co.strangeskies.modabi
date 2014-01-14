@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.TypedDataNode;
-import uk.co.strangeskies.modabi.model.build.TypedDataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
 
 public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements

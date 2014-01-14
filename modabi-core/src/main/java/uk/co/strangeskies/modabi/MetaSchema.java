@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.build.ModelBuilder;
+import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 
 public interface MetaSchema extends Schema {
 	public void setModelBuilder(ModelBuilder nodeBuilder);

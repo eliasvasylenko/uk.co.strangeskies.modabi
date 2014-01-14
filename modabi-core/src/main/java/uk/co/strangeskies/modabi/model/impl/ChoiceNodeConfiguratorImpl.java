@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import uk.co.strangeskies.modabi.model.ChoiceNode;
-import uk.co.strangeskies.modabi.model.build.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class ChoiceNodeConfiguratorImpl extends

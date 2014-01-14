@@ -7,15 +7,15 @@ import java.util.function.Function;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.BranchingNode;
 import uk.co.strangeskies.modabi.model.SchemaNode;
-import uk.co.strangeskies.modabi.model.build.BranchingNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.ContentNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.NodeBuilder;
-import uk.co.strangeskies.modabi.model.build.PropertyNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.SequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.build.SimpleElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.BranchingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.NodeBuilder;
+import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>

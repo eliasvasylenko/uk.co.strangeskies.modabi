@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.model.impl;
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.ElementNode;
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.build.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class ElementNodeConfiguratorImpl<T>

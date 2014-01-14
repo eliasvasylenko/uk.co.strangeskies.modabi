@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.build;
+package uk.co.strangeskies.modabi.model.building;
 
 import uk.co.strangeskies.gears.utilities.factory.Factory;
 import uk.co.strangeskies.modabi.model.SchemaNode;

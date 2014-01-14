@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.build;
+package uk.co.strangeskies.modabi.model.building;
 
 import java.util.function.Function;
 

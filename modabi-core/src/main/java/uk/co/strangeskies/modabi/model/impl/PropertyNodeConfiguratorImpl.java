@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.PropertyNode;
-import uk.co.strangeskies.modabi.model.build.PropertyNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class PropertyNodeConfiguratorImpl<T>

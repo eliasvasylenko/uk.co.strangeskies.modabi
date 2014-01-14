@@ -6,7 +6,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.build.AbstractModelConfigurator;
+import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends Model<T>, T>

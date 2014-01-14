@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.model.impl;
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.SchemaNode;
-import uk.co.strangeskies.modabi.model.build.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
