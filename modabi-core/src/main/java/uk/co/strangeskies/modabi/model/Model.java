@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.model;
 import java.util.List;
 
 public interface Model<T> extends BranchingNode {
-	public Model<T> getFoldedView();
-	
+	public EffectiveModel<T> collapseEffectiveModel();
+
 	public boolean isAbstract();
 
 	public List<Model<? super T>> getBaseModel();
