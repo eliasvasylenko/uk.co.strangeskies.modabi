@@ -21,6 +21,22 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		BranchingNodeConfigurator<S, N>, BranchingNode {
+	protected static abstract class BranchingNodeImpl extends SchemaNodeImpl
+			implements BranchingNode {
+		private final List<SchemaNode> children;
+
+		public BranchingNodeImpl(String id, List<SchemaNode> children) {
+			super(id);
+
+			this.children = new ArrayList<>(children);
+		}
+
+		@Override
+		public final List<SchemaNode> getChildren() {
+			return children;
+		}
+	}
+
 	private final List<SchemaNode> children;
 
 	public BranchingNodeConfiguratorImpl(NodeBuilderContext context) {
@@ -103,6 +119,7 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 			throw new InvalidBuildStateException(this);
 	}
 
+	@Override
 	public final List<SchemaNode> getChildren() {
 		return children;
 	}

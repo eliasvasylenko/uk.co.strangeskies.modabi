@@ -6,31 +6,31 @@ import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
-		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
-	protected abstract class SchemaNodeImpl<N extends SchemaNodeImpl<N>>
-			implements SchemaNode {
-		private String id;
+		extends Configurator<N> implements SchemaNodeConfigurator<S, N>, SchemaNode {
+	protected static abstract class SchemaNodeImpl implements SchemaNode {
+		private final String id;
 
+		public SchemaNodeImpl(String id) {
+			this.id = id;
+		}
+
+		@Override
 		public final String getId() {
 			return id;
 		}
 	}
 
-	private NodeBuilderContext context;
+	private final NodeBuilderContext context;
 	private boolean configured;
 
-	private N node;
+	private String id;
 
 	public SchemaNodeConfiguratorImpl(NodeBuilderContext context) {
 		this.context = context;
 
 		configured = false;
 		context.pushConfigurator(this);
-
-		node = createNode();
 	}
-
-	protected abstract N createNode();
 
 	@Override
 	protected void prepare() {
@@ -65,9 +65,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	@Override
 	public final S id(String name) {
 		assertConfigurable();
-		node.id = name;
+		id = name;
 
 		return getThis();
+	}
+
+	@Override
+	public String getId() {
+		return id;
 	}
 
 	protected void assertConfigurable() {
