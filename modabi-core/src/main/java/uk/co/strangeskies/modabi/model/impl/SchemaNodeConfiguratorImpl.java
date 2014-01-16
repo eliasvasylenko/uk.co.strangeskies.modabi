@@ -4,6 +4,7 @@ import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N>, SchemaNode {
@@ -30,6 +31,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		configured = false;
 		context.pushConfigurator(this);
+	}
+
+	@Override
+	public final void process(SchemaProcessingContext context) {
+		SchemaNode.super.process(context);
 	}
 
 	@Override

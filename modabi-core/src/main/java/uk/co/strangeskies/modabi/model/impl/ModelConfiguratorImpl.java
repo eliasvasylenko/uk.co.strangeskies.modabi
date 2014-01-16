@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 
@@ -26,5 +27,10 @@ public class ModelConfiguratorImpl<T> extends
 	@Override
 	public Model<T> tryCreate() {
 		return this;
+	}
+
+	@Override
+	public EffectiveModel<T> collapseEffectiveModel() {
+		throw new UnsupportedOperationException();
 	}
 }

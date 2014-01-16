@@ -62,11 +62,6 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
-	}
-
-	@Override
 	public SequenceNodeConfigurator inMethod(String methodName) {
 		inMethod = methodName;
 

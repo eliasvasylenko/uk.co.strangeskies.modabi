@@ -70,11 +70,6 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
-	}
-
-	@Override
 	public boolean isMandatory() {
 		return mandatory;
 	}

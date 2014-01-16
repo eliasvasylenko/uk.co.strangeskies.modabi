@@ -16,7 +16,6 @@ import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
@@ -53,14 +52,8 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 	}
 
 	@Override
-	public void process(SchemaProcessingContext context) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public NodeBuilder addChild() {
 		super.assertBranchable();
-		configure();
 
 		NodeBuilder builder = childBuilder();
 
@@ -71,7 +64,6 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 	public BranchingNodeConfigurator<S, N> addChild(
 			Function<NodeBuilder, SchemaNodeConfigurator<?, ?>> builder) {
 		super.assertBranchable();
-		configure();
 
 		builder.apply(childBuilder()).create();
 
