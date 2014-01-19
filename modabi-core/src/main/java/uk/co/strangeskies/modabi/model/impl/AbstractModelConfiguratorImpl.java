@@ -57,9 +57,10 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		} else if (models.size() > 1)
 			throw new IllegalArgumentException();
 
-		if (getId() == null)
+		String id = getId();
+		if (id == null)
 			if (models.size() == 1)
-				id(models.get(0).getId());
+				id = models.get(0).getId();
 
 		if (isAbstract == null)
 			isAbstract = models.get(0).isAbstract();

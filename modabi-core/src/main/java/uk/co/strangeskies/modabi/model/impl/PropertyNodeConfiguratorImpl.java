@@ -3,7 +3,6 @@ package uk.co.strangeskies.modabi.model.impl;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.PropertyNode;
 import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class PropertyNodeConfiguratorImpl<T>
 		extends
@@ -18,11 +17,6 @@ public class PropertyNodeConfiguratorImpl<T>
 	@Override
 	public PropertyNode<T> tryCreate() {
 		return this;
-	}
-
-	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
 	}
 
 	@Override

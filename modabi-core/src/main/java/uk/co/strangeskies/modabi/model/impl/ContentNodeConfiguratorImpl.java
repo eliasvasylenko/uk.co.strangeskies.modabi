@@ -3,7 +3,6 @@ package uk.co.strangeskies.modabi.model.impl;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.ContentNode;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class ContentNodeConfiguratorImpl<T>
 		extends

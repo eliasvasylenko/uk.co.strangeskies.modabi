@@ -38,7 +38,6 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 	@Override
 	public NodeBuilder addChild() {
 		super.assertBranchable();
-		configure();
 
 		NodeBuilder builder = childBuilder();
 
@@ -49,7 +48,6 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 	public BranchingNodeConfigurator<S, N> addChild(
 			Function<NodeBuilder, SchemaNodeConfigurator<?, ?>> builder) {
 		super.assertBranchable();
-		configure();
 
 		builder.apply(childBuilder()).create();
 

@@ -1,10 +1,10 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.ElementNode;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -23,11 +23,6 @@ public class ElementNodeConfiguratorImpl<T>
 	@Override
 	public ElementNode<T> tryCreate() {
 		return this;
-	}
-
-	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
 	}
 
 	@Override
@@ -102,5 +97,10 @@ public class ElementNodeConfiguratorImpl<T>
 		this.iterable = iterable;
 
 		return this;
+	}
+
+	@Override
+	public EffectiveModel<T> collapseEffectiveModel() {
+		throw new UnsupportedOperationException();
 	}
 }

@@ -4,7 +4,6 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.SimpleElementNode;
 import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SimpleElementNodeConfiguratorImpl<T>
 		extends
@@ -19,11 +18,6 @@ public class SimpleElementNodeConfiguratorImpl<T>
 	@Override
 	public SimpleElementNode<T> tryCreate() {
 		return this;
-	}
-
-	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
 	}
 
 	@SuppressWarnings("unchecked")
