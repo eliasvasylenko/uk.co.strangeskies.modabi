@@ -7,19 +7,6 @@ import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N>, SchemaNode {
-	protected static abstract class SchemaNodeImpl implements SchemaNode {
-		private final String id;
-
-		public SchemaNodeImpl(String id) {
-			this.id = id;
-		}
-
-		@Override
-		public final String getId() {
-			return id;
-		}
-	}
-
 	private final NodeBuilderContext context;
 	private boolean configured;
 

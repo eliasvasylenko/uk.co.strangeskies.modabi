@@ -9,5 +9,6 @@ public interface PropertyNodeConfigurator<T> extends
 	@Override
 	public <U extends T> PropertyNodeConfigurator<U> type(DataType<U> type);
 
+	@Override
 	public <V extends T> PropertyNodeConfigurator<V> dataClass(Class<V> dataClass);
 }

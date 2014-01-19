@@ -16,11 +16,6 @@ public class ContentNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
-	}
-
-	@Override
 	public ContentNode<T> tryCreate() {
 		return this;
 	}
@@ -46,5 +41,10 @@ public class ContentNodeConfiguratorImpl<T>
 	@Override
 	public final <U extends T> ContentNodeConfigurator<U> type(DataType<U> type) {
 		return (ContentNodeConfigurator<U>) super.type(type);
+	}
+
+	@Override
+	public void process(SchemaProcessingContext context) {
+		context.accept(this);
 	}
 }

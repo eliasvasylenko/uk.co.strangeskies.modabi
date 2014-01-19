@@ -6,8 +6,8 @@ public interface InputNode extends SchemaNode {
 	/**
 	 * If this method returns true, the return value of any invocation of the
 	 * inMethod will replace the build class of any
-	 * 
+	 *
 	 * @return
 	 */
-	public boolean isInMethodChained();
+	public Boolean isInMethodChained();
 }

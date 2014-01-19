@@ -36,7 +36,7 @@ public class ElementNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public boolean isOutMethodIterable() {
+	public Boolean isOutMethodIterable() {
 		return iterable;
 	}
 
@@ -46,7 +46,7 @@ public class ElementNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public boolean isInMethodChained() {
+	public Boolean isInMethodChained() {
 		return inMethodChained;
 	}
 

@@ -7,6 +7,7 @@ public interface TypedDataNodeConfigurator<S extends TypedDataNodeConfigurator<S
 		extends DataNodeConfigurator<S, N, T> {
 	public <U extends T> TypedDataNodeConfigurator<?, ?, U> type(DataType<U> type);
 
+	@Override
 	public <V extends T> TypedDataNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass);
 

@@ -10,6 +10,4 @@ public interface ModelConfigurator<T> extends
 
 	@Override
 	public <V extends T> ModelConfigurator<V> dataClass(Class<V> bindingClass);
-
-	public Model<T> create();
 }

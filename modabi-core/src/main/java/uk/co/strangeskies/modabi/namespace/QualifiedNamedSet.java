@@ -30,10 +30,12 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 		return elements;
 	}
 
+	@Override
 	public boolean add(T element) {
 		return elements.put(qualifiedName.apply(element), element) == null;
 	}
 
+	@Override
 	public boolean addAll(Collection<? extends T> elements) {
 		boolean changed = false;
 		for (T element : elements) {

@@ -5,7 +5,7 @@ import java.util.List;
 public interface Model<T> extends BranchingNode {
 	public EffectiveModel<T> collapseEffectiveModel();
 
-	public boolean isAbstract();
+	public Boolean isAbstract();
 
 	public List<Model<? super T>> getBaseModel();
 
@@ -23,7 +23,7 @@ public interface Model<T> extends BranchingNode {
 	 * {@link #getBuilderClass()}. If no build method is specified, this method
 	 * will return null. In that case the very last child of this class which has
 	 * an associated inMethod will be checked for an appropriate
-	 * 
+	 *
 	 * @return
 	 */
 	public String getBuilderMethod();

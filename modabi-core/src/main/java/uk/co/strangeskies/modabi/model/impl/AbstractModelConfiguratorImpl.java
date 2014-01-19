@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends Model<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
 		AbstractModelConfigurator<S, N, T>, Model<T> {
 	private Class<T> dataClass;
-	private List<Model<? super T>> baseModel;
+	private final List<Model<? super T>> baseModel;
 	private Model<?> adaptionModel;
 	private String buildMethodName;
 	private Class<?> builderClass;
@@ -24,6 +24,12 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		super(context);
 
 		baseModel = new ArrayList<>();
+	}
+
+	@Override
+	public EffectiveModel<T> collapseEffectiveModel() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -84,7 +90,8 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
-	public final boolean isAbstract() {
+	@Override
+	public final Boolean isAbstract() {
 		return isAbstract;
 	}
 
@@ -99,6 +106,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return thisV;
 	}
 
+	@Override
 	public final List<Model<? super T>> getBaseModel() {
 		return baseModel;
 	}
@@ -111,6 +119,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
+	@Override
 	public final Model<?> getAdaptionModel() {
 		return adaptionModel;
 	}
@@ -125,6 +134,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return (AbstractModelConfigurator<?, ?, V>) this;
 	}
 
+	@Override
 	public final Class<T> getDataClass() {
 		return dataClass;
 	}
@@ -137,6 +147,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
+	@Override
 	public final Class<?> getBuilderClass() {
 		return builderClass;
 	}
@@ -149,6 +160,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
+	@Override
 	public final String getBuilderMethod() {
 		return buildMethodName;
 	}
@@ -161,12 +173,8 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
+	@Override
 	public final ImplementationStrategy getImplementationStrategy() {
 		return bindingStrategy;
-	}
-
-	@Override
-	public void process(SchemaProcessingContext context) {
-		throw new UnsupportedOperationException();
 	}
 }

@@ -8,12 +8,10 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		TypedDataNodeConfigurator<S, N, T>, TypedDataNode<T> {
 	private Class<T> dataClass;
-
-	private boolean iterable;
+	private Boolean iterable;
 	private String outMethodName;
 	private String inMethodName;
-	private boolean inMethodChained;
-
+	private Boolean inMethodChained;
 	private DataType<T> type;
 	private T value;
 
@@ -30,6 +28,7 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		return (TypedDataNodeConfigurator<?, ?, V>) this;
 	}
 
+	@Override
 	public final Class<T> getDataClass() {
 		return dataClass;
 	}
@@ -41,6 +40,7 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		return getThis();
 	}
 
+	@Override
 	public final String getInMethod() {
 		return inMethodName;
 	}
@@ -52,7 +52,8 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		return getThis();
 	}
 
-	public final boolean isInMethodChained() {
+	@Override
+	public final Boolean isInMethodChained() {
 		return inMethodChained;
 	}
 
@@ -63,6 +64,7 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		return getThis();
 	}
 
+	@Override
 	public final String getOutMethod() {
 		return outMethodName;
 	}
@@ -74,7 +76,8 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		return getThis();
 	}
 
-	public final boolean isOutMethodIterable() {
+	@Override
+	public final Boolean isOutMethodIterable() {
 		return iterable;
 	}
 
@@ -82,10 +85,12 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	@Override
 	public <U extends T> TypedDataNodeConfigurator<?, ?, U> type(DataType<U> type) {
 		this.type = (DataType<T>) type;
+		this.dataClass = (Class<T>) type.getDataClass();
 
 		return (TypedDataNodeConfigurator<?, ?, U>) getThis();
 	}
 
+	@Override
 	public final DataType<T> getType() {
 		return type;
 	}
@@ -97,12 +102,13 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 		return getThis();
 	}
 
+	@Override
 	public final T getValue() {
 		return value;
 	}
 
 	@Override
-	public boolean isValueSet() {
+	public final boolean isValueSet() {
 		return value != null;
 	}
 }
