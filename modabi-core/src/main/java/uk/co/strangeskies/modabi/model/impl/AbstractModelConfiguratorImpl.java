@@ -51,9 +51,9 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 
 	protected void foldModel(List<Model<? super T>> models) {
 		if (getDataClass() != null) {
-			for (Model<?> model : models)
-				if (!model.getDataClass().isAssignableFrom(getDataClass()))
-					throw new IllegalArgumentException();
+			if (!models.stream().allMatch(
+					model -> model.getDataClass().isAssignableFrom(getDataClass())))
+				throw new IllegalArgumentException();
 		} else if (models.size() > 1)
 			throw new IllegalArgumentException();
 
