@@ -1,9 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class ModelConfiguratorImpl<T> extends
 		AbstractModelConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -28,10 +26,5 @@ public class ModelConfiguratorImpl<T> extends
 	@Override
 	public Model<T> tryCreate() {
 		return this;
-	}
-
-	@Override
-	public void process(SchemaProcessingContext context) {
-		SchemaNode.s.process(context);
 	}
 }

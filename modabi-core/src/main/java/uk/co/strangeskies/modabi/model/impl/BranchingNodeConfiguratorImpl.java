@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -19,7 +20,22 @@ import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
 
 public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
-		BranchingNodeConfigurator<S, N>, BranchingNode {
+		BranchingNodeConfigurator<S, N> {
+	protected static abstract class BranchingNodeImpl extends SchemaNodeImpl
+			implements BranchingNode {
+		private final List<SchemaNode> children;
+
+		public BranchingNodeImpl(String id, List<SchemaNode> children) {
+			super(id);
+			this.children = Collections.unmodifiableList(children);
+		}
+
+		@Override
+		public final List<SchemaNode> getChildren() {
+			return children;
+		}
+	}
+
 	private final List<SchemaNode> children;
 
 	public BranchingNodeConfiguratorImpl(NodeBuilderContext context) {
@@ -38,6 +54,7 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 	@Override
 	public NodeBuilder addChild() {
 		super.assertBranchable();
+		prepare();
 
 		NodeBuilder builder = childBuilder();
 
@@ -48,6 +65,7 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 	public BranchingNodeConfigurator<S, N> addChild(
 			Function<NodeBuilder, SchemaNodeConfigurator<?, ?>> builder) {
 		super.assertBranchable();
+		prepare();
 
 		builder.apply(childBuilder()).create();
 
@@ -95,8 +113,7 @@ public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfi
 			throw new InvalidBuildStateException(this);
 	}
 
-	@Override
-	public final List<SchemaNode> getChildren() {
-		return children;
+	protected final List<SchemaNode> getChildren() {
+		return Collections.unmodifiableList(children);
 	}
 }

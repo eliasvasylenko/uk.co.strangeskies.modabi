@@ -4,14 +4,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
+import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
 
 public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends Model<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
-		AbstractModelConfigurator<S, N, T>, Model<T> {
+		AbstractModelConfigurator<S, N, T> {
+	protected static abstract class AbstractModelImpl<T> extends
+			BranchingNodeImpl implements Model<T> {
+
+		public AbstractModelImpl(String id, List<SchemaNode> children) {
+			super(id, children);
+			// TODO Auto-generated constructor stub
+		}
+
+	}
+
 	private Class<T> dataClass;
 	private final List<Model<? super T>> baseModel;
 	private Model<?> adaptionModel;
@@ -27,12 +37,6 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 	}
 
 	@Override
-	public EffectiveModel<T> collapseEffectiveModel() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	protected void configuration() {
 		super.configuration();
 		foldOverride();
@@ -45,8 +49,10 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 	}
 
 	protected void foldOverride() {
-		// TODO Auto-generated method stub
-
+		String id = getId();
+		if (id != null) {
+			getContext().getOverride(id);
+		}
 	}
 
 	protected void foldModel(List<Model<? super T>> models) {
@@ -91,8 +97,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
-	@Override
-	public final Boolean isAbstract() {
+	protected final Boolean isAbstract() {
 		return isAbstract;
 	}
 
@@ -107,8 +112,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return thisV;
 	}
 
-	@Override
-	public final List<Model<? super T>> getBaseModel() {
+	protected final List<Model<? super T>> getBaseModel() {
 		return baseModel;
 	}
 
@@ -120,8 +124,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
-	@Override
-	public final Model<?> getAdaptionModel() {
+	protected final Model<?> getAdaptionModel() {
 		return adaptionModel;
 	}
 
@@ -135,8 +138,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return (AbstractModelConfigurator<?, ?, V>) this;
 	}
 
-	@Override
-	public final Class<T> getDataClass() {
+	protected final Class<T> getDataClass() {
 		return dataClass;
 	}
 
@@ -148,8 +150,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
-	@Override
-	public final Class<?> getBuilderClass() {
+	protected final Class<?> getBuilderClass() {
 		return builderClass;
 	}
 
@@ -161,8 +162,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
-	@Override
-	public final String getBuilderMethod() {
+	protected final String getBuilderMethod() {
 		return buildMethodName;
 	}
 
@@ -174,8 +174,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		return getThis();
 	}
 
-	@Override
-	public final ImplementationStrategy getImplementationStrategy() {
+	protected final ImplementationStrategy getImplementationStrategy() {
 		return bindingStrategy;
 	}
 }

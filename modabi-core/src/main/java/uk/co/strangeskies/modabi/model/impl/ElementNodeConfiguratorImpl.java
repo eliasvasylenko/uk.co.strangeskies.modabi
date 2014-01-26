@@ -100,7 +100,7 @@ public class ElementNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public EffectiveModel<T> collapseEffectiveModel() {
+	public EffectiveModel<T> effectiveModel() {
 		throw new UnsupportedOperationException();
 	}
 }

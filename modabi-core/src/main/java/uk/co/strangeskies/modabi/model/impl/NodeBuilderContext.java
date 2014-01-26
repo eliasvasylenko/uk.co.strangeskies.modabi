@@ -5,10 +5,11 @@ import java.util.Deque;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.model.SchemaNode;
+import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 
 class NodeBuilderContext {
-	private Deque<List<SchemaNode>> branchStack;
-	private Deque<SchemaNodeConfiguratorImpl<?, ?>> configuratorStack;
+	private final Deque<List<SchemaNode>> branchStack;
+	private final Deque<SchemaNodeConfiguratorImpl<?, ?>> configuratorStack;
 
 	public NodeBuilderContext() {
 		configuratorStack = new ArrayDeque<>();
@@ -36,5 +37,10 @@ class NodeBuilderContext {
 
 	public void popBranch() {
 		branchStack.pop();
+	}
+
+	public <S extends SchemaNodeConfigurator<S, ?>> S getOverriddenNode(
+			String id, Class<S> clazz) {
+		return null;
 	}
 }

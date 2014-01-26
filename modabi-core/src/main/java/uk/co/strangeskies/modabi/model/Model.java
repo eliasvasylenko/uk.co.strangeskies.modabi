@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.model;
 import java.util.List;
 
 public interface Model<T> extends BranchingNode {
-	public EffectiveModel<T> collapseEffectiveModel();
+	public EffectiveModel<T> effectiveModel();
 
 	public Boolean isAbstract();
 
