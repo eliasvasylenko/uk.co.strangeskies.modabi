@@ -63,10 +63,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		assertConfigurable(this.id);
 		this.id = id;
 
-		S a = getContext().getOverriddenNode(id, getClass());
+		N override = getContext().getOverriddenNode(id, getNodeClass());
 
 		return getThis();
 	}
+
+	protected abstract Class<N> getNodeClass();
 
 	protected final String getId() {
 		return id;
