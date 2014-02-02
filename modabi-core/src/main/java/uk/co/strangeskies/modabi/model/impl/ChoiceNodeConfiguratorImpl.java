@@ -4,35 +4,55 @@ import uk.co.strangeskies.modabi.model.ChoiceNode;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public class ChoiceNodeConfiguratorImpl extends
+class ChoiceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
-		ChoiceNodeConfigurator, ChoiceNode {
+		ChoiceNodeConfigurator {
+	protected static class ChoiceNodeImpl extends BranchingNodeImpl implements
+			ChoiceNode {
+		private final String inMethod;
+		private final boolean inMethodChained;
+		private final boolean mandatory;
+
+		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
+			super(configurator);
+
+			inMethod = configurator.inMethod;
+			inMethodChained = configurator.inMethodChained;
+			mandatory = configurator.mandatory;
+		}
+
+		@Override
+		public final String getInMethod() {
+			return inMethod;
+		}
+
+		@Override
+		public final Boolean isInMethodChained() {
+			return inMethodChained;
+		}
+
+		@Override
+		public final Boolean isMandatory() {
+			return mandatory;
+		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+	}
+
 	private String inMethod;
 	private boolean inMethodChained;
 	private boolean mandatory;
 
-	public ChoiceNodeConfiguratorImpl(NodeBuilderContext context) {
-		super(context);
+	public ChoiceNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
+		super(parent);
 	}
 
 	@Override
 	public ChoiceNode tryCreate() {
-		return this;
-	}
-
-	@Override
-	public Boolean isInMethodChained() {
-		return inMethodChained;
-	}
-
-	@Override
-	public String getInMethod() {
-		return inMethod;
-	}
-
-	@Override
-	public Boolean isMandatory() {
-		return mandatory;
+		return new ChoiceNodeImpl(this);
 	}
 
 	@Override
@@ -57,7 +77,7 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
+	public Class<ChoiceNode> getNodeClass() {
+		return ChoiceNode.class;
 	}
 }

@@ -1,13 +1,26 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 
-public class ModelConfiguratorImpl<T> extends
+class ModelConfiguratorImpl<T> extends
 		AbstractModelConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
-		ModelConfigurator<T>, Model<T> {
-	public ModelConfiguratorImpl() {
-		super(new NodeBuilderContext());
+		ModelConfigurator<T> {
+	protected static class ModelImpl<T> extends AbstractModelImpl<T> implements
+			Model<T> {
+		public ModelImpl(ModelConfiguratorImpl<T> configurator) {
+			super(configurator);
+		}
+
+		@Override
+		public EffectiveModel<T> effectiveModel() {
+			return null;
+		}
+	}
+
+	public ModelConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
+		super(parent);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -25,6 +38,12 @@ public class ModelConfiguratorImpl<T> extends
 
 	@Override
 	public Model<T> tryCreate() {
-		return this;
+		return new ModelImpl<>(this);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Class<Model<T>> getNodeClass() {
+		return (Class<Model<T>>) (Object) Model.class;
 	}
 }

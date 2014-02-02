@@ -2,7 +2,6 @@ package uk.co.strangeskies.modabi.processing;
 
 import uk.co.strangeskies.modabi.model.ChoiceNode;
 import uk.co.strangeskies.modabi.model.ContentNode;
-import uk.co.strangeskies.modabi.model.DataNode;
 import uk.co.strangeskies.modabi.model.ElementNode;
 import uk.co.strangeskies.modabi.model.PropertyNode;
 import uk.co.strangeskies.modabi.model.SequenceNode;
@@ -20,8 +19,4 @@ public interface SchemaProcessingContext {
 	public void accept(SequenceNode node);
 
 	public <T> void accept(ElementNode<T> node);
-
-	public default <T> void accept(DataNode<T> node) {
-		throw new IllegalArgumentException();
-	}
 }

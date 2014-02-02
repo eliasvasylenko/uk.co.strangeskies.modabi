@@ -34,7 +34,6 @@ public class SchemaTest {
 
 					@Override
 					public TerminatingDataSink property(String name) {
-						System.out.print(indent + name + ": ");
 						return getDataSink();
 					}
 

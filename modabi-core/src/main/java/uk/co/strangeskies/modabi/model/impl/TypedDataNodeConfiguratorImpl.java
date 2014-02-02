@@ -4,9 +4,114 @@ import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.TypedDataNode;
 import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
 
-public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
+abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
-		TypedDataNodeConfigurator<S, N, T>, TypedDataNode<T> {
+		TypedDataNodeConfigurator<S, N, T> {
+	protected abstract static class TypedDataNodeImpl<T> extends SchemaNodeImpl
+			implements TypedDataNode<T> {
+		private final Class<T> dataClass;
+		private final Boolean iterable;
+		private final String outMethodName;
+		private final String inMethodName;
+		private final Boolean inMethodChained;
+		private final DataType<T> type;
+		private final T value;
+
+		public TypedDataNodeImpl(TypedDataNodeConfiguratorImpl<?, ?, T> configurator) {
+			super(configurator);
+
+			dataClass = configurator.dataClass;
+			iterable = configurator.iterable;
+			outMethodName = configurator.outMethodName;
+			inMethodName = configurator.inMethodName;
+			inMethodChained = configurator.inMethodChained;
+			type = configurator.type;
+			value = configurator.value;
+		}
+
+		public TypedDataNodeImpl(TypedDataNodeImpl<T> node,
+				TypedDataNode<T> overriddenNode) {
+			super(node, overriddenNode);
+
+			if (node.dataClass != null) {
+				dataClass = node.dataClass;
+				if (overriddenNode.getDataClass() != null
+						&& !overriddenNode.getDataClass().isAssignableFrom(dataClass))
+					throw new SchemaException();
+			} else
+				dataClass = overriddenNode.getDataClass();
+
+			iterable = node.iterable != null ? node.iterable : overriddenNode
+					.isOutMethodIterable();
+
+			outMethodName = node.outMethodName != null ? node.outMethodName
+					: overriddenNode.getOutMethod();
+
+			inMethodName = node.inMethodName != null ? node.inMethodName
+					: overriddenNode.getInMethod();
+
+			inMethodChained = node.inMethodChained != null ? node.inMethodChained
+					: overriddenNode.isInMethodChained();
+
+			if (node.type != null) {
+				type = node.type;
+				if (node.getType().equals(overriddenNode.getType()))
+					value = node.value != null ? node.value : overriddenNode.getValue();
+				else
+					value = node.value;
+			} else {
+				type = overriddenNode.getType();
+
+				value = node.value != null ? node.value : overriddenNode.getValue();
+			}
+		}
+
+		protected void validateEffectiveModel() {
+			if (type == null)
+				throw new SchemaException();
+		}
+
+		@Override
+		public final String getOutMethod() {
+			return outMethodName;
+		}
+
+		@Override
+		public final Boolean isOutMethodIterable() {
+			return iterable;
+		}
+
+		@Override
+		public final Class<T> getDataClass() {
+			return dataClass;
+		}
+
+		@Override
+		public final String getInMethod() {
+			return inMethodName;
+		}
+
+		@Override
+		public final Boolean isInMethodChained() {
+			return inMethodChained;
+		}
+
+		@Override
+		public final DataType<T> getType() {
+			return type;
+		}
+
+		@Override
+		public final boolean isValueSet() {
+			return value != null;
+		}
+
+		@Override
+		public final T getValue() {
+			return value;
+		}
+	}
+
 	private Class<T> dataClass;
 	private Boolean iterable;
 	private String outMethodName;
@@ -15,8 +120,9 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	private DataType<T> type;
 	private T value;
 
-	public TypedDataNodeConfiguratorImpl(NodeBuilderContext context) {
-		super(context);
+	public TypedDataNodeConfiguratorImpl(
+			BranchingNodeConfiguratorImpl<?, ?> parent) {
+		super(parent);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -29,20 +135,10 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	}
 
 	@Override
-	public final Class<T> getDataClass() {
-		return dataClass;
-	}
-
-	@Override
 	public final S inMethod(String inMethodName) {
 		this.inMethodName = inMethodName;
 
 		return getThis();
-	}
-
-	@Override
-	public final String getInMethod() {
-		return inMethodName;
 	}
 
 	@Override
@@ -53,11 +149,6 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	}
 
 	@Override
-	public final Boolean isInMethodChained() {
-		return inMethodChained;
-	}
-
-	@Override
 	public final S outMethod(String outMethodName) {
 		this.outMethodName = outMethodName;
 
@@ -65,20 +156,10 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	}
 
 	@Override
-	public final String getOutMethod() {
-		return outMethodName;
-	}
-
-	@Override
 	public final S outMethodIterable(boolean iterable) {
 		this.iterable = iterable;
 
 		return getThis();
-	}
-
-	@Override
-	public final Boolean isOutMethodIterable() {
-		return iterable;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -91,24 +172,9 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	}
 
 	@Override
-	public final DataType<T> getType() {
-		return type;
-	}
-
-	@Override
 	public final S value(T data) {
 		this.value = data;
 
 		return getThis();
-	}
-
-	@Override
-	public final T getValue() {
-		return value;
-	}
-
-	@Override
-	public final boolean isValueSet() {
-		return value != null;
 	}
 }

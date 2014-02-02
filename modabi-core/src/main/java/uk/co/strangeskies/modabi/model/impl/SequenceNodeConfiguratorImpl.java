@@ -4,11 +4,39 @@ import uk.co.strangeskies.modabi.model.SequenceNode;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public class SequenceNodeConfiguratorImpl extends
+class SequenceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
-		implements SequenceNodeConfigurator, SequenceNode {
-	public SequenceNodeConfiguratorImpl(NodeBuilderContext context) {
-		super(context);
+		implements SequenceNodeConfigurator {
+	protected static class SequenceNodeImpl extends BranchingNodeImpl implements
+			SequenceNode {
+		private final String inMethod;
+		private final boolean inMethodChained;
+
+		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
+			super(configurator);
+
+			inMethod = configurator.inMethod;
+			inMethodChained = configurator.inMethodChained;
+		}
+
+		@Override
+		public final String getInMethod() {
+			return inMethod;
+		}
+
+		@Override
+		public final Boolean isInMethodChained() {
+			return inMethodChained;
+		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+	}
+
+	public SequenceNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
+		super(parent);
 	}
 
 	private String inMethod;
@@ -16,17 +44,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 	@Override
 	public SequenceNode tryCreate() {
-		return this;
-	}
-
-	@Override
-	public Boolean isInMethodChained() {
-		return inMethodChained;
-	}
-
-	@Override
-	public String getInMethod() {
-		return inMethod;
+		return new SequenceNodeImpl(this);
 	}
 
 	@Override
@@ -44,7 +62,7 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public void process(SchemaProcessingContext context) {
-		context.accept(this);
+	public Class<SequenceNode> getNodeClass() {
+		return SequenceNode.class;
 	}
 }

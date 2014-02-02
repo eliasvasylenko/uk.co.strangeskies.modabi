@@ -21,6 +21,7 @@ import uk.co.strangeskies.modabi.model.DataNode;
 import uk.co.strangeskies.modabi.model.ElementNode;
 import uk.co.strangeskies.modabi.model.InputNode;
 import uk.co.strangeskies.modabi.model.Model;
+import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.OptionalNode;
 import uk.co.strangeskies.modabi.model.PropertyNode;
@@ -124,6 +125,10 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		typeSet.add(classType);
 
+		DataType<?> enumType = dataType().name("enum").dataClass(Enum.class)
+				.create();
+		typeSet.add(enumType);
+
 		DataType<?> rangeType = dataType().name("range").dataClass(Range.class)
 				.create();
 		typeSet.add(rangeType);
@@ -133,7 +138,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		DataType<?> typeType = dataType().name("type").dataClass(DataType.class)
 				.create();
-		typeSet.add(referenceType);
+		typeSet.add(typeType);
 
 		/*
 		 * Models
@@ -222,31 +227,35 @@ public class MetaSchemaImpl implements MetaSchema {
 		modelSet.add(repeatableModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<Model> modelModel = model()
-				.id("model")
+		Model<AbstractModel> abstractModelModel = model()
+				.id("abstractModel")
 				.baseModel(branchModel)
-				.dataClass(Model.class)
-				.builderClass(ModelConfigurator.class)
+				.dataClass(AbstractModel.class)
 				.addChild(n -> n.property().id("id").optional(false))
 				.addChild(
 						n -> n.property().id("abstract").type(booleanType).optional(true))
 				.addChild(
 						n -> n.choice().id("model").mandatory(false)
 								.addChild(o -> o.property().id("dataClass").type(classType))
-								.addChild(o -> o.property().id("bindingStyle").type(null) // TODO
+								.addChild(o -> o.property().id("bindingStyle").type(enumType) // TODO
 										.optional(true)))
 				.addChild(n -> n.property().id("builderClass").type(classType))
 				.addChild(
 						n -> n.property().id("builderMethod").type(stringType)
 								.optional(true)).create();
-		modelSet.add(modelModel);
+		modelSet.add(abstractModelModel);
+
+		@SuppressWarnings("rawtypes")
+		Model<Model> modelModel = model().id("model").baseModel(abstractModelModel)
+				.dataClass(Model.class).create();
+		modelSet.add(abstractModelModel);
 
 		@SuppressWarnings("rawtypes")
 		Model<ElementNode> elementModel = model().id("element")
 				.dataClass(ElementNode.class)
 				.builderClass(ElementNodeConfigurator.class)
-				.baseModel(modelModel, dataModel, repeatableModel).isAbstract(false)
-				.create();
+				.baseModel(abstractModelModel, dataModel, repeatableModel)
+				.isAbstract(false).create();
 		modelSet.add(elementModel);
 
 		@SuppressWarnings("rawtypes")
@@ -254,17 +263,18 @@ public class MetaSchemaImpl implements MetaSchema {
 				.id("typedData").dataClass(TypedDataNode.class)
 				.builderClass(TypedDataNodeConfigurator.class)
 				.addChild(n -> n.property().id("type").type(typeType))
-				.addChild(n -> n.simpleElement().id("value").type(null) // TODO
+				.addChild(n -> n.simpleElement().id("value").type(referenceType) // TODO
 				).create();
 
 		@SuppressWarnings("rawtypes")
 		Model<ContentNode> contentModel = model().id("content")
 				.dataClass(ContentNode.class).baseModel(typedDataModel, optionalModel)
 				.builderClass(ContentNodeConfigurator.class).create();
+		modelSet.add(contentModel);
 
 		@SuppressWarnings("rawtypes")
 		Model<PropertyNode> propertyModel = model().id("property")
-				.baseModel(contentModel).dataClass(PropertyNode.class)
+				.dataClass(PropertyNode.class).baseModel(typedDataModel, optionalModel)
 				.builderClass(PropertyNodeConfigurator.class)
 				.addChild(n -> n.property().id("id")).create();
 		modelSet.add(propertyModel);
@@ -290,8 +300,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.element()
 								.id("dependencies")
 								.occurances(Range.create(0, 1))
+								.dataClass(Set.class)
 								.addChild(
 										o -> o.element().id("dependency").baseModel(includeModel)
+												.outMethodIterable(true).outMethod("this")
 												.occurances(Range.create(0, null))))
 				.addChild(
 						n -> n

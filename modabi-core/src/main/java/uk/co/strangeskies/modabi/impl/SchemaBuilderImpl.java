@@ -18,17 +18,19 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 	@Override
 	public SchemaConfigurator configure() {
 		return new SchemaConfigurator() {
-			private Set<DataType<?>> typeSet = new HashSet<>();
+			private final Set<DataType<?>> typeSet = new HashSet<>();
 			private QualifiedName qualifiedName;
-			private Set<Model<?>> modelSet = new HashSet<>();
-			private Schemata dependencySet;
+			private final Set<Model<?>> modelSet = new HashSet<>();
+			private Schemata dependencySet = new Schemata();
 
 			@Override
 			public Schema create() {
+				final QualifiedName qualifiedName = this.qualifiedName;
 				final DataTypes types = new DataTypes(qualifiedName.getNamespace());
 				types.addAll(typeSet);
 				final Models models = new Models(qualifiedName.getNamespace());
 				models.addAll(modelSet);
+				final Schemata dependencies = dependencySet;
 
 				return new Schema() {
 					@Override
@@ -48,7 +50,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 					@Override
 					public Schemata getDependencies() {
-						return dependencySet;
+						return dependencies;
 					}
 				};
 			}

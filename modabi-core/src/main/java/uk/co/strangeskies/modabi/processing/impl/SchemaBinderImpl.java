@@ -20,6 +20,7 @@ import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
+import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Binding;
 import uk.co.strangeskies.modabi.model.BranchingNode;
 import uk.co.strangeskies.modabi.model.ChoiceNode;
@@ -71,7 +72,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(PropertyNode<U> node) {
-			System.out.println(node.getId() + ": ");
 			output.content().string(node.getId()).end();
 		}
 
@@ -85,7 +85,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			processChildren(node);
 		}
 
-		public <U> void unbind(Model<U> node, U data) {
+		public <U> void unbind(AbstractModel<U> node, U data) {
 			output.childElement(node.getId());
 			bindingStack.push(data);
 			processChildren(node);
@@ -150,9 +150,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 					names.add(node.getId() + "Set");
 					names.add(node.getId() + "Array");
 				}
-				for (String name : new ArrayList<>(names)) {
+				for (String name : new ArrayList<>(names))
 					names.add("get" + capitalize(name));
-				}
 			}
 
 			return names;
@@ -207,7 +206,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			processChildren(node);
 		}
 
-		public <U> U bind(Model<U> node) {
+		public <U> U bind(AbstractModel<U> node) {
 			String name = input.nextChild();
 			String namespace = input.getProperty("xmlns", null);
 

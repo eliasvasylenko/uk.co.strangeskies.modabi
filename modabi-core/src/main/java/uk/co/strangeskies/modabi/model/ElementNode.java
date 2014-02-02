@@ -1,4 +1,5 @@
 package uk.co.strangeskies.modabi.model;
 
-public interface ElementNode<T> extends Model<T>, DataNode<T>, RepeatableNode {
+public interface ElementNode<T> extends AbstractModel<T>, DataNode<T>,
+		RepeatableNode {
 }
