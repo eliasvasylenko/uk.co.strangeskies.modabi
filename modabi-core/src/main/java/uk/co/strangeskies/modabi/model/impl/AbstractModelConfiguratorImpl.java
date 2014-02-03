@@ -78,7 +78,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 
 	@Override
 	public final S isAbstract(boolean isAbstract) {
-		assertConfigurable(this.isAbstract);
+		requireConfigurable(this.isAbstract);
 		this.isAbstract = isAbstract;
 
 		return getThis();
@@ -92,11 +92,14 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 	@Override
 	public <V extends T> AbstractModelConfigurator<?, ?, V> baseModel(
 			Model<? super V>... base) {
-		assertConfigurable(this.baseModel);
+		requireConfigurable(this.baseModel);
 		AbstractModelConfiguratorImpl<?, ?, V> thisV = (AbstractModelConfiguratorImpl<?, ?, V>) this;
 		thisV.baseModel = Arrays.asList(base);
 
-		// TODO add nodes to be overridden & check for conflicts
+		baseModel.forEach(m -> {
+			m.effectiveModel().getChildren().stream().filter(n -> n.getId() != null)
+					.forEach(c -> inheritChild(c));
+		});
 
 		return thisV;
 	}
@@ -109,7 +112,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 	@Override
 	public <V extends T> AbstractModelConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {
-		assertConfigurable(this.dataClass);
+		requireConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
 		return (AbstractModelConfigurator<?, ?, V>) this;
@@ -121,7 +124,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 
 	@Override
 	public final S builderClass(Class<?> factoryClass) {
-		assertConfigurable(this.builderClass);
+		requireConfigurable(this.builderClass);
 		this.builderClass = factoryClass;
 
 		return getThis();
@@ -133,7 +136,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 
 	@Override
 	public final S builderMethod(String buildMethodName) {
-		assertConfigurable(this.buildMethodName);
+		requireConfigurable(this.buildMethodName);
 		this.buildMethodName = buildMethodName;
 
 		return getThis();
@@ -145,7 +148,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 
 	@Override
 	public final S implementationStrategy(ImplementationStrategy bindingStrategy) {
-		assertConfigurable(this.bindingStrategy);
+		requireConfigurable(this.bindingStrategy);
 		this.bindingStrategy = bindingStrategy;
 
 		return getThis();

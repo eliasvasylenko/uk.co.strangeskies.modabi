@@ -50,17 +50,23 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		return parent;
 	}
 
-	protected final void assertConfigurable(Object object) {
-		if (object != null || finalisedProperties)
+	protected final void requireConfigurable(Object object) {
+		requireConfigurable();
+		if (object != null)
 			throw new InvalidBuildStateException(this);
 	}
 
-	protected void assertHasId() {
+	protected final void requireConfigurable() {
+		if (finalisedProperties)
+			throw new InvalidBuildStateException(this);
+	}
+
+	protected void requireHasId() {
 		if (id == null || id == "")
 			throw new IllegalArgumentException();
 	}
 
-	protected final void finaliseProperties() {
+	protected void finaliseProperties() {
 		finalisedProperties = true;
 	}
 
@@ -71,16 +77,11 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 
 	@Override
 	public final S id(String id) {
-		assertConfigurable(this.id);
+		requireConfigurable(this.id);
 		this.id = id;
 
-		BranchingNodeConfiguratorImpl<?, ?> parent = getParent();
-		if (parent != null) {
-			N override = parent.getOverriddenChild(id, getNodeClass());
-
-			if (override != null)
-				overriddenNode = override;
-		}
+		if (parent != null)
+			overriddenNode = parent.overrideChild(id, getNodeClass());
 
 		return getThis();
 	}
