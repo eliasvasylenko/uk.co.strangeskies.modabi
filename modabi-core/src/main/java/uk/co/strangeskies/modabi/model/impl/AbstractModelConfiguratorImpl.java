@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.model.AbstractModel;
+import uk.co.strangeskies.modabi.model.BranchingNode;
 import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
@@ -12,8 +13,8 @@ import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
 abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
 		AbstractModelConfigurator<S, N, T> {
-	protected static abstract class AbstractModelImpl<T> extends
-			BranchingNodeImpl implements AbstractModel<T> {
+	protected static abstract class AbstractModelImpl<E extends BranchingNode, T>
+			extends BranchingNodeImpl<E> implements AbstractModel<T> {
 		private final Class<T> dataClass;
 		private final List<Model<? super T>> baseModel;
 		private final String buildMethodName;

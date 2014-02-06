@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 class ChoiceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
 		ChoiceNodeConfigurator {
-	protected static class ChoiceNodeImpl extends BranchingNodeImpl implements
-			ChoiceNode {
+	protected static class ChoiceNodeImpl extends BranchingNodeImpl<ChoiceNode>
+			implements ChoiceNode {
 		private final String inMethod;
 		private final boolean inMethodChained;
 		private final boolean mandatory;

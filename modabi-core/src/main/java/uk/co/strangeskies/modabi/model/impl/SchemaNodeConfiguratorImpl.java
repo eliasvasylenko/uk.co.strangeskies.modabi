@@ -7,7 +7,8 @@ import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 
 abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
-	protected static abstract class SchemaNodeImpl implements SchemaNode {
+	protected static abstract class SchemaNodeImpl<E extends SchemaNode>
+			implements SchemaNode {
 		private final String id;
 
 		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
@@ -16,10 +17,10 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 			id = configurator.id;
 		}
 
-		SchemaNodeImpl(SchemaNodeImpl node, SchemaNode overriddenNode) {
-			if (node.id != overriddenNode.getId())
+		SchemaNodeImpl(SchemaNode node, SchemaNode overriddenNode) {
+			if (node.getId() != overriddenNode.getId())
 				throw new AssertionError();
-			id = node.id;
+			id = node.getId();
 		}
 
 		@Override
@@ -27,7 +28,9 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 			return id;
 		}
 
-		protected abstract SchemaNodeImpl effectiveModel();
+		protected abstract void validateEffectiveModel();
+
+		protected abstract SchemaNodeImpl<E> override(E node);
 	}
 
 	private final BranchingNodeConfiguratorImpl<?, ?> parent;
@@ -42,7 +45,7 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 
 		addResultListener(created -> {
 			if (parent != null)
-				parent.addChild((SchemaNodeImpl) created);
+				parent.addChild((SchemaNodeImpl<?>) created);
 		});
 	}
 
@@ -66,7 +69,7 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 			throw new IllegalArgumentException();
 	}
 
-	protected void finaliseProperties() {
+	protected final void finaliseProperties() {
 		finalisedProperties = true;
 	}
 
@@ -81,9 +84,13 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		this.id = id;
 
 		if (parent != null)
-			overriddenNode = parent.overrideChild(id, getNodeClass());
+			setOverriddenNode(parent.overrideChild(id, getNodeClass()));
 
 		return getThis();
+	}
+
+	protected void setOverriddenNode(N node) {
+		overriddenNode = node;
 	}
 
 	public N getOverriddenNode() {

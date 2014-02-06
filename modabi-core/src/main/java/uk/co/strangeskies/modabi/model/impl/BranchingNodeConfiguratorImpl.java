@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import uk.co.strangeskies.gears.utilities.collections.ArrayListMultiHashMap;
+import uk.co.strangeskies.gears.utilities.collections.ListMultiMap;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.BranchingNode;
 import uk.co.strangeskies.modabi.model.SchemaNode;
@@ -17,13 +19,12 @@ import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.impl.SequenceNodeConfiguratorImpl.SequenceNodeImpl;
 
 abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		BranchingNodeConfigurator<S, N> {
-	protected static abstract class BranchingNodeImpl extends SchemaNodeImpl
-			implements BranchingNode {
+	protected static abstract class BranchingNodeImpl<E extends BranchingNode>
+			extends SchemaNodeImpl<E> implements BranchingNode {
 		private final List<SchemaNode> children;
 
 		public BranchingNodeImpl(BranchingNodeConfiguratorImpl<?, ?> configurator) {
@@ -33,8 +34,11 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 			this.children = configurator.children;
 		}
 
-		public BranchingNodeImpl(SequenceNodeImpl node, SequenceNode overriddenNode) {
-			// TODO Auto-generated constructor stub
+		public BranchingNodeImpl(BranchingNodeImpl<E> node,
+				SequenceNode overriddenNode) {
+			super(node, overriddenNode);
+
+			children = node.getChildren();
 		}
 
 		@Override
@@ -45,27 +49,23 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 
 	private final List<SchemaNode> children;
 	private boolean blocked;
-	private final List<SchemaNode> overriddenChildren;
-	private final List<SchemaNode> inheritedChildren;
+	private final ListMultiMap<String, SchemaNode> inheritedChildren;
 
 	public BranchingNodeConfiguratorImpl(
 			BranchingNodeConfiguratorImpl<?, ?> parent) {
 		super(parent);
 		children = new ArrayList<>();
-		overriddenChildren = new ArrayList<>();
-		inheritedChildren = new ArrayList<>();
-	}
-
-	@Override
-	protected void finaliseProperties() {
-		super.finaliseProperties();
-
-		// TODO merge overriddenChildren && inheritedChildren
+		inheritedChildren = new ArrayListMultiHashMap<>();
 	}
 
 	protected void inheritChildren(List<SchemaNode> children) {
 		requireConfigurable();
-		inheritedChildren.addAll(children);
+		children.forEach(c -> inheritedChildren.add(c.getId(), c));
+	}
+
+	@Override
+	protected void setOverriddenNode(N node) {
+		node.getChildren().forEach(c -> inheritedChildren.get(c.getId()).add(0, c));
 	}
 
 	@Override
@@ -81,7 +81,7 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		return this;
 	}
 
-	void addChild(SchemaNodeImpl created) {
+	void addChild(SchemaNodeImpl<?> created) {
 		blocked = false;
 		children.add(created);
 	}
@@ -136,13 +136,14 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends SchemaNode> T overrideChild(String id, Class<T> nodeClass) {
-		SchemaNode overriddenNode = inheritedChildren.remove(id);
-		if (overriddenNode != null
+	public <T extends SchemaNode> List<T> overrideChild(String id,
+			Class<T> nodeClass) {
+		List<SchemaNode> overriddenNode = inheritedChildren.remove(id);
+		if (overriddenNode != null // TODO this is obv. nonsense atm
 				&& !nodeClass.isAssignableFrom(overriddenNode.getClass()))
 			throw new InvalidBuildStateException(this);
 
-		return (T) overriddenNode;
+		return (List<T>) overriddenNode;
 	}
 
 	protected final List<SchemaNode> getChildren() {

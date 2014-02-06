@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
 abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		TypedDataNodeConfigurator<S, N, T> {
-	protected abstract static class TypedDataNodeImpl<T> extends SchemaNodeImpl
-			implements TypedDataNode<T> {
+	protected abstract static class TypedDataNodeImpl<E extends TypedDataNode<T>, T>
+			extends SchemaNodeImpl<E> implements TypedDataNode<T> {
 		private final Class<T> dataClass;
 		private final Boolean iterable;
 		private final String outMethodName;
@@ -29,43 +29,46 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 			value = configurator.value;
 		}
 
-		public TypedDataNodeImpl(TypedDataNodeImpl<T> node,
+		public TypedDataNodeImpl(TypedDataNode<T> node,
 				TypedDataNode<T> overriddenNode) {
 			super(node, overriddenNode);
 
-			if (node.dataClass != null) {
-				dataClass = node.dataClass;
+			if (node.getDataClass() != null) {
+				dataClass = node.getDataClass();
 				if (overriddenNode.getDataClass() != null
 						&& !overriddenNode.getDataClass().isAssignableFrom(dataClass))
 					throw new SchemaException();
 			} else
 				dataClass = overriddenNode.getDataClass();
 
-			iterable = node.iterable != null ? node.iterable : overriddenNode
-					.isOutMethodIterable();
+			iterable = node.isOutMethodIterable() != null ? node
+					.isOutMethodIterable() : overriddenNode.isOutMethodIterable();
 
-			outMethodName = node.outMethodName != null ? node.outMethodName
+			outMethodName = node.getOutMethod() != null ? node.getOutMethod()
 					: overriddenNode.getOutMethod();
 
-			inMethodName = node.inMethodName != null ? node.inMethodName
+			inMethodName = node.getInMethod() != null ? node.getInMethod()
 					: overriddenNode.getInMethod();
 
-			inMethodChained = node.inMethodChained != null ? node.inMethodChained
-					: overriddenNode.isInMethodChained();
+			inMethodChained = node.isInMethodChained() != null ? node
+					.isInMethodChained() : overriddenNode.isInMethodChained();
 
-			if (node.type != null) {
-				type = node.type;
+			if (node.getType() != null) {
+				type = node.getType();
 				if (node.getType().equals(overriddenNode.getType()))
-					value = node.value != null ? node.value : overriddenNode.getValue();
+					value = node.getValue() != null ? node.getValue() : overriddenNode
+							.getValue();
 				else
-					value = node.value;
+					value = node.getValue();
 			} else {
 				type = overriddenNode.getType();
 
-				value = node.value != null ? node.value : overriddenNode.getValue();
+				value = node.getValue() != null ? node.getValue() : overriddenNode
+						.getValue();
 			}
 		}
 
+		@Override
 		protected void validateEffectiveModel() {
 			if (type == null)
 				throw new SchemaException();

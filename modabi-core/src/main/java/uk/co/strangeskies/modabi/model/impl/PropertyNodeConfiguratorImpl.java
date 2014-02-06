@@ -10,42 +10,22 @@ class PropertyNodeConfiguratorImpl<T>
 		TypedDataNodeConfiguratorImpl<PropertyNodeConfigurator<T>, PropertyNode<T>, T>
 		implements PropertyNodeConfigurator<T> {
 	protected static class PropertyNodeImpl<T> extends
-			EffectivePropertyNodeImpl<T> {
-		private final EffectivePropertyNodeImpl<T> effectiveModel;
-
-		PropertyNodeImpl(PropertyNodeConfiguratorImpl<T> configurator) {
-			super(configurator);
-
-			PropertyNode<T> overriddenNode = configurator.getOverriddenNode();
-			effectiveModel = overriddenNode == null ? this
-					: new EffectivePropertyNodeImpl<>(this, overriddenNode);
-			effectiveModel.validateEffectiveModel();
-		}
-
-		@Override
-		public EffectivePropertyNodeImpl<T> effectiveModel() {
-			return effectiveModel;
-		}
-	}
-
-	protected static class EffectivePropertyNodeImpl<T> extends
-			TypedDataNodeImpl<T> implements PropertyNode<T> {
+			TypedDataNodeImpl<PropertyNode<T>, T> implements PropertyNode<T> {
 		private final Boolean optional;
 
-		public EffectivePropertyNodeImpl(
-				PropertyNodeConfiguratorImpl<T> configurator) {
+		public PropertyNodeImpl(PropertyNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
 			optional = configurator.optional;
 		}
 
-		public EffectivePropertyNodeImpl(EffectivePropertyNodeImpl<T> node,
+		private PropertyNodeImpl(PropertyNode<T> node,
 				PropertyNode<T> overriddenNode) {
 			super(node, overriddenNode);
 
 			Boolean overriddenOptional = overriddenNode.isOptional();
-			if (node.optional != null) {
-				optional = node.optional;
+			if (node.isOptional() != null) {
+				optional = node.isOptional();
 				if (overriddenOptional != null && !overriddenOptional && optional)
 					throw new SchemaException();
 			} else
@@ -63,8 +43,8 @@ class PropertyNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		protected SchemaNodeConfiguratorImpl.SchemaNodeImpl effectiveModel() {
-			return this;
+		protected SchemaNodeImpl<PropertyNode<T>> override(PropertyNode<T> node) {
+			return node == null ? this : new PropertyNodeImpl<T>(this, node);
 		}
 	}
 

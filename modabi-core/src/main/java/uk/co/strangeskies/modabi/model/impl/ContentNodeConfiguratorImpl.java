@@ -9,35 +9,17 @@ class ContentNodeConfiguratorImpl<T>
 		extends
 		TypedDataNodeConfiguratorImpl<ContentNodeConfigurator<T>, ContentNode<T>, T>
 		implements ContentNodeConfigurator<T> {
-	protected static class ContentNodeImpl<T> extends EffectiveContentNodeImpl<T> {
-		private final EffectiveContentNodeImpl<T> effectiveModel;
-
-		ContentNodeImpl(ContentNodeConfiguratorImpl<T> configurator) {
-			super(configurator);
-
-			ContentNode<T> overriddenNode = configurator.getOverriddenNode();
-			effectiveModel = overriddenNode == null ? this
-					: new EffectiveContentNodeImpl<>(this, overriddenNode);
-			effectiveModel.validateEffectiveModel();
-		}
-
-		@Override
-		public EffectiveContentNodeImpl<T> effectiveModel() {
-			return effectiveModel;
-		}
-	}
-
-	protected static class EffectiveContentNodeImpl<T> extends
-			TypedDataNodeImpl<T> implements ContentNode<T> {
+	protected static class ContentNodeImpl<T> extends
+			TypedDataNodeImpl<ContentNode<T>, T> implements ContentNode<T> {
 		private final Boolean optional;
 
-		public EffectiveContentNodeImpl(ContentNodeConfiguratorImpl<T> configurator) {
+		public ContentNodeImpl(ContentNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
 			optional = configurator.optional;
 		}
 
-		public EffectiveContentNodeImpl(EffectiveContentNodeImpl<T> node,
+		public ContentNodeImpl(ContentNodeImpl<T> node,
 				ContentNode<T> overriddenNode) {
 			super(node, overriddenNode);
 
@@ -61,8 +43,8 @@ class ContentNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		protected SchemaNodeImpl effectiveModel() {
-			return this;
+		protected SchemaNodeImpl<ContentNode<T>> override(ContentNode<T> node) {
+			return node == null ? this : new ContentNodeImpl<>(this, node);
 		}
 	}
 

@@ -11,36 +11,17 @@ class SimpleElementNodeConfiguratorImpl<T>
 		TypedDataNodeConfiguratorImpl<SimpleElementNodeConfigurator<T>, SimpleElementNode<T>, T>
 		implements SimpleElementNodeConfigurator<T> {
 	protected static class SimpleElementNodeImpl<T> extends
-			EffectiveSimpleElementNodeImpl<T> {
-		private final EffectiveSimpleElementNodeImpl<T> effectiveModel;
-
-		SimpleElementNodeImpl(SimpleElementNodeConfiguratorImpl<T> configurator) {
-			super(configurator);
-
-			SimpleElementNode<T> overriddenNode = configurator.getOverriddenNode();
-			effectiveModel = overriddenNode == null ? this
-					: new EffectiveSimpleElementNodeImpl<>(this, overriddenNode);
-			effectiveModel.validateEffectiveModel();
-		}
-
-		@Override
-		public EffectiveSimpleElementNodeImpl<T> effectiveModel() {
-			return effectiveModel;
-		}
-	}
-
-	protected static class EffectiveSimpleElementNodeImpl<T> extends
-			TypedDataNodeImpl<T> implements SimpleElementNode<T> {
+			TypedDataNodeImpl<SimpleElementNode<T>, T> implements
+			SimpleElementNode<T> {
 		private final Range<Integer> occurances;
 
-		EffectiveSimpleElementNodeImpl(
-				SimpleElementNodeConfiguratorImpl<T> configurator) {
+		SimpleElementNodeImpl(SimpleElementNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
 			occurances = configurator.occurances;
 		}
 
-		EffectiveSimpleElementNodeImpl(EffectiveSimpleElementNodeImpl<T> node,
+		SimpleElementNodeImpl(SimpleElementNodeImpl<T> node,
 				SimpleElementNode<T> overriddenNode) {
 			super(node, overriddenNode);
 
@@ -72,8 +53,9 @@ class SimpleElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		protected SchemaNodeImpl effectiveModel() {
-			return this;
+		protected SchemaNodeImpl<SimpleElementNode<T>> override(
+				SimpleElementNode<T> node) {
+			return node == null ? this : new SimpleElementNodeImpl<>(this, node);
 		}
 	}
 

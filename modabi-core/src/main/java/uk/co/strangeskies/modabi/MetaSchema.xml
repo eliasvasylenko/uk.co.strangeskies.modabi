@@ -24,7 +24,7 @@
 			</element>
 		</model>
 
-		<model id="type" baseModel="type, typeBase" dataClass=":model.data.DataType">
+		<model id="type" baseModel="typeBase" dataClass=":model.data.DataType">
 			<element id="baseType" baseModel="base" />
 		</model>
 
@@ -44,8 +44,7 @@
 			</property>
 		</model>
 
-		<model id="provide" model="node" dataClass=":model.ProviderNode"
-			abstract="true">
+		<model id="provide" dataClass=":model.ProviderNode" abstract="true">
 			<property id="providedClass" type="class" />
 			<property id="providerOutMethod" type="string" />
 			<property id="provideMethod" optional="true" type="string" />
