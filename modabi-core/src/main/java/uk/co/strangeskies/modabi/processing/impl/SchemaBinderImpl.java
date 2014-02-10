@@ -8,8 +8,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.Function;
 
-import uk.co.strangeskies.gears.utilities.collections.HashSetMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collections.SetMultiMap;
+import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
+import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.functions.collections.ListTransformationFunction;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Schema;

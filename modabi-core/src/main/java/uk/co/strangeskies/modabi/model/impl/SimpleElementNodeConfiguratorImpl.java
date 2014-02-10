@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.Collection;
+
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.SimpleElementNode;
@@ -10,9 +12,8 @@ class SimpleElementNodeConfiguratorImpl<T>
 		extends
 		TypedDataNodeConfiguratorImpl<SimpleElementNodeConfigurator<T>, SimpleElementNode<T>, T>
 		implements SimpleElementNodeConfigurator<T> {
-	protected static class SimpleElementNodeImpl<T> extends
-			TypedDataNodeImpl<SimpleElementNode<T>, T> implements
-			SimpleElementNode<T> {
+	protected static class SimpleElementNodeImpl<T> extends TypedDataNodeImpl<T>
+			implements SimpleElementNode<T> {
 		private final Range<Integer> occurances;
 
 		SimpleElementNodeImpl(SimpleElementNodeConfiguratorImpl<T> configurator) {
@@ -22,17 +23,11 @@ class SimpleElementNodeConfiguratorImpl<T>
 		}
 
 		SimpleElementNodeImpl(SimpleElementNodeImpl<T> node,
-				SimpleElementNode<T> overriddenNode) {
-			super(node, overriddenNode);
+				Collection<? extends SimpleElementNode<T>> overriddenNodes) {
+			super(node, overriddenNodes);
 
-			Range<Integer> overriddenOccurances = overriddenNode.getOccurances();
-			if (node.occurances != null) {
-				occurances = node.occurances;
-				if (overriddenOccurances != null
-						&& !overriddenOccurances.contains(occurances))
-					throw new SchemaException();
-			} else
-				occurances = overriddenOccurances;
+			occurances = getValue(node, overriddenNodes, n -> n.getOccurances(), (v,
+					o) -> o.contains(v));
 		}
 
 		@Override
@@ -50,12 +45,6 @@ class SimpleElementNodeConfiguratorImpl<T>
 		@Override
 		public void process(SchemaProcessingContext context) {
 			context.accept(this);
-		}
-
-		@Override
-		protected SchemaNodeImpl<SimpleElementNode<T>> override(
-				SimpleElementNode<T> node) {
-			return node == null ? this : new SimpleElementNodeImpl<>(this, node);
 		}
 	}
 

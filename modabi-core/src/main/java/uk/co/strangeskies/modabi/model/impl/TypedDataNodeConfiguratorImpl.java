@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.Collection;
+
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.TypedDataNode;
 import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
@@ -7,8 +9,8 @@ import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
 abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		TypedDataNodeConfigurator<S, N, T> {
-	protected abstract static class TypedDataNodeImpl<E extends TypedDataNode<T>, T>
-			extends SchemaNodeImpl<E> implements TypedDataNode<T> {
+	protected abstract static class TypedDataNodeImpl<T> extends SchemaNodeImpl
+			implements TypedDataNode<T> {
 		private final Class<T> dataClass;
 		private final Boolean iterable;
 		private final String outMethodName;
@@ -17,7 +19,7 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 		private final DataType<T> type;
 		private final T value;
 
-		public TypedDataNodeImpl(TypedDataNodeConfiguratorImpl<?, ?, T> configurator) {
+		TypedDataNodeImpl(TypedDataNodeConfiguratorImpl<?, ?, T> configurator) {
 			super(configurator);
 
 			dataClass = configurator.dataClass;
@@ -29,43 +31,29 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 			value = configurator.value;
 		}
 
-		public TypedDataNodeImpl(TypedDataNode<T> node,
-				TypedDataNode<T> overriddenNode) {
-			super(node, overriddenNode);
+		@SuppressWarnings("unchecked")
+		<E extends TypedDataNode<? super T>> TypedDataNodeImpl(E node,
+				Collection<? extends E> overriddenNodes) {
+			super(node, overriddenNodes);
 
-			if (node.getDataClass() != null) {
-				dataClass = node.getDataClass();
-				if (overriddenNode.getDataClass() != null
-						&& !overriddenNode.getDataClass().isAssignableFrom(dataClass))
-					throw new SchemaException();
-			} else
-				dataClass = overriddenNode.getDataClass();
+			dataClass = (Class<T>) getValue(node, overriddenNodes,
+					n -> n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
 
-			iterable = node.isOutMethodIterable() != null ? node
-					.isOutMethodIterable() : overriddenNode.isOutMethodIterable();
+			iterable = getValue(node, overriddenNodes, n -> n.isOutMethodIterable());
 
-			outMethodName = node.getOutMethod() != null ? node.getOutMethod()
-					: overriddenNode.getOutMethod();
+			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethod());
 
-			inMethodName = node.getInMethod() != null ? node.getInMethod()
-					: overriddenNode.getInMethod();
+			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethod());
 
-			inMethodChained = node.isInMethodChained() != null ? node
-					.isInMethodChained() : overriddenNode.isInMethodChained();
+			inMethodChained = getValue(node, overriddenNodes,
+					n -> n.isInMethodChained());
 
-			if (node.getType() != null) {
-				type = node.getType();
-				if (node.getType().equals(overriddenNode.getType()))
-					value = node.getValue() != null ? node.getValue() : overriddenNode
-							.getValue();
-				else
-					value = node.getValue();
-			} else {
-				type = overriddenNode.getType();
+			type = (DataType<T>) getValue(node, overriddenNodes, n -> n.getType());
 
-				value = node.getValue() != null ? node.getValue() : overriddenNode
-						.getValue();
-			}
+			value = (T) getValue(node, overriddenNodes, n -> n.getValue());
+
+			if (!dataClass.isAssignableFrom(value.getClass()))
+				throw new SchemaException();
 		}
 
 		@Override

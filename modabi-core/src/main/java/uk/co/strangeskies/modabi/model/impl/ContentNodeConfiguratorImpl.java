@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.Collection;
+
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.ContentNode;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
@@ -9,8 +11,8 @@ class ContentNodeConfiguratorImpl<T>
 		extends
 		TypedDataNodeConfiguratorImpl<ContentNodeConfigurator<T>, ContentNode<T>, T>
 		implements ContentNodeConfigurator<T> {
-	protected static class ContentNodeImpl<T> extends
-			TypedDataNodeImpl<ContentNode<T>, T> implements ContentNode<T> {
+	static class ContentNodeImpl<T> extends TypedDataNodeImpl<T> implements
+			ContentNode<T> {
 		private final Boolean optional;
 
 		public ContentNodeImpl(ContentNodeConfiguratorImpl<T> configurator) {
@@ -19,17 +21,12 @@ class ContentNodeConfiguratorImpl<T>
 			optional = configurator.optional;
 		}
 
-		public ContentNodeImpl(ContentNodeImpl<T> node,
-				ContentNode<T> overriddenNode) {
-			super(node, overriddenNode);
+		public ContentNodeImpl(ContentNode<T> node,
+				Collection<? extends ContentNode<T>> overriddenNodes) {
+			super(node, overriddenNodes);
 
-			Boolean overriddenOptional = overriddenNode.isOptional();
-			if (node.optional != null) {
-				optional = node.optional;
-				if (overriddenOptional != null && !overriddenOptional && optional)
-					throw new SchemaException();
-			} else
-				optional = overriddenOptional;
+			optional = getValue(node, overriddenNodes, n -> n.isOptional(),
+					(v, o) -> !v || o);
 		}
 
 		@Override
@@ -40,11 +37,6 @@ class ContentNodeConfiguratorImpl<T>
 		@Override
 		public void process(SchemaProcessingContext context) {
 			context.accept(this);
-		}
-
-		@Override
-		protected SchemaNodeImpl<ContentNode<T>> override(ContentNode<T> node) {
-			return node == null ? this : new ContentNodeImpl<>(this, node);
 		}
 	}
 

@@ -7,37 +7,19 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 class SequenceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
 		implements SequenceNodeConfigurator {
-	protected static class SequenceNodeImpl extends EffectiveSequenceNodeImpl {
-		private final EffectiveSequenceNodeImpl effectiveModel;
-
-		SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
-			super(configurator);
-
-			SequenceNode overriddenNode = configurator.getOverriddenNode();
-			effectiveModel = overriddenNode == null ? this
-					: new EffectiveSequenceNodeImpl(this, overriddenNode);
-		}
-
-		@Override
-		public EffectiveSequenceNodeImpl effectiveModel() {
-			return effectiveModel;
-		}
-	}
-
-	protected static class EffectiveSequenceNodeImpl extends BranchingNodeImpl
-			implements SequenceNode {
+	protected static class SequenceNodeImpl extends
+			BranchingNodeImpl<SequenceNode> implements SequenceNode {
 		private final String inMethod;
 		private final boolean inMethodChained;
 
-		public EffectiveSequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
+		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
 
 			inMethod = configurator.inMethod;
 			inMethodChained = configurator.inMethodChained;
 		}
 
-		public EffectiveSequenceNodeImpl(SequenceNodeImpl node,
-				SequenceNode overriddenNode) {
+		public SequenceNodeImpl(SequenceNodeImpl node, SequenceNode overriddenNode) {
 			super(node, overriddenNode);
 		}
 
@@ -57,8 +39,7 @@ class SequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		protected SchemaNodeImpl effectiveModel() {
-			return this;
+		protected void validateEffectiveModel() {
 		}
 	}
 
