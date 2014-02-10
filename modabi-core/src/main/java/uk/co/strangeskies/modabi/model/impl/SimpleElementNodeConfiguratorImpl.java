@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.util.Collection;
 
 import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.SimpleElementNode;
 import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
@@ -31,8 +32,9 @@ class SimpleElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		protected void validateEffectiveModel() {
-			super.validateEffectiveModel();
+		protected void validateAsEffectiveModel(boolean isAbstract) {
+			super.validateAsEffectiveModel(isAbstract);
+
 			if (occurances == null)
 				throw new SchemaException();
 		}

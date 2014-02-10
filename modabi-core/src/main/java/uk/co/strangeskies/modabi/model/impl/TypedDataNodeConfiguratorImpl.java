@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.Collection;
 
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.TypedDataNode;
 import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
@@ -36,8 +37,8 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 				Collection<? extends E> overriddenNodes) {
 			super(node, overriddenNodes);
 
-			dataClass = (Class<T>) getValue(node, overriddenNodes,
-					n -> n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
+			dataClass = getValue(node, overriddenNodes,
+					n -> (Class<T>) n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
 
 			iterable = getValue(node, overriddenNodes, n -> n.isOutMethodIterable());
 
@@ -48,16 +49,18 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 			inMethodChained = getValue(node, overriddenNodes,
 					n -> n.isInMethodChained());
 
-			type = (DataType<T>) getValue(node, overriddenNodes, n -> n.getType());
+			type = getValue(node, overriddenNodes, n -> (DataType<T>) n.getType());
 
-			value = (T) getValue(node, overriddenNodes, n -> n.getValue());
+			value = getValue(node, overriddenNodes, n -> (T) n.getValue());
 
 			if (!dataClass.isAssignableFrom(value.getClass()))
 				throw new SchemaException();
 		}
 
 		@Override
-		protected void validateEffectiveModel() {
+		protected void validateAsEffectiveModel(boolean isAbstract) {
+			super.validateAsEffectiveModel(isAbstract);
+
 			if (type == null)
 				throw new SchemaException();
 		}

@@ -9,7 +9,6 @@ import java.util.function.Function;
 import uk.co.strangeskies.gears.utilities.IdentityProperty;
 import uk.co.strangeskies.gears.utilities.collection.SetDecorator;
 import uk.co.strangeskies.gears.utilities.function.collection.SetTransformationView;
-import uk.co.strangeskies.gears.utilities.functions.IdentityFunction;
 
 public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 	private final Function<T, QualifiedName> qualifiedName;
@@ -22,8 +21,7 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 		elements = new HashMap<>();
 
 		getComponentProperty().set(
-				new SetTransformationView<T, T>(elements.values(),
-						new IdentityFunction<>()));
+				new SetTransformationView<T, T>(elements.values(), e -> e));
 	}
 
 	protected Map<QualifiedName, T> getElements() {

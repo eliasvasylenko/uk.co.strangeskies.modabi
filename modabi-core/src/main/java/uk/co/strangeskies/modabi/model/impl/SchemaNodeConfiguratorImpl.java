@@ -1,12 +1,16 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 
@@ -23,9 +27,6 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 
 		SchemaNodeImpl(SchemaNode node,
 				Collection<? extends SchemaNode> overriddenNodes) {
-			if (!overriddenNodes.stream().allMatch(
-					n -> node.getId().equals(n.getId())))
-				throw new AssertionError();
 			id = node.getId();
 		}
 
@@ -61,18 +62,20 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 			return id;
 		}
 
-		protected abstract void validateEffectiveModel();
+		protected void validateAsEffectiveModel(boolean isAbstract) {
+		}
 	}
 
 	private final BranchingNodeConfiguratorImpl<?, ?> parent;
 	private boolean finalisedProperties;
 
 	private String id;
-	private N overriddenNode;
+	private final Set<N> overriddenNodes;
 
 	public SchemaNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
 		this.parent = parent;
 		finalisedProperties = false;
+		overriddenNodes = new HashSet<>();
 
 		addResultListener(created -> {
 			if (parent != null)
@@ -115,17 +118,18 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		this.id = id;
 
 		if (parent != null)
-			setOverriddenNode(parent.overrideChild(id, getNodeClass()));
+			setOverriddenNodes(parent.overrideChild(id, getNodeClass()));
 
 		return getThis();
 	}
 
-	protected void setOverriddenNode(N node) {
-		overriddenNode = node;
+	protected void setOverriddenNodes(List<N> nodes) {
+		overriddenNodes.clear();
+		overriddenNodes.addAll(nodes);
 	}
 
-	public N getOverriddenNode() {
-		return overriddenNode;
+	public Set<N> getOverriddenNode() {
+		return overriddenNodes;
 	}
 
 	public abstract Class<N> getNodeClass();

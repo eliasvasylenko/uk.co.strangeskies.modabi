@@ -10,7 +10,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
-import uk.co.strangeskies.gears.utilities.functions.collections.ListTransformationFunction;
+import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.Schemata;

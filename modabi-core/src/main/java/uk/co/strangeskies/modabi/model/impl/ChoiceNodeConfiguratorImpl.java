@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.Collection;
+
 import uk.co.strangeskies.modabi.model.ChoiceNode;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
@@ -7,8 +9,8 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 class ChoiceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
 		ChoiceNodeConfigurator {
-	protected static class ChoiceNodeImpl extends BranchingNodeImpl<ChoiceNode>
-			implements ChoiceNode {
+	protected static class ChoiceNodeImpl extends BranchingNodeImpl implements
+			ChoiceNode {
 		private final String inMethod;
 		private final boolean inMethodChained;
 		private final boolean mandatory;
@@ -19,6 +21,18 @@ class ChoiceNodeConfiguratorImpl extends
 			inMethod = configurator.inMethod;
 			inMethodChained = configurator.inMethodChained;
 			mandatory = configurator.mandatory;
+		}
+
+		public ChoiceNodeImpl(ChoiceNodeImpl node,
+				Collection<ChoiceNode> overriddenNodes) {
+			super(node, overriddenNodes);
+
+			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod());
+
+			inMethodChained = getValue(node, overriddenNodes,
+					n -> n.isInMethodChained());
+
+			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
 		}
 
 		@Override
@@ -39,6 +53,11 @@ class ChoiceNodeConfiguratorImpl extends
 		@Override
 		public void process(SchemaProcessingContext context) {
 			context.accept(this);
+		}
+
+		@Override
+		protected void validateAsEffectiveModel(boolean isAbstract) {
+			super.validateAsEffectiveModel(isAbstract);
 		}
 	}
 

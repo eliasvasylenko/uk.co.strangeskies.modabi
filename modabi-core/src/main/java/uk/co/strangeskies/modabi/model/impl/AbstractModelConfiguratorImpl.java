@@ -3,9 +3,9 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.BranchingNode;
 import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
@@ -13,25 +13,49 @@ import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
 abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
 		AbstractModelConfigurator<S, N, T> {
-	protected static abstract class AbstractModelImpl<E extends BranchingNode, T>
-			extends BranchingNodeImpl<E> implements AbstractModel<T> {
+	protected static abstract class AbstractModelImpl<T> extends
+			BranchingNodeImpl implements AbstractModel<T> {
 		private final Class<T> dataClass;
 		private final List<Model<? super T>> baseModel;
 		private final String buildMethodName;
 		private final Class<?> builderClass;
-		private final ImplementationStrategy bindingStrategy;
+		private final ImplementationStrategy implementationStrategy;
 		private final Boolean isAbstract;
 
 		public AbstractModelImpl(AbstractModelConfiguratorImpl<?, ?, T> configurator) {
 			super(configurator);
 
 			dataClass = configurator.dataClass;
-			baseModel = configurator.baseModel == null ? null : new ArrayList<>(
-					configurator.baseModel);
+			baseModel = configurator.baseModel == null ? new ArrayList<>()
+					: new ArrayList<>(configurator.baseModel);
 			buildMethodName = configurator.buildMethodName;
 			builderClass = configurator.builderClass;
-			bindingStrategy = configurator.bindingStrategy;
+			implementationStrategy = configurator.bindingStrategy;
 			isAbstract = configurator.isAbstract;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <E extends AbstractModel<? super T>> AbstractModelImpl(E node,
+				List<? extends E> overriddenNodes) {
+			super(node, overriddenNodes);
+
+			dataClass = getValue(node, overriddenNodes,
+					n -> (Class<T>) n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
+
+			baseModel = new ArrayList<>();
+			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
+			baseModel.addAll(node.getBaseModel());
+
+			buildMethodName = getValue(node, overriddenNodes,
+					n -> n.getBuilderMethod());
+
+			builderClass = getValue(node, overriddenNodes,
+					n -> (Class<Object>) n.getBuilderClass());
+
+			implementationStrategy = getValue(node, overriddenNodes,
+					n -> n.getImplementationStrategy());
+
+			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
 		}
 
 		@Override
@@ -51,7 +75,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 
 		@Override
 		public ImplementationStrategy getImplementationStrategy() {
-			return bindingStrategy;
+			return implementationStrategy;
 		}
 
 		@Override
@@ -98,8 +122,8 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			m.effectiveModel().getChildren().stream().filter(n -> n.getId() != null)
-					.forEach(c -> inheritChild(c));
+			inheritChildren(m.effectiveModel().getChildren().stream()
+					.filter(n -> n.getId() != null).collect(Collectors.toList()));
 		});
 
 		return thisV;

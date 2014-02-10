@@ -38,6 +38,11 @@ class PropertyNodeConfiguratorImpl<T>
 		public void process(SchemaProcessingContext context) {
 			context.accept(this);
 		}
+
+		@Override
+		protected void validateAsEffectiveModel(boolean isAbstract) {
+			super.validateAsEffectiveModel(isAbstract);
+		}
 	}
 
 	private boolean optional;

@@ -2,11 +2,11 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
+import uk.co.strangeskies.gears.utilities.collection.ArrayListMultiHashMap;
+import uk.co.strangeskies.gears.utilities.collection.ListMultiMap;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.BranchingNode;
 import uk.co.strangeskies.modabi.model.SchemaNode;
@@ -31,14 +31,16 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 			super(configurator);
 			configurator.assertUnblocked();
 
-			this.children = configurator.children;
+			this.children = new ArrayList<>(configurator.children);
 		}
 
 		public <E extends BranchingNode> BranchingNodeImpl(E node,
 				Collection<? extends E> overriddenNodes) {
 			super(node, overriddenNodes);
 
-			children = node.getChildren();
+			children = new ArrayList<>();
+			overriddenNodes.forEach(n -> children.addAll(n.getChildren()));
+			children.addAll(node.getChildren()); // TODO
 		}
 
 		@Override
@@ -47,9 +49,9 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		}
 	}
 
-	private final List<SchemaNode> children;
+	private final List<SchemaNodeImpl> children;
 	private boolean blocked;
-	private final HashMap<String, SchemaNode> inheritedNamedChildren;
+	private final ListMultiMap<String, SchemaNode> namedInheritedChildren;
 	private final List<SchemaNode> inheritedChildren;
 
 	public BranchingNodeConfiguratorImpl(
@@ -57,45 +59,49 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		super(parent);
 		children = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
-		inheritedNamedChildren = new HashMap<>();
+		namedInheritedChildren = new ArrayListMultiHashMap<>();
 	}
 
-	protected void inheritChildren(List<SchemaNode> children) {
+	protected void inheritChildren(List<SchemaNode> nodes) {
 		requireConfigurable();
-		children.forEach(child -> {
-			if (child.getId() != null) {
-				SchemaNode existing = inheritedNamedChildren.get(child.getId());
-				if (existing != null) {
-					inheritedChildren.remove(existing);
-					child = append ? override(existing, child)
-							: override(child, existing);
-				}
-				inheritedNamedChildren.put(child.getId(), child);
-			}
-			inheritedChildren.add(child);
-		});
+		inheritNamedChildren(nodes);
+		inheritedChildren.addAll(nodes);
+	}
+
+	private void inheritNamedChildren(List<? extends SchemaNode> nodes) {
+		nodes.stream().filter(c -> c.getId() != null)
+				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
 	}
 
 	@Override
-	protected void setOverriddenNode(N node) {
-		super.setOverriddenNode(node);
-		inheritChildren(node.getChildren(), false);
+	protected void setOverriddenNodes(List<N> nodes) {
+		super.setOverriddenNodes(nodes);
+		List<SchemaNode> newInheritedChildren = new ArrayList<>();
+		nodes.forEach(n -> {
+			inheritNamedChildren(n.getChildren());
+			newInheritedChildren.addAll(n.getChildren());
+		});
+		inheritedChildren.addAll(0, newInheritedChildren);
 	}
 
 	@SuppressWarnings("unchecked")
-	<T extends SchemaNode> Set<T> overrideChild(String id, Class<T> nodeClass) {
-		SchemaNode overriddenNode = inheritedNamedChildren.get(id);
-		if (overriddenNode != null
-				&& !nodeClass.isAssignableFrom(overriddenNode.getClass()))
-			throw new InvalidBuildStateException(this);
+	<T extends SchemaNode> List<T> overrideChild(String id, Class<T> nodeClass) {
+		List<SchemaNode> overriddenNodes = namedInheritedChildren.get(id);
 
-		inheritedNamedChildren.remove(id);
-		inheritedChildren.remove(overriddenNode);
+		if (overriddenNodes != null) {
+			if (overriddenNodes.stream().anyMatch(
+					n -> !nodeClass.isAssignableFrom(n.getClass())))
+				throw new InvalidBuildStateException(this);
 
-		return (T) overriddenNode;
+			namedInheritedChildren.remove(id);
+			inheritedChildren.removeAll(overriddenNodes);
+		} else
+			overriddenNodes = new ArrayList<>();
+
+		return (List<T>) overriddenNodes;
 	}
 
-	protected final List<SchemaNode> getChildren() {
+	protected final List<SchemaNodeImpl> getChildren() {
 		return children;
 	}
 

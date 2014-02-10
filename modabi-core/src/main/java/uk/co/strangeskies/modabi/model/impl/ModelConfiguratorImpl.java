@@ -1,5 +1,8 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
@@ -7,15 +10,33 @@ import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 class ModelConfiguratorImpl<T> extends
 		AbstractModelConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
 		ModelConfigurator<T> {
+	public static class EffectiveModelImpl<T> extends AbstractModelImpl<T>
+			implements EffectiveModel<T> {
+		public EffectiveModelImpl(ModelImpl<? super T> node,
+				List<? extends EffectiveModel<? super T>> overriddenNodes) {
+			super(node, overriddenNodes);
+		}
+	}
+
 	protected static class ModelImpl<T> extends AbstractModelImpl<T> implements
 			Model<T> {
+		private final EffectiveModel<T> effectiveModel;
+
 		public ModelImpl(ModelConfiguratorImpl<T> configurator) {
 			super(configurator);
+
+			effectiveModel = new EffectiveModelImpl<T>(this, getBaseModel().stream()
+					.map(m -> m.effectiveModel()).collect(Collectors.toList()));
 		}
 
 		@Override
 		public EffectiveModel<T> effectiveModel() {
-			return null;
+			return effectiveModel;
+		}
+
+		@Override
+		protected void validateAsEffectiveModel(boolean isAbstract) {
+			super.validateAsEffectiveModel(isAbstract);
 		}
 	}
 
