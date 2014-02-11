@@ -1,9 +1,8 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,13 +21,15 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
 			configurator.finaliseProperties();
 
-			id = configurator.id;
+			id = configurator.getId();
 		}
 
-		SchemaNodeImpl(SchemaNode node,
+		protected SchemaNodeImpl(SchemaNode node,
 				Collection<? extends SchemaNode> overriddenNodes) {
 			id = node.getId();
 		}
+
+		public abstract SchemaNode effectiveModel();
 
 		protected static final <E extends SchemaNode, T> T getValue(E node,
 				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction) {
@@ -70,12 +71,10 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 	private boolean finalisedProperties;
 
 	private String id;
-	private final Set<N> overriddenNodes;
 
 	public SchemaNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
 		this.parent = parent;
 		finalisedProperties = false;
-		overriddenNodes = new HashSet<>();
 
 		addResultListener(created -> {
 			if (parent != null)
@@ -117,19 +116,12 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		requireConfigurable(this.id);
 		this.id = id;
 
-		if (parent != null)
-			setOverriddenNodes(parent.overrideChild(id, getNodeClass()));
-
 		return getThis();
 	}
 
-	protected void setOverriddenNodes(List<N> nodes) {
-		overriddenNodes.clear();
-		overriddenNodes.addAll(nodes);
-	}
-
-	public Set<N> getOverriddenNode() {
-		return overriddenNodes;
+	public List<N> getOverriddenNodes() {
+		return parent == null || id == null ? new ArrayList<>() : parent
+				.overrideChild(id, getNodeClass());
 	}
 
 	public abstract Class<N> getNodeClass();

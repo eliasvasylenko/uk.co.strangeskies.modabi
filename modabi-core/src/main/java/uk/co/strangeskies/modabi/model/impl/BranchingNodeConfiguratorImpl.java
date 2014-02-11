@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
@@ -35,12 +34,12 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		}
 
 		public <E extends BranchingNode> BranchingNodeImpl(E node,
-				Collection<? extends E> overriddenNodes) {
+				List<? extends E> overriddenNodes) {
 			super(node, overriddenNodes);
 
 			children = new ArrayList<>();
 			overriddenNodes.forEach(n -> children.addAll(n.getChildren()));
-			children.addAll(node.getChildren()); // TODO
+			children.addAll(node.getChildren());
 		}
 
 		@Override

@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.ContentNode;
+import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
@@ -19,6 +20,8 @@ class ContentNodeConfiguratorImpl<T>
 			super(configurator);
 
 			optional = configurator.optional;
+
+			new ContentNodeImpl<>(this, configurator.getOverriddenNodes());
 		}
 
 		public ContentNodeImpl(ContentNode<T> node,
@@ -37,6 +40,11 @@ class ContentNodeConfiguratorImpl<T>
 		@Override
 		public void process(SchemaProcessingContext context) {
 			context.accept(this);
+		}
+
+		@Override
+		public SchemaNode effectiveModel() {
+			return new ContentNodeImpl<>(this, null);
 		}
 	}
 
