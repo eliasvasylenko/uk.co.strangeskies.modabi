@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -61,6 +62,18 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		namedInheritedChildren = new ArrayListMultiHashMap<>();
 	}
 
+	@Override
+	protected void finaliseProperties() {
+		super.finaliseProperties();
+
+		List<SchemaNode> newInheritedChildren = new ArrayList<>();
+		getOverriddenNodes().forEach(n -> {
+			inheritNamedChildren(n.getChildren());
+			newInheritedChildren.addAll(n.getChildren());
+		});
+		inheritedChildren.addAll(0, newInheritedChildren);
+	}
+
 	protected void inheritChildren(List<SchemaNode> nodes) {
 		requireConfigurable();
 		inheritNamedChildren(nodes);
@@ -72,28 +85,15 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
 	}
 
-	@Override
-	protected void setOverriddenNodes(List<N> nodes) {
-		super.setOverriddenNodes(nodes);
-		List<SchemaNode> newInheritedChildren = new ArrayList<>();
-		nodes.forEach(n -> {
-			inheritNamedChildren(n.getChildren());
-			newInheritedChildren.addAll(n.getChildren());
-		});
-		inheritedChildren.addAll(0, newInheritedChildren);
-	}
-
 	@SuppressWarnings("unchecked")
 	<T extends SchemaNode> List<T> overrideChild(String id, Class<T> nodeClass) {
-		List<SchemaNode> overriddenNodes = namedInheritedChildren.get(id);
+		List<SchemaNode> overriddenNodes = Collections
+				.unmodifiableList(getOverriddenNodes());
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(
 					n -> !nodeClass.isAssignableFrom(n.getClass())))
 				throw new InvalidBuildStateException(this);
-
-			namedInheritedChildren.remove(id);
-			inheritedChildren.removeAll(overriddenNodes);
 		} else
 			overriddenNodes = new ArrayList<>();
 
@@ -120,6 +120,10 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 	void addChild(SchemaNodeImpl created) {
 		blocked = false;
 		children.add(created);
+		if (created.getId() != null)
+			inheritedChildren
+					.removeAll(namedInheritedChildren.remove(created.getId()));
+
 	}
 
 	public NodeBuilder childBuilder() {

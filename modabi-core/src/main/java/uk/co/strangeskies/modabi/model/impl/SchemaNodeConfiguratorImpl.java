@@ -29,8 +29,6 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 			id = node.getId();
 		}
 
-		public abstract SchemaNode effectiveModel();
-
 		protected static final <E extends SchemaNode, T> T getValue(E node,
 				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction) {
 			return getValue(node, overriddenNodes, valueFunction, (v, o) -> true);
@@ -76,9 +74,9 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		this.parent = parent;
 		finalisedProperties = false;
 
-		addResultListener(created -> {
+		addResultListener(result -> {
 			if (parent != null)
-				parent.addChild((SchemaNodeImpl) created);
+				parent.addChild((SchemaNodeImpl) result);
 		});
 	}
 
@@ -102,7 +100,7 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 			throw new IllegalArgumentException();
 	}
 
-	protected final void finaliseProperties() {
+	protected void finaliseProperties() {
 		finalisedProperties = true;
 	}
 
@@ -119,7 +117,7 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		return getThis();
 	}
 
-	public List<N> getOverriddenNodes() {
+	protected List<N> getOverriddenNodes() {
 		return parent == null || id == null ? new ArrayList<>() : parent
 				.overrideChild(id, getNodeClass());
 	}
