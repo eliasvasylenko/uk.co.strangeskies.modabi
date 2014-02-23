@@ -39,7 +39,7 @@ import uk.co.strangeskies.modabi.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SchemaBinderImpl implements SchemaBinder {
-	private class SchemaSavingContext<T> implements SchemaProcessingContext {
+	private class SchemaSavingContext<T> implements SchemaProcessingContext<Void> {
 		private final T data;
 		private final Model<T> model;
 		private final StructuredDataOutput output;
@@ -66,23 +66,27 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(ContentNode<U> node) {
+		public <U> Void accept(ContentNode<U> node) {
 			output.content().string(node.getId()).end();
+			return null;
 		}
 
 		@Override
-		public <U> void accept(PropertyNode<U> node) {
+		public <U> Void accept(PropertyNode<U> node) {
 			output.content().string(node.getId()).end();
+			return null;
 		}
 
 		@Override
-		public void accept(ChoiceNode node) {
+		public Void accept(ChoiceNode node) {
 			processChildren(node);
+			return null;
 		}
 
 		@Override
-		public void accept(SequenceNode node) {
+		public Void accept(SequenceNode node) {
 			processChildren(node);
+			return null;
 		}
 
 		public <U> void unbind(AbstractModel<U> node, U data) {
@@ -95,14 +99,14 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <U> void accept(final ElementNode<U> node) {
+		public <U> Void accept(final ElementNode<U> node) {
 			if (node.getDataClass() != null) {
 				Object parent = bindingStack.peek();
 
 				try {
 					if (node.isOutMethodIterable()) {
 						Iterable<Object> iterable = null;
-						if (node.getOutMethod() == "this")
+						if (node.getOutMethodName() == "this")
 							iterable = (Iterable<Object>) parent;
 						else {
 							iterable = (Iterable<Object>) getMethod(parent, Iterable.class,
@@ -121,6 +125,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 					e.printStackTrace();
 				}
 			}
+			return null;
 		}
 
 		private Method getMethod(Object receiver, Class<?> returns,
@@ -140,8 +145,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 		private List<String> generateOutMethodNames(ElementNode<?> node) {
 			List<String> names = new ArrayList<>();
 
-			if (node.getOutMethod() != null) {
-				names.add(node.getOutMethod());
+			if (node.getOutMethodName() != null) {
+				names.add(node.getOutMethodName());
 			} else {
 				names.add(node.getId());
 				if (node.isOutMethodIterable()) {
@@ -162,13 +167,15 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(SimpleElementNode<U> node) {
+		public <U> Void accept(SimpleElementNode<U> node) {
 			// TODO Auto-generated method stub
 
+			return null;
 		}
 	}
 
-	private class SchemaLoadingContext<T> implements SchemaProcessingContext {
+	private class SchemaLoadingContext<T> implements
+			SchemaProcessingContext<Void> {
 		private final Model<T> model;
 		private final DataInputBuffer input;
 
@@ -186,24 +193,27 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(ContentNode<U> node) {
+		public <U> Void accept(ContentNode<U> node) {
 			invokeInMethod(node, (Object) input.getData(node.getType()));
+			return null;
 		}
 
 		@Override
-		public <U> void accept(PropertyNode<U> node) {
+		public <U> Void accept(PropertyNode<U> node) {
 			invokeInMethod(node,
 					(Object) input.getProperty(node.getId(), node.getType()));
+			return null;
 		}
 
 		@Override
-		public void accept(ChoiceNode node) {
-
+		public Void accept(ChoiceNode node) {
+			return null;
 		}
 
 		@Override
-		public void accept(SequenceNode node) {
+		public Void accept(SequenceNode node) {
 			processChildren(node);
+			return null;
 		}
 
 		public <U> U bind(AbstractModel<U> node) {
@@ -218,8 +228,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(ElementNode<U> node) {
+		public <U> Void accept(ElementNode<U> node) {
 			invokeInMethod(node, (Object) bind(node));
+			return null;
 		}
 
 		private void invokeInMethod(InputNode node, Object... parameters) {
@@ -228,7 +239,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 						.peek()
 						.getClass()
 						.getMethod(
-								node.getInMethod(),
+								node.getInMethodName(),
 								ListTransformationFunction.<Object, Class<?>> apply(parameters,
 										new Function<Object, Class<?>>() {
 											@Override
@@ -258,9 +269,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(SimpleElementNode<U> node) {
+		public <U> Void accept(SimpleElementNode<U> node) {
 			// TODO Auto-generated method stub
-
+			return null;
 		}
 	}
 

@@ -21,8 +21,8 @@ class PropertyNodeConfiguratorImpl<T>
 			optional = configurator.optional;
 		}
 
-		private PropertyNodeImpl(PropertyNode<T> node,
-				Collection<? extends PropertyNode<T>> overriddenNodes) {
+		private PropertyNodeImpl(PropertyNodeImpl<T> node,
+				Collection<? extends PropertyNodeImpl<T>> overriddenNodes) {
 			super(node, overriddenNodes);
 
 			optional = getValue(node, overriddenNodes, n -> n.isOptional(),
@@ -35,8 +35,8 @@ class PropertyNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
+		public <U> U process(SchemaProcessingContext<U> context) {
+			return context.accept(this);
 		}
 
 		@Override

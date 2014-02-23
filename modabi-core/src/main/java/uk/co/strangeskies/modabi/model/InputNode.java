@@ -1,7 +1,11 @@
 package uk.co.strangeskies.modabi.model;
 
+import java.lang.reflect.Method;
+
 public interface InputNode extends SchemaNode {
-	public String getInMethod();
+	public String getInMethodName();
+
+	public Method getInMethod();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the

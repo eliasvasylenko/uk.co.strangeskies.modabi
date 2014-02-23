@@ -41,6 +41,9 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 			children = new ArrayList<>();
 			overriddenNodes.forEach(n -> children.addAll(n.getChildren()));
 			children.addAll(node.getChildren());
+
+			;
+
 		}
 
 		@Override
@@ -60,6 +63,14 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		children = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
 		namedInheritedChildren = new ArrayListMultiHashMap<>();
+	}
+
+	protected Class<?> getInputClass() {
+		return getParent().getInputClass();
+	}
+
+	protected Class<?> getDataClass() {
+		return getParent().getDataClass();
 	}
 
 	@Override

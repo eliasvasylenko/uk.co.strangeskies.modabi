@@ -1,7 +1,9 @@
 package uk.co.strangeskies.modabi.model.impl;
 
-import java.util.Collection;
+import java.lang.reflect.Method;
+import java.util.List;
 
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.SequenceNode;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
@@ -11,28 +13,45 @@ class SequenceNodeConfiguratorImpl extends
 		implements SequenceNodeConfigurator {
 	protected static class SequenceNodeImpl extends BranchingNodeImpl implements
 			SequenceNode {
-		private final String inMethod;
+		private final String inMethodName;
+		private final Method inMethod;
 		private final boolean inMethodChained;
 
 		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
 
-			inMethod = configurator.inMethod;
+			inMethodName = configurator.inMethod;
+			try {
+				Class<?> inputClass = configurator.getParent().getInputClass();
+				inMethod = inputClass == null ? null : inputClass
+						.getMethod(inMethodName);
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new SchemaException(e);
+			}
 			inMethodChained = configurator.inMethodChained;
 		}
 
-		public SequenceNodeImpl(SequenceNodeImpl node,
-				Collection<SequenceNode> overriddenNodes) {
+		public SequenceNodeImpl(SequenceNode node,
+				List<SequenceNode> overriddenNodes) {
 			super(node, overriddenNodes);
 
-			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod());
+			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName(),
+					(m, n) -> m.equals(n));
+
+			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod(),
+					(m, n) -> m.equals(n));
 
 			inMethodChained = getValue(node, overriddenNodes,
 					n -> n.isInMethodChained());
 		}
 
 		@Override
-		public final String getInMethod() {
+		public final String getInMethodName() {
+			return inMethodName;
+		}
+
+		@Override
+		public Method getInMethod() {
 			return inMethod;
 		}
 
@@ -42,8 +61,8 @@ class SequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
+		public <U> U process(SchemaProcessingContext<U> context) {
+			return context.accept(this);
 		}
 
 		@Override

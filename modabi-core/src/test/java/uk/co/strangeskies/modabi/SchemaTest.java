@@ -13,7 +13,6 @@ import uk.co.strangeskies.modabi.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
 
 public class SchemaTest {
-
 	private void run() {
 		MetaSchema metaSchema = new MetaSchemaImpl();
 		metaSchema.setDataTypeBuilder(new DataTypeBuilderImpl());

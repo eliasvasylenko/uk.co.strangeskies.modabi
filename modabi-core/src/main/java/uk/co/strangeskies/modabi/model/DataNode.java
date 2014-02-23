@@ -1,7 +1,11 @@
 package uk.co.strangeskies.modabi.model;
 
+import java.lang.reflect.Method;
+
 public interface DataNode<T> extends InputNode {
-	public String getOutMethod();
+	public String getOutMethodName();
+
+	public Method getOutMethod();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the

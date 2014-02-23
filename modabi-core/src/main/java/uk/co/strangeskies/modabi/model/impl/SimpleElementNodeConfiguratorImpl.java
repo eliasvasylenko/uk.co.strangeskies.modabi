@@ -24,7 +24,7 @@ class SimpleElementNodeConfiguratorImpl<T>
 		}
 
 		SimpleElementNodeImpl(SimpleElementNodeImpl<T> node,
-				Collection<? extends SimpleElementNode<T>> overriddenNodes) {
+				Collection<? extends SimpleElementNodeImpl<T>> overriddenNodes) {
 			super(node, overriddenNodes);
 
 			occurances = getValue(node, overriddenNodes, n -> n.getOccurances(), (v,
@@ -45,8 +45,8 @@ class SimpleElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
+		public <U> U process(SchemaProcessingContext<U> context) {
+			return context.accept(this);
 		}
 	}
 

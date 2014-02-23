@@ -143,8 +143,14 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 		return (AbstractModelConfigurator<?, ?, V>) this;
 	}
 
+	@Override
 	protected final Class<T> getDataClass() {
 		return dataClass;
+	}
+
+	@Override
+	protected Class<?> getInputClass() {
+		return builderClass != null ? builderClass : dataClass;
 	}
 
 	@Override

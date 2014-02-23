@@ -34,7 +34,7 @@ class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public String getOutMethod() {
+		public String getOutMethodName() {
 			return outMethodName;
 		}
 
@@ -44,7 +44,7 @@ class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public String getInMethod() {
+		public String getInMethodName() {
 			return inMethodName;
 		}
 
@@ -54,8 +54,8 @@ class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
+		public <U> U process(SchemaProcessingContext<U> context) {
+			return context.accept(this);
 		}
 
 		@Override

@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.ContentNode;
-import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
@@ -38,13 +37,8 @@ class ContentNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
-		}
-
-		@Override
-		public SchemaNode effectiveModel() {
-			return new ContentNodeImpl<>(this, null);
+		public <U> U process(SchemaProcessingContext<U> context) {
+			return context.accept(this);
 		}
 	}
 

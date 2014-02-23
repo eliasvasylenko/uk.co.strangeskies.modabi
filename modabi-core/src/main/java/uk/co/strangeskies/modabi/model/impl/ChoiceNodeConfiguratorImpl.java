@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
-import java.util.Collection;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.model.ChoiceNode;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
@@ -11,38 +11,18 @@ class ChoiceNodeConfiguratorImpl extends
 		ChoiceNodeConfigurator {
 	protected static class ChoiceNodeImpl extends BranchingNodeImpl implements
 			ChoiceNode {
-		private final String inMethod;
-		private final boolean inMethodChained;
 		private final boolean mandatory;
 
 		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
 			super(configurator);
 
-			inMethod = configurator.inMethod;
-			inMethodChained = configurator.inMethodChained;
 			mandatory = configurator.mandatory;
 		}
 
-		public ChoiceNodeImpl(ChoiceNodeImpl node,
-				Collection<ChoiceNode> overriddenNodes) {
+		public ChoiceNodeImpl(ChoiceNodeImpl node, List<ChoiceNode> overriddenNodes) {
 			super(node, overriddenNodes);
 
-			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod());
-
-			inMethodChained = getValue(node, overriddenNodes,
-					n -> n.isInMethodChained());
-
 			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
-		}
-
-		@Override
-		public final String getInMethod() {
-			return inMethod;
-		}
-
-		@Override
-		public final Boolean isInMethodChained() {
-			return inMethodChained;
 		}
 
 		@Override
@@ -51,8 +31,8 @@ class ChoiceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
+		public <U> U process(SchemaProcessingContext<U> context) {
+			return context.accept(this);
 		}
 
 		@Override
@@ -61,8 +41,6 @@ class ChoiceNodeConfiguratorImpl extends
 		}
 	}
 
-	private String inMethod;
-	private boolean inMethodChained;
 	private boolean mandatory;
 
 	public ChoiceNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
@@ -72,20 +50,6 @@ class ChoiceNodeConfiguratorImpl extends
 	@Override
 	public ChoiceNode tryCreate() {
 		return new ChoiceNodeImpl(this);
-	}
-
-	@Override
-	public ChoiceNodeConfigurator inMethod(String methodName) {
-		inMethod = methodName;
-
-		return this;
-	}
-
-	@Override
-	public ChoiceNodeConfigurator inMethodChained(boolean chained) {
-		inMethodChained = chained;
-
-		return this;
 	}
 
 	@Override

@@ -5,7 +5,7 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 public interface SchemaNode {
 	public String getId();
 
-	public default void process(SchemaProcessingContext context) {
+	public default <T> T process(SchemaProcessingContext<T> context) {
 		throw new UnsupportedOperationException();
 	}
 }

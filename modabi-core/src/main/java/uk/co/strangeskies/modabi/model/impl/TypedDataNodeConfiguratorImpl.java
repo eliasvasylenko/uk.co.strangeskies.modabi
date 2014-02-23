@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 
 import uk.co.strangeskies.modabi.SchemaException;
@@ -10,12 +11,14 @@ import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
 abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		TypedDataNodeConfigurator<S, N, T> {
-	protected abstract static class TypedDataNodeImpl<T> extends SchemaNodeImpl
+	protected static abstract class TypedDataNodeImpl<T> extends SchemaNodeImpl
 			implements TypedDataNode<T> {
 		private final Class<T> dataClass;
 		private final Boolean iterable;
 		private final String outMethodName;
+		private final Method outMethod;
 		private final String inMethodName;
+		private final Method inMethod;
 		private final Boolean inMethodChained;
 		private final DataType<T> type;
 		private final T value;
@@ -27,6 +30,20 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
 			inMethodName = configurator.inMethodName;
+			try {
+				Class<?> outputClass = configurator.getParent().getDataClass();
+				outMethod = outputClass == null ? null : outputClass
+						.getMethod(outMethodName);
+				if (dataClass != null && outMethod != null
+						&& !dataClass.isAssignableFrom(outMethod.getReturnType()))
+					throw new SchemaException();
+
+				Class<?> inputClass = configurator.getParent().getInputClass();
+				inMethod = inputClass == null || dataClass == null ? null : inputClass
+						.getMethod(inMethodName, dataClass);
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new SchemaException(e);
+			}
 			inMethodChained = configurator.inMethodChained;
 			type = configurator.type;
 			value = configurator.value;
@@ -42,9 +59,15 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 
 			iterable = getValue(node, overriddenNodes, n -> n.isOutMethodIterable());
 
-			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethod());
+			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethodName());
 
-			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethod());
+			outMethod = getValue(node, overriddenNodes, n -> n.getOutMethod(),
+					(m, n) -> m.equals(n));
+
+			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName());
+
+			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod(),
+					(m, n) -> m.equals(n));
 
 			inMethodChained = getValue(node, overriddenNodes,
 					n -> n.isInMethodChained());
@@ -66,8 +89,13 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 		}
 
 		@Override
-		public final String getOutMethod() {
+		public final String getOutMethodName() {
 			return outMethodName;
+		}
+
+		@Override
+		public final Method getOutMethod() {
+			return outMethod;
 		}
 
 		@Override
@@ -81,8 +109,13 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 		}
 
 		@Override
-		public final String getInMethod() {
+		public final String getInMethodName() {
 			return inMethodName;
+		}
+
+		@Override
+		public final Method getInMethod() {
+			return inMethod;
 		}
 
 		@Override

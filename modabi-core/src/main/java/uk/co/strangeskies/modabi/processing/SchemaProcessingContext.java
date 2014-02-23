@@ -7,16 +7,16 @@ import uk.co.strangeskies.modabi.model.PropertyNode;
 import uk.co.strangeskies.modabi.model.SequenceNode;
 import uk.co.strangeskies.modabi.model.SimpleElementNode;
 
-public interface SchemaProcessingContext {
-	public <T> void accept(ContentNode<T> node);
+public interface SchemaProcessingContext<T> {
+	public <U> T accept(ContentNode<U> node);
 
-	public <T> void accept(PropertyNode<T> node);
+	public <U> T accept(PropertyNode<U> node);
 
-	public <T> void accept(SimpleElementNode<T> node);
+	public <U> T accept(SimpleElementNode<U> node);
 
-	public void accept(ChoiceNode node);
+	public T accept(ChoiceNode node);
 
-	public void accept(SequenceNode node);
+	public T accept(SequenceNode node);
 
-	public <T> void accept(ElementNode<T> node);
+	public <U> T accept(ElementNode<U> node);
 }
