@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.lang.reflect.Method;
+
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.ElementNode;
 import uk.co.strangeskies.modabi.model.Model;
@@ -15,7 +17,9 @@ class ElementNodeConfiguratorImpl<T>
 		private final Range<Integer> occurances;
 		private final boolean iterable;
 		private final String outMethodName;
+		private final Method outMethod;
 		private final String inMethodName;
+		private final Method inMethod;
 		private final boolean inMethodChained;
 
 		public ElementNodeImpl(ElementNodeConfiguratorImpl<T> configurator) {
@@ -24,7 +28,9 @@ class ElementNodeConfiguratorImpl<T>
 			occurances = configurator.occurances;
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
+			outMethod = ;
 			inMethodName = configurator.inMethodName;
+			inMethod = ;
 			inMethodChained = configurator.inMethodChained;
 		}
 
@@ -61,6 +67,16 @@ class ElementNodeConfiguratorImpl<T>
 		@Override
 		protected void validateAsEffectiveModel(boolean isAbstract) {
 			super.validateAsEffectiveModel(isAbstract);
+		}
+
+		@Override
+		public Method getOutMethod() {
+			return outMethod;
+		}
+
+		@Override
+		public Method getInMethod() {
+			return inMethod;
 		}
 	}
 
