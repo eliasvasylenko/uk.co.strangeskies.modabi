@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.building;
 
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.model.PropertyNode;
+import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 
 public interface PropertyNodeConfigurator<T> extends
 		TypedDataNodeConfigurator<PropertyNodeConfigurator<T>, PropertyNode<T>, T>,

@@ -1,11 +1,13 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.model.SequenceNode;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 class SequenceNodeConfiguratorImpl extends
@@ -22,18 +24,22 @@ class SequenceNodeConfiguratorImpl extends
 
 			inMethodName = configurator.inMethod;
 			try {
-				Class<?> inputClass = configurator.getParent().getInputClass();
+				Class<?> inputClass = configurator.parent()
+						.getCurrentChildPreInputClass();
 				inMethod = inputClass == null ? null : inputClass
 						.getMethod(inMethodName);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new SchemaException(e);
 			}
 			inMethodChained = configurator.inMethodChained;
+
+			getPostInputClass();
 		}
 
 		public SequenceNodeImpl(SequenceNode node,
-				List<SequenceNode> overriddenNodes) {
-			super(node, overriddenNodes);
+				Collection<? extends SequenceNode> overriddenNodes,
+				List<SchemaNode> effectiveChildren) {
+			super(node, overriddenNodes, effectiveChildren);
 
 			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName(),
 					(m, n) -> m.equals(n));
@@ -63,11 +69,6 @@ class SequenceNodeConfiguratorImpl extends
 		@Override
 		public <U> U process(SchemaProcessingContext<U> context) {
 			return context.accept(this);
-		}
-
-		@Override
-		protected void validateAsEffectiveModel(boolean isAbstract) {
-			super.validateAsEffectiveModel(isAbstract);
 		}
 	}
 
@@ -100,5 +101,19 @@ class SequenceNodeConfiguratorImpl extends
 	@Override
 	public Class<SequenceNode> getNodeClass() {
 		return SequenceNode.class;
+	}
+
+	@Override
+	protected Class<?> getCurrentChildPreInputClass() {
+		if (getChildren().isEmpty())
+			return parent().getCurrentChildPreInputClass();
+		else
+			return getChildren().get(getChildren().size() - 1).getPostInputClass();
+	}
+
+	@Override
+	protected SequenceNode getEffective(SequenceNode node) {
+		return new SequenceNodeImpl(node, getOverriddenNodes(),
+				getEffectiveChildren());
 	}
 }

@@ -3,10 +3,9 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.util.Collection;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.model.SimpleElementNode;
 import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.SimpleElementNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 class SimpleElementNodeConfiguratorImpl<T>
@@ -23,20 +22,12 @@ class SimpleElementNodeConfiguratorImpl<T>
 			occurances = configurator.occurances;
 		}
 
-		SimpleElementNodeImpl(SimpleElementNodeImpl<T> node,
-				Collection<? extends SimpleElementNodeImpl<T>> overriddenNodes) {
+		SimpleElementNodeImpl(SimpleElementNode<T> node,
+				Collection<? extends SimpleElementNode<T>> overriddenNodes) {
 			super(node, overriddenNodes);
 
 			occurances = getValue(node, overriddenNodes, n -> n.getOccurances(), (v,
 					o) -> o.contains(v));
-		}
-
-		@Override
-		protected void validateAsEffectiveModel(boolean isAbstract) {
-			super.validateAsEffectiveModel(isAbstract);
-
-			if (occurances == null)
-				throw new SchemaException();
 		}
 
 		@Override
@@ -88,5 +79,10 @@ class SimpleElementNodeConfiguratorImpl<T>
 	public Class<SimpleElementNode<T>> getNodeClass() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	protected SimpleElementNode<T> getEffective(SimpleElementNode<T> node) {
+		return new SimpleElementNodeImpl<>(node, getOverriddenNodes());
 	}
 }

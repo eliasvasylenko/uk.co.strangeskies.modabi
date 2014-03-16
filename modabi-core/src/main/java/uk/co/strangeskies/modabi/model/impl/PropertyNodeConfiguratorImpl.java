@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.util.Collection;
 
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.model.PropertyNode;
 import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 class PropertyNodeConfiguratorImpl<T>
@@ -21,8 +21,8 @@ class PropertyNodeConfiguratorImpl<T>
 			optional = configurator.optional;
 		}
 
-		private PropertyNodeImpl(PropertyNodeImpl<T> node,
-				Collection<? extends PropertyNodeImpl<T>> overriddenNodes) {
+		private PropertyNodeImpl(PropertyNode<T> node,
+				Collection<? extends PropertyNode<T>> overriddenNodes) {
 			super(node, overriddenNodes);
 
 			optional = getValue(node, overriddenNodes, n -> n.isOptional(),
@@ -37,11 +37,6 @@ class PropertyNodeConfiguratorImpl<T>
 		@Override
 		public <U> U process(SchemaProcessingContext<U> context) {
 			return context.accept(this);
-		}
-
-		@Override
-		protected void validateAsEffectiveModel(boolean isAbstract) {
-			super.validateAsEffectiveModel(isAbstract);
 		}
 	}
 
@@ -78,5 +73,10 @@ class PropertyNodeConfiguratorImpl<T>
 	@Override
 	public Class<PropertyNode<T>> getNodeClass() {
 		return (Class<PropertyNode<T>>) (Object) PropertyNode.class;
+	}
+
+	@Override
+	protected PropertyNode<T> getEffective(PropertyNode<T> node) {
+		return new PropertyNodeImpl<>(node, getOverriddenNodes());
 	}
 }

@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.model.SchemaNode;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
 abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
@@ -26,15 +26,15 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 
 		protected SchemaNodeImpl(SchemaNode node,
 				Collection<? extends SchemaNode> overriddenNodes) {
-			id = node.getId();
+			id = getValue(node, overriddenNodes, n -> n.getId(), (v, o) -> true);
 		}
 
-		protected static final <E extends SchemaNode, T> T getValue(E node,
+		protected static <E extends SchemaNode, T> T getValue(E node,
 				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction) {
 			return getValue(node, overriddenNodes, valueFunction, (v, o) -> true);
 		}
 
-		protected static final <E extends SchemaNode, T> T getValue(E node,
+		protected static <E extends SchemaNode, T> T getValue(E node,
 				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction,
 				BiPredicate<T, T> validateOverride) {
 			T value = valueFunction.apply(node);
@@ -47,21 +47,21 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 				return value;
 			else if (values.size() == 1) {
 				T overriddenValue = values.iterator().next();
-				if (value != null && !validateOverride.test(value, overriddenValue))
-					throw new SchemaException();
+				if (value != null)
+					if (!validateOverride.test(value, overriddenValue))
+						throw new SchemaException();
+					else
+						return value;
 				return overriddenValue;
 			} else if (value == null
 					|| !values.stream().allMatch(v -> validateOverride.test(value, v)))
-				throw new SchemaException();
+				throw new SchemaException("value: " + value);
 			return value;
 		}
 
 		@Override
 		public final String getId() {
 			return id;
-		}
-
-		protected void validateAsEffectiveModel(boolean isAbstract) {
 		}
 	}
 
@@ -74,13 +74,14 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		this.parent = parent;
 		finalisedProperties = false;
 
-		addResultListener(result -> {
-			if (parent != null)
-				parent.addChild((SchemaNodeImpl) result);
-		});
+		if (parent != null)
+			addResultListener(result -> parent.addChild((SchemaNodeImpl) result,
+					getEffective(result)));
 	}
 
-	protected final BranchingNodeConfiguratorImpl<?, ?> getParent() {
+	protected abstract N getEffective(N node);
+
+	protected final BranchingNodeConfiguratorImpl<?, ?> parent() {
 		return parent;
 	}
 
@@ -93,11 +94,6 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 	protected final void requireConfigurable() {
 		if (finalisedProperties)
 			throw new InvalidBuildStateException(this);
-	}
-
-	protected void requireHasId() {
-		if (id == null || id == "")
-			throw new IllegalArgumentException();
 	}
 
 	protected void finaliseProperties() {

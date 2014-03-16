@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.building;
 
-import uk.co.strangeskies.modabi.model.InputNode;
+import uk.co.strangeskies.modabi.model.nodes.InputNode;
 
 public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N extends InputNode>
 		extends SchemaNodeConfigurator<S, N> {

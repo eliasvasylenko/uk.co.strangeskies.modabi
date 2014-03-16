@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.processing;
 
-import uk.co.strangeskies.modabi.model.ChoiceNode;
-import uk.co.strangeskies.modabi.model.ContentNode;
-import uk.co.strangeskies.modabi.model.ElementNode;
-import uk.co.strangeskies.modabi.model.PropertyNode;
-import uk.co.strangeskies.modabi.model.SequenceNode;
-import uk.co.strangeskies.modabi.model.SimpleElementNode;
+import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.model.nodes.ContentNode;
+import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
+import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.model.nodes.SimpleElementNode;
 
 public interface SchemaProcessingContext<T> {
 	public <U> T accept(ContentNode<U> node);

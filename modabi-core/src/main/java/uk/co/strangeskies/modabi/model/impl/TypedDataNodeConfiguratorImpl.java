@@ -2,13 +2,14 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Objects;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.model.TypedDataNode;
 import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.TypedDataNode;
 
-abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
+public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		TypedDataNodeConfigurator<S, N, T> {
 	protected static abstract class TypedDataNodeImpl<T> extends SchemaNodeImpl
@@ -31,16 +32,17 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 			outMethodName = configurator.outMethodName;
 			inMethodName = configurator.inMethodName;
 			try {
-				Class<?> outputClass = configurator.getParent().getDataClass();
-				outMethod = outputClass == null ? null : outputClass
-						.getMethod(outMethodName);
+				Class<?> outputClass = configurator.parent().getDataClass();
+				outMethod = outputClass == null || outMethodName == null ? null
+						: outputClass.getMethod(outMethodName);
 				if (dataClass != null && outMethod != null
 						&& !dataClass.isAssignableFrom(outMethod.getReturnType()))
 					throw new SchemaException();
 
-				Class<?> inputClass = configurator.getParent().getInputClass();
-				inMethod = inputClass == null || dataClass == null ? null : inputClass
-						.getMethod(inMethodName, dataClass);
+				Class<?> inputClass = configurator.parent()
+						.getCurrentChildPreInputClass();
+				inMethod = (inputClass == null || dataClass == null || inMethodName == null) ? null
+						: inputClass.getMethod(inMethodName, dataClass);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new SchemaException(e);
 			}
@@ -57,7 +59,8 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 			dataClass = getValue(node, overriddenNodes,
 					n -> (Class<T>) n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
 
-			iterable = getValue(node, overriddenNodes, n -> n.isOutMethodIterable());
+			iterable = getValue(node, overriddenNodes, n -> n.isOutMethodIterable(),
+					(n, o) -> Objects.equals(n, o));
 
 			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethodName());
 
@@ -76,15 +79,7 @@ abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator
 
 			value = getValue(node, overriddenNodes, n -> (T) n.getValue());
 
-			if (!dataClass.isAssignableFrom(value.getClass()))
-				throw new SchemaException();
-		}
-
-		@Override
-		protected void validateAsEffectiveModel(boolean isAbstract) {
-			super.validateAsEffectiveModel(isAbstract);
-
-			if (type == null)
+			if (value != null && !dataClass.isAssignableFrom(value.getClass()))
 				throw new SchemaException();
 		}
 

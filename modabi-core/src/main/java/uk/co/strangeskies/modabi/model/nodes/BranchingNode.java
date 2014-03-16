@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model;
+package uk.co.strangeskies.modabi.model.nodes;
 
 import java.util.List;
 

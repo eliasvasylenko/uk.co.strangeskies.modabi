@@ -13,6 +13,7 @@ import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataInputBuffer;
 import uk.co.strangeskies.modabi.data.DataType;
@@ -22,17 +23,18 @@ import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Binding;
-import uk.co.strangeskies.modabi.model.BranchingNode;
-import uk.co.strangeskies.modabi.model.ChoiceNode;
-import uk.co.strangeskies.modabi.model.ContentNode;
-import uk.co.strangeskies.modabi.model.ElementNode;
-import uk.co.strangeskies.modabi.model.InputNode;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
-import uk.co.strangeskies.modabi.model.PropertyNode;
-import uk.co.strangeskies.modabi.model.SchemaNode;
-import uk.co.strangeskies.modabi.model.SequenceNode;
-import uk.co.strangeskies.modabi.model.SimpleElementNode;
+import uk.co.strangeskies.modabi.model.nodes.BranchingNode;
+import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.model.nodes.ContentNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.model.nodes.InputNode;
+import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.model.nodes.SimpleElementNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.processing.SchemaBinder;
@@ -46,9 +48,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private final Deque<Object> bindingStack;
 
+		private final Deque<List<ElementNode<?>>> elementListStack;
+
 		public SchemaSavingContext(Model<T> model, StructuredDataOutput output,
 				T data) {
 			bindingStack = new ArrayDeque<>();
+			elementListStack = new ArrayDeque<>();
 
 			this.data = data;
 			this.model = model;
@@ -56,12 +61,19 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		protected void save() {
-			unbind(model, data);
+			unbind(model.effectiveModel(), data);
 		}
 
 		protected void processChildren(BranchingNode node) {
+			List<ElementNode<?>> elementList = new ArrayList<>();
+			elementListStack.add(elementList);
+
 			for (SchemaNode child : node.getChildren()) {
 				child.process(this);
+			}
+
+			for (ElementNode<?> element : elementListStack.pop()) {
+				process(element);
 			}
 		}
 
@@ -73,13 +85,31 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> Void accept(PropertyNode<U> node) {
-			output.content().string(node.getId()).end();
+			Object data = getData(node);
+			if (data != null)
+				output.property(node.getId()).string("" + data).end();
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <U> U getData(final DataNode<U> node) {
+			if (node.getDataClass() != null) {
+				Object parent = bindingStack.peek();
+
+				try {
+					return (U) getMethod(parent, node.getDataClass(),
+							generateOutMethodNames(node)).invoke(parent);
+				} catch (NoSuchMethodException | IllegalAccessException
+						| IllegalArgumentException | InvocationTargetException e) {
+					e.printStackTrace();
+				}
+			}
 			return null;
 		}
 
 		@Override
 		public Void accept(ChoiceNode node) {
-			processChildren(node);
+			// processChildren(node); TODO
 			return null;
 		}
 
@@ -89,7 +119,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 			return null;
 		}
 
-		public <U> void unbind(AbstractModel<U> node, U data) {
+		public <U> void unbind(AbstractModel<? extends U> node, U data) {
+			if (node.isAbstract() != null && node.isAbstract())
+				node = registeredModels.getMatchingModel(node, data.getClass())
+						.effectiveModel();
+
 			output.childElement(node.getId());
 			bindingStack.push(data);
 			processChildren(node);
@@ -97,34 +131,41 @@ public class SchemaBinderImpl implements SchemaBinder {
 			output.endElement();
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public <U> Void accept(final ElementNode<U> node) {
-			if (node.getDataClass() != null) {
-				Object parent = bindingStack.peek();
+			elementListStack.peek().add(node);
+			return null;
+		}
 
-				try {
-					if (node.isOutMethodIterable()) {
-						Iterable<Object> iterable = null;
-						if (node.getOutMethodName() == "this")
-							iterable = (Iterable<Object>) parent;
-						else {
-							iterable = (Iterable<Object>) getMethod(parent, Iterable.class,
-									generateOutMethodNames(node)).invoke(parent);
-						}
-						for (Object child : iterable)
-							unbind(node, (U) child);
-					} else {
-						unbind(
-								node,
-								(U) getMethod(parent, node.getDataClass(),
-										generateOutMethodNames(node)).invoke(parent));
+		@SuppressWarnings("unchecked")
+		public <U> Void process(final ElementNode<U> node) {
+			Object parent = bindingStack.peek();
+
+			if (node.getDataClass() == null)
+				throw new SchemaException();
+
+			try {
+				if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
+					Iterable<Object> iterable = null;
+					if (node.getOutMethodName() == "this")
+						iterable = (Iterable<Object>) parent;
+					else {
+						iterable = (Iterable<Object>) getMethod(parent, Iterable.class,
+								generateOutMethodNames(node)).invoke(parent);
 					}
-				} catch (NoSuchMethodException | IllegalAccessException
-						| IllegalArgumentException | InvocationTargetException e) {
-					e.printStackTrace();
+					for (Object child : iterable)
+						unbind(node, (U) child);
+				} else {
+					unbind(
+							node,
+							(U) getMethod(parent, node.getDataClass(),
+									generateOutMethodNames(node)).invoke(parent));
 				}
+			} catch (NoSuchMethodException | IllegalAccessException
+					| IllegalArgumentException | InvocationTargetException e) {
+				e.printStackTrace();
 			}
+
 			return null;
 		}
 
@@ -139,22 +180,26 @@ public class SchemaBinderImpl implements SchemaBinder {
 				} catch (NoSuchMethodException | SecurityException e) {
 				}
 			}
-			throw new NoSuchMethodException("For " + names + " in " + receiver);
+			throw new NoSuchMethodException("For " + names + " in "
+					+ receiver.getClass() + " @ " + receiver + " -> " + returns);
 		}
 
-		private List<String> generateOutMethodNames(ElementNode<?> node) {
+		private List<String> generateOutMethodNames(DataNode<?> node) {
 			List<String> names = new ArrayList<>();
 
 			if (node.getOutMethodName() != null) {
 				names.add(node.getOutMethodName());
 			} else {
 				names.add(node.getId());
-				if (node.isOutMethodIterable()) {
+				Boolean iterable = node.isOutMethodIterable();
+				if (iterable != null && iterable) {
 					names.add(node.getId() + "s");
 					names.add(node.getId() + "List");
 					names.add(node.getId() + "Set");
 					names.add(node.getId() + "Array");
 				}
+				if (node.getDataClass().equals(Boolean.class))
+					names.add("is" + capitalize(node.getId()));
 				for (String name : new ArrayList<>(names))
 					names.add("get" + capitalize(name));
 			}
@@ -189,7 +234,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		protected Binding<T> load() {
-			return new Binding<T>(model, bind(model));
+			return new Binding<T>(model, bind(model.effectiveModel()));
 		}
 
 		@Override
@@ -328,6 +373,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
+	public <T> T processInput(Model<T> model, StructuredDataInput input) {
+		return new SchemaLoadingContext<>(model, input).load().getData();
+	}
+
+	@Override
 	public Binding<?> processInput(StructuredDataInput input) {
 		Model<?> model = null;
 		// input.peekNext(model);
@@ -335,13 +385,15 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public <T> T processInput(Model<T> model, StructuredDataInput input) {
-		return new SchemaLoadingContext<>(model, input).load().getData();
+	public <T> void processOutput(Model<T> model, StructuredDataOutput output,
+			T data) {
+		new SchemaSavingContext<>(model, output, data).save();
 	}
 
 	@Override
-	public <T> void processOutput(Model<T> model, StructuredDataOutput output,
-			T data) {
+	public <T> void processOutput(StructuredDataOutput output, T data) {
+		Model<T> model = null;
+		// registeredModels.search(data.getClass());
 		new SchemaSavingContext<>(model, output, data).save();
 	}
 }

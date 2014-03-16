@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.util.Collection;
 
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.model.ContentNode;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.ContentNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 class ContentNodeConfiguratorImpl<T>
@@ -75,5 +75,10 @@ class ContentNodeConfiguratorImpl<T>
 	@Override
 	public Class<ContentNode<T>> getNodeClass() {
 		return (Class<ContentNode<T>>) (Object) ContentNode.class;
+	}
+
+	@Override
+	protected ContentNode<T> getEffective(ContentNode<T> node) {
+		return new ContentNodeImpl<>(node, getOverriddenNodes());
 	}
 }

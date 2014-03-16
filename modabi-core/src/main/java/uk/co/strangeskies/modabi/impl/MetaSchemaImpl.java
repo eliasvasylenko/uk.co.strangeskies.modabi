@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
@@ -14,21 +15,9 @@ import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.data.DataTypes;
-import uk.co.strangeskies.modabi.model.BranchingNode;
-import uk.co.strangeskies.modabi.model.ChoiceNode;
-import uk.co.strangeskies.modabi.model.ContentNode;
-import uk.co.strangeskies.modabi.model.DataNode;
-import uk.co.strangeskies.modabi.model.ElementNode;
-import uk.co.strangeskies.modabi.model.InputNode;
-import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.AbstractModel;
+import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
-import uk.co.strangeskies.modabi.model.OptionalNode;
-import uk.co.strangeskies.modabi.model.PropertyNode;
-import uk.co.strangeskies.modabi.model.RepeatableNode;
-import uk.co.strangeskies.modabi.model.SchemaNode;
-import uk.co.strangeskies.modabi.model.SequenceNode;
-import uk.co.strangeskies.modabi.model.TypedDataNode;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
@@ -38,6 +27,18 @@ import uk.co.strangeskies.modabi.model.building.OptionalNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BranchingNode;
+import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.model.nodes.ContentNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.model.nodes.InputNode;
+import uk.co.strangeskies.modabi.model.nodes.OptionalNode;
+import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
+import uk.co.strangeskies.modabi.model.nodes.RepeatableNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.model.nodes.TypedDataNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
@@ -133,7 +134,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		typeSet.add(rangeType);
 
-		DataType<?> referenceType = dataType().name("reference").create();
+		DataType<?> referenceType = dataType().name("reference")
+				.dataClass(Object.class).create();
 		typeSet.add(referenceType);
 
 		DataType<?> typeType = dataType().name("type").dataClass(DataType.class)
@@ -143,10 +145,10 @@ public class MetaSchemaImpl implements MetaSchema {
 		/*
 		 * Models
 		 */
-		Set<Model<?>> modelSet = new HashSet<>();
+		Set<Model<?>> modelSet = new LinkedHashSet<>();
 
 		Model<Object> includeModel = model().id("include")
-				.builderClass(ModelLoader.class).isAbstract(true).create();
+				.builderClass(ModelLoader.class).dataClass(Object.class).create();
 		modelSet.add(includeModel);
 
 		@SuppressWarnings("rawtypes")
@@ -160,7 +162,8 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<SchemaNode> nodeModel = model().id("node").isAbstract(true)
 				.dataClass(SchemaNode.class)
-				.addChild(n -> n.property().id("id").optional(true)).create();
+				.addChild(n -> n.property().type(stringType).id("id").optional(true))
+				.create();
 		modelSet.add(nodeModel);
 
 		Model<OptionalNode> optionalModel = model().id("optional").isAbstract(true)
@@ -173,7 +176,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(nodeModel)
 				.dataClass(InputNode.class)
 				.addChild(
-						n -> n.property().id("inMethod").optional(true).type(stringType))
+						n -> n.property().id("inMethod").outMethod("getInMethodName")
+								.optional(true).type(stringType))
 				.addChild(
 						n -> n.property().id("inMethodChained").optional(true)
 								.type(booleanType)).create();
@@ -187,7 +191,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.property().id("dataClass").type(classType).optional(true))
 				.addChild(
-						n -> n.property().id("outMethod").optional(true).type(stringType))
+						n -> n.property().id("outMethod").outMethod("getOutMethodName")
+								.optional(true).type(stringType))
 				.addChild(
 						n -> n.property().id("outMethodIterable").optional(true)
 								.type(booleanType)).create();
@@ -203,27 +208,24 @@ public class MetaSchemaImpl implements MetaSchema {
 								.occurances(Range.create(0, null))).create();
 		modelSet.add(branchModel);
 
-		Model<ChoiceNode> choiceModel = model()
-				.id("choice")
-				.isAbstract(false)
-				.dataClass(ChoiceNode.class)
-				.builderClass(ChoiceNodeConfigurator.class)
+		Model<ChoiceNode> choiceModel = model().id("choice").isAbstract(false)
+				.dataClass(ChoiceNode.class).builderClass(ChoiceNodeConfigurator.class)
 				.baseModel(branchModel)
 				.addChild(n -> n.property().id("mandatory").type(booleanType))
-				.addChild(
-						n -> n.element().id("child").occurances(Range.create(2, null)))
-				.create();
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(choiceModel);
 
 		Model<SequenceNode> sequenceModel = model().id("sequence")
 				.isAbstract(false).dataClass(SequenceNode.class)
 				.builderClass(SequenceNodeConfigurator.class)
-				.baseModel(inputModel, branchModel).create();
+				.baseModel(inputModel, branchModel)
+				.addChild(n -> n.property().id("id"))
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(sequenceModel);
 
 		Model<RepeatableNode> repeatableModel = model().id("repeatable")
-				.isAbstract(false).baseModel(nodeModel).dataClass(RepeatableNode.class)
-				.create();
+				.baseModel(nodeModel).dataClass(RepeatableNode.class)
+				.addChild(n -> n.property().id("occurances").type(rangeType)).create();
 		modelSet.add(repeatableModel);
 
 		@SuppressWarnings("rawtypes")
@@ -231,31 +233,38 @@ public class MetaSchemaImpl implements MetaSchema {
 				.id("abstractModel")
 				.baseModel(branchModel)
 				.dataClass(AbstractModel.class)
-				.addChild(n -> n.property().id("id").optional(false))
 				.addChild(
 						n -> n.property().id("abstract").type(booleanType).optional(true))
 				.addChild(
-						n -> n.choice().id("model").mandatory(false)
-								.addChild(o -> o.property().id("dataClass").type(classType))
-								.addChild(o -> o.property().id("bindingStyle").type(enumType) // TODO
-										.optional(true)))
+						n -> n.property().id("baseModel").type(referenceType)
+								.optional(true))
+				.addChild(
+						o -> o.property().id("dataClass").type(classType).optional(true))
+				.addChild(
+						o -> o.property().id("implementationStrategy").type(enumType)
+								.optional(true))
 				.addChild(n -> n.property().id("builderClass").type(classType))
 				.addChild(
 						n -> n.property().id("builderMethod").type(stringType)
-								.optional(true)).create();
+								.optional(true)).addChild(n -> n.element().id("child"))
+				.create();
 		modelSet.add(abstractModelModel);
 
 		@SuppressWarnings("rawtypes")
 		Model<Model> modelModel = model().id("model").baseModel(abstractModelModel)
-				.dataClass(Model.class).create();
+				.dataClass(Model.class)
+				.addChild(n -> n.property().id("id").optional(false))
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(abstractModelModel);
 
 		@SuppressWarnings("rawtypes")
 		Model<ElementNode> elementModel = model().id("element")
 				.dataClass(ElementNode.class)
 				.builderClass(ElementNodeConfigurator.class)
-				.baseModel(abstractModelModel, dataModel, repeatableModel)
-				.isAbstract(false).create();
+				.baseModel(dataModel, repeatableModel, abstractModelModel)
+				.isAbstract(false).addChild(n -> n.property().id("id"))
+				.addChild(o -> o.property().id("dataClass").type(classType))
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(elementModel);
 
 		@SuppressWarnings("rawtypes")
@@ -263,8 +272,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.id("typedData").dataClass(TypedDataNode.class)
 				.builderClass(TypedDataNodeConfigurator.class)
 				.addChild(n -> n.property().id("type").type(typeType))
-				.addChild(n -> n.simpleElement().id("value").type(referenceType) // TODO
-				).create();
+				.addChild(n -> n.simpleElement().id("value").type(referenceType))
+				.create();
 
 		@SuppressWarnings("rawtypes")
 		Model<ContentNode> contentModel = model().id("content")
@@ -274,7 +283,8 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		@SuppressWarnings("rawtypes")
 		Model<PropertyNode> propertyModel = model().id("property")
-				.dataClass(PropertyNode.class).baseModel(typedDataModel, optionalModel)
+				.isAbstract(false).dataClass(PropertyNode.class)
+				.baseModel(typedDataModel, optionalModel)
 				.builderClass(PropertyNodeConfigurator.class)
 				.addChild(n -> n.property().id("id")).create();
 		modelSet.add(propertyModel);
@@ -287,12 +297,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.id("models")
 				.dataClass(Set.class)
 				.addChild(
-						n -> n.element().baseModel(modelModel)
-								.occurances(Range.create(0, null))).create();
+						n -> n.element().baseModel(modelModel).outMethodIterable(true)
+								.outMethod("this").occurances(Range.create(0, null))).create();
 		modelSet.add(modelsModel);
 
 		schemaModel = model()
-				.id("modelSchema")
+				.id("schemaModel")
 				.dataClass(Schema.class)
 				.builderClass(SchemaConfigurator.class)
 				.addChild(

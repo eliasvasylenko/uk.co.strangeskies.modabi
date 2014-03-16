@@ -1,11 +1,13 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
 class ModelConfiguratorImpl<T> extends
 		AbstractModelConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -13,8 +15,9 @@ class ModelConfiguratorImpl<T> extends
 	public static class EffectiveModelImpl<T> extends AbstractModelImpl<T>
 			implements EffectiveModel<T> {
 		public EffectiveModelImpl(ModelImpl<? super T> node,
-				List<? extends EffectiveModel<? super T>> overriddenNodes) {
-			super(node, overriddenNodes);
+				Collection<? extends EffectiveModel<? super T>> overriddenNodes,
+				List<SchemaNode> effectiveChildren) {
+			super(node, overriddenNodes, effectiveChildren);
 		}
 	}
 
@@ -26,17 +29,13 @@ class ModelConfiguratorImpl<T> extends
 			super(configurator);
 
 			effectiveModel = new EffectiveModelImpl<T>(this, getBaseModel().stream()
-					.map(m -> m.effectiveModel()).collect(Collectors.toList()));
+					.map(m -> m.effectiveModel()).collect(Collectors.toList()),
+					configurator.getEffectiveChildren());
 		}
 
 		@Override
 		public EffectiveModel<T> effectiveModel() {
 			return effectiveModel;
-		}
-
-		@Override
-		protected void validateAsEffectiveModel(boolean isAbstract) {
-			super.validateAsEffectiveModel(isAbstract);
 		}
 	}
 
@@ -66,5 +65,10 @@ class ModelConfiguratorImpl<T> extends
 	@Override
 	public Class<Model<T>> getNodeClass() {
 		return (Class<Model<T>>) (Object) Model.class;
+	}
+
+	@Override
+	protected Model<T> getEffective(Model<T> node) {
+		return null;
 	}
 }

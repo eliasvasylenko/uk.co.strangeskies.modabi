@@ -2,15 +2,19 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
-abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
+public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
 		AbstractModelConfigurator<S, N, T> {
 	protected static abstract class AbstractModelImpl<T> extends
@@ -34,13 +38,21 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 			isAbstract = configurator.isAbstract;
 		}
 
-		@SuppressWarnings("unchecked")
-		public <E extends AbstractModel<? super T>> AbstractModelImpl(E node,
-				List<? extends E> overriddenNodes) {
-			super(node, overriddenNodes);
+		public AbstractModelImpl(AbstractModel<? super T> node,
+				Collection<? extends AbstractModel<? super T>> overriddenNodes,
+				List<SchemaNode> effectiveChildren) {
+			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
+					null);
+		}
 
-			dataClass = getValue(node, overriddenNodes,
-					n -> (Class<T>) n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
+		@SuppressWarnings("unchecked")
+		private AbstractModelImpl(AbstractModel<? super T> node,
+				Collection<AbstractModel<? super T>> overriddenNodes,
+				List<SchemaNode> effectiveChildren, Void flag) {
+			super(node, overriddenNodes, effectiveChildren);
+
+			dataClass = (Class<T>) getValue(node, overriddenNodes,
+					n -> n.getDataClass(), (v, o) -> o.isAssignableFrom(v));
 
 			baseModel = new ArrayList<>();
 			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
@@ -49,8 +61,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 			buildMethodName = getValue(node, overriddenNodes,
 					n -> n.getBuilderMethod());
 
-			builderClass = getValue(node, overriddenNodes,
-					n -> (Class<Object>) n.getBuilderClass());
+			builderClass = getValue(node, overriddenNodes, n -> n.getBuilderClass());
 
 			implementationStrategy = getValue(node, overriddenNodes,
 					n -> n.getImplementationStrategy());
@@ -59,32 +70,56 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 		}
 
 		@Override
-		public Boolean isAbstract() {
+		public boolean equals(Object obj) {
+			if (!(obj instanceof AbstractModel))
+				return false;
+			return super.equals(obj);
+		}
+
+		private static <T> Collection<AbstractModel<? super T>> overriddenWithBase(
+				AbstractModel<? super T> node,
+				Collection<? extends AbstractModel<? super T>> overriddenNodes) {
+			List<AbstractModel<? super T>> overriddenAndModelNodes = new ArrayList<>();
+			overriddenAndModelNodes.addAll(overriddenNodes);
+
+			ListOrderedSet<Model<? super T>> baseModels = new ListOrderedSet<>();
+			baseModels.addAll(node.getBaseModel());
+			/*for (int i = 0; i < baseModels.size(); i++) {
+				Model<? super T> baseModel = baseModels.get(i);
+				baseModels.addAll(baseModel.effectiveModel().getBaseModel());
+			}*/
+			overriddenAndModelNodes.addAll(baseModels);
+
+			return overriddenAndModelNodes;
+		}
+
+		@Override
+		public final Boolean isAbstract() {
 			return isAbstract;
 		}
 
 		@Override
-		public List<Model<? super T>> getBaseModel() {
+		public final List<Model<? super T>> getBaseModel() {
 			return baseModel;
 		}
 
 		@Override
-		public Class<T> getDataClass() {
+		public final Class<T> getDataClass() {
 			return dataClass;
 		}
 
 		@Override
-		public ImplementationStrategy getImplementationStrategy() {
+		public final ImplementationStrategy getImplementationStrategy() {
 			return implementationStrategy;
 		}
 
 		@Override
-		public Class<?> getBuilderClass() {
+		public final Class<?> getBuilderClass() {
 			return builderClass;
 		}
 
 		@Override
-		public String getBuilderMethod() {
+		public final String getBuilderMethod() {
 			return buildMethodName;
 		}
 	}
@@ -123,7 +158,7 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 
 		baseModel.forEach(m -> {
 			inheritChildren(m.effectiveModel().getChildren().stream()
-					.filter(n -> n.getId() != null).collect(Collectors.toList()));
+					.collect(Collectors.toList()));
 		});
 
 		return thisV;
@@ -149,8 +184,11 @@ abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator
 	}
 
 	@Override
-	protected Class<?> getInputClass() {
-		return builderClass != null ? builderClass : dataClass;
+	protected Class<?> getCurrentChildPreInputClass() {
+		if (getChildren().isEmpty())
+			return builderClass != null ? builderClass : dataClass;
+		else
+			return getChildren().get(getChildren().size() - 1).getPostInputClass();
 	}
 
 	@Override

@@ -2,6 +2,8 @@ package uk.co.strangeskies.modabi.model;
 
 import java.util.List;
 
+import uk.co.strangeskies.modabi.model.nodes.BranchingNode;
+
 public interface AbstractModel<T> extends BranchingNode {
 	public Boolean isAbstract();
 

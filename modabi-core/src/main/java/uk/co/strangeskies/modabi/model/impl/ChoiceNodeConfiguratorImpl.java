@@ -1,9 +1,11 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.Collection;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.model.ChoiceNode;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 class ChoiceNodeConfiguratorImpl extends
@@ -19,8 +21,10 @@ class ChoiceNodeConfiguratorImpl extends
 			mandatory = configurator.mandatory;
 		}
 
-		public ChoiceNodeImpl(ChoiceNodeImpl node, List<ChoiceNode> overriddenNodes) {
-			super(node, overriddenNodes);
+		public ChoiceNodeImpl(ChoiceNode node,
+				Collection<? extends ChoiceNode> overriddenNodes,
+				List<SchemaNode> effectiveChildren) {
+			super(node, overriddenNodes, effectiveChildren);
 
 			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
 		}
@@ -33,11 +37,6 @@ class ChoiceNodeConfiguratorImpl extends
 		@Override
 		public <U> U process(SchemaProcessingContext<U> context) {
 			return context.accept(this);
-		}
-
-		@Override
-		protected void validateAsEffectiveModel(boolean isAbstract) {
-			super.validateAsEffectiveModel(isAbstract);
 		}
 	}
 
@@ -62,5 +61,16 @@ class ChoiceNodeConfiguratorImpl extends
 	@Override
 	public Class<ChoiceNode> getNodeClass() {
 		return ChoiceNode.class;
+	}
+
+	@Override
+	protected Class<?> getCurrentChildPreInputClass() {
+		return parent().getCurrentChildPreInputClass();
+	}
+
+	@Override
+	protected ChoiceNode getEffective(ChoiceNode node) {
+		return new ChoiceNodeImpl(node, getOverriddenNodes(),
+				getEffectiveChildren());
 	}
 }

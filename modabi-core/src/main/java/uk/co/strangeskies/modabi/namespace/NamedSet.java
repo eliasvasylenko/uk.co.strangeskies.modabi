@@ -5,27 +5,35 @@ import java.util.function.Function;
 
 public class NamedSet<T> extends QualifiedNamedSet<T> {
 	private Namespace namespace;
-	private final Function<T, String> name;
+	private final Function<T, String> namingFunction;
 
-	public NamedSet(final Namespace namespace, final Function<T, String> name) {
+	public NamedSet(final Namespace namespace,
+			final Function<T, String> namingFunction) {
 		super(new Function<T, QualifiedName>() {
 			@Override
 			public QualifiedName apply(T t) {
-				return new QualifiedName(name.apply(t), namespace);
+				return new QualifiedName(namingFunction.apply(t), namespace);
 			}
 		});
-		this.name = name;
+		this.namingFunction = namingFunction;
 	}
 
-	public void add(T element, Namespace namespace) {
-		getElements().put(new QualifiedName(name.apply(element), namespace),
-				element);
+	public boolean add(T element, Namespace namespace) {
+		QualifiedName name = new QualifiedName(namingFunction.apply(element),
+				namespace);
+		if (getElements().get(name) != null)
+			return false;
+
+		getElements().put(name, element);
+		return true;
 	}
 
-	public void addAll(Collection<? extends T> elements, Namespace namespace) {
+	public boolean addAll(Collection<? extends T> elements, Namespace namespace) {
+		boolean changed = false;
 		for (T element : elements) {
-			add(element, namespace);
+			changed = add(element, namespace) || changed;
 		}
+		return changed;
 	}
 
 	public T get(String name) {

@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.building;
 
-import uk.co.strangeskies.modabi.model.ElementNode;
 import uk.co.strangeskies.modabi.model.Model;
+import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 
 public interface ElementNodeConfigurator<T> extends
 		AbstractModelConfigurator<ElementNodeConfigurator<T>, ElementNode<T>, T>,

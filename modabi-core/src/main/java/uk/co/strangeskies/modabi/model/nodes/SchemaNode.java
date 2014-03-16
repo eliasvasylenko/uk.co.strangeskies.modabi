@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model;
+package uk.co.strangeskies.modabi.model.nodes;
 
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
@@ -8,4 +8,8 @@ public interface SchemaNode {
 	public default <T> T process(SchemaProcessingContext<T> context) {
 		throw new UnsupportedOperationException();
 	}
+
+	public Class<?> getPreInputClass();
+
+	public Class<?> getPostInputClass();
 }

@@ -44,10 +44,12 @@
 			</property>
 		</model>
 
-		<model id="provide" dataClass=":model.ProviderNode" abstract="true">
+		<model id="provision" dataClass=":model.ProviderNode" abstract="true">
 			<property id="providedClass" type="class" />
 			<property id="providerOutMethod" type="string" />
 			<property id="provideMethod" optional="true" type="string" />
+			<element id="provides" inMethod="addProvision" outMethod="getProvisions"
+				outMethodIterable="true" baseModel="provision" occurrences="0.." />
 		</model>
 
 		<model id="input" baseModel="node">
@@ -62,11 +64,24 @@
 		</model>
 
 		<model id="branch" baseModel="node" dataClass=":model.BranchingNode">
+			<provides providerOutMethod="addChild">
+				<provides providedClass=":model.ElementNode"
+					providerOutMethod="element" />
+				<provides providedClass=":model.SequenceNode"
+					providerOutMethod="sequence" />
+				<provides providedClass=":model.ChoiceNode"
+					providerOutMethod="choice" />
+				<provides providedClass=":model.PropertyNode"
+					providerOutMethod="property" />
+				<provides providedClass=":model.DataNode"
+					providerOutMethod="data" />
+			</provides>
+
 			<element id="child" outMethod="getChildren"
 				outMethodIterable="true" baseModel="node" occurrences="0.." />
 		</model>
 
-		<model id="choice" baseModel="branch, input" dataClass=":model.choiceNode"
+		<model id="choice" baseModel="branch, input" dataClass=":model.ChoiceNode"
 			builderClass=":model.builder.choiceNodeBuilder" abstract="false">
 			<property id="mandatory" type="boolean" />
 			<element id="child" occurrences="2.." />
@@ -82,20 +97,21 @@
 			<property id="occurances" type="integerRange" optional="true" />
 		</model>
 
-		<model id="model" baseModel="model, branch" dataClass=":model.ModelNode">
+		<model id="model" baseModel="branch" dataClass=":model.ModelNode">
+			<element id="provides" inMethod="addProvision" outMethod="getProvisions"
+				outMethodIterable="true" baseModel="provision" occurrences="0.." />
 			<property id="id" optional="false" />
 			<property id="abstract" inMethod="isAbstract" type="boolean"
 				optional="true" />
 			<choice id="model" mandatory="false">
 				<documentation>
-					The model this model is based on. The children of the
-					models will aggregate in the order they appear in this list, and
-					the id of this model can be inserted to specify the position its
-					own children will occur. This model must specify a dataClass which
-					is covariant with the dataType of each model in this list.
+					The model which this model is based on. The children
+					of the models will aggregate in the order they appear in this list,
+					and the id of this model can be inserted to specify the position
+					its own children will occur. This model must specify a dataClass
+					which is covariant with the dataType of each model in this list.
 
-					Using
-					'adaptionModel' doesn't require covariant dataClass like a
+					Using 'adaptionModel' doesn't require covariant dataClass like a
 					'baseModel'
 				</documentation>
 				<property id="baseModel" type="models" />
@@ -106,8 +122,7 @@
 			<property id="dataClass" type="class" />
 			<property id="builderClass" optional="true" type="class" />
 			<property id="buildMethod" optional="true" type="string" />
-			<!-- <element id="model" baseModel="model" abstract="false" occurrences="0.." 
-				/> -->
+			<element id="child" />
 		</model>
 
 		<model id="element" dataClass=":model.ElementNode" builderClass=":model.ElementNodeBuilder"
@@ -157,7 +172,7 @@
 					<property id="class" type="class" />
 					<property id="optional" type="boolean" />
 					<property id="singleton" type="boolean" />
-					<element id="provide" baseModel="provide" occurences="0.." />
+					<element id="provides" baseModel="provision" occurences="0.." />
 				</element>
 			</element>
 			<element id="types" occurrences="0..1">
@@ -165,7 +180,8 @@
 			</element>
 			<element id="models" occurrences="0..1">
 				<element id="model" adaptionModel="model" occurrences="0.."
-					abstract="false" adaptionTargetClass=":model.SchemaNode">
+					abstract="false" adaptionTargetClass=":model.SchemaNode"
+					outMethodIterable="true">
 					<sequence inMethod="create" inMethodChained="true" />
 				</element>
 			</element>

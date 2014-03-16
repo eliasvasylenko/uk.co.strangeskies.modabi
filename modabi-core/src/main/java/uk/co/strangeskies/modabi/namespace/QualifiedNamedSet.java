@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.namespace;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -11,14 +11,14 @@ import uk.co.strangeskies.gears.utilities.collection.SetDecorator;
 import uk.co.strangeskies.gears.utilities.function.collection.SetTransformationView;
 
 public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
-	private final Function<T, QualifiedName> qualifiedName;
-	private final Map<QualifiedName, T> elements;
+	private final Function<T, QualifiedName> qualifiedNamingFunction;
+	private final LinkedHashMap<QualifiedName, T> elements;
 
-	public QualifiedNamedSet(Function<T, QualifiedName> name) {
+	public QualifiedNamedSet(Function<T, QualifiedName> namingFunction) {
 		super(new IdentityProperty<Set<T>>());
 
-		qualifiedName = name;
-		elements = new HashMap<>();
+		qualifiedNamingFunction = namingFunction;
+		elements = new LinkedHashMap<>();
 
 		getComponentProperty().set(
 				new SetTransformationView<T, T>(elements.values(), e -> e));
@@ -30,7 +30,13 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 
 	@Override
 	public boolean add(T element) {
-		return elements.put(qualifiedName.apply(element), element) == null;
+		QualifiedName name = qualifiedNamingFunction.apply(element);
+		if (elements.get(name) != null)
+			return false;
+
+		elements.put(name, element);
+
+		return true;
 	}
 
 	@Override

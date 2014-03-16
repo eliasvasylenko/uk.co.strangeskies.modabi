@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.building;
 
-import uk.co.strangeskies.modabi.model.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
 
 public interface DataNodeConfigurator<S extends DataNodeConfigurator<S, N, T>, N extends DataNode<T>, T>
 		extends InputNodeConfigurator<S, N> {

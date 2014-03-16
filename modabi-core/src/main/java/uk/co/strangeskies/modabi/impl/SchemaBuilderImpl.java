@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.Schema;
@@ -20,7 +21,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		return new SchemaConfigurator() {
 			private final Set<DataType<?>> typeSet = new HashSet<>();
 			private QualifiedName qualifiedName;
-			private final Set<Model<?>> modelSet = new HashSet<>();
+			private final Set<Model<?>> modelSet = new LinkedHashSet<>();
 			private Schemata dependencySet = new Schemata();
 
 			@Override
