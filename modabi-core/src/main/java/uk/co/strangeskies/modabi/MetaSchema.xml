@@ -13,15 +13,17 @@
 
 	<models>
 		<model id="typeBase" dataClass=":model.data.DataType">
-			<property id="name" />
-			<property id="dataClass" type="class" />
-			<element id="restrictions" occurances="0..1">
-				<element id="restriction" occurances="0..">
+			<children>
+				<property id="name" />
+				<property id="dataClass" type="class" />
+				<element id="restrictions" occurances="0..1">
+					<element id="restriction" occurances="0..">
+					</element>
 				</element>
-			</element>
-			<element id="properties" occurances="0..1">
-				<element id="property" baseModel="property" occurances="0.." />
-			</element>
+				<element id="properties" occurances="0..1">
+					<element id="property" baseModel="property" occurances="0.." />
+				</element>
+			</children>
 		</model>
 
 		<model id="type" baseModel="typeBase" dataClass=":model.data.DataType">
@@ -39,17 +41,21 @@
 				in deriving models. They also cannot be overridden by hidden nodes
 				unless a default value is provided.
 			</documentation>
-			<property id="include" type="enum" optional="true"
-				enumClass=":model:modelInclusion">
-			</property>
+			<children>
+				<property id="include" type="enum" optional="true"
+					enumClass=":model:modelInclusion">
+				</property>
+			</children>
 		</model>
 
 		<model id="provision" dataClass=":model.ProviderNode" abstract="true">
-			<property id="providedClass" type="class" />
-			<property id="providerOutMethod" type="string" />
-			<property id="provideMethod" optional="true" type="string" />
-			<element id="provides" inMethod="addProvision" outMethod="getProvisions"
-				outMethodIterable="true" baseModel="provision" occurrences="0.." />
+			<children>
+				<property id="providedClass" type="class" />
+				<property id="providerOutMethod" type="string" />
+				<property id="provideMethod" optional="true" type="string" />
+				<element id="provides" inMethod="addProvision" outMethod="getProvisions"
+					outMethodIterable="true" baseModel="provision" occurrences="0.." />
+			</children>
 		</model>
 
 		<model id="input" baseModel="node">

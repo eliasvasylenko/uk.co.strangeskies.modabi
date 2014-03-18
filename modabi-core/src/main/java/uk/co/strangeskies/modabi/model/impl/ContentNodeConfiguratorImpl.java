@@ -6,6 +6,7 @@ import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ContentNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 class ContentNodeConfiguratorImpl<T>
 		extends
@@ -37,7 +38,12 @@ class ContentNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public <U> U process(SchemaProcessingContext<U> context) {
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
 			return context.accept(this);
 		}
 	}

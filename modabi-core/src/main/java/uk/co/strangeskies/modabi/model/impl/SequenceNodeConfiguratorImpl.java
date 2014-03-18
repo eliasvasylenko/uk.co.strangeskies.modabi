@@ -9,6 +9,7 @@ import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 class SequenceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
@@ -67,7 +68,12 @@ class SequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public <U> U process(SchemaProcessingContext<U> context) {
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
 			return context.accept(this);
 		}
 	}

@@ -7,6 +7,7 @@ import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 class ChoiceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
@@ -35,7 +36,12 @@ class ChoiceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public <U> U process(SchemaProcessingContext<U> context) {
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
 			return context.accept(this);
 		}
 	}

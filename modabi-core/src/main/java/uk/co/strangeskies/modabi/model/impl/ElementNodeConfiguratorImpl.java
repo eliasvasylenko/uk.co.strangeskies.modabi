@@ -12,6 +12,7 @@ import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -110,7 +111,12 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public <U> U process(SchemaProcessingContext<U> context) {
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
 			return context.accept(this);
 		}
 

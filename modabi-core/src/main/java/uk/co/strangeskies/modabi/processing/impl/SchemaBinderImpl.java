@@ -11,20 +11,25 @@ import java.util.function.Function;
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
+import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataInputBuffer;
 import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
+import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Binding;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
+import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.nodes.BranchingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.ContentNode;
@@ -41,7 +46,7 @@ import uk.co.strangeskies.modabi.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SchemaBinderImpl implements SchemaBinder {
-	private class SchemaSavingContext<T> implements SchemaProcessingContext<Void> {
+	private class SchemaSavingContext<T> implements SchemaProcessingContext {
 		private final T data;
 		private final Model<T> model;
 		private final StructuredDataOutput output;
@@ -78,17 +83,15 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> Void accept(ContentNode<U> node) {
+		public <U> void accept(ContentNode<U> node) {
 			output.content().string(node.getId()).end();
-			return null;
 		}
 
 		@Override
-		public <U> Void accept(PropertyNode<U> node) {
+		public <U> void accept(PropertyNode<U> node) {
 			Object data = getData(node);
 			if (data != null)
 				output.property(node.getId()).string("" + data).end();
-			return null;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -108,15 +111,13 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public Void accept(ChoiceNode node) {
+		public void accept(ChoiceNode node) {
 			// processChildren(node); TODO
-			return null;
 		}
 
 		@Override
-		public Void accept(SequenceNode node) {
+		public void accept(SequenceNode node) {
 			processChildren(node);
-			return null;
 		}
 
 		public <U> void unbind(AbstractModel<? extends U> node, U data) {
@@ -132,13 +133,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> Void accept(final ElementNode<U> node) {
+		public <U> void accept(final ElementNode<U> node) {
 			elementListStack.peek().add(node);
-			return null;
 		}
 
 		@SuppressWarnings("unchecked")
-		public <U> Void process(final ElementNode<U> node) {
+		public <U> void process(final ElementNode<U> node) {
 			Object parent = bindingStack.peek();
 
 			if (node.getDataClass() == null)
@@ -165,8 +165,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 					| IllegalArgumentException | InvocationTargetException e) {
 				e.printStackTrace();
 			}
-
-			return null;
 		}
 
 		private Method getMethod(Object receiver, Class<?> returns,
@@ -212,15 +210,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> Void accept(SimpleElementNode<U> node) {
+		public <U> void accept(SimpleElementNode<U> node) {
 			// TODO Auto-generated method stub
-
-			return null;
 		}
 	}
 
-	private class SchemaLoadingContext<T> implements
-			SchemaProcessingContext<Void> {
+	private class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		private final Model<T> model;
 		private final DataInputBuffer input;
 
@@ -238,27 +233,23 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> Void accept(ContentNode<U> node) {
+		public <U> void accept(ContentNode<U> node) {
 			invokeInMethod(node, (Object) input.getData(node.getType()));
-			return null;
 		}
 
 		@Override
-		public <U> Void accept(PropertyNode<U> node) {
+		public <U> void accept(PropertyNode<U> node) {
 			invokeInMethod(node,
 					(Object) input.getProperty(node.getId(), node.getType()));
-			return null;
 		}
 
 		@Override
-		public Void accept(ChoiceNode node) {
-			return null;
+		public void accept(ChoiceNode node) {
 		}
 
 		@Override
-		public Void accept(SequenceNode node) {
+		public void accept(SequenceNode node) {
 			processChildren(node);
-			return null;
 		}
 
 		public <U> U bind(AbstractModel<U> node) {
@@ -273,9 +264,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> Void accept(ElementNode<U> node) {
+		public <U> void accept(ElementNode<U> node) {
 			invokeInMethod(node, (Object) bind(node));
-			return null;
 		}
 
 		private void invokeInMethod(InputNode node, Object... parameters) {
@@ -314,35 +304,27 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> Void accept(SimpleElementNode<U> node) {
+		public <U> void accept(SimpleElementNode<U> node) {
 			// TODO Auto-generated method stub
-			return null;
 		}
 	}
 
-	private MetaSchema metaSchema;
+	private final MetaSchema metaSchema;
 
 	private final SetMultiMap<Schema, QualifiedName> unmetDependencies;
 	// private final Map<QualifiedName, MockedSchema> mockedDependencies;
-	private Models registeredModels;
-	private DataTypes registeredTypes;
+	private final Models registeredModels;
+	private final DataTypes registeredTypes;
 	private final Schemata registeredSchema;
 
-	public SchemaBinderImpl() {
+	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
+			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
 		unmetDependencies = new HashSetMultiHashMap<>();
 		// mockedDependencies = new HashMap<>();
-
 		registeredSchema = new Schemata();
-	}
 
-	public SchemaBinderImpl(MetaSchema metaSchema) {
-		this();
-
-		setMetaSchema(metaSchema);
-	}
-
-	public void setMetaSchema(MetaSchema metaSchema) {
-		this.metaSchema = metaSchema;
+		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder,
+				dataTypeBuilder);
 
 		Namespace namespace = metaSchema.getQualifiedName().getNamespace();
 		registeredModels = new Models(namespace);
@@ -375,6 +357,16 @@ public class SchemaBinderImpl implements SchemaBinder {
 	@Override
 	public <T> T processInput(Model<T> model, StructuredDataInput input) {
 		return new SchemaLoadingContext<>(model, input).load().getData();
+	}
+
+	@Override
+	public MetaSchema getMetaSchema() {
+		return metaSchema;
+	}
+
+	@Override
+	public BaseSchema getBaseSchema() {
+		return null;
 	}
 
 	@Override

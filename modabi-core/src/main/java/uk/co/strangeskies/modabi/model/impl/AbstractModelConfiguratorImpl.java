@@ -13,6 +13,8 @@ import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
@@ -84,10 +86,11 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 
 			ListOrderedSet<Model<? super T>> baseModels = new ListOrderedSet<>();
 			baseModels.addAll(node.getBaseModel());
-			/*for (int i = 0; i < baseModels.size(); i++) {
-				Model<? super T> baseModel = baseModels.get(i);
-				baseModels.addAll(baseModel.effectiveModel().getBaseModel());
-			}*/
+			/*
+			 * for (int i = 0; i < baseModels.size(); i++) { Model<? super T>
+			 * baseModel = baseModels.get(i);
+			 * baseModels.addAll(baseModel.effectiveModel().getBaseModel()); }
+			 */
 			overriddenAndModelNodes.addAll(baseModels);
 
 			return overriddenAndModelNodes;
@@ -121,6 +124,16 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		@Override
 		public final String getBuilderMethod() {
 			return buildMethodName;
+		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
+			throw new UnsupportedOperationException();
 		}
 	}
 
