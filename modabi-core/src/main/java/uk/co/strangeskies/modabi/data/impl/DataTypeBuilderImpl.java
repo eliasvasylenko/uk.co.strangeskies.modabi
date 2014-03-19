@@ -9,7 +9,6 @@ public class DataTypeBuilderImpl implements DataTypeBuilder {
 	public DataTypeConfigurator<Object> configure() {
 		return new DataTypeConfigurator<Object>() {
 			private String name;
-			private Class<?> dataClass;
 
 			@Override
 			public DataType<Object> create() {
@@ -40,10 +39,10 @@ public class DataTypeBuilderImpl implements DataTypeBuilder {
 						return null;
 					}
 
-					@SuppressWarnings("unchecked")
 					@Override
-					public Class<Object> getDataClass() {
-						return (Class<Object>) dataClass;
+					public DataType<Object> getBaseType() {
+						// TODO Auto-generated method stub
+						return null;
 					}
 				};
 			}
@@ -55,12 +54,10 @@ public class DataTypeBuilderImpl implements DataTypeBuilder {
 				return this;
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
-			public <U> DataTypeConfigurator<U> dataClass(Class<U> dataClass) {
-				this.dataClass = dataClass;
-
-				return (DataTypeConfigurator<U>) this;
+			public <U> DataTypeConfigurator<U> baseType(DataType<U> from) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 
 			@Override
