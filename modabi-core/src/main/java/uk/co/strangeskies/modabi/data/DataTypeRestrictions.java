@@ -4,12 +4,8 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 
-public interface DataType<T> {
-	String getName();
-
-	Class<T> getDataClass();
-
-	Class<?> getBuilderClass();
+public interface DataTypeRestrictions<T> {
+	DataTypeRestrictions<?> getBaseRestrictions();
 
 	List<PropertyNode<?>> getProperties();
 }

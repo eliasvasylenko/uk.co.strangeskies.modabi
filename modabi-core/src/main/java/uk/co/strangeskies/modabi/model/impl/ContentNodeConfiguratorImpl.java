@@ -8,11 +8,11 @@ import uk.co.strangeskies.modabi.model.nodes.ContentNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
-class ContentNodeConfiguratorImpl<T>
+public class ContentNodeConfiguratorImpl<T>
 		extends
 		TypedDataNodeConfiguratorImpl<ContentNodeConfigurator<T>, ContentNode<T>, T>
 		implements ContentNodeConfigurator<T> {
-	static class ContentNodeImpl<T> extends TypedDataNodeImpl<T> implements
+	protected static class ContentNodeImpl<T> extends TypedDataNodeImpl<T> implements
 			ContentNode<T> {
 		private final Boolean optional;
 
@@ -20,13 +20,12 @@ class ContentNodeConfiguratorImpl<T>
 			super(configurator);
 
 			optional = configurator.optional;
-
-			new ContentNodeImpl<>(this, configurator.getOverriddenNodes());
 		}
 
 		public ContentNodeImpl(ContentNode<T> node,
-				Collection<? extends ContentNode<T>> overriddenNodes) {
-			super(node, overriddenNodes);
+				Collection<? extends ContentNode<T>> overriddenNodes,
+				Class<?> parentClass) {
+			super(node, overriddenNodes, parentClass);
 
 			optional = getValue(node, overriddenNodes, n -> n.isOptional(),
 					(v, o) -> !v || o);
@@ -85,6 +84,6 @@ class ContentNodeConfiguratorImpl<T>
 
 	@Override
 	protected ContentNode<T> getEffective(ContentNode<T> node) {
-		return new ContentNodeImpl<>(node, getOverriddenNodes());
+		return new ContentNodeImpl<>(node, getOverriddenNodes(), getParentClass());
 	}
 }

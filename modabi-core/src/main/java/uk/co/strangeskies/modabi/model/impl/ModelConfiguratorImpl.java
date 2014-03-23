@@ -9,10 +9,10 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
-class ModelConfiguratorImpl<T> extends
+public class ModelConfiguratorImpl<T> extends
 		AbstractModelConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
 		ModelConfigurator<T> {
-	public static class EffectiveModelImpl<T> extends AbstractModelImpl<T>
+	protected static class EffectiveModelImpl<T> extends AbstractModelImpl<T>
 			implements EffectiveModel<T> {
 		public EffectiveModelImpl(ModelImpl<? super T> node,
 				Collection<? extends EffectiveModel<? super T>> overriddenNodes,
@@ -39,8 +39,8 @@ class ModelConfiguratorImpl<T> extends
 		}
 	}
 
-	public ModelConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
-		super(parent);
+	public ModelConfiguratorImpl() {
+		super(null);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
-class SequenceNodeConfiguratorImpl extends
+public class SequenceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
 		implements SequenceNodeConfigurator {
 	protected static class SequenceNodeImpl extends BranchingNodeImpl implements
@@ -25,8 +25,7 @@ class SequenceNodeConfiguratorImpl extends
 
 			inMethodName = configurator.inMethod;
 			try {
-				Class<?> inputClass = configurator.parent()
-						.getCurrentChildPreInputClass();
+				Class<?> inputClass = configurator.getPreInputClass();
 				inMethod = inputClass == null ? null : inputClass
 						.getMethod(inMethodName);
 			} catch (NoSuchMethodException | SecurityException e) {
@@ -112,7 +111,7 @@ class SequenceNodeConfiguratorImpl extends
 	@Override
 	protected Class<?> getCurrentChildPreInputClass() {
 		if (getChildren().isEmpty())
-			return parent().getCurrentChildPreInputClass();
+			return getPreInputClass();
 		else
 			return getChildren().get(getChildren().size() - 1).getPostInputClass();
 	}

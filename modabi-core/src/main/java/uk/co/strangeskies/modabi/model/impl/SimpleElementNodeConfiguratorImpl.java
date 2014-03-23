@@ -9,7 +9,7 @@ import uk.co.strangeskies.modabi.model.nodes.SimpleElementNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
-class SimpleElementNodeConfiguratorImpl<T>
+public class SimpleElementNodeConfiguratorImpl<T>
 		extends
 		TypedDataNodeConfiguratorImpl<SimpleElementNodeConfigurator<T>, SimpleElementNode<T>, T>
 		implements SimpleElementNodeConfigurator<T> {
@@ -24,8 +24,9 @@ class SimpleElementNodeConfiguratorImpl<T>
 		}
 
 		SimpleElementNodeImpl(SimpleElementNode<T> node,
-				Collection<? extends SimpleElementNode<T>> overriddenNodes) {
-			super(node, overriddenNodes);
+				Collection<? extends SimpleElementNode<T>> overriddenNodes,
+				Class<?> parentClass) {
+			super(node, overriddenNodes, parentClass);
 
 			occurances = getValue(node, overriddenNodes, n -> n.getOccurances(), (v,
 					o) -> o.contains(v));
@@ -89,6 +90,7 @@ class SimpleElementNodeConfiguratorImpl<T>
 
 	@Override
 	protected SimpleElementNode<T> getEffective(SimpleElementNode<T> node) {
-		return new SimpleElementNodeImpl<>(node, getOverriddenNodes());
+		return new SimpleElementNodeImpl<>(node, getOverriddenNodes(),
+				getParentClass());
 	}
 }

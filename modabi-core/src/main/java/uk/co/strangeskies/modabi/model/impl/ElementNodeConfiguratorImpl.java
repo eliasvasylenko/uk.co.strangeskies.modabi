@@ -13,6 +13,7 @@ import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -34,35 +35,46 @@ public class ElementNodeConfiguratorImpl<T>
 			occurances = configurator.occurances;
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
-			inMethodName = configurator.inMethodName;
-
 			if (outMethodName == "this" && !iterable)
 				throw new SchemaException();
+			inMethodName = configurator.inMethodName;
 
+			Method outMethod = null;
 			try {
-				Class<?> outputClass = configurator.parent().getDataClass();
+				Class<?> outputClass = configurator.getParentClass();
+				Class<?> resultClass = (isOutMethodIterable() == null || isOutMethodIterable()) ? resultClass = Iterable.class
+						: getDataClass();
+				outMethod = (getId() == null || outputClass == null
+						|| resultClass == null || outMethodName == "this") ? null
+						: SchemaBinderImpl.findMethod(
+								SchemaBinderImpl.generateOutMethodNames(this, resultClass),
+								outputClass, resultClass);
+			} catch (NoSuchMethodException | SecurityException e) {
+				if ((getBaseModel() != null && !getBaseModel().isEmpty())
+						|| outMethodName != null)
+					throw new SchemaException(e);
+			}
+			this.outMethod = outMethod;
 
-				outMethod = (outputClass == null || outMethodName == null || outMethodName == "this") ? null
-						: outputClass.getMethod(outMethodName);
-
-				if (isOutMethodIterable() != null && !isOutMethodIterable()
-						&& getDataClass() != null && outMethod != null
-						&& !getDataClass().isAssignableFrom(outMethod.getReturnType()))
-					throw new SchemaException();
-
-				Class<?> inputClass = configurator.parent()
-						.getCurrentChildPreInputClass();
+			Method inMethod = null;
+			try {
+				Class<?> inputClass = configurator.getPreInputClass();
 				inMethod = (inputClass == null || getDataClass() == null || inMethodName == null) ? null
 						: inputClass.getMethod(inMethodName, getDataClass());
 			} catch (NoSuchMethodException | SecurityException e) {
-				throw new SchemaException(e);
+				if ((getBaseModel() != null && !getBaseModel().isEmpty())
+						|| inMethodName != null)
+					throw new SchemaException(e);
 			}
+
+			this.inMethod = inMethod;
+
 			inMethodChained = configurator.inMethodChained;
 		}
 
 		ElementNodeImpl(ElementNode<T> node,
 				Collection<? extends ElementNode<T>> overriddenNodes,
-				List<SchemaNode> effectiveChildren) {
+				List<SchemaNode> effectiveChildren, Class<?> parentClass) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			occurances = getValue(node, overriddenNodes, n -> n.getOccurances(), (v,
@@ -73,8 +85,19 @@ public class ElementNodeConfiguratorImpl<T>
 
 			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethodName());
 
-			outMethod = getValue(node, overriddenNodes, n -> n.getOutMethod(),
-					(m, n) -> m.equals(n));
+			Class<?> resultClass = (isOutMethodIterable() == null || isOutMethodIterable()) ? resultClass = Iterable.class
+					: getDataClass();
+			Method inheritedOutMethod = getValue(node, overriddenNodes,
+					n -> n.getOutMethod());
+			try {
+				outMethod = outMethodName == "this" ? null
+						: inheritedOutMethod != null ? inheritedOutMethod
+								: SchemaBinderImpl.findMethod(
+										SchemaBinderImpl.generateOutMethodNames(this), parentClass,
+										resultClass);
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException(e);
+			}
 
 			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName());
 
@@ -199,6 +222,6 @@ public class ElementNodeConfiguratorImpl<T>
 	@Override
 	protected ElementNode<T> getEffective(ElementNode<T> node) {
 		return new ElementNodeImpl<>(node, getOverriddenNodes(),
-				getEffectiveChildren());
+				getEffectiveChildren(), getParentClass());
 	}
 }

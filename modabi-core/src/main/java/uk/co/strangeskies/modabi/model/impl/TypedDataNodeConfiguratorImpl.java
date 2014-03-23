@@ -8,6 +8,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.building.TypedDataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.TypedDataNode;
+import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
 
 public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfigurator<S, N, T>, N extends TypedDataNode<T>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
@@ -32,15 +33,13 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 			outMethodName = configurator.outMethodName;
 			inMethodName = configurator.inMethodName;
 			try {
-				Class<?> outputClass = configurator.parent().getDataClass();
-				outMethod = outputClass == null || outMethodName == null ? null
-						: outputClass.getMethod(outMethodName);
-				if (dataClass != null && outMethod != null
-						&& !dataClass.isAssignableFrom(outMethod.getReturnType()))
-					throw new SchemaException();
+				Class<?> outputClass = configurator.parentClass;
+				outMethod = (outputClass == null || dataClass == null) ? null
+						: SchemaBinderImpl.findMethod(
+								SchemaBinderImpl.generateOutMethodNames(this), outputClass,
+								dataClass);
 
-				Class<?> inputClass = configurator.parent()
-						.getCurrentChildPreInputClass();
+				Class<?> inputClass = configurator.preInputClass;
 				inMethod = (inputClass == null || dataClass == null || inMethodName == null) ? null
 						: inputClass.getMethod(inMethodName, dataClass);
 			} catch (NoSuchMethodException | SecurityException e) {
@@ -53,7 +52,7 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 
 		@SuppressWarnings("unchecked")
 		<E extends TypedDataNode<? super T>> TypedDataNodeImpl(E node,
-				Collection<? extends E> overriddenNodes) {
+				Collection<? extends E> overriddenNodes, Class<?> parentClass) {
 			super(node, overriddenNodes);
 
 			dataClass = getValue(node, overriddenNodes,
@@ -64,8 +63,16 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 
 			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethodName());
 
-			outMethod = getValue(node, overriddenNodes, n -> n.getOutMethod(),
-					(m, n) -> m.equals(n));
+			Method inheritedOutMethod = getValue(node, overriddenNodes,
+					n -> n.getOutMethod());
+			try {
+				outMethod = inheritedOutMethod != null ? inheritedOutMethod
+						: SchemaBinderImpl.findMethod(
+								SchemaBinderImpl.generateOutMethodNames(this), parentClass,
+								dataClass);
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException(e);
+			}
 
 			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName());
 
@@ -142,9 +149,27 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends TypedDataNodeConfi
 	private DataType<T> type;
 	private T value;
 
+	private final Class<?> preInputClass;
+	private final Class<?> parentClass;
+
 	public TypedDataNodeConfiguratorImpl(
 			BranchingNodeConfiguratorImpl<?, ?> parent) {
 		super(parent);
+		preInputClass = parent.getCurrentChildPreInputClass();
+		parentClass = parent.getDataClass();
+	}
+
+	public TypedDataNodeConfiguratorImpl(
+			SchemaNodeOverrideContext<N> overrideContext,
+			SchemaNodeResultListener<N> resultListener, Class<?> preInputClass,
+			Class<?> outputClass) {
+		super(overrideContext, resultListener);
+		this.preInputClass = preInputClass;
+		this.parentClass = outputClass;
+	}
+
+	public Class<?> getParentClass() {
+		return parentClass;
 	}
 
 	@SuppressWarnings("unchecked")

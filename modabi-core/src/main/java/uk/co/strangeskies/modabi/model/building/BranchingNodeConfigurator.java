@@ -8,6 +8,10 @@ public interface BranchingNodeConfigurator<S extends BranchingNodeConfigurator<S
 		extends SchemaNodeConfigurator<S, N> {
 	public NodeBuilder addChild();
 
-	public BranchingNodeConfigurator<?, N> addChild(
-			Function<NodeBuilder, SchemaNodeConfigurator<?, ?>> nodeBuilder);
+	public default BranchingNodeConfigurator<?, N> addChild(
+			Function<NodeBuilder, SchemaNodeConfigurator<?, ?>> builder) {
+		builder.apply(addChild()).create();
+
+		return this;
+	}
 }

@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.ImplementationStrategy;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
@@ -23,9 +23,8 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 			BranchingNodeImpl implements AbstractModel<T> {
 		private final Class<T> dataClass;
 		private final List<Model<? super T>> baseModel;
-		private final String buildMethodName;
 		private final Class<?> builderClass;
-		private final ImplementationStrategy implementationStrategy;
+		private final BindingStrategy implementationStrategy;
 		private final Boolean isAbstract;
 
 		public AbstractModelImpl(AbstractModelConfiguratorImpl<?, ?, T> configurator) {
@@ -34,7 +33,6 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 			dataClass = configurator.dataClass;
 			baseModel = configurator.baseModel == null ? new ArrayList<>()
 					: new ArrayList<>(configurator.baseModel);
-			buildMethodName = configurator.buildMethodName;
 			builderClass = configurator.builderClass;
 			implementationStrategy = configurator.bindingStrategy;
 			isAbstract = configurator.isAbstract;
@@ -59,9 +57,6 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 			baseModel = new ArrayList<>();
 			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
 			baseModel.addAll(node.getBaseModel());
-
-			buildMethodName = getValue(node, overriddenNodes,
-					n -> n.getBuilderMethod());
 
 			builderClass = getValue(node, overriddenNodes, n -> n.getBuilderClass());
 
@@ -112,18 +107,13 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		}
 
 		@Override
-		public final ImplementationStrategy getImplementationStrategy() {
+		public final BindingStrategy getImplementationStrategy() {
 			return implementationStrategy;
 		}
 
 		@Override
 		public final Class<?> getBuilderClass() {
 			return builderClass;
-		}
-
-		@Override
-		public final String getBuilderMethod() {
-			return buildMethodName;
 		}
 
 		@Override
@@ -139,9 +129,8 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 
 	private Class<T> dataClass;
 	private List<Model<? super T>> baseModel;
-	private String buildMethodName;
 	private Class<?> builderClass;
-	private ImplementationStrategy bindingStrategy;
+	private BindingStrategy bindingStrategy;
 	private Boolean isAbstract;
 
 	public AbstractModelConfiguratorImpl(
@@ -217,26 +206,14 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 	}
 
 	@Override
-	public final S builderMethod(String buildMethodName) {
-		requireConfigurable(this.buildMethodName);
-		this.buildMethodName = buildMethodName;
-
-		return getThis();
-	}
-
-	protected final String getBuilderMethod() {
-		return buildMethodName;
-	}
-
-	@Override
-	public final S implementationStrategy(ImplementationStrategy bindingStrategy) {
+	public final S implementationStrategy(BindingStrategy bindingStrategy) {
 		requireConfigurable(this.bindingStrategy);
 		this.bindingStrategy = bindingStrategy;
 
 		return getThis();
 	}
 
-	protected final ImplementationStrategy getImplementationStrategy() {
+	protected final BindingStrategy getImplementationStrategy() {
 		return bindingStrategy;
 	}
 }

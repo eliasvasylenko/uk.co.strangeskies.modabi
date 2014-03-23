@@ -2,11 +2,12 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
-import uk.co.strangeskies.modabi.ModelLoader;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
@@ -47,41 +48,17 @@ public class MetaSchemaImpl implements MetaSchema {
 
 	@SuppressWarnings("unchecked")
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
-			DataTypeBuilder dataType) {
-		QualifiedName name = new QualifiedName(MetaSchemaImpl.class.getName(),
-				new Namespace(MetaSchemaImpl.class.getPackage().getName()));
+			DataTypeBuilder dataType, BaseSchema base) {
+		QualifiedName name = new QualifiedName(MetaSchema.class.getName(),
+				new Namespace(BaseSchema.class.getPackage().getName()));
 
 		/*
 		 * Types
 		 */
 		Set<DataType<?>> typeSet = new HashSet<>();
 
-		DataType<?> stringType = dataType.configure().name("string")
-				.dataClass(String.class).create();
-		typeSet.add(stringType);
-
-		DataType<?> booleanType = dataType.configure().name("boolean")
-				.dataClass(Boolean.class).create();
-		typeSet.add(booleanType);
-
-		DataType<?> classType = dataType.configure().name("class")
-				.dataClass(Class.class).create();
-		typeSet.add(classType);
-
-		DataType<?> enumType = dataType.configure().name("enum")
-				.dataClass(Enum.class).create();
-		typeSet.add(enumType);
-
-		DataType<?> rangeType = dataType.configure().name("range")
-				.dataClass(Range.class).create();
-		typeSet.add(rangeType);
-
-		DataType<?> referenceType = dataType.configure().name("reference")
-				.dataClass(Object.class).create();
-		typeSet.add(referenceType);
-
 		DataType<?> typeType = dataType.configure().name("type")
-				.dataClass(DataType.class).create();
+				.dataClass(DataType.class).baseType(base.referenceType()).create();
 		typeSet.add(typeType);
 
 		/*
@@ -89,29 +66,23 @@ public class MetaSchemaImpl implements MetaSchema {
 		 */
 		Set<Model<?>> modelSet = new LinkedHashSet<>();
 
-		Model<Object> includeModel = model.configure().id("include")
-				.builderClass(ModelLoader.class).dataClass(Object.class).create();
-		modelSet.add(includeModel);
+		/* Node Models */
 
-		@SuppressWarnings("rawtypes")
-		Model<DataType> typeModel = model.configure().dataClass(DataType.class)
-				.id("type").create();
-		modelSet.add(typeModel);
-
-		/*
-		 * Node Models
-		 */
-
-		Model<SchemaNode> nodeModel = model.configure().id("node").isAbstract(true)
+		Model<SchemaNode> nodeModel = model
+				.configure()
+				.id("node")
+				.isAbstract(true)
 				.dataClass(SchemaNode.class)
-				.addChild(n -> n.property().type(stringType).id("id").optional(true))
+				.addChild(
+						n -> n.property().type(base.stringType()).id("id").optional(true))
 				.create();
 		modelSet.add(nodeModel);
 
 		Model<OptionalNode> optionalModel = model.configure().id("optional")
 				.isAbstract(true).dataClass(OptionalNode.class)
 				.builderClass(OptionalNodeConfigurator.class)
-				.addChild(n -> n.property().id("optional").type(booleanType)).create();
+				.addChild(n -> n.property().id("optional").type(base.booleanType()))
+				.create();
 
 		Model<InputNode> inputModel = model
 				.configure()
@@ -120,10 +91,10 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(InputNode.class)
 				.addChild(
 						n -> n.property().id("inMethod").outMethod("getInMethodName")
-								.optional(true).type(stringType))
+								.optional(true).type(base.stringType()))
 				.addChild(
 						n -> n.property().id("inMethodChained").optional(true)
-								.type(booleanType)).create();
+								.type(base.booleanType())).create();
 		modelSet.add(inputModel);
 
 		@SuppressWarnings("rawtypes")
@@ -133,13 +104,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(inputModel)
 				.dataClass(DataNode.class)
 				.addChild(
-						n -> n.property().id("dataClass").type(classType).optional(true))
+						n -> n.property().id("dataClass").type(base.classType())
+								.optional(true))
 				.addChild(
 						n -> n.property().id("outMethod").outMethod("getOutMethodName")
-								.optional(true).type(stringType))
+								.optional(true).type(base.stringType()))
 				.addChild(
 						n -> n.property().id("outMethodIterable").optional(true)
-								.type(booleanType)).create();
+								.type(base.booleanType())).create();
 		modelSet.add(dataModel);
 
 		Model<BranchingNode> branchModel = model
@@ -156,7 +128,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<ChoiceNode> choiceModel = model.configure().id("choice")
 				.isAbstract(false).dataClass(ChoiceNode.class)
 				.builderClass(ChoiceNodeConfigurator.class).baseModel(branchModel)
-				.addChild(n -> n.property().id("mandatory").type(booleanType))
+				.addChild(n -> n.property().id("mandatory").type(base.booleanType()))
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(choiceModel);
 
@@ -170,7 +142,8 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<RepeatableNode> repeatableModel = model.configure().id("repeatable")
 				.baseModel(nodeModel).dataClass(RepeatableNode.class)
-				.addChild(n -> n.property().id("occurances").type(rangeType)).create();
+				.addChild(n -> n.property().id("occurances").type(base.rangeType()))
+				.create();
 		modelSet.add(repeatableModel);
 
 		@SuppressWarnings("rawtypes")
@@ -180,18 +153,20 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(branchModel)
 				.dataClass(AbstractModel.class)
 				.addChild(
-						n -> n.property().id("abstract").type(booleanType).optional(true))
-				.addChild(
-						n -> n.property().id("baseModel").type(referenceType)
+						n -> n.property().id("abstract").type(base.booleanType())
 								.optional(true))
 				.addChild(
-						o -> o.property().id("dataClass").type(classType).optional(true))
-				.addChild(
-						o -> o.property().id("implementationStrategy").type(enumType)
+						n -> n.property().id("baseModel").type(base.referenceType())
 								.optional(true))
-				.addChild(n -> n.property().id("builderClass").type(classType))
 				.addChild(
-						n -> n.property().id("builderMethod").type(stringType)
+						o -> o.property().id("dataClass").type(base.classType())
+								.optional(true))
+				.addChild(
+						o -> o.property().id("implementationStrategy")
+								.type(base.enumType()).optional(true))
+				.addChild(n -> n.property().id("builderClass").type(base.classType()))
+				.addChild(
+						n -> n.property().id("builderMethod").type(base.stringType())
 								.optional(true)).addChild(n -> n.element().id("child"))
 				.create();
 		modelSet.add(abstractModelModel);
@@ -209,16 +184,19 @@ public class MetaSchemaImpl implements MetaSchema {
 				.builderClass(ElementNodeConfigurator.class)
 				.baseModel(dataModel, repeatableModel, abstractModelModel)
 				.isAbstract(false).addChild(n -> n.property().id("id"))
-				.addChild(o -> o.property().id("dataClass").type(classType))
+				.addChild(o -> o.property().id("dataClass").type(base.classType()))
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(elementModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<TypedDataNode> typedDataModel = model.configure()
-				.baseModel(dataModel).id("typedData").dataClass(TypedDataNode.class)
+		Model<TypedDataNode> typedDataModel = model
+				.configure()
+				.baseModel(dataModel)
+				.id("typedData")
+				.dataClass(TypedDataNode.class)
 				.builderClass(TypedDataNodeConfigurator.class)
 				.addChild(n -> n.property().id("type").type(typeType))
-				.addChild(n -> n.simpleElement().id("value").type(referenceType))
+				.addChild(n -> n.simpleElement().id("value").type(base.referenceType()))
 				.create();
 
 		@SuppressWarnings("rawtypes")
@@ -235,9 +213,36 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.property().id("id")).create();
 		modelSet.add(propertyModel);
 
-		/*
-		 * Schema Models
-		 */
+		/* Type Models */
+
+		@SuppressWarnings("rawtypes")
+		Model<DataType> typeModel = model
+				.configure()
+				.dataClass(DataType.class)
+				.id("type")
+				.addChild(n -> n.property().id("dataClass").type(base.classType()))
+				.addChild(n -> n.property().id("builderClass").type(base.classType()))
+				.addChild(
+						n -> n.property().id("outputMethod")
+								.outMethod("getOutputMethodName").type(base.stringType()))
+				.addChild(
+						n -> n.property().id("inputMethod").outMethod("getInputMethodName")
+								.type(base.stringType()))
+				.addChild(
+						n -> n.property().id("buildMethod").outMethod("getBuildMethodName")
+								.type(base.stringType()))
+				.addChild(
+						n -> n
+								.element()
+								.id("properties")
+								.dataClass(List.class)
+								.addChild(
+										o -> o.element().baseModel(propertyModel)
+												.outMethodIterable(true).outMethod("this"))).create();
+		modelSet.add(typeModel);
+
+		/* Schema Models */
+
 		@SuppressWarnings("rawtypes")
 		Model<Set> modelsModel = model
 				.configure()
@@ -260,9 +265,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.occurances(Range.create(0, 1))
 								.dataClass(Set.class)
 								.addChild(
-										o -> o.element().id("dependency").baseModel(includeModel)
-												.outMethodIterable(true).outMethod("this")
-												.occurances(Range.create(0, null))))
+										o -> o.element().id("dependency")
+												.baseModel(base.includeModel()).outMethodIterable(true)
+												.outMethod("this").occurances(Range.create(0, null))))
 				.addChild(
 						n -> n
 								.element()
@@ -279,6 +284,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.occurances(Range.create(0, 1))).create();
 		modelSet.add(schemaModel);
 
+		/*
+		 * Schema
+		 */
 		metaSchema = schema.configure().qualifiedName(name).types(typeSet)
 				.models(modelSet).create();
 	}

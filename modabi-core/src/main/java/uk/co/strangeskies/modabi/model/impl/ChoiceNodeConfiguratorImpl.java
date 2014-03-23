@@ -9,7 +9,7 @@ import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
-class ChoiceNodeConfiguratorImpl extends
+public class ChoiceNodeConfiguratorImpl extends
 		BranchingNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
 		ChoiceNodeConfigurator {
 	protected static class ChoiceNodeImpl extends BranchingNodeImpl implements
@@ -71,7 +71,7 @@ class ChoiceNodeConfiguratorImpl extends
 
 	@Override
 	protected Class<?> getCurrentChildPreInputClass() {
-		return parent().getCurrentChildPreInputClass();
+		return getPreInputClass();
 	}
 
 	@Override

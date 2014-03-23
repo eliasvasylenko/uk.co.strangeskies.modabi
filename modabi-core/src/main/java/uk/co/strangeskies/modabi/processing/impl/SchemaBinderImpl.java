@@ -4,9 +4,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
@@ -23,7 +27,10 @@ import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
+import uk.co.strangeskies.modabi.data.TerminatingDataSink;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
+import uk.co.strangeskies.modabi.data.impl.OutputMethodStrategy;
+import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Binding;
@@ -90,8 +97,16 @@ public class SchemaBinderImpl implements SchemaBinder {
 		@Override
 		public <U> void accept(PropertyNode<U> node) {
 			Object data = getData(node);
+			OutputMethodStrategy outputStrategy = node.getType()
+					.getOutputMethodStrategy();
+
+			TerminatingDataSink sink = output.property(node.getId());
+
 			if (data != null)
-				output.property(node.getId()).string("" + data).end();
+				// if (outputStrategy == OutputMethodStrategy.COMPOSE)
+				// node.getType().getOutputMethod().invoke();
+				// else
+				sink.string("" + data).end();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -100,11 +115,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 				Object parent = bindingStack.peek();
 
 				try {
-					return (U) getMethod(parent, node.getDataClass(),
-							generateOutMethodNames(node)).invoke(parent);
-				} catch (NoSuchMethodException | IllegalAccessException
-						| IllegalArgumentException | InvocationTargetException e) {
-					e.printStackTrace();
+					return (U) node.getOutMethod().invoke(parent);
+				} catch (IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException e) {
+					throw new SchemaException(node.getId() + " @ " + parent.getClass(), e);
 				}
 			}
 			return null;
@@ -150,63 +164,17 @@ public class SchemaBinderImpl implements SchemaBinder {
 					if (node.getOutMethodName() == "this")
 						iterable = (Iterable<Object>) parent;
 					else {
-						iterable = (Iterable<Object>) getMethod(parent, Iterable.class,
-								generateOutMethodNames(node)).invoke(parent);
+						iterable = (Iterable<Object>) node.getOutMethod().invoke(parent);
 					}
 					for (Object child : iterable)
 						unbind(node, (U) child);
 				} else {
-					unbind(
-							node,
-							(U) getMethod(parent, node.getDataClass(),
-									generateOutMethodNames(node)).invoke(parent));
+					unbind(node, (U) node.getOutMethod().invoke(parent));
 				}
-			} catch (NoSuchMethodException | IllegalAccessException
-					| IllegalArgumentException | InvocationTargetException e) {
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
 				e.printStackTrace();
 			}
-		}
-
-		private Method getMethod(Object receiver, Class<?> returns,
-				List<String> names) throws NoSuchMethodException {
-			for (String methodName : names) {
-				try {
-					Method method = receiver.getClass().getMethod(methodName);
-					if (method != null && returns == null
-							|| returns.isAssignableFrom(method.getReturnType()))
-						return method;
-				} catch (NoSuchMethodException | SecurityException e) {
-				}
-			}
-			throw new NoSuchMethodException("For " + names + " in "
-					+ receiver.getClass() + " @ " + receiver + " -> " + returns);
-		}
-
-		private List<String> generateOutMethodNames(DataNode<?> node) {
-			List<String> names = new ArrayList<>();
-
-			if (node.getOutMethodName() != null) {
-				names.add(node.getOutMethodName());
-			} else {
-				names.add(node.getId());
-				Boolean iterable = node.isOutMethodIterable();
-				if (iterable != null && iterable) {
-					names.add(node.getId() + "s");
-					names.add(node.getId() + "List");
-					names.add(node.getId() + "Set");
-					names.add(node.getId() + "Array");
-				}
-				if (node.getDataClass().equals(Boolean.class))
-					names.add("is" + capitalize(node.getId()));
-				for (String name : new ArrayList<>(names))
-					names.add("get" + capitalize(name));
-			}
-
-			return names;
-		}
-
-		private String capitalize(String string) {
-			return string.substring(0, 1).toUpperCase() + string.substring(1);
 		}
 
 		@Override
@@ -309,6 +277,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 	}
 
+	private final BaseSchema baseSchema;
 	private final MetaSchema metaSchema;
 
 	private final SetMultiMap<Schema, QualifiedName> unmetDependencies;
@@ -321,29 +290,29 @@ public class SchemaBinderImpl implements SchemaBinder {
 			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
 		unmetDependencies = new HashSetMultiHashMap<>();
 		// mockedDependencies = new HashMap<>();
-		registeredSchema = new Schemata();
 
-		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder,
+		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,
 				dataTypeBuilder);
+		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder,
+				dataTypeBuilder, baseSchema);
 
+		registeredSchema = new Schemata();
 		Namespace namespace = metaSchema.getQualifiedName().getNamespace();
 		registeredModels = new Models(namespace);
 		registeredTypes = new DataTypes(namespace);
 
+		registerSchema(baseSchema);
 		registerSchema(metaSchema);
-		for (Schema schema : registeredSchema.getMap().values()) {
-			registerSchema(schema);
-		}
 	}
 
 	private void registerSchema(Schema schema) {
 		registeredSchema.add(schema);
-		for (Model<?> model : schema.getModels().getMap().values()) {
+
+		for (Model<?> model : schema.getModels().getMap().values())
 			registerModel(model, schema.getQualifiedName().getNamespace());
-		}
-		for (DataType<?> type : schema.getDataTypes().getMap().values()) {
+
+		for (DataType<?> type : schema.getDataTypes().getMap().values())
 			registerDataType(type, schema.getQualifiedName().getNamespace());
-		}
 	}
 
 	private void registerModel(Model<?> model, Namespace namespace) {
@@ -366,7 +335,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	@Override
 	public BaseSchema getBaseSchema() {
-		return null;
+		return baseSchema;
 	}
 
 	@Override
@@ -387,5 +356,93 @@ public class SchemaBinderImpl implements SchemaBinder {
 		Model<T> model = null;
 		// registeredModels.search(data.getClass());
 		new SchemaSavingContext<>(model, output, data).save();
+	}
+
+	public static Method findMethod(List<String> names, Class<?> receiver,
+			Class<?> result, Class<?>... parameter) throws NoSuchMethodException {
+		for (String methodName : names) {
+			try {
+				Method method = receiver.getMethod(methodName, parameter);
+				if (method != null && result == null
+						|| ClassUtils.isAssignable(method.getReturnType(), result))
+					return method;
+			} catch (NoSuchMethodException | SecurityException e) {
+			}
+		}
+		throw new NoSuchMethodException("For "
+				+ names
+				+ " in "
+				+ receiver
+				+ " as [ "
+				+ Arrays.asList(parameter).stream().map(p -> p.getName())
+						.collect(Collectors.joining(", ")) + " ] -> " + result);
+	}
+
+	public static List<String> generateInMethodNames(DataNode<?> node) {
+		if (node.getInMethodName() != null)
+			return Arrays.asList(node.getInMethodName());
+		else
+			return generateInMethodNames(node.getId());
+
+	}
+
+	public static List<String> generateInMethodNames(String propertyName) {
+		List<String> names = new ArrayList<>();
+
+		names.add(propertyName);
+		for (String name : new String[] { propertyName, "" }) {
+			names.add("set" + capitalize(name));
+			names.add("add" + capitalize(name));
+			names.add("put" + capitalize(name));
+			names.add("parse" + capitalize(name));
+		}
+
+		return names;
+	}
+
+	public static List<String> generateOutMethodNames(DataNode<?> node) {
+		return generateOutMethodNames(node, node.getDataClass());
+	}
+
+	public static List<String> generateOutMethodNames(DataNode<?> node,
+			Class<?> resultClass) {
+		if (node.getOutMethodName() != null)
+			return Arrays.asList(node.getOutMethodName());
+		else
+			return generateOutMethodNames(node.getId(),
+					node.isOutMethodIterable() != null && node.isOutMethodIterable(),
+					resultClass);
+	}
+
+	public static List<String> generateOutMethodNames(String propertyName,
+			boolean isIterable, Class<?> resultClass) {
+		List<String> names = new ArrayList<>();
+
+		names.add(propertyName);
+		Boolean iterable = isIterable;
+		if (iterable != null && iterable) {
+			names.add(propertyName + "s");
+			names.add(propertyName + "List");
+			names.add(propertyName + "Set");
+			names.add(propertyName + "Collection");
+			names.add(propertyName + "Array");
+		}
+		if (resultClass != null
+				&& (resultClass.equals(Boolean.class) || resultClass
+						.equals(boolean.class)))
+			names.add("is" + capitalize(propertyName));
+		for (String name : new ArrayList<>(names)) {
+			names.add("get" + capitalize(name));
+			names.add("to" + capitalize(name));
+			names.add("create" + capitalize(name));
+			names.add("compose" + capitalize(name));
+		}
+
+		return names;
+	}
+
+	protected static String capitalize(String string) {
+		return string == "" ? "" : string.substring(0, 1).toUpperCase()
+				+ string.substring(1);
 	}
 }

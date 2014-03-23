@@ -13,7 +13,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
-abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
 	protected static abstract class SchemaNodeImpl implements SchemaNode {
 		private final String id;
@@ -65,25 +65,28 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 		}
 	}
 
-	private final BranchingNodeConfiguratorImpl<?, ?> parent;
+	private final SchemaNodeOverrideContext<N> overrideContext;
 	private boolean finalisedProperties;
 
 	private String id;
 
 	public SchemaNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
-		this.parent = parent;
+		this(parent == null ? null : (id, nodeClass) -> parent.overrideChild(id,
+				nodeClass), parent == null ? null : parent::addChild);
+	}
+
+	public SchemaNodeConfiguratorImpl(
+			SchemaNodeOverrideContext<N> overrideContext,
+			SchemaNodeResultListener<N> resultListener) {
+		this.overrideContext = overrideContext;
 		finalisedProperties = false;
 
-		if (parent != null)
-			addResultListener(result -> parent.addChild((SchemaNodeImpl) result,
+		if (resultListener != null)
+			addResultListener(result -> resultListener.addChild(result,
 					getEffective(result)));
 	}
 
 	protected abstract N getEffective(N node);
-
-	protected final BranchingNodeConfiguratorImpl<?, ?> parent() {
-		return parent;
-	}
 
 	protected final void requireConfigurable(Object object) {
 		requireConfigurable();
@@ -114,8 +117,8 @@ abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>
 	}
 
 	protected List<N> getOverriddenNodes() {
-		return parent == null || id == null ? new ArrayList<>() : parent
-				.overrideChild(id, getNodeClass());
+		return (overrideContext == null || id == null) ? new ArrayList<>()
+				: overrideContext.overrideChild(id, getNodeClass());
 	}
 
 	public abstract Class<N> getNodeClass();

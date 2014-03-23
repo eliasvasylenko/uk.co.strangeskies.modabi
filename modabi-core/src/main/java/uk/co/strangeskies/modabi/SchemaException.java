@@ -12,5 +12,9 @@ public class SchemaException extends RuntimeException {
 		super(e);
 	}
 
+	public SchemaException(String cause, Throwable e) {
+		super(cause, e);
+	}
+
 	private static final long serialVersionUID = 1L;
 }

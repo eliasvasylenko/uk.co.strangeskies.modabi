@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 import uk.co.strangeskies.gears.utilities.collection.ArrayListMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.ListMultiMap;
@@ -16,13 +15,12 @@ import uk.co.strangeskies.modabi.model.building.ContentNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.NodeBuilder;
 import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SimpleElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BranchingNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
-abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>
+public abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator<S, N>, N extends BranchingNode>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		BranchingNodeConfigurator<S, N> {
 	protected static abstract class BranchingNodeImpl extends SchemaNodeImpl
@@ -58,11 +56,14 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		}
 	}
 
-	private final List<SchemaNodeImpl> children;
+	private final List<SchemaNode> children;
 	private final List<SchemaNode> effectiveChildren;
 	private boolean blocked;
 	private final ListMultiMap<String, SchemaNode> namedInheritedChildren;
 	private final List<SchemaNode> inheritedChildren;
+
+	private final Class<?> preInputClass;
+	private final Class<?> parentClass;
 
 	public BranchingNodeConfiguratorImpl(
 			BranchingNodeConfiguratorImpl<?, ?> parent) {
@@ -71,12 +72,23 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		effectiveChildren = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
 		namedInheritedChildren = new ArrayListMultiHashMap<>();
+		preInputClass = parent == null ? null : parent
+				.getCurrentChildPreInputClass();
+		parentClass = parent == null ? null : parent.getDataClass();
+	}
+
+	protected Class<?> getParentClass() {
+		return parentClass;
+	}
+
+	protected Class<?> getPreInputClass() {
+		return preInputClass;
 	}
 
 	protected abstract Class<?> getCurrentChildPreInputClass();
 
 	protected Class<?> getDataClass() {
-		return parent().getDataClass();
+		return parentClass;
 	}
 
 	@Override
@@ -116,7 +128,7 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		return (List<T>) Collections.unmodifiableList(overriddenNodes);
 	}
 
-	protected final List<SchemaNodeImpl> getChildren() {
+	protected final List<SchemaNode> getChildren() {
 		return children;
 	}
 
@@ -127,20 +139,7 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		return effectiveChildren;
 	}
 
-	@Override
-	public BranchingNodeConfigurator<S, N> addChild(
-			Function<NodeBuilder, SchemaNodeConfigurator<?, ?>> builder) {
-		builder.apply(childBuilder()).create();
-
-		return this;
-	}
-
-	@Override
-	public NodeBuilder addChild() {
-		return childBuilder();
-	}
-
-	void addChild(SchemaNodeImpl result, SchemaNode effective) {
+	void addChild(SchemaNode result, SchemaNode effective) {
 		blocked = false;
 		children.add(result);
 		effectiveChildren.add(effective);
@@ -151,7 +150,8 @@ abstract class BranchingNodeConfiguratorImpl<S extends BranchingNodeConfigurator
 		}
 	}
 
-	public NodeBuilder childBuilder() {
+	@Override
+	public NodeBuilder addChild() {
 		assertUnblocked();
 		finaliseProperties();
 		blocked = true;

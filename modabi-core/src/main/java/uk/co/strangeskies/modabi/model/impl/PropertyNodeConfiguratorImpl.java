@@ -8,7 +8,7 @@ import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
-class PropertyNodeConfiguratorImpl<T>
+public class PropertyNodeConfiguratorImpl<T>
 		extends
 		TypedDataNodeConfiguratorImpl<PropertyNodeConfigurator<T>, PropertyNode<T>, T>
 		implements PropertyNodeConfigurator<T> {
@@ -23,8 +23,9 @@ class PropertyNodeConfiguratorImpl<T>
 		}
 
 		private PropertyNodeImpl(PropertyNode<T> node,
-				Collection<? extends PropertyNode<T>> overriddenNodes) {
-			super(node, overriddenNodes);
+				Collection<? extends PropertyNode<T>> overriddenNodes,
+				Class<?> parentClass) {
+			super(node, overriddenNodes, parentClass);
 
 			optional = getValue(node, overriddenNodes, n -> n.isOptional(),
 					(v, o) -> !v || o);
@@ -50,6 +51,13 @@ class PropertyNodeConfiguratorImpl<T>
 
 	public PropertyNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
 		super(parent);
+	}
+
+	public PropertyNodeConfiguratorImpl(
+			SchemaNodeOverrideContext<PropertyNode<T>> overrideContext,
+			SchemaNodeResultListener<PropertyNode<T>> resultListener,
+			Class<?> preInputClass, Class<?> outputClass) {
+		super(overrideContext, resultListener, preInputClass, outputClass);
 	}
 
 	@Override
@@ -83,6 +91,6 @@ class PropertyNodeConfiguratorImpl<T>
 
 	@Override
 	protected PropertyNode<T> getEffective(PropertyNode<T> node) {
-		return new PropertyNodeImpl<>(node, getOverriddenNodes());
+		return new PropertyNodeImpl<>(node, getOverriddenNodes(), getParentClass());
 	}
 }

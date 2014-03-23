@@ -1,14 +1,26 @@
 package uk.co.strangeskies.modabi.data;
 
-import uk.co.strangeskies.gears.utilities.factory.Factory;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
-public interface DataTypeConfigurator<T> extends Factory<DataType<T>> {
+public interface DataTypeConfigurator<T> extends
+		DataTypeRestrictionConfigurator<T> {
 	/**
 	 * @param name
 	 *          The value to be returned by {@link DataType#getName()}.
 	 * @return
 	 */
 	DataTypeConfigurator<T> name(String name);
+
+	/**
+	 * @param name
+	 *          The value to be returned by
+	 *          {@link DataType#getImplementationStrategy()}.
+	 * @return
+	 */
+	DataTypeConfigurator<T> bindingStrategy(BindingStrategy strategy);
+
+	DataTypeConfigurator<T> unbindingStrategy(UnbindingStrategy strategy);
 
 	/**
 	 * @param name
@@ -19,29 +31,15 @@ public interface DataTypeConfigurator<T> extends Factory<DataType<T>> {
 
 	/**
 	 * @param name
-	 *          The value to be returned by {@link DataType#getBaseType()}.
+	 *          The value to be returned by {@link DataType#getBuilderClass()}.
 	 * @return
 	 */
-	DataTypeConfigurator<T> baseType(DataType<?> from);
-
-	/**
-	 * @param name
-	 *          The value to be returned by {@link DataType#getParseMethod()}.
-	 * @return
-	 */
-	DataTypeConfigurator<T> parseMethod(String name);
-
-	/**
-	 * @param name
-	 *          The value to be returned by {@link DataType#getFactoryClass()}.
-	 * @return
-	 */
-	DataTypeConfigurator<T> factoryClass(Class<?> factoryClass);
+	DataTypeConfigurator<T> builderClass(Class<?> builderClass);
 
 	/**
 	 * @param name
 	 *          The value to be returned by {@link DataType#getFactoryMethod()}.
 	 * @return
 	 */
-	DataTypeConfigurator<T> factoryMethod(String name);
+	DataTypeConfigurator<T> buildMethod(String name);
 }
