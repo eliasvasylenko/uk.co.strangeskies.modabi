@@ -17,7 +17,7 @@ public enum BindingStrategy {
 	/**
 	 * The schema binder should attempt to create a simple proxy implementation of
 	 * an interface.
-	 * 
+	 *
 	 * This binding strategy is only valid when binding to interfaces.
 	 */
 	IN_PLACE,
@@ -33,7 +33,7 @@ public enum BindingStrategy {
 	 * The schema binder should behave as if {@link #REQUIRE_PROVIDED} were
 	 * selected where possible, and otherwise should fall back to
 	 * {@link #IN_PLACE} behaviour.
-	 * 
+	 *
 	 * This binding strategy is only valid when binding to interfaces.
 	 */
 	PREFER_PROVIDED,
@@ -44,7 +44,7 @@ public enum BindingStrategy {
 	 * it may be an empty sequence, and any data it binds should be passed to the
 	 * constructor as parameters. No in method name should be specified on this
 	 * child node.
-	 * 
+	 *
 	 * This binding strategy is only valid when binding to concrete classes.
 	 */
 	CONSTRUCTOR,

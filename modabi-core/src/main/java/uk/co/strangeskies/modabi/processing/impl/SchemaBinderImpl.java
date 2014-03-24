@@ -29,7 +29,6 @@ import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.data.TerminatingDataSink;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
-import uk.co.strangeskies.modabi.data.impl.OutputMethodStrategy;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
@@ -97,8 +96,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 		@Override
 		public <U> void accept(PropertyNode<U> node) {
 			Object data = getData(node);
-			OutputMethodStrategy outputStrategy = node.getType()
-					.getOutputMethodStrategy();
 
 			TerminatingDataSink sink = output.property(node.getId());
 

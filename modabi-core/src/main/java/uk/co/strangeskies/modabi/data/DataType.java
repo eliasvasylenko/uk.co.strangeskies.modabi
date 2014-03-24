@@ -12,4 +12,6 @@ public interface DataType<T> {
 	Class<?> getBuilderClass();
 
 	List<PropertyNode<?>> getProperties();
+
+	boolean isPrimitive();
 }

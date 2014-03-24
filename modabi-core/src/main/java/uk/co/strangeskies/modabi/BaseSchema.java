@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.Model;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
 	/* Primitive Types */
@@ -32,7 +33,7 @@ public interface BaseSchema extends Schema {
 
 	DataType<Object> referenceType();
 
-	DataType<String> qualifiedNameType();
+	DataType<QualifiedName> qualifiedNameType();
 
 	/* Derived Types */
 
