@@ -129,8 +129,43 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	@Override
+	public DataType<byte[]> binaryType() {
+		return binaryType;
+	}
+
+	@Override
 	public DataType<String> stringType() {
 		return stringType;
+	}
+
+	@Override
+	public DataType<BigInteger> integerType() {
+		return integerType;
+	}
+
+	@Override
+	public DataType<BigDecimal> decimalType() {
+		return decimalType;
+	}
+
+	@Override
+	public DataType<Integer> intType() {
+		return intType;
+	}
+
+	@Override
+	public DataType<Long> longType() {
+		return longType;
+	}
+
+	@Override
+	public DataType<Float> floatType() {
+		return floatType;
+	}
+
+	@Override
+	public DataType<Double> doubleType() {
+		return doubleType;
 	}
 
 	@Override
@@ -144,7 +179,6 @@ public class BaseSchemaImpl implements BaseSchema {
 		return classType;
 	}
 
-	@Override
 	@SuppressWarnings("rawtypes")
 	public DataType<Enum> enumType() {
 		return enumType;
@@ -184,5 +218,11 @@ public class BaseSchemaImpl implements BaseSchema {
 	@Override
 	public Models getModels() {
 		return baseSchema.getModels();
+	}
+
+	@Override
+	public DataType<String> qualifiedNameType() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

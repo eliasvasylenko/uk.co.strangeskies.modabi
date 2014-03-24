@@ -58,7 +58,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Set<DataType<?>> typeSet = new HashSet<>();
 
 		DataType<?> typeType = dataType.configure().name("type")
-				.dataClass(DataType.class).baseType(base.referenceType()).create();
+				.dataClass(DataType.class).create();
 		typeSet.add(typeType);
 
 		/*

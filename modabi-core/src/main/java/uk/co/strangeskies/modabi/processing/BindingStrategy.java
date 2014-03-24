@@ -1,14 +1,13 @@
 package uk.co.strangeskies.modabi.processing;
 
-import java.lang.reflect.Modifier;
-
 import uk.co.strangeskies.modabi.Schema;
 
 /**
  * <p>
  * This enumeration describes the different ways a {@link Schema} can request a
  * {@link SchemaBinder} should provide implementations of classes and interfaces
- * to bind to.
+ * to bind to. All binding strategies can be applied when binding to concrete
+ * classes, abstract classes, or interfaces, unless otherwise specified.
  * </p>
  *
  * @author eli
@@ -18,22 +17,26 @@ public enum BindingStrategy {
 	/**
 	 * The schema binder should attempt to create a simple proxy implementation of
 	 * an interface.
+	 * 
+	 * This binding strategy is only valid when binding to interfaces.
 	 */
-	IN_PLACE(false, false, true),
+	IN_PLACE,
 
 	/**
 	 * The schema binder should attempt to find an implementation for which a
 	 * factory has been provided externally, for example programmatically, through
 	 * dependency injection, or as an OSGI service.
 	 */
-	REQUIRE_PROVIDED(false, true, true),
+	REQUIRE_PROVIDED,
 
 	/**
 	 * The schema binder should behave as if {@link #REQUIRE_PROVIDED} were
 	 * selected where possible, and otherwise should fall back to
 	 * {@link #IN_PLACE} behaviour.
+	 * 
+	 * This binding strategy is only valid when binding to interfaces.
 	 */
-	PREFER_PROVIDED(false, false, true),
+	PREFER_PROVIDED,
 
 	/**
 	 * The schema binder should attempt to find a constructor to call on the
@@ -41,8 +44,10 @@ public enum BindingStrategy {
 	 * it may be an empty sequence, and any data it binds should be passed to the
 	 * constructor as parameters. No in method name should be specified on this
 	 * child node.
+	 * 
+	 * This binding strategy is only valid when binding to concrete classes.
 	 */
-	CONSTRUCTOR(true, true, true),
+	CONSTRUCTOR,
 
 	/**
 	 * The schema binder should attempt to find the static factory method to call
@@ -50,7 +55,7 @@ public enum BindingStrategy {
 	 * node must be an input node, though it may be an empty sequence, and any
 	 * data it binds should be passed to the factory method as parameters.
 	 */
-	STATIC_FACTORY(true, true, true),
+	STATIC_FACTORY,
 
 	/**
 	 * The schema binder should attempt to retrieve an implementation of the
@@ -58,32 +63,5 @@ public enum BindingStrategy {
 	 * must be an input node binding to a single class. No in method name should
 	 * be specified on this child node.
 	 */
-	ADAPTOR(true, true, true);
-
-	private final boolean validForClass;
-	private final boolean validForAbstractClass;
-	private final boolean validForInterface;
-
-	BindingStrategy(boolean validForClass, boolean validForAbstractClass,
-			boolean validForInterface) {
-		this.validForClass = validForClass;
-		this.validForAbstractClass = validForAbstractClass;
-		this.validForInterface = validForInterface;
-	}
-
-	/**
-	 * Returns <code>true</code> if the binding strategy is valid when binding to
-	 * the given class, based on whether it is a concrete class, an abstract
-	 * class, or an interface.
-	 *
-	 * @return <code>true</code> if the binding strategy is valid when binding to
-	 *         the given class, <code>false</code> otherwise.
-	 */
-	public boolean isValidForClass(Class<?> clazz) {
-		if (clazz.isInterface())
-			return validForInterface;
-		else if (Modifier.isAbstract(clazz.getModifiers()))
-			return validForAbstractClass;
-		return validForClass;
-	}
+	ADAPTOR;
 }
