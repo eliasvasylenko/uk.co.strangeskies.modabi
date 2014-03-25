@@ -4,25 +4,26 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.ModelLoader;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.DataSink;
+import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
+import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.ModelLoader;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public class BaseSchemaImpl implements BaseSchema {
 	private final Schema baseSchema;
@@ -61,31 +62,31 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		/* Primitive */
 
-		binaryType = primitiveType("binary", byte[].class);
+		binaryType = primitiveType("binary", byte[].class, dataType);
 		typeSet.add(binaryType);
 
-		stringType = primitiveType("string", String.class);
+		stringType = primitiveType("string", String.class, dataType);
 		typeSet.add(stringType);
 
-		integerType = primitiveType("integer", BigInteger.class);
+		integerType = primitiveType("integer", BigInteger.class, dataType);
 		typeSet.add(integerType);
 
-		decimalType = primitiveType("decimal", BigDecimal.class);
+		decimalType = primitiveType("decimal", BigDecimal.class, dataType);
 		typeSet.add(decimalType);
 
-		intType = primitiveType("int", int.class);
+		intType = primitiveType("int", int.class, dataType);
 		typeSet.add(intType);
 
-		longType = primitiveType("long", long.class);
+		longType = primitiveType("long", long.class, dataType);
 		typeSet.add(longType);
 
-		floatType = primitiveType("float", float.class);
+		floatType = primitiveType("float", float.class, dataType);
 		typeSet.add(floatType);
 
-		doubleType = primitiveType("double", double.class);
+		doubleType = primitiveType("double", double.class, dataType);
 		typeSet.add(doubleType);
 
-		booleanType = primitiveType("boolean", boolean.class);
+		booleanType = primitiveType("boolean", boolean.class, dataType);
 		typeSet.add(booleanType);
 
 		/* Built-In */
@@ -101,9 +102,9 @@ public class BaseSchemaImpl implements BaseSchema {
 		/* Derived */
 
 		classType = dataType.configure().name("class").dataClass(Class.class)
-				.builderClass(Class.class)
+				.bindingClass(Class.class)
 				.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-				.addProperty(p -> p.type(stringType).inMethod("fromName")).create();
+				.addProperty(p -> p.type(stringType).id("name")).create();
 		typeSet.add(classType);
 
 		enumType = dataType.configure().name("enum").dataClass(Enum.class).create();
@@ -111,7 +112,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		rangeType = dataType.configure().name("range").dataClass(Range.class)
 				.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-				.addProperty(p -> p.type(stringType)).create();
+				.addProperty(p -> p.type(stringType).id("string")).create();
 		typeSet.add(rangeType);
 
 		/*
@@ -132,33 +133,13 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	/* Primitive */
 
-	private <T> DataType<T> primitiveType(String name, Class<T> dataClass) {
-		return new DataType<T>() {
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public Class<T> getDataClass() {
-				return dataClass;
-			}
-
-			@Override
-			public Class<?> getBuilderClass() {
-				return null;
-			}
-
-			@Override
-			public List<PropertyNode<?>> getProperties() {
-				return null;
-			}
-
-			@Override
-			public boolean isPrimitive() {
-				return true;
-			}
-		};
+	private <T> DataType<T> primitiveType(String name,
+			Class<T> dataClass, DataTypeBuilder builder) {
+		return builder.configure().name(name).dataClass(dataClass)
+				.bindingClass(DataSource.class)
+				.bindingStrategy(BindingStrategy.REQUIRE_PROVIDED)
+				.unbindingClass(DataSink.class)
+				.unbindingStrategy(UnbindingStrategy.COMPOSE).create();
 	}
 
 	@Override

@@ -163,12 +163,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true))
 				.addChild(
 						o -> o.property().id("implementationStrategy")
-								.type(base.enumType()).optional(true))
+								.type(base.referenceType()).optional(true))
 				.addChild(n -> n.property().id("builderClass").type(base.classType()))
-				.addChild(
-						n -> n.property().id("builderMethod").type(base.stringType())
-								.optional(true)).addChild(n -> n.element().id("child"))
-				.create();
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(abstractModelModel);
 
 		@SuppressWarnings("rawtypes")
@@ -222,15 +219,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.id("type")
 				.addChild(n -> n.property().id("dataClass").type(base.classType()))
 				.addChild(n -> n.property().id("builderClass").type(base.classType()))
-				.addChild(
-						n -> n.property().id("outputMethod")
-								.outMethod("getOutputMethodName").type(base.stringType()))
-				.addChild(
-						n -> n.property().id("inputMethod").outMethod("getInputMethodName")
-								.type(base.stringType()))
-				.addChild(
-						n -> n.property().id("buildMethod").outMethod("getBuildMethodName")
-								.type(base.stringType()))
 				.addChild(
 						n -> n
 								.element()

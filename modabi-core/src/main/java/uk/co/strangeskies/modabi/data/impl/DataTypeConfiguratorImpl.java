@@ -2,23 +2,19 @@ package uk.co.strangeskies.modabi.data.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
-import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.data.DataSink;
-import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
-import uk.co.strangeskies.modabi.data.DataTypeRestrictionConfigurator;
 import uk.co.strangeskies.modabi.data.DataTypeRestrictions;
 import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
 import uk.co.strangeskies.modabi.model.impl.PropertyNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
-import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		implements DataTypeConfigurator<T> {
@@ -29,11 +25,11 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		private final Class<T> dataClass;
 		private final Class<?> builderClass;
 
-		private final InputMethodStrategy inputStrategy;
-		private final String inputMethodName;
+		private final BindingStrategy bindingStrategy;
+		private  String inputMethodName;
 		private Method inputMethod;
-		private final OutputMethodStrategy outputStrategy;
-		private final String outputMethodName;
+		private final UnbindingStrategy unbindingStrategy;
+		private  String outputMethodName;
 		private Method outputMethod;
 
 		private final String buildMethodName;
@@ -48,12 +44,10 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 			dataClass = configurator.dataClass;
 			builderClass = configurator.builderClass;
 
-			inputStrategy = configurator.inputStrategy;
-			inputMethodName = configurator.inputMethod;
-			outputStrategy = configurator.outputStrategy;
-			outputMethodName = configurator.outputMethod;
+			bindingStrategy = configurator.bindingStrategy;
+			unbindingStrategy = configurator.unbindingStrategy;
 			buildMethodName = configurator.buildMethod;
-			try {
+			/*try {
 				Class<?> baseTypeInputClass = baseType == null ? DataSource.class
 						: baseType.getDataClass();
 				List<String> inputMethodNames = inputMethodName == null ? null : Arrays
@@ -102,7 +96,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 				buildMethod = null;// configurator.buildMethod;
 			} catch (NoSuchMethodException | SecurityException e) {
 				// throw new SchemaException(e);
-			}
+			}*/
 
 			properties = Collections.unmodifiableList(new ArrayList<>(
 					configurator.properties));
@@ -114,68 +108,23 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		}
 
 		@Override
-		public DataType<?> getBaseType() {
-			return baseType;
-		}
-
-		@Override
-		public DataTypeRestrictions<?> getBaseRestrictions() {
-			return baseRestrictions;
-		}
-
-		@Override
 		public final Class<T> getDataClass() {
 			return dataClass;
 		}
 
 		@Override
-		public final Class<?> getBuilderClass() {
+		public final Class<?> getBindingClass() {
 			return builderClass;
-		}
-
-		@Override
-		public InputMethodStrategy getInputMethodStrategy() {
-			return inputStrategy;
-		}
-
-		@Override
-		public final String getSourceMethodName() {
-			return inputMethodName;
-		}
-
-		@Override
-		public Method getSourceMethod() {
-			return inputMethod;
-		}
-
-		@Override
-		public OutputMethodStrategy getOutputMethodStrategy() {
-			return outputStrategy;
-		}
-
-		@Override
-		public String getSinkMethodName() {
-			return outputMethodName;
-		}
-
-		@Override
-		public Method getSinkMethod() {
-			return outputMethod;
-		}
-
-		@Override
-		public final String getBuildMethodName() {
-			return buildMethodName;
-		}
-
-		@Override
-		public Method getBuildMethod() {
-			return buildMethod;
 		}
 
 		@Override
 		public final List<PropertyNode<?>> getProperties() {
 			return properties;
+		}
+
+		@Override
+		public boolean isPrimitive() {
+			return false;
 		}
 	}
 
@@ -185,10 +134,9 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	private Class<T> dataClass;
 	private Class<?> builderClass;
 
-	private InputMethodStrategy inputStrategy;
-	private String inputMethod;
-	private OutputMethodStrategy outputStrategy;
-	private String outputMethod;
+	private BindingStrategy bindingStrategy;
+	private UnbindingStrategy unbindingStrategy;
+
 	private String buildMethod;
 
 	private final List<PropertyNode<?>> properties;
@@ -229,14 +177,6 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		return this;
 	}
 
-	@Override
-	public DataTypeConfigurator<T> baseType(DataType<?> baseType) {
-		requireConfigurable(this.baseType);
-		this.baseType = baseType;
-
-		return this;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends T> DataTypeConfigurator<U> dataClass(Class<U> dataClass) {
@@ -247,7 +187,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> builderClass(Class<?> builderClass) {
+	public DataTypeConfigurator<T> bindingClass(Class<?> builderClass) {
 		requireConfigurable(this.builderClass);
 		this.builderClass = builderClass;
 
@@ -255,43 +195,9 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> inputMethodStrategy(
-			InputMethodStrategy strategy) {
-		requireConfigurable(this.inputStrategy);
-		this.inputStrategy = strategy;
-
-		return this;
-	}
-
-	@Override
-	public DataTypeConfigurator<T> inputMethod(String name) {
-		requireConfigurable(this.inputMethod);
-		this.inputMethod = name;
-
-		return this;
-	}
-
-	@Override
-	public DataTypeConfigurator<T> outputMethodStrategy(
-			OutputMethodStrategy strategy) {
-		requireConfigurable(this.outputStrategy);
-		this.outputStrategy = strategy;
-
-		return this;
-	}
-
-	@Override
-	public DataTypeConfigurator<T> outputMethod(String name) {
-		requireConfigurable(this.outputMethod);
-		this.outputMethod = name;
-
-		return this;
-	}
-
-	@Override
 	public DataTypeConfigurator<T> buildMethod(String name) {
-		requireConfigurable(this.buildMethod);
-		this.buildMethod = name;
+		requireConfigurable(buildMethod);
+		buildMethod = name;
 
 		return this;
 	}
@@ -304,8 +210,18 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeRestrictionConfigurator<Object> baseRestrictions() {
-		// TODO Auto-generated method stub
-		return null;
+	public DataTypeConfigurator<T> bindingStrategy(BindingStrategy strategy) {
+		requireConfigurable(bindingStrategy);
+		bindingStrategy = strategy;
+
+		return this;
+	}
+
+	@Override
+	public DataTypeConfigurator<T> unbindingStrategy(UnbindingStrategy strategy) {
+		requireConfigurable(unbindingStrategy);
+		unbindingStrategy = strategy;
+
+		return this;
 	}
 }

@@ -5,8 +5,10 @@ public enum UnbindingStrategy {
 	 * The schema binder should attempt to find an implementation for which a
 	 * factory has been provided externally, for example programmatically, through
 	 * dependency injection, or as an OSGI service.
+	 * 
+	 * The object which is being unbound should be passed 
 	 */
-	REQUIRE_PROVIDED,
+	PROVIDED,
 
 	/**
 	 * The schema binder should attempt to find a constructor to call on the
@@ -14,6 +16,8 @@ public enum UnbindingStrategy {
 	 * it may be an empty sequence, and any data it binds should be passed to the
 	 * constructor as parameters. No in method name should be specified on this
 	 * child node.
+	 *
+	 * This binding strategy is only valid when binding to concrete classes.
 	 */
 	CONSTRUCTOR,
 
@@ -31,5 +35,5 @@ public enum UnbindingStrategy {
 	 * must be an input node binding to a single class. No in method name should
 	 * be specified on this child node.
 	 */
-	COMPOSE;
+	DIRECT;
 }

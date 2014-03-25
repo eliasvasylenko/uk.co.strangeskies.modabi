@@ -22,6 +22,7 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataInputBuffer;
+import uk.co.strangeskies.modabi.data.DataSink;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
@@ -46,6 +47,7 @@ import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.model.nodes.SimpleElementNode;
+import uk.co.strangeskies.modabi.model.nodes.TypedDataNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.processing.SchemaBinder;
@@ -95,15 +97,22 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(PropertyNode<U> node) {
-			Object data = getData(node);
-
 			TerminatingDataSink sink = output.property(node.getId());
 
-			if (data != null)
+			if (data != null) {
 				// if (outputStrategy == OutputMethodStrategy.COMPOSE)
 				// node.getType().getOutputMethod().invoke();
 				// else
-				sink.string("" + data).end();
+				accept(node, sink);
+
+				sink.end();
+			}
+		}
+
+		public <U> void accept(TypedDataNode<U> node, DataSink sink) {
+			U data = getData(node);
+
+			sink.string("" + data);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -389,9 +398,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 		names.add(propertyName);
 		for (String name : new String[] { propertyName, "" }) {
 			names.add("set" + capitalize(name));
+			names.add("from" + capitalize(name));
+			names.add("parse" + capitalize(name));
 			names.add("add" + capitalize(name));
 			names.add("put" + capitalize(name));
-			names.add("parse" + capitalize(name));
 		}
 
 		return names;
@@ -431,8 +441,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 		for (String name : new ArrayList<>(names)) {
 			names.add("get" + capitalize(name));
 			names.add("to" + capitalize(name));
-			names.add("create" + capitalize(name));
 			names.add("compose" + capitalize(name));
+			names.add("create" + capitalize(name));
 		}
 
 		return names;

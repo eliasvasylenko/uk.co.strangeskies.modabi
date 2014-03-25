@@ -27,7 +27,7 @@ public enum BindingStrategy {
 	 * factory has been provided externally, for example programmatically, through
 	 * dependency injection, or as an OSGI service.
 	 */
-	REQUIRE_PROVIDED,
+	PROVIDED,
 
 	/**
 	 * The schema binder should behave as if {@link #REQUIRE_PROVIDED} were

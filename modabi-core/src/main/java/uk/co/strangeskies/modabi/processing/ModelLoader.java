@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi;
+package uk.co.strangeskies.modabi.processing;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
