@@ -1,13 +1,22 @@
 package uk.co.strangeskies.modabi.model.building;
 
+import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 
-public interface DataNodeConfigurator<S extends DataNodeConfigurator<S, N, T>, N extends DataNode<T>, T>
-		extends InputNodeConfigurator<S, N> {
-	public S outMethod(String methodName);
+public interface DataNodeConfigurator<T> extends
+		BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T> {
+	public <U extends T> DataNodeConfigurator<U> type(DataType<U> type);
 
-	public S outMethodIterable(boolean iterable);
+	@Override
+	public <U extends T> DataNodeConfigurator<U> dataClass(Class<U> dataClass);
 
-	public <V extends T> DataNodeConfigurator<?, ?, V> dataClass(
-			Class<V> dataClass);
+	public DataNodeConfigurator<T> value(T data);
+
+	public DataNodeConfigurator<T> optional(boolean optional);
+
+	public DataNodeConfigurator<T> occurances(Range<Integer> occuranceRange);
+
+	public DataNodeConfigurator<T> format(Format format);
 }

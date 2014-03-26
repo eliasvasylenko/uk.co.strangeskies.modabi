@@ -16,13 +16,14 @@ import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
 import uk.co.strangeskies.modabi.BaseSchema;
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataInputBuffer;
-import uk.co.strangeskies.modabi.data.DataSink;
+import uk.co.strangeskies.modabi.data.DataTarget;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
@@ -33,21 +34,18 @@ import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.Binding;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.nodes.BranchingNode;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.model.nodes.ContentNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.InputNode;
-import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
-import uk.co.strangeskies.modabi.model.nodes.SimpleElementNode;
-import uk.co.strangeskies.modabi.model.nodes.TypedDataNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.processing.SchemaBinder;
@@ -77,11 +75,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 			unbind(model.effectiveModel(), data);
 		}
 
-		protected void processChildren(BranchingNode node) {
+		protected void processChildren(SchemaNode node) {
 			List<ElementNode<?>> elementList = new ArrayList<>();
 			elementListStack.add(elementList);
 
-			for (SchemaNode child : node.getChildren()) {
+			for (ChildNode child : node.getChildren()) {
 				child.process(this);
 			}
 
@@ -91,32 +89,43 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(ContentNode<U> node) {
-			output.content().string(node.getId()).end();
-		}
+		public <U> void accept(DataNode<U> node) {
+			TerminatingDataSink sink;
 
-		@Override
-		public <U> void accept(PropertyNode<U> node) {
-			TerminatingDataSink sink = output.property(node.getId());
+			switch (node.format()) {
+			case PROPERTY:
+				sink = output.property(node.getId());
+				break;
+			case SIMPLE_ELEMENT:
+				output.childElement(node.getId());
+			case CONTENT:
+				sink = output.content();
+				break;
+			default:
+				throw new SchemaException();
+			}
 
 			if (data != null) {
 				// if (outputStrategy == OutputMethodStrategy.COMPOSE)
 				// node.getType().getOutputMethod().invoke();
 				// else
 				accept(node, sink);
-
-				sink.end();
 			}
+
+			sink.end();
+
+			if (node.format() == Format.SIMPLE_ELEMENT)
+				output.endElement();
 		}
 
-		public <U> void accept(TypedDataNode<U> node, DataSink sink) {
+		public <U> void accept(DataNode<U> node, DataTarget sink) {
 			U data = getData(node);
 
 			sink.string("" + data);
 		}
 
 		@SuppressWarnings("unchecked")
-		public <U> U getData(final DataNode<U> node) {
+		public <U> U getData(final BindingChildNode<U> node) {
 			if (node.getDataClass() != null) {
 				Object parent = bindingStack.peek();
 
@@ -182,11 +191,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 				e.printStackTrace();
 			}
 		}
-
-		@Override
-		public <U> void accept(SimpleElementNode<U> node) {
-			// TODO Auto-generated method stub
-		}
 	}
 
 	private class SchemaLoadingContext<T> implements SchemaProcessingContext {
@@ -230,7 +234,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			String name = input.nextChild();
 			String namespace = input.getProperty("xmlns", null);
 
-			bindingStack.push(provideInstance(node.getBuilderClass()));
+			bindingStack.push(provideInstance(node.getBindingClass()));
 			processChildren(node);
 			@SuppressWarnings("unchecked")
 			U boundObject = (U) bindingStack.pop();
@@ -271,8 +275,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 			return null;
 		}
 
-		protected void processChildren(BranchingNode node) {
-			for (SchemaNode child : node.getChildren()) {
+		protected void processChildren(SchemaNode node) {
+			for (ChildNode child : node.getChildren()) {
 				child.process(this);
 			}
 		}
@@ -384,7 +388,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 						.collect(Collectors.joining(", ")) + " ] -> " + result);
 	}
 
-	public static List<String> generateInMethodNames(DataNode<?> node) {
+	public static List<String> generateInMethodNames(BindingChildNode<?> node) {
 		if (node.getInMethodName() != null)
 			return Arrays.asList(node.getInMethodName());
 		else
@@ -407,11 +411,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 		return names;
 	}
 
-	public static List<String> generateOutMethodNames(DataNode<?> node) {
+	public static List<String> generateOutMethodNames(BindingChildNode<?> node) {
 		return generateOutMethodNames(node, node.getDataClass());
 	}
 
-	public static List<String> generateOutMethodNames(DataNode<?> node,
+	public static List<String> generateOutMethodNames(BindingChildNode<?> node,
 			Class<?> resultClass) {
 		if (node.getOutMethodName() != null)
 			return Arrays.asList(node.getOutMethodName());

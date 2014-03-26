@@ -11,10 +11,11 @@ import org.apache.commons.collections4.set.ListOrderedSet;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.AbstractModelConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
 		extends BranchingNodeConfiguratorImpl<S, N> implements
@@ -23,8 +24,10 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 			BranchingNodeImpl implements AbstractModel<T> {
 		private final Class<T> dataClass;
 		private final List<Model<? super T>> baseModel;
-		private final Class<?> builderClass;
-		private final BindingStrategy implementationStrategy;
+		private final Class<?> bindingClass;
+		private final Class<?> unbindingClass;
+		private final BindingStrategy bindingStrategy;
+		private final UnbindingStrategy unbindingStrategy;
 		private final Boolean isAbstract;
 
 		public AbstractModelImpl(AbstractModelConfiguratorImpl<?, ?, T> configurator) {
@@ -33,14 +36,16 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 			dataClass = configurator.dataClass;
 			baseModel = configurator.baseModel == null ? new ArrayList<>()
 					: new ArrayList<>(configurator.baseModel);
-			builderClass = configurator.builderClass;
-			implementationStrategy = configurator.bindingStrategy;
+			bindingClass = configurator.bindingClass;
+			unbindingClass = configurator.unbindingClass;
+			bindingStrategy = configurator.bindingStrategy;
+			unbindingStrategy = configurator.unbindingStrategy;
 			isAbstract = configurator.isAbstract;
 		}
 
 		public AbstractModelImpl(AbstractModel<? super T> node,
 				Collection<? extends AbstractModel<? super T>> overriddenNodes,
-				List<SchemaNode> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
 					null);
 		}
@@ -48,7 +53,7 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		@SuppressWarnings("unchecked")
 		private AbstractModelImpl(AbstractModel<? super T> node,
 				Collection<AbstractModel<? super T>> overriddenNodes,
-				List<SchemaNode> effectiveChildren, Void flag) {
+				List<ChildNode> effectiveChildren, Void flag) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			dataClass = (Class<T>) getValue(node, overriddenNodes,
@@ -58,10 +63,16 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
 			baseModel.addAll(node.getBaseModel());
 
-			builderClass = getValue(node, overriddenNodes, n -> n.getBuilderClass());
+			bindingClass = getValue(node, overriddenNodes, n -> n.getBindingClass());
 
-			implementationStrategy = getValue(node, overriddenNodes,
-					n -> n.getImplementationStrategy());
+			unbindingClass = getValue(node, overriddenNodes,
+					n -> n.getUnbindingClass());
+
+			bindingStrategy = getValue(node, overriddenNodes,
+					n -> n.getBindingStrategy());
+
+			unbindingStrategy = getValue(node, overriddenNodes,
+					n -> n.getUnbindingStrategy());
 
 			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
 		}
@@ -107,13 +118,23 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 		}
 
 		@Override
-		public final BindingStrategy getImplementationStrategy() {
-			return implementationStrategy;
+		public final BindingStrategy getBindingStrategy() {
+			return bindingStrategy;
 		}
 
 		@Override
-		public final Class<?> getBuilderClass() {
-			return builderClass;
+		public final UnbindingStrategy getUnbindingStrategy() {
+			return unbindingStrategy;
+		}
+
+		@Override
+		public final Class<?> getBindingClass() {
+			return bindingClass;
+		}
+
+		@Override
+		public final Class<?> getUnbindingClass() {
+			return unbindingClass;
 		}
 
 		@Override
@@ -129,8 +150,10 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 
 	private Class<T> dataClass;
 	private List<Model<? super T>> baseModel;
-	private Class<?> builderClass;
+	private Class<?> bindingClass;
+	private Class<?> unbindingClass;
 	private BindingStrategy bindingStrategy;
+	private UnbindingStrategy unbindingStrategy;
 	private Boolean isAbstract;
 
 	public AbstractModelConfiguratorImpl(
@@ -188,32 +211,44 @@ public abstract class AbstractModelConfiguratorImpl<S extends AbstractModelConfi
 	@Override
 	protected Class<?> getCurrentChildPreInputClass() {
 		if (getChildren().isEmpty())
-			return builderClass != null ? builderClass : dataClass;
+			return bindingClass != null ? bindingClass : dataClass;
 		else
 			return getChildren().get(getChildren().size() - 1).getPostInputClass();
 	}
 
 	@Override
-	public final S builderClass(Class<?> factoryClass) {
-		requireConfigurable(this.builderClass);
-		this.builderClass = factoryClass;
+	public final S bindingClass(Class<?> bindingClass) {
+		requireConfigurable(this.bindingClass);
+		this.bindingClass = bindingClass;
+
+		return getThis();
+	}
+
+	@Override
+	public S unbindingClass(Class<?> unbindingClass) {
+		requireConfigurable(this.unbindingClass);
+		this.unbindingClass = unbindingClass;
 
 		return getThis();
 	}
 
 	protected final Class<?> getBuilderClass() {
-		return builderClass;
+		return bindingClass;
 	}
 
 	@Override
-	public final S implementationStrategy(BindingStrategy bindingStrategy) {
-		requireConfigurable(this.bindingStrategy);
-		this.bindingStrategy = bindingStrategy;
+	public final S bindingStrategy(BindingStrategy strategy) {
+		requireConfigurable(bindingStrategy);
+		bindingStrategy = strategy;
 
 		return getThis();
 	}
 
-	protected final BindingStrategy getImplementationStrategy() {
-		return bindingStrategy;
+	@Override
+	public final S unbindingStrategy(UnbindingStrategy strategy) {
+		requireConfigurable(unbindingStrategy);
+		unbindingStrategy = strategy;
+
+		return getThis();
 	}
 }

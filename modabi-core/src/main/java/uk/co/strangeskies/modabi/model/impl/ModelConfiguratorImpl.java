@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
 public class ModelConfiguratorImpl<T> extends
 		AbstractModelConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -16,7 +16,7 @@ public class ModelConfiguratorImpl<T> extends
 			implements EffectiveModel<T> {
 		public EffectiveModelImpl(ModelImpl<? super T> node,
 				Collection<? extends EffectiveModel<? super T>> overriddenNodes,
-				List<SchemaNode> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 		}
 	}
@@ -63,7 +63,7 @@ public class ModelConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Class<Model<T>> getNodeClass() {
+	protected Class<Model<T>> getNodeClass() {
 		return (Class<Model<T>>) (Object) Model.class;
 	}
 

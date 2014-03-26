@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.data;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public interface TerminatingDataSink extends DataSink {
+public interface TerminatingDataSink extends DataTarget {
 	@Override
 	public TerminatingDataSink binary(byte[] value);
 

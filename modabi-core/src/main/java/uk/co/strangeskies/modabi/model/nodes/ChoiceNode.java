@@ -1,12 +1,12 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
-public interface ChoiceNode extends BranchingNode {
+public interface ChoiceNode extends ChildNode {
 	public Boolean isMandatory();
 
 	@Override
 	public default Class<?> getPreInputClass() {
 		Class<?> inputClass = null;
-		for (SchemaNode child : getChildren()) {
+		for (ChildNode child : getChildren()) {
 			Class<?> nextInputClass = child.getPreInputClass();
 			if (inputClass != null)
 				if (inputClass.isAssignableFrom(nextInputClass))
@@ -20,7 +20,7 @@ public interface ChoiceNode extends BranchingNode {
 	@Override
 	public default Class<?> getPostInputClass() {
 		Class<?> outputClass = null;
-		for (SchemaNode child : getChildren()) {
+		for (ChildNode child : getChildren()) {
 			Class<?> nextOutputClass = child.getPostInputClass();
 			if (outputClass != null)
 				if (nextOutputClass.isAssignableFrom(outputClass))

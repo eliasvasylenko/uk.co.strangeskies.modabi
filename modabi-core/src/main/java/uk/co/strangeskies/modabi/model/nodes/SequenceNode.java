@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
-public interface SequenceNode extends BranchingNode, InputNode {
+public interface SequenceNode extends InputNode {
 	@Override
 	public default Class<?> getPreInputClass() {
 		return getChildren().get(0).getPreInputClass();
@@ -9,7 +9,7 @@ public interface SequenceNode extends BranchingNode, InputNode {
 	@Override
 	public default Class<?> getPostInputClass() {
 		Class<?> outputClass = null;
-		for (SchemaNode child : getChildren()) {
+		for (ChildNode child : getChildren()) {
 			if (outputClass != null
 					&& !child.getPreInputClass().isAssignableFrom(outputClass))
 				throw new IllegalArgumentException();

@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
@@ -24,7 +24,7 @@ public class ChoiceNodeConfiguratorImpl extends
 
 		public ChoiceNodeImpl(ChoiceNode node,
 				Collection<? extends ChoiceNode> overriddenNodes,
-				List<SchemaNode> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
@@ -65,7 +65,7 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public Class<ChoiceNode> getNodeClass() {
+	protected Class<ChoiceNode> getNodeClass() {
 		return ChoiceNode.class;
 	}
 

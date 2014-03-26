@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.building;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T>, T>
 		extends BranchingNodeConfigurator<S, N> {
@@ -14,7 +15,11 @@ public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S
 	public <V extends T> AbstractModelConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass);
 
-	public S implementationStrategy(BindingStrategy bindingStrategy);
+	public S bindingStrategy(BindingStrategy strategy);
 
-	public S builderClass(Class<?> factoryClass);
+	public S unbindingStrategy(UnbindingStrategy strategy);
+
+	public S bindingClass(Class<?> bindingClass);
+
+	public S unbindingClass(Class<?> unbindingClass);
 }

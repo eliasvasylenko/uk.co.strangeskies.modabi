@@ -2,11 +2,19 @@ package uk.co.strangeskies.modabi.processing;
 
 public enum UnbindingStrategy {
 	/**
+	 * The schema binder should attempt to retrieve an implementation of the
+	 * requested class from the result of the first of any child nodes. This child
+	 * must be an input node binding to a single class. No in method name should
+	 * be specified on this child node.
+	 */
+	SIMPLE,
+
+	/**
 	 * The schema binder should attempt to find an implementation for which a
 	 * factory has been provided externally, for example programmatically, through
 	 * dependency injection, or as an OSGI service.
-	 * 
-	 * The object which is being unbound should be passed 
+	 *
+	 * The object which is being unbound should be passed
 	 */
 	PROVIDED,
 
@@ -27,13 +35,5 @@ public enum UnbindingStrategy {
 	 * node must be an input node, though it may be an empty sequence, and any
 	 * data it binds should be passed to the factory method as parameters.
 	 */
-	STATIC_FACTORY,
-
-	/**
-	 * The schema binder should attempt to retrieve an implementation of the
-	 * requested class from the result of the first of any child nodes. This child
-	 * must be an input node binding to a single class. No in method name should
-	 * be specified on this child node.
-	 */
-	DIRECT;
+	STATIC_FACTORY;
 }

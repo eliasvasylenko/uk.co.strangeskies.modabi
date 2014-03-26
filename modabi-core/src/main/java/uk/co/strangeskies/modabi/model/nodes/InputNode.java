@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
 
-public interface InputNode extends SchemaNode {
+public interface InputNode extends ChildNode {
 	public String getInMethodName();
 
 	public Method getInMethod();

@@ -11,11 +11,11 @@ import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends ChildNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
-	protected static abstract class SchemaNodeImpl implements SchemaNode {
+	protected static abstract class SchemaNodeImpl implements ChildNode {
 		private final String id;
 
 		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
@@ -24,17 +24,17 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			id = configurator.getId();
 		}
 
-		protected SchemaNodeImpl(SchemaNode node,
-				Collection<? extends SchemaNode> overriddenNodes) {
+		protected SchemaNodeImpl(ChildNode node,
+				Collection<? extends ChildNode> overriddenNodes) {
 			id = getValue(node, overriddenNodes, n -> n.getId(), (v, o) -> true);
 		}
 
-		protected static <E extends SchemaNode, T> T getValue(E node,
+		protected static <E, T> T getValue(E node,
 				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction) {
 			return getValue(node, overriddenNodes, valueFunction, (v, o) -> true);
 		}
 
-		protected static <E extends SchemaNode, T> T getValue(E node,
+		protected static <E, T> T getValue(E node,
 				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction,
 				BiPredicate<T, T> validateOverride) {
 			T value = valueFunction.apply(node);
@@ -121,7 +121,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				: overrideContext.overrideChild(id, getNodeClass());
 	}
 
-	public abstract Class<N> getNodeClass();
+	protected abstract Class<N> getNodeClass();
 
 	protected final String getId() {
 		return id;

@@ -1,19 +1,59 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
-public interface DataNode<T> extends InputNode {
-	public String getOutMethodName();
+import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
-	public Method getOutMethod();
+public interface DataNode<T> extends BindingChildNode<T> {
+	public enum Format {
+		PROPERTY, CONTENT, SIMPLE_ELEMENT
+	}
 
-	/**
-	 * If this method returns true, the return value of any invocation of the
-	 * inMethod will replace the build class of any
-	 *
-	 * @return
-	 */
-	public Boolean isOutMethodIterable();
+	public Format format();
 
-	public Class<T> getDataClass();
+	public DataType<T> type();
+
+	public default boolean isValueSet() {
+		return value() != null;
+	}
+
+	public T value();
+
+	public Range<Integer> occurances();
+
+	public Boolean isOptional();
+
+	@Override
+	public default BindingStrategy getBindingStrategy() {
+		return type().getBindingStrategy();
+	}
+
+	@Override
+	public default Class<?> getBindingClass() {
+		return type().getBindingClass();
+	}
+
+	@Override
+	public default UnbindingStrategy getUnbindingStrategy() {
+		return type().getUnbindingStrategy();
+	}
+
+	@Override
+	public default Class<?> getUnbindingClass() {
+		return type().getUnbindingClass();
+	}
+
+	@Override
+	public default Method getUnbindingMethod() {
+		return type().getUnbindingMethod();
+	}
+
+	@Override
+	public default List<? extends ChildNode> getChildren() {
+		return type().getChildren();
+	}
 }

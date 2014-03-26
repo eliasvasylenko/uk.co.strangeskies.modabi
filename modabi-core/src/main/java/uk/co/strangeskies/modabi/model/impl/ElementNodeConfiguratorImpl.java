@@ -9,8 +9,8 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
@@ -74,7 +74,7 @@ public class ElementNodeConfiguratorImpl<T>
 
 		ElementNodeImpl(ElementNode<T> node,
 				Collection<? extends ElementNode<T>> overriddenNodes,
-				List<SchemaNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNode> effectiveChildren, Class<?> parentClass) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			occurances = getValue(node, overriddenNodes, n -> n.getOccurances(), (v,
@@ -152,6 +152,24 @@ public class ElementNodeConfiguratorImpl<T>
 		public Method getInMethod() {
 			return inMethod;
 		}
+
+		@Override
+		public Class<?> getPreInputClass() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Class<?> getPostInputClass() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Method getUnbindingMethod() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 	private Range<Integer> occurances;
@@ -215,7 +233,7 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Class<ElementNode<T>> getNodeClass() {
+	protected Class<ElementNode<T>> getNodeClass() {
 		return (Class<ElementNode<T>>) (Object) ElementNode.class;
 	}
 

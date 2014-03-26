@@ -9,10 +9,9 @@ import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
-import uk.co.strangeskies.modabi.data.DataTypeRestrictions;
-import uk.co.strangeskies.modabi.model.building.PropertyNodeConfigurator;
-import uk.co.strangeskies.modabi.model.impl.PropertyNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.nodes.PropertyNode;
+import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.impl.DataNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
@@ -20,83 +19,28 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		implements DataTypeConfigurator<T> {
 	public static class DataTypeImpl<T> implements DataType<T> {
 		private final String name;
-		private final DataType<?> baseType;
-		private final DataTypeRestrictions<?> baseRestrictions;
 		private final Class<T> dataClass;
-		private final Class<?> builderClass;
 
 		private final BindingStrategy bindingStrategy;
-		private  String inputMethodName;
-		private Method inputMethod;
+		private final Class<?> bindingClass;
+
 		private final UnbindingStrategy unbindingStrategy;
-		private  String outputMethodName;
-		private Method outputMethod;
+		private final Class<?> unbindingClass;
+		private final Method unbindingMethod;
 
-		private final String buildMethodName;
-		private Method buildMethod;
-
-		private final List<PropertyNode<?>> properties;
+		private final List<DataNode<?>> properties;
 
 		public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
 			name = configurator.name;
-			baseType = configurator.baseType;
-			baseRestrictions = configurator.baseRestrictions;
 			dataClass = configurator.dataClass;
-			builderClass = configurator.builderClass;
 
 			bindingStrategy = configurator.bindingStrategy;
+			bindingClass = configurator.bindingClass;
+
 			unbindingStrategy = configurator.unbindingStrategy;
-			buildMethodName = configurator.buildMethod;
-			/*try {
-				Class<?> baseTypeInputClass = baseType == null ? DataSource.class
-						: baseType.getDataClass();
-				List<String> inputMethodNames = inputMethodName == null ? null : Arrays
-						.asList(inputMethodName);
-				if (inputStrategy == InputMethodStrategy.PARSE) {
-					if (inputMethodNames == null)
-						inputMethodNames = SchemaBinderImpl.generateInMethodNames(baseType
-								.getName());
+			unbindingClass = configurator.unbindingClass;
 
-					inputMethod = SchemaBinderImpl.findMethod(inputMethodNames,
-							dataClass, null, baseTypeInputClass);
-				} else if (inputStrategy == null
-						|| inputStrategy == InputMethodStrategy.GET) {
-					if (inputMethodNames == null)
-						inputMethodNames = SchemaBinderImpl.generateOutMethodNames(name,
-								false, null);
-
-					inputMethod = SchemaBinderImpl.findMethod(inputMethodNames,
-							baseTypeInputClass, dataClass);
-				} else {
-					throw new SchemaException(new AssertionError());
-				}
-
-				Class<?> baseTypeOutputClass = baseType == null ? DataSink.class
-						: baseType.getDataClass();
-				List<String> outputMethodNames = outputMethodName == null ? null
-						: Arrays.asList(outputMethodName);
-				if (outputStrategy == OutputMethodStrategy.COMPOSE) {
-					if (outputMethodNames == null)
-						outputMethodNames = SchemaBinderImpl.generateOutMethodNames(
-								baseType.getName(), false, null);
-
-					outputMethod = SchemaBinderImpl.findMethod(outputMethodNames,
-							dataClass, baseTypeOutputClass);
-				} else if (outputStrategy == null
-						|| outputStrategy == OutputMethodStrategy.SET) {
-					if (outputMethodNames == null)
-						outputMethodNames = SchemaBinderImpl.generateInMethodNames(name);
-
-					outputMethod = SchemaBinderImpl.findMethod(outputMethodNames,
-							baseTypeOutputClass, null, dataClass);
-				} else {
-					throw new SchemaException(new AssertionError());
-				}
-
-				buildMethod = null;// configurator.buildMethod;
-			} catch (NoSuchMethodException | SecurityException e) {
-				// throw new SchemaException(e);
-			}*/
+			unbindingMethod = null;// configurator.unbindingMethod;
 
 			properties = Collections.unmodifiableList(new ArrayList<>(
 					configurator.properties));
@@ -114,32 +58,47 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 		@Override
 		public final Class<?> getBindingClass() {
-			return builderClass;
+			return bindingClass;
 		}
 
 		@Override
-		public final List<PropertyNode<?>> getProperties() {
+		public final List<DataNode<?>> getChildren() {
 			return properties;
 		}
 
 		@Override
-		public boolean isPrimitive() {
-			return false;
+		public BindingStrategy getBindingStrategy() {
+			return bindingStrategy;
+		}
+
+		@Override
+		public Class<?> getUnbindingClass() {
+			return unbindingClass;
+		}
+
+		@Override
+		public UnbindingStrategy getUnbindingStrategy() {
+			return unbindingStrategy;
+		}
+
+		@Override
+		public Method getUnbindingMethod() {
+			return unbindingMethod;
 		}
 	}
 
 	private String name;
-	private DataType<?> baseType;
-	private DataTypeRestrictions<?> baseRestrictions;
 	private Class<T> dataClass;
-	private Class<?> builderClass;
 
 	private BindingStrategy bindingStrategy;
+	private Class<?> bindingClass;
+
 	private UnbindingStrategy unbindingStrategy;
+	private Class<?> unbindingClass;
 
-	private String buildMethod;
+	private String unbindingMethod;
 
-	private final List<PropertyNode<?>> properties;
+	private final List<DataNode<?>> properties;
 
 	private boolean finalisedProperties;
 
@@ -187,26 +146,26 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> bindingClass(Class<?> builderClass) {
-		requireConfigurable(this.builderClass);
-		this.builderClass = builderClass;
+	public DataTypeConfigurator<T> bindingClass(Class<?> bindingClass) {
+		requireConfigurable(this.bindingClass);
+		this.bindingClass = bindingClass;
 
 		return this;
 	}
 
 	@Override
-	public DataTypeConfigurator<T> buildMethod(String name) {
-		requireConfigurable(buildMethod);
-		buildMethod = name;
+	public DataTypeConfigurator<T> unbindingMethod(String name) {
+		requireConfigurable(unbindingMethod);
+		unbindingMethod = name;
 
 		return this;
 	}
 
 	@Override
-	public PropertyNodeConfigurator<Object> addProperty() {
-		return new PropertyNodeConfiguratorImpl<Object>(
+	public DataNodeConfigurator<Object> addProperty() {
+		return new DataNodeConfiguratorImpl<Object>(
 				(id, nodeClass) -> Collections.emptyList(), (result, effective) -> {
-				}, builderClass, dataClass);
+				}, bindingClass, dataClass);
 	}
 
 	@Override
@@ -221,6 +180,14 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	public DataTypeConfigurator<T> unbindingStrategy(UnbindingStrategy strategy) {
 		requireConfigurable(unbindingStrategy);
 		unbindingStrategy = strategy;
+
+		return this;
+	}
+
+	@Override
+	public DataTypeConfigurator<T> unbindingClass(Class<?> unbindingClass) {
+		requireConfigurable(this.unbindingClass);
+		this.unbindingClass = unbindingClass;
 
 		return this;
 	}

@@ -1,4 +1,6 @@
-package uk.co.strangeskies.modabi.model;
+package uk.co.strangeskies.modabi;
+
+import uk.co.strangeskies.modabi.model.Model;
 
 public class Binding<T> {
 	private final Model<T> model;

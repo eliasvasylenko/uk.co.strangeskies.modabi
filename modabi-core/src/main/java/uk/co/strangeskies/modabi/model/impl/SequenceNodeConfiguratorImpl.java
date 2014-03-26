@@ -6,7 +6,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
@@ -38,7 +38,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 		public SequenceNodeImpl(SequenceNode node,
 				Collection<? extends SequenceNode> overriddenNodes,
-				List<SchemaNode> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName(),
@@ -104,7 +104,7 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public Class<SequenceNode> getNodeClass() {
+	protected Class<SequenceNode> getNodeClass() {
 		return SequenceNode.class;
 	}
 

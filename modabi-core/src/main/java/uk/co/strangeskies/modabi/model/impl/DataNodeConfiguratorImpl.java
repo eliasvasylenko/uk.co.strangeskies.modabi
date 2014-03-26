@@ -2,23 +2,23 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
+import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.children.ChildNode;
-import uk.co.strangeskies.modabi.model.children.DataNode;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
 
-public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurator<S, N, T>, N extends DataNode<T>, T>
-		extends SchemaNodeConfiguratorImpl<S, N> implements
-		DataNodeConfigurator<S, N, T> {
-	protected static abstract class TypedDataNodeImpl<T> extends SchemaNodeImpl
-			implements DataNode<T> {
+public class DataNodeConfiguratorImpl<T> extends
+		SchemaNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>> implements
+		DataNodeConfigurator<T> {
+	protected static class DataNodeImpl<T> extends SchemaNodeImpl implements
+			DataNode<T> {
 		private final Class<T> dataClass;
 		private final Boolean iterable;
 		private final String outMethodName;
@@ -28,9 +28,12 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 		private final Boolean inMethodChained;
 		private final DataType<T> type;
 		private final T value;
+		private final Format format;
 
-		TypedDataNodeImpl(DataNodeConfiguratorImpl<?, ?, T> configurator) {
+		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
+
+			format = configurator.format;
 
 			dataClass = configurator.dataClass;
 			iterable = configurator.iterable;
@@ -55,7 +58,7 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 		}
 
 		@SuppressWarnings("unchecked")
-		<E extends DataNode<? super T>> TypedDataNodeImpl(E node,
+		<E extends DataNode<? super T>> DataNodeImpl(E node,
 				Collection<? extends E> overriddenNodes, Class<?> parentClass) {
 			super(node, overriddenNodes);
 
@@ -86,9 +89,9 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 			inMethodChained = getValue(node, overriddenNodes,
 					n -> n.isInMethodChained());
 
-			type = getValue(node, overriddenNodes, n -> (DataType<T>) n.getType());
+			type = getValue(node, overriddenNodes, n -> (DataType<T>) n.type());
 
-			value = getValue(node, overriddenNodes, n -> (T) n.getValue());
+			value = getValue(node, overriddenNodes, n -> (T) n.value());
 
 			if (value != null && !dataClass.isAssignableFrom(value.getClass()))
 				throw new SchemaException();
@@ -130,48 +133,13 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 		}
 
 		@Override
-		public final DataType<T> getType() {
+		public final DataType<T> type() {
 			return type;
 		}
 
 		@Override
-		public final boolean isValueSet() {
-			return value != null;
-		}
-
-		@Override
-		public final T getValue() {
+		public final T value() {
 			return value;
-		}
-
-		@Override
-		public BindingStrategy getBindingStrategy() {
-			return type.getBindingStrategy();
-		}
-
-		@Override
-		public Class<?> getBindingClass() {
-			return type.getBindingClass();
-		}
-
-		@Override
-		public UnbindingStrategy getUnbindingStrategy() {
-			return type.getUnbindingStrategy();
-		}
-
-		@Override
-		public Class<?> getUnbindingClass() {
-			return type.getUnbindingClass();
-		}
-
-		@Override
-		public Method getUnbindingMethod() {
-			return type.getUnbindingMethod();
-		}
-
-		@Override
-		public List<? extends ChildNode> getChildren() {
-			return type.getProperties();
 		}
 
 		@Override
@@ -185,7 +153,38 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public <T> T process(SchemaResultProcessingContext<T> context) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Format format() {
+			return format;
+		}
+
+		@Override
+		public Range<Integer> occurances() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Boolean isOptional() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
+
+	public Format format;
 
 	private Class<T> dataClass;
 	private Boolean iterable;
@@ -198,17 +197,19 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 	private final Class<?> preInputClass;
 	private final Class<?> parentClass;
 
-	public TypedDataNodeConfiguratorImpl(
-			BranchingNodeConfiguratorImpl<?, ?> parent) {
+	private Object occurances;
+	private Object optional;
+
+	public DataNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
 		super(parent);
 		preInputClass = parent.getCurrentChildPreInputClass();
 		parentClass = parent.getDataClass();
 	}
 
-	public TypedDataNodeConfiguratorImpl(
-			SchemaNodeOverrideContext<N> overrideContext,
-			SchemaNodeResultListener<N> resultListener, Class<?> preInputClass,
-			Class<?> outputClass) {
+	public DataNodeConfiguratorImpl(
+			SchemaNodeOverrideContext<DataNode<T>> overrideContext,
+			SchemaNodeResultListener<DataNode<T>> resultListener,
+			Class<?> preInputClass, Class<?> outputClass) {
 		super(overrideContext, resultListener);
 		this.preInputClass = preInputClass;
 		this.parentClass = outputClass;
@@ -220,36 +221,40 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> DataNodeConfigurator<?, ?, V> dataClass(
-			Class<V> dataClass) {
+	public <V extends T> DataNodeConfigurator<V> dataClass(Class<V> dataClass) {
+		requireConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
-		return (DataNodeConfigurator<?, ?, V>) this;
+		return (DataNodeConfigurator<V>) this;
 	}
 
 	@Override
-	public final S inMethod(String inMethodName) {
+	public final DataNodeConfigurator<T> inMethod(String inMethodName) {
+		requireConfigurable(this.inMethodName);
 		this.inMethodName = inMethodName;
 
 		return getThis();
 	}
 
 	@Override
-	public final S inMethodChained(boolean chained) {
+	public final DataNodeConfigurator<T> inMethodChained(boolean chained) {
+		requireConfigurable(this.inMethodChained);
 		this.inMethodChained = chained;
 
 		return getThis();
 	}
 
 	@Override
-	public final S outMethod(String outMethodName) {
+	public final DataNodeConfigurator<T> outMethod(String outMethodName) {
+		requireConfigurable(this.outMethodName);
 		this.outMethodName = outMethodName;
 
 		return getThis();
 	}
 
 	@Override
-	public final S outMethodIterable(boolean iterable) {
+	public final DataNodeConfigurator<T> outMethodIterable(boolean iterable) {
+		requireConfigurable(this.iterable);
 		this.iterable = iterable;
 
 		return getThis();
@@ -257,17 +262,60 @@ public abstract class TypedDataNodeConfiguratorImpl<S extends DataNodeConfigurat
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <U extends T> DataNodeConfigurator<?, ?, U> type(DataType<U> type) {
+	public <U extends T> DataNodeConfigurator<U> type(DataType<U> type) {
+		requireConfigurable(this.type);
+		requireConfigurable(this.dataClass);
 		this.type = (DataType<T>) type;
 		this.dataClass = (Class<T>) type.getDataClass();
 
-		return (DataNodeConfigurator<?, ?, U>) getThis();
+		return (DataNodeConfigurator<U>) getThis();
 	}
 
 	@Override
-	public final S value(T data) {
+	public final DataNodeConfigurator<T> value(T data) {
+		requireConfigurable(this.value);
 		this.value = data;
 
 		return getThis();
+	}
+
+	@Override
+	public final DataNodeConfigurator<T> occurances(Range<Integer> range) {
+		requireConfigurable(occurances);
+		occurances = range;
+
+		return this;
+	}
+
+	@Override
+	public DataNodeConfigurator<T> optional(boolean optional) {
+		requireConfigurable(this.optional);
+		this.optional = optional;
+
+		return this;
+	}
+
+	@Override
+	public DataNodeConfigurator<T> format(Format format) {
+		requireConfigurable(this.format);
+		this.format = format;
+
+		return this;
+	}
+
+	@Override
+	protected DataNode<T> getEffective(DataNode<T> node) {
+		return new DataNodeImpl<>(node, getOverriddenNodes(), getParentClass());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	protected Class<DataNode<T>> getNodeClass() {
+		return (Class<DataNode<T>>) (Object) DataNode.class;
+	}
+
+	@Override
+	protected DataNode<T> tryCreate() {
+		return new DataNodeImpl<>(this);
 	}
 }

@@ -1,10 +1,13 @@
 package uk.co.strangeskies.modabi.data;
 
+import java.util.function.Function;
+
+import uk.co.strangeskies.gears.utilities.factory.Factory;
+import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
-public interface DataTypeConfigurator<T> extends
-		DataTypeRestrictionConfigurator<T> {
+public interface DataTypeConfigurator<T> extends Factory<DataType<T>> {
 	/**
 	 * @param name
 	 *          The value to be returned by {@link DataType#getName()}.
@@ -14,24 +17,28 @@ public interface DataTypeConfigurator<T> extends
 
 	/**
 	 * @param name
-	 *          The value to be returned by
-	 *          {@link DataType#getBindingClass()}.
+	 *          The value to be returned by {@link DataType#getBaseType()}.
+	 * @return
+	 */
+	<U extends T> DataTypeConfigurator<U> dataClass(Class<U> dataClass);
+
+	/**
+	 * @param name
+	 *          The value to be returned by {@link DataType#getBindingClass()}.
 	 * @return
 	 */
 	DataTypeConfigurator<T> bindingClass(Class<?> builderClass);
 
 	/**
 	 * @param name
-	 *          The value to be returned by
-	 *          {@link DataType#getBindingStrategy()}.
+	 *          The value to be returned by {@link DataType#getBindingStrategy()}.
 	 * @return
 	 */
 	DataTypeConfigurator<T> bindingStrategy(BindingStrategy strategy);
 
 	/**
 	 * @param name
-	 *          The value to be returned by
-	 *          {@link DataType#getUnbindingClass()}.
+	 *          The value to be returned by {@link DataType#getUnbindingClass()}.
 	 * @return
 	 */
 	DataTypeConfigurator<T> unbindingClass(Class<?> builderClass);
@@ -46,17 +53,16 @@ public interface DataTypeConfigurator<T> extends
 
 	/**
 	 * @param name
-	 *          The value to be returned by
-	 *          {@link DataType#getBaseType()}.
+	 *          The value to be returned by {@link DataType#getFactoryMethod()}.
 	 * @return
 	 */
-	<U extends T> DataTypeConfigurator<U> dataClass(Class<U> dataClass);
+	DataTypeConfigurator<T> unbindingMethod(String name);
 
-	/**
-	 * @param name
-	 *          The value to be returned by
-	 *          {@link DataType#getFactoryMethod()}.
-	 * @return
-	 */
-	DataTypeConfigurator<T> buildMethod(String name);
+	default DataTypeConfigurator<T> addProperty(
+			Function<DataNodeConfigurator<Object>, DataNodeConfigurator<?>> propertyConfiguration) {
+		propertyConfiguration.apply(addProperty()).create();
+		return this;
+	}
+
+	DataNodeConfigurator<Object> addProperty();
 }

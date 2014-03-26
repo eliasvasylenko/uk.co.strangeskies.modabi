@@ -9,41 +9,52 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
-	/* Primitive Types */
+	public interface PrimitiveTypes {
+		DataType<byte[]> binaryType();
 
-	DataType<byte[]> binaryType();
+		DataType<String> stringType();
 
-	DataType<String> stringType();
+		DataType<BigInteger> integerType();
 
-	DataType<BigInteger> integerType();
+		DataType<BigDecimal> decimalType();
 
-	DataType<BigDecimal> decimalType();
+		DataType<Integer> intType();
 
-	DataType<Integer> intType();
+		DataType<Long> longType();
 
-	DataType<Long> longType();
+		DataType<Float> floatType();
 
-	DataType<Float> floatType();
+		DataType<Double> doubleType();
 
-	DataType<Double> doubleType();
+		DataType<Boolean> booleanType();
+	}
 
-	DataType<Boolean> booleanType();
+	public interface BuiltInTypes {
+		DataType<Object> referenceType();
 
-	/* Built-In Types */
+		DataType<QualifiedName> qualifiedNameType();
+	}
 
-	DataType<Object> referenceType();
+	public interface DerivedTypes {
+		@SuppressWarnings("rawtypes")
+		DataType<Range> rangeType();
 
-	DataType<QualifiedName> qualifiedNameType();
+		@SuppressWarnings("rawtypes")
+		DataType<Enum> enumType();
 
-	/* Derived Types */
+		@SuppressWarnings("rawtypes")
+		DataType<Class> classType();
+	}
 
-	@SuppressWarnings("rawtypes")
-	DataType<Range> rangeType();
+	public interface BaseModels {
+		Model<Object> includeModel();
+	}
 
-	@SuppressWarnings("rawtypes")
-	DataType<Class> classType();
+	PrimitiveTypes primitiveTypes();
 
-	/* Models */
+	BuiltInTypes builtInTypes();
 
-	Model<Object> includeModel();
+	DerivedTypes derivedTypes();
+
+	BaseModels models();
 }

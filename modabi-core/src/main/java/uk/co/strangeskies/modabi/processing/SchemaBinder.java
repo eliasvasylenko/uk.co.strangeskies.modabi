@@ -1,10 +1,10 @@
 package uk.co.strangeskies.modabi.processing;
 
 import uk.co.strangeskies.modabi.BaseSchema;
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
-import uk.co.strangeskies.modabi.model.Binding;
 import uk.co.strangeskies.modabi.model.Model;
 
 public interface SchemaBinder {
