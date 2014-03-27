@@ -2,10 +2,12 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
 
+import uk.co.strangeskies.gears.mathematics.Range;
+
 public interface BindingChildNode<T> extends BindingNode<T>, InputNode {
 	Method getOutMethod();
 
-	public String getOutMethodName();
+	String getOutMethodName();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the
@@ -13,5 +15,7 @@ public interface BindingChildNode<T> extends BindingNode<T>, InputNode {
 	 *
 	 * @return
 	 */
-	public Boolean isOutMethodIterable();
+	Boolean isOutMethodIterable();
+
+	Range<Integer> occurances();
 }

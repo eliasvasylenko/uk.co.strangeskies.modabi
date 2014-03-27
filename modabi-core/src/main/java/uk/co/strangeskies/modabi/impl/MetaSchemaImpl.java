@@ -68,8 +68,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataClass(SchemaNode.class)
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).type(base.stringType())
-								.id("id").optional(true)).create();
+						n -> n.data().format(Format.PROPERTY)
+								.type(base.primitiveTypes().stringType()).id("id")
+								.optional(true)).create();
 		modelSet.add(nodeModel);
 
 		Model<ChildNode> optionalModel = model
@@ -79,7 +80,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(ChildNode.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("optional")
-								.type(base.booleanType())).create();
+								.type(base.primitiveTypes().booleanType())).create();
 
 		Model<InputNode> inputModel = model
 				.configure()
@@ -89,10 +90,11 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("inMethod")
 								.outMethod("getInMethodName").optional(true)
-								.type(base.stringType()))
+								.type(base.primitiveTypes().stringType()))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("inMethodChained")
-								.optional(true).type(base.booleanType())).create();
+								.optional(true).type(base.primitiveTypes().booleanType()))
+				.create();
 		modelSet.add(inputModel);
 
 		@SuppressWarnings("rawtypes")
@@ -103,14 +105,15 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(BindingChildNode.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("dataClass")
-								.type(base.classType()).optional(true))
+								.type(base.derivedTypes().classType()).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("outMethod")
 								.outMethod("getOutMethodName").optional(true)
-								.type(base.stringType()))
+								.type(base.primitiveTypes().stringType()))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("outMethodIterable")
-								.optional(true).type(base.booleanType())).create();
+								.optional(true).type(base.primitiveTypes().booleanType()))
+				.create();
 		modelSet.add(dataModel);
 
 		Model<SchemaNode> branchModel = model
@@ -133,7 +136,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(branchModel)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("mandatory")
-								.type(base.booleanType()))
+								.type(base.primitiveTypes().booleanType()))
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(choiceModel);
 
@@ -152,7 +155,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(ChildNode.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("occurances")
-								.type(base.rangeType())).create();
+								.type(base.derivedTypes().rangeType())).create();
 		modelSet.add(repeatableModel);
 
 		@SuppressWarnings("rawtypes")
@@ -163,20 +166,20 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(AbstractModel.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("abstract")
-								.type(base.booleanType()).optional(true))
+								.type(base.primitiveTypes().booleanType()).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("baseModel")
-								.type(base.referenceType()).optional(true))
+								.type(base.builtInTypes().referenceType()).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("dataClass")
-								.type(base.classType()).optional(true))
+								.type(base.derivedTypes().classType()).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("implementationStrategy")
-								.type(base.referenceType()).optional(true))
+								.type(base.builtInTypes().referenceType()).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("builderClass")
-								.type(base.classType())).addChild(n -> n.element().id("child"))
-				.create();
+								.type(base.derivedTypes().classType()))
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(abstractModelModel);
 
 		@SuppressWarnings("rawtypes")
@@ -201,8 +204,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().format(Format.PROPERTY).id("id"))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("dataClass")
-								.type(base.classType())).addChild(n -> n.element().id("child"))
-				.create();
+								.type(base.derivedTypes().classType()))
+				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(elementModel);
 
 		@SuppressWarnings("rawtypes")
@@ -216,7 +219,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).id("type").type(typeType))
 				.addChild(
 						n -> n.data().format(Format.SIMPLE_ELEMENT).id("value")
-								.type(base.referenceType())).create();
+								.type(base.builtInTypes().referenceType())).create();
 
 		@SuppressWarnings("rawtypes")
 		Model<DataNode> contentModel = model.configure().id("content")
@@ -240,10 +243,10 @@ public class MetaSchemaImpl implements MetaSchema {
 				.id("type")
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("dataClass")
-								.type(base.classType()))
+								.type(base.derivedTypes().classType()))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("builderClass")
-								.type(base.classType()))
+								.type(base.derivedTypes().classType()))
 				.addChild(
 						n -> n
 								.element()
@@ -279,8 +282,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.dataClass(Set.class)
 								.addChild(
 										o -> o.element().id("dependency")
-												.baseModel(base.includeModel()).outMethodIterable(true)
-												.outMethod("this").occurances(Range.create(0, null))))
+												.baseModel(base.models().includeModel())
+												.outMethodIterable(true).outMethod("this")
+												.occurances(Range.create(0, null))))
 				.addChild(
 						n -> n
 								.element()

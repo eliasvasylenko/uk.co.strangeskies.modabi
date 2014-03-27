@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
@@ -12,9 +13,9 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 public class SequenceNodeConfiguratorImpl extends
-		BranchingNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
-		implements SequenceNodeConfigurator {
-	protected static class SequenceNodeImpl extends BranchingNodeImpl implements
+		ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode> implements
+		SequenceNodeConfigurator {
+	protected static class SequenceNodeImpl extends SchemaNodeImpl implements
 			SequenceNode {
 		private final String inMethodName;
 		private final Method inMethod;
@@ -25,7 +26,8 @@ public class SequenceNodeConfiguratorImpl extends
 
 			inMethodName = configurator.inMethod;
 			try {
-				Class<?> inputClass = configurator.getPreInputClass();
+				Class<?> inputClass = configurator.getParent()
+						.getCurrentChildInputTargetClass();
 				inMethod = inputClass == null ? null : inputClass
 						.getMethod(inMethodName);
 			} catch (NoSuchMethodException | SecurityException e) {
@@ -80,7 +82,7 @@ public class SequenceNodeConfiguratorImpl extends
 	private String inMethod;
 	private boolean inMethodChained;
 
-	public SequenceNodeConfiguratorImpl(BranchingNodeConfiguratorImpl<?, ?> parent) {
+	public SequenceNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<?, ?> parent) {
 		super(parent);
 	}
 
@@ -109,9 +111,9 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected Class<?> getCurrentChildPreInputClass() {
+	protected Class<?> getCurrentChildInputTargetClass() {
 		if (getChildren().isEmpty())
-			return getPreInputClass();
+			return getParent().getCurrentChildInputTargetClass();
 		else
 			return getChildren().get(getChildren().size() - 1).getPostInputClass();
 	}
@@ -120,5 +122,10 @@ public class SequenceNodeConfiguratorImpl extends
 	protected SequenceNode getEffective(SequenceNode node) {
 		return new SequenceNodeImpl(node, getOverriddenNodes(),
 				getEffectiveChildren());
+	}
+
+	@Override
+	public ChildBuilder addChild() {
+		return super.addChild();
 	}
 }

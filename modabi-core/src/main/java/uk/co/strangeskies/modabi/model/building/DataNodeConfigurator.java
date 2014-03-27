@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.model.building;
 
-import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
@@ -15,8 +14,6 @@ public interface DataNodeConfigurator<T> extends
 	public DataNodeConfigurator<T> value(T data);
 
 	public DataNodeConfigurator<T> optional(boolean optional);
-
-	public DataNodeConfigurator<T> occurances(Range<Integer> occuranceRange);
 
 	public DataNodeConfigurator<T> format(Format format);
 }

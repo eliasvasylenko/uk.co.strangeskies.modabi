@@ -14,5 +14,6 @@ public interface ElementNodeConfigurator<T> extends
 	@Override
 	public <V extends T> ElementNodeConfigurator<V> dataClass(Class<V> dataClass);
 
+	@Override
 	public ElementNodeConfigurator<T> occurances(Range<Integer> occuranceRange);
 }

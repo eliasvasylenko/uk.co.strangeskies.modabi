@@ -3,7 +3,6 @@ package uk.co.strangeskies.modabi.model.nodes;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
@@ -13,47 +12,45 @@ public interface DataNode<T> extends BindingChildNode<T> {
 		PROPERTY, CONTENT, SIMPLE_ELEMENT
 	}
 
-	public Format format();
+	Format format();
 
-	public DataType<T> type();
+	DataType<T> type();
 
-	public default boolean isValueSet() {
+	default boolean isValueSet() {
 		return value() != null;
 	}
 
-	public T value();
+	T value();
 
-	public Range<Integer> occurances();
-
-	public Boolean isOptional();
+	boolean optional();
 
 	@Override
-	public default BindingStrategy getBindingStrategy() {
+	default BindingStrategy getBindingStrategy() {
 		return type().getBindingStrategy();
 	}
 
 	@Override
-	public default Class<?> getBindingClass() {
+	default Class<?> getBindingClass() {
 		return type().getBindingClass();
 	}
 
 	@Override
-	public default UnbindingStrategy getUnbindingStrategy() {
+	default UnbindingStrategy getUnbindingStrategy() {
 		return type().getUnbindingStrategy();
 	}
 
 	@Override
-	public default Class<?> getUnbindingClass() {
+	default Class<?> getUnbindingClass() {
 		return type().getUnbindingClass();
 	}
 
 	@Override
-	public default Method getUnbindingMethod() {
+	default Method getUnbindingMethod() {
 		return type().getUnbindingMethod();
 	}
 
 	@Override
-	public default List<? extends ChildNode> getChildren() {
+	default List<? extends ChildNode> getChildren() {
 		return type().getChildren();
 	}
 }

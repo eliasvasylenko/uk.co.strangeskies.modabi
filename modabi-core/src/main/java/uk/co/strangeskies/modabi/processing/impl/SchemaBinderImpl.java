@@ -72,7 +72,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		protected void save() {
-			unbind(model.effectiveModel(), data);
+			accept(model);
+		}
+
+		@Override
+		public <U> void accept(Model<U> node) {
+			unbind(node.effectiveModel(), data);
 		}
 
 		protected void processChildren(SchemaNode node) {
@@ -211,17 +216,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(ContentNode<U> node) {
-			invokeInMethod(node, (Object) input.getData(node.getType()));
-		}
-
-		@Override
-		public <U> void accept(PropertyNode<U> node) {
-			invokeInMethod(node,
-					(Object) input.getProperty(node.getId(), node.getType()));
-		}
-
-		@Override
 		public void accept(ChoiceNode node) {
 		}
 
@@ -282,8 +276,14 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(SimpleElementNode<U> node) {
+		public <U> void accept(Model<U> node) {
 			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public <U> void accept(DataNode<U> node) {
+			invokeInMethod(node, (Object) input.getData(node.type()));
 		}
 	}
 
