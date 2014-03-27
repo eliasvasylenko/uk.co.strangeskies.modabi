@@ -48,6 +48,17 @@ public class ModelConfiguratorImpl<T> extends
 			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
 		}
 
+		private static <T> Collection<AbstractModel<? super T>> overriddenWithBase(
+				AbstractModel<? super T> node,
+				Collection<? extends AbstractModel<? super T>> overriddenNodes) {
+			List<AbstractModel<? super T>> overriddenAndModelNodes = new ArrayList<>();
+
+			overriddenAndModelNodes.addAll(overriddenNodes);
+			overriddenAndModelNodes.addAll(node.getBaseModel());
+
+			return overriddenAndModelNodes;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (!(obj instanceof AbstractModel))

@@ -1,14 +1,10 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.collections4.set.ListOrderedSet;
-
 import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -64,24 +60,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			unbindingMethod = getValue(node, overriddenNodes,
 					n -> n.getUnbindingMethod());
-		}
-
-		protected static <T> Collection<AbstractModel<? super T>> overriddenWithBase(
-				AbstractModel<? super T> node,
-				Collection<? extends AbstractModel<? super T>> overriddenNodes) {
-			List<AbstractModel<? super T>> overriddenAndModelNodes = new ArrayList<>();
-			overriddenAndModelNodes.addAll(overriddenNodes);
-
-			ListOrderedSet<Model<? super T>> baseModels = new ListOrderedSet<>();
-			baseModels.addAll(node.getBaseModel());
-			/*
-			 * for (int i = 0; i < baseModels.size(); i++) { Model<? super T>
-			 * baseModel = baseModels.get(i);
-			 * baseModels.addAll(baseModel.effectiveModel().getBaseModel()); }
-			 */
-			overriddenAndModelNodes.addAll(baseModels);
-
-			return overriddenAndModelNodes;
 		}
 
 		@Override

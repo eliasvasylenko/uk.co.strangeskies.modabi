@@ -6,10 +6,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.impl.ModelConfiguratorImpl.AbstractModelImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 
@@ -31,14 +31,14 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		public ElementNodeImpl(ElementNode<T> node,
-				Collection<ElementNode<? super T>> overriddenNodes,
+				Collection<? extends ElementNode<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren, Class<?> parentClass) {
-			this(node, AbstractModelImpl.overriddenWithBase(node, overriddenNodes),
-					effectiveChildren, parentClass, null);
+			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
+					parentClass, null);
 		}
 
 		private ElementNodeImpl(ElementNode<T> node,
-				Collection<ElementNode<? super T>> overriddenNodes,
+				Collection<? extends AbstractModel<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren, Class<?> parentClass, Void flag) {
 			super(node, overriddenNodes, effectiveChildren, parentClass);
 
@@ -47,6 +47,17 @@ public class ElementNodeConfiguratorImpl<T>
 			baseModel.addAll(node.getBaseModel());
 
 			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
+		}
+
+		protected static <T> Collection<AbstractModel<? super T>> overriddenWithBase(
+				AbstractModel<? super T> node,
+				Collection<? extends AbstractModel<? super T>> overriddenNodes) {
+			List<AbstractModel<? super T>> overriddenAndModelNodes = new ArrayList<>();
+
+			overriddenAndModelNodes.addAll(overriddenNodes);
+			overriddenAndModelNodes.addAll(node.getBaseModel());
+
+			return overriddenAndModelNodes;
 		}
 
 		@Override
@@ -99,7 +110,7 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@Override
 	protected ElementNode<T> getEffective(ElementNode<T> node) {
-		return new ElementNodeImpl<>(node, getOverriddenNodes(),
+		return new ElementNodeImpl<T>(node, getOverriddenNodes(),
 				getEffectiveChildren(), getParent().getCurrentChildOutputTargetClass());
 	}
 
