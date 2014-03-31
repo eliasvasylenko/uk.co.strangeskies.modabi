@@ -80,7 +80,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(AbstractModel<U> node) {
-			unbindAbstractModel(node, data);
+			unbindElement(node, data);
 		}
 
 		protected void processChildren(SchemaNode node) {
@@ -101,7 +101,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		public <U> void accept(DataNode<U> node) {
 			U data = getData(node);
 
-			if (data == null) {
+			if (data != null) {
 				boolean dataNodeRoot = sink == null;
 
 				if (dataNodeRoot)
@@ -119,23 +119,22 @@ public class SchemaBinderImpl implements SchemaBinder {
 						}
 					case CONTENT:
 						sink = output.content();
-						break;
-					default:
-						throw new SchemaException();
 					}
 				else {
 					if (node.format() != Format.PROPERTY)
 						throw new SchemaException();
 				}
 
+				// sink.string("" + data);
 				unbind(node, data);
 
-				sink.string("" + data);
+				if (dataNodeRoot) {
+					sink.end();
+					sink = null;
 
-				sink.end();
-
-				if (dataNodeRoot && node.format() == Format.SIMPLE_ELEMENT)
-					output.endElement();
+					if (node.format() == Format.SIMPLE_ELEMENT)
+						output.endElement();
+				}
 			}
 		}
 
@@ -164,25 +163,26 @@ public class SchemaBinderImpl implements SchemaBinder {
 			processChildren(node);
 		}
 
-		public <U> void unbindAbstractModel(AbstractModel<? extends U> node, U data) {
-			if (node.isAbstract() != null && node.isAbstract())
-				node = registeredModels.getMatchingModel(node, data.getClass())
-						.effectiveModel();
-
+		public <U> void unbindElement(BindingNode<? extends U> node, U data) {
+			output.childElement(node.getId());
 			unbind(node, data);
+			output.endElement();
 		}
 
 		public <U> void unbind(BindingNode<? extends U> node, U data) {
-			output.childElement(node.getId());
 			bindingStack.push(data);
 			processChildren(node);
 			bindingStack.pop();
-			output.endElement();
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <U> void accept(final ElementNode<U> node) {
+		public <U> void accept(ElementNode<U> node2) {
+			BindingChildNode<? extends U> node = node2;
+			if (node2.isAbstract() != null && node2.isAbstract())
+				node = registeredModels.getMatchingModel(node2, data.getClass())
+						.effectiveModel();
+
 			if (processElement) {
 				processElement = false;
 				Object parent = bindingStack.peek();
@@ -199,9 +199,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 							iterable = (Iterable<Object>) node.getOutMethod().invoke(parent);
 						}
 						for (Object child : iterable)
-							unbindAbstractModel(node, (U) child);
+							unbindElement(node, (U) child);
 					} else {
-						unbindAbstractModel(node, (U) node.getOutMethod().invoke(parent));
+						unbindElement(node, (U) node.getOutMethod().invoke(parent));
 					}
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
