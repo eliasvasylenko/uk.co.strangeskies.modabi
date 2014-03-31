@@ -9,34 +9,39 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends ChildNode>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		SchemaNodeConfigurator<S, N> {
-	private final SchemaNodeConfiguratorImpl<?, ?> parent;
+	private final SchemaNodeConfigurationContext<? super N> context;
 
-	public ChildNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<?, ?> parent) {
-		this.parent = parent;
+	public ChildNodeConfiguratorImpl(
+			SchemaNodeConfigurationContext<? super N> parent) {
+		this.context = parent;
 
 		addResultListener(result -> parent.addChild(result, getEffective(result)));
 	}
 
-	protected SchemaNodeConfiguratorImpl<?, ?> getParent() {
-		return parent;
+	protected SchemaNodeConfigurationContext<? super N> getContext() {
+		return context;
 	}
 
 	@Override
 	protected Class<?> getCurrentChildOutputTargetClass() {
-		return getParent().getCurrentChildOutputTargetClass();
+		return getContext().getCurrentChildOutputTargetClass();
 	}
 
 	protected List<N> getOverriddenNodes() {
-		return (getId() == null) ? new ArrayList<>() : getParent().overrideChild(
+		return (getId() == null) ? new ArrayList<>() : getContext().overrideChild(
 				getId(), getNodeClass());
 	}
 
 	@Override
 	protected void finaliseProperties() {
-		List<ChildNode> newInheritedChildren = new ArrayList<>();
-		getOverriddenNodes().forEach(n -> {
-			newInheritedChildren.addAll(n.getChildren());
-		});
-		inheritChildren(0, newInheritedChildren);
+		if (!isFinalisedProperties()) {
+			List<ChildNode> newInheritedChildren = new ArrayList<>();
+			getOverriddenNodes().forEach(n -> {
+				newInheritedChildren.addAll(n.getChildren());
+			});
+			inheritChildren(0, newInheritedChildren);
+		}
+
+		super.finaliseProperties();
 	}
 }

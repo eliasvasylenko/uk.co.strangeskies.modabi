@@ -12,6 +12,8 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 
 public class ModelConfiguratorImpl<T> extends
 		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -29,14 +31,14 @@ public class ModelConfiguratorImpl<T> extends
 			isAbstract = configurator.isAbstract;
 		}
 
-		public AbstractModelImpl(AbstractModel<? super T> node,
+		public AbstractModelImpl(AbstractModel<T> node,
 				Collection<? extends AbstractModel<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
 					null);
 		}
 
-		private AbstractModelImpl(AbstractModel<? super T> node,
+		private AbstractModelImpl(AbstractModel<T> node,
 				Collection<AbstractModel<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren, Void flag) {
 			super(node, overriddenNodes, effectiveChildren);
@@ -60,13 +62,6 @@ public class ModelConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof AbstractModel))
-				return false;
-			return super.equals(obj);
-		}
-
-		@Override
 		public final Boolean isAbstract() {
 			return isAbstract;
 		}
@@ -79,10 +74,20 @@ public class ModelConfiguratorImpl<T> extends
 
 	protected static class EffectiveModelImpl<T> extends AbstractModelImpl<T>
 			implements EffectiveModel<T> {
-		public EffectiveModelImpl(ModelImpl<? super T> node,
+		public EffectiveModelImpl(ModelImpl<T> node,
 				Collection<? extends EffectiveModel<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
+		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
+			return context.accept(this);
 		}
 	}
 
@@ -101,6 +106,16 @@ public class ModelConfiguratorImpl<T> extends
 		@Override
 		public EffectiveModel<T> effectiveModel() {
 			return effectiveModel;
+		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
+			return context.accept(this);
 		}
 	}
 
@@ -123,8 +138,7 @@ public class ModelConfiguratorImpl<T> extends
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			inheritChildren(m.effectiveModel().getChildren().stream()
-					.collect(Collectors.toList()));
+			inheritChildren(m.effectiveModel().getChildren());
 		});
 
 		return thisV;

@@ -22,7 +22,7 @@ public interface DataNode<T> extends BindingChildNode<T> {
 
 	T value();
 
-	boolean optional();
+	Boolean optional();
 
 	@Override
 	default BindingStrategy getBindingStrategy() {

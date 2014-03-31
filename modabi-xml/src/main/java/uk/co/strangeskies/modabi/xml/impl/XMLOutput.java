@@ -31,16 +31,17 @@ public class XMLOutput implements StructuredDataOutput {
 
 	@Override
 	public TerminatingDataSink property(String name) {
-		System.out.print(" " + name + " = \"");
-		return getDataSink();
+		System.out.print(" " + name + "=");
+		return getDataSink(true);
 	}
 
 	@Override
 	public TerminatingDataSink content() {
 		endProperties();
+		hasChildren = true;
 
 		System.out.print(indent);
-		return getDataSink();
+		return getDataSink(false);
 	}
 
 	private void endProperties() {
@@ -65,7 +66,10 @@ public class XMLOutput implements StructuredDataOutput {
 		}
 	}
 
-	private TerminatingDataSink getDataSink() {
+	private TerminatingDataSink getDataSink(boolean property) {
+		if (property)
+			System.out.print("\"");
+
 		return new TerminatingDataSink() {
 			boolean compound = false;
 
@@ -133,7 +137,10 @@ public class XMLOutput implements StructuredDataOutput {
 
 			@Override
 			public void end() {
-				System.out.print('"');
+				if (property)
+					System.out.print('"');
+				else
+					System.out.println();
 			}
 		};
 	}

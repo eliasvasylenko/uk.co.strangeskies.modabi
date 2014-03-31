@@ -4,13 +4,10 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T>, T>
@@ -23,6 +20,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		private final Class<?> unbindingClass;
 		private final BindingStrategy bindingStrategy;
 		private final UnbindingStrategy unbindingStrategy;
+		private final String unbindingMethodName;
 		private final Method unbindingMethod;
 
 		public BindingNodeImpl(BindingNodeConfiguratorImpl<?, ?, T> configurator) {
@@ -35,11 +33,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			unbindingStrategy = configurator.unbindingStrategy;
 			unbindingClass = configurator.unbindingClass;
+			unbindingMethodName = configurator.unbindingMethod;
 			unbindingMethod = null; // TODO
 		}
 
 		@SuppressWarnings("unchecked")
-		public BindingNodeImpl(BindingNode<? super T> node,
+		public BindingNodeImpl(BindingNode<T> node,
 				Collection<? extends BindingNode<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
@@ -58,15 +57,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingStrategy = getValue(node, overriddenNodes,
 					n -> n.getUnbindingStrategy());
 
+			unbindingMethodName = getValue(node, overriddenNodes,
+					n -> n.getUnbindingMethodName(), (o, v) -> o.equals(v));
+
 			unbindingMethod = getValue(node, overriddenNodes,
 					n -> n.getUnbindingMethod());
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof AbstractModel))
-				return false;
-			return super.equals(obj);
 		}
 
 		@Override
@@ -95,18 +90,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public <U> U process(SchemaResultProcessingContext<U> context) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
 		public Method getUnbindingMethod() {
 			return unbindingMethod;
+		}
+
+		@Override
+		public String getUnbindingMethodName() {
+			return unbindingMethodName;
 		}
 	}
 

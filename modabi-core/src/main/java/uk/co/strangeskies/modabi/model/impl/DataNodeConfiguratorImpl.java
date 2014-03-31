@@ -60,14 +60,12 @@ public class DataNodeConfiguratorImpl<T> extends
 
 		@Override
 		public final void process(SchemaProcessingContext context) {
-			// TODO Auto-generated method stub
-
+			context.accept(this);
 		}
 
 		@Override
 		public final <R> R process(SchemaResultProcessingContext<R> context) {
-			// TODO Auto-generated method stub
-			return null;
+			return context.accept(this);
 		}
 
 		@Override
@@ -76,20 +74,20 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public final boolean optional() {
+		public final Boolean optional() {
 			return optional;
 		}
 	}
 
 	public Format format;
 
-	private Class<T> dataClass;
 	private DataType<T> type;
 	private T value;
 
 	private Boolean optional;
 
-	public DataNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<?, ?> parent) {
+	public DataNodeConfiguratorImpl(
+			SchemaNodeConfigurationContext<? super DataNode<T>> parent) {
 		super(parent);
 	}
 
@@ -97,19 +95,15 @@ public class DataNodeConfiguratorImpl<T> extends
 	@Override
 	public final <V extends T> DataNodeConfigurator<V> dataClass(
 			Class<V> dataClass) {
-		requireConfigurable(this.dataClass);
-		this.dataClass = (Class<T>) dataClass;
-
-		return (DataNodeConfigurator<V>) this;
+		return (DataNodeConfigurator<V>) super.dataClass(dataClass);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <U extends T> DataNodeConfigurator<U> type(DataType<U> type) {
 		requireConfigurable(this.type);
-		requireConfigurable(this.dataClass);
+		dataClass(type.getDataClass());
 		this.type = (DataType<T>) type;
-		this.dataClass = (Class<T>) type.getDataClass();
 
 		return (DataNodeConfigurator<U>) getThis();
 	}
@@ -141,7 +135,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	@Override
 	protected final DataNode<T> getEffective(DataNode<T> node) {
 		return new DataNodeImpl<>(node, getOverriddenNodes(),
-				getEffectiveChildren(), getParent().getCurrentChildOutputTargetClass());
+				getEffectiveChildren(), getContext().getCurrentChildOutputTargetClass());
 	}
 
 	@SuppressWarnings("unchecked")

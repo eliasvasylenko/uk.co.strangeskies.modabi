@@ -1,17 +1,21 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.model.AbstractModel;
+import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -38,7 +42,7 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		private ElementNodeImpl(ElementNode<T> node,
-				Collection<? extends AbstractModel<? super T>> overriddenNodes,
+				Collection<ElementNode<? super T>> overriddenNodes,
 				List<ChildNode> effectiveChildren, Class<?> parentClass, Void flag) {
 			super(node, overriddenNodes, effectiveChildren, parentClass);
 
@@ -49,13 +53,126 @@ public class ElementNodeConfiguratorImpl<T>
 			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
 		}
 
-		protected static <T> Collection<AbstractModel<? super T>> overriddenWithBase(
-				AbstractModel<? super T> node,
-				Collection<? extends AbstractModel<? super T>> overriddenNodes) {
-			List<AbstractModel<? super T>> overriddenAndModelNodes = new ArrayList<>();
+		protected static <T> Collection<ElementNode<? super T>> overriddenWithBase(
+				ElementNode<? super T> node,
+				Collection<? extends ElementNode<? super T>> overriddenNodes) {
+			List<ElementNode<? super T>> overriddenAndModelNodes = new ArrayList<>();
 
 			overriddenAndModelNodes.addAll(overriddenNodes);
-			overriddenAndModelNodes.addAll(node.getBaseModel());
+			for (Model<? super T> base : node.getBaseModel())
+				overriddenAndModelNodes.add(new ElementNode<Object>() {
+					@Override
+					public Boolean isAbstract() {
+						return base.isAbstract();
+					}
+
+					@SuppressWarnings("unchecked")
+					@Override
+					public List<Model<? super Object>> getBaseModel() {
+						return (List<Model<? super Object>>) (Object) base.getBaseModel();
+					}
+
+					@SuppressWarnings("unchecked")
+					@Override
+					public Class<Object> getDataClass() {
+						return (Class<Object>) base.getDataClass();
+					}
+
+					@Override
+					public BindingStrategy getBindingStrategy() {
+						return base.getBindingStrategy();
+					}
+
+					@Override
+					public Class<?> getBindingClass() {
+						return base.getBindingClass();
+					}
+
+					@Override
+					public UnbindingStrategy getUnbindingStrategy() {
+						return base.getUnbindingStrategy();
+					}
+
+					@Override
+					public Class<?> getUnbindingClass() {
+						return base.getUnbindingClass();
+					}
+
+					@Override
+					public String getUnbindingMethodName() {
+						return base.getUnbindingMethodName();
+					}
+
+					@Override
+					public Method getUnbindingMethod() {
+						return base.getUnbindingMethod();
+					}
+
+					@Override
+					public String getId() {
+						return base.getId();
+					}
+
+					@Override
+					public void process(SchemaProcessingContext context) {
+						base.process(context);
+					}
+
+					@Override
+					public <U> U process(SchemaResultProcessingContext<U> context) {
+						return base.process(context);
+					}
+
+					@Override
+					public List<? extends ChildNode> getChildren() {
+						return base.getChildren();
+					}
+
+					@Override
+					public Method getOutMethod() {
+						return null;
+					}
+
+					@Override
+					public String getOutMethodName() {
+						return null;
+					}
+
+					@Override
+					public Boolean isOutMethodIterable() {
+						return null;
+					}
+
+					@Override
+					public Range<Integer> occurances() {
+						return null;
+					}
+
+					@Override
+					public String getInMethodName() {
+						return null;
+					}
+
+					@Override
+					public Method getInMethod() {
+						return null;
+					}
+
+					@Override
+					public Boolean isInMethodChained() {
+						return null;
+					}
+
+					@Override
+					public Class<?> getPreInputClass() {
+						return null;
+					}
+
+					@Override
+					public Class<?> getPostInputClass() {
+						return null;
+					}
+				});
 
 			return overriddenAndModelNodes;
 		}
@@ -69,12 +186,23 @@ public class ElementNodeConfiguratorImpl<T>
 		public List<Model<? super T>> getBaseModel() {
 			return baseModel;
 		}
+
+		@Override
+		public void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		public <U> U process(SchemaResultProcessingContext<U> context) {
+			return context.accept(this);
+		}
 	}
 
 	private List<Model<? super T>> baseModel;
 	private Boolean isAbstract;
 
-	public ElementNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<?, ?> parent) {
+	public ElementNodeConfiguratorImpl(
+			SchemaNodeConfigurationContext<? super ElementNode<T>> parent) {
 		super(parent);
 	}
 
@@ -95,8 +223,7 @@ public class ElementNodeConfiguratorImpl<T>
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			inheritChildren(m.effectiveModel().getChildren().stream()
-					.collect(Collectors.toList()));
+			inheritChildren(m.effectiveModel().getChildren());
 		});
 
 		return thisV;
@@ -111,7 +238,7 @@ public class ElementNodeConfiguratorImpl<T>
 	@Override
 	protected ElementNode<T> getEffective(ElementNode<T> node) {
 		return new ElementNodeImpl<T>(node, getOverriddenNodes(),
-				getEffectiveChildren(), getParent().getCurrentChildOutputTargetClass());
+				getEffectiveChildren(), getContext().getCurrentChildOutputTargetClass());
 	}
 
 	@SuppressWarnings("unchecked")

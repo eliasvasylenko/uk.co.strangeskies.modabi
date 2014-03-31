@@ -26,7 +26,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 			inMethodName = configurator.inMethod;
 			try {
-				Class<?> inputClass = configurator.getParent()
+				Class<?> inputClass = configurator.getContext()
 						.getCurrentChildInputTargetClass();
 				inMethod = inputClass == null ? null : inputClass
 						.getMethod(inMethodName);
@@ -82,7 +82,8 @@ public class SequenceNodeConfiguratorImpl extends
 	private String inMethod;
 	private boolean inMethodChained;
 
-	public SequenceNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<?, ?> parent) {
+	public SequenceNodeConfiguratorImpl(
+			SchemaNodeConfigurationContext<? super SequenceNode> parent) {
 		super(parent);
 	}
 
@@ -113,7 +114,7 @@ public class SequenceNodeConfiguratorImpl extends
 	@Override
 	protected Class<?> getCurrentChildInputTargetClass() {
 		if (getChildren().isEmpty())
-			return getParent().getCurrentChildInputTargetClass();
+			return getContext().getCurrentChildInputTargetClass();
 		else
 			return getChildren().get(getChildren().size() - 1).getPostInputClass();
 	}

@@ -49,7 +49,8 @@ public class ChoiceNodeConfiguratorImpl extends
 
 	private boolean mandatory;
 
-	public ChoiceNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<?, ?> parent) {
+	public ChoiceNodeConfiguratorImpl(
+			SchemaNodeConfigurationContext<? super ChildNode> parent) {
 		super(parent);
 	}
 
@@ -72,7 +73,7 @@ public class ChoiceNodeConfiguratorImpl extends
 
 	@Override
 	protected Class<?> getCurrentChildInputTargetClass() {
-		return getParent().getCurrentChildInputTargetClass();
+		return getContext().getCurrentChildInputTargetClass();
 	}
 
 	@Override
@@ -83,7 +84,7 @@ public class ChoiceNodeConfiguratorImpl extends
 
 	@Override
 	protected Class<?> getCurrentChildOutputTargetClass() {
-		return getParent().getCurrentChildOutputTargetClass();
+		return getContext().getCurrentChildOutputTargetClass();
 	}
 
 	@Override

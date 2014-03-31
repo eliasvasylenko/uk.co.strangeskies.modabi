@@ -2,10 +2,9 @@ package uk.co.strangeskies.modabi.processing;
 
 public enum UnbindingStrategy {
 	/**
-	 * The schema binder should attempt to retrieve an implementation of the
-	 * requested class from the result of the first of any child nodes. This child
-	 * must be an input node binding to a single class. No in method name should
-	 * be specified on this child node.
+	 * The schema binder should attempt to retrieve an reference to an instance of
+	 * the data class directly from the result of the output method. No unbinding
+	 * class should be specified.
 	 */
 	SIMPLE,
 

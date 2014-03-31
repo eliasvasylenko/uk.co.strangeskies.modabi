@@ -129,6 +129,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		finalisedProperties = true;
 	}
 
+	public boolean isFinalisedProperties() {
+		return finalisedProperties;
+	}
+
 	@SuppressWarnings("unchecked")
 	protected final S getThis() {
 		return (S) this;
@@ -152,14 +156,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Class<?> getCurrentChildOutputTargetClass();
 
-	protected void inheritChildren(List<ChildNode> nodes) {
+	protected void inheritChildren(List<? extends ChildNode> nodes) {
 		inheritChildren(inheritedChildren.size(), nodes);
 	}
 
-	protected void inheritChildren(int index, List<ChildNode> nodes) {
+	protected void inheritChildren(int index, List<? extends ChildNode> nodes) {
 		requireConfigurable();
 		inheritNamedChildren(nodes);
-		inheritedChildren.addAll(nodes);
+		inheritedChildren.addAll(index, nodes);
 	}
 
 	private void inheritNamedChildren(List<? extends ChildNode> nodes) {
@@ -217,26 +221,50 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		finaliseProperties();
 		block();
 
-		return new ChildBuilder() {
+		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
-			public SequenceNodeConfigurator sequence() {
-				return new SequenceNodeConfiguratorImpl(SchemaNodeConfiguratorImpl.this);
+			public <T extends ChildNode> List<T> overrideChild(String id,
+					Class<T> nodeClass) {
+				return SchemaNodeConfiguratorImpl.this.overrideChild(id, nodeClass);
 			}
 
 			@Override
-			public ElementNodeConfigurator<Object> element() {
-				return new ElementNodeConfiguratorImpl<>(
-						SchemaNodeConfiguratorImpl.this);
+			public Class<?> getCurrentChildOutputTargetClass() {
+				return SchemaNodeConfiguratorImpl.this
+						.getCurrentChildOutputTargetClass();
+			}
+
+			@Override
+			public Class<?> getCurrentChildInputTargetClass() {
+				return SchemaNodeConfiguratorImpl.this
+						.getCurrentChildInputTargetClass();
+			}
+
+			@Override
+			public void addChild(ChildNode result, ChildNode effective) {
+				SchemaNodeConfiguratorImpl.this.addChild(result, effective);
+			}
+		};
+
+		return new ChildBuilder() {
+			@Override
+			public SequenceNodeConfigurator sequence() {
+				return new SequenceNodeConfiguratorImpl(context);
 			}
 
 			@Override
 			public ChoiceNodeConfigurator choice() {
-				return new ChoiceNodeConfiguratorImpl(SchemaNodeConfiguratorImpl.this);
+				return new ChoiceNodeConfiguratorImpl(context);
+			}
+
+			@Override
+			public ElementNodeConfigurator<Object> element() {
+				return new ElementNodeConfiguratorImpl<>(context);
 			}
 
 			@Override
 			public DataNodeConfigurator<Object> data() {
-				return new DataNodeConfiguratorImpl<>(SchemaNodeConfiguratorImpl.this);
+				return new DataNodeConfiguratorImpl<>(context);
 			}
 		};
 	}

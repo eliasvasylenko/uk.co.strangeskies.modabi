@@ -17,4 +17,6 @@ public interface BindingNode<T> extends SchemaNode {
 	Class<?> getUnbindingClass();
 
 	Method getUnbindingMethod();
+
+	String getUnbindingMethodName();
 }

@@ -23,7 +23,6 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataInputBuffer;
-import uk.co.strangeskies.modabi.data.DataTarget;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
@@ -38,6 +37,7 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
@@ -59,7 +59,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private final Deque<Object> bindingStack;
 
-		private final Deque<List<ElementNode<?>>> elementListStack;
+		private final Deque<List<ChildNode>> elementListStack;
+		private boolean processElement;
+
+		private TerminatingDataSink sink;
 
 		public SchemaSavingContext(Model<T> model, StructuredDataOutput output,
 				T data) {
@@ -72,61 +75,68 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		protected void save() {
-			accept(model);
+			accept(model.effectiveModel());
 		}
 
 		@Override
-		public <U> void accept(Model<U> node) {
-			unbind(node.effectiveModel(), data);
+		public <U> void accept(AbstractModel<U> node) {
+			unbindAbstractModel(node, data);
 		}
 
 		protected void processChildren(SchemaNode node) {
-			List<ElementNode<?>> elementList = new ArrayList<>();
+			List<ChildNode> elementList = new ArrayList<>();
 			elementListStack.add(elementList);
 
 			for (ChildNode child : node.getChildren()) {
 				child.process(this);
 			}
 
-			for (ElementNode<?> element : elementListStack.pop()) {
-				process(element);
+			for (ChildNode element : elementListStack.pop()) {
+				processElement = true;
+				element.process(this);
 			}
 		}
 
 		@Override
 		public <U> void accept(DataNode<U> node) {
-			TerminatingDataSink sink;
-
-			switch (node.format()) {
-			case PROPERTY:
-				sink = output.property(node.getId());
-				break;
-			case SIMPLE_ELEMENT:
-				output.childElement(node.getId());
-			case CONTENT:
-				sink = output.content();
-				break;
-			default:
-				throw new SchemaException();
-			}
-
-			if (data != null) {
-				// if (outputStrategy == OutputMethodStrategy.COMPOSE)
-				// node.getType().getOutputMethod().invoke();
-				// else
-				accept(node, sink);
-			}
-
-			sink.end();
-
-			if (node.format() == Format.SIMPLE_ELEMENT)
-				output.endElement();
-		}
-
-		public <U> void accept(DataNode<U> node, DataTarget sink) {
 			U data = getData(node);
 
-			sink.string("" + data);
+			if (data == null) {
+				boolean dataNodeRoot = sink == null;
+
+				if (dataNodeRoot)
+					switch (node.format()) {
+					case PROPERTY:
+						sink = output.property(node.getId());
+						break;
+					case SIMPLE_ELEMENT:
+						if (processElement) {
+							processElement = false;
+							output.childElement(node.getId());
+						} else {
+							elementListStack.peek().add(node);
+							return;
+						}
+					case CONTENT:
+						sink = output.content();
+						break;
+					default:
+						throw new SchemaException();
+					}
+				else {
+					if (node.format() != Format.PROPERTY)
+						throw new SchemaException();
+				}
+
+				unbind(node, data);
+
+				sink.string("" + data);
+
+				sink.end();
+
+				if (dataNodeRoot && node.format() == Format.SIMPLE_ELEMENT)
+					output.endElement();
+			}
 		}
 
 		@SuppressWarnings("unchecked")
@@ -154,11 +164,15 @@ public class SchemaBinderImpl implements SchemaBinder {
 			processChildren(node);
 		}
 
-		public <U> void unbind(AbstractModel<? extends U> node, U data) {
+		public <U> void unbindAbstractModel(AbstractModel<? extends U> node, U data) {
 			if (node.isAbstract() != null && node.isAbstract())
 				node = registeredModels.getMatchingModel(node, data.getClass())
 						.effectiveModel();
 
+			unbind(node, data);
+		}
+
+		public <U> void unbind(BindingNode<? extends U> node, U data) {
 			output.childElement(node.getId());
 			bindingStack.push(data);
 			processChildren(node);
@@ -166,35 +180,35 @@ public class SchemaBinderImpl implements SchemaBinder {
 			output.endElement();
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public <U> void accept(final ElementNode<U> node) {
-			elementListStack.peek().add(node);
-		}
+			if (processElement) {
+				processElement = false;
+				Object parent = bindingStack.peek();
 
-		@SuppressWarnings("unchecked")
-		public <U> void process(final ElementNode<U> node) {
-			Object parent = bindingStack.peek();
+				if (node.getDataClass() == null)
+					throw new SchemaException(node.getId());
 
-			if (node.getDataClass() == null)
-				throw new SchemaException();
-
-			try {
-				if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
-					Iterable<Object> iterable = null;
-					if (node.getOutMethodName() == "this")
-						iterable = (Iterable<Object>) parent;
-					else {
-						iterable = (Iterable<Object>) node.getOutMethod().invoke(parent);
+				try {
+					if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
+						Iterable<Object> iterable = null;
+						if (node.getOutMethodName() == "this")
+							iterable = (Iterable<Object>) parent;
+						else {
+							iterable = (Iterable<Object>) node.getOutMethod().invoke(parent);
+						}
+						for (Object child : iterable)
+							unbindAbstractModel(node, (U) child);
+					} else {
+						unbindAbstractModel(node, (U) node.getOutMethod().invoke(parent));
 					}
-					for (Object child : iterable)
-						unbind(node, (U) child);
-				} else {
-					unbind(node, (U) node.getOutMethod().invoke(parent));
+				} catch (IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException e) {
+					e.printStackTrace();
 				}
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				e.printStackTrace();
-			}
+			} else
+				elementListStack.peek().add(node);
 		}
 	}
 
@@ -276,7 +290,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(Model<U> node) {
+		public <U> void accept(AbstractModel<U> node) {
 			// TODO Auto-generated method stub
 
 		}
@@ -374,7 +388,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			try {
 				Method method = receiver.getMethod(methodName, parameter);
 				if (method != null && result == null
-						|| ClassUtils.isAssignable(method.getReturnType(), result))
+						|| ClassUtils.isAssignable(method.getReturnType(), result, true))
 					return method;
 			} catch (NoSuchMethodException | SecurityException e) {
 			}
@@ -417,36 +431,30 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	public static List<String> generateOutMethodNames(BindingChildNode<?> node,
 			Class<?> resultClass) {
-		if (node.getOutMethodName() != null)
-			return Arrays.asList(node.getOutMethodName());
-		else
-			return generateOutMethodNames(node.getId(),
-					node.isOutMethodIterable() != null && node.isOutMethodIterable(),
-					resultClass);
-	}
 
-	public static List<String> generateOutMethodNames(String propertyName,
-			boolean isIterable, Class<?> resultClass) {
 		List<String> names = new ArrayList<>();
 
-		names.add(propertyName);
-		Boolean iterable = isIterable;
-		if (iterable != null && iterable) {
-			names.add(propertyName + "s");
-			names.add(propertyName + "List");
-			names.add(propertyName + "Set");
-			names.add(propertyName + "Collection");
-			names.add(propertyName + "Array");
-		}
-		if (resultClass != null
-				&& (resultClass.equals(Boolean.class) || resultClass
-						.equals(boolean.class)))
-			names.add("is" + capitalize(propertyName));
-		for (String name : new ArrayList<>(names)) {
-			names.add("get" + capitalize(name));
-			names.add("to" + capitalize(name));
-			names.add("compose" + capitalize(name));
-			names.add("create" + capitalize(name));
+		if (node.getOutMethodName() != null)
+			names.add(node.getOutMethodName());
+		else {
+			names.add(node.getId());
+			if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
+				names.add(node.getId() + "s");
+				names.add(node.getId() + "List");
+				names.add(node.getId() + "Set");
+				names.add(node.getId() + "Collection");
+				names.add(node.getId() + "Array");
+			}
+			if (resultClass != null
+					&& (resultClass.equals(Boolean.class) || resultClass
+							.equals(boolean.class)))
+				names.add("is" + capitalize(node.getId()));
+			for (String name : new ArrayList<>(names)) {
+				names.add("get" + capitalize(name));
+				names.add("to" + capitalize(name));
+				names.add("compose" + capitalize(name));
+				names.add("create" + capitalize(name));
+			}
 		}
 
 		return names;

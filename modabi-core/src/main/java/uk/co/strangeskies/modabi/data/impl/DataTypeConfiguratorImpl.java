@@ -11,6 +11,7 @@ import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.impl.DataNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
@@ -161,11 +162,40 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		return this;
 	}
 
+	public Class<?> getCurrentChildOutputTargetClass() {
+		return unbindingClass != null ? unbindingClass : dataClass;
+	}
+
+	public Class<?> getCurrentChildInputTargetClass() {
+		return dataClass; // TODO
+	}
+
 	@Override
 	public DataNodeConfigurator<Object> addProperty() {
-		return new DataNodeConfiguratorImpl<Object>(
-				(id, nodeClass) -> Collections.emptyList(), (result, effective) -> {
-				}, bindingClass, dataClass);
+		SchemaNodeConfigurationContext<DataNode<Object>> context = new SchemaNodeConfigurationContext<DataNode<Object>>() {
+			@Override
+			public <U extends DataNode<Object>> List<U> overrideChild(String id,
+					Class<U> nodeClass) {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public Class<?> getCurrentChildOutputTargetClass() {
+				return DataTypeConfiguratorImpl.this.getCurrentChildOutputTargetClass();
+			}
+
+			@Override
+			public Class<?> getCurrentChildInputTargetClass() {
+				return DataTypeConfiguratorImpl.this.getCurrentChildInputTargetClass();
+			}
+
+			@Override
+			public void addChild(DataNode<Object> result, DataNode<Object> effective) {
+				properties.add(result);
+			}
+		};
+
+		return new DataNodeConfiguratorImpl<Object>(context);
 	}
 
 	@Override
