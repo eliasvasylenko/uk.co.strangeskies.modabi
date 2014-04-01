@@ -81,10 +81,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(AbstractModel<U> node) {
-			unbindElement(node, data);
+			unbindModelData(node, data);
 		}
 
-		protected void processChildren(SchemaNode node) {
+		private void processChildren(SchemaNode node) {
 			List<ChildNode> elementList = new ArrayList<>();
 			elementListStack.add(elementList);
 
@@ -127,7 +127,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 				}
 
 				// sink.string("" + data);
-				unbind(node, data);
+				unbindData(node, data);
 
 				if (dataNodeRoot) {
 					sink.end();
@@ -140,7 +140,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <U> U getData(final BindingChildNode<U> node) {
+		private <U> U getData(final BindingChildNode<U> node) {
 			if (node.getDataClass() != null) {
 				Object parent = bindingStack.peek();
 
@@ -164,13 +164,22 @@ public class SchemaBinderImpl implements SchemaBinder {
 			processChildren(node);
 		}
 
-		public <U> void unbindElement(BindingNode<? extends U> node, U data) {
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		// TODO this should work without this, file eclipse bug
+		private <U, V extends U> void unbindElementData(ElementNode<V> node, U data) {
+			if (node.isAbstract() != null && node.isAbstract())
+				node = new ElementNodeWrapper(registeredModels.getMatchingModel(node,
+						data.getClass()).effectiveModel(), node);
+			unbindModelData(node, data);
+		}
+
+		private <U> void unbindModelData(AbstractModel<? extends U> node, U data) {
 			output.childElement(node.getId());
-			unbind(node, data);
+			unbindData(node, data);
 			output.endElement();
 		}
 
-		public <U> void unbind(BindingNode<? extends U> node, U data) {
+		private <U> void unbindData(BindingNode<? extends U> node, U data) {
 			bindingStack.push(data);
 			processChildren(node);
 			bindingStack.pop();
@@ -178,12 +187,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <U> void accept(ElementNode<U> node2) {
-			BindingChildNode<? extends U> node = node2;
-			if (node2.isAbstract() != null && node2.isAbstract())
-				node = new ElementNodeWrapper<>(registeredModels.getMatchingModel(
-						node2, data.getClass()).effectiveModel(), node2);
-
+		public <U> void accept(ElementNode<U> node) {
 			if (processElement) {
 				processElement = false;
 				Object parent = bindingStack.peek();
@@ -196,14 +200,13 @@ public class SchemaBinderImpl implements SchemaBinder {
 						Iterable<Object> iterable = null;
 						if (node.getOutMethodName() == "this")
 							iterable = (Iterable<Object>) parent;
-						else {
+						else
 							iterable = (Iterable<Object>) node.getOutMethod().invoke(parent);
-						}
+
 						for (Object child : iterable)
-							unbindElement(node, (U) child);
-					} else {
-						unbindElement(node, (U) node.getOutMethod().invoke(parent));
-					}
+							unbindElementData(node, (U) child);
+					} else
+						unbindElementData(node, (U) node.getOutMethod().invoke(parent));
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
 					e.printStackTrace();
