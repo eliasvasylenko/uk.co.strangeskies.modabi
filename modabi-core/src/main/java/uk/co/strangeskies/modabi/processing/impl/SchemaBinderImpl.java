@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.model.impl.ElementNodeWrapper;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -180,8 +181,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 		public <U> void accept(ElementNode<U> node2) {
 			BindingChildNode<? extends U> node = node2;
 			if (node2.isAbstract() != null && node2.isAbstract())
-				node = registeredModels.getMatchingModel(node2, data.getClass())
-						.effectiveModel();
+				node = new ElementNodeWrapper<>(registeredModels.getMatchingModel(
+						node2, data.getClass()).effectiveModel(), node2);
 
 			if (processElement) {
 				processElement = false;
