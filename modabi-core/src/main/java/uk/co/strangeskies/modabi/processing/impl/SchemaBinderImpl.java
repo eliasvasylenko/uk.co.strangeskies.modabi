@@ -121,12 +121,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 					case CONTENT:
 						sink = output.content();
 					}
-				else {
-					if (node.format() != Format.PROPERTY)
-						throw new SchemaException();
-				}
+				else if (node.format() != Format.PROPERTY)
+					throw new SchemaException();
 
-				// sink.string("" + data);
+				sink.string("" + data);
 				unbindData(node, data);
 
 				if (dataNodeRoot) {
@@ -148,7 +146,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 					return (U) node.getOutMethod().invoke(parent);
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
-					throw new SchemaException(node.getId() + " @ " + parent.getClass(), e);
+					new SchemaException(node.getId() + " @ " + parent.getClass(), e)
+							.printStackTrace();
 				}
 			}
 			return null;
@@ -168,8 +167,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 		// TODO this should work without this, file eclipse bug
 		private <U, V extends U> void unbindElementData(ElementNode<V> node, U data) {
 			if (node.isAbstract() != null && node.isAbstract())
-				node = new ElementNodeWrapper(registeredModels.getMatchingModel(node,
-						data.getClass()).effectiveModel(), node);
+				node = new ElementNodeWrapper(registeredModels
+						.getMatchingModels(node, data.getClass()).get(0).effectiveModel(),
+						node);
 			unbindModelData(node, data);
 		}
 

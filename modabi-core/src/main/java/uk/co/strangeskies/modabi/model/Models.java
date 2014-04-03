@@ -71,12 +71,12 @@ public class Models extends NamedSet<Model<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> Model<? extends T> getMatchingModel(AbstractModel<T> element,
-			Class<?> dataClass) {
+	public <T> List<Model<? extends T>> getMatchingModels(
+			AbstractModel<T> element, Class<?> dataClass) {
 		Iterator<? extends Model<?>> baseModelIterator = element.getBaseModel()
 				.iterator();
 
-		List<Model<?>> subModels = new ArrayList<>(
+		List<? extends Model<?>> subModels = new ArrayList<>(
 				getSubModels(baseModelIterator.next()));
 		while (baseModelIterator.hasNext())
 			subModels.retainAll(getSubModels(baseModelIterator.next()));
@@ -89,7 +89,7 @@ public class Models extends NamedSet<Model<?>> {
 								&& m.effectiveModel().getDataClass()
 										.isAssignableFrom(dataClass)).collect(Collectors.toList());
 
-		return (Model<? extends T>) subModels.get(subModels.size() - 1);
+		return (List<Model<? extends T>>) subModels;
 
 		// ClassUtils.getAllSuperclasses(dataClass); // TODO with no baseModel
 	}

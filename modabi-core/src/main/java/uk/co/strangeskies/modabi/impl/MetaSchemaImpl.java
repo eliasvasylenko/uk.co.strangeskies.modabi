@@ -221,7 +221,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.SIMPLE_ELEMENT).id("value")
 								.optional(true).type(base.builtInTypes().referenceType()))
-				.create();
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).id("format")
+								.type(base.derivedTypes().enumType())).create();
 		modelSet.add(typedDataModel);
 
 		@SuppressWarnings("rawtypes")
@@ -237,18 +239,31 @@ public class MetaSchemaImpl implements MetaSchema {
 		modelSet.add(optionalModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<DataNode> contentModel = model.configure().id("content")
-				.baseModel(typedDataModel, optionalModel).isAbstract(false)
-				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
-				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
-		modelSet.add(contentModel);
-
-		@SuppressWarnings("rawtypes")
 		Model<DataNode> propertyModel = model.configure().id("property")
 				.isAbstract(false).baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
-				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
+				.addChild(n -> n.data().format(Format.PROPERTY).id("id"))
+				.addChild(n -> n.data().format(Format.PROPERTY).id("format")
+				/* .value(Format.PROPERTY) */).create();
 		modelSet.add(propertyModel);
+
+		@SuppressWarnings("rawtypes")
+		Model<DataNode> contentModel = model.configure().id("content")
+				.baseModel(typedDataModel, optionalModel).isAbstract(false)
+				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
+				.addChild(n -> n.data().format(Format.PROPERTY).id("id"))
+				.addChild(n -> n.data().format(Format.PROPERTY).id("format")
+				/* .value(Format.CONTENT) */).create();
+		modelSet.add(contentModel);
+
+		@SuppressWarnings("rawtypes")
+		Model<DataNode> simpleElement = model.configure().id("simpleElement")
+				.isAbstract(false).baseModel(typedDataModel, repeatableModel)
+				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
+				.addChild(n -> n.data().format(Format.PROPERTY).id("id"))
+				.addChild(n -> n.data().format(Format.PROPERTY).id("format")
+				/* .value(Format.SIMPLE_ELEMENT) */).create();
+		modelSet.add(simpleElement);
 
 		/* Type Models */
 
