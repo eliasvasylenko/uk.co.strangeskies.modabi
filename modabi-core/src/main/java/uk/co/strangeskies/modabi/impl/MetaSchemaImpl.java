@@ -244,7 +244,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(typedDataModel, optionalModel).isAbstract(false)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
 				.addChild(n -> n.data().id("format").value(Format.CONTENT))
-				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
+				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 
 		@SuppressWarnings("rawtypes")
@@ -252,7 +252,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(false).baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
 				.addChild(n -> n.data().id("format").value(Format.PROPERTY))
-				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
+				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
 
 		@SuppressWarnings("rawtypes")
@@ -260,7 +260,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(false).baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
 				.addChild(n -> n.data().id("format").value(Format.SIMPLE_ELEMENT))
-				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
+				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(simpleElementModel);
 
 		/* Type Models */
