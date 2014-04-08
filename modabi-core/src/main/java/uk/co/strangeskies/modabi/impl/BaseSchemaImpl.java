@@ -8,6 +8,7 @@ import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
+import uk.co.strangeskies.modabi.DataInterface;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.Schemata;
@@ -126,6 +127,7 @@ public class BaseSchemaImpl implements BaseSchema {
 	private class BuiltInTypesImpl implements BuiltInTypes {
 		private final DataType<QualifiedName> qualifiedNameType;
 		private final DataType<Object> referenceType;
+		private final DataType<DataInterface> bufferedDataType;
 
 		public BuiltInTypesImpl(DataTypeBuilder builder, Set<DataType<?>> typeSet) {
 			qualifiedNameType = builder.configure().name("qualifiedName")
@@ -135,6 +137,9 @@ public class BaseSchemaImpl implements BaseSchema {
 			referenceType = builder.configure().name("reference")
 					.dataClass(Object.class).create();
 			typeSet.add(referenceType);
+
+			bufferedDataType = builder.configure().name("bufferedData")
+					.dataClass(DataInterface.class).create();
 		}
 
 		@Override
@@ -145,6 +150,11 @@ public class BaseSchemaImpl implements BaseSchema {
 		@Override
 		public DataType<Object> referenceType() {
 			return referenceType;
+		}
+
+		@Override
+		public DataType<DataInterface> bufferedDataType() {
+			return bufferedDataType;
 		}
 	}
 

@@ -33,6 +33,8 @@ public interface BaseSchema extends Schema {
 		DataType<Object> referenceType();
 
 		DataType<QualifiedName> qualifiedNameType();
+
+		DataType<DataInterface> bufferedDataType();
 	}
 
 	public interface DerivedTypes {

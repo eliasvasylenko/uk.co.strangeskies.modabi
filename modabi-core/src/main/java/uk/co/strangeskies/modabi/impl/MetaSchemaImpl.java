@@ -219,8 +219,11 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("type").type(typeType))
 				.addChild(
+						n -> n.data().format(Format.PROPERTY).id("format")
+								.type(base.derivedTypes().enumType()))
+				.addChild(
 						n -> n.data().format(Format.SIMPLE_ELEMENT).id("value")
-								.optional(true).type(base.builtInTypes().referenceType()))
+								.optional(true).type(base.builtInTypes().bufferedDataType()))
 				.create();
 		modelSet.add(typedDataModel);
 
@@ -240,6 +243,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<DataNode> contentModel = model.configure().id("content")
 				.baseModel(typedDataModel, optionalModel).isAbstract(false)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
+				.addChild(n -> n.data().id("format").value(Format.CONTENT))
 				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
 		modelSet.add(contentModel);
 
@@ -247,8 +251,17 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<DataNode> propertyModel = model.configure().id("property")
 				.isAbstract(false).baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
+				.addChild(n -> n.data().id("format").value(Format.PROPERTY))
 				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
 		modelSet.add(propertyModel);
+
+		@SuppressWarnings("rawtypes")
+		Model<DataNode> simpleElementModel = model.configure().id("simpleElement")
+				.isAbstract(false).baseModel(typedDataModel, optionalModel)
+				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
+				.addChild(n -> n.data().id("format").value(Format.SIMPLE_ELEMENT))
+				.addChild(n -> n.data().format(Format.PROPERTY).id("id")).create();
+		modelSet.add(simpleElementModel);
 
 		/* Type Models */
 

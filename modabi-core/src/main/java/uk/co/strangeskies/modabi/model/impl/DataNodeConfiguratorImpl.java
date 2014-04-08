@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -112,6 +113,14 @@ public class DataNodeConfiguratorImpl<T> extends
 	public final DataNodeConfigurator<T> value(T data) {
 		requireConfigurable(this.value);
 		this.value = data;
+
+		return getThis();
+	}
+
+	@Override
+	public DataNodeConfigurator<T> value(DataSource dataSource) {
+		requireConfigurable(value);
+		value =
 
 		return getThis();
 	}
