@@ -30,13 +30,16 @@ import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.data.TerminatingDataSink;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
+import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
+import uk.co.strangeskies.modabi.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.impl.ElementNodeWrapper;
+import uk.co.strangeskies.modabi.model.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -88,9 +91,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 			List<ChildNode> elementList = new ArrayList<>();
 			elementListStack.add(elementList);
 
-			for (ChildNode child : node.getChildren()) {
+			for (ChildNode child : node.getChildren())
 				child.process(this);
-			}
 
 			for (ChildNode element : elementListStack.pop()) {
 				processElement = true;
@@ -288,9 +290,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		protected void processChildren(SchemaNode node) {
-			for (ChildNode child : node.getChildren()) {
+			for (ChildNode child : node.getChildren())
 				child.process(this);
-			}
 		}
 
 		@Override
@@ -314,8 +315,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 	private final DataTypes registeredTypes;
 	private final Schemata registeredSchema;
 
-	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
-			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
+	public SchemaBinderImpl() {
+		SchemaBuilder schemaBuilder = new SchemaBuilderImpl();
+		ModelBuilder modelBuilder = new ModelBuilderImpl(this);
+		DataTypeBuilder dataTypeBuilder = new DataTypeBuilderImpl();
+
 		unmetDependencies = new HashSetMultiHashMap<>();
 		// mockedDependencies = new HashMap<>();
 

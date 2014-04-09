@@ -11,8 +11,6 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public class ElementNodeWrapper<T> implements ElementNode<T> {
@@ -110,16 +108,6 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 	@Override
 	public String getId() {
 		return component.getId();
-	}
-
-	@Override
-	public void process(SchemaProcessingContext context) {
-		component.process(context);
-	}
-
-	@Override
-	public <U> U process(SchemaResultProcessingContext<U> context) {
-		return component.process(context);
 	}
 
 	@Override

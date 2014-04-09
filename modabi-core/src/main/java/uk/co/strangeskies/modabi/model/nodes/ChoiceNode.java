@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+
 public interface ChoiceNode extends ChildNode {
 	public Boolean isMandatory();
 
@@ -29,5 +31,10 @@ public interface ChoiceNode extends ChildNode {
 					return Object.class;
 		}
 		return outputClass;
+	}
+
+	@Override
+	default void process(SchemaProcessingContext context) {
+		context.accept(this);
 	}
 }

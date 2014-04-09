@@ -12,8 +12,7 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class ModelConfiguratorImpl<T> extends
 		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -81,13 +80,8 @@ public class ModelConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
-		}
-
-		@Override
-		public <U> U process(SchemaResultProcessingContext<U> context) {
-			return context.accept(this);
+		protected void unbind(UnbindingContext context) {
+			throw new AssertionError();
 		}
 	}
 
@@ -109,13 +103,8 @@ public class ModelConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
-		}
-
-		@Override
-		public <U> U process(SchemaResultProcessingContext<U> context) {
-			return context.accept(this);
+		protected void unbind(UnbindingContext context) {
+			throw new AssertionError();
 		}
 	}
 

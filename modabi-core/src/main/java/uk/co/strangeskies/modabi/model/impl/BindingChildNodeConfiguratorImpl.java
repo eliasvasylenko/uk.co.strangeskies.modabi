@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -149,6 +150,16 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		public final Class<?> getPostInputClass() {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		protected <U> U getData(Object parent) {
+			try {
+				return (U) getOutMethod().invoke(parent);
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				throw new SchemaException(getId() + " @ " + parent.getClass(), e);
+			}
 		}
 	}
 

@@ -7,8 +7,7 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class ChoiceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
@@ -37,13 +36,9 @@ public class ChoiceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
-		}
+		protected void unbind(UnbindingContext context) {
+			// TODO Auto-generated method stub
 
-		@Override
-		public <U> U process(SchemaResultProcessingContext<U> context) {
-			return context.accept(this);
 		}
 	}
 

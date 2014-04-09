@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import uk.co.strangeskies.modabi.data.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataTarget;
 
@@ -98,10 +99,16 @@ public interface DataInterface extends DataSource, DataTarget {
 			public byte[] binary() {
 				return source.binary();
 			}
+
+			@Override
+			public BufferedDataSource buffer() {
+				// TODO Auto-generated method stub
+				return null;
+			}
 		};
 	}
 
 	public static DataInterface forTarget(DataTarget target) {
-
+		return null;
 	}
 }

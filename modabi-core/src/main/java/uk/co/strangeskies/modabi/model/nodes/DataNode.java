@@ -5,6 +5,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public interface DataNode<T> extends BindingChildNode<T> {
@@ -52,5 +53,10 @@ public interface DataNode<T> extends BindingChildNode<T> {
 	@Override
 	default List<? extends ChildNode> getChildren() {
 		return type().getChildren();
+	}
+
+	@Override
+	public default void process(SchemaProcessingContext context) {
+		context.accept(this);
 	}
 }

@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
+import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+
 public interface SequenceNode extends InputNode {
 	@Override
 	public default Class<?> getPreInputClass() {
@@ -16,5 +18,10 @@ public interface SequenceNode extends InputNode {
 			outputClass = child.getPostInputClass();
 		}
 		return outputClass;
+	}
+
+	@Override
+	default void process(SchemaProcessingContext context) {
+		context.accept(this);
 	}
 }

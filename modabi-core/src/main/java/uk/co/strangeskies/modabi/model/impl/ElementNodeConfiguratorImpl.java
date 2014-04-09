@@ -10,8 +10,7 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -72,13 +71,8 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public void process(SchemaProcessingContext context) {
-			context.accept(this);
-		}
-
-		@Override
-		public <U> U process(SchemaResultProcessingContext<U> context) {
-			return context.accept(this);
+		protected void unbind(UnbindingContext context) {
+			go!
 		}
 	}
 

@@ -6,12 +6,12 @@ import java.util.List;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.TerminatingDataSink;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.SchemaResultProcessingContext;
+import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class DataNodeConfiguratorImpl<T> extends
 		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
@@ -28,8 +28,14 @@ public class DataNodeConfiguratorImpl<T> extends
 
 			format = configurator.format;
 			type = configurator.type;
-			value = configurator.value;
 			optional = configurator.optional;
+
+			value = configurator.value != null ? configurator.value
+					: loadValue(configurator.valueSource);
+		}
+
+		private T loadValue(DataSource valueSource) {
+			return null;
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
@@ -38,12 +44,12 @@ public class DataNodeConfiguratorImpl<T> extends
 
 			type = getValue(node, overriddenNodes, n -> n.type());
 
-			value = getValue(node, overriddenNodes, n -> n.value());
-
 			optional = getValue(node, overriddenNodes, n -> n.optional());
 
 			format = getValue(node, overriddenNodes, n -> n.format(),
 					(n, o) -> n == o);
+
+			value = getValue(node, overriddenNodes, n -> n.value());
 
 			if (value != null && !getDataClass().isAssignableFrom(value.getClass()))
 				throw new SchemaException();
@@ -60,16 +66,6 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public final void process(SchemaProcessingContext context) {
-			context.accept(this);
-		}
-
-		@Override
-		public final <R> R process(SchemaResultProcessingContext<R> context) {
-			return context.accept(this);
-		}
-
-		@Override
 		public final Format format() {
 			return format;
 		}
@@ -78,12 +74,66 @@ public class DataNodeConfiguratorImpl<T> extends
 		public final Boolean optional() {
 			return optional;
 		}
+
+		@Override
+		protected final void unbind(UnbindingContext context) {
+			T data = getData(context.getTarget());
+			TerminatingDataSink sink;
+
+			switch (format()) {
+			case PROPERTY:
+				sink = context.property(getId());
+				break;
+			case SIMPLE_ELEMENT:
+				sink = context.simpleElement(getId());
+			case CONTENT:
+				sink = context.content();
+			default:
+				throw new AssertionError();
+			}
+
+			sink.string("" + data);
+			final TerminatingDataSink finalSink = sink;
+			// TODO This shouldn't be necessary, was getting spurious 'should be
+			// effectively final' errors.
+
+			for (ChildNode child : getChildren()) {
+				((SchemaNodeImpl) child).unbind(new UnbindingContext() {
+					@Override
+					public TerminatingDataSink simpleElement(String id) {
+						throw new AssertionError();
+					}
+
+					@Override
+					public TerminatingDataSink property(String id) {
+						return finalSink;
+					}
+
+					@Override
+					public Object getTarget() {
+						return data;
+					}
+
+					@Override
+					public void endData() {
+					}
+
+					@Override
+					public TerminatingDataSink content() {
+						throw new AssertionError();
+					}
+				});
+			}
+
+			context.endData();
+		}
 	}
 
 	public Format format;
 
 	private DataType<T> type;
 	private T value;
+	private DataSource valueSource;
 
 	private Boolean optional;
 
@@ -111,8 +161,9 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public final DataNodeConfigurator<T> value(T data) {
-		requireConfigurable(this.value);
-		this.value = data;
+		requireConfigurable(value);
+		requireConfigurable(valueSource);
+		value = data;
 
 		return getThis();
 	}
@@ -120,7 +171,8 @@ public class DataNodeConfiguratorImpl<T> extends
 	@Override
 	public DataNodeConfigurator<T> value(DataSource dataSource) {
 		requireConfigurable(value);
-		value =
+		requireConfigurable(valueSource);
+		valueSource = dataSource;
 
 		return getThis();
 	}
