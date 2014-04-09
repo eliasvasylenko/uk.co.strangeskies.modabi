@@ -70,9 +70,35 @@ public class ElementNodeConfiguratorImpl<T>
 			return baseModel;
 		}
 
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
-		protected void unbind(UnbindingContext context) {
-			go!
+		protected void unbind(UnbindingChildContext context) {
+			Iterable<T> data = getData(context.getTarget());
+
+			for (T item : data) {
+				ElementNode<T> node = this;
+				if (isAbstract() != null && isAbstract())
+					node = new ElementNodeWrapper(
+							context.getUnbindingContext()
+									.getMatchingModels(node, data.getClass()).get(0)
+									.effectiveModel(), node);
+
+				context.getUnbindingContext().beginElement(node.getId());
+				UnbindingChildContext childContext = new UnbindingChildContext() {
+					@Override
+					public Object getTarget() {
+						return item;
+					}
+
+					@Override
+					public UnbindingContext getUnbindingContext() {
+						return context.getUnbindingContext();
+					}
+				};
+				for (ChildNode child : getChildren())
+					((SchemaNodeImpl) child).unbind(childContext);
+				context.getUnbindingContext().endElement();
+			}
 		}
 	}
 

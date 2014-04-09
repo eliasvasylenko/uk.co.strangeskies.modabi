@@ -21,7 +21,6 @@ import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
@@ -93,7 +92,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			return value;
 		}
 
-		protected abstract void unbind(UnbindingContext context);
+		protected abstract void unbind(UnbindingChildContext context);
 	}
 
 	private final List<ChildNode> children;

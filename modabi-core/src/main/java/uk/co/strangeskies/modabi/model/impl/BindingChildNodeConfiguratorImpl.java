@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -153,12 +154,18 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@SuppressWarnings("unchecked")
-		protected <U> U getData(Object parent) {
+		protected Iterable<T> getData(Object parent) {
 			try {
-				return (U) getOutMethod().invoke(parent);
+				if (isOutMethodIterable() != null && isOutMethodIterable()) {
+					if (getOutMethodName() == "this")
+						return (Iterable<T>) parent;
+					else
+						return (Iterable<T>) getOutMethod().invoke(parent);
+				} else
+					return Arrays.asList((T) getOutMethod().invoke(parent));
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				throw new SchemaException(getId() + " @ " + parent.getClass(), e);
+				throw new SchemaException(e);
 			}
 		}
 	}

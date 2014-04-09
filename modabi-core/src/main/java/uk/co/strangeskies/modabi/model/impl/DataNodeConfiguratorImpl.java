@@ -76,56 +76,53 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		protected final void unbind(UnbindingContext context) {
-			T data = getData(context.getTarget());
+		protected final void unbind(UnbindingChildContext context) {
 			TerminatingDataSink sink;
 
-			switch (format()) {
-			case PROPERTY:
-				sink = context.property(getId());
-				break;
-			case SIMPLE_ELEMENT:
-				sink = context.simpleElement(getId());
-			case CONTENT:
-				sink = context.content();
-			default:
-				throw new AssertionError();
-			}
+			if (format() != null)
+				switch (format()) {
+				case PROPERTY:
+					sink = context.getUnbindingContext().property(getId());
+					break;
+				case SIMPLE_ELEMENT:
+					sink = context.getUnbindingContext().simpleElement(getId());
+				case CONTENT:
+					sink = context.getUnbindingContext().content();
+				default:
+					throw new AssertionError();
+				}
+			else
+				sink = context.getOpenSink();
 
-			sink.string("" + data);
+			Iterable<T> data = getData(context.getTarget());
+
+			for (T item : data)
+				sink.string("" + item);
+
+			// TODO This 'finalSink' variable shouldn't be necessary, was giving
+			// spurious 'should be effectively final' error in eclipse.
 			final TerminatingDataSink finalSink = sink;
-			// TODO This shouldn't be necessary, was getting spurious 'should be
-			// effectively final' errors.
-
 			for (ChildNode child : getChildren()) {
-				((SchemaNodeImpl) child).unbind(new UnbindingContext() {
-					@Override
-					public TerminatingDataSink simpleElement(String id) {
-						throw new AssertionError();
-					}
-
-					@Override
-					public TerminatingDataSink property(String id) {
-						return finalSink;
-					}
-
+				((SchemaNodeImpl) child).unbind(new UnbindingChildContext() {
 					@Override
 					public Object getTarget() {
 						return data;
 					}
 
 					@Override
-					public void endData() {
+					public TerminatingDataSink getOpenSink() {
+						return finalSink;
 					}
 
 					@Override
-					public TerminatingDataSink content() {
-						throw new AssertionError();
+					public UnbindingContext getUnbindingContext() {
+						return context.getUnbindingContext();
 					}
 				});
 			}
 
-			context.endData();
+			if (format() != null)
+				context.getUnbindingContext().endData();
 		}
 	}
 
