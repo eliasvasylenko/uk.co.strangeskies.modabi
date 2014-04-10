@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
@@ -83,19 +82,10 @@ public class ElementNodeConfiguratorImpl<T>
 									.effectiveModel(), node);
 
 				context.beginElement(node.getId());
-				UnbindingChildContext childContext = new UnbindingChildContext() {
-					@Override
-					public Object getUnbindingTarget() {
-						return item;
-					}
-
-					@Override
-					public TerminatingDataTarget getOpenDataTarget() {
-						throw new UnsupportedOperationException();
-					}
-				};
+				context.pushUnbindingTarget(data);
 				for (ChildNode child : getChildren())
-					((SchemaNodeImpl) child).unbind(childContext);
+					((SchemaNodeImpl) child).unbind(context);
+				context.popUnbindingTarget();
 				context.getUnbindingContext().endElement();
 			}
 		}

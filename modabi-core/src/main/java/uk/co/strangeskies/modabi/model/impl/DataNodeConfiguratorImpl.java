@@ -98,10 +98,10 @@ public class DataNodeConfiguratorImpl<T> extends
 			for (T item : data)
 				sink.string("" + item);
 
-			context.pushTarget(data);
+			context.pushUnbindingTarget(data);
 			for (ChildNode child : getChildren())
 				((SchemaNodeImpl) child).unbind(context);
-			context.popTarget();
+			context.popUnbindingTarget();
 
 			if (format() != null)
 				context.endData();

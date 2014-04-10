@@ -137,12 +137,12 @@ public class ModelConfiguratorImpl<T> extends
 				}
 
 				@Override
-				public void pushTarget(Object target) {
+				public void pushUnbindingTarget(Object target) {
 					bindingStack.push(target);
 				}
 
 				@Override
-				public void popTarget() {
+				public void popUnbindingTarget() {
 					bindingStack.pop();
 				}
 
@@ -169,7 +169,7 @@ public class ModelConfiguratorImpl<T> extends
 				}
 			};
 
-			childContext.pushTarget(context.data());
+			childContext.pushUnbindingTarget(context.data());
 
 			for (ChildNode child : getChildren())
 				((SchemaNodeImpl) child).unbind(childContext);
