@@ -6,12 +6,11 @@ import java.util.List;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.data.TerminatingDataSink;
+import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class DataNodeConfiguratorImpl<T> extends
 		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
@@ -77,52 +76,35 @@ public class DataNodeConfiguratorImpl<T> extends
 
 		@Override
 		protected final void unbind(UnbindingChildContext context) {
-			TerminatingDataSink sink;
+			TerminatingDataTarget sink;
 
 			if (format() != null)
 				switch (format()) {
 				case PROPERTY:
-					sink = context.getUnbindingContext().property(getId());
+					sink = context.property(getId());
 					break;
 				case SIMPLE_ELEMENT:
-					sink = context.getUnbindingContext().simpleElement(getId());
+					sink = context.simpleElement(getId());
 				case CONTENT:
-					sink = context.getUnbindingContext().content();
+					sink = context.content();
 				default:
 					throw new AssertionError();
 				}
 			else
-				sink = context.getOpenSink();
+				sink = context.getOpenDataTarget();
 
-			Iterable<T> data = getData(context.getTarget());
+			Iterable<T> data = getData(context.getUnbindingTarget());
 
 			for (T item : data)
 				sink.string("" + item);
 
-			// TODO This 'finalSink' variable shouldn't be necessary, was giving
-			// spurious 'should be effectively final' error in eclipse.
-			final TerminatingDataSink finalSink = sink;
-			for (ChildNode child : getChildren()) {
-				((SchemaNodeImpl) child).unbind(new UnbindingChildContext() {
-					@Override
-					public Object getTarget() {
-						return data;
-					}
-
-					@Override
-					public TerminatingDataSink getOpenSink() {
-						return finalSink;
-					}
-
-					@Override
-					public UnbindingContext getUnbindingContext() {
-						return context.getUnbindingContext();
-					}
-				});
-			}
+			context.pushTarget(data);
+			for (ChildNode child : getChildren())
+				((SchemaNodeImpl) child).unbind(context);
+			context.popTarget();
 
 			if (format() != null)
-				context.getUnbindingContext().endData();
+				context.endData();
 		}
 	}
 

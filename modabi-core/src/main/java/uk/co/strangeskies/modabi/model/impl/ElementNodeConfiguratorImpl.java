@@ -5,12 +5,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -73,26 +73,25 @@ public class ElementNodeConfiguratorImpl<T>
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
 		protected void unbind(UnbindingChildContext context) {
-			Iterable<T> data = getData(context.getTarget());
+			Iterable<T> data = getData(context.getUnbindingTarget());
 
 			for (T item : data) {
 				ElementNode<T> node = this;
 				if (isAbstract() != null && isAbstract())
 					node = new ElementNodeWrapper(
-							context.getUnbindingContext()
-									.getMatchingModels(node, data.getClass()).get(0)
+							context.getMatchingModels(node, data.getClass()).get(0)
 									.effectiveModel(), node);
 
-				context.getUnbindingContext().beginElement(node.getId());
+				context.beginElement(node.getId());
 				UnbindingChildContext childContext = new UnbindingChildContext() {
 					@Override
-					public Object getTarget() {
+					public Object getUnbindingTarget() {
 						return item;
 					}
 
 					@Override
-					public UnbindingContext getUnbindingContext() {
-						return context.getUnbindingContext();
+					public TerminatingDataTarget getOpenDataTarget() {
+						throw new UnsupportedOperationException();
 					}
 				};
 				for (ChildNode child : getChildren())

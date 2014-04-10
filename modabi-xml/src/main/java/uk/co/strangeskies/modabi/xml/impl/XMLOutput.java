@@ -6,7 +6,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
-import uk.co.strangeskies.modabi.data.TerminatingDataSink;
+import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 
 public class XMLOutput implements StructuredDataOutput {
 	private String indent = "";
@@ -30,13 +30,13 @@ public class XMLOutput implements StructuredDataOutput {
 	}
 
 	@Override
-	public TerminatingDataSink property(String name) {
+	public TerminatingDataTarget property(String name) {
 		System.out.print(" " + name + "=");
 		return getDataSink(true);
 	}
 
 	@Override
-	public TerminatingDataSink content() {
+	public TerminatingDataTarget content() {
 		endProperties();
 		hasChildren = true;
 
@@ -66,11 +66,11 @@ public class XMLOutput implements StructuredDataOutput {
 		}
 	}
 
-	private TerminatingDataSink getDataSink(boolean property) {
+	private TerminatingDataTarget getDataSink(boolean property) {
 		if (property)
 			System.out.print("\"");
 
-		return new TerminatingDataSink() {
+		return new TerminatingDataTarget() {
 			boolean compound = false;
 
 			private void next(Object value) {
@@ -82,55 +82,55 @@ public class XMLOutput implements StructuredDataOutput {
 			}
 
 			@Override
-			public TerminatingDataSink string(String value) {
+			public TerminatingDataTarget string(String value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink longValue(long value) {
+			public TerminatingDataTarget longValue(long value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink integer(BigInteger value) {
+			public TerminatingDataTarget integer(BigInteger value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink intValue(int value) {
+			public TerminatingDataTarget intValue(int value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink floatValue(float value) {
+			public TerminatingDataTarget floatValue(float value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink doubleValue(double value) {
+			public TerminatingDataTarget doubleValue(double value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink decimal(BigDecimal value) {
+			public TerminatingDataTarget decimal(BigDecimal value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink booleanValue(boolean value) {
+			public TerminatingDataTarget booleanValue(boolean value) {
 				next(value);
 				return this;
 			}
 
 			@Override
-			public TerminatingDataSink binary(byte[] value) {
+			public TerminatingDataTarget binary(byte[] value) {
 				next(value);
 				return this;
 			}

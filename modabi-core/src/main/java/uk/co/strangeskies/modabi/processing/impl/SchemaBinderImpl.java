@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
-import uk.co.strangeskies.modabi.data.TerminatingDataSink;
+import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
@@ -66,7 +66,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		private final Deque<List<ChildNode>> elementListStack;
 		private boolean processElement;
 
-		private TerminatingDataSink sink;
+		private TerminatingDataTarget sink;
 
 		public SchemaSavingContext(Model<T> model, StructuredDataOutput output,
 				T data) {
@@ -316,10 +316,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 	private final Schemata registeredSchema;
 
 	public SchemaBinderImpl() {
-		SchemaBuilder schemaBuilder = new SchemaBuilderImpl();
-		ModelBuilder modelBuilder = new ModelBuilderImpl(this);
-		DataTypeBuilder dataTypeBuilder = new DataTypeBuilderImpl();
+		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
+				new DataTypeBuilderImpl());
+	}
 
+	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
+			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
 		unmetDependencies = new HashSetMultiHashMap<>();
 		// mockedDependencies = new HashMap<>();
 

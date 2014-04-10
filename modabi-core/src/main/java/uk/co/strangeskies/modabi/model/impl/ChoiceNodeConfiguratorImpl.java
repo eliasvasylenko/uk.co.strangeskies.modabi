@@ -7,7 +7,6 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class ChoiceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
@@ -36,7 +35,7 @@ public class ChoiceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		protected void unbind(UnbindingContext context) {
+		protected void unbind(UnbindingChildContext context) {
 			// TODO Auto-generated method stub
 
 		}

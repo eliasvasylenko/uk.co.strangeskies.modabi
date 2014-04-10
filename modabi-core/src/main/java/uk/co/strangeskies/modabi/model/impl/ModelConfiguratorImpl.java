@@ -1,11 +1,15 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.data.BufferedDataTarget;
+import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
@@ -80,7 +84,7 @@ public class ModelConfiguratorImpl<T> extends
 		}
 
 		@Override
-		protected void unbind(UnbindingContext context) {
+		protected void unbind(UnbindingChildContext context) {
 			throw new AssertionError();
 		}
 	}
@@ -103,8 +107,75 @@ public class ModelConfiguratorImpl<T> extends
 		}
 
 		@Override
-		protected void unbind(UnbindingContext context) {
+		protected void unbind(UnbindingChildContext context) {
 			throw new AssertionError();
+		}
+
+		@Override
+		public void unbind(UnbindingContext<T> context) {
+			List<BufferedDataTarget> bufferedSimpleElements = new ArrayList<>();
+
+			UnbindingChildContext childContext = new UnbindingChildContext() {
+				private final Deque<Object> bindingStack = new ArrayDeque<>();
+				private TerminatingDataTarget sink = null;
+
+				@Override
+				public TerminatingDataTarget simpleElement(String id) {
+					BufferedDataTarget buffer = new BufferedDataTarget();
+					bufferedSimpleElements.add(buffer);
+					return sink = buffer;
+				}
+
+				@Override
+				public TerminatingDataTarget property(String id) {
+					return sink = context.output().property(id);
+				}
+
+				@Override
+				public Object getUnbindingTarget() {
+					return bindingStack.peek();
+				}
+
+				@Override
+				public void pushTarget(Object target) {
+					bindingStack.push(target);
+				}
+
+				@Override
+				public void popTarget() {
+					bindingStack.pop();
+				}
+
+				@Override
+				public TerminatingDataTarget getOpenDataTarget() {
+					return sink;
+				}
+
+				@Override
+				public void endData() {
+					sink.end();
+					sink = null;
+				}
+
+				@Override
+				public TerminatingDataTarget content() {
+					return sink = context.output().content();
+				}
+
+				@Override
+				public <U> List<Model<? extends U>> getMatchingModels(
+						AbstractModel<U> element, Class<?> dataClass) {
+					return context.getMatchingModels(element, dataClass);
+				}
+			};
+
+			childContext.pushTarget(context.data());
+
+			for (ChildNode child : getChildren())
+				((SchemaNodeImpl) child).unbind(childContext);
+
+			for (BufferedDataTarget bufferedSimpleElement : bufferedSimpleElements) {
+			}
 		}
 	}
 

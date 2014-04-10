@@ -2,23 +2,15 @@ package uk.co.strangeskies.modabi.processing;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.data.TerminatingDataSink;
+import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 
-public interface UnbindingContext {
-	public TerminatingDataSink property(String id);
+public interface UnbindingContext<T> {
+	<U> List<Model<? extends U>> getMatchingModels(AbstractModel<U> element,
+			Class<?> dataClass);
 
-	public TerminatingDataSink simpleElement(String id);
+	StructuredDataOutput output();
 
-	public TerminatingDataSink content();
-
-	public void endData();
-
-	public void beginElement(String id);
-
-	public void endElement();
-
-	public <T> List<Model<? extends T>> getMatchingModels(
-			AbstractModel<T> element, Class<?> dataClass);
+	T data();
 }

@@ -1,12 +1,28 @@
 package uk.co.strangeskies.modabi.model.impl;
 
-import uk.co.strangeskies.modabi.data.TerminatingDataSink;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
+import java.util.List;
+
+import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.model.AbstractModel;
+import uk.co.strangeskies.modabi.model.Model;
 
 public interface UnbindingChildContext {
-	Object getTarget();
+	TerminatingDataTarget property(String id);
 
-	TerminatingDataSink getOpenSink();
+	TerminatingDataTarget simpleElement(String id);
 
-	UnbindingContext getUnbindingContext();
+	TerminatingDataTarget content();
+
+	TerminatingDataTarget getOpenDataTarget();
+
+	void endData();
+
+	Object getUnbindingTarget();
+
+	void pushTarget(Object target);
+
+	void popTarget();
+
+	<U> List<Model<? extends U>> getMatchingModels(AbstractModel<U> element,
+			Class<?> dataClass);
 }
