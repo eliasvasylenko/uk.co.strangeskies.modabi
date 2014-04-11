@@ -12,14 +12,13 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
 		BindingChildNodeConfigurator<S, N, T> {
 	protected static abstract class BindingChildNodeImpl<T> extends
-			BindingNodeImpl<T> implements BindingChildNode<T> {
+			BindingNodeImpl<T> implements ChildNodeImpl, BindingChildNode<T> {
 		private final Range<Integer> occurances;
 
 		private final Boolean iterable;
@@ -72,7 +71,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 		BindingChildNodeImpl(BindingChildNode<T> node,
 				Collection<? extends BindingChildNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			occurances = getValue(node, overriddenNodes, n -> n.occurances(),

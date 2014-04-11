@@ -26,14 +26,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
 	protected static abstract class SchemaNodeImpl implements SchemaNode {
 		private final String id;
-		private final List<ChildNode> children;
+		private final List<ChildNodeImpl> children;
 
 		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
 			configurator.finaliseProperties();
 
 			id = configurator.getId();
 
-			for (List<ChildNode> namedChildren : configurator.namedInheritedChildren
+			for (List<ChildNodeImpl> namedChildren : configurator.namedInheritedChildren
 					.values())
 				if (namedChildren.size() > 1)
 					throw new SchemaException(
@@ -46,7 +46,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		protected SchemaNodeImpl(SchemaNode node,
 				Collection<? extends SchemaNode> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
+				List<ChildNodeImpl> effectiveChildren) {
 			id = getValue(node, overriddenNodes, n -> n.getId(), (v, o) -> true);
 
 			children = effectiveChildren;
@@ -58,7 +58,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public final List<ChildNode> getChildren() {
+		public final List<ChildNodeImpl> getChildren() {
 			return children;
 		}
 
@@ -91,15 +91,13 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				throw new SchemaException("value: " + value);
 			return value;
 		}
-
-		protected abstract void unbind(UnbindingChildContext context);
 	}
 
-	private final List<ChildNode> children;
-	private final List<ChildNode> effectiveChildren;
+	private final List<ChildNodeImpl> children;
+	private final List<ChildNodeImpl> effectiveChildren;
 	private boolean blocked;
-	private final ListMultiMap<String, ChildNode> namedInheritedChildren;
-	private final List<ChildNode> inheritedChildren;
+	private final ListMultiMap<String, ChildNodeImpl> namedInheritedChildren;
+	private final List<ChildNodeImpl> inheritedChildren;
 
 	private boolean finalisedProperties;
 
@@ -158,24 +156,24 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Class<?> getCurrentChildOutputTargetClass();
 
-	protected void inheritChildren(List<? extends ChildNode> nodes) {
+	protected void inheritChildren(List<? extends ChildNodeImpl> nodes) {
 		inheritChildren(inheritedChildren.size(), nodes);
 	}
 
-	protected void inheritChildren(int index, List<? extends ChildNode> nodes) {
+	protected void inheritChildren(int index, List<? extends ChildNodeImpl> nodes) {
 		requireConfigurable();
 		inheritNamedChildren(nodes);
 		inheritedChildren.addAll(index, nodes);
 	}
 
-	private void inheritNamedChildren(List<? extends ChildNode> nodes) {
+	private void inheritNamedChildren(List<? extends ChildNodeImpl> nodes) {
 		nodes.stream().filter(c -> c.getId() != null)
 				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
 	}
 
 	@SuppressWarnings("unchecked")
 	<T extends ChildNode> List<T> overrideChild(String id, Class<T> nodeClass) {
-		List<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
+		List<ChildNodeImpl> overriddenNodes = namedInheritedChildren.get(id);
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(
@@ -187,12 +185,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return (List<T>) Collections.unmodifiableList(overriddenNodes);
 	}
 
-	protected final List<ChildNode> getChildren() {
+	protected final List<ChildNodeImpl> getChildren() {
 		return children;
 	}
 
-	protected final List<ChildNode> getEffectiveChildren() {
-		List<ChildNode> effectiveChildren = new ArrayList<>();
+	protected final List<ChildNodeImpl> getEffectiveChildren() {
+		List<ChildNodeImpl> effectiveChildren = new ArrayList<>();
 		effectiveChildren.addAll(inheritedChildren);
 		effectiveChildren.addAll(this.effectiveChildren);
 		return effectiveChildren;
@@ -200,10 +198,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	void addChild(ChildNode result, ChildNode effective) {
 		blocked = false;
-		children.add(result);
-		effectiveChildren.add(effective);
+		children.add((ChildNodeImpl) result);
+		effectiveChildren.add((ChildNodeImpl) effective);
 		if (result.getId() != null) {
-			List<ChildNode> removed = namedInheritedChildren.remove(result.getId());
+			List<ChildNodeImpl> removed = namedInheritedChildren.remove(result
+					.getId());
 			if (removed != null)
 				inheritedChildren.removeAll(removed);
 		}

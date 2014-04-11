@@ -6,7 +6,6 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
@@ -40,7 +39,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		@SuppressWarnings("unchecked")
 		public BindingNodeImpl(BindingNode<T> node,
 				Collection<? extends BindingNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
+				List<ChildNodeImpl> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			dataClass = (Class<T>) getValue(node, overriddenNodes,

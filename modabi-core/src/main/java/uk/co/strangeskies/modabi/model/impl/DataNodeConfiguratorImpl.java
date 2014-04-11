@@ -8,7 +8,6 @@ import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 
@@ -38,7 +37,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass) {
 			super(node, overriddenNodes, effectiveChildren, parentClass);
 
 			type = getValue(node, overriddenNodes, n -> n.type());
@@ -75,7 +74,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		protected final void unbind(UnbindingChildContext context) {
+		public final void unbind(UnbindingChildContext context) {
 			TerminatingDataTarget sink;
 
 			if (format() != null)
@@ -99,8 +98,7 @@ public class DataNodeConfiguratorImpl<T> extends
 				sink.string("" + item);
 
 			context.pushUnbindingTarget(data);
-			for (ChildNode child : getChildren())
-				((SchemaNodeImpl) child).unbind(context);
+			context.processChildren(getChildren());
 			context.popUnbindingTarget();
 
 			if (format() != null)

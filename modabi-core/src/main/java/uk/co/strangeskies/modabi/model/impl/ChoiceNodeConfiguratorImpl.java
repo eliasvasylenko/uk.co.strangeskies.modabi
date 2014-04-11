@@ -12,7 +12,7 @@ public class ChoiceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
 		ChoiceNodeConfigurator {
 	protected static class ChoiceNodeImpl extends SchemaNodeImpl implements
-			ChoiceNode {
+			ChildNodeImpl, ChoiceNode {
 		private final boolean mandatory;
 
 		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
@@ -23,7 +23,7 @@ public class ChoiceNodeConfiguratorImpl extends
 
 		public ChoiceNodeImpl(ChoiceNode node,
 				Collection<? extends ChoiceNode> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
+				List<ChildNodeImpl> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
@@ -35,7 +35,7 @@ public class ChoiceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		protected void unbind(UnbindingChildContext context) {
+		public void unbind(UnbindingChildContext context) {
 			// TODO Auto-generated method stub
 
 		}

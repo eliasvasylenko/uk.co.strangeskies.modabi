@@ -1,21 +1,16 @@
 package uk.co.strangeskies.modabi.model.impl;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.data.BufferedDataTarget;
-import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 
 public class ModelConfiguratorImpl<T> extends
@@ -36,14 +31,14 @@ public class ModelConfiguratorImpl<T> extends
 
 		public AbstractModelImpl(AbstractModel<T> node,
 				Collection<? extends AbstractModel<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
+				List<ChildNodeImpl> effectiveChildren) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
 					null);
 		}
 
 		private AbstractModelImpl(AbstractModel<T> node,
 				Collection<AbstractModel<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Void flag) {
+				List<ChildNodeImpl> effectiveChildren, Void flag) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			baseModel = new ArrayList<>();
@@ -79,13 +74,8 @@ public class ModelConfiguratorImpl<T> extends
 			implements EffectiveModel<T> {
 		public EffectiveModelImpl(ModelImpl<T> node,
 				Collection<? extends EffectiveModel<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
+				List<ChildNodeImpl> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
-		}
-
-		@Override
-		protected void unbind(UnbindingChildContext context) {
-			throw new AssertionError();
 		}
 	}
 
@@ -107,75 +97,8 @@ public class ModelConfiguratorImpl<T> extends
 		}
 
 		@Override
-		protected void unbind(UnbindingChildContext context) {
-			throw new AssertionError();
-		}
-
-		@Override
 		public void unbind(UnbindingContext<T> context) {
-			List<BufferedDataTarget> bufferedSimpleElements = new ArrayList<>();
-
-			UnbindingChildContext childContext = new UnbindingChildContext() {
-				private final Deque<Object> bindingStack = new ArrayDeque<>();
-				private TerminatingDataTarget sink = null;
-
-				@Override
-				public TerminatingDataTarget simpleElement(String id) {
-					BufferedDataTarget buffer = new BufferedDataTarget();
-					bufferedSimpleElements.add(buffer);
-					return sink = buffer;
-				}
-
-				@Override
-				public TerminatingDataTarget property(String id) {
-					return sink = context.output().property(id);
-				}
-
-				@Override
-				public Object getUnbindingTarget() {
-					return bindingStack.peek();
-				}
-
-				@Override
-				public void pushUnbindingTarget(Object target) {
-					bindingStack.push(target);
-				}
-
-				@Override
-				public void popUnbindingTarget() {
-					bindingStack.pop();
-				}
-
-				@Override
-				public TerminatingDataTarget getOpenDataTarget() {
-					return sink;
-				}
-
-				@Override
-				public void endData() {
-					sink.end();
-					sink = null;
-				}
-
-				@Override
-				public TerminatingDataTarget content() {
-					return sink = context.output().content();
-				}
-
-				@Override
-				public <U> List<Model<? extends U>> getMatchingModels(
-						AbstractModel<U> element, Class<?> dataClass) {
-					return context.getMatchingModels(element, dataClass);
-				}
-			};
-
-			childContext.pushUnbindingTarget(context.data());
-
-			for (ChildNode child : getChildren())
-				((SchemaNodeImpl) child).unbind(childContext);
-
-			for (BufferedDataTarget bufferedSimpleElement : bufferedSimpleElements) {
-			}
+			new UnbindingChildContext(context).processChildren(getChildren());
 		}
 	}
 
@@ -198,7 +121,8 @@ public class ModelConfiguratorImpl<T> extends
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			inheritChildren(m.effectiveModel().getChildren());
+			inheritChildren((List<? extends ChildNodeImpl>) m.effectiveModel()
+					.getChildren());
 		});
 
 		return thisV;

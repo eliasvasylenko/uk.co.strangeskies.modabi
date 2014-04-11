@@ -8,7 +8,6 @@ import java.util.List;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 
 public class ElementNodeConfiguratorImpl<T>
@@ -30,14 +29,14 @@ public class ElementNodeConfiguratorImpl<T>
 
 		public ElementNodeImpl(ElementNode<T> node,
 				Collection<? extends ElementNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
 					parentClass, null);
 		}
 
 		private ElementNodeImpl(ElementNode<T> node,
 				Collection<ElementNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass, Void flag) {
+				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass, Void flag) {
 			super(node, overriddenNodes, effectiveChildren, parentClass);
 
 			baseModel = new ArrayList<>();
@@ -69,9 +68,13 @@ public class ElementNodeConfiguratorImpl<T>
 			return baseModel;
 		}
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
-		protected void unbind(UnbindingChildContext context) {
+		public void unbind(UnbindingChildContext context) {
+			context.queueElement(this);
+		}
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		protected void unbindQueued(UnbindingChildContext context) {
 			Iterable<T> data = getData(context.getUnbindingTarget());
 
 			for (T item : data) {
@@ -83,10 +86,9 @@ public class ElementNodeConfiguratorImpl<T>
 
 				context.beginElement(node.getId());
 				context.pushUnbindingTarget(data);
-				for (ChildNode child : getChildren())
-					((SchemaNodeImpl) child).unbind(context);
+				context.processChildren(getChildren());
 				context.popUnbindingTarget();
-				context.getUnbindingContext().endElement();
+				context.endElement();
 			}
 		}
 	}
