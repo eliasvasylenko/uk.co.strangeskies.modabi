@@ -118,7 +118,8 @@ public class ElementNodeConfiguratorImpl<T>
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			inheritChildren(m.effectiveModel().getChildren());
+			inheritChildren((List<? extends ChildNodeImpl>) m.effectiveModel()
+					.getChildren());
 		});
 
 		return thisV;
