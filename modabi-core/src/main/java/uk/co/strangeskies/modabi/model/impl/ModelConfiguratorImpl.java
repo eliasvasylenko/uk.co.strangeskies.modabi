@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
 public class ModelConfiguratorImpl<T> extends
 		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -31,14 +31,14 @@ public class ModelConfiguratorImpl<T> extends
 
 		public AbstractModelImpl(AbstractModel<T> node,
 				Collection<? extends AbstractModel<? super T>> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
 					null);
 		}
 
 		private AbstractModelImpl(AbstractModel<T> node,
 				Collection<AbstractModel<? super T>> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren, Void flag) {
+				List<ChildNode> effectiveChildren, Void flag) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			baseModel = new ArrayList<>();
@@ -74,7 +74,7 @@ public class ModelConfiguratorImpl<T> extends
 			implements EffectiveModel<T> {
 		public EffectiveModelImpl(ModelImpl<T> node,
 				Collection<? extends EffectiveModel<? super T>> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 		}
 	}
@@ -94,11 +94,6 @@ public class ModelConfiguratorImpl<T> extends
 		@Override
 		public EffectiveModel<T> effectiveModel() {
 			return effectiveModel;
-		}
-
-		@Override
-		public void unbind(UnbindingContext<T> context) {
-			new UnbindingChildContext(context).processChildren(getChildren());
 		}
 	}
 

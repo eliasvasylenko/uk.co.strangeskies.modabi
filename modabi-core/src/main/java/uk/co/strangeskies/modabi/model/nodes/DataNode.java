@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.data.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
@@ -21,7 +22,7 @@ public interface DataNode<T> extends BindingChildNode<T> {
 		return value() != null;
 	}
 
-	T value();
+	BufferedDataSource value();
 
 	Boolean optional();
 

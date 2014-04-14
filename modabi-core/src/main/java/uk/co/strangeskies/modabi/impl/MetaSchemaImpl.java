@@ -243,7 +243,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<DataNode> contentModel = model.configure().id("content")
 				.baseModel(typedDataModel, optionalModel).isAbstract(false)
 				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
-				.addChild(n -> n.data().id("format").value(Format.CONTENT))
+				.addChild(n -> n.data().id("format").value(null))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 

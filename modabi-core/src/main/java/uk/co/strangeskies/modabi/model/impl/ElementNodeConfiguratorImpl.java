@@ -8,6 +8,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 
 public class ElementNodeConfiguratorImpl<T>
@@ -29,14 +30,14 @@ public class ElementNodeConfiguratorImpl<T>
 
 		public ElementNodeImpl(ElementNode<T> node,
 				Collection<? extends ElementNode<? super T>> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass) {
+				List<ChildNode> effectiveChildren, Class<?> parentClass) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
 					parentClass, null);
 		}
 
 		private ElementNodeImpl(ElementNode<T> node,
 				Collection<ElementNode<? super T>> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass, Void flag) {
+				List<ChildNode> effectiveChildren, Class<?> parentClass, Void flag) {
 			super(node, overriddenNodes, effectiveChildren, parentClass);
 
 			baseModel = new ArrayList<>();
@@ -66,30 +67,6 @@ public class ElementNodeConfiguratorImpl<T>
 		@Override
 		public List<Model<? super T>> getBaseModel() {
 			return baseModel;
-		}
-
-		@Override
-		public void unbind(UnbindingChildContext context) {
-			context.queueElement(this);
-		}
-
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		protected void unbindQueued(UnbindingChildContext context) {
-			Iterable<T> data = getData(context.getUnbindingTarget());
-
-			for (T item : data) {
-				ElementNode<T> node = this;
-				if (isAbstract() != null && isAbstract())
-					node = new ElementNodeWrapper(
-							context.getMatchingModels(node, data.getClass()).get(0)
-									.effectiveModel(), node);
-
-				context.beginElement(node.getId());
-				context.pushUnbindingTarget(data);
-				context.processChildren(getChildren());
-				context.popUnbindingTarget();
-				context.endElement();
-			}
 		}
 	}
 

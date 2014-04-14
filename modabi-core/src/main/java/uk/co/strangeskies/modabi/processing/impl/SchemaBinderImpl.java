@@ -22,14 +22,12 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.data.DataInputBuffer;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.StructuredDataInput;
 import uk.co.strangeskies.modabi.data.StructuredDataOutput;
 import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
-import uk.co.strangeskies.modabi.data.impl.DataInputBufferImpl;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
@@ -220,7 +218,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	private class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		private final Model<T> model;
-		private final DataInputBuffer input;
 
 		private final Deque<Object> bindingStack;
 
@@ -228,7 +225,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 			bindingStack = new ArrayDeque<>();
 
 			this.model = model;
-			this.input = new DataInputBufferImpl(input);
 		}
 
 		protected Binding<T> load() {
@@ -245,8 +241,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		public <U> U bind(AbstractModel<U> node) {
-			String name = input.nextChild();
-			String namespace = input.getProperty("xmlns", null);
+			// String name = input.nextChild();
+			// String namespace = input.getProperty("xmlns", null);
 
 			bindingStack.push(provideInstance(node.getBindingClass()));
 			processChildren(node);
@@ -302,7 +298,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public <U> void accept(DataNode<U> node) {
-			invokeInMethod(node, (Object) input.getData(node.type()));
+			// invokeInMethod(node, (Object) input.getData(node.type()));
 		}
 	}
 

@@ -23,7 +23,7 @@ public class ChoiceNodeConfiguratorImpl extends
 
 		public ChoiceNodeImpl(ChoiceNode node,
 				Collection<? extends ChoiceNode> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren) {
+				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
@@ -32,12 +32,6 @@ public class ChoiceNodeConfiguratorImpl extends
 		@Override
 		public final Boolean isMandatory() {
 			return mandatory;
-		}
-
-		@Override
-		public void unbind(UnbindingChildContext context) {
-			// TODO Auto-generated method stub
-
 		}
 	}
 

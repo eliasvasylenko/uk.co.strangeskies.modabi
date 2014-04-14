@@ -12,8 +12,6 @@ public interface DataNodeConfigurator<T> extends
 	@Override
 	public <U extends T> DataNodeConfigurator<U> dataClass(Class<U> dataClass);
 
-	public DataNodeConfigurator<T> value(T data);
-
 	public DataNodeConfigurator<T> value(DataSource dataSource);
 
 	public DataNodeConfigurator<T> optional(boolean optional);

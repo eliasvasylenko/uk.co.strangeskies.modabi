@@ -4,10 +4,11 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.data.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 
@@ -17,7 +18,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	protected static class DataNodeImpl<T> extends BindingChildNodeImpl<T>
 			implements DataNode<T> {
 		private final DataType<T> type;
-		private final T value;
+		private final BufferedDataSource value;
 		private final Format format;
 		private final Boolean optional;
 
@@ -28,16 +29,11 @@ public class DataNodeConfiguratorImpl<T> extends
 			type = configurator.type;
 			optional = configurator.optional;
 
-			value = configurator.value != null ? configurator.value
-					: loadValue(configurator.valueSource);
-		}
-
-		private T loadValue(DataSource valueSource) {
-			return null;
+			value = configurator.value;
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
-				List<ChildNodeImpl> effectiveChildren, Class<?> parentClass) {
+				List<ChildNode> effectiveChildren, Class<?> parentClass) {
 			super(node, overriddenNodes, effectiveChildren, parentClass);
 
 			type = getValue(node, overriddenNodes, n -> n.type());
@@ -59,7 +55,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public final T value() {
+		public BufferedDataSource value() {
 			return value;
 		}
 
@@ -72,45 +68,12 @@ public class DataNodeConfiguratorImpl<T> extends
 		public final Boolean optional() {
 			return optional;
 		}
-
-		@Override
-		public final void unbind(UnbindingChildContext context) {
-			TerminatingDataTarget sink;
-
-			if (format() != null)
-				switch (format()) {
-				case PROPERTY:
-					sink = context.property(getId());
-					break;
-				case SIMPLE_ELEMENT:
-					sink = context.simpleElement(getId());
-				case CONTENT:
-					sink = context.content();
-				default:
-					throw new AssertionError();
-				}
-			else
-				sink = context.getOpenDataTarget();
-
-			Iterable<T> data = getData(context.getUnbindingTarget());
-
-			for (T item : data)
-				sink.string("" + item);
-
-			context.pushUnbindingTarget(data);
-			context.processChildren(getChildren());
-			context.popUnbindingTarget();
-
-			if (format() != null)
-				context.endData();
-		}
 	}
 
 	public Format format;
 
 	private DataType<T> type;
-	private T value;
-	private DataSource valueSource;
+	private BufferedDataSource value;
 
 	private Boolean optional;
 
@@ -137,19 +100,9 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public final DataNodeConfigurator<T> value(T data) {
-		requireConfigurable(value);
-		requireConfigurable(valueSource);
-		value = data;
-
-		return getThis();
-	}
-
-	@Override
 	public DataNodeConfigurator<T> value(DataSource dataSource) {
 		requireConfigurable(value);
-		requireConfigurable(valueSource);
-		valueSource = dataSource;
+		value = dataSource.buffer();
 
 		return getThis();
 	}
