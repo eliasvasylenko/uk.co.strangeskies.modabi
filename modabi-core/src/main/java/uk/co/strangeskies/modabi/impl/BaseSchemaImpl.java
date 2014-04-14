@@ -8,11 +8,10 @@ import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.DataInterface;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.data.DataSource;
+import uk.co.strangeskies.modabi.data.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.DataTarget;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
@@ -72,7 +71,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		private <T> DataType<T> primitiveType(String name, Class<T> dataClass,
 				DataTypeBuilder builder) {
 			return builder.configure().name(name).dataClass(dataClass)
-					.bindingClass(DataSource.class)
+					.bindingClass(BufferedDataSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(DataTarget.class)
 					.unbindingStrategy(UnbindingStrategy.PROVIDED).create();
@@ -127,7 +126,7 @@ public class BaseSchemaImpl implements BaseSchema {
 	private class BuiltInTypesImpl implements BuiltInTypes {
 		private final DataType<QualifiedName> qualifiedNameType;
 		private final DataType<Object> referenceType;
-		private final DataType<DataInterface> bufferedDataType;
+		private final DataType<BufferedDataSource> bufferedDataType;
 
 		public BuiltInTypesImpl(DataTypeBuilder builder, Set<DataType<?>> typeSet) {
 			qualifiedNameType = builder.configure().name("qualifiedName")
@@ -139,7 +138,7 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(referenceType);
 
 			bufferedDataType = builder.configure().name("bufferedData")
-					.dataClass(DataInterface.class).create();
+					.dataClass(BufferedDataSource.class).create();
 		}
 
 		@Override
@@ -153,7 +152,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public DataType<DataInterface> bufferedDataType() {
+		public DataType<BufferedDataSource> bufferedDataType() {
 			return bufferedDataType;
 		}
 	}

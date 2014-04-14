@@ -21,6 +21,4 @@ public interface DataSource {
 	public double doubleValue();
 
 	public boolean booleanValue();
-
-	public BufferedDataSource buffer();
 }

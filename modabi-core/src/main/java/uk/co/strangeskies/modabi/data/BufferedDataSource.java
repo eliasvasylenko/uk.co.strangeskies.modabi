@@ -3,8 +3,11 @@ package uk.co.strangeskies.modabi.data;
 public interface BufferedDataSource extends DataSource {
 	BufferedDataSource reset();
 
-	@Override
-	public default BufferedDataSource buffer() {
-		return this;
+	int size();
+
+	default BufferedDataSource dump(DataTarget target) {
+		return dump(target, size());
 	}
+
+	BufferedDataSource dump(DataTarget target, int items);
 }

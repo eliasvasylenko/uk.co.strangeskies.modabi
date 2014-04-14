@@ -15,6 +15,7 @@ import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
+import uk.co.strangeskies.modabi.data.impl.BufferingDataTargetImpl;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
@@ -240,26 +241,47 @@ public class MetaSchemaImpl implements MetaSchema {
 		modelSet.add(optionalModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<DataNode> contentModel = model.configure().id("content")
-				.baseModel(typedDataModel, optionalModel).isAbstract(false)
-				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
-				.addChild(n -> n.data().id("format").value(null))
+		Model<DataNode> contentModel = model
+				.configure()
+				.id("content")
+				.baseModel(typedDataModel, optionalModel)
+				.isAbstract(false)
+				.dataClass(DataNode.class)
+				.bindingClass(DataNodeConfigurator.class)
+				.addChild(
+						n -> n.data().id("format")
+								.value(new BufferingDataTargetImpl().string("Content").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<DataNode> propertyModel = model.configure().id("property")
-				.isAbstract(false).baseModel(typedDataModel, optionalModel)
-				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
-				.addChild(n -> n.data().id("format").value(Format.PROPERTY))
+		Model<DataNode> propertyModel = model
+				.configure()
+				.id("property")
+				.isAbstract(false)
+				.baseModel(typedDataModel, optionalModel)
+				.dataClass(DataNode.class)
+				.bindingClass(DataNodeConfigurator.class)
+				.addChild(
+						n -> n.data().id("format")
+								.value(new BufferingDataTargetImpl().string("Property").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<DataNode> simpleElementModel = model.configure().id("simpleElement")
-				.isAbstract(false).baseModel(typedDataModel, optionalModel)
-				.dataClass(DataNode.class).bindingClass(DataNodeConfigurator.class)
-				.addChild(n -> n.data().id("format").value(Format.SIMPLE_ELEMENT))
+		Model<DataNode> simpleElementModel = model
+				.configure()
+				.id("simpleElement")
+				.isAbstract(false)
+				.baseModel(typedDataModel, optionalModel)
+				.dataClass(DataNode.class)
+				.bindingClass(DataNodeConfigurator.class)
+				.addChild(
+						n -> n
+								.data()
+								.id("format")
+								.value(
+										new BufferingDataTargetImpl().string("Simple Element").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(simpleElementModel);
 

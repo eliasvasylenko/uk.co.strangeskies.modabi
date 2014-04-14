@@ -5,7 +5,6 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.BufferedDataSource;
-import uk.co.strangeskies.modabi.data.DataSource;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -100,9 +99,8 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataNodeConfigurator<T> value(DataSource dataSource) {
+	public DataNodeConfigurator<T> value(BufferedDataSource dataSource) {
 		requireConfigurable(value);
-		value = dataSource.buffer();
 
 		return getThis();
 	}
