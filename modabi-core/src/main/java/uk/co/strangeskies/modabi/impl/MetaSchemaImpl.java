@@ -15,7 +15,7 @@ import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
-import uk.co.strangeskies.modabi.data.impl.BufferingDataTargetImpl;
+import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
@@ -250,7 +250,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n.data().id("format")
-								.value(new BufferingDataTargetImpl().string("Content").buffer()))
+								.value(BufferedDataSource.from().string("Content").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 
@@ -264,7 +264,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n.data().id("format")
-								.value(new BufferingDataTargetImpl().string("Property").buffer()))
+								.value(BufferedDataSource.from().string("Property").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
 
@@ -281,7 +281,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.data()
 								.id("format")
 								.value(
-										new BufferingDataTargetImpl().string("Simple Element").buffer()))
+										BufferedDataSource.from().string("Simple Element").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(simpleElementModel);
 

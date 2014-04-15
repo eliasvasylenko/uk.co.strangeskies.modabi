@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.data;
+package uk.co.strangeskies.modabi.data.io;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.processing;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.data.StructuredDataOutput;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataOutput;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 

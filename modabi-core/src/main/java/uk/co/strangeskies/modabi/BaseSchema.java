@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.data.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 

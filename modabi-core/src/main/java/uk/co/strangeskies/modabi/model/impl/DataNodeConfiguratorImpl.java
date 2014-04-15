@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.data.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;

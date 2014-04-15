@@ -5,8 +5,8 @@ import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import uk.co.strangeskies.modabi.data.StructuredDataOutput;
-import uk.co.strangeskies.modabi.data.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataOutput;
 
 public class XMLOutput implements StructuredDataOutput {
 	private String indent = "";

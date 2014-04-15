@@ -1,4 +1,6 @@
-package uk.co.strangeskies.modabi.data;
+package uk.co.strangeskies.modabi.data.io.structured;
+
+import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 
 public interface StructuredDataOutput {
 	public void childElement(String name);
