@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
@@ -39,7 +41,6 @@ import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.impl.ElementNodeWrapper;
 import uk.co.strangeskies.modabi.model.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
@@ -69,8 +70,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private TerminatingDataTarget sink;
 
-		public SchemaSavingContext(Model<T> model, StructuredOutput output,
-				T data) {
+		public SchemaSavingContext(Model<T> model, StructuredOutput output, T data) {
 			bindingStack = new ArrayDeque<>();
 
 			this.output = output;
@@ -78,24 +78,17 @@ public class SchemaBinderImpl implements SchemaBinder {
 			unbindModelData(model.effectiveModel(), data);
 		}
 
-		private void processChildren(SequenceNode node) {
-			processChildren(node, bindingStack.peek().binding);
-		}
-
-		private void processChildren(SchemaNode node, Object binding) {
-			bindingStack.push(new StackContext(binding));
-
-			for (ChildNode child : node.getChildren())
-				child.process(this);
-
-			bindingStack.pop();
+		@Override
+		public <U> void accept(ElementNode<U> node) {
+			for (U child : bindData(node))
+				unbindElementData(node, child);
 		}
 
 		@Override
 		public <U> void accept(DataNode<U> node) {
-			U data = getData(node);
+			List<U> data = bindData(node);
 
-			if (data != null) {
+			if (!data.isEmpty()) {
 				if (sink != null && node.format() != null)
 					throw new SchemaException();
 
@@ -109,8 +102,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 					sink = output.content();
 				}
 
-				sink.string("" + data);
-				unbindData(node, data);
+				for (U item : data) {
+					sink.string("" + item);
+					processBindingChildren(node, item);
+				}
 
 				if (node.format() != null) {
 					sink.terminate();
@@ -121,20 +116,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
-		private <U> U getData(final BindingChildNode<U> node) {
-			if (node.getDataClass() != null) {
-				Object parent = bindingStack.peek().binding;
-
-				try {
-					return (U) node.getOutMethod().invoke(parent);
-				} catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
-					new SchemaException(node.getId() + " @ " + parent.getClass(), e)
-							.printStackTrace();
-				}
-			}
-			return null;
+		@Override
+		public void accept(SequenceNode node) {
+			processChildren(node);
 		}
 
 		@Override
@@ -142,13 +126,21 @@ public class SchemaBinderImpl implements SchemaBinder {
 			// processChildren(node); TODO
 		}
 
-		@Override
-		public void accept(SequenceNode node) {
+		private void processChildren(SchemaNode node) {
+			for (ChildNode child : node.getChildren())
+				child.process(this);
+		}
+
+		private void processBindingChildren(SchemaNode node, Object binding) {
+			bindingStack.push(new StackContext(binding));
+
 			processChildren(node);
+
+			bindingStack.pop();
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		// TODO this should work without this, file eclipse bug
+		// TODO should work without second type parameter & warning suppression
 		private <U, V extends U> void unbindElementData(ElementNode<V> node, U data) {
 			if (node.isAbstract() != null && node.isAbstract())
 				node = new ElementNodeWrapper(registeredModels
@@ -159,17 +151,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private <U> void unbindModelData(AbstractModel<? extends U> node, U data) {
 			output.childElement(node.getId());
-			unbindData(node, data);
+			processBindingChildren(node, data);
 			output.endElement();
 		}
 
-		private <U> void unbindData(BindingNode<? extends U> node, U data) {
-			processChildren(node, data);
-		}
-
 		@SuppressWarnings("unchecked")
-		@Override
-		public <U> void accept(ElementNode<U> node) {
+		public <U> List<U> bindData(BindingChildNode<U> node) {
 			Object parent = bindingStack.peek().binding;
 
 			if (node.getDataClass() == null)
@@ -177,19 +164,24 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 			try {
 				if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
-					Iterable<Object> iterable = null;
+					Iterable<U> iterable = null;
 					if (node.getOutMethodName() == "this")
-						iterable = (Iterable<Object>) parent;
+						iterable = (Iterable<U>) parent;
 					else
-						iterable = (Iterable<Object>) node.getOutMethod().invoke(parent);
+						iterable = (Iterable<U>) node.getOutMethod().invoke(parent);
 
-					for (Object child : iterable)
-						unbindElementData(node, (U) child);
-				} else
-					unbindElementData(node, (U) node.getOutMethod().invoke(parent));
+					return StreamSupport.stream(iterable.spliterator(), false)
+							.filter(Objects::nonNull).collect(Collectors.toList());
+				} else {
+					U item = (U) node.getOutMethod().invoke(parent);
+					if (item == null)
+						return new ArrayList<>();
+					else
+						return Arrays.asList(item);
+				}
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new SchemaException(node.getId() + " @ " + parent.getClass(), e);
 			}
 		}
 	}
@@ -349,8 +341,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public <T> void processOutput(Model<T> model, StructuredOutput output,
-			T data) {
+	public <T> void processOutput(Model<T> model, StructuredOutput output, T data) {
 		new SchemaSavingContext<>(model, output, data);
 	}
 

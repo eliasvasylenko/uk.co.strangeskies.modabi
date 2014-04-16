@@ -7,174 +7,168 @@ import java.util.Collections;
 import java.util.List;
 
 public interface BufferedDataSource extends TerminatingDataSource {
-	class BufferingDataTargetImpl implements BufferingDataTarget {
-		class BufferedDataSourceImpl implements BufferedDataSource {
-			private final List<DataSource> dataSequence;
-			private int index;
+	void reset();
 
-			public BufferedDataSourceImpl(List<DataSource> dataSequence) {
-				index = 0;
-				this.dataSequence = dataSequence;
+	public static BufferingDataTarget from() {
+		return new BufferingDataTarget() {
+			class BufferedDataSourceImpl implements BufferedDataSource {
+				private final List<DataSource> dataSequence;
+				private int index;
+
+				public BufferedDataSourceImpl(List<DataSource> dataSequence) {
+					index = 0;
+					this.dataSequence = dataSequence;
+				}
+
+				@Override
+				public String string() {
+					return dataSequence.get(index++).string();
+				}
+
+				@Override
+				public long longValue() {
+					return dataSequence.get(index++).longValue();
+				}
+
+				@Override
+				public BigInteger integer() {
+					return dataSequence.get(index++).integer();
+				}
+
+				@Override
+				public int intValue() {
+					return dataSequence.get(index++).intValue();
+				}
+
+				@Override
+				public float floatValue() {
+					return dataSequence.get(index++).floatValue();
+				}
+
+				@Override
+				public double doubleValue() {
+					return dataSequence.get(index++).doubleValue();
+				}
+
+				@Override
+				public BigDecimal decimal() {
+					return dataSequence.get(index++).decimal();
+				}
+
+				@Override
+				public boolean booleanValue() {
+					return dataSequence.get(index++).booleanValue();
+				}
+
+				@Override
+				public byte[] binary() {
+					return dataSequence.get(index++).binary();
+				}
+
+				@Override
+				public int size() {
+					return dataSequence.size();
+				}
+
+				@Override
+				public void reset() {
+					index = 0;
+				}
+
+				@Override
+				public <T extends DataTarget> T pipe(T target, int items) {
+					for (int start = index; index < start; index++)
+						dataSequence.get(index).pipeNext(target);
+
+					return target;
+				}
+
+				@Override
+				public BufferedDataSource buffer() {
+					return buffer(dataSequence.size() - index);
+				}
+
+				@Override
+				public BufferedDataSource buffer(int items) {
+					return new BufferedDataSourceImpl(dataSequence.subList(index, index
+							+ items));
+				}
+			}
+
+			private List<DataSource> dataSequence = new ArrayList<>();
+			private boolean terminated;
+
+			@Override
+			public BufferingDataTarget binary(byte[] value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public String string() {
-				return dataSequence.get(index++).string();
+			public BufferingDataTarget string(String value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public long longValue() {
-				return dataSequence.get(index++).longValue();
+			public BufferingDataTarget integer(BigInteger value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public BigInteger integer() {
-				return dataSequence.get(index++).integer();
+			public BufferingDataTarget decimal(BigDecimal value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public int intValue() {
-				return dataSequence.get(index++).intValue();
+			public BufferingDataTarget intValue(int value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public float floatValue() {
-				return dataSequence.get(index++).floatValue();
+			public BufferingDataTarget longValue(long value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public double doubleValue() {
-				return dataSequence.get(index++).doubleValue();
+			public BufferingDataTarget floatValue(float value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public BigDecimal decimal() {
-				return dataSequence.get(index++).decimal();
+			public BufferingDataTarget doubleValue(double value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
-			public boolean booleanValue() {
-				return dataSequence.get(index++).booleanValue();
-			}
-
-			@Override
-			public byte[] binary() {
-				return dataSequence.get(index++).binary();
-			}
-
-			@Override
-			public int size() {
-				return dataSequence.size();
-			}
-
-			@Override
-			public void reset() {
-				index = 0;
-			}
-
-			@Override
-			public <T extends DataTarget> T pipe(T target, int items) {
-				for (int start = index; index < start; index++)
-					dataSequence.get(index).pipeNext(target);
-
-				return target;
+			public BufferingDataTarget booleanValue(boolean value) {
+				dataSequence.add(DataSource.repeat(value));
+				return this;
 			}
 
 			@Override
 			public BufferedDataSource buffer() {
-				return buffer(dataSequence.size() - index);
+				terminate();
+				return new BufferedDataSourceImpl(dataSequence);
 			}
 
 			@Override
-			public BufferedDataSource buffer(int items) {
-				return new BufferedDataSourceImpl(dataSequence.subList(index, index
-						+ items));
+			public void terminate() {
+				if (!terminated)
+					dataSequence = Collections.unmodifiableList(dataSequence);
+				terminated = true;
 			}
-		}
 
-		private List<DataSource> dataSequence;
-		private boolean terminated;
-
-		public BufferingDataTargetImpl() {
-			dataSequence = new ArrayList<>();
-		}
-
-		@Override
-		public BufferingDataTarget binary(byte[] value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget string(String value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget integer(BigInteger value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget decimal(BigDecimal value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget intValue(int value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget longValue(long value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget floatValue(float value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget doubleValue(double value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferingDataTarget booleanValue(boolean value) {
-			dataSequence.add(DataSource.repeat(value));
-			return this;
-		}
-
-		@Override
-		public BufferedDataSource buffer() {
-			if (!terminated)
-				throw new IllegalStateException();
-			return new BufferedDataSourceImpl(dataSequence);
-		}
-
-		@Override
-		public void terminate() {
-			dataSequence = Collections.unmodifiableList(dataSequence);
-			terminated = true;
-		}
-
-		@Override
-		public boolean isTerminated() {
-			return terminated;
-		}
-	}
-
-	void reset();
-
-	public static BufferingDataTarget from() {
-		return new BufferingDataTargetImpl();
+			@Override
+			public boolean isTerminated() {
+				return terminated;
+			}
+		};
 	}
 }

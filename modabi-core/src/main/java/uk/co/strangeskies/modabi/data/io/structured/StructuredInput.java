@@ -13,7 +13,7 @@ public interface StructuredInput {
 
 	public TerminatingDataSource content();
 
-	public boolean endElement();
+	public void endElement();
 
 	public default <T extends StructuredOutput> T pipeNextChild(T output) {
 		String childElement;
