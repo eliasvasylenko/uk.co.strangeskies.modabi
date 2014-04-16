@@ -31,5 +31,7 @@ public interface TerminatingDataTarget extends DataTarget {
 	@Override
 	public TerminatingDataTarget booleanValue(boolean value);
 
-	public void end();
+	public void terminate();
+
+	public boolean isTerminated();
 }

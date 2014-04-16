@@ -6,9 +6,9 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataOutput;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredOutput;
 
-public class XMLOutput implements StructuredDataOutput {
+public class XMLOutput implements StructuredOutput {
 	private String indent = "";
 
 	boolean openingElement = false;
@@ -72,6 +72,7 @@ public class XMLOutput implements StructuredDataOutput {
 
 		return new TerminatingDataTarget() {
 			boolean compound = false;
+			private boolean terminated;
 
 			private void next(Object value) {
 				if (compound)
@@ -136,11 +137,18 @@ public class XMLOutput implements StructuredDataOutput {
 			}
 
 			@Override
-			public void end() {
+			public void terminate() {
 				if (property)
 					System.out.print('"');
 				else
 					System.out.println();
+
+				terminated = true;
+			}
+
+			@Override
+			public boolean isTerminated() {
+				return terminated;
 			}
 		};
 	}

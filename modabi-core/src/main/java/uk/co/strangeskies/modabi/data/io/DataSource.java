@@ -25,7 +25,13 @@ public interface DataSource {
 
 	public <T extends DataTarget> T pipe(T target, int items);
 
-	public BufferedDataSource buffer(int items);
+	public default <T extends DataTarget> T pipeNext(T target) {
+		return pipe(target, 1);
+	}
+
+	public default BufferedDataSource buffer(int items) {
+		return pipe(BufferedDataSource.from(), items).buffer();
+	}
 
 	public static DataSource repeat(byte[] data) {
 		return new RepeatingDataSource(c -> c.binary(data)) {
@@ -169,11 +175,6 @@ public interface DataSource {
 				dumpValue.accept(target);
 
 			return target;
-		}
-
-		@Override
-		public BufferedDataSource buffer(int items) {
-			return pipe(BufferedDataSource.from(), items).buffer();
 		}
 	}
 }

@@ -26,10 +26,9 @@ import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataInput;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataOutput;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredInput;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredOutput;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.impl.SchemaBuilderImpl;
@@ -64,13 +63,13 @@ public class SchemaBinderImpl implements SchemaBinder {
 			}
 		}
 
-		private final StructuredDataOutput output;
+		private final StructuredOutput output;
 
 		private final Deque<StackContext> bindingStack;
 
 		private TerminatingDataTarget sink;
 
-		public SchemaSavingContext(Model<T> model, StructuredDataOutput output,
+		public SchemaSavingContext(Model<T> model, StructuredOutput output,
 				T data) {
 			bindingStack = new ArrayDeque<>();
 
@@ -114,10 +113,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 				unbindData(node, data);
 
 				if (node.format() != null) {
-					sink.end();
+					sink.terminate();
 					sink = null;
 					if (node.format() == Format.SIMPLE_ELEMENT)
-						;?
+						output.endElement();
 				}
 			}
 		}
@@ -201,7 +200,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private final Deque<Object> bindingStack;
 
-		public SchemaLoadingContext(Model<T> model, StructuredDataInput input) {
+		public SchemaLoadingContext(Model<T> model, StructuredInput input) {
 			bindingStack = new ArrayDeque<>();
 
 			this.model = model;
@@ -328,7 +327,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public <T> T processInput(Model<T> model, StructuredDataInput input) {
+	public <T> T processInput(Model<T> model, StructuredInput input) {
 		return new SchemaLoadingContext<>(model, input).load().getData();
 	}
 
@@ -343,20 +342,20 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public Binding<?> processInput(StructuredDataInput input) {
+	public Binding<?> processInput(StructuredInput input) {
 		Model<?> model = null;
 		// input.peekNext(model);
 		return new SchemaLoadingContext<>(model, input).load();
 	}
 
 	@Override
-	public <T> void processOutput(Model<T> model, StructuredDataOutput output,
+	public <T> void processOutput(Model<T> model, StructuredOutput output,
 			T data) {
 		new SchemaSavingContext<>(model, output, data);
 	}
 
 	@Override
-	public <T> void processOutput(StructuredDataOutput output, T data) {
+	public <T> void processOutput(StructuredOutput output, T data) {
 		Model<T> model = null;
 		// registeredModels.search(data.getClass());
 		new SchemaSavingContext<>(model, output, data);
