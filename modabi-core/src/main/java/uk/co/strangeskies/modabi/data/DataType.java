@@ -22,5 +22,7 @@ public interface DataType<T> {
 
 	Method getUnbindingMethod();
 
+	String getUnbindingMethodName();
+
 	List<DataNode<?>> getChildren();
 }

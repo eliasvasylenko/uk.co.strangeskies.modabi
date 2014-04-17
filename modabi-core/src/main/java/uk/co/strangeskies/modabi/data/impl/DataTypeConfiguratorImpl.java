@@ -10,6 +10,7 @@ import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.impl.BindingNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.impl.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
@@ -27,6 +28,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 		private final UnbindingStrategy unbindingStrategy;
 		private final Class<?> unbindingClass;
+		private final String unbindingMethodName;
 		private final Method unbindingMethod;
 
 		private final List<DataNode<?>> properties;
@@ -41,7 +43,9 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 			unbindingStrategy = configurator.unbindingStrategy;
 			unbindingClass = configurator.unbindingClass;
 
-			unbindingMethod = null;// configurator.unbindingMethod;
+			unbindingMethodName = configurator.unbindingMethodName;
+			unbindingMethod = BindingNodeConfiguratorImpl.findUnbindingMethod(name,
+					unbindingStrategy, unbindingMethodName, unbindingClass, dataClass);
 
 			properties = Collections.unmodifiableList(new ArrayList<>(
 					configurator.properties));
@@ -86,6 +90,11 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		public Method getUnbindingMethod() {
 			return unbindingMethod;
 		}
+
+		@Override
+		public String getUnbindingMethodName() {
+			return unbindingMethodName;
+		}
 	}
 
 	private String name;
@@ -97,7 +106,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	private UnbindingStrategy unbindingStrategy;
 	private Class<?> unbindingClass;
 
-	private String unbindingMethod;
+	private String unbindingMethodName;
 
 	private final List<DataNode<?>> properties;
 
@@ -156,8 +165,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 	@Override
 	public DataTypeConfigurator<T> unbindingMethod(String name) {
-		requireConfigurable(unbindingMethod);
-		unbindingMethod = name;
+		requireConfigurable(unbindingMethodName);
+		unbindingMethodName = name;
 
 		return this;
 	}

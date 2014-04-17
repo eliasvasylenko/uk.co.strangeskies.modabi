@@ -1,9 +1,11 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -34,7 +36,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingStrategy = configurator.unbindingStrategy;
 			unbindingClass = configurator.unbindingClass;
 			unbindingMethodName = configurator.unbindingMethod;
-			unbindingMethod = null; // TODO
+
+			unbindingMethod = findUnbindingMethod(getId(), unbindingStrategy,
+					unbindingMethodName, unbindingClass, dataClass);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -65,27 +69,27 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
-		public final Class<T> getDataClass() {
+		public Class<T> getDataClass() {
 			return dataClass;
 		}
 
 		@Override
-		public final BindingStrategy getBindingStrategy() {
+		public BindingStrategy getBindingStrategy() {
 			return bindingStrategy;
 		}
 
 		@Override
-		public final UnbindingStrategy getUnbindingStrategy() {
+		public UnbindingStrategy getUnbindingStrategy() {
 			return unbindingStrategy;
 		}
 
 		@Override
-		public final Class<?> getBindingClass() {
+		public Class<?> getBindingClass() {
 			return bindingClass;
 		}
 
 		@Override
-		public final Class<?> getUnbindingClass() {
+		public Class<?> getUnbindingClass() {
 			return unbindingClass;
 		}
 
@@ -174,5 +178,43 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		unbindingStrategy = strategy;
 
 		return getThis();
+	}
+
+	public static Method findUnbindingMethod(String propertyName,
+			UnbindingStrategy unbindingStrategy, String unbindingMethodName,
+			Class<?> unbindingClass, Class<?> dataClass) {
+		Method unbindingMethod;
+
+		if (unbindingStrategy == UnbindingStrategy.SIMPLE
+				|| unbindingStrategy == null) {
+			if (unbindingClass != null || unbindingMethodName != null)
+				throw new SchemaException();
+			unbindingMethod = null;
+		} else if (unbindingStrategy == UnbindingStrategy.CONSTRUCTOR) {
+			if (unbindingMethodName != null)
+				throw new SchemaException();
+			unbindingMethod = null;
+		} else {
+			unbindingClass = unbindingClass != null ? unbindingClass : dataClass;
+
+			try {
+				List<String> names;
+				if (unbindingMethodName != null)
+					names = Arrays.asList(unbindingMethodName);
+				else if (unbindingStrategy == UnbindingStrategy.PROVIDED)
+					names = BindingNodeConfigurator.generateInMethodNames(propertyName);
+				else if (unbindingStrategy == UnbindingStrategy.STATIC_FACTORY)
+					names = BindingNodeConfigurator.generateInMethodNames(unbindingClass
+							.getSimpleName());
+				else
+					throw new AssertionError();
+
+				unbindingMethod = BindingNodeConfigurator.findMethod(names,
+						unbindingClass, null, dataClass);
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new SchemaException(e);
+			}
+		}
+		return unbindingMethod;
 	}
 }

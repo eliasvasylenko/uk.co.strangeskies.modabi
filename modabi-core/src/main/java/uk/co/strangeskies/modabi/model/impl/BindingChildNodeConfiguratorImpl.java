@@ -11,9 +11,9 @@ import java.util.Objects;
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.BindingChildNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.processing.impl.SchemaBinderImpl;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -49,9 +49,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						: getDataClass();
 				outMethod = (getId() == null || outputClass == null
 						|| resultClass == null || outMethodName == "this") ? null
-						: SchemaBinderImpl.findMethod(
-								SchemaBinderImpl.generateOutMethodNames(this, resultClass),
-								outputClass, resultClass);
+						: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
+								.generateOutMethodNames(this, resultClass), outputClass,
+								resultClass);
 
 			} catch (NoSuchMethodException | SecurityException e) {
 			}
@@ -90,9 +90,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			try {
 				outMethod = outMethodName == "this" ? null
 						: inheritedOutMethod != null ? inheritedOutMethod
-								: SchemaBinderImpl.findMethod(
-										SchemaBinderImpl.generateOutMethodNames(this), parentClass,
-										resultClass);
+								: BindingNodeConfigurator.findMethod(
+										BindingNodeConfigurator.generateOutMethodNames(this),
+										parentClass, resultClass);
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException(e);
 			}

@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.processing.impl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,10 +8,9 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
@@ -28,6 +26,7 @@ import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredInput;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredOutput;
@@ -75,18 +74,18 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 			this.output = output;
 
-			unbindModelData(model.effectiveModel(), data);
+			unbindModel(model.effectiveModel(), data);
 		}
 
 		@Override
 		public <U> void accept(ElementNode<U> node) {
-			for (U child : bindData(node))
-				unbindElementData(node, child);
+			for (Object child : unbindData(node, getData(node)))
+				unbindElement(node, child);
 		}
 
 		@Override
 		public <U> void accept(DataNode<U> node) {
-			List<U> data = bindData(node);
+			List<U> data = getData(node);
 
 			if (!data.isEmpty()) {
 				if (sink != null && node.format() != null)
@@ -102,10 +101,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 					sink = output.content();
 				}
 
-				for (U item : data) {
-					sink.string("" + item);
+				for (Object item : unbindData(node, data))
 					processBindingChildren(node, item);
-				}
 
 				if (node.format() != null) {
 					sink.terminate();
@@ -126,6 +123,14 @@ public class SchemaBinderImpl implements SchemaBinder {
 			// processChildren(node); TODO
 		}
 
+		@SuppressWarnings("unchecked")
+		private <U> U provide(Class<U> clazz) {
+			if (clazz.equals(DataTarget.class))
+				return (U) sink;
+
+			return SchemaBinderImpl.this.provide(clazz);
+		}
+
 		private void processChildren(SchemaNode node) {
 			for (ChildNode child : node.getChildren())
 				child.process(this);
@@ -141,26 +146,28 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		// TODO should work without second type parameter & warning suppression
-		private <U, V extends U> void unbindElementData(ElementNode<V> node, U data) {
+		private <U, V extends U> void unbindElement(ElementNode<V> node, U data) {
 			if (node.isAbstract() != null && node.isAbstract())
 				node = new ElementNodeWrapper(registeredModels
 						.getMatchingModels(node, data.getClass()).get(0).effectiveModel(),
 						node);
-			unbindModelData(node, data);
+			unbindModel(node, data);
 		}
 
-		private <U> void unbindModelData(AbstractModel<? extends U> node, U data) {
+		private <U> void unbindModel(AbstractModel<? extends U> node, U data) {
 			output.childElement(node.getId());
 			processBindingChildren(node, data);
 			output.endElement();
 		}
 
 		@SuppressWarnings("unchecked")
-		public <U> List<U> bindData(BindingChildNode<U> node) {
+		public <U> List<U> getData(BindingChildNode<U> node) {
 			Object parent = bindingStack.peek().binding;
 
 			if (node.getDataClass() == null)
 				throw new SchemaException(node.getId());
+
+			List<U> itemList;
 
 			try {
 				if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
@@ -170,19 +177,71 @@ public class SchemaBinderImpl implements SchemaBinder {
 					else
 						iterable = (Iterable<U>) node.getOutMethod().invoke(parent);
 
-					return StreamSupport.stream(iterable.spliterator(), false)
+					itemList = StreamSupport.stream(iterable.spliterator(), false)
 							.filter(Objects::nonNull).collect(Collectors.toList());
 				} else {
 					U item = (U) node.getOutMethod().invoke(parent);
 					if (item == null)
-						return new ArrayList<>();
+						itemList = new ArrayList<>();
 					else
-						return Arrays.asList(item);
+						itemList = Arrays.asList(item);
 				}
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
 				throw new SchemaException(node.getId() + " @ " + parent.getClass(), e);
 			}
+			return itemList;
+		}
+
+		public <U> List<Object> unbindData(BindingChildNode<U> node, List<U> data) {
+			Function<Object, Object> supplier = Function.identity();
+			if (node.getUnbindingStrategy() != null) {
+				switch (node.getUnbindingStrategy()) {
+				case SIMPLE:
+					break;
+				case PROVIDED:
+					supplier = u -> {
+						try {
+							Object o = provide(node.getUnbindingClass());
+							if (o == null)
+								throw new IllegalArgumentException(node.getUnbindingClass()
+										.getName());
+							node.getUnbindingMethod().invoke(o, u);
+							return o;
+						} catch (IllegalAccessException | IllegalArgumentException
+								| InvocationTargetException | SecurityException e) {
+							throw new SchemaException(e);
+						}
+					};
+					break;
+				case CONSTRUCTOR:
+					supplier = u -> {
+						try {
+							return node.getUnbindingClass().getConstructor(u.getClass())
+									.newInstance(u);
+						} catch (InstantiationException | IllegalAccessException
+								| IllegalArgumentException | InvocationTargetException
+								| NoSuchMethodException | SecurityException e) {
+							throw new SchemaException(e);
+						}
+					};
+					break;
+				case STATIC_FACTORY:
+					supplier = u -> {
+						try {
+							return node.getUnbindingMethod().invoke(null, u);
+						} catch (IllegalAccessException | IllegalArgumentException
+								| InvocationTargetException | SecurityException e) {
+							throw new SchemaException(e);
+						}
+					};
+					break;
+				}
+			}
+			List<Object> itemList = data.stream().map(supplier::apply)
+					.collect(Collectors.toList());
+
+			return itemList;
 		}
 	}
 
@@ -352,86 +411,19 @@ public class SchemaBinderImpl implements SchemaBinder {
 		new SchemaSavingContext<>(model, output, data);
 	}
 
-	public static Method findMethod(List<String> names, Class<?> receiver,
-			Class<?> result, Class<?>... parameter) throws NoSuchMethodException {
-		for (String methodName : names) {
-			try {
-				Method method = receiver.getMethod(methodName, parameter);
-				if (method != null && result == null
-						|| ClassUtils.isAssignable(method.getReturnType(), result, true))
-					return method;
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
-		}
-		throw new NoSuchMethodException("For "
-				+ names
-				+ " in "
-				+ receiver
-				+ " as [ "
-				+ Arrays.asList(parameter).stream().map(p -> p.getName())
-						.collect(Collectors.joining(", ")) + " ] -> " + result);
-	}
-
-	public static List<String> generateInMethodNames(BindingChildNode<?> node) {
-		if (node.getInMethodName() != null)
-			return Arrays.asList(node.getInMethodName());
-		else
-			return generateInMethodNames(node.getId());
+	@Override
+	public <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
+		// TODO Auto-generated method stub
 
 	}
 
-	public static List<String> generateInMethodNames(String propertyName) {
-		List<String> names = new ArrayList<>();
+	@Override
+	public void registerProvider(Function<Class<?>, ?> provider) {
+		// TODO Auto-generated method stub
 
-		names.add(propertyName);
-		for (String name : new String[] { propertyName, "" }) {
-			names.add("set" + capitalize(name));
-			names.add("from" + capitalize(name));
-			names.add("parse" + capitalize(name));
-			names.add("add" + capitalize(name));
-			names.add("put" + capitalize(name));
-		}
-
-		return names;
 	}
 
-	public static List<String> generateOutMethodNames(BindingChildNode<?> node) {
-		return generateOutMethodNames(node, node.getDataClass());
-	}
-
-	public static List<String> generateOutMethodNames(BindingChildNode<?> node,
-			Class<?> resultClass) {
-
-		List<String> names = new ArrayList<>();
-
-		if (node.getOutMethodName() != null)
-			names.add(node.getOutMethodName());
-		else {
-			names.add(node.getId());
-			if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
-				names.add(node.getId() + "s");
-				names.add(node.getId() + "List");
-				names.add(node.getId() + "Set");
-				names.add(node.getId() + "Collection");
-				names.add(node.getId() + "Array");
-			}
-			if (resultClass != null
-					&& (resultClass.equals(Boolean.class) || resultClass
-							.equals(boolean.class)))
-				names.add("is" + capitalize(node.getId()));
-			for (String name : new ArrayList<>(names)) {
-				names.add("get" + capitalize(name));
-				names.add("to" + capitalize(name));
-				names.add("compose" + capitalize(name));
-				names.add("create" + capitalize(name));
-			}
-		}
-
-		return names;
-	}
-
-	protected static String capitalize(String string) {
-		return string == "" ? "" : string.substring(0, 1).toUpperCase()
-				+ string.substring(1);
+	protected <T> T provide(Class<T> clazz) {
+		return null;
 	}
 }

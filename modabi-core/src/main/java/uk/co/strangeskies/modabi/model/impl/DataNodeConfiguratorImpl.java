@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
@@ -10,6 +11,8 @@ import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
 public class DataNodeConfiguratorImpl<T> extends
 		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
@@ -29,6 +32,30 @@ public class DataNodeConfiguratorImpl<T> extends
 			optional = configurator.optional;
 
 			value = configurator.value;
+
+			if (super.getDataClass() != null
+					&& !super.getDataClass().isAssignableFrom(type.getDataClass()))
+				throw new SchemaException();
+
+			if (super.getBindingStrategy() != null
+					&& !super.getBindingStrategy().equals(type.getBindingStrategy()))
+				throw new SchemaException();
+
+			if (super.getBindingClass() != null
+					&& !super.getBindingClass().equals(type.getBindingClass()))
+				throw new SchemaException();
+
+			if (super.getUnbindingStrategy() != null
+					&& !super.getUnbindingStrategy().equals(type.getUnbindingStrategy()))
+				throw new SchemaException();
+
+			if (super.getUnbindingClass() != null
+					&& !super.getUnbindingClass().equals(type.getUnbindingClass()))
+				throw new SchemaException();
+
+			if (super.getUnbindingMethod() != null
+					&& !super.getUnbindingMethod().equals(type.getUnbindingMethod()))
+				throw new SchemaException();
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
@@ -66,6 +93,48 @@ public class DataNodeConfiguratorImpl<T> extends
 		@Override
 		public final Boolean optional() {
 			return optional;
+		}
+
+		@Override
+		public final Class<T> getDataClass() {
+			if (type() != null)
+				return type().getDataClass();
+			return super.getDataClass();
+		}
+
+		@Override
+		public final BindingStrategy getBindingStrategy() {
+			if (type() != null)
+				return type().getBindingStrategy();
+			return super.getBindingStrategy();
+		}
+
+		@Override
+		public final Class<?> getBindingClass() {
+			if (type() != null)
+				return type().getBindingClass();
+			return super.getBindingClass();
+		}
+
+		@Override
+		public final UnbindingStrategy getUnbindingStrategy() {
+			if (type() != null)
+				return type().getUnbindingStrategy();
+			return super.getUnbindingStrategy();
+		}
+
+		@Override
+		public final Class<?> getUnbindingClass() {
+			if (type() != null)
+				return type().getUnbindingClass();
+			return super.getUnbindingClass();
+		}
+
+		@Override
+		public final Method getUnbindingMethod() {
+			if (type() != null)
+				return type().getUnbindingMethod();
+			return super.getUnbindingMethod();
 		}
 	}
 

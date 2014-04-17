@@ -60,12 +60,12 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public Boolean isAbstract() {
+		public final Boolean isAbstract() {
 			return isAbstract;
 		}
 
 		@Override
-		public List<Model<? super T>> getBaseModel() {
+		public final List<Model<? super T>> getBaseModel() {
 			return baseModel;
 		}
 	}

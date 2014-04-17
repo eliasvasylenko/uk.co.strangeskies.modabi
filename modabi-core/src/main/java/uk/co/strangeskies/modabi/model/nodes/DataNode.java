@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
@@ -27,6 +26,11 @@ public interface DataNode<T> extends BindingChildNode<T> {
 	Boolean optional();
 
 	@Override
+	public default Class<T> getDataClass() {
+		return type().getDataClass();
+	}
+
+	@Override
 	default BindingStrategy getBindingStrategy() {
 		return type().getBindingStrategy();
 	}
@@ -49,11 +53,6 @@ public interface DataNode<T> extends BindingChildNode<T> {
 	@Override
 	default Method getUnbindingMethod() {
 		return type().getUnbindingMethod();
-	}
-
-	@Override
-	default List<? extends ChildNode> getChildren() {
-		return type().getChildren();
 	}
 
 	@Override
