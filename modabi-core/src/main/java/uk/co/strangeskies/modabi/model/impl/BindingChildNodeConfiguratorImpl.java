@@ -39,7 +39,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			outMethodName = configurator.outMethodName;
 			if (outMethodName == "this" && !iterable)
 				throw new SchemaException();
-			inMethodName = configurator.inMethodName;
 
 			Method outMethod = null;
 			try {
@@ -52,11 +51,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
 								.generateOutMethodNames(this, resultClass), outputClass,
 								resultClass);
-
 			} catch (NoSuchMethodException | SecurityException e) {
 			}
 			this.outMethod = outMethod;
 
+			inMethodName = configurator.inMethodName;
 			Method inMethod = null;
 			try {
 				Class<?> inputClass = configurator.getContext()
@@ -66,7 +65,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			} catch (NoSuchMethodException | SecurityException e) {
 			}
 			this.inMethod = inMethod;
-
 			inMethodChained = configurator.inMethodChained;
 		}
 

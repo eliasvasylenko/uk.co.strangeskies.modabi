@@ -37,8 +37,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingClass = configurator.unbindingClass;
 			unbindingMethodName = configurator.unbindingMethod;
 
-			unbindingMethod = findUnbindingMethod(getId(), unbindingStrategy,
-					unbindingMethodName, unbindingClass, dataClass);
+			unbindingMethod = findUnbindingMethod(getId(), getUnbindingStrategy(),
+					getUnbindingMethodName(), getUnbindingClass(), getDataClass());
 		}
 
 		@SuppressWarnings("unchecked")
@@ -123,15 +123,41 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return (BindingNodeConfigurator<?, ?, V>) this;
 	}
 
-	@Override
-	protected final Class<T> getCurrentChildOutputTargetClass() {
+	protected UnbindingStrategy getUnbindingStrategy() {
+		return unbindingStrategy;
+	}
+
+	protected String getUnbindingMethod() {
+		return unbindingMethod;
+	}
+
+	protected BindingStrategy getBindingStrategy() {
+		return bindingStrategy;
+	}
+
+	protected Class<T> getDataClass() {
 		return dataClass;
+	}
+
+	@Override
+	protected final Class<?> getCurrentChildOutputTargetClass() {
+		if (getUnbindingStrategy() == null
+				|| getUnbindingStrategy() == UnbindingStrategy.SIMPLE)
+			return getDataClass();
+		else if (getUnbindingStrategy() == UnbindingStrategy.STATIC_FACTORY)
+			try {
+				return getUnbindingClass().getMethod(getUnbindingMethod(),
+						getDataClass()).getReturnType();
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new SchemaException(e);
+			}
+		return getUnbindingClass() != null ? getUnbindingClass() : getDataClass();
 	}
 
 	@Override
 	protected Class<?> getCurrentChildInputTargetClass() {
 		if (getChildren().isEmpty())
-			return bindingClass != null ? bindingClass : dataClass;
+			return getBindingClass() != null ? getBindingClass() : getDataClass();
 		else
 			return getChildren().get(getChildren().size() - 1).getPostInputClass();
 	}
@@ -144,12 +170,20 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return getThis();
 	}
 
+	protected Class<?> getBindingClass() {
+		return bindingClass;
+	}
+
 	@Override
 	public S unbindingClass(Class<?> unbindingClass) {
 		requireConfigurable(this.unbindingClass);
 		this.unbindingClass = unbindingClass;
 
 		return getThis();
+	}
+
+	protected Class<?> getUnbindingClass() {
+		return unbindingClass;
 	}
 
 	@Override
@@ -198,19 +232,23 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingClass = unbindingClass != null ? unbindingClass : dataClass;
 
 			try {
+				Class<?> resultClass = (unbindingStrategy == UnbindingStrategy.STATIC_FACTORY) ? Object.class
+						: null;
+
 				List<String> names;
 				if (unbindingMethodName != null)
 					names = Arrays.asList(unbindingMethodName);
-				else if (unbindingStrategy == UnbindingStrategy.PROVIDED)
-					names = BindingNodeConfigurator.generateInMethodNames(propertyName);
-				else if (unbindingStrategy == UnbindingStrategy.STATIC_FACTORY)
-					names = BindingNodeConfigurator.generateInMethodNames(unbindingClass
-							.getSimpleName());
-				else
-					throw new AssertionError();
+				else {
+					names = BindingNodeConfigurator.generateOutMethodNames(propertyName,
+							false, resultClass);
+				}
 
-				unbindingMethod = BindingNodeConfigurator.findMethod(names,
-						unbindingClass, null, dataClass);
+				if (unbindingStrategy == UnbindingStrategy.ACCEPT_PROVIDED)
+					unbindingMethod = BindingNodeConfigurator.findMethod(names,
+							dataClass, resultClass, unbindingClass);
+				else
+					unbindingMethod = BindingNodeConfigurator.findMethod(names,
+							unbindingClass, resultClass, dataClass);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new SchemaException(e);
 			}

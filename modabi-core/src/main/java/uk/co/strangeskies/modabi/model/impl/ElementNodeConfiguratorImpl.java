@@ -127,6 +127,6 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@Override
 	public ChildBuilder addChild() {
-		return super.addChild();
+		return childBuilder();
 	}
 }

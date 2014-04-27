@@ -36,6 +36,8 @@ public interface BufferedStructuredInput extends StructuredInput {
 				}
 
 				public BufferedStructuredData nextChild() {
+					if (childIndex == children.size())
+						return null;
 					return children.get(childIndex++);
 				}
 
@@ -73,43 +75,40 @@ public interface BufferedStructuredInput extends StructuredInput {
 				}
 			}
 
-			private final Deque<BufferedStructuredData> outputStack = new ArrayDeque<>(
+			private final Deque<BufferedStructuredData> stack = new ArrayDeque<>(
 					Arrays.asList(new BufferedStructuredData(null)));
 
 			@Override
 			public TerminatingDataTarget property(String name) {
 				BufferingDataTarget target = BufferedDataSource.from();
-				outputStack.peek().addProperty(name, target);
+				stack.peek().addProperty(name, target);
 
 				return target;
 			}
 
 			@Override
 			public void endElement() {
-				BufferedStructuredData element = outputStack.pop();
-				outputStack.peek().addChild(element);
+				BufferedStructuredData element = stack.pop();
+				stack.peek().addChild(element);
 			}
 
 			@Override
 			public TerminatingDataTarget content() {
 				BufferingDataTarget target = BufferedDataSource.from();
-				outputStack.peek().addContent(target);
+				stack.peek().addContent(target);
 
 				return target;
 			}
 
 			@Override
 			public void childElement(String name) {
-				outputStack.push(new BufferedStructuredData(name));
+				stack.push(new BufferedStructuredData(name));
 			}
 
 			@Override
 			public BufferedStructuredInput buffer() {
-				if (outputStack.size() != 1)
+				if (stack.size() != 1)
 					throw new IllegalStateException();
-
-				Deque<BufferedStructuredData> inputStack = new ArrayDeque<>();
-				inputStack.push(outputStack.pop());
 
 				Map<String, TerminatingDataSource> bufferedProperties = new HashMap<>();
 
@@ -119,7 +118,7 @@ public interface BufferedStructuredInput extends StructuredInput {
 						TerminatingDataSource property = bufferedProperties.get(name);
 
 						if (property == null)
-							bufferedProperties.put(name, property = inputStack.peek()
+							bufferedProperties.put(name, property = stack.peek()
 									.propertyData(name).buffer());
 
 						return property;
@@ -127,37 +126,37 @@ public interface BufferedStructuredInput extends StructuredInput {
 
 					@Override
 					public Set<String> properties() {
-						return inputStack.peek().properties();
+						return stack.peek().properties();
 					}
 
 					@Override
 					public String nextChild() {
-						bufferedProperties.clear();
-
-						BufferedStructuredData child = inputStack.peek().nextChild();
+						BufferedStructuredData child = stack.peek().nextChild();
 
 						if (child == null)
 							return null;
 
-						inputStack.push(child);
-						return inputStack.peek().getName();
+						stack.push(child);
+						return stack.peek().getName();
 					}
 
 					@Override
 					public void endElement() {
-						inputStack.pop();
+						bufferedProperties.clear();
+						stack.pop();
 					}
 
 					@Override
 					public TerminatingDataSource content() {
-						return inputStack.peek().content().buffer();
+						BufferingDataTarget content = stack.peek().content();
+						return content == null ? null : content.buffer();
 					}
 
 					@Override
 					public void reset() {
-						BufferedStructuredData root = inputStack.getFirst();
-						inputStack.clear();
-						inputStack.add(root);
+						BufferedStructuredData root = stack.getFirst();
+						stack.clear();
+						stack.add(root);
 						root.reset();
 					}
 				};

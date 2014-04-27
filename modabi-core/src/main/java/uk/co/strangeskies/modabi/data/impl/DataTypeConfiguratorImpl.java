@@ -9,11 +9,18 @@ import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.impl.ChoiceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.impl.DataNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.impl.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.impl.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.impl.SequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
@@ -31,7 +38,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		private final String unbindingMethodName;
 		private final Method unbindingMethod;
 
-		private final List<DataNode<?>> properties;
+		private final List<ChildNode> children;
+		private final List<ChildNode> effectiveChildren;
 
 		public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
 			name = configurator.name;
@@ -45,10 +53,13 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 			unbindingMethodName = configurator.unbindingMethodName;
 			unbindingMethod = BindingNodeConfiguratorImpl.findUnbindingMethod(name,
-					unbindingStrategy, unbindingMethodName, unbindingClass, dataClass);
+					getUnbindingStrategy(), getUnbindingMethodName(),
+					getUnbindingClass(), getDataClass());
 
-			properties = Collections.unmodifiableList(new ArrayList<>(
-					configurator.properties));
+			children = Collections.unmodifiableList(new ArrayList<>(
+					configurator.children));
+			effectiveChildren = Collections.unmodifiableList(new ArrayList<>(
+					configurator.effectiveChildren));
 		}
 
 		@Override
@@ -67,8 +78,13 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		}
 
 		@Override
-		public final List<DataNode<?>> getChildren() {
-			return properties;
+		public final List<ChildNode> getChildren() {
+			return children;
+		}
+
+		@Override
+		public List<ChildNode> getEffectiveChildren() {
+			return effectiveChildren;
 		}
 
 		@Override
@@ -108,12 +124,15 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 	private String unbindingMethodName;
 
-	private final List<DataNode<?>> properties;
+	private final List<ChildNode> children;
+	private final List<ChildNode> effectiveChildren;
 
 	private boolean finalisedProperties;
+	private boolean blocked;
 
 	public DataTypeConfiguratorImpl() {
-		properties = new ArrayList<>();
+		children = new ArrayList<>();
+		effectiveChildren = new ArrayList<>();
 
 		finalisedProperties = false;
 	}
@@ -171,19 +190,39 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		return this;
 	}
 
-	public Class<?> getCurrentChildOutputTargetClass() {
+	protected final Class<?> getCurrentChildOutputTargetClass() {
+		if (unbindingStrategy == null
+				|| unbindingStrategy == UnbindingStrategy.SIMPLE)
+			return dataClass;
 		return unbindingClass != null ? unbindingClass : dataClass;
 	}
 
-	public Class<?> getCurrentChildInputTargetClass() {
-		return dataClass; // TODO
+	protected Class<?> getCurrentChildInputTargetClass() {
+		if (children.isEmpty())
+			return bindingClass != null ? bindingClass : dataClass;
+		else
+			return children.get(children.size() - 1).getPostInputClass();
+	}
+
+	protected void assertUnblocked() {
+		if (blocked)
+			throw new InvalidBuildStateException(this);
+	}
+
+	void addChild(ChildNode result, ChildNode effective) {
+		blocked = false;
+		children.add(result);
+		effectiveChildren.add(effective);
 	}
 
 	@Override
-	public DataNodeConfigurator<Object> addProperty() {
-		SchemaNodeConfigurationContext<DataNode<Object>> context = new SchemaNodeConfigurationContext<DataNode<Object>>() {
+	public DataChildBuilder addChild() {
+		assertUnblocked();
+		blocked = true;
+
+		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
-			public <U extends DataNode<Object>> List<U> overrideChild(String id,
+			public <U extends ChildNode> List<U> overrideChild(String id,
 					Class<U> nodeClass) {
 				return Collections.emptyList();
 			}
@@ -199,12 +238,32 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 			}
 
 			@Override
-			public void addChild(DataNode<Object> result, DataNode<Object> effective) {
-				properties.add(result);
+			public void addChild(ChildNode result, ChildNode effective) {
+				DataTypeConfiguratorImpl.this.addChild(result, effective);
 			}
 		};
 
-		return new DataNodeConfiguratorImpl<Object>(context);
+		return new DataChildBuilder() {
+			@Override
+			public InputSequenceNodeConfigurator inputSequence() {
+				return new InputSequenceNodeConfiguratorImpl(context);
+			}
+
+			@Override
+			public DataNodeConfigurator<Object> data() {
+				return new DataNodeConfiguratorImpl<Object>(context);
+			}
+
+			@Override
+			public ChoiceNodeConfigurator choice() {
+				return new ChoiceNodeConfiguratorImpl(context);
+			}
+
+			@Override
+			public SequenceNodeConfigurator sequence() {
+				return new SequenceNodeConfiguratorImpl(context);
+			}
+		};
 	}
 
 	@Override

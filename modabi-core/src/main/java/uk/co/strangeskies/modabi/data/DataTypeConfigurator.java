@@ -3,7 +3,8 @@ package uk.co.strangeskies.modabi.data;
 import java.util.function.Function;
 
 import uk.co.strangeskies.gears.utilities.factory.Factory;
-import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataChildBuilder;
+import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
@@ -58,11 +59,11 @@ public interface DataTypeConfigurator<T> extends Factory<DataType<T>> {
 	 */
 	DataTypeConfigurator<T> unbindingMethod(String name);
 
-	default DataTypeConfigurator<T> addProperty(
-			Function<DataNodeConfigurator<Object>, DataNodeConfigurator<?>> propertyConfiguration) {
-		propertyConfiguration.apply(addProperty()).create();
+	default DataTypeConfigurator<T> addChild(
+			Function<DataChildBuilder, SchemaNodeConfigurator<?, ?>> propertyConfiguration) {
+		propertyConfiguration.apply(addChild()).create();
 		return this;
 	}
 
-	DataNodeConfigurator<Object> addProperty();
+	DataChildBuilder addChild();
 }

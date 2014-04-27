@@ -17,7 +17,17 @@ public enum UnbindingStrategy {
 	 * The object which is being unbound should be passed as a parameter to the
 	 * unbinding method, invoked on the provided instance of the unbinding class.
 	 */
-	PROVIDED,
+	PASS_TO_PROVIDED,
+
+	/**
+	 * The schema binder should attempt to find an implementation of the unbinding
+	 * class for which a factory has been provided externally, for example
+	 * programmatically, through dependency injection, or as an OSGI service.
+	 *
+	 * The provided object should be passed as a parameter to the unbinding
+	 * method, invoked on the object being unbound.
+	 */
+	ACCEPT_PROVIDED,
 
 	/**
 	 * The schema binder should attempt to find a constructor to call on the

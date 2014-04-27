@@ -74,7 +74,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingClass(BufferedDataSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(DataTarget.class)
-					.unbindingStrategy(UnbindingStrategy.PROVIDED).create();
+					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED).create();
 		}
 
 		@Override
@@ -138,7 +138,12 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(referenceType);
 
 			bufferedDataType = builder.configure().name("bufferedData")
-					.dataClass(BufferedDataSource.class).create();
+					.dataClass(BufferedDataSource.class)
+					.bindingClass(BufferedDataSource.class)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingClass(DataTarget.class)
+					.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
+					.unbindingMethod("pipe").create();
 		}
 
 		@Override
@@ -170,17 +175,30 @@ public class BaseSchemaImpl implements BaseSchema {
 			classType = dataType.configure().name("class").dataClass(Class.class)
 					.bindingClass(Class.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.addProperty(p -> p.type(primitives.stringType()).id("name"))
+					.addChild(p -> p.data().type(primitives.stringType()).id("name"))
 					.create();
 			typeSet.add(classType);
 
-			enumType = dataType.configure().name("enum").dataClass(Enum.class)
+			enumType = dataType
+					.configure()
+					.name("enum")
+					.dataClass(Enum.class)
+					.addChild(
+							n -> n
+									.inputSequence()
+									.inMethod("valueOf")
+									.addChild(
+											o -> o.data().id("enumType").outMethod("getClass")
+													.type(classType))
+									.addChild(
+											o -> o.data().id("name").type(primitives.stringType())))
 					.create();
 			typeSet.add(enumType);
 
 			rangeType = dataType.configure().name("range").dataClass(Range.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.addProperty(p -> p.type(primitives.stringType()).id("string"))
+					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
+					.addChild(p -> p.data().type(primitives.stringType()).id("string"))
 					.create();
 			typeSet.add(rangeType);
 		}

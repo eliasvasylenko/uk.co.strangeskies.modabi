@@ -23,7 +23,7 @@ import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
@@ -31,7 +31,7 @@ import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
@@ -131,9 +131,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(choiceModel);
 
-		Model<SequenceNode> sequenceModel = model.configure().id("sequence")
-				.isAbstract(false).dataClass(SequenceNode.class)
-				.bindingClass(SequenceNodeConfigurator.class)
+		Model<InputSequenceNode> sequenceModel = model.configure().id("sequence")
+				.isAbstract(false).dataClass(InputSequenceNode.class)
+				.bindingClass(InputSequenceNodeConfigurator.class)
 				.baseModel(inputModel, branchModel)
 				.addChild(n -> n.data().format(Format.PROPERTY).id("id"))
 				.addChild(n -> n.element().id("child")).create();
@@ -279,6 +279,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n
 								.data()
+								.type(base.derivedTypes().enumType())
 								.id("format")
 								.value(
 										BufferedDataSource.from().string("Simple Element").buffer()))

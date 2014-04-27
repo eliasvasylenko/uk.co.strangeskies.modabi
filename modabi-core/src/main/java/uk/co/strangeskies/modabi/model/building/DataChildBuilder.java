@@ -1,9 +1,9 @@
 package uk.co.strangeskies.modabi.model.building;
 
-public interface ChildBuilder {
-	public ElementNodeConfigurator<Object> element();
+public interface DataChildBuilder {
+	public SequenceNodeConfigurator sequence();
 
-	public InputSequenceNodeConfigurator sequence();
+	public InputSequenceNodeConfigurator inputSequence();
 
 	public ChoiceNodeConfigurator choice();
 

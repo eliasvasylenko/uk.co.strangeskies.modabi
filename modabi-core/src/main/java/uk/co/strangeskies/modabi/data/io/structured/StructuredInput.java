@@ -24,14 +24,15 @@ public interface StructuredInput {
 				output.childElement(childElement);
 
 				for (String property : properties())
-					propertyData(property).pipe(output.property(property));
+					propertyData(property).pipe(output.property(property)).terminate();
 
 				TerminatingDataSource content = content();
 				if (content != null)
-					content.pipe(output.content());
+					content.pipe(output.content()).terminate();
 
 				depth++;
 			}
+			output.endElement();
 			endElement();
 
 			depth--;

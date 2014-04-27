@@ -37,8 +37,9 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		for (String methodName : names) {
 			try {
 				Method method = receiver.getMethod(methodName, parameter);
-				if (method != null && result == null
-						|| ClassUtils.isAssignable(method.getReturnType(), result, true))
+				if (method != null
+						&& (result == null || ClassUtils.isAssignable(
+								method.getReturnType(), result, true)))
 					return method;
 			} catch (NoSuchMethodException | SecurityException e) {
 			}
@@ -91,28 +92,43 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 		if (node.getOutMethodName() != null)
 			names.add(node.getOutMethodName());
-		else {
-			names.add(node.getId());
-			names.add(node.getId() + "Value");
-			if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
-				for (String name : new ArrayList<>(names)) {
-					names.add(name + "s");
-					names.add(name + "List");
-					names.add(name + "Set");
-					names.add(name + "Collection");
-					names.add(name + "Array");
-				}
-			}
-			if (resultClass != null
-					&& (resultClass.equals(Boolean.class) || resultClass
-							.equals(boolean.class)))
-				names.add("is" + capitalize(node.getId()));
+		else
+			names.addAll(generateOutMethodNames(node.getId(),
+					node.isOutMethodIterable() != null && node.isOutMethodIterable(),
+					resultClass));
+
+		return names;
+	}
+
+	public static List<String> generateOutMethodNames(String propertyName,
+			boolean isIterable, Class<?> resultClass) {
+
+		List<String> names = new ArrayList<>();
+
+		names.add(propertyName);
+		names.add(propertyName + "Value");
+		if (isIterable) {
 			for (String name : new ArrayList<>(names)) {
-				names.add("get" + capitalize(name));
-				names.add("to" + capitalize(name));
-				names.add("compose" + capitalize(name));
-				names.add("create" + capitalize(name));
+				names.add(name + "s");
+				names.add(name + "List");
+				names.add(name + "Set");
+				names.add(name + "Collection");
+				names.add(name + "Array");
 			}
+		}
+		if (resultClass != null
+				&& (resultClass.equals(Boolean.class) || resultClass
+						.equals(boolean.class)))
+			names.add("is" + capitalize(propertyName));
+
+		List<String> namesAndBlank = new ArrayList<>(names);
+		namesAndBlank.add("");
+
+		for (String name : namesAndBlank) {
+			names.add("get" + capitalize(name));
+			names.add("to" + capitalize(name));
+			names.add("compose" + capitalize(name));
+			names.add("create" + capitalize(name));
 		}
 
 		return names;

@@ -77,8 +77,8 @@ public interface BufferedDataSource extends TerminatingDataSource {
 
 				@Override
 				public <T extends DataTarget> T pipe(T target, int items) {
-					for (int start = index; index < start; index++)
-						dataSequence.get(index).pipeNext(target);
+					for (int start = index; start < items; start++)
+						dataSequence.get(start).pipeNext(target);
 
 					return target;
 				}

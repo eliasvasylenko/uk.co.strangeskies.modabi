@@ -71,12 +71,7 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected Class<?> getCurrentChildOutputTargetClass() {
-		return getContext().getCurrentChildOutputTargetClass();
-	}
-
-	@Override
 	public ChildBuilder addChild() {
-		return super.addChild();
+		return childBuilder();
 	}
 }

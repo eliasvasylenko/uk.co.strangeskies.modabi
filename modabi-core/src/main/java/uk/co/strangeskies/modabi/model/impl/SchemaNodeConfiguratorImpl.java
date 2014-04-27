@@ -18,7 +18,7 @@ import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
@@ -33,7 +33,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			id = configurator.getId();
 
-			for (List<ChildNodeImpl> namedChildren : configurator.namedInheritedChildren
+			for (List<ChildNode> namedChildren : configurator.namedInheritedChildren
 					.values())
 				if (namedChildren.size() > 1)
 					throw new SchemaException(
@@ -41,7 +41,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 									+ namedChildren.get(0).getId()
 									+ "' is inherited multiple times and must be explicitly overridden.");
 
-			this.children = new ArrayList<>(configurator.children);
+			children = new ArrayList<>(configurator.children);
 		}
 
 		protected SchemaNodeImpl(SchemaNode node,
@@ -96,8 +96,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private final List<ChildNode> children;
 	private final List<ChildNode> effectiveChildren;
 	private boolean blocked;
-	private final ListMultiMap<String, ChildNodeImpl> namedInheritedChildren;
-	private final List<ChildNodeImpl> inheritedChildren;
+	private final ListMultiMap<String, ChildNode> namedInheritedChildren;
+	private final List<ChildNode> inheritedChildren;
 
 	private boolean finalisedProperties;
 
@@ -156,24 +156,24 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Class<?> getCurrentChildOutputTargetClass();
 
-	protected void inheritChildren(List<? extends ChildNodeImpl> nodes) {
+	protected void inheritChildren(List<? extends ChildNode> nodes) {
 		inheritChildren(inheritedChildren.size(), nodes);
 	}
 
-	protected void inheritChildren(int index, List<? extends ChildNodeImpl> nodes) {
+	protected void inheritChildren(int index, List<? extends ChildNode> nodes) {
 		requireConfigurable();
 		inheritNamedChildren(nodes);
 		inheritedChildren.addAll(index, nodes);
 	}
 
-	private void inheritNamedChildren(List<? extends ChildNodeImpl> nodes) {
+	private void inheritNamedChildren(List<? extends ChildNode> nodes) {
 		nodes.stream().filter(c -> c.getId() != null)
 				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
 	}
 
 	@SuppressWarnings("unchecked")
 	<T extends ChildNode> List<T> overrideChild(String id, Class<T> nodeClass) {
-		List<ChildNodeImpl> overriddenNodes = namedInheritedChildren.get(id);
+		List<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(
@@ -201,15 +201,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		children.add(result);
 		effectiveChildren.add(effective);
 		if (result.getId() != null) {
-			List<ChildNodeImpl> removed = namedInheritedChildren.remove(result
-					.getId());
+			List<ChildNode> removed = namedInheritedChildren.remove(result.getId());
 			if (removed != null)
 				inheritedChildren.removeAll(removed);
 		}
-	}
-
-	protected void block() {
-		blocked = true;
 	}
 
 	protected void assertUnblocked() {
@@ -217,10 +212,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			throw new InvalidBuildStateException(this);
 	}
 
-	protected ChildBuilder addChild() {
+	protected ChildBuilder childBuilder() {
 		assertUnblocked();
 		finaliseProperties();
-		block();
+		blocked = true;
 
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
@@ -249,8 +244,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		return new ChildBuilder() {
 			@Override
-			public SequenceNodeConfigurator sequence() {
-				return new SequenceNodeConfiguratorImpl(context);
+			public InputSequenceNodeConfigurator sequence() {
+				return new InputSequenceNodeConfiguratorImpl(context);
 			}
 
 			@Override

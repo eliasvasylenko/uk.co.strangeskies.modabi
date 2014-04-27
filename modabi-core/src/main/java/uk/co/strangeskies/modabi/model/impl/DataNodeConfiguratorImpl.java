@@ -1,13 +1,17 @@
 package uk.co.strangeskies.modabi.model.impl;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
@@ -60,7 +64,8 @@ public class DataNodeConfiguratorImpl<T> extends
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
 				List<ChildNode> effectiveChildren, Class<?> parentClass) {
-			super(node, overriddenNodes, effectiveChildren, parentClass);
+			super(overrideWithType(node), overriddenNodes, effectiveChildren,
+					parentClass);
 
 			type = getValue(node, overriddenNodes, n -> n.type());
 
@@ -70,9 +75,11 @@ public class DataNodeConfiguratorImpl<T> extends
 					(n, o) -> n == o);
 
 			value = getValue(node, overriddenNodes, n -> n.value());
+		}
 
-			if (value != null && !getDataClass().isAssignableFrom(value.getClass()))
-				throw new SchemaException();
+		private static <T> DataNode<T> overrideWithType(DataNode<T> node) {
+			node = DataNode.wrapType(node);
+			return node;
 		}
 
 		@Override
@@ -94,48 +101,6 @@ public class DataNodeConfiguratorImpl<T> extends
 		public final Boolean optional() {
 			return optional;
 		}
-
-		@Override
-		public final Class<T> getDataClass() {
-			if (type() != null)
-				return type().getDataClass();
-			return super.getDataClass();
-		}
-
-		@Override
-		public final BindingStrategy getBindingStrategy() {
-			if (type() != null)
-				return type().getBindingStrategy();
-			return super.getBindingStrategy();
-		}
-
-		@Override
-		public final Class<?> getBindingClass() {
-			if (type() != null)
-				return type().getBindingClass();
-			return super.getBindingClass();
-		}
-
-		@Override
-		public final UnbindingStrategy getUnbindingStrategy() {
-			if (type() != null)
-				return type().getUnbindingStrategy();
-			return super.getUnbindingStrategy();
-		}
-
-		@Override
-		public final Class<?> getUnbindingClass() {
-			if (type() != null)
-				return type().getUnbindingClass();
-			return super.getUnbindingClass();
-		}
-
-		@Override
-		public final Method getUnbindingMethod() {
-			if (type() != null)
-				return type().getUnbindingMethod();
-			return super.getUnbindingMethod();
-		}
 	}
 
 	public Format format;
@@ -148,6 +113,18 @@ public class DataNodeConfiguratorImpl<T> extends
 	public DataNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super DataNode<T>> parent) {
 		super(parent);
+	}
+
+	protected final Class<?> getTypeBindingClass() {
+		if (type != null)
+			return type.getBindingClass();
+		return getBindingClass();
+	}
+
+	protected final Class<?> getTypeUnbindingClass() {
+		if (type != null)
+			return type.getUnbindingClass();
+		return getUnbindingClass();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -164,12 +141,15 @@ public class DataNodeConfiguratorImpl<T> extends
 		dataClass(type.getDataClass());
 		this.type = (DataType<T>) type;
 
+		inheritChildren(type.getEffectiveChildren());
+
 		return (DataNodeConfigurator<U>) getThis();
 	}
 
 	@Override
 	public DataNodeConfigurator<T> value(BufferedDataSource dataSource) {
 		requireConfigurable(value);
+		this.value = dataSource;
 
 		return getThis();
 	}
@@ -205,5 +185,88 @@ public class DataNodeConfiguratorImpl<T> extends
 	@Override
 	protected final DataNode<T> tryCreate() {
 		return new DataNodeImpl<>(this);
+	}
+
+	@Override
+	public final Class<T> getDataClass() {
+		if (type != null)
+			return type.getDataClass();
+		return super.getDataClass();
+	}
+
+	@Override
+	public final BindingStrategy getBindingStrategy() {
+		if (type != null)
+			return type.getBindingStrategy();
+		return super.getBindingStrategy();
+	}
+
+	@Override
+	public final Class<?> getBindingClass() {
+		if (type != null)
+			return type.getBindingClass();
+		return super.getBindingClass();
+	}
+
+	@Override
+	public final UnbindingStrategy getUnbindingStrategy() {
+		if (type != null)
+			return type.getUnbindingStrategy();
+		return super.getUnbindingStrategy();
+	}
+
+	@Override
+	public final Class<?> getUnbindingClass() {
+		if (type != null)
+			return type.getUnbindingClass();
+		return super.getUnbindingClass();
+	}
+
+	@Override
+	public DataChildBuilder addChild() {
+		SchemaNodeConfigurationContext<DataNode<Object>> context = new SchemaNodeConfigurationContext<DataNode<Object>>() {
+			@Override
+			public <U extends DataNode<Object>> List<U> overrideChild(String id,
+					Class<U> nodeClass) {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public Class<?> getCurrentChildOutputTargetClass() {
+				return DataNodeConfiguratorImpl.this.getCurrentChildOutputTargetClass();
+			}
+
+			@Override
+			public Class<?> getCurrentChildInputTargetClass() {
+				return DataNodeConfiguratorImpl.this.getCurrentChildInputTargetClass();
+			}
+
+			@Override
+			public void addChild(DataNode<Object> result, DataNode<Object> effective) {
+				addChild(result, effective);
+			}
+		};
+
+		return new DataChildBuilder() {
+			@Override
+			public SequenceNodeConfigurator sequence() {
+				return new SequenceNodeConfiguratorImpl(null);
+			}
+
+			@Override
+			public InputSequenceNodeConfigurator inputSequence() {
+				return new InputSequenceNodeConfiguratorImpl(null);
+			}
+
+			@Override
+			public DataNodeConfigurator<Object> data() {
+				return new DataNodeConfiguratorImpl<>(context);
+			}
+
+			@Override
+			public ChoiceNodeConfigurator choice() {
+				return new ChoiceNodeConfiguratorImpl(null);
+			}
+		};
 	}
 }

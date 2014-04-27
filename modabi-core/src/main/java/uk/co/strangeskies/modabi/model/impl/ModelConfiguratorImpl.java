@@ -147,6 +147,6 @@ public class ModelConfiguratorImpl<T> extends
 
 	@Override
 	public ChildBuilder addChild() {
-		return super.addChild();
+		return childBuilder();
 	}
 }

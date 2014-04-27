@@ -46,6 +46,7 @@ import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.InputNode;
+import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
@@ -91,15 +92,16 @@ public class SchemaBinderImpl implements SchemaBinder {
 				if (sink != null && node.format() != null)
 					throw new SchemaException();
 
-				switch (node.format()) {
-				case PROPERTY:
-					sink = output.property(node.getId());
-					break;
-				case SIMPLE_ELEMENT:
-					output.childElement(node.getId());
-				case CONTENT:
-					sink = output.content();
-				}
+				if (sink == null)
+					switch (node.format()) {
+					case PROPERTY:
+						sink = output.property(node.getId());
+						break;
+					case SIMPLE_ELEMENT:
+						output.childElement(node.getId());
+					case CONTENT:
+						sink = output.content();
+					}
 
 				for (Object item : unbindData(node, data))
 					processBindingChildren(node, item);
@@ -111,6 +113,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 						output.endElement();
 				}
 			}
+		}
+
+		@Override
+		public void accept(InputSequenceNode node) {
+			processChildren(node);
 		}
 
 		@Override
@@ -199,7 +206,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 				switch (node.getUnbindingStrategy()) {
 				case SIMPLE:
 					break;
-				case PROVIDED:
+				case PASS_TO_PROVIDED:
 					supplier = u -> {
 						try {
 							Object o = provide(node.getUnbindingClass());
@@ -207,6 +214,21 @@ public class SchemaBinderImpl implements SchemaBinder {
 								throw new IllegalArgumentException(node.getUnbindingClass()
 										.getName());
 							node.getUnbindingMethod().invoke(o, u);
+							return o;
+						} catch (IllegalAccessException | IllegalArgumentException
+								| InvocationTargetException | SecurityException e) {
+							throw new SchemaException(e);
+						}
+					};
+					break;
+				case ACCEPT_PROVIDED:
+					supplier = u -> {
+						try {
+							Object o = provide(node.getUnbindingClass());
+							if (o == null)
+								throw new IllegalArgumentException(node.getUnbindingClass()
+										.getName());
+							node.getUnbindingMethod().invoke(u, o);
 							return o;
 						} catch (IllegalAccessException | IllegalArgumentException
 								| InvocationTargetException | SecurityException e) {
@@ -266,7 +288,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public void accept(SequenceNode node) {
+		public void accept(InputSequenceNode node) {
 			processChildren(node);
 		}
 
@@ -323,6 +345,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 		@Override
 		public <U> void accept(DataNode<U> node) {
 			// invokeInMethod(node, (Object) input.getData(node.type()));
+		}
+
+		@Override
+		public void accept(SequenceNode node) {
+			// TODO Auto-generated method stub
+
 		}
 	}
 
