@@ -1,10 +1,11 @@
 package uk.co.strangeskies.modabi.model.building;
 
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 
-public interface ChoiceNodeConfigurator
+public interface ChoiceNodeConfigurator<C extends ChildNode, B extends BindingChildNode<?>>
 		extends
-		BranchingNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode, ChildBuilder, ChildNode> {
-	public ChoiceNodeConfigurator mandatory(boolean mandatory);
+		BranchingNodeConfigurator<ChoiceNodeConfigurator<C, B>, ChoiceNode, C, B> {
+	public ChoiceNodeConfigurator<C, B> mandatory(boolean mandatory);
 }

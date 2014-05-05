@@ -186,7 +186,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(
 							n -> n
 									.inputSequence()
-									.inMethod("valueOf")
+									.id("valueOf")
 									.addChild(
 											o -> o.data().id("enumType").outMethod("getClass")
 													.type(classType))

@@ -11,11 +11,13 @@ import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public class ModelConfiguratorImpl<T> extends
-		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
-		ModelConfigurator<T> {
+public class ModelConfiguratorImpl<T>
+		extends
+		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T, ChildNode, BindingChildNode<?>>
+		implements ModelConfigurator<T> {
 	protected static abstract class AbstractModelImpl<T> extends
 			BindingNodeImpl<T> implements AbstractModel<T> {
 		private final List<Model<? super T>> baseModel;
@@ -116,8 +118,7 @@ public class ModelConfiguratorImpl<T> extends
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			inheritChildren((List<? extends ChildNodeImpl>) m.effectiveModel()
-					.getChildren());
+			inheritChildren(m.effectiveModel().getChildren());
 		});
 
 		return thisV;
@@ -146,7 +147,7 @@ public class ModelConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public ChildBuilder addChild() {
+	public ChildBuilder<ChildNode, BindingChildNode<?>> addChild() {
 		return childBuilder();
 	}
 }

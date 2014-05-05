@@ -22,16 +22,16 @@ import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.InputNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
@@ -220,8 +220,26 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("type").type(typeType))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).id("format")
-								.type(base.derivedTypes().enumType()))
+						n -> n
+								.data()
+								.format(Format.PROPERTY)
+								.id("format")
+								.type(base.derivedTypes().enumType())
+								.addChild(
+										o -> o
+												.inputSequence()
+												.id("valueOf")
+												.addChild(
+														p -> p
+																.data()
+																.id("enumType")
+																.value(
+																		BufferedDataSource
+																				.from()
+																				.string(
+																						"uk.co.strangeskies.modabi.model.nodes.DataNode.Format")
+																				.buffer()))
+												.addChild(p -> p.data().id("name"))))
 				.addChild(
 						n -> n.data().format(Format.SIMPLE_ELEMENT).id("value")
 								.optional(true).type(base.builtInTypes().bufferedDataType()))
@@ -266,6 +284,14 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().id("format")
 								.value(BufferedDataSource.from().string("Property").buffer()))
 				.addChild(n -> n.data().id("id")).create();
+		System.out
+				.println(((DataNode<?>) typedDataModel.getChildren().stream()
+						.filter(c -> c.getId().equals("format")).findAny().get())
+						.getChildren());
+		System.out
+				.println(((DataNode<?>) propertyModel.getChildren().stream()
+						.filter(c -> c.getId().equals("format")).findAny().get())
+						.getChildren()); // TODO why has this lost children?
 		modelSet.add(propertyModel);
 
 		@SuppressWarnings("rawtypes")

@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
-public interface DataNode<T> extends BindingChildNode<T> {
+public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	public enum Format {
 		PROPERTY, CONTENT, SIMPLE_ELEMENT
 	}

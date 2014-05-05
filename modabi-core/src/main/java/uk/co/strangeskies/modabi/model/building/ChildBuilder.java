@@ -1,11 +1,16 @@
 package uk.co.strangeskies.modabi.model.building;
 
-public interface ChildBuilder {
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+
+public interface ChildBuilder<C extends ChildNode, B extends BindingChildNode<?>> {
 	public ElementNodeConfigurator<Object> element();
 
-	public InputSequenceNodeConfigurator sequence();
+	public InputSequenceNodeConfigurator<B> inputSequence();
 
-	public ChoiceNodeConfigurator choice();
+	public SequenceNodeConfigurator<C, B> sequence();
+
+	public ChoiceNodeConfigurator<C, B> choice();
 
 	public DataNodeConfigurator<Object> data();
 }

@@ -17,23 +17,25 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode>
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode, C extends ChildNode, B extends BindingChildNode<?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
 	protected static abstract class SchemaNodeImpl implements SchemaNode {
 		private final String id;
 		private final List<ChildNode> children;
 
-		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
+		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseProperties();
 
 			id = configurator.getId();
 
-			for (List<ChildNode> namedChildren : configurator.namedInheritedChildren
+			for (List<? extends ChildNode> namedChildren : configurator.namedInheritedChildren
 					.values())
 				if (namedChildren.size() > 1)
 					throw new SchemaException(
@@ -212,7 +214,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			throw new InvalidBuildStateException(this);
 	}
 
-	protected ChildBuilder childBuilder() {
+	protected ChildBuilder<C, B> childBuilder() {
 		assertUnblocked();
 		finaliseProperties();
 		blocked = true;
@@ -242,15 +244,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 		};
 
-		return new ChildBuilder() {
+		return new ChildBuilder<C, B>() {
 			@Override
-			public InputSequenceNodeConfigurator sequence() {
-				return new InputSequenceNodeConfiguratorImpl(context);
+			public SequenceNodeConfigurator<C, B> sequence() {
+				return new SequenceNodeConfiguratorImpl<C, B>(context);
 			}
 
 			@Override
-			public ChoiceNodeConfigurator choice() {
-				return new ChoiceNodeConfiguratorImpl(context);
+			public ChoiceNodeConfigurator<C, B> choice() {
+				return new ChoiceNodeConfiguratorImpl<>(context);
 			}
 
 			@Override
@@ -261,6 +263,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			@Override
 			public DataNodeConfigurator<Object> data() {
 				return new DataNodeConfiguratorImpl<>(context);
+			}
+
+			@Override
+			public InputSequenceNodeConfigurator<B> inputSequence() {
+				return new InputSequenceNodeConfiguratorImpl<>(context);
 			}
 		};
 	}

@@ -1,25 +1,27 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.DataChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
+import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
-public class DataNodeConfiguratorImpl<T> extends
-		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
+public class DataNodeConfiguratorImpl<T>
+		extends
+		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode, DataNode<?>>
 		implements DataNodeConfigurator<T> {
 	protected static class DataNodeImpl<T> extends BindingChildNodeImpl<T>
 			implements DataNode<T> {
@@ -63,9 +65,9 @@ public class DataNodeConfiguratorImpl<T> extends
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass) {
 			super(overrideWithType(node), overriddenNodes, effectiveChildren,
-					parentClass);
+					outputTargetClass);
 
 			type = getValue(node, overriddenNodes, n -> n.type());
 
@@ -223,12 +225,12 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataChildBuilder addChild() {
-		SchemaNodeConfigurationContext<DataNode<Object>> context = new SchemaNodeConfigurationContext<DataNode<Object>>() {
+	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
+		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
-			public <U extends DataNode<Object>> List<U> overrideChild(String id,
+			public <U extends ChildNode> List<U> overrideChild(String id,
 					Class<U> nodeClass) {
-				return Collections.emptyList();
+				return DataNodeConfiguratorImpl.this.overrideChild(id, nodeClass);
 			}
 
 			@Override
@@ -242,20 +244,20 @@ public class DataNodeConfiguratorImpl<T> extends
 			}
 
 			@Override
-			public void addChild(DataNode<Object> result, DataNode<Object> effective) {
-				addChild(result, effective);
+			public void addChild(ChildNode result, ChildNode effective) {
+				DataNodeConfiguratorImpl.this.addChild(result, effective);
 			}
 		};
 
-		return new DataChildBuilder() {
+		return new ChildBuilder<DataNodeChildNode, DataNode<?>>() {
 			@Override
-			public SequenceNodeConfigurator sequence() {
-				return new SequenceNodeConfiguratorImpl(null);
+			public SequenceNodeConfigurator<DataNodeChildNode, DataNode<?>> sequence() {
+				return new SequenceNodeConfiguratorImpl<>(context);
 			}
 
 			@Override
-			public InputSequenceNodeConfigurator inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl(null);
+			public InputSequenceNodeConfigurator<DataNode<?>> inputSequence() {
+				return new InputSequenceNodeConfiguratorImpl<>(context);
 			}
 
 			@Override
@@ -264,8 +266,13 @@ public class DataNodeConfiguratorImpl<T> extends
 			}
 
 			@Override
-			public ChoiceNodeConfigurator choice() {
-				return new ChoiceNodeConfiguratorImpl(null);
+			public ChoiceNodeConfigurator<DataNodeChildNode, DataNode<?>> choice() {
+				return new ChoiceNodeConfiguratorImpl<>(context);
+			}
+
+			@Override
+			public ElementNodeConfigurator<Object> element() {
+				throw new UnsupportedOperationException();
 			}
 		};
 	}

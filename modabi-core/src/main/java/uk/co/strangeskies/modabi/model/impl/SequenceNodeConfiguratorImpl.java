@@ -5,15 +5,17 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 
-public class SequenceNodeConfiguratorImpl extends
-		ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode> implements
-		SequenceNodeConfigurator {
+public class SequenceNodeConfiguratorImpl<C extends ChildNode, B extends BindingChildNode<?>>
+		extends
+		ChildNodeConfiguratorImpl<SequenceNodeConfigurator<C, B>, SequenceNode, C, B>
+		implements SequenceNodeConfigurator<C, B> {
 	protected static class SequenceNodeImpl extends SchemaNodeImpl implements
 			ChildNodeImpl, SequenceNode {
-		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
+		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
 			super(configurator);
 		}
 
@@ -54,7 +56,7 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public ChildBuilder addChild() {
+	public ChildBuilder<C, B> addChild() {
 		return childBuilder();
 	}
 }

@@ -7,13 +7,14 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T>, T>
-		extends SchemaNodeConfiguratorImpl<S, N> implements
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T>, T, C extends ChildNode, B extends BindingChildNode<?>>
+		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
 		BindingNodeConfigurator<S, N, T> {
 	protected abstract static class BindingNodeImpl<T> extends SchemaNodeImpl
 			implements BindingNode<T> {
@@ -25,7 +26,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		private final String unbindingMethodName;
 		private final Method unbindingMethod;
 
-		public BindingNodeImpl(BindingNodeConfiguratorImpl<?, ?, T> configurator) {
+		public BindingNodeImpl(
+				BindingNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
 			super(configurator);
 
 			dataClass = configurator.dataClass;

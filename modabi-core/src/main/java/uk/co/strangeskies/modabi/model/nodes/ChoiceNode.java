@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public interface ChoiceNode extends ChildNode {
+public interface ChoiceNode extends ChildNode, DataNodeChildNode {
 	public Boolean isMandatory();
 
 	@Override

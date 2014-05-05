@@ -3,22 +3,27 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 
-public class InputSequenceNodeConfiguratorImpl extends
-		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
-		implements InputSequenceNodeConfigurator {
+public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
+		extends
+		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>
+		implements InputSequenceNodeConfigurator<C> {
 	protected static class InputSequenceNodeImpl extends SchemaNodeImpl implements
 			ChildNodeImpl, InputSequenceNode {
 		private final String inMethodName;
 		private final Method inMethod;
 		private final boolean inMethodChained;
 
-		public InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
+		public InputSequenceNodeImpl(
+				InputSequenceNodeConfiguratorImpl<?> configurator) {
 			super(configurator);
 
 			inMethodName = configurator.inMethodName;
@@ -26,8 +31,16 @@ public class InputSequenceNodeConfiguratorImpl extends
 			try {
 				Class<?> inputClass = configurator.getContext()
 						.getCurrentChildInputTargetClass();
-				inMethod = (inputClass == null || getDataClass() == null || inMethodName == null) ? null
-						: inputClass.getMethod(inMethodName, getDataClass());
+
+				List<Class<?>> parameterClasses = configurator.getChildren() == null ? null
+						: configurator.getChildren().stream()
+								.map(o -> ((BindingChildNode<?>) o).getDataClass())
+								.collect(Collectors.toList());
+
+				inMethod = (inputClass == null || parameterClasses == null
+						|| parameterClasses.stream().anyMatch(Objects::isNull) || inMethodName == null) ? null
+						: inputClass.getMethod(inMethodName,
+								parameterClasses.toArray(new Class[0]));
 			} catch (NoSuchMethodException | SecurityException e) {
 			}
 			this.inMethod = inMethod;
@@ -81,14 +94,14 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator inMethod(String methodName) {
+	public InputSequenceNodeConfigurator<C> inMethod(String methodName) {
 		inMethodName = methodName;
 
 		return this;
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator inMethodChained(boolean chained) {
+	public InputSequenceNodeConfigurator<C> inMethodChained(boolean chained) {
 		inMethodChained = chained;
 
 		return this;
@@ -114,7 +127,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public ChildBuilder addChild() {
+	public ChildBuilder<C, C> addChild() {
 		return childBuilder();
 	}
 }

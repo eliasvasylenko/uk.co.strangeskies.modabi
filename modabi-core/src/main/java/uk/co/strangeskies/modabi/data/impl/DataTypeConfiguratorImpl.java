@@ -9,9 +9,10 @@ import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.DataChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.impl.BindingNodeConfiguratorImpl;
@@ -21,6 +22,8 @@ import uk.co.strangeskies.modabi.model.impl.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.impl.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 
@@ -216,7 +219,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataChildBuilder addChild() {
+	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
 		assertUnblocked();
 		blocked = true;
 
@@ -243,10 +246,10 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 			}
 		};
 
-		return new DataChildBuilder() {
+		return new ChildBuilder<DataNodeChildNode, DataNode<?>>() {
 			@Override
-			public InputSequenceNodeConfigurator inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl(context);
+			public InputSequenceNodeConfigurator<DataNode<?>> inputSequence() {
+				return new InputSequenceNodeConfiguratorImpl<>(context);
 			}
 
 			@Override
@@ -255,13 +258,18 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 			}
 
 			@Override
-			public ChoiceNodeConfigurator choice() {
-				return new ChoiceNodeConfiguratorImpl(context);
+			public ChoiceNodeConfigurator<DataNodeChildNode, DataNode<?>> choice() {
+				return new ChoiceNodeConfiguratorImpl<>(context);
 			}
 
 			@Override
-			public SequenceNodeConfigurator sequence() {
-				return new SequenceNodeConfiguratorImpl(context);
+			public SequenceNodeConfigurator<DataNodeChildNode, DataNode<?>> sequence() {
+				return new SequenceNodeConfiguratorImpl<>(context);
+			}
+
+			@Override
+			public ElementNodeConfigurator<Object> element() {
+				throw new UnsupportedOperationException();
 			}
 		};
 	}

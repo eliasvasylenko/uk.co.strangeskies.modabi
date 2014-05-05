@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends ChildNode>
-		extends SchemaNodeConfiguratorImpl<S, N> implements
-		SchemaNodeConfigurator<S, N> {
+public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends ChildNode, C extends ChildNode, B extends BindingChildNode<?>>
+		extends SchemaNodeConfiguratorImpl<S, N, C, B> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	public ChildNodeConfiguratorImpl(

@@ -5,17 +5,19 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 
-public class ChoiceNodeConfiguratorImpl extends
-		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
-		ChoiceNodeConfigurator {
+public class ChoiceNodeConfiguratorImpl<C extends ChildNode, B extends BindingChildNode<?>>
+		extends
+		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator<C, B>, ChoiceNode, C, B>
+		implements ChoiceNodeConfigurator<C, B> {
 	protected static class ChoiceNodeImpl extends SchemaNodeImpl implements
 			ChildNodeImpl, ChoiceNode {
 		private final boolean mandatory;
 
-		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
+		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl<?, ?> configurator) {
 			super(configurator);
 
 			mandatory = configurator.mandatory;
@@ -48,7 +50,7 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public ChoiceNodeConfigurator mandatory(boolean mandatory) {
+	public ChoiceNodeConfigurator<C, B> mandatory(boolean mandatory) {
 		this.mandatory = mandatory;
 
 		return this;
@@ -71,7 +73,7 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public ChildBuilder addChild() {
+	public ChildBuilder<C, B> addChild() {
 		return childBuilder();
 	}
 }

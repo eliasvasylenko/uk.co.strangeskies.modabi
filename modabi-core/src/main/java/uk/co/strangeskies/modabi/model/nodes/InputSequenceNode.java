@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public interface InputSequenceNode extends InputNode {
+public interface InputSequenceNode extends InputNode,DataNodeChildNode {
 	@Override
 	public default Class<?> getPreInputClass() {
 		Method inMethod = getInMethod();

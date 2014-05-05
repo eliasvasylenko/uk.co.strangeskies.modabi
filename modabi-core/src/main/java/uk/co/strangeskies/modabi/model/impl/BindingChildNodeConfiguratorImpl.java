@@ -15,8 +15,8 @@ import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T>, T>
-		extends BindingNodeConfiguratorImpl<S, N, T> implements
+public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T>, T, C extends ChildNode, B extends BindingChildNode<?>>
+		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
 		BindingChildNodeConfigurator<S, N, T> {
 	protected static abstract class BindingChildNodeImpl<T> extends
 			BindingNodeImpl<T> implements ChildNodeImpl, BindingChildNode<T> {
@@ -30,8 +30,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		private final Method inMethod;
 		private final Boolean inMethodChained;
 
-		public BindingChildNodeImpl(
-				BindingChildNodeConfiguratorImpl<?, ?, T> configurator) {
+		BindingChildNodeImpl(
+				BindingChildNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
 			super(configurator);
 
 			occurances = configurator.occurances;
@@ -39,21 +39,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			outMethodName = configurator.outMethodName;
 			if (outMethodName == "this" && !iterable)
 				throw new SchemaException();
-
-			Method outMethod = null;
-			try {
-				Class<?> outputClass = configurator.getContext()
-						.getCurrentChildOutputTargetClass();
-				Class<?> resultClass = (isOutMethodIterable() == null || isOutMethodIterable()) ? resultClass = Iterable.class
-						: getDataClass();
-				outMethod = (getId() == null || outputClass == null
-						|| resultClass == null || outMethodName == "this") ? null
-						: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
-								.generateOutMethodNames(this, resultClass), outputClass,
-								resultClass);
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
-			this.outMethod = outMethod;
+			outMethod = getOutMethod(configurator.getContext()
+					.getCurrentChildOutputTargetClass(), null);
 
 			inMethodName = configurator.inMethodName;
 			Method inMethod = null;
@@ -70,7 +57,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 		BindingChildNodeImpl(BindingChildNode<T> node,
 				Collection<? extends BindingChildNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			occurances = getValue(node, overriddenNodes, n -> n.occurances(),
@@ -81,19 +68,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethodName());
 
-			Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? resultClass = Iterable.class
-					: getDataClass();
-			Method inheritedOutMethod = getValue(node, overriddenNodes,
-					n -> n.getOutMethod());
-			try {
-				outMethod = outMethodName == "this" ? null
-						: inheritedOutMethod != null ? inheritedOutMethod
-								: BindingNodeConfigurator.findMethod(
-										BindingNodeConfigurator.generateOutMethodNames(this),
-										parentClass, resultClass);
-			} catch (NoSuchMethodException e) {
-				throw new SchemaException(e);
-			}
+			outMethod = getOutMethod(outputTargetClass,
+					getValue(node, overriddenNodes, n -> n.getOutMethod()));
 
 			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName());
 
@@ -102,6 +78,22 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			inMethodChained = getValue(node, overriddenNodes,
 					n -> n.isInMethodChained());
+		}
+
+		private Method getOutMethod(Class<?> receiverClass,
+				Method inheritedOutMethod) {
+			try {
+				Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
+						: getDataClass();
+
+				return (receiverClass == null || resultClass == null || outMethodName == "this") ? null
+						: inheritedOutMethod != null ? inheritedOutMethod
+								: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
+										.generateOutMethodNames(this, resultClass), receiverClass,
+										resultClass);
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException(e);
+			}
 		}
 
 		@Override

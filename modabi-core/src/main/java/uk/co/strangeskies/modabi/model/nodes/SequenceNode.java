@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
-public interface SequenceNode extends ChildNode {
+public interface SequenceNode extends ChildNode, DataNodeChildNode {
 	@Override
 	public default Class<?> getPreInputClass() {
 		return getChildren().get(0).getPreInputClass();

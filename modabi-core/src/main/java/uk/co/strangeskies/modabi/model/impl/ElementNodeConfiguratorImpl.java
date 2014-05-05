@@ -8,12 +8,13 @@ import java.util.List;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
-		BindingChildNodeConfiguratorImpl<ElementNodeConfigurator<T>, ElementNode<T>, T>
+		BindingChildNodeConfiguratorImpl<ElementNodeConfigurator<T>, ElementNode<T>, T, ChildNode, BindingChildNode<?>>
 		implements ElementNodeConfigurator<T> {
 	protected static class ElementNodeImpl<T> extends BindingChildNodeImpl<T>
 			implements ElementNode<T> {
@@ -37,8 +38,8 @@ public class ElementNodeConfiguratorImpl<T>
 
 		private ElementNodeImpl(ElementNode<T> node,
 				Collection<ElementNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass, Void flag) {
-			super(node, overriddenNodes, effectiveChildren, parentClass);
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass, Void flag) {
+			super(node, overriddenNodes, effectiveChildren, outputTargetClass);
 
 			baseModel = new ArrayList<>();
 			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
@@ -95,8 +96,7 @@ public class ElementNodeConfiguratorImpl<T>
 		thisV.baseModel = Arrays.asList(base);
 
 		baseModel.forEach(m -> {
-			inheritChildren((List<? extends ChildNodeImpl>) m.effectiveModel()
-					.getChildren());
+			inheritChildren(m.effectiveModel().getChildren());
 		});
 
 		return thisV;
@@ -126,7 +126,7 @@ public class ElementNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public ChildBuilder addChild() {
+	public ChildBuilder<ChildNode, BindingChildNode<?>> addChild() {
 		return childBuilder();
 	}
 }
