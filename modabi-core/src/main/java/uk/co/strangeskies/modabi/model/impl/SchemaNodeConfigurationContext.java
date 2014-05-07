@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.impl;
 
-import java.util.List;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
@@ -11,5 +11,5 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode> {
 
 	void addChild(T result, T effective);
 
-	<U extends T> List<U> overrideChild(String id, Class<U> nodeClass);
+	<U extends T> Set<U> overrideChild(String id, Class<U> nodeClass);
 }

@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
@@ -225,9 +226,9 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
-			public <U extends ChildNode> List<U> overrideChild(String id,
+			public <U extends ChildNode> Set<U> overrideChild(String id,
 					Class<U> nodeClass) {
-				return Collections.emptyList();
+				return Collections.emptySet();
 			}
 
 			@Override

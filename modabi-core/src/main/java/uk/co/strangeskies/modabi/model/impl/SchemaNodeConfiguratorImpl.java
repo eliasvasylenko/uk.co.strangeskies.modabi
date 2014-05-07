@@ -3,13 +3,17 @@ package uk.co.strangeskies.modabi.model.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.gears.utilities.collection.ArrayListMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.ListMultiMap;
+import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
+import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -35,13 +39,17 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			id = configurator.getId();
 
-			for (List<? extends ChildNode> namedChildren : configurator.namedInheritedChildren
+			for (Set<? extends ChildNode> namedChildren : configurator.namedInheritedChildren
 					.values())
-				if (namedChildren.size() > 1)
+				if (namedChildren.size() > 1) {
+					Iterator<? extends ChildNode> i = namedChildren.iterator();
 					throw new SchemaException(
-							"Node '"
-									+ namedChildren.get(0).getId()
+							i.next().equals(i.next())
+									+ " "
+									+ "Node '"
+									+ namedChildren.iterator().next().getId()
 									+ "' is inherited multiple times and must be explicitly overridden.");
+				}
 
 			children = new ArrayList<>(configurator.children);
 		}
@@ -52,6 +60,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			id = getValue(node, overriddenNodes, n -> n.getId(), (v, o) -> true);
 
 			children = effectiveChildren;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof SchemaNode))
+				return false;
+
+			SchemaNode other = (SchemaNode) obj;
+			return Objects.equals(id, other.getId())
+					&& Objects.equals(children, other.getChildren());
 		}
 
 		@Override
@@ -98,7 +116,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private final List<ChildNode> children;
 	private final List<ChildNode> effectiveChildren;
 	private boolean blocked;
-	private final ListMultiMap<String, ChildNode> namedInheritedChildren;
+	private final SetMultiMap<String, ChildNode> namedInheritedChildren;
 	private final List<ChildNode> inheritedChildren;
 
 	private boolean finalisedProperties;
@@ -111,7 +129,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		children = new ArrayList<>();
 		effectiveChildren = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
-		namedInheritedChildren = new ArrayListMultiHashMap<>();
+		namedInheritedChildren = new HashSetMultiHashMap<>();
 	}
 
 	protected abstract N getEffective(N node);
@@ -174,17 +192,17 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@SuppressWarnings("unchecked")
-	<T extends ChildNode> List<T> overrideChild(String id, Class<T> nodeClass) {
-		List<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
+	<T extends ChildNode> Set<T> overrideChild(String id, Class<T> nodeClass) {
+		Set<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(
 					n -> !nodeClass.isAssignableFrom(n.getClass())))
 				throw new InvalidBuildStateException(this);
 		} else
-			overriddenNodes = new ArrayList<>();
+			overriddenNodes = new HashSet<>();
 
-		return (List<T>) Collections.unmodifiableList(overriddenNodes);
+		return (Set<T>) Collections.unmodifiableSet(overriddenNodes);
 	}
 
 	protected final List<ChildNode> getChildren() {
@@ -203,7 +221,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		children.add(result);
 		effectiveChildren.add(effective);
 		if (result.getId() != null) {
-			List<ChildNode> removed = namedInheritedChildren.remove(result.getId());
+			Set<ChildNode> removed = namedInheritedChildren.remove(result.getId());
 			if (removed != null)
 				inheritedChildren.removeAll(removed);
 		}
@@ -221,7 +239,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
-			public <T extends ChildNode> List<T> overrideChild(String id,
+			public <T extends ChildNode> Set<T> overrideChild(String id,
 					Class<T> nodeClass) {
 				return SchemaNodeConfiguratorImpl.this.overrideChild(id, nodeClass);
 			}

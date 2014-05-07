@@ -2,11 +2,12 @@ package uk.co.strangeskies.modabi.model.impl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -78,6 +79,22 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			inMethodChained = getValue(node, overriddenNodes,
 					n -> n.isInMethodChained());
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof BindingChildNode))
+				return false;
+
+			BindingChildNode<?> other = (BindingChildNode<?>) obj;
+			return super.equals(obj)
+					&& Objects.equals(occurances, other.occurances())
+					&& Objects.equals(iterable, other.isOutMethodIterable())
+					&& Objects.equals(outMethodName, other.getOutMethodName())
+					&& Objects.equals(outMethod, other.getOutMethod())
+					&& Objects.equals(inMethodName, other.getInMethodName())
+					&& Objects.equals(inMethod, other.getInMethod())
+					&& Objects.equals(inMethodChained, other.isInMethodChained());
 		}
 
 		private Method getOutMethod(Class<?> receiverClass,
@@ -220,8 +237,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
-	protected final List<N> getOverriddenNodes() {
-		return (getId() == null || getContext() == null) ? new ArrayList<>()
+	protected final Set<N> getOverriddenNodes() {
+		return (getId() == null || getContext() == null) ? new HashSet<>()
 				: getContext().overrideChild(getId(), getNodeClass());
 	}
 }

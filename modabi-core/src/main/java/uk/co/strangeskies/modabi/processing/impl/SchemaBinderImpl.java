@@ -56,17 +56,9 @@ import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
 
 public class SchemaBinderImpl implements SchemaBinder {
 	private class SchemaSavingContext<T> implements SchemaProcessingContext {
-		private class StackContext {
-			private final Object binding;
-
-			public StackContext(Object binding) {
-				this.binding = binding;
-			}
-		}
-
 		private final StructuredOutput output;
 
-		private final Deque<StackContext> bindingStack;
+		private final Deque<Object> bindingStack;
 
 		private TerminatingDataTarget sink;
 
@@ -144,7 +136,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		private void processBindingChildren(SchemaNode node, Object binding) {
-			bindingStack.push(new StackContext(binding));
+			bindingStack.push(binding);
 
 			processChildren(node);
 
@@ -169,7 +161,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@SuppressWarnings("unchecked")
 		public <U> List<U> getData(BindingChildNode<U> node) {
-			Object parent = bindingStack.peek().binding;
+			Object parent = bindingStack.peek();
 
 			if (node.getDataClass() == null)
 				throw new SchemaException(node.getId());

@@ -20,7 +20,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 			ChildNodeImpl, InputSequenceNode {
 		private final String inMethodName;
 		private final Method inMethod;
-		private final boolean inMethodChained;
+		private final Boolean inMethodChained;
 
 		public InputSequenceNodeImpl(
 				InputSequenceNodeConfiguratorImpl<?> configurator) {
@@ -65,6 +65,18 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 		}
 
 		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof InputSequenceNode))
+				return false;
+
+			InputSequenceNode other = (InputSequenceNode) obj;
+			return super.equals(obj)
+					&& Objects.equals(inMethodName, other.getInMethodName())
+					&& Objects.equals(inMethod, other.getInMethod())
+					&& Objects.equals(inMethodChained, other.isInMethodChained());
+		}
+
+		@Override
 		public final String getInMethodName() {
 			return inMethodName;
 		}
@@ -81,7 +93,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 	}
 
 	private String inMethodName;
-	private boolean inMethodChained;
+	private Boolean inMethodChained;
 
 	public InputSequenceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super InputSequenceNode> parent) {

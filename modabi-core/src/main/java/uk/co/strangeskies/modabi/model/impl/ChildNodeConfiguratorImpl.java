@@ -1,7 +1,9 @@
 package uk.co.strangeskies.modabi.model.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
@@ -27,8 +29,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 		return getContext().getCurrentChildOutputTargetClass();
 	}
 
-	protected List<N> getOverriddenNodes() {
-		return (getId() == null) ? new ArrayList<>() : getContext().overrideChild(
+	protected Set<N> getOverriddenNodes() {
+		return (getId() == null) ? new HashSet<>() : getContext().overrideChild(
 				getId(), getNodeClass());
 	}
 

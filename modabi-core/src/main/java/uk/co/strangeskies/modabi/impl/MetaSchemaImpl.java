@@ -196,17 +196,12 @@ public class MetaSchemaImpl implements MetaSchema {
 		modelSet.add(modelModel);
 
 		@SuppressWarnings("rawtypes")
-		Model<ElementNode> elementModel = model
-				.configure()
-				.id("element")
+		Model<ElementNode> elementModel = model.configure().id("element")
 				.dataClass(ElementNode.class)
 				.bindingClass(ElementNodeConfigurator.class)
 				.baseModel(dataModel, repeatableModel, abstractModelModel)
-				.isAbstract(false)
-				.addChild(n -> n.data().format(Format.PROPERTY).id("id"))
-				.addChild(
-						o -> o.data().format(Format.PROPERTY).id("dataClass")
-								.type(base.derivedTypes().classType()))
+				.isAbstract(false).addChild(n -> n.data().id("id"))
+				.addChild(o -> o.data().id("dataClass"))
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(elementModel);
 
@@ -284,14 +279,6 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().id("format")
 								.value(BufferedDataSource.from().string("Property").buffer()))
 				.addChild(n -> n.data().id("id")).create();
-		System.out
-				.println(((DataNode<?>) typedDataModel.getChildren().stream()
-						.filter(c -> c.getId().equals("format")).findAny().get())
-						.getChildren());
-		System.out
-				.println(((DataNode<?>) propertyModel.getChildren().stream()
-						.filter(c -> c.getId().equals("format")).findAny().get())
-						.getChildren()); // TODO why has this lost children?
 		modelSet.add(propertyModel);
 
 		@SuppressWarnings("rawtypes")
@@ -305,7 +292,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n
 								.data()
-								.type(base.derivedTypes().enumType())
 								.id("format")
 								.value(
 										BufferedDataSource.from().string("Simple Element").buffer()))

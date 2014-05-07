@@ -1,7 +1,10 @@
 package uk.co.strangeskies.modabi.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.data.DataType;
@@ -79,6 +82,19 @@ public class DataNodeConfiguratorImpl<T>
 			value = getValue(node, overriddenNodes, n -> n.value());
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof DataNode))
+				return false;
+
+			DataNode<?> other = (DataNode<?>) obj;
+
+			return super.equals(obj) && Objects.equals(type, other.type())
+					&& Objects.equals(value, other.value())
+					&& Objects.equals(format, other.format())
+					&& Objects.equals(optional, other.optional());
+		}
+
 		private static <T> DataNode<T> overrideWithType(DataNode<T> node) {
 			node = DataNode.wrapType(node);
 			return node;
@@ -146,6 +162,19 @@ public class DataNodeConfiguratorImpl<T>
 		inheritChildren(type.getEffectiveChildren());
 
 		return (DataNodeConfigurator<U>) getThis();
+	}
+
+	@Override
+	protected void finaliseProperties() {
+		if (!isFinalisedProperties()) {
+			List<ChildNode> newInheritedChildren = new ArrayList<>();
+			getOverriddenNodes().forEach(
+					c -> c.getChildren().forEach(n -> newInheritedChildren.add(n)));
+
+			inheritChildren(0, newInheritedChildren);
+		}
+
+		super.finaliseProperties();
 	}
 
 	@Override
@@ -228,7 +257,7 @@ public class DataNodeConfiguratorImpl<T>
 	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
 			@Override
-			public <U extends ChildNode> List<U> overrideChild(String id,
+			public <U extends ChildNode> Set<U> overrideChild(String id,
 					Class<U> nodeClass) {
 				return DataNodeConfiguratorImpl.this.overrideChild(id, nodeClass);
 			}
