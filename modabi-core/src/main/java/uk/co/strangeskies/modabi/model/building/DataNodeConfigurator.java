@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.model.building;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 
 public interface DataNodeConfigurator<T>
 		extends

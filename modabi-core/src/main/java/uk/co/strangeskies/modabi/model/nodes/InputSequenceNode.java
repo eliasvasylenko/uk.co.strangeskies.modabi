@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
 
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface InputSequenceNode extends InputNode,DataNodeChildNode {
 	@Override

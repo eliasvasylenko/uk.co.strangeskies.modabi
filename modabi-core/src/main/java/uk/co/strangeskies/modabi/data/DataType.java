@@ -4,8 +4,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public interface DataType<T> {
 	String getName();

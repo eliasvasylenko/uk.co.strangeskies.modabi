@@ -16,17 +16,17 @@ import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.impl.BindingNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.impl.ChoiceNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.impl.DataNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.impl.InputSequenceNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.impl.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.model.impl.SequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.ChoiceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.DataNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.InputSequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.model.building.impl.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 		implements DataTypeConfigurator<T> {

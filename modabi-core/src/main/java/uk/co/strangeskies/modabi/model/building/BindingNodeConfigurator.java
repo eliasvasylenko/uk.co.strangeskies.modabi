@@ -10,8 +10,8 @@ import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T>, T>
 		extends SchemaNodeConfigurator<S, N> {

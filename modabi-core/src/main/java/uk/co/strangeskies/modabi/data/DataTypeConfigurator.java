@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public interface DataTypeConfigurator<T> extends Factory<DataType<T>> {
 	/**

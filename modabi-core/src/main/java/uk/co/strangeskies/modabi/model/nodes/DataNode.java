@@ -6,9 +6,9 @@ import java.util.List;
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	public enum Format {

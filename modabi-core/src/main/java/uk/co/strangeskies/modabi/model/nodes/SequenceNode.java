@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
-import uk.co.strangeskies.modabi.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface SequenceNode extends ChildNode, DataNodeChildNode {
 	@Override
