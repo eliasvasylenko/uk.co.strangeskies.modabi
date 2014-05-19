@@ -9,7 +9,7 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataType;
 import uk.co.strangeskies.modabi.data.DataTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataTypes;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
@@ -229,8 +229,7 @@ public class MetaSchemaImpl implements MetaSchema {
 																.data()
 																.id("enumType")
 																.value(
-																		BufferedDataSource
-																				.from()
+																		new BufferingDataTarget()
 																				.string(
 																						"uk.co.strangeskies.modabi.model.nodes.DataNode.Format")
 																				.buffer()))
@@ -263,7 +262,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n.data().id("format")
-								.value(BufferedDataSource.from().string("Content").buffer()))
+								.value(new BufferingDataTarget().string("Content").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 
@@ -277,7 +276,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n.data().id("format")
-								.value(BufferedDataSource.from().string("Property").buffer()))
+								.value(new BufferingDataTarget().string("Property").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
 
@@ -294,7 +293,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.data()
 								.id("format")
 								.value(
-										BufferedDataSource.from().string("Simple Element").buffer()))
+										new BufferingDataTarget().string("Simple Element").buffer()))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(simpleElementModel);
 
@@ -359,7 +358,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.dataClass(Set.class)
 								.addChild(
 										o -> o.element().baseModel(typeModel).outMethod("this")
-												.outMethodIterable(true).dataClass(DataType.class)
+												.id("type").outMethodIterable(true)
+												.dataClass(DataType.class)
 												.occurances(Range.create(0, null))))
 				.addChild(
 						n -> n.element().baseModel(modelsModel)

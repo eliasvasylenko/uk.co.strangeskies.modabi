@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.schema.processing;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.data.io.structured.StructuredInput;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredOutput;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
@@ -15,13 +15,13 @@ public interface SchemaBinder {
 
 	public void registerProvider(Function<Class<?>, ?> provider);
 
-	public <T> T processInput(Model<T> model, StructuredInput input);
+	public <T> T processInput(Model<T> model, StructuredDataSource input);
 
-	public Binding<?> processInput(StructuredInput input);
+	public Binding<?> processInput(StructuredDataSource input);
 
-	public <T> void processOutput(Model<T> model, StructuredOutput output, T data);
+	public <T> void processOutput(Model<T> model, StructuredDataTarget output, T data);
 
-	public <T> void processOutput(StructuredOutput output, T data);
+	public <T> void processOutput(StructuredDataTarget output, T data);
 
 	public MetaSchema getMetaSchema();
 

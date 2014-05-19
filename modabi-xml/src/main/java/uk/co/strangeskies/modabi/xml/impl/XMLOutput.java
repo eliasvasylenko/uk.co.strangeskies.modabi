@@ -6,20 +6,19 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
-import uk.co.strangeskies.modabi.data.io.structured.BufferedStructuredInput;
-import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredOutput;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredOutput;
+import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 
-public class XMLOutput implements StructuredOutput {
-	private final BufferingStructuredOutput bufferingOutput;
+public class XMLOutput implements StructuredDataTarget {
+	private final BufferingStructuredDataTarget bufferingOutput;
 	private int depth;
 
 	public XMLOutput() {
-		bufferingOutput = BufferedStructuredInput.from();
+		bufferingOutput = new BufferingStructuredDataTarget();
 		depth = 0;
 	}
 
-	class PipeTarget implements StructuredOutput {
+	class PipeTarget implements StructuredDataTarget {
 		private boolean openingElement;
 		private boolean hasChildren;
 		private final Deque<String> elementStack;
@@ -33,7 +32,7 @@ public class XMLOutput implements StructuredOutput {
 		}
 
 		@Override
-		public void childElement(String name) {
+		public StructuredDataTarget nextChild(String name) {
 			endProperties();
 
 			elementStack.push(name);
@@ -44,6 +43,8 @@ public class XMLOutput implements StructuredOutput {
 			openingElement = true;
 
 			hasChildren = false;
+
+			return this;
 		}
 
 		@Override
@@ -68,7 +69,7 @@ public class XMLOutput implements StructuredOutput {
 		}
 
 		@Override
-		public void endElement() {
+		public StructuredDataTarget endChild() {
 			indent = indent.substring(2);
 			if (!hasChildren) {
 				System.out.println(" />");
@@ -81,6 +82,8 @@ public class XMLOutput implements StructuredOutput {
 
 				System.out.println(indent + "</" + elementStack.pop() + ">");
 			}
+
+			return this;
 		}
 
 		private TerminatingDataTarget getDataSink(boolean property) {
@@ -172,9 +175,11 @@ public class XMLOutput implements StructuredOutput {
 	}
 
 	@Override
-	public void childElement(String name) {
-		bufferingOutput.childElement(name);
+	public StructuredDataTarget nextChild(String name) {
+		bufferingOutput.nextChild(name);
 		depth++;
+
+		return this;
 	}
 
 	@Override
@@ -188,9 +193,11 @@ public class XMLOutput implements StructuredOutput {
 	}
 
 	@Override
-	public void endElement() {
-		bufferingOutput.endElement();
+	public StructuredDataTarget endChild() {
+		bufferingOutput.endChild();
 		if (depth-- == 1)
 			bufferingOutput.buffer().pipeNextChild(new PipeTarget());
+
+		return this;
 	}
 }

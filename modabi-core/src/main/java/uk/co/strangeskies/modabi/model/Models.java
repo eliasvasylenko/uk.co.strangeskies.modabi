@@ -64,8 +64,12 @@ public class Models extends NamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getSubModels(AbstractModel<T> model) {
-		ListOrderedSet<? extends Model<? extends T>> subModelList = (ListOrderedSet<? extends Model<? extends T>>) subModels
-				.get(model);
+		/*
+		 * TODO This extra cast is needed by JDT but not eclipse... Is it valid
+		 * without?
+		 */
+		Object subModelListObject = subModels.get(model);
+		ListOrderedSet<? extends Model<? extends T>> subModelList = (ListOrderedSet<? extends Model<? extends T>>) subModelListObject;
 		return subModelList == null ? new ArrayList<>() : new ArrayList<>(
 				subModelList);
 	}

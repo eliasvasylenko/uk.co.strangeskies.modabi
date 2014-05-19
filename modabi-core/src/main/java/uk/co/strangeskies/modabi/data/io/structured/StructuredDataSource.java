@@ -4,7 +4,7 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
 
-public interface StructuredInput {
+public interface StructuredDataSource {
 	public String nextChild();
 
 	public Set<String> properties();
@@ -13,15 +13,19 @@ public interface StructuredInput {
 
 	public TerminatingDataSource content();
 
-	public void endElement();
+	public void endChild();
 
-	public default <T extends StructuredOutput> T pipeNextChild(T output) {
+	public int depth();
+
+	public int indexAtDepth();
+
+	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
 		String childElement;
 
 		int depth = 0;
 		do {
 			while ((childElement = nextChild()) != null) {
-				output.childElement(childElement);
+				output.nextChild(childElement);
 
 				for (String property : properties())
 					propertyData(property).pipe(output.property(property)).terminate();
@@ -32,8 +36,8 @@ public interface StructuredInput {
 
 				depth++;
 			}
-			output.endElement();
-			endElement();
+			output.endChild();
+			endChild();
 
 			depth--;
 		} while (depth > 0);
@@ -41,7 +45,7 @@ public interface StructuredInput {
 		return output;
 	}
 
-	public default BufferedStructuredInput bufferNextChild() {
-		return pipeNextChild(BufferedStructuredInput.from()).buffer();
+	public default BufferedStructuredDataSource bufferNextChild() {
+		return pipeNextChild(new BufferingStructuredDataTarget()).buffer();
 	}
 }

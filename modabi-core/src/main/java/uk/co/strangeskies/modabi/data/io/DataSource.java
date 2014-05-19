@@ -30,7 +30,7 @@ public interface DataSource {
 	}
 
 	public default BufferedDataSource buffer(int items) {
-		return pipe(BufferedDataSource.from(), items).buffer();
+		return pipe(new BufferingDataTarget(), items).buffer();
 	}
 
 	public static DataSource repeat(byte[] data) {
