@@ -4,7 +4,14 @@
 	<types>
 		<type name="data" dataClass=".data.DataSource" abstract="true" /> <!-- provided -->
 
-		<type name="binary" dataClass="byte[]"></type>
+		<type name="binary" dataClass="byte[]" bindingClass="BufferedDataSource"
+			bindingStrategy="PROVIDED">
+			<data type="uk.co.strangeskies.utils.Enumeration">
+				<inputSequence id="valueOf">
+					<data id="enumType" value="uk.co.strangeskies.modabi.data.io.DataType" />
+				</inputSequence>
+			</data>
+		</type>
 		<type name="string" dataClass="java.lang.String"></type>
 		<type name="integer" dataClass="java.math.BigInteger"></type>
 		<type name="int" dataClass="java.lang.Integer"></type>

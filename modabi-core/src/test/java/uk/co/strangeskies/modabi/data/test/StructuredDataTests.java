@@ -4,6 +4,7 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.data.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 
@@ -16,7 +17,8 @@ public class StructuredDataTests {
 						.buffer() },
 
 				{ new BufferingStructuredDataTarget().nextChild("one")
-						.property("two", o -> o.string("twoValue")).endChild().buffer() }
+						.property("two", o -> o.put(DataType.STRING, "twoValue"))
+						.endChild().buffer() }
 
 		};
 	}

@@ -33,10 +33,19 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
 		public BuiltInTypesImpl(DataBindingTypeBuilder builder,
-				Set<DataBindingType<?>> typeSet) {
+				Set<DataBindingType<?>> typeSet,
+				Map<DataType<?>, DataBindingType<?>> primitives) {
 			qualifiedNameType = builder.configure().name("qualifiedName")
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);
+
+			DataBindingType<Object> referenceBaseType = builder.configure()
+					.name("reference").dataClass(Object.class).hidden(true)
+					.bindingClass(null).bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingClass(null)
+					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+					.addChild(c -> c.data().type()).create();
+			typeSet.add(referenceBaseType);
 
 			referenceType = builder.configure().name("reference")
 					.dataClass(Object.class).create();
@@ -77,7 +86,8 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		public DerivedTypesImpl(DataBindingTypeBuilder dataType,
 				Set<DataBindingType<?>> typeSet,
-				Map<DataType<?>, DataBindingType<?>> primitives) {
+				Map<DataType<?>, DataBindingType<?>> primitives,
+				BuiltInTypes builtInTypes) {
 			classType = dataType
 					.configure()
 					.name("class")
@@ -99,7 +109,8 @@ public class BaseSchemaImpl implements BaseSchema {
 									.id("valueOf")
 									.addChild(
 											o -> o.data().id("enumType").outMethod("getClass")
-													.type(classType))
+													.type(builtInTypes.referenceType())
+													.dataClass(Class.class))
 									.addChild(
 											o -> o.data().id("name")
 													.type(primitives.get(DataType.STRING)))).create();
@@ -175,8 +186,9 @@ public class BaseSchemaImpl implements BaseSchema {
 				.collect(
 						Collectors.toMap(t -> t,
 								t -> primitive(dataTypeBuilder, typeSet, t)));
-		builtInTypes = new BuiltInTypesImpl(dataTypeBuilder, typeSet);
-		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives);
+		builtInTypes = new BuiltInTypesImpl(dataTypeBuilder, typeSet, primitives);
+		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives,
+				builtInTypes);
 
 		/*
 		 * Models

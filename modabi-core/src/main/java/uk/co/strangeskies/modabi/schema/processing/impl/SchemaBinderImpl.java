@@ -64,7 +64,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private TerminatingDataTarget sink;
 
-		public SchemaSavingContext(Model<T> model, StructuredDataTarget output, T data) {
+		public SchemaSavingContext(Model<T> model, StructuredDataTarget output,
+				T data) {
 			bindingStack = new ArrayDeque<>();
 
 			this.output = output;
@@ -434,7 +435,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public <T> void processOutput(Model<T> model, StructuredDataTarget output, T data) {
+	public <T> void processOutput(Model<T> model, StructuredDataTarget output,
+			T data) {
 		new SchemaSavingContext<>(model, output, data);
 	}
 

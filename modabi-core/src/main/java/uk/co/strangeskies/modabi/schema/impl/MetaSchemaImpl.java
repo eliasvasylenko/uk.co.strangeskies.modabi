@@ -221,6 +221,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.format(Format.PROPERTY)
 								.id("format")
 								.type(base.derivedTypes().enumType())
+								.dataClass(Format.class)
 								.addChild(
 										o -> o
 												.inputSequence()
