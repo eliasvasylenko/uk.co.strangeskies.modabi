@@ -1,17 +1,18 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.data.DataTypeBuilder;
-import uk.co.strangeskies.modabi.data.DataTypes;
+import uk.co.strangeskies.modabi.data.DataBindingType;
+import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
+import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
@@ -26,109 +27,13 @@ import uk.co.strangeskies.modabi.schema.processing.ModelLoader;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class BaseSchemaImpl implements BaseSchema {
-	private final Schema baseSchema;
-
-	private class PrimitiveTypesImpl implements PrimitiveTypes {
-		private final DataType<byte[]> binaryType;
-		private final DataType<String> stringType;
-		private final DataType<BigInteger> integerType;
-		private final DataType<BigDecimal> decimalType;
-		private final DataType<Integer> intType;
-		private final DataType<Long> longType;
-		private final DataType<Float> floatType;
-		private final DataType<Double> doubleType;
-		private final DataType<Boolean> booleanType;
-
-		public PrimitiveTypesImpl(DataTypeBuilder builder, Set<DataType<?>> typeSet) {
-			binaryType = primitiveType("binary", byte[].class, builder);
-			typeSet.add(binaryType);
-
-			stringType = primitiveType("string", String.class, builder);
-			typeSet.add(stringType);
-
-			integerType = primitiveType("integer", BigInteger.class, builder);
-			typeSet.add(integerType);
-
-			decimalType = primitiveType("decimal", BigDecimal.class, builder);
-			typeSet.add(decimalType);
-
-			intType = primitiveType("int", int.class, builder);
-			typeSet.add(intType);
-
-			longType = primitiveType("long", long.class, builder);
-			typeSet.add(longType);
-
-			floatType = primitiveType("float", float.class, builder);
-			typeSet.add(floatType);
-
-			doubleType = primitiveType("double", double.class, builder);
-			typeSet.add(doubleType);
-
-			booleanType = primitiveType("boolean", boolean.class, builder);
-			typeSet.add(booleanType);
-		}
-
-		private <T> DataType<T> primitiveType(String name, Class<T> dataClass,
-				DataTypeBuilder builder) {
-			return builder.configure().name(name).dataClass(dataClass)
-					.bindingClass(BufferedDataSource.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingClass(DataTarget.class)
-					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED).create();
-		}
-
-		@Override
-		public DataType<byte[]> binaryType() {
-			return binaryType;
-		}
-
-		@Override
-		public DataType<String> stringType() {
-			return stringType;
-		}
-
-		@Override
-		public DataType<BigInteger> integerType() {
-			return integerType;
-		}
-
-		@Override
-		public DataType<BigDecimal> decimalType() {
-			return decimalType;
-		}
-
-		@Override
-		public DataType<Integer> intType() {
-			return intType;
-		}
-
-		@Override
-		public DataType<Long> longType() {
-			return longType;
-		}
-
-		@Override
-		public DataType<Float> floatType() {
-			return floatType;
-		}
-
-		@Override
-		public DataType<Double> doubleType() {
-			return doubleType;
-		}
-
-		@Override
-		public DataType<Boolean> booleanType() {
-			return booleanType;
-		}
-	}
-
 	private class BuiltInTypesImpl implements BuiltInTypes {
-		private final DataType<QualifiedName> qualifiedNameType;
-		private final DataType<Object> referenceType;
-		private final DataType<BufferedDataSource> bufferedDataType;
+		private final DataBindingType<QualifiedName> qualifiedNameType;
+		private final DataBindingType<Object> referenceType;
+		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
-		public BuiltInTypesImpl(DataTypeBuilder builder, Set<DataType<?>> typeSet) {
+		public BuiltInTypesImpl(DataBindingTypeBuilder builder,
+				Set<DataBindingType<?>> typeSet) {
 			qualifiedNameType = builder.configure().name("qualifiedName")
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);
@@ -147,35 +52,40 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public DataType<QualifiedName> qualifiedNameType() {
+		public DataBindingType<QualifiedName> qualifiedNameType() {
 			return qualifiedNameType;
 		}
 
 		@Override
-		public DataType<Object> referenceType() {
+		public DataBindingType<Object> referenceType() {
 			return referenceType;
 		}
 
 		@Override
-		public DataType<BufferedDataSource> bufferedDataType() {
+		public DataBindingType<BufferedDataSource> bufferedDataType() {
 			return bufferedDataType;
 		}
 	}
 
 	private class DerivedTypesImpl implements DerivedTypes {
 		@SuppressWarnings("rawtypes")
-		private final DataType<Class> classType;
+		private final DataBindingType<Class> classType;
 		@SuppressWarnings("rawtypes")
-		private final DataType<Enum> enumType;
+		private final DataBindingType<Enum> enumType;
 		@SuppressWarnings("rawtypes")
-		private final DataType<Range> rangeType;
+		private final DataBindingType<Range> rangeType;
 
-		public DerivedTypesImpl(DataTypeBuilder dataType, Set<DataType<?>> typeSet,
-				PrimitiveTypes primitives) {
-			classType = dataType.configure().name("class").dataClass(Class.class)
+		public DerivedTypesImpl(DataBindingTypeBuilder dataType,
+				Set<DataBindingType<?>> typeSet,
+				Map<DataType<?>, DataBindingType<?>> primitives) {
+			classType = dataType
+					.configure()
+					.name("class")
+					.dataClass(Class.class)
 					.bindingClass(Class.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.addChild(p -> p.data().type(primitives.stringType()).id("name"))
+					.addChild(
+							p -> p.data().type(primitives.get(DataType.STRING)).id("name"))
 					.create();
 			typeSet.add(classType);
 
@@ -191,33 +101,37 @@ public class BaseSchemaImpl implements BaseSchema {
 											o -> o.data().id("enumType").outMethod("getClass")
 													.type(classType))
 									.addChild(
-											o -> o.data().id("name").type(primitives.stringType())))
-					.create();
+											o -> o.data().id("name")
+													.type(primitives.get(DataType.STRING)))).create();
 			typeSet.add(enumType);
 
-			rangeType = dataType.configure().name("range").dataClass(Range.class)
+			rangeType = dataType
+					.configure()
+					.name("range")
+					.dataClass(Range.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
-					.addChild(p -> p.data().type(primitives.stringType()).id("string"))
+					.addChild(
+							p -> p.data().type(primitives.get(DataType.STRING)).id("string"))
 					.create();
 			typeSet.add(rangeType);
 		}
 
 		@Override
 		@SuppressWarnings("rawtypes")
-		public DataType<Class> classType() {
+		public DataBindingType<Class> classType() {
 			return classType;
 		}
 
 		@Override
 		@SuppressWarnings("rawtypes")
-		public DataType<Enum> enumType() {
+		public DataBindingType<Enum> enumType() {
 			return enumType;
 		}
 
 		@Override
 		@SuppressWarnings("rawtypes")
-		public DataType<Range> rangeType() {
+		public DataBindingType<Range> rangeType() {
 			return rangeType;
 		}
 	}
@@ -237,26 +151,32 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 	}
 
-	private final PrimitiveTypes primitiveTypes;
+	private final Schema baseSchema;
+
+	private final Map<DataType<?>, DataBindingType<?>> primitives;
 	private final BuiltInTypes builtInTypes;
 	private final DerivedTypes derivedTypes;
 
 	private final BaseModels models;
 
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
-			DataTypeBuilder dataTypeBuilder) {
+			DataBindingTypeBuilder dataTypeBuilder) {
 		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
 				new Namespace(BaseSchema.class.getPackage().getName()));
 
 		/*
 		 * Types
 		 */
-		Set<DataType<?>> typeSet = new HashSet<>();
+		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
-		primitiveTypes = new PrimitiveTypesImpl(dataTypeBuilder, typeSet);
+		primitives = DataType
+				.types()
+				.stream()
+				.collect(
+						Collectors.toMap(t -> t,
+								t -> primitive(dataTypeBuilder, typeSet, t)));
 		builtInTypes = new BuiltInTypesImpl(dataTypeBuilder, typeSet);
-		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet,
-				primitiveTypes);
+		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives);
 
 		/*
 		 * Models
@@ -272,9 +192,23 @@ public class BaseSchemaImpl implements BaseSchema {
 				.models(modelSet).create();
 	}
 
+	private <T> DataBindingType<T> primitive(DataBindingTypeBuilder builder,
+			Set<DataBindingType<?>> typeSet, DataType<T> type) {
+		DataBindingType<T> primitive = builder.configure().name(type.name())
+				.dataClass(type.dataClass()).bindingClass(BufferedDataSource.class)
+				.bindingStrategy(BindingStrategy.PROVIDED)
+				.unbindingClass(DataTarget.class)
+				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+				.unbindingMethod("put").create();
+
+		typeSet.add(primitive);
+		return primitive;
+	}
+
+	@SuppressWarnings("unchecked")
 	@Override
-	public PrimitiveTypes primitiveTypes() {
-		return primitiveTypes;
+	public <T> DataBindingType<T> primitiveType(DataType<T> type) {
+		return (DataBindingType<T>) primitives.get(type);
 	}
 
 	@Override
@@ -305,7 +239,7 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	@Override
-	public DataTypes getDataTypes() {
+	public DataBindingTypes getDataTypes() {
 		return baseSchema.getDataTypes();
 	}
 

@@ -1,27 +1,15 @@
 package uk.co.strangeskies.modabi.data.io;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.function.Consumer;
-
 public interface DataSource {
-	public byte[] binary();
+	public int index();
 
-	public String string();
+	public <T> T get(DataType<T> type);
 
-	public BigInteger integer();
+	public BufferedDataSource buffer(int items);
 
-	public BigDecimal decimal();
-
-	public int intValue();
-
-	public long longValue();
-
-	public float floatValue();
-
-	public double doubleValue();
-
-	public boolean booleanValue();
+	public default BufferedDataSource bufferNext() {
+		return buffer(1);
+	}
 
 	public <T extends DataTarget> T pipe(T target, int items);
 
@@ -29,152 +17,71 @@ public interface DataSource {
 		return pipe(target, 1);
 	}
 
-	public default BufferedDataSource buffer(int items) {
-		return pipe(new BufferingDataTarget(), items).buffer();
+	public static <T> DataSource repeating(DataType<T> type, T data) {
+		return repeating(new DataItem<>(type, data));
 	}
 
-	public static DataSource repeat(byte[] data) {
-		return new RepeatingDataSource(c -> c.binary(data)) {
-			@Override
-			public byte[] binary() {
-				return data;
-			}
-		};
+	public static <T> DataSource repeating(DataItem<T> item) {
+		return new RepeatingDataSource(item);
 	}
 
-	public static DataSource repeat(String data) {
-		return new RepeatingDataSource(c -> c.string(data)) {
-			@Override
-			public String string() {
-				return data;
-			}
-		};
-	}
+	class RepeatingDataSource implements DataSource {
+		private final DataItem<?> item;
+		private int index;
 
-	public static DataSource repeat(BigInteger data) {
-		return new RepeatingDataSource(c -> c.integer(data)) {
-			@Override
-			public BigInteger integer() {
-				return data;
-			}
-		};
-	}
+		protected RepeatingDataSource(DataItem<?> item) {
+			this(item, 0);
+		}
 
-	public static DataSource repeat(BigDecimal data) {
-		return new RepeatingDataSource(c -> c.decimal(data)) {
-			@Override
-			public BigDecimal decimal() {
-				return data;
-			}
-		};
-	}
+		protected RepeatingDataSource(DataItem<?> item, int index) {
+			this.item = item;
+			this.index = index;
+		}
 
-	public static DataSource repeat(int data) {
-		return new RepeatingDataSource(c -> c.intValue(data)) {
-			@Override
-			public int intValue() {
-				return data;
-			}
-		};
-	}
-
-	public static DataSource repeat(long data) {
-		return new RepeatingDataSource(c -> c.longValue(data)) {
-			@Override
-			public long longValue() {
-				return data;
-			}
-		};
-	}
-
-	public static DataSource repeat(float data) {
-		return new RepeatingDataSource(c -> c.floatValue(data)) {
-			@Override
-			public float floatValue() {
-				return data;
-			}
-		};
-	}
-
-	public static DataSource repeat(double data) {
-		return new RepeatingDataSource(c -> c.doubleValue(data)) {
-			@Override
-			public double doubleValue() {
-				return data;
-			}
-		};
-	}
-
-	public static DataSource repeat(boolean data) {
-		return new RepeatingDataSource(c -> c.booleanValue(data)) {
-			@Override
-			public boolean booleanValue() {
-				return data;
-			}
-		};
-	}
-
-	abstract class RepeatingDataSource implements DataSource {
-		private final Consumer<DataTarget> dumpValue;
-
-		public RepeatingDataSource(Consumer<DataTarget> dumpValue) {
-			this.dumpValue = dumpValue;
+		protected DataItem<?> getItem() {
+			return item;
 		}
 
 		@Override
-		public byte[] binary() {
+		public int index() {
+			return index;
+		}
+
+		protected void setIndex(int index) {
+			this.index = index;
+		}
+
+		protected void incrementIndex() {
+			index++;
+		}
+
+		protected RuntimeException unimplemented() {
+			return new ClassCastException();
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <U> U get(DataType<U> type) {
+			if (type == item.type())
+				return (U) item.data();
 			throw new ClassCastException();
 		}
 
 		@Override
-		public String string() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public BigInteger integer() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public BigDecimal decimal() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public int intValue() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public long longValue() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public float floatValue() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public double doubleValue() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public boolean booleanValue() {
-			throw new ClassCastException();
-		}
-
-		@Override
-		public <T extends DataTarget> T pipe(T target, int items) {
+		public <U extends DataTarget> U pipe(U target, int items) {
 			if (items < 0)
-				throw new ArrayIndexOutOfBoundsException(-1);
+				throw new ArrayIndexOutOfBoundsException(items);
 
-			for (int item = 0; item < items; item++)
-				dumpValue.accept(target);
+			for (int i = 0; i < items; i++)
+				target.put(item);
 
 			return target;
+		}
+
+		@Override
+		public BufferedDataSource buffer(int items) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 }

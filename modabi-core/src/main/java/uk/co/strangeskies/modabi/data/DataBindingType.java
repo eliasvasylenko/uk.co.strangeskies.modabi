@@ -7,7 +7,7 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface DataType<T> {
+public interface DataBindingType<T> {
 	String getName();
 
 	Class<T> getDataClass();

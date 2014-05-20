@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
@@ -17,7 +17,7 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 	Format format();
 
-	DataType<T> type();
+	DataBindingType<T> type();
 
 	default boolean isValueSet() {
 		return value() != null;
@@ -168,7 +168,7 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			}
 
 			@Override
-			public DataType<T> type() {
+			public DataBindingType<T> type() {
 				return node.type();
 			}
 

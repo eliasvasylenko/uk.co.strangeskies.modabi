@@ -17,9 +17,9 @@ import org.apache.commons.lang3.ClassUtils;
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
-import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.data.DataTypeBuilder;
-import uk.co.strangeskies.modabi.data.DataTypes;
+import uk.co.strangeskies.modabi.data.DataBindingType;
+import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
@@ -366,7 +366,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	private final SetMultiMap<Schema, QualifiedName> unmetDependencies;
 	// private final Map<QualifiedName, MockedSchema> mockedDependencies;
 	private final Models registeredModels;
-	private final DataTypes registeredTypes;
+	private final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchema;
 
 	public SchemaBinderImpl() {
@@ -375,7 +375,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
-			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
+			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		unmetDependencies = new HashSetMultiHashMap<>();
 		// mockedDependencies = new HashMap<>();
 
@@ -387,7 +387,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		registeredSchema = new Schemata();
 		Namespace namespace = metaSchema.getQualifiedName().getNamespace();
 		registeredModels = new Models(namespace);
-		registeredTypes = new DataTypes(namespace);
+		registeredTypes = new DataBindingTypes(namespace);
 
 		registerSchema(baseSchema);
 		registerSchema(metaSchema);
@@ -399,7 +399,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		for (Model<?> model : schema.getModels().getMap().values())
 			registerModel(model, schema.getQualifiedName().getNamespace());
 
-		for (DataType<?> type : schema.getDataTypes().getMap().values())
+		for (DataBindingType<?> type : schema.getDataTypes().getMap().values())
 			registerDataType(type, schema.getQualifiedName().getNamespace());
 	}
 
@@ -407,7 +407,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		registeredModels.add(model, namespace);
 	}
 
-	private void registerDataType(DataType<?> type, Namespace namespace) {
+	private void registerDataType(DataBindingType<?> type, Namespace namespace) {
 		registeredTypes.add(type, namespace);
 	}
 

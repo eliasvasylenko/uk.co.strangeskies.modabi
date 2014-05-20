@@ -8,8 +8,8 @@ import java.util.Set;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
-import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
+import uk.co.strangeskies.modabi.data.DataBindingType;
+import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
@@ -28,9 +28,9 @@ import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
-		implements DataTypeConfigurator<T> {
-	public static class DataTypeImpl<T> implements DataType<T> {
+public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>>
+		implements DataBindingTypeConfigurator<T> {
+	public static class DataTypeImpl<T> implements DataBindingType<T> {
 		private final String name;
 		private final Class<T> dataClass;
 
@@ -142,7 +142,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	protected DataType<T> tryCreate() {
+	protected DataBindingType<T> tryCreate() {
 		return new DataTypeImpl<>(this);
 	}
 
@@ -162,7 +162,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> name(String name) {
+	public DataBindingTypeConfigurator<T> name(String name) {
 		requireConfigurable(this.name);
 		this.name = name;
 
@@ -171,15 +171,15 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <U extends T> DataTypeConfigurator<U> dataClass(Class<U> dataClass) {
+	public <U extends T> DataBindingTypeConfigurator<U> dataClass(Class<U> dataClass) {
 		requireConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
-		return (DataTypeConfigurator<U>) this;
+		return (DataBindingTypeConfigurator<U>) this;
 	}
 
 	@Override
-	public DataTypeConfigurator<T> bindingClass(Class<?> bindingClass) {
+	public DataBindingTypeConfigurator<T> bindingClass(Class<?> bindingClass) {
 		requireConfigurable(this.bindingClass);
 		this.bindingClass = bindingClass;
 
@@ -187,7 +187,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> unbindingMethod(String name) {
+	public DataBindingTypeConfigurator<T> unbindingMethod(String name) {
 		requireConfigurable(unbindingMethodName);
 		unbindingMethodName = name;
 
@@ -276,7 +276,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> bindingStrategy(BindingStrategy strategy) {
+	public DataBindingTypeConfigurator<T> bindingStrategy(BindingStrategy strategy) {
 		requireConfigurable(bindingStrategy);
 		bindingStrategy = strategy;
 
@@ -284,7 +284,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> unbindingStrategy(UnbindingStrategy strategy) {
+	public DataBindingTypeConfigurator<T> unbindingStrategy(UnbindingStrategy strategy) {
 		requireConfigurable(unbindingStrategy);
 		unbindingStrategy = strategy;
 
@@ -292,7 +292,7 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataType<T>>
 	}
 
 	@Override
-	public DataTypeConfigurator<T> unbindingClass(Class<?> unbindingClass) {
+	public DataBindingTypeConfigurator<T> unbindingClass(Class<?> unbindingClass) {
 		requireConfigurable(this.unbindingClass);
 		this.unbindingClass = unbindingClass;
 

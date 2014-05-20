@@ -5,8 +5,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.data.DataType;
-import uk.co.strangeskies.modabi.data.DataTypes;
+import uk.co.strangeskies.modabi.data.DataBindingType;
+import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -17,7 +17,7 @@ import uk.co.strangeskies.modabi.schema.Schemata;
 
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
-		private final Set<DataType<?>> typeSet;
+		private final Set<DataBindingType<?>> typeSet;
 		private QualifiedName qualifiedName;
 		private final Set<Model<?>> modelSet;
 		private final Schemata dependencySet;
@@ -31,7 +31,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		@Override
 		public Schema create() {
 			final QualifiedName qualifiedName = this.qualifiedName;
-			final DataTypes types = new DataTypes(qualifiedName.getNamespace());
+			final DataBindingTypes types = new DataBindingTypes(qualifiedName.getNamespace());
 			types.addAll(typeSet);
 			final Models models = new Models(qualifiedName.getNamespace());
 			models.addAll(modelSet);
@@ -39,7 +39,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 			return new Schema() {
 				@Override
-				public DataTypes getDataTypes() {
+				public DataBindingTypes getDataTypes() {
 					return types;
 				}
 
@@ -68,7 +68,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		}
 
 		@Override
-		public SchemaConfigurator types(Collection<? extends DataType<?>> types) {
+		public SchemaConfigurator types(Collection<? extends DataBindingType<?>> types) {
 			typeSet.clear();
 			typeSet.addAll(types);
 

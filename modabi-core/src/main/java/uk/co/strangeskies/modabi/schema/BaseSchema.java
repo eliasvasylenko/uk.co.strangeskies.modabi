@@ -1,59 +1,37 @@
 package uk.co.strangeskies.modabi.schema;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
-	public interface PrimitiveTypes {
-		DataType<byte[]> binaryType();
-
-		DataType<String> stringType();
-
-		DataType<BigInteger> integerType();
-
-		DataType<BigDecimal> decimalType();
-
-		DataType<Integer> intType();
-
-		DataType<Long> longType();
-
-		DataType<Float> floatType();
-
-		DataType<Double> doubleType();
-
-		DataType<Boolean> booleanType();
-	}
-
 	public interface BuiltInTypes {
-		DataType<Object> referenceType();
+		DataBindingType<Object> referenceType();
 
-		DataType<QualifiedName> qualifiedNameType();
+		DataBindingType<QualifiedName> qualifiedNameType();
 
-		DataType<BufferedDataSource> bufferedDataType();
+		DataBindingType<BufferedDataSource> bufferedDataType();
 	}
 
 	public interface DerivedTypes {
 		@SuppressWarnings("rawtypes")
-		DataType<Range> rangeType();
+		DataBindingType<Range> rangeType();
 
 		@SuppressWarnings("rawtypes")
-		DataType<Enum> enumType();
+		DataBindingType<Enum> enumType();
 
 		@SuppressWarnings("rawtypes")
-		DataType<Class> classType();
+		DataBindingType<Class> classType();
 	}
 
 	public interface BaseModels {
 		Model<Object> includeModel();
 	}
 
-	PrimitiveTypes primitiveTypes();
+	<T> DataBindingType<T> primitiveType(DataType<T> type);
 
 	BuiltInTypes builtInTypes();
 

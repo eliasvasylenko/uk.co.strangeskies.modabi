@@ -1,10 +1,9 @@
 package uk.co.strangeskies.modabi.xml.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import uk.co.strangeskies.modabi.data.io.DataItem;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
@@ -103,56 +102,8 @@ public class XMLOutput implements StructuredDataTarget {
 				}
 
 				@Override
-				public TerminatingDataTarget string(String value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget longValue(long value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget integer(BigInteger value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget intValue(int value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget floatValue(float value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget doubleValue(double value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget decimal(BigDecimal value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget booleanValue(boolean value) {
-					next(value);
-					return this;
-				}
-
-				@Override
-				public TerminatingDataTarget binary(byte[] value) {
-					next(value);
+				public <T> TerminatingDataTarget put(DataItem<T> item) {
+					next(item.data());
 					return this;
 				}
 

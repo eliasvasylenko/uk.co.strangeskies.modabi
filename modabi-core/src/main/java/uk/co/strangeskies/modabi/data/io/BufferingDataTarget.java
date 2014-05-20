@@ -1,69 +1,34 @@
 package uk.co.strangeskies.modabi.data.io;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class BufferingDataTarget implements TerminatingDataTarget {
 	private static class BufferedDataSourceImpl implements BufferedDataSource {
-		private final List<DataSource> dataSequence;
+		private final List<DataItem<?>> dataSequence;
 		private int index;
 
-		public BufferedDataSourceImpl(List<DataSource> dataSequence) {
+		public BufferedDataSourceImpl(List<DataItem<?>> dataSequence) {
 			index = 0;
 			this.dataSequence = dataSequence;
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			return index ;
+		public boolean equals(Object that) {
+			if (!(that instanceof BufferedDataSource))
+				return false;
+
+			BufferedDataSource thatBufferedDataSource = (BufferedDataSource) that;
+
+			return thatBufferedDataSource.index() != index
+					&& dataSequence.equals(thatBufferedDataSource.copy().reset()
+							.pipe(new BufferingDataTarget()).dataSequence);
 		}
 
 		@Override
-		public String string() {
-			return dataSequence.get(index++).string();
-		}
-
-		@Override
-		public long longValue() {
-			return dataSequence.get(index++).longValue();
-		}
-
-		@Override
-		public BigInteger integer() {
-			return dataSequence.get(index++).integer();
-		}
-
-		@Override
-		public int intValue() {
-			return dataSequence.get(index++).intValue();
-		}
-
-		@Override
-		public float floatValue() {
-			return dataSequence.get(index++).floatValue();
-		}
-
-		@Override
-		public double doubleValue() {
-			return dataSequence.get(index++).doubleValue();
-		}
-
-		@Override
-		public BigDecimal decimal() {
-			return dataSequence.get(index++).decimal();
-		}
-
-		@Override
-		public boolean booleanValue() {
-			return dataSequence.get(index++).booleanValue();
-		}
-
-		@Override
-		public byte[] binary() {
-			return dataSequence.get(index++).binary();
+		public <T> T get(DataType<T> type) {
+			return dataSequence.get(index++).data(type);
 		}
 
 		@Override
@@ -72,14 +37,15 @@ public class BufferingDataTarget implements TerminatingDataTarget {
 		}
 
 		@Override
-		public void reset() {
+		public BufferedDataSource reset() {
 			index = 0;
+			return this;
 		}
 
 		@Override
 		public <T extends DataTarget> T pipe(T target, int items) {
 			for (int start = index; start < items; start++)
-				dataSequence.get(start).pipeNext(target);
+				target.put(dataSequence.get(start));
 
 			return target;
 		}
@@ -101,62 +67,25 @@ public class BufferingDataTarget implements TerminatingDataTarget {
 			copy.index = index;
 			return copy;
 		}
+
+		@Override
+		public int index() {
+			return index;
+		}
 	}
 
-	private List<DataSource> dataSequence = new ArrayList<>();
+	private List<DataItem<?>> dataSequence = new ArrayList<>();
 	private boolean terminated;
 
 	@Override
-	public BufferingDataTarget binary(byte[] value) {
-		dataSequence.add(DataSource.repeat(value));
+	public <T> BufferingDataTarget put(DataItem<T> item) {
+		dataSequence.add(item);
 		return this;
 	}
 
 	@Override
-	public BufferingDataTarget string(String value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget integer(BigInteger value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget decimal(BigDecimal value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget intValue(int value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget longValue(long value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget floatValue(float value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget doubleValue(double value) {
-		dataSequence.add(DataSource.repeat(value));
-		return this;
-	}
-
-	@Override
-	public BufferingDataTarget booleanValue(boolean value) {
-		dataSequence.add(DataSource.repeat(value));
+	public <T> BufferingDataTarget put(DataType<T> type, T data) {
+		TerminatingDataTarget.super.put(type, data);
 		return this;
 	}
 

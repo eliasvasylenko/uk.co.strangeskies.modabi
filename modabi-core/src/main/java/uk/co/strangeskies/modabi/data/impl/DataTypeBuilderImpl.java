@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.data.impl;
 
-import uk.co.strangeskies.modabi.data.DataTypeBuilder;
-import uk.co.strangeskies.modabi.data.DataTypeConfigurator;
+import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 
-public class DataTypeBuilderImpl implements DataTypeBuilder {
+public class DataTypeBuilderImpl implements DataBindingTypeBuilder {
 	@Override
-	public DataTypeConfigurator<Object> configure() {
+	public DataBindingTypeConfigurator<Object> configure() {
 		return new DataTypeConfiguratorImpl<Object>();
 	}
 }

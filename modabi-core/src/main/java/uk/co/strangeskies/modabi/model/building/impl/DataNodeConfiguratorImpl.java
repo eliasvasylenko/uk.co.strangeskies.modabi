@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.data.DataType;
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
@@ -28,7 +28,7 @@ public class DataNodeConfiguratorImpl<T>
 		implements DataNodeConfigurator<T> {
 	protected static class DataNodeImpl<T> extends BindingChildNodeImpl<T>
 			implements DataNode<T> {
-		private final DataType<T> type;
+		private final DataBindingType<T> type;
 		private final BufferedDataSource value;
 		private final Format format;
 		private final Boolean optional;
@@ -101,7 +101,7 @@ public class DataNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public final DataType<T> type() {
+		public final DataBindingType<T> type() {
 			return type;
 		}
 
@@ -123,7 +123,7 @@ public class DataNodeConfiguratorImpl<T>
 
 	public Format format;
 
-	private DataType<T> type;
+	private DataBindingType<T> type;
 	private BufferedDataSource value;
 
 	private Boolean optional;
@@ -154,10 +154,10 @@ public class DataNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataNodeConfigurator<U> type(DataType<U> type) {
+	public final <U extends T> DataNodeConfigurator<U> type(DataBindingType<U> type) {
 		requireConfigurable(this.type);
 		dataClass(type.getDataClass());
-		this.type = (DataType<T>) type;
+		this.type = (DataBindingType<T>) type;
 
 		inheritChildren(type.getEffectiveChildren());
 
