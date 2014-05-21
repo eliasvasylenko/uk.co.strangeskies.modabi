@@ -44,12 +44,25 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingClass(null).bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(null)
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-					.addChild(c -> c.data().type()).create();
+					.addChild(c -> c.data().dataClass(Model.class).id("target"))
+					.addChild(c -> c.data().type(qualifiedNameType).id("id")).create();
 			typeSet.add(referenceBaseType);
 
-			referenceType = builder.configure().name("reference")
-					.dataClass(Object.class).create();
+			referenceType = builder
+					.configure()
+					.name("reference")
+					.dataClass(Object.class)
+					.bindingClass(Object.class)
+					.bindingStrategy(BindingStrategy.ADAPTOR)
+					.unbindingClass(Object.class)
+					.unbindingStrategy(UnbindingStrategy.SIMPLE)
+					.addChild(
+							c -> c.data().type(referenceBaseType).id("base")
+									.addChild(o -> o.data().id("target").type(referenceBaseType)))
+					.create();
 			typeSet.add(referenceType);
+			// TODO proper inheritance for types, like nodes? abstract types? Might
+			// solve self reference problem here...
 
 			bufferedDataType = builder.configure().name("bufferedData")
 					.dataClass(BufferedDataSource.class)
