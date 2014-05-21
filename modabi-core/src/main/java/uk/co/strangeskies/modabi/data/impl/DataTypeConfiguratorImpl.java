@@ -28,8 +28,8 @@ import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>>
-		implements DataBindingTypeConfigurator<T> {
+public class DataTypeConfiguratorImpl<T> extends
+		Configurator<DataBindingType<T>> implements DataBindingTypeConfigurator<T> {
 	public static class DataTypeImpl<T> implements DataBindingType<T> {
 		private final String name;
 		private final Class<T> dataClass;
@@ -41,6 +41,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 		private final Class<?> unbindingClass;
 		private final String unbindingMethodName;
 		private final Method unbindingMethod;
+
+		private final boolean hidden;
 
 		private final List<ChildNode> children;
 		private final List<ChildNode> effectiveChildren;
@@ -59,6 +61,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 			unbindingMethod = BindingNodeConfiguratorImpl.findUnbindingMethod(name,
 					getUnbindingStrategy(), getUnbindingMethodName(),
 					getUnbindingClass(), getDataClass());
+
+			hidden = configurator.hidden;
 
 			children = Collections.unmodifiableList(new ArrayList<>(
 					configurator.children));
@@ -79,6 +83,11 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 		@Override
 		public final Class<?> getBindingClass() {
 			return bindingClass;
+		}
+
+		@Override
+		public boolean isHidden() {
+			return hidden;
 		}
 
 		@Override
@@ -128,6 +137,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 
 	private String unbindingMethodName;
 
+	private boolean hidden;
+
 	private final List<ChildNode> children;
 	private final List<ChildNode> effectiveChildren;
 
@@ -171,7 +182,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <U extends T> DataBindingTypeConfigurator<U> dataClass(Class<U> dataClass) {
+	public <U extends T> DataBindingTypeConfigurator<U> dataClass(
+			Class<U> dataClass) {
 		requireConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
@@ -284,7 +296,8 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 	}
 
 	@Override
-	public DataBindingTypeConfigurator<T> unbindingStrategy(UnbindingStrategy strategy) {
+	public DataBindingTypeConfigurator<T> unbindingStrategy(
+			UnbindingStrategy strategy) {
 		requireConfigurable(unbindingStrategy);
 		unbindingStrategy = strategy;
 
@@ -295,6 +308,14 @@ public class DataTypeConfiguratorImpl<T> extends Configurator<DataBindingType<T>
 	public DataBindingTypeConfigurator<T> unbindingClass(Class<?> unbindingClass) {
 		requireConfigurable(this.unbindingClass);
 		this.unbindingClass = unbindingClass;
+
+		return this;
+	}
+
+	@Override
+	public DataBindingTypeConfigurator<T> hidden(boolean hidden) {
+		requireConfigurable(this.hidden);
+		this.hidden = hidden;
 
 		return this;
 	}

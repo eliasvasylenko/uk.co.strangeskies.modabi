@@ -24,6 +24,8 @@ public interface DataBindingType<T> {
 
 	String getUnbindingMethodName();
 
+	boolean isHidden();
+
 	List<ChildNode> getChildren();
 
 	List<ChildNode> getEffectiveChildren();
