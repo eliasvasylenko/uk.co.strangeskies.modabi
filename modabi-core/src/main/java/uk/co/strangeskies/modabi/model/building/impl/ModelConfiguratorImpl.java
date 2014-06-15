@@ -143,14 +143,13 @@ public class ModelConfiguratorImpl<T>
 	@Override
 	public <V extends T> ModelConfigurator<V> baseModel(Model<? super V>... base) {
 		requireConfigurable(this.baseModel);
-		ModelConfiguratorImpl<V> thisV = (ModelConfiguratorImpl<V>) this;
-		thisV.baseModel = Arrays.asList(base);
+		baseModel = Arrays.asList((Model<T>[]) base);
 
 		baseModel.forEach(m -> {
 			inheritChildren(m.effectiveModel().getChildren());
 		});
 
-		return thisV;
+		return (ModelConfigurator<V>) this;
 	}
 
 	@SuppressWarnings("unchecked")

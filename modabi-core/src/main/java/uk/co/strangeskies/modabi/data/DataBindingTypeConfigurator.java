@@ -24,7 +24,7 @@ public interface DataBindingTypeConfigurator<T> extends
 	 *          The value to be returned by {@link DataBindingType#getName()}.
 	 * @return
 	 */
-	DataBindingTypeConfigurator<T> hidden(boolean hidden);
+	DataBindingTypeConfigurator<T> isAbstract(boolean hidden);
 
 	/**
 	 * @param name
@@ -32,6 +32,9 @@ public interface DataBindingTypeConfigurator<T> extends
 	 * @return
 	 */
 	<U extends T> DataBindingTypeConfigurator<U> dataClass(Class<U> dataClass);
+
+	<U extends T> DataBindingTypeConfigurator<U> baseType(
+			@SuppressWarnings("unchecked") DataBindingType<? super U>... baseType);
 
 	/**
 	 * @param name

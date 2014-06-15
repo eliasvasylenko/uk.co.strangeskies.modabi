@@ -25,13 +25,19 @@ import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ModelLoader;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
+import uk.co.strangeskies.modabi.schema.processing.reference.RelativeDereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.RelativeReferenceSource;
 
 public class BaseSchemaImpl implements BaseSchema {
 	private class BuiltInTypesImpl implements BuiltInTypes {
 		private final DataBindingType<QualifiedName> qualifiedNameType;
+		private final DataBindingType<Object> relativeReferenceType;
 		private final DataBindingType<Object> referenceType;
 		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
+		@SuppressWarnings("unchecked")
 		public BuiltInTypesImpl(DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives) {
@@ -39,30 +45,49 @@ public class BaseSchemaImpl implements BaseSchema {
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);
 
-			DataBindingType<Object> referenceBaseType = builder.configure()
-					.name("reference").dataClass(Object.class).hidden(true)
-					.bindingClass(null).bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingClass(null)
+			DataBindingType<Object> relativeReferenceBaseType = builder
+					.configure()
+					.name("relativeReferenceBase")
+					.dataClass(Object.class)
+					.isAbstract(true)
+					.bindingClass(RelativeReferenceSource.class)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingClass(RelativeDereferenceTarget.class)
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-					.addChild(c -> c.data().dataClass(Model.class).id("target"))
+					.addChild(
+							c -> c.data().type(primitives.get(DataType.INT))
+									.id("parentLevel"))
+					.addChild(
+							c -> c.data().type(qualifiedNameType).id("elementId")
+									.occurances(Range.create(0, null))).create();
+			typeSet.add(relativeReferenceBaseType);
+
+			relativeReferenceType = builder.configure().name("relativeReference")
+					.baseType(relativeReferenceBaseType).isAbstract(false).create();
+			typeSet.add(relativeReferenceType);
+
+			DataBindingType<Object> referenceBaseType = builder
+					.configure()
+					.name("referenceBase")
+					.dataClass(Object.class)
+					.isAbstract(true)
+					.bindingClass(ReferenceSource.class)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingClass(DereferenceTarget.class)
+					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+					.addChild(c -> c.data().dataClass(Model.class).id("targetDomain"))
+					.addChild(
+							c -> c.data().type(primitives.get(DataType.STRING))
+									.id("targetIdDomain"))
 					.addChild(c -> c.data().type(qualifiedNameType).id("id")).create();
 			typeSet.add(referenceBaseType);
 
-			referenceType = builder
-					.configure()
-					.name("reference")
-					.dataClass(Object.class)
-					.bindingClass(Object.class)
-					.bindingStrategy(BindingStrategy.ADAPTOR)
-					.unbindingClass(Object.class)
-					.unbindingStrategy(UnbindingStrategy.SIMPLE)
-					.addChild(
-							c -> c.data().type(referenceBaseType).id("base")
-									.addChild(o -> o.data().id("target").type(referenceBaseType)))
-					.create();
+			referenceType = builder.configure().name("reference")
+					.baseType(referenceBaseType).isAbstract(false)
+					.addChild(c -> c.data().type(referenceBaseType).id("targetDomain"))
+					.addChild(c -> c.data().id("targetIdDomain"))
+					.addChild(c -> c.data().id("id")).create();
 			typeSet.add(referenceType);
-			// TODO proper inheritance for types, like nodes? abstract types? Might
-			// solve self reference problem here...
 
 			bufferedDataType = builder.configure().name("bufferedData")
 					.dataClass(BufferedDataSource.class)
@@ -76,6 +101,11 @@ public class BaseSchemaImpl implements BaseSchema {
 		@Override
 		public DataBindingType<QualifiedName> qualifiedNameType() {
 			return qualifiedNameType;
+		}
+
+		@Override
+		public DataBindingType<Object> relativeReferenceType() {
+			return relativeReferenceType;
 		}
 
 		@Override

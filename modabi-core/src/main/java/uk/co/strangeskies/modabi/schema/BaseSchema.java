@@ -9,9 +9,11 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
 	public interface BuiltInTypes {
-		DataBindingType<Object> referenceType();
-
 		DataBindingType<QualifiedName> qualifiedNameType();
+
+		DataBindingType<Object> relativeReferenceType();
+
+		DataBindingType<Object> referenceType();
 
 		DataBindingType<BufferedDataSource> bufferedDataType();
 	}

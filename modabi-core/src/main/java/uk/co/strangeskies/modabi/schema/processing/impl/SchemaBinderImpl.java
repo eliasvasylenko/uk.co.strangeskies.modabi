@@ -55,6 +55,7 @@ import uk.co.strangeskies.modabi.schema.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 
 public class SchemaBinderImpl implements SchemaBinder {
 	private class SchemaSavingContext<T> implements SchemaProcessingContext {
@@ -62,7 +63,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private final Deque<Object> bindingStack;
 
-		private TerminatingDataTarget sink;
+		private TerminatingDataTarget dataTarget;
+		private DereferenceTarget referenceTarget;
 
 		public SchemaSavingContext(Model<T> model, StructuredDataTarget output,
 				T data) {
@@ -84,26 +86,26 @@ public class SchemaBinderImpl implements SchemaBinder {
 			List<U> data = getData(node);
 
 			if (!data.isEmpty()) {
-				if (sink != null && node.format() != null)
+				if (dataTarget != null && node.format() != null)
 					throw new SchemaException();
 
-				if (sink == null)
+				if (dataTarget == null)
 					switch (node.format()) {
 					case PROPERTY:
-						sink = output.property(node.getId());
+						dataTarget = output.property(node.getId());
 						break;
 					case SIMPLE_ELEMENT:
 						output.nextChild(node.getId());
 					case CONTENT:
-						sink = output.content();
+						dataTarget = output.content();
 					}
 
 				for (Object item : unbindData(node, data))
 					processBindingChildren(node, item);
 
 				if (node.format() != null) {
-					sink.terminate();
-					sink = null;
+					dataTarget.terminate();
+					dataTarget = null;
 					if (node.format() == Format.SIMPLE_ELEMENT)
 						output.endChild();
 				}
@@ -128,7 +130,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 		@SuppressWarnings("unchecked")
 		private <U> U provide(Class<U> clazz) {
 			if (clazz.equals(DataTarget.class))
-				return (U) sink;
+				return (U) dataTarget;
+			if (clazz.equals(DereferenceTarget.class))
+				return (U) referenceTarget;
 
 			return SchemaBinderImpl.this.provide(clazz);
 		}

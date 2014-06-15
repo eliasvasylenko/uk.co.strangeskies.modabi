@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.data.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +29,7 @@ import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public class DataTypeConfiguratorImpl<T> extends
+public class DataBindingTypeConfiguratorImpl<T> extends
 		Configurator<DataBindingType<T>> implements DataBindingTypeConfigurator<T> {
 	public static class DataTypeImpl<T> implements DataBindingType<T> {
 		private final String name;
@@ -47,7 +48,7 @@ public class DataTypeConfiguratorImpl<T> extends
 		private final List<ChildNode> children;
 		private final List<ChildNode> effectiveChildren;
 
-		public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
+		public DataTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
 			name = configurator.name;
 			dataClass = configurator.dataClass;
 
@@ -144,8 +145,9 @@ public class DataTypeConfiguratorImpl<T> extends
 
 	private boolean finalisedProperties;
 	private boolean blocked;
+	private List<DataBindingType<T>> baseType;
 
-	public DataTypeConfiguratorImpl() {
+	public DataBindingTypeConfiguratorImpl() {
 		children = new ArrayList<>();
 		effectiveChildren = new ArrayList<>();
 
@@ -245,17 +247,19 @@ public class DataTypeConfiguratorImpl<T> extends
 
 			@Override
 			public Class<?> getCurrentChildOutputTargetClass() {
-				return DataTypeConfiguratorImpl.this.getCurrentChildOutputTargetClass();
+				return DataBindingTypeConfiguratorImpl.this
+						.getCurrentChildOutputTargetClass();
 			}
 
 			@Override
 			public Class<?> getCurrentChildInputTargetClass() {
-				return DataTypeConfiguratorImpl.this.getCurrentChildInputTargetClass();
+				return DataBindingTypeConfiguratorImpl.this
+						.getCurrentChildInputTargetClass();
 			}
 
 			@Override
 			public void addChild(ChildNode result, ChildNode effective) {
-				DataTypeConfiguratorImpl.this.addChild(result, effective);
+				DataBindingTypeConfiguratorImpl.this.addChild(result, effective);
 			}
 		};
 
@@ -313,10 +317,20 @@ public class DataTypeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataBindingTypeConfigurator<T> hidden(boolean hidden) {
+	public DataBindingTypeConfigurator<T> isAbstract(boolean hidden) {
 		requireConfigurable(this.hidden);
 		this.hidden = hidden;
 
 		return this;
+	}
+
+	@SafeVarargs
+	@SuppressWarnings("unchecked")
+	@Override
+	public final <U extends T> DataBindingTypeConfigurator<U> baseType(
+			DataBindingType<? super U>... baseType) {
+		this.baseType = Arrays.asList((DataBindingType<T>[]) baseType);
+
+		return (DataBindingTypeConfigurator<U>) this;
 	}
 }
