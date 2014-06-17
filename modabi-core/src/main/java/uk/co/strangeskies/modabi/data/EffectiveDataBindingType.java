@@ -7,7 +7,7 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface DataBindingType<T> {
+public interface EffectiveDataBindingType<T> {
 	String getName();
 
 	Class<T> getDataClass();
@@ -27,4 +27,6 @@ public interface DataBindingType<T> {
 	boolean isHidden();
 
 	List<ChildNode> getChildren();
+
+	List<ChildNode> getEffectiveChildren();
 }

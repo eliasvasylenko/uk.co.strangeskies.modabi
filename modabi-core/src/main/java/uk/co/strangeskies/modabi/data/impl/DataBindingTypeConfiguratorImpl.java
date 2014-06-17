@@ -97,11 +97,6 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public List<ChildNode> getEffectiveChildren() {
-			return effectiveChildren;
-		}
-
-		@Override
 		public BindingStrategy getBindingStrategy() {
 			return bindingStrategy;
 		}

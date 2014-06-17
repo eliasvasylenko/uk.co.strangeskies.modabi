@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.gears.utilities.Enumeration;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
@@ -213,6 +214,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	private final BaseModels models;
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder) {
 		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
@@ -223,8 +225,8 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
-		primitives = DataType
-				.types()
+		primitives = Enumeration
+				.<DataType> getConstants(DataType.class)
 				.stream()
 				.collect(
 						Collectors.toMap(t -> t,
