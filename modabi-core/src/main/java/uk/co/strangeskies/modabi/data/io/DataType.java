@@ -2,12 +2,11 @@ package uk.co.strangeskies.modabi.data.io;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
-public class DataType<T> {
+import uk.co.strangeskies.gears.utilities.Enumeration;
+
+public class DataType<T> extends Enumeration<DataType<T>> {
 	public static final DataType<byte[]> BYTES = create("binary", byte[].class);
 	public static final DataType<String> STRING = create("string", String.class);
 
@@ -24,10 +23,6 @@ public class DataType<T> {
 	public static final DataType<Boolean> BOOLEAN = create("boolean",
 			boolean.class);
 
-	private static final Set<DataType<?>> TYPES = Collections
-			.unmodifiableSet(new HashSet<>(Arrays.asList(BYTES, STRING, INTEGER,
-					DECIMAL, INT, LONG, FLOAT, DOUBLE, BOOLEAN)));
-
 	private static <T> DataType<T> create(String name, Class<T> dataClass) {
 		return new DataType<>(name, dataClass);
 	}
@@ -36,16 +31,11 @@ public class DataType<T> {
 		return TYPES;
 	}
 
-	private final String name;
 	private final Class<T> dataClass;
 
 	private DataType(String name, Class<T> dataClass) {
-		this.name = name;
+		super(name);
 		this.dataClass = dataClass;
-	}
-
-	public String name() {
-		return name;
 	}
 
 	public Class<T> dataClass() {
