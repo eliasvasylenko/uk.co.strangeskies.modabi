@@ -52,11 +52,11 @@ public class Models extends NamedSet<Model<?>> {
 
 	private void mapModel(Model<?> model) {
 		ListOrderedSet<Model<?>> baseModels = new ListOrderedSet<>();
-		baseModels.addAll(model.effectiveModel().getBaseModel());
+		baseModels.addAll(model.effectiveModel().baseModel());
 		for (int i = 0; i < baseModels.size(); i++) {
 			Model<?> baseModel = baseModels.get(i);
 			subModels.add(baseModel, model);
-			baseModels.addAll(baseModel.effectiveModel().getBaseModel());
+			baseModels.addAll(baseModel.effectiveModel().baseModel());
 		}
 
 		classes.add(model.effectiveModel().getDataClass(), model);
@@ -77,7 +77,7 @@ public class Models extends NamedSet<Model<?>> {
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getMatchingModels(
 			AbstractModel<T> element, Class<?> dataClass) {
-		Iterator<? extends Model<?>> baseModelIterator = element.getBaseModel()
+		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
 				.iterator();
 
 		List<? extends Model<?>> subModels = new ArrayList<>(

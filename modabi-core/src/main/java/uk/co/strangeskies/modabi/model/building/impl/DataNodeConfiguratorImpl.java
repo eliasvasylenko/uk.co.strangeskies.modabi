@@ -16,8 +16,8 @@ import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
+import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
@@ -72,14 +72,20 @@ public class DataNodeConfiguratorImpl<T>
 			super(overrideWithType(node), overriddenNodes, effectiveChildren,
 					outputTargetClass);
 
-			type = getValue(node, overriddenNodes, n -> n.type());
+			OverrideMerge<DataNode<T>> overrideMerge = new OverrideMerge<>(node,
+					overriddenNodes);
 
-			optional = getValue(node, overriddenNodes, n -> n.optional());
-
-			format = getValue(node, overriddenNodes, n -> n.format(),
-					(n, o) -> n == o);
-
-			value = getValue(node, overriddenNodes, n -> n.value());
+			type = overrideMerge.getValue(n -> n.type(), (n, o) -> {
+				DataBindingType<?> type = n;
+				do
+					if (type == o)
+						return true;
+				while ((type = type.baseType()) != null);
+				return false;
+			});
+			optional = overrideMerge.getValue(n -> n.optional());
+			format = overrideMerge.getValue(n -> n.format(), (n, o) -> n == o);
+			value = overrideMerge.getValue(n -> n.value());
 		}
 
 		@Override
@@ -154,12 +160,13 @@ public class DataNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataNodeConfigurator<U> type(DataBindingType<U> type) {
+	public final <U extends T> DataNodeConfigurator<U> type(
+			DataBindingType<U> type) {
 		requireConfigurable(this.type);
 		dataClass(type.getDataClass());
 		this.type = (DataBindingType<T>) type;
 
-		inheritChildren(type.getEffectiveChildren());
+		inheritChildren(type.effectiveType().getChildren());
 
 		return (DataNodeConfigurator<U>) getThis();
 	}

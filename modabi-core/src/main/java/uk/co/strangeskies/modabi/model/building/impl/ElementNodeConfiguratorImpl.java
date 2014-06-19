@@ -43,10 +43,13 @@ public class ElementNodeConfiguratorImpl<T>
 			super(node, overriddenNodes, effectiveChildren, outputTargetClass);
 
 			baseModel = new ArrayList<>();
-			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
-			baseModel.addAll(node.getBaseModel());
+			overriddenNodes.forEach(n -> baseModel.addAll(n.baseModel()));
+			baseModel.addAll(node.baseModel());
 
-			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
+			OverrideMerge<ElementNode<? super T>> overrideMerge = new OverrideMerge<>(
+					node, overriddenNodes);
+
+			isAbstract = overrideMerge.getValue(n -> n.isAbstract());
 		}
 
 		@Override
@@ -55,8 +58,7 @@ public class ElementNodeConfiguratorImpl<T>
 				return false;
 
 			ElementNode<?> other = (ElementNode<?>) obj;
-			return super.equals(obj)
-					&& Objects.equals(baseModel, other.getBaseModel())
+			return super.equals(obj) && Objects.equals(baseModel, other.baseModel())
 					&& Objects.equals(isAbstract, other.isAbstract());
 		}
 
@@ -66,7 +68,7 @@ public class ElementNodeConfiguratorImpl<T>
 			List<ElementNode<? super T>> overriddenAndModelNodes = new ArrayList<>();
 
 			overriddenAndModelNodes.addAll(overriddenNodes);
-			for (Model<? super T> base : node.getBaseModel())
+			for (Model<? super T> base : node.baseModel())
 				overriddenAndModelNodes.add(new ElementNodeWrapper<>(base));
 
 			return overriddenAndModelNodes;
@@ -78,7 +80,7 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public final List<Model<? super T>> getBaseModel() {
+		public final List<Model<? super T>> baseModel() {
 			return baseModel;
 		}
 	}
@@ -104,14 +106,13 @@ public class ElementNodeConfiguratorImpl<T>
 	public <V extends T> ElementNodeConfigurator<V> baseModel(
 			Model<? super V>... base) {
 		requireConfigurable(this.baseModel);
-		ElementNodeConfiguratorImpl<V> thisV = (ElementNodeConfiguratorImpl<V>) this;
-		thisV.baseModel = Arrays.asList(base);
+		baseModel = Arrays.asList((Model<? super T>[]) base);
 
 		baseModel.forEach(m -> {
 			inheritChildren(m.effectiveModel().getChildren());
 		});
 
-		return thisV;
+		return (ElementNodeConfigurator<V>) this;
 	}
 
 	@SuppressWarnings("unchecked")

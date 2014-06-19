@@ -43,7 +43,7 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 						component.getUnbindingClass()))
 			throw new SchemaException(message);
 
-		if (!component.getBaseModel().containsAll(base.getBaseModel()))
+		if (!component.baseModel().containsAll(base.baseModel()))
 			throw new SchemaException(message);
 
 		if (base.getBindingStrategy() != null
@@ -68,8 +68,8 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 	}
 
 	@Override
-	public List<Model<? super T>> getBaseModel() {
-		return component.getBaseModel();
+	public List<Model<? super T>> baseModel() {
+		return component.baseModel();
 	}
 
 	@Override

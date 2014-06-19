@@ -8,9 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
@@ -30,11 +27,11 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode, C extends ChildNode, B extends BindingChildNode<?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
-	protected static abstract class SchemaNodeImpl implements SchemaNode {
+	public static abstract class SchemaNodeImpl implements SchemaNode {
 		private final String id;
 		private final List<ChildNode> children;
 
-		SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
+		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseProperties();
 
 			id = configurator.getId();
@@ -57,7 +54,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		protected SchemaNodeImpl(SchemaNode node,
 				Collection<? extends SchemaNode> overriddenNodes,
 				List<ChildNode> effectiveChildren) {
-			id = getValue(node, overriddenNodes, n -> n.getId(), (v, o) -> true);
+			OverrideMerge<SchemaNode> overrideMerge = new OverrideMerge<>(node,
+					overriddenNodes);
+
+			id = overrideMerge.getValue(n -> n.getId(), (v, o) -> true);
 
 			children = effectiveChildren;
 		}
@@ -80,36 +80,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		@Override
 		public final List<ChildNode> getChildren() {
 			return children;
-		}
-
-		protected static <E, T> T getValue(E node,
-				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction) {
-			return getValue(node, overriddenNodes, valueFunction, (v, o) -> true);
-		}
-
-		protected static <E, T> T getValue(E node,
-				Collection<? extends E> overriddenNodes, Function<E, T> valueFunction,
-				BiPredicate<T, T> validateOverride) {
-			T value = valueFunction.apply(node);
-
-			Collection<T> values = overriddenNodes.stream()
-					.map(n -> valueFunction.apply(n)).filter(v -> v != null)
-					.collect(Collectors.toSet());
-
-			if (values.isEmpty())
-				return value;
-			else if (values.size() == 1) {
-				T overriddenValue = values.iterator().next();
-				if (value != null)
-					if (!validateOverride.test(value, overriddenValue))
-						throw new SchemaException();
-					else
-						return value;
-				return overriddenValue;
-			} else if (value == null
-					|| !values.stream().allMatch(v -> validateOverride.test(value, v)))
-				throw new SchemaException("value: " + value);
-			return value;
 		}
 	}
 

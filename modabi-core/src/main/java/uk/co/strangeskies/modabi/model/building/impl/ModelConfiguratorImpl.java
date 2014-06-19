@@ -45,10 +45,13 @@ public class ModelConfiguratorImpl<T>
 			super(node, overriddenNodes, effectiveChildren);
 
 			baseModel = new ArrayList<>();
-			overriddenNodes.forEach(n -> baseModel.addAll(n.getBaseModel()));
-			baseModel.addAll(node.getBaseModel());
+			overriddenNodes.forEach(n -> baseModel.addAll(n.baseModel()));
+			baseModel.addAll(node.baseModel());
 
-			isAbstract = getValue(node, overriddenNodes, n -> n.isAbstract());
+			OverrideMerge<AbstractModel<? super T>> overrideMerge = new OverrideMerge<>(
+					node, overriddenNodes);
+
+			isAbstract = overrideMerge.getValue(n -> n.isAbstract());
 		}
 
 		@Override
@@ -57,8 +60,7 @@ public class ModelConfiguratorImpl<T>
 				return false;
 
 			AbstractModel<?> other = (AbstractModel<?>) obj;
-			return super.equals(obj)
-					&& Objects.equals(baseModel, other.getBaseModel())
+			return super.equals(obj) && Objects.equals(baseModel, other.baseModel())
 					&& Objects.equals(isAbstract, other.isAbstract());
 		}
 
@@ -68,7 +70,7 @@ public class ModelConfiguratorImpl<T>
 			List<AbstractModel<? super T>> overriddenAndModelNodes = new ArrayList<>();
 
 			overriddenAndModelNodes.addAll(overriddenNodes);
-			overriddenAndModelNodes.addAll(node.getBaseModel());
+			overriddenAndModelNodes.addAll(node.baseModel());
 
 			return overriddenAndModelNodes;
 		}
@@ -79,7 +81,7 @@ public class ModelConfiguratorImpl<T>
 		}
 
 		@Override
-		public final List<Model<? super T>> getBaseModel() {
+		public final List<Model<? super T>> baseModel() {
 			return baseModel;
 		}
 	}
@@ -107,19 +109,16 @@ public class ModelConfiguratorImpl<T>
 		public ModelImpl(ModelConfiguratorImpl<T> configurator) {
 			super(configurator);
 
-			effectiveModel = new EffectiveModelImpl<T>(this, getBaseModel().stream()
+			effectiveModel = new EffectiveModelImpl<T>(this, baseModel().stream()
 					.map(m -> m.effectiveModel()).collect(Collectors.toList()),
 					configurator.getEffectiveChildren());
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-			if (!(obj instanceof Model))
+			if (!(obj instanceof ModelImpl))
 				return false;
-
-			Model<?> other = (Model<?>) obj;
-			return super.equals(obj)
-					&& Objects.equals(effectiveModel, other.effectiveModel());
+			return super.equals(obj);
 		}
 
 		@Override

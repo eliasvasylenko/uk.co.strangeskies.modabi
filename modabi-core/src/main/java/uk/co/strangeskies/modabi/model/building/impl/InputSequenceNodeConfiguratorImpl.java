@@ -54,14 +54,16 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
-			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName(),
+			OverrideMerge<InputSequenceNode> overrideMerge = new OverrideMerge<>(
+					node, overriddenNodes);
+
+			inMethodName = overrideMerge.getValue(n -> n.getInMethodName(),
 					(m, n) -> m.equals(n));
 
-			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod(),
+			inMethod = overrideMerge.getValue(n -> n.getInMethod(),
 					(m, n) -> m.equals(n));
 
-			inMethodChained = getValue(node, overriddenNodes,
-					n -> n.isInMethodChained());
+			inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
 		}
 
 		@Override

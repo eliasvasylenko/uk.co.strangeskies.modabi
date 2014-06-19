@@ -61,24 +61,26 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				List<ChildNode> effectiveChildren, Class<?> outputTargetClass) {
 			super(node, overriddenNodes, effectiveChildren);
 
-			occurances = getValue(node, overriddenNodes, n -> n.occurances(),
+			OverrideMerge<BindingChildNode<? super T>> overrideMerge = new OverrideMerge<>(
+					node, overriddenNodes);
+
+			occurances = overrideMerge.getValue(n -> n.occurances(),
 					(v, o) -> o.contains(v));
 
-			iterable = getValue(node, overriddenNodes, n -> n.isOutMethodIterable(),
+			iterable = overrideMerge.getValue(n -> n.isOutMethodIterable(),
 					(n, o) -> Objects.equals(n, o));
 
-			outMethodName = getValue(node, overriddenNodes, n -> n.getOutMethodName());
+			outMethodName = overrideMerge.getValue(n -> n.getOutMethodName());
 
 			outMethod = getOutMethod(outputTargetClass,
-					getValue(node, overriddenNodes, n -> n.getOutMethod()));
+					overrideMerge.getValue(n -> n.getOutMethod()));
 
-			inMethodName = getValue(node, overriddenNodes, n -> n.getInMethodName());
+			inMethodName = overrideMerge.getValue(n -> n.getInMethodName());
 
-			inMethod = getValue(node, overriddenNodes, n -> n.getInMethod(),
+			inMethod = overrideMerge.getValue(n -> n.getInMethod(),
 					(m, n) -> m.equals(n));
 
-			inMethodChained = getValue(node, overriddenNodes,
-					n -> n.isInMethodChained());
+			inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
 		}
 
 		@Override
@@ -146,18 +148,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		@Override
 		public final Method getInMethod() {
 			return inMethod;
-		}
-
-		@Override
-		public final Class<?> getPreInputClass() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public final Class<?> getPostInputClass() {
-			// TODO Auto-generated method stub
-			return null;
 		}
 
 		@SuppressWarnings("unchecked")

@@ -29,7 +29,9 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode, B extends BindingCh
 				List<ChildNode> effectiveChildren) {
 			super(node, overriddenNodes, effectiveChildren);
 
-			mandatory = getValue(node, overriddenNodes, n -> n.isMandatory());
+			OverrideMerge<ChoiceNode> overrideMerge = new OverrideMerge<>(node,
+					overriddenNodes);
+			mandatory = overrideMerge.getValue(n -> n.isMandatory());
 		}
 
 		@Override

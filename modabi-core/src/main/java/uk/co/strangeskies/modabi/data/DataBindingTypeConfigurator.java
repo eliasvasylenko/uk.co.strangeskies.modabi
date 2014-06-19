@@ -28,13 +28,20 @@ public interface DataBindingTypeConfigurator<T> extends
 
 	/**
 	 * @param name
+	 *          The value to be returned by {@link DataBindingType#getName()}.
+	 * @return
+	 */
+	DataBindingTypeConfigurator<T> isPrivate(boolean hidden);
+
+	/**
+	 * @param name
 	 *          The value to be returned by {@link DataBindingType#getBaseType()}.
 	 * @return
 	 */
 	<U extends T> DataBindingTypeConfigurator<U> dataClass(Class<U> dataClass);
 
 	<U extends T> DataBindingTypeConfigurator<U> baseType(
-			@SuppressWarnings("unchecked") DataBindingType<? super U>... baseType);
+			DataBindingType<? super U> baseType);
 
 	/**
 	 * @param name
