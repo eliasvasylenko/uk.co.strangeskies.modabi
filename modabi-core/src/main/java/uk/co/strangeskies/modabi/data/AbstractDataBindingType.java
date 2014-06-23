@@ -24,9 +24,9 @@ public interface AbstractDataBindingType<T> {
 
 	String getUnbindingMethodName();
 
-	boolean isAbstract();
+	Boolean isAbstract();
 
-	boolean isPrivate();
+	Boolean isPrivate();
 
 	List<ChildNode> getChildren();
 

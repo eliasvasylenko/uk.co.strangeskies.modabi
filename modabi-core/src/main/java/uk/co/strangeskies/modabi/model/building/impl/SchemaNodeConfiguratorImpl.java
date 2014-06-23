@@ -57,7 +57,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			OverrideMerge<SchemaNode> overrideMerge = new OverrideMerge<>(node,
 					overriddenNodes);
 
-			id = overrideMerge.getValue(n -> n.getId(), (v, o) -> true);
+			id = overrideMerge.getValue(n -> n.getId());
 
 			children = effectiveChildren;
 		}

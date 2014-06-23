@@ -38,7 +38,6 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataBindingType<Object> referenceType;
 		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
-		@SuppressWarnings("unchecked")
 		public BuiltInTypesImpl(DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives) {
@@ -225,12 +224,24 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
+		DataType<?> a = DataType.BOOLEAN;
+
 		primitives = Enumeration
 				.<DataType> getConstants(DataType.class)
 				.stream()
 				.collect(
 						Collectors.toMap(t -> t,
 								t -> primitive(dataTypeBuilder, typeSet, t)));
+
+		Enumeration.<DataType> getConstants(DataType.class).stream()
+				.forEach(t -> System.out.println(t.name()));
+
+		primitives.entrySet().stream()
+				.map(t -> t.getKey().name() + " -> " + t.getValue().getName())
+				.forEach(t -> System.out.println(t));
+
+		System.out.println("okaaay...");
+
 		builtInTypes = new BuiltInTypesImpl(dataTypeBuilder, typeSet, primitives);
 		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives,
 				builtInTypes);

@@ -50,8 +50,8 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		private final String unbindingMethodName;
 		private final Method unbindingMethod;
 
-		private final boolean isAbstract;
-		private final boolean isPrivate;
+		private final Boolean isAbstract;
+		private final Boolean isPrivate;
 
 		private final List<ChildNode> children;
 
@@ -82,17 +82,45 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			baseType = configurator.baseType;
 		}
 
+		@SuppressWarnings("unchecked")
 		public AbstractDataBindingTypeImpl(AbstractDataBindingType<T> node,
 				AbstractDataBindingType<? super T> overriddenType,
-				List<ChildNode> effectiveChildren2) {
-
+				List<ChildNode> effectiveChildren) {
 			OverrideMerge<AbstractDataBindingType<? super T>> overrideMerge = new OverrideMerge<>(
-					node, Arrays.asList(overriddenType));
+					node, overriddenType == null ? Collections.emptyList()
+							: Arrays.asList(overriddenType));
+			name = node.getName();
 
-			baseType = overrideMerge.getValue(n -> n.baseType());
+			dataClass = (Class<T>) overrideMerge.getValue(n -> n.getDataClass(), (v,
+					o) -> o.isAssignableFrom(v));
+
+			bindingClass = overrideMerge.getValue(n -> n.getBindingClass());
+
+			unbindingClass = overrideMerge.getValue(n -> n.getUnbindingClass());
+
+			bindingStrategy = overrideMerge.getValue(n -> n.getBindingStrategy());
+
+			unbindingStrategy = overrideMerge.getValue(n -> n.getUnbindingStrategy());
+
+			unbindingMethodName = overrideMerge.getValue(
+					n -> n.getUnbindingMethodName(), (o, v) -> o.equals(v));
+
+			unbindingMethod = overrideMerge.getValue(n -> n.getUnbindingMethod());
 
 			isAbstract = overrideMerge.getValue(n -> n.isAbstract());
 			isPrivate = overrideMerge.getValue(n -> n.isPrivate());
+
+			children = effectiveChildren;
+
+			baseType = overrideMerge.getValue(n -> (DataBindingType<T>) n.baseType(),
+					(n, o) -> {
+						DataBindingType<?> p = n;
+						do
+							if (p == o)
+								return true;
+						while ((p = p.baseType()) != null);
+						return false;
+					});
 		}
 
 		@Override
@@ -111,12 +139,12 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public boolean isAbstract() {
+		public Boolean isAbstract() {
 			return isAbstract;
 		}
 
 		@Override
-		public boolean isPrivate() {
+		public Boolean isPrivate() {
 			return isPrivate;
 		}
 
@@ -179,8 +207,9 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		public DataBindingTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
-			effectiveType = new EffectiveDataBindingTypeImpl<T>(this, baseType()
-					.effectiveType(), configurator.getEffectiveChildren());
+			effectiveType = new EffectiveDataBindingTypeImpl<T>(this,
+					baseType() == null ? null : baseType().effectiveType(),
+					configurator.getEffectiveChildren());
 		}
 
 		@Override
@@ -207,8 +236,8 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 	private String unbindingMethodName;
 
-	private boolean isAbstract;
-	private boolean isPrivate;
+	private Boolean isAbstract;
+	private Boolean isPrivate;
 
 	private final List<ChildNode> children;
 	private final List<ChildNode> effectiveChildren;
@@ -316,7 +345,8 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			@Override
 			public <U extends ChildNode> Set<U> overrideChild(String id,
 					Class<U> nodeClass) {
-				return Collections.emptySet();
+				return DataBindingTypeConfiguratorImpl.this
+						.overrideChild(id, nodeClass);
 			}
 
 			@Override
@@ -434,7 +464,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	}
 
 	@SuppressWarnings("unchecked")
-	<T extends ChildNode> Set<T> overrideChild(String id, Class<T> nodeClass) {
+	<U extends ChildNode> Set<U> overrideChild(String id, Class<U> nodeClass) {
 		Set<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
 
 		if (overriddenNodes != null) {
@@ -444,7 +474,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		} else
 			overriddenNodes = new HashSet<>();
 
-		return (Set<T>) Collections.unmodifiableSet(overriddenNodes);
+		return (Set<U>) Collections.unmodifiableSet(overriddenNodes);
 	}
 
 	protected final List<ChildNode> getEffectiveChildren() {
