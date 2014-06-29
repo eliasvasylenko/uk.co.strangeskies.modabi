@@ -49,7 +49,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 				+ " in "
 				+ receiver
 				+ " as [ "
-				+ Arrays.asList(parameter).stream().map(p -> p.getName())
+				+ Arrays.asList(parameter).stream()
+						.map(p -> p == null ? "WAT" : p.getName())
 						.collect(Collectors.joining(", ")) + " ] -> " + result);
 	}
 

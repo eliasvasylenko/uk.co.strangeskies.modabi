@@ -60,11 +60,13 @@
 		</model>
 
 		<model id="map" class="java.util.Map" abstract="true">
-			<sequence inMethod="put" outMethod="elementSet"
-				outMethodIterable="true">
-				<data id="key" />
-				<data id="value" />
-			</sequence>
+			<element bindingStrategy="targetAdaptor" inMethod="this"
+				outMethod="elementSet" outMethodIterable="true">
+				<sequence inMethod="put">
+					<data id="key" />
+					<data id="value" />
+				</sequence>
+			</element>
 		</model>
 
 		<model id="logic" />

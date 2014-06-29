@@ -1,5 +1,8 @@
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.List;
+import java.util.Set;
+
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
@@ -8,7 +11,13 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
-	public interface BuiltInTypes {
+	public interface DerivedTypes {
+		@SuppressWarnings("rawtypes")
+		DataBindingType<List> listType();
+
+		@SuppressWarnings("rawtypes")
+		DataBindingType<Set> setType();
+
 		DataBindingType<QualifiedName> qualifiedNameType();
 
 		DataBindingType<Object> relativeReferenceType();
@@ -16,9 +25,7 @@ public interface BaseSchema extends Schema {
 		DataBindingType<Object> referenceType();
 
 		DataBindingType<BufferedDataSource> bufferedDataType();
-	}
 
-	public interface DerivedTypes {
 		@SuppressWarnings("rawtypes")
 		DataBindingType<Range> rangeType();
 
@@ -34,8 +41,6 @@ public interface BaseSchema extends Schema {
 	}
 
 	<T> DataBindingType<T> primitiveType(DataType<T> type);
-
-	BuiltInTypes builtInTypes();
 
 	DerivedTypes derivedTypes();
 

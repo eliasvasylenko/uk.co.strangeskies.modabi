@@ -15,28 +15,20 @@ import uk.co.strangeskies.modabi.schema.Schema;
  */
 public enum BindingStrategy {
 	/**
+	 * The schema binder should attempt to find an implementation for which a
+	 * factory has been provided externally, for example programmatically, through
+	 * dependency injection, or as an OSGI service. This is the default binding
+	 * behaviour.
+	 */
+	PROVIDED,
+
+	/**
 	 * The schema binder should attempt to create a simple proxy implementation of
 	 * an interface.
 	 *
 	 * This binding strategy is only valid when binding to interfaces.
 	 */
-	IN_PLACE,
-
-	/**
-	 * The schema binder should attempt to find an implementation for which a
-	 * factory has been provided externally, for example programmatically, through
-	 * dependency injection, or as an OSGI service.
-	 */
-	PROVIDED,
-
-	/**
-	 * The schema binder should behave as if {@link #REQUIRE_PROVIDED} were
-	 * selected where possible, and otherwise should fall back to
-	 * {@link #IN_PLACE} behaviour.
-	 *
-	 * This binding strategy is only valid when binding to interfaces.
-	 */
-	PREFER_PROVIDED,
+	IMPLEMENT_IN_PLACE,
 
 	/**
 	 * The schema binder should attempt to find a constructor to call on the
@@ -63,5 +55,17 @@ public enum BindingStrategy {
 	 * must be an input node binding to a single class. No in method name should
 	 * be specified on this child node.
 	 */
-	ADAPTOR;
+	SOURCE_ADAPTOR,
+
+	/**
+	 * The schema binder should attempt to retrieve an implementation of the
+	 * requested class from the object being bound by the parent node. This is
+	 * useful when the parent object is a factory implementation for the child
+	 * object being bound. It is assumed any objects produced from the parent
+	 * don't need to be 'added' after, so the 'inMethod' will be repurposed to
+	 * give the factory method name. If the 'inMethod' is set to 'this' then the
+	 * target object for the parent node will simply be carried forward to the
+	 * child node.
+	 */
+	TARGET_ADAPTOR;
 }

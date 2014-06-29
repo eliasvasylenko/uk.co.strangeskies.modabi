@@ -14,32 +14,32 @@ public enum UnbindingStrategy {
 	 * class for which a factory has been provided externally, for example
 	 * programmatically, through dependency injection, or as an OSGI service.
 	 *
-	 * The object which is being unbound should be passed as a parameter to the
-	 * unbinding method, invoked on the provided instance of the unbinding class.
-	 */
-	PASS_TO_PROVIDED,
-
-	/**
-	 * The schema binder should attempt to find an implementation of the unbinding
-	 * class for which a factory has been provided externally, for example
-	 * programmatically, through dependency injection, or as an OSGI service.
-	 *
 	 * The provided object should be passed as a parameter to the unbinding
 	 * method, invoked on the object being unbound.
 	 */
 	ACCEPT_PROVIDED,
 
 	/**
-	 * The schema binder should attempt to find a constructor to call on the
-	 * requested unbinding class. The object being unbound should be passed to the
-	 * constructor as a parameter. No unbinding method should be specified.
+	 * The schema binder should attempt to find an implementation of the unbinding
+	 * class for which a factory has been provided externally, for example
+	 * programmatically, through dependency injection, or as an OSGI service.
+	 *
+	 * The object which is being unbound should be passed as a parameter to the
+	 * unbinding method, invoked on the provided instance of the unbinding class.
 	 */
-	CONSTRUCTOR,
+	PASS_TO_PROVIDED,
 
 	/**
 	 * The schema binder should attempt to find the static factory method to call
 	 * on the requested unbinding class named by the unbinding method. The object
 	 * being unbound should be passed to the factory method as a parameter.
 	 */
-	STATIC_FACTORY;
+	STATIC_FACTORY,
+
+	/**
+	 * The schema binder should attempt to find a constructor to call on the
+	 * requested unbinding class. The object being unbound should be passed to the
+	 * constructor as a parameter. No unbinding method should be specified.
+	 */
+	CONSTRUCTOR;
 }

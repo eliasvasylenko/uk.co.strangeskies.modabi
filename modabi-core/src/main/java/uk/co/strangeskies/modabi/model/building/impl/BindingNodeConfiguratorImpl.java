@@ -236,6 +236,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	public static Method findUnbindingMethod(String propertyName,
 			UnbindingStrategy unbindingStrategy, String unbindingMethodName,
 			Class<?> unbindingClass, Class<?> dataClass) {
+		if (unbindingStrategy == null || dataClass == null)
+			return null;
+
 		Method unbindingMethod;
 
 		if (unbindingStrategy == UnbindingStrategy.SIMPLE

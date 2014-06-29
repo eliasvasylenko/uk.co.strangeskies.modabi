@@ -162,19 +162,19 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("baseModel")
-								.type(base.builtInTypes().referenceType()).optional(true))
+								.type(base.derivedTypes().referenceType()).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("dataClass")
 								.type(base.derivedTypes().classType()).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("bindingStrategy")
-								.type(base.builtInTypes().referenceType()).optional(true))
+								.type(base.derivedTypes().referenceType()).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("bindingClass")
 								.type(base.derivedTypes().classType()))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("unbindingStrategy")
-								.type(base.builtInTypes().referenceType()).optional(true))
+								.type(base.derivedTypes().referenceType()).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).id("unbindingMethod")
 								.outMethod("getUnbindingMethodName")
@@ -238,7 +238,7 @@ public class MetaSchemaImpl implements MetaSchema {
 												.addChild(p -> p.data().id("name"))))
 				.addChild(
 						n -> n.data().format(Format.SIMPLE_ELEMENT).id("value")
-								.optional(true).type(base.builtInTypes().bufferedDataType()))
+								.optional(true).type(base.derivedTypes().bufferedDataType()))
 				.create();
 		modelSet.add(typedDataModel);
 

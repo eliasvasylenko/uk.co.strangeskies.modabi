@@ -1,8 +1,14 @@
 package uk.co.strangeskies.modabi.schema.processing.reference;
 
-import uk.co.strangeskies.modabi.model.Model;
+import java.util.Arrays;
+import java.util.List;
+
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface RelativeReferenceSource {
-	<T> T reference(Model<T> model, String idDomain, QualifiedName id);
+	default Object reference(int parentLevel, QualifiedName... elementId) {
+		return reference(parentLevel, Arrays.asList(elementId));
+	}
+
+	Object reference(int parentLevel, List<QualifiedName> elementId);
 }

@@ -1,7 +1,9 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,18 +34,50 @@ import uk.co.strangeskies.modabi.schema.processing.reference.RelativeDereference
 import uk.co.strangeskies.modabi.schema.processing.reference.RelativeReferenceSource;
 
 public class BaseSchemaImpl implements BaseSchema {
-	private class BuiltInTypesImpl implements BuiltInTypes {
+	private class DerivedTypesImpl implements DerivedTypes {
 		private final DataBindingType<QualifiedName> qualifiedNameType;
 		private final DataBindingType<Object> relativeReferenceType;
 		private final DataBindingType<Object> referenceType;
 		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
-		public BuiltInTypesImpl(DataBindingTypeBuilder builder,
+		@SuppressWarnings("rawtypes")
+		private final DataBindingType<Class> classType;
+		@SuppressWarnings("rawtypes")
+		private final DataBindingType<Enum> enumType;
+		@SuppressWarnings("rawtypes")
+		private final DataBindingType<Range> rangeType;
+		@SuppressWarnings("rawtypes")
+		private final DataBindingType<List> listType;
+		@SuppressWarnings("rawtypes")
+		private final DataBindingType<Set> setType;
+
+		public DerivedTypesImpl(DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives) {
 			qualifiedNameType = builder.configure().name("qualifiedName")
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);
+
+			@SuppressWarnings("rawtypes")
+			DataBindingType<Collection> collectionType = builder
+					.configure()
+					.name("collection")
+					.dataClass(Collection.class)
+					.isAbstract(true)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.addChild(
+							c -> c.data().id("element").inMethod("add").outMethod("this")
+									.occurances(Range.create(0, null)).outMethodIterable(true))
+					.create();
+			typeSet.add(collectionType);
+
+			listType = builder.configure().name("list").dataClass(List.class)
+					.baseType(collectionType).create();
+			typeSet.add(listType);
+
+			setType = builder.configure().name("set").dataClass(Set.class)
+					.baseType(collectionType).create();
+			typeSet.add(setType);
 
 			DataBindingType<Object> relativeReferenceBaseType = builder
 					.configure()
@@ -58,8 +92,12 @@ public class BaseSchemaImpl implements BaseSchema {
 							c -> c.data().type(primitives.get(DataType.INT))
 									.id("parentLevel"))
 					.addChild(
-							c -> c.data().type(qualifiedNameType).id("elementId")
-									.occurances(Range.create(0, null))).create();
+							c -> c
+									.data()
+									.type(listType)
+									.id("elementIdList")
+									.addChild(d -> d.data().id("element").type(qualifiedNameType)))
+					.create();
 			typeSet.add(relativeReferenceBaseType);
 
 			relativeReferenceType = builder.configure().name("relativeReference")
@@ -96,42 +134,8 @@ public class BaseSchemaImpl implements BaseSchema {
 					.unbindingClass(DataTarget.class)
 					.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
 					.unbindingMethod("pipe").create();
-		}
 
-		@Override
-		public DataBindingType<QualifiedName> qualifiedNameType() {
-			return qualifiedNameType;
-		}
-
-		@Override
-		public DataBindingType<Object> relativeReferenceType() {
-			return relativeReferenceType;
-		}
-
-		@Override
-		public DataBindingType<Object> referenceType() {
-			return referenceType;
-		}
-
-		@Override
-		public DataBindingType<BufferedDataSource> bufferedDataType() {
-			return bufferedDataType;
-		}
-	}
-
-	private class DerivedTypesImpl implements DerivedTypes {
-		@SuppressWarnings("rawtypes")
-		private final DataBindingType<Class> classType;
-		@SuppressWarnings("rawtypes")
-		private final DataBindingType<Enum> enumType;
-		@SuppressWarnings("rawtypes")
-		private final DataBindingType<Range> rangeType;
-
-		public DerivedTypesImpl(DataBindingTypeBuilder dataType,
-				Set<DataBindingType<?>> typeSet,
-				Map<DataType<?>, DataBindingType<?>> primitives,
-				BuiltInTypes builtInTypes) {
-			classType = dataType
+			classType = builder
 					.configure()
 					.name("class")
 					.dataClass(Class.class)
@@ -142,7 +146,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.create();
 			typeSet.add(classType);
 
-			enumType = dataType
+			enumType = builder
 					.configure()
 					.name("enum")
 					.dataClass(Enum.class)
@@ -152,14 +156,13 @@ public class BaseSchemaImpl implements BaseSchema {
 									.id("valueOf")
 									.addChild(
 											o -> o.data().id("enumType").outMethod("getClass")
-													.type(builtInTypes.referenceType())
-													.dataClass(Class.class))
+													.type(referenceType).dataClass(Class.class))
 									.addChild(
 											o -> o.data().id("name")
 													.type(primitives.get(DataType.STRING)))).create();
 			typeSet.add(enumType);
 
-			rangeType = dataType
+			rangeType = builder
 					.configure()
 					.name("range")
 					.dataClass(Range.class)
@@ -188,6 +191,38 @@ public class BaseSchemaImpl implements BaseSchema {
 		public DataBindingType<Range> rangeType() {
 			return rangeType;
 		}
+
+		@Override
+		public DataBindingType<QualifiedName> qualifiedNameType() {
+			return qualifiedNameType;
+		}
+
+		@Override
+		public DataBindingType<Object> relativeReferenceType() {
+			return relativeReferenceType;
+		}
+
+		@Override
+		public DataBindingType<Object> referenceType() {
+			return referenceType;
+		}
+
+		@Override
+		public DataBindingType<BufferedDataSource> bufferedDataType() {
+			return bufferedDataType;
+		}
+
+		@SuppressWarnings("rawtypes")
+		@Override
+		public DataBindingType<List> listType() {
+			return listType;
+		}
+
+		@SuppressWarnings("rawtypes")
+		@Override
+		public DataBindingType<Set> setType() {
+			return setType;
+		}
 	}
 
 	private class BaseModelsImpl implements BaseModels {
@@ -208,7 +243,6 @@ public class BaseSchemaImpl implements BaseSchema {
 	private final Schema baseSchema;
 
 	private final Map<DataType<?>, DataBindingType<?>> primitives;
-	private final BuiltInTypes builtInTypes;
 	private final DerivedTypes derivedTypes;
 
 	private final BaseModels models;
@@ -224,27 +258,26 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
-		DataType<?> a = DataType.BOOLEAN;
+		DataBindingType<Object> primitive = dataTypeBuilder.configure()
+				.name("primitive").bindingClass(BufferedDataSource.class)
+				.bindingStrategy(BindingStrategy.PROVIDED)
+				.unbindingClass(DataTarget.class)
+				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+				.unbindingMethod("put").create();
+		typeSet.add(primitive);
 
 		primitives = Enumeration
 				.<DataType> getConstants(DataType.class)
 				.stream()
 				.collect(
-						Collectors.toMap(t -> t,
-								t -> primitive(dataTypeBuilder, typeSet, t)));
+						Collectors.toMap(
+								t -> t,
+								t -> dataTypeBuilder.configure().name(t.name())
+										.dataClass((Class<?>) t.dataClass()).baseType(primitive)
+										.create()));
+		primitives.values().stream().forEach(typeSet::add);
 
-		Enumeration.<DataType> getConstants(DataType.class).stream()
-				.forEach(t -> System.out.println(t.name()));
-
-		primitives.entrySet().stream()
-				.map(t -> t.getKey().name() + " -> " + t.getValue().getName())
-				.forEach(t -> System.out.println(t));
-
-		System.out.println("okaaay...");
-
-		builtInTypes = new BuiltInTypesImpl(dataTypeBuilder, typeSet, primitives);
-		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives,
-				builtInTypes);
+		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives);
 
 		/*
 		 * Models
@@ -260,28 +293,10 @@ public class BaseSchemaImpl implements BaseSchema {
 				.models(modelSet).create();
 	}
 
-	private <T> DataBindingType<T> primitive(DataBindingTypeBuilder builder,
-			Set<DataBindingType<?>> typeSet, DataType<T> type) {
-		DataBindingType<T> primitive = builder.configure().name(type.name())
-				.dataClass(type.dataClass()).bindingClass(BufferedDataSource.class)
-				.bindingStrategy(BindingStrategy.PROVIDED)
-				.unbindingClass(DataTarget.class)
-				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-				.unbindingMethod("put").create();
-
-		typeSet.add(primitive);
-		return primitive;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> DataBindingType<T> primitiveType(DataType<T> type) {
 		return (DataBindingType<T>) primitives.get(type);
-	}
-
-	@Override
-	public BuiltInTypes builtInTypes() {
-		return builtInTypes;
 	}
 
 	@Override
