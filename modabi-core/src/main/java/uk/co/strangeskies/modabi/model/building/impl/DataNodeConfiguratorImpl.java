@@ -17,6 +17,7 @@ import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
+import uk.co.strangeskies.modabi.model.nodes.DataNode.Value.ValueResolution;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
@@ -29,7 +30,7 @@ public class DataNodeConfiguratorImpl<T>
 	protected static class DataNodeImpl<T> extends BindingChildNodeImpl<T>
 			implements DataNode<T> {
 		private final DataBindingType<T> type;
-		private final BufferedDataSource value;
+		private final Value<T> value;
 		private final Format format;
 		private final Boolean optional;
 
@@ -40,7 +41,26 @@ public class DataNodeConfiguratorImpl<T>
 			type = configurator.type;
 			optional = configurator.optional;
 
-			value = configurator.value;
+			value = new Value<T>() {
+				private final BufferedDataSource providedBuffer = configurator.providedBufferedValue;
+				private final T provided = configurator.provided;
+				private final ValueResolution resolution = configurator.resolution;
+
+				@Override
+				public BufferedDataSource providedBuffer() {
+					return providedBuffer;
+				}
+
+				@Override
+				public T provided() {
+					return provided;
+				}
+
+				@Override
+				public ValueResolution resolution() {
+					return resolution;
+				}
+			};
 
 			if (super.getDataClass() != null
 					&& !super.getDataClass().isAssignableFrom(type.getDataClass()))
@@ -85,7 +105,30 @@ public class DataNodeConfiguratorImpl<T>
 			});
 			optional = overrideMerge.getValue(n -> n.optional());
 			format = overrideMerge.getValue(n -> n.format(), (n, o) -> n == o);
-			value = overrideMerge.getValue(n -> n.value());
+
+			value = new Value<T>() {
+				private final BufferedDataSource providedBuffer = overrideMerge
+						.getValue(n -> n.value().providedBuffer());
+				private final T provided = overrideMerge.getValue(n -> n.value()
+						.provided(), (n, o) -> n == o);
+				private final ValueResolution resolution = overrideMerge.getValue(
+						n -> n.value().resolution(), (n, o) -> n == o);
+
+				@Override
+				public BufferedDataSource providedBuffer() {
+					return providedBuffer;
+				}
+
+				@Override
+				public T provided() {
+					return provided;
+				}
+
+				@Override
+				public ValueResolution resolution() {
+					return resolution;
+				}
+			};
 		}
 
 		@Override
@@ -112,7 +155,7 @@ public class DataNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public BufferedDataSource value() {
+		public Value<T> value() {
 			return value;
 		}
 
@@ -130,7 +173,8 @@ public class DataNodeConfiguratorImpl<T>
 	public Format format;
 
 	private DataBindingType<T> type;
-	private BufferedDataSource value;
+	private BufferedDataSource providedBufferedValue;
+	private ValueResolution resolution;
 
 	private Boolean optional;
 
@@ -185,9 +229,17 @@ public class DataNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public DataNodeConfigurator<T> value(BufferedDataSource dataSource) {
-		requireConfigurable(value);
-		this.value = dataSource;
+	public DataNodeConfigurator<T> provideValue(BufferedDataSource dataSource) {
+		requireConfigurable(providedBufferedValue);
+		providedBufferedValue = dataSource;
+
+		return getThis();
+	}
+
+	@Override
+	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution) {
+		requireConfigurable(this.resolution);
+		this.resolution = valueResolution;
 
 		return getThis();
 	}

@@ -14,11 +14,13 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.model.nodes.DataNode.Value.ValueResolution;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
@@ -79,6 +81,24 @@ public class BaseSchemaImpl implements BaseSchema {
 					.baseType(collectionType).create();
 			typeSet.add(setType);
 
+			DataBindingType<Object> referenceBaseType = builder
+					.configure()
+					.name("referenceBase")
+					.dataClass(Object.class)
+					.isAbstract(true)
+					.bindingClass(ReferenceSource.class)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingClass(DereferenceTarget.class)
+					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+					.addChild(
+							c -> c.data().dataClass(Model.class).id("targetDomain")
+									.valueResolution(ValueResolution.COMPILE_TIME))
+					.addChild(
+							c -> c.data().type(primitives.get(DataType.STRING))
+									.id("targetIdDomain"))
+					.addChild(c -> c.data().type(qualifiedNameType).id("id")).create();
+			typeSet.add(referenceBaseType);
+
 			DataBindingType<Object> relativeReferenceBaseType = builder
 					.configure()
 					.name("relativeReferenceBase")
@@ -88,6 +108,9 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(RelativeDereferenceTarget.class)
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+					.addChild(
+							c -> c.data().id("targetDomain").dataClass(Model.class)
+									.valueResolution(ValueResolution.COMPILE_TIME))
 					.addChild(
 							c -> c.data().type(primitives.get(DataType.INT))
 									.id("parentLevel"))
@@ -100,32 +123,39 @@ public class BaseSchemaImpl implements BaseSchema {
 					.create();
 			typeSet.add(relativeReferenceBaseType);
 
-			relativeReferenceType = builder.configure().name("relativeReference")
-					.baseType(relativeReferenceBaseType).isAbstract(false).create();
-			typeSet.add(relativeReferenceType);
-
-			DataBindingType<Object> referenceBaseType = builder
+			referenceType = builder
 					.configure()
-					.name("referenceBase")
-					.dataClass(Object.class)
-					.isAbstract(true)
-					.bindingClass(ReferenceSource.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingClass(DereferenceTarget.class)
-					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-					.addChild(c -> c.data().dataClass(Model.class).id("targetDomain"))
+					.name("reference")
+					.baseType(referenceBaseType)
+					.isAbstract(false)
 					.addChild(
-							c -> c.data().type(primitives.get(DataType.STRING))
-									.id("targetIdDomain"))
-					.addChild(c -> c.data().type(qualifiedNameType).id("id")).create();
-			typeSet.add(referenceBaseType);
-
-			referenceType = builder.configure().name("reference")
-					.baseType(referenceBaseType).isAbstract(false)
-					.addChild(c -> c.data().type(referenceBaseType).id("targetDomain"))
+							c -> c
+									.data()
+									.id("targetDomain")
+									.type(referenceBaseType)
+									.provideValue(
+											new BufferingDataTarget().put(DataType.STRING,
+													"schema.modabi.strangeskies.co.uk:Model").buffer()))
 					.addChild(c -> c.data().id("targetIdDomain"))
 					.addChild(c -> c.data().id("id")).create();
 			typeSet.add(referenceType);
+
+			relativeReferenceType = builder
+					.configure()
+					.name("relativeReference")
+					.baseType(relativeReferenceBaseType)
+					.isAbstract(false)
+					.addChild(
+							c -> c
+									.data()
+									.id("targetDomain")
+									.type(referenceBaseType)
+									.provideValue(
+											new BufferingDataTarget().put(DataType.STRING,
+													"schema.modabi.strangeskies.co.uk:Model").buffer()))
+					.addChild(c -> c.data().id("parentLevel"))
+					.addChild(c -> c.data().id("elementIdList")).create();
+			typeSet.add(relativeReferenceType);
 
 			bufferedDataType = builder.configure().name("bufferedData")
 					.dataClass(BufferedDataSource.class)

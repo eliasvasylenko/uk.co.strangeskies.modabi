@@ -15,15 +15,28 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 		PROPERTY, CONTENT, SIMPLE_ELEMENT
 	}
 
-	Format format();
+	public interface Value<T> {
+		public enum ValueResolution {
+			COMPILE_TIME, PROCESS_TIME;
+		}
 
-	DataBindingType<T> type();
+		default boolean isValuePresent() {
+			return (resolution() == ValueResolution.PROCESS_TIME && providedBuffer() != null)
+					|| (resolution() == ValueResolution.COMPILE_TIME && provided() != null);
+		}
 
-	default boolean isValueSet() {
-		return value() != null;
+		BufferedDataSource providedBuffer();
+
+		T provided();
+
+		ValueResolution resolution();
 	}
 
-	BufferedDataSource value();
+	Format format();
+
+	Value<T> value();
+
+	DataBindingType<T> type();
 
 	Boolean optional();
 
@@ -67,6 +80,23 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			return node;
 
 		return new DataNode<T>() {
+			private final Value<T> value = new Value<T>() {
+				@Override
+				public BufferedDataSource providedBuffer() {
+					return node.value().providedBuffer();
+				}
+
+				@Override
+				public T provided() {
+					return node.value().provided();
+				}
+
+				@Override
+				public ValueResolution resolution() {
+					return node.value().resolution();
+				}
+			};
+
 			@Override
 			public Method getOutMethod() {
 				return node.getOutMethod();
@@ -173,8 +203,8 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			}
 
 			@Override
-			public BufferedDataSource value() {
-				return node.value();
+			public Value<T> value() {
+				return value;
 			}
 
 			@Override

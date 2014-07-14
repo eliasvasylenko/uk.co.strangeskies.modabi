@@ -230,7 +230,7 @@ public class MetaSchemaImpl implements MetaSchema {
 														p -> p
 																.data()
 																.id("enumType")
-																.value(
+																.provideValue(
 																		new BufferingDataTarget()
 																				.put(DataType.STRING,
 																						"uk.co.strangeskies.modabi.model.nodes.DataNode.Format")
@@ -266,7 +266,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n
 								.data()
 								.id("format")
-								.value(
+								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING, "Content")
 												.buffer())).addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
@@ -283,7 +283,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n
 								.data()
 								.id("format")
-								.value(
+								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING, "Property")
 												.buffer())).addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
@@ -300,7 +300,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n
 								.data()
 								.id("format")
-								.value(
+								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING,
 												"Simple Element").buffer()))
 				.addChild(n -> n.data().id("id")).create();
