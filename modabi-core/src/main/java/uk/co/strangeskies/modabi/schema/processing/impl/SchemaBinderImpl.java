@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -14,6 +16,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
+import uk.co.strangeskies.gears.utilities.IdentityComparator;
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
@@ -56,6 +59,7 @@ import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.RelativeDereferenceTarget;
 
 public class SchemaBinderImpl implements SchemaBinder {
 	private class SchemaSavingContext<T> implements SchemaProcessingContext {
@@ -64,13 +68,25 @@ public class SchemaBinderImpl implements SchemaBinder {
 		private final Deque<Object> bindingStack;
 
 		private TerminatingDataTarget dataTarget;
-		private DereferenceTarget referenceTarget;
+		private DereferenceTarget dereferenceTarget;
+		private RelativeDereferenceTarget relativeDereferenceTarget;
+
+		private Map<Object, Map<String, QualifiedName>> unboundObjects;
 
 		public SchemaSavingContext(Model<T> model, StructuredDataTarget output,
 				T data) {
 			bindingStack = new ArrayDeque<>();
-
 			this.output = output;
+
+			unboundObjects = new TreeMap<>(new IdentityComparator<>());
+
+			dereferenceTarget = new DereferenceTarget() {
+				@Override
+				public <U> QualifiedName dereference(Model<U> model, String idDomain,
+						U object) {
+					return unboundObjects.get(object).get(idDomain);
+				}
+			};
 
 			unbindModel(model.effectiveModel(), data);
 		}
@@ -132,7 +148,9 @@ public class SchemaBinderImpl implements SchemaBinder {
 			if (clazz.equals(DataTarget.class))
 				return (U) dataTarget;
 			if (clazz.equals(DereferenceTarget.class))
-				return (U) referenceTarget;
+				return (U) dereferenceTarget;
+			if (clazz.equals(RelativeDereferenceTarget.class))
+				return (U) relativeDereferenceTarget;
 
 			return SchemaBinderImpl.this.provide(clazz);
 		}

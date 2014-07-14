@@ -3,7 +3,6 @@ package uk.co.strangeskies.modabi.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.set.ListOrderedSet;
@@ -16,17 +15,12 @@ import uk.co.strangeskies.modabi.namespace.NamedSet;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public class Models extends NamedSet<Model<?>> {
-	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> subModels;
+	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;
 	private final ListMultiMap<Class<?>, Model<?>> classes;
 
 	public Models(Namespace namespace) {
-		super(namespace, new Function<Model<?>, String>() {
-			@Override
-			public String apply(Model<?> t) {
-				return t.getId();
-			}
-		});
-		subModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
+		super(namespace, t -> t.getId());
+		derivedModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
 		classes = new ArrayListMultiHashMap<>();
 	}
 
@@ -55,7 +49,7 @@ public class Models extends NamedSet<Model<?>> {
 		baseModels.addAll(model.effectiveModel().baseModel());
 		for (int i = 0; i < baseModels.size(); i++) {
 			Model<?> baseModel = baseModels.get(i);
-			subModels.add(baseModel, model);
+			derivedModels.add(baseModel, model);
 			baseModels.addAll(baseModel.effectiveModel().baseModel());
 		}
 
@@ -63,13 +57,13 @@ public class Models extends NamedSet<Model<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<? extends T>> getSubModels(AbstractModel<T> model) {
+	public <T> List<Model<? extends T>> getDerivedModels(AbstractModel<T> model) {
 		/*
-		 * TODO This extra cast is needed by JDT but not eclipse... Is it valid
+		 * TODO This extra cast is needed by javac but not JDT... Is it valid
 		 * without?
 		 */
-		Object subModelListObject = subModels.get(model);
-		ListOrderedSet<? extends Model<? extends T>> subModelList = (ListOrderedSet<? extends Model<? extends T>>) subModelListObject;
+		Object derivedModelListObject = derivedModels.get(model);
+		ListOrderedSet<? extends Model<? extends T>> subModelList = (ListOrderedSet<? extends Model<? extends T>>) derivedModelListObject;
 		return subModelList == null ? new ArrayList<>() : new ArrayList<>(
 				subModelList);
 	}
@@ -81,9 +75,9 @@ public class Models extends NamedSet<Model<?>> {
 				.iterator();
 
 		List<? extends Model<?>> subModels = new ArrayList<>(
-				getSubModels(baseModelIterator.next()));
+				getDerivedModels(baseModelIterator.next()));
 		while (baseModelIterator.hasNext())
-			subModels.retainAll(getSubModels(baseModelIterator.next()));
+			subModels.retainAll(getDerivedModels(baseModelIterator.next()));
 
 		subModels = subModels
 				.stream()
