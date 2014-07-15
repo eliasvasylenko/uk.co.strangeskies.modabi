@@ -81,6 +81,15 @@ public class BaseSchemaImpl implements BaseSchema {
 					.baseType(collectionType).create();
 			typeSet.add(setType);
 
+			bufferedDataType = builder.configure().name("bufferedData")
+					.dataClass(BufferedDataSource.class)
+					.bindingClass(BufferedDataSource.class)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingClass(DataTarget.class)
+					.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
+					.unbindingMethod("pipe").create();
+			typeSet.add(bufferedDataType);
+
 			DataBindingType<Object> referenceBaseType = builder
 					.configure()
 					.name("referenceBase")
@@ -94,9 +103,8 @@ public class BaseSchemaImpl implements BaseSchema {
 							c -> c.data().dataClass(Model.class).id("targetDomain")
 									.valueResolution(ValueResolution.COMPILE_TIME))
 					.addChild(
-							c -> c.data().type(primitives.get(DataType.STRING))
-									.id("targetIdDomain"))
-					.addChild(c -> c.data().type(qualifiedNameType).id("id")).create();
+							c -> c.data().type(primitives.get(DataType.STRING)).id("id"))
+					.addChild(c -> c.data().type(bufferedDataType).id("ref")).create();
 			typeSet.add(referenceBaseType);
 
 			DataBindingType<Object> relativeReferenceBaseType = builder
@@ -136,8 +144,8 @@ public class BaseSchemaImpl implements BaseSchema {
 									.provideValue(
 											new BufferingDataTarget().put(DataType.STRING,
 													"schema.modabi.strangeskies.co.uk:Model").buffer()))
-					.addChild(c -> c.data().id("targetIdDomain"))
-					.addChild(c -> c.data().id("id")).create();
+					.addChild(c -> c.data().id("id")).addChild(c -> c.data().id("ref"))
+					.create();
 			typeSet.add(referenceType);
 
 			relativeReferenceType = builder
@@ -156,14 +164,6 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(c -> c.data().id("parentLevel"))
 					.addChild(c -> c.data().id("elementIdList")).create();
 			typeSet.add(relativeReferenceType);
-
-			bufferedDataType = builder.configure().name("bufferedData")
-					.dataClass(BufferedDataSource.class)
-					.bindingClass(BufferedDataSource.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingClass(DataTarget.class)
-					.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
-					.unbindingMethod("pipe").create();
 
 			classType = builder
 					.configure()

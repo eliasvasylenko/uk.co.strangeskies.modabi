@@ -27,11 +27,11 @@ public interface BufferedDataSource extends TerminatingDataSource,
 			BufferedDataSource {
 		private final int size;
 
-		public BufferedRepeatingDataSource(DataItem<?> item, int size) {
+		private BufferedRepeatingDataSource(DataItem<?> item, int size) {
 			this(item, 0, size);
 		}
 
-		public BufferedRepeatingDataSource(DataItem<?> item, int index, int size) {
+		private BufferedRepeatingDataSource(DataItem<?> item, int index, int size) {
 			super(item, index);
 			this.size = size;
 		}

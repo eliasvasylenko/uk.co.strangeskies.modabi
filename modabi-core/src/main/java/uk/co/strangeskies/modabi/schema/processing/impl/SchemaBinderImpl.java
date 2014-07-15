@@ -5,6 +5,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,8 +25,9 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
+import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
@@ -38,7 +40,6 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
@@ -67,11 +68,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		private final Deque<Object> bindingStack;
 
-		private TerminatingDataTarget dataTarget;
-		private DereferenceTarget dereferenceTarget;
-		private RelativeDereferenceTarget relativeDereferenceTarget;
+		private BufferingDataTarget dataTarget;
+		private final DereferenceTarget dereferenceTarget;
+		private final RelativeDereferenceTarget relativeDereferenceTarget;
 
-		private Map<Object, Map<String, QualifiedName>> unboundObjects;
+		private final Map<Object, Map<String, BufferedDataSource>> unboundObjects;
 
 		public SchemaSavingContext(Model<T> model, StructuredDataTarget output,
 				T data) {
@@ -82,9 +83,16 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 			dereferenceTarget = new DereferenceTarget() {
 				@Override
+				public <U> BufferedDataSource dereference(Model<U> model,
+						String idDomain, U object) {
+					return unboundObjects.get(object).get(idDomain);
+				}
+			};
+			relativeDereferenceTarget = new RelativeDereferenceTarget() {
+				@Override
 				public <U> QualifiedName dereference(Model<U> model, String idDomain,
 						U object) {
-					return unboundObjects.get(object).get(idDomain);
+					return null;
 				}
 			};
 
@@ -102,28 +110,33 @@ public class SchemaBinderImpl implements SchemaBinder {
 			List<U> data = getData(node);
 
 			if (!data.isEmpty()) {
-				if (dataTarget != null && node.format() != null)
-					throw new SchemaException();
-
 				if (dataTarget == null)
-					switch (node.format()) {
-					case PROPERTY:
-						dataTarget = output.property(node.getId());
-						break;
-					case SIMPLE_ELEMENT:
-						output.nextChild(node.getId());
-					case CONTENT:
-						dataTarget = output.content();
-					}
+					dataTarget = new BufferingDataTarget();
+				else if (node.format() != null)
+					throw new SchemaException();
 
 				for (Object item : unbindData(node, data))
 					processBindingChildren(node, item);
 
 				if (node.format() != null) {
-					dataTarget.terminate();
+					BufferedDataSource bufferedTarget = dataTarget.buffer();
 					dataTarget = null;
-					if (node.format() == Format.SIMPLE_ELEMENT)
+
+					switch (node.format()) {
+					case PROPERTY:
+						bufferedTarget.pipe(output.property(node.getId())).terminate();
+						break;
+					case SIMPLE_ELEMENT:
+						output.nextChild(node.getId());
+						bufferedTarget.pipe(output.content()).terminate();
 						output.endChild();
+						break;
+					case CONTENT:
+						bufferedTarget.pipe(output.content()).terminate();
+					}
+
+					unboundObjects.get(bindingStack.peek()).put(node.getId(),
+							bufferedTarget.reset());
 				}
 			}
 		}
@@ -174,6 +187,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 						.getMatchingModels(node, data.getClass()).get(0).effectiveModel(),
 						node);
 
+			unboundObjects.put(data, new HashMap<>());
 			unbindModel(node, data);
 		}
 
