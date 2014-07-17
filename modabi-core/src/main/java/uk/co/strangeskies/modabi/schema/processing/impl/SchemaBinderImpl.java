@@ -18,11 +18,10 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.gears.utilities.IdentityComparator;
-import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
@@ -34,6 +33,7 @@ import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
 import uk.co.strangeskies.modabi.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
@@ -52,6 +52,7 @@ import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
+import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.impl.BaseSchemaImpl;
@@ -400,8 +401,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 	private final BaseSchema baseSchema;
 	private final MetaSchema metaSchema;
 
-	private final SetMultiMap<Schema, QualifiedName> unmetDependencies;
-	// private final Map<QualifiedName, MockedSchema> mockedDependencies;
+	private final List<Function<Class<?>, ?>> providers;
+
 	private final Models registeredModels;
 	private final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchema;
@@ -413,8 +414,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
-		unmetDependencies = new HashSetMultiHashMap<>();
-		// mockedDependencies = new HashMap<>();
+		providers = new ArrayList<>();
 
 		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,
 				dataTypeBuilder);
@@ -428,6 +428,13 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		registerSchema(baseSchema);
 		registerSchema(metaSchema);
+
+		registerProvider(DataBindingTypeConfigurator.class,
+				() -> new DataTypeBuilderImpl().configure());
+		registerProvider(ModelConfigurator.class,
+				() -> new ModelBuilderImpl().configure());
+		registerProvider(SchemaConfigurator.class,
+				() -> new SchemaBuilderImpl().configure());
 	}
 
 	private void registerSchema(Schema schema) {
@@ -449,11 +456,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public <T> T processInput(Model<T> model, StructuredDataSource input) {
-		return new SchemaLoadingContext<>(model, input).load().getData();
-	}
-
-	@Override
 	public MetaSchema getMetaSchema() {
 		return metaSchema;
 	}
@@ -461,6 +463,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 	@Override
 	public BaseSchema getBaseSchema() {
 		return baseSchema;
+	}
+
+	@Override
+	public <T> T processInput(Model<T> model, StructuredDataSource input) {
+		return new SchemaLoadingContext<>(model, input).load().getData();
 	}
 
 	@Override
@@ -485,17 +492,29 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	@Override
 	public <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
-		// TODO Auto-generated method stub
-
+		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);
 	}
 
 	@Override
 	public void registerProvider(Function<Class<?>, ?> provider) {
-		// TODO Auto-generated method stub
-
+		providers.add(c -> {
+			Object provided = provider.apply(c);
+			if (!c.isInstance(provided))
+				throw new SchemaException("Invalid object provided for the class [" + c
+						+ "] by provider [" + provider + "]");
+			return provided;
+		});
 	}
 
+	@SuppressWarnings("unchecked")
 	protected <T> T provide(Class<T> clazz) {
-		return null;
+		return (T) providers
+				.stream()
+				.map(p -> p.apply(clazz))
+				.filter(Objects::nonNull)
+				.findFirst()
+				.orElseThrow(
+						() -> new SchemaException("No provider exists for the class "
+								+ clazz));
 	}
 }

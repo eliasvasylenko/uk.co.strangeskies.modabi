@@ -8,6 +8,7 @@ import java.util.Set;
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
@@ -53,7 +54,8 @@ public class MetaSchemaImpl implements MetaSchema {
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
 		DataBindingType<?> typeType = dataType.configure().name("type")
-				.dataClass(DataBindingType.class).create();
+				.dataClass(DataBindingType.class)
+				.bindingClass(DataBindingTypeConfigurator.class).create();
 		typeSet.add(typeType);
 
 		/*
@@ -261,7 +263,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(typedDataModel, optionalModel)
 				.isAbstract(false)
 				.dataClass(DataNode.class)
-				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n
 								.data()
@@ -278,7 +279,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(false)
 				.baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class)
-				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n
 								.data()
@@ -295,7 +295,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(false)
 				.baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class)
-				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
 						n -> n
 								.data()
