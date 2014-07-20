@@ -128,6 +128,14 @@
 			<property id="dataClass" type="class" />
 			<property id="builderClass" optional="true" type="class" />
 			<property id="buildMethod" optional="true" type="string" />
+
+			<data format="property" id="baseModel" optional="true" type="base:listType">
+				<data id="element" type="base:referenceType">
+					<data id="targetDomain" value="Model" />
+					<data id="id" value="id" />
+				</data>
+			</data>
+
 			<element id="child" />
 		</model>
 

@@ -1,10 +1,12 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.util.Collection;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;

@@ -40,12 +40,24 @@
 			</properties>
 		</type>
 
-		<type name="reference" dataClass="java.lang.Object">
-			<properties>
-				<property id="targetDomain" type="qualifiedName" />
-				<property id="targetIdProperty" type="string" />
-				<property id="domain" type="qualifiedName" />
-			</properties>
+		<type name="referenceBaseType" dataClass="java.lang.Object">
+			<inputSequence id="reference">
+				<data id="targetDomain" valueResolution="registrationTime"
+					dataClass="Model" />
+				<data id="id" type="string" />
+				<data id="ref" valueResolution="registrationTime" type="bufferedDataType" />
+			</inputSequence>
+		</type>
+
+		<type name="reference" base="referenceBase">
+			<inputSequence id="reference">
+				<data id="targetDomain" type="referenceBaseType">
+					<inputSequence id="reference">
+						<data id="targetDomain" value="Model" />
+						<data id="id" value="id" />
+					</inputSequence>
+				</data>
+			</inputSequence>
 		</type>
 
 		<type name="softReference">

@@ -1,11 +1,14 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
@@ -46,5 +49,10 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 		}
 
 		super.finaliseProperties();
+	}
+
+	@Override
+	protected DataLoader getDataLoader() {
+		return getContext().getDataLoader();
 	}
 }

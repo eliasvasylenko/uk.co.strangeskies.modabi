@@ -9,12 +9,7 @@ public class NamedSet<T> extends QualifiedNamedSet<T> {
 
 	public NamedSet(final Namespace namespace,
 			final Function<T, String> namingFunction) {
-		super(new Function<T, QualifiedName>() {
-			@Override
-			public QualifiedName apply(T t) {
-				return new QualifiedName(namingFunction.apply(t), namespace);
-			}
-		});
+		super(t -> new QualifiedName(namingFunction.apply(t), namespace));
 		this.namingFunction = namingFunction;
 	}
 

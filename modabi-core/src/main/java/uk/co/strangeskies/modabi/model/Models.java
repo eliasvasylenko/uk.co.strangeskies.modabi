@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.set.ListOrderedSet;
 
-import uk.co.strangeskies.gears.utilities.collection.ArrayListMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.ListMultiMap;
 import uk.co.strangeskies.gears.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.MultiMap;
 import uk.co.strangeskies.modabi.namespace.NamedSet;
@@ -16,12 +14,10 @@ import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public class Models extends NamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;
-	private final ListMultiMap<Class<?>, Model<?>> classes;
 
 	public Models(Namespace namespace) {
 		super(namespace, t -> t.getId());
 		derivedModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
-		classes = new ArrayListMultiHashMap<>();
 	}
 
 	@Override
@@ -52,8 +48,6 @@ public class Models extends NamedSet<Model<?>> {
 			derivedModels.add(baseModel, model);
 			baseModels.addAll(baseModel.effectiveModel().baseModel());
 		}
-
-		classes.add(model.effectiveModel().getDataClass(), model);
 	}
 
 	@SuppressWarnings("unchecked")

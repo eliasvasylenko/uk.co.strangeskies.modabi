@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,8 +10,11 @@ import java.util.Objects;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.modabi.model.building.BindingChildNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;

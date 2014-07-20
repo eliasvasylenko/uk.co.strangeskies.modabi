@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +11,9 @@ import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.ModelConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.ModelConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
@@ -127,8 +129,19 @@ public class ModelConfiguratorImpl<T>
 		}
 	}
 
+	private final DataLoader loader;
+
 	private List<Model<? super T>> baseModel;
 	private Boolean isAbstract;
+
+	public ModelConfiguratorImpl(DataLoader loader) {
+		this.loader = loader;
+	}
+
+	@Override
+	protected DataLoader getDataLoader() {
+		return loader;
+	}
 
 	@Override
 	public final ModelConfigurator<T> isAbstract(boolean isAbstract) {

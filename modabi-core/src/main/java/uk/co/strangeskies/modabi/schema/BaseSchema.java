@@ -20,8 +20,6 @@ public interface BaseSchema extends Schema {
 
 		DataBindingType<QualifiedName> qualifiedNameType();
 
-		DataBindingType<Object> relativeReferenceType();
-
 		DataBindingType<Object> referenceType();
 
 		DataBindingType<BufferedDataSource> bufferedDataType();

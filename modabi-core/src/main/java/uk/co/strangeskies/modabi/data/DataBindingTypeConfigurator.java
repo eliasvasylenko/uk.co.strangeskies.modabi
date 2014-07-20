@@ -4,7 +4,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.gears.utilities.factory.Factory;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;

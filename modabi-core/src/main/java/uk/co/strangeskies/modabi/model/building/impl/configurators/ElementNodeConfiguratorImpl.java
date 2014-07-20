@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +8,11 @@ import java.util.Objects;
 
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
@@ -91,6 +95,11 @@ public class ElementNodeConfiguratorImpl<T>
 	public ElementNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super ElementNode<T>> parent) {
 		super(parent);
+	}
+
+	@Override
+	protected DataLoader getDataLoader() {
+		return getContext().getDataLoader();
 	}
 
 	@Override

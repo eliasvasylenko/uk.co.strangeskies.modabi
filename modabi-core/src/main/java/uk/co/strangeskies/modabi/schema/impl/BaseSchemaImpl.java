@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.mathematics.Range;
@@ -19,6 +20,7 @@ import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Value.ValueResolution;
 import uk.co.strangeskies.modabi.namespace.Namespace;
@@ -32,13 +34,10 @@ import uk.co.strangeskies.modabi.schema.processing.ModelLoader;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
-import uk.co.strangeskies.modabi.schema.processing.reference.RelativeDereferenceTarget;
-import uk.co.strangeskies.modabi.schema.processing.reference.RelativeReferenceSource;
 
 public class BaseSchemaImpl implements BaseSchema {
 	private class DerivedTypesImpl implements DerivedTypes {
 		private final DataBindingType<QualifiedName> qualifiedNameType;
-		private final DataBindingType<Object> relativeReferenceType;
 		private final DataBindingType<Object> referenceType;
 		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
@@ -53,16 +52,16 @@ public class BaseSchemaImpl implements BaseSchema {
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Set> setType;
 
-		public DerivedTypesImpl(DataBindingTypeBuilder builder,
+		public DerivedTypesImpl(DataLoader loader, DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives) {
-			qualifiedNameType = builder.configure().name("qualifiedName")
+			qualifiedNameType = builder.configure(loader).name("qualifiedName")
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);
 
 			@SuppressWarnings("rawtypes")
 			DataBindingType<Collection> collectionType = builder
-					.configure()
+					.configure(loader)
 					.name("collection")
 					.dataClass(Collection.class)
 					.isAbstract(true)
@@ -73,15 +72,15 @@ public class BaseSchemaImpl implements BaseSchema {
 					.create();
 			typeSet.add(collectionType);
 
-			listType = builder.configure().name("list").dataClass(List.class)
+			listType = builder.configure(loader).name("list").dataClass(List.class)
 					.baseType(collectionType).create();
 			typeSet.add(listType);
 
-			setType = builder.configure().name("set").dataClass(Set.class)
+			setType = builder.configure(loader).name("set").dataClass(Set.class)
 					.baseType(collectionType).create();
 			typeSet.add(setType);
 
-			bufferedDataType = builder.configure().name("bufferedData")
+			bufferedDataType = builder.configure(loader).name("bufferedData")
 					.dataClass(BufferedDataSource.class)
 					.bindingClass(BufferedDataSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
@@ -91,82 +90,70 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(bufferedDataType);
 
 			DataBindingType<Object> referenceBaseType = builder
-					.configure()
+					.configure(loader)
 					.name("referenceBase")
 					.dataClass(Object.class)
 					.isAbstract(true)
+					.isPrivate(true)
 					.bindingClass(ReferenceSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(DereferenceTarget.class)
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 					.addChild(
-							c -> c.data().dataClass(Model.class).id("targetDomain")
-									.valueResolution(ValueResolution.COMPILE_TIME))
+							d -> d.data().dataClass(Model.class).id("targetDomain")
+									.valueResolution(ValueResolution.REGISTRATION_TIME))
 					.addChild(
-							c -> c.data().type(primitives.get(DataType.STRING)).id("id"))
-					.addChild(c -> c.data().type(bufferedDataType).id("ref")).create();
+							d -> d.data().type(primitives.get(DataType.STRING)).id("id")
+									.valueResolution(ValueResolution.REGISTRATION_TIME))
+					.addChild(
+							c -> c
+									.inputSequence()
+									.id("reference")
+									.addChild(
+											d -> d.data().dataClass(Model.class).id("targetDomain")
+													.valueResolution(ValueResolution.REGISTRATION_TIME)
+													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+													.bindingClass(Something.class)
+													// TODO check javadoc for TARGET_ADAPTER for this...
+													.addChild(e -> e.inputSequence().id("context"))
+													.addChild(e -> e.inputSequence().id("parent")))
+									.addChild(
+											d -> d.data().type(primitives.get(DataType.STRING))
+													.id("id")
+													.valueResolution(ValueResolution.REGISTRATION_TIME))
+									.addChild(d -> d.data().type(bufferedDataType).id("ref")))
+					.create();
 			typeSet.add(referenceBaseType);
 
-			DataBindingType<Object> relativeReferenceBaseType = builder
-					.configure()
-					.name("relativeReferenceBase")
-					.dataClass(Object.class)
-					.isAbstract(true)
-					.bindingClass(RelativeReferenceSource.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingClass(RelativeDereferenceTarget.class)
-					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-					.addChild(
-							c -> c.data().id("targetDomain").dataClass(Model.class)
-									.valueResolution(ValueResolution.COMPILE_TIME))
-					.addChild(
-							c -> c.data().type(primitives.get(DataType.INT))
-									.id("parentLevel"))
-					.addChild(
-							c -> c
-									.data()
-									.type(listType)
-									.id("elementIdList")
-									.addChild(d -> d.data().id("element").type(qualifiedNameType)))
-					.create();
-			typeSet.add(relativeReferenceBaseType);
-
 			referenceType = builder
-					.configure()
+					.configure(loader)
 					.name("reference")
 					.baseType(referenceBaseType)
-					.isAbstract(false)
+					.isPrivate(false)
 					.addChild(
 							c -> c
 									.data()
 									.id("targetDomain")
 									.type(referenceBaseType)
-									.provideValue(
-											new BufferingDataTarget().put(DataType.STRING,
-													"schema.modabi.strangeskies.co.uk:Model").buffer()))
-					.addChild(c -> c.data().id("id")).addChild(c -> c.data().id("ref"))
-					.create();
+									.addChild(
+											d -> d
+													.data()
+													.id("targetDomain")
+													.provideValue(
+															new BufferingDataTarget().put(DataType.STRING,
+																	"schema.modabi.strangeskies.co.uk:Model")
+																	.buffer()))
+									.addChild(
+											d -> d
+													.data()
+													.id("id")
+													.provideValue(
+															new BufferingDataTarget().put(DataType.STRING,
+																	"id").buffer()))).create();
 			typeSet.add(referenceType);
 
-			relativeReferenceType = builder
-					.configure()
-					.name("relativeReference")
-					.baseType(relativeReferenceBaseType)
-					.isAbstract(false)
-					.addChild(
-							c -> c
-									.data()
-									.id("targetDomain")
-									.type(referenceBaseType)
-									.provideValue(
-											new BufferingDataTarget().put(DataType.STRING,
-													"schema.modabi.strangeskies.co.uk:Model").buffer()))
-					.addChild(c -> c.data().id("parentLevel"))
-					.addChild(c -> c.data().id("elementIdList")).create();
-			typeSet.add(relativeReferenceType);
-
 			classType = builder
-					.configure()
+					.configure(loader)
 					.name("class")
 					.dataClass(Class.class)
 					.bindingClass(Class.class)
@@ -177,7 +164,7 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(classType);
 
 			enumType = builder
-					.configure()
+					.configure(loader)
 					.name("enum")
 					.dataClass(Enum.class)
 					.addChild(
@@ -193,7 +180,7 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(enumType);
 
 			rangeType = builder
-					.configure()
+					.configure(loader)
 					.name("range")
 					.dataClass(Range.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
@@ -228,11 +215,6 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public DataBindingType<Object> relativeReferenceType() {
-			return relativeReferenceType;
-		}
-
-		@Override
 		public DataBindingType<Object> referenceType() {
 			return referenceType;
 		}
@@ -258,8 +240,9 @@ public class BaseSchemaImpl implements BaseSchema {
 	private class BaseModelsImpl implements BaseModels {
 		private final Model<Object> includeModel;
 
-		public BaseModelsImpl(ModelBuilder builder, Set<Model<?>> modelSet) {
-			includeModel = builder.configure().id("include")
+		public BaseModelsImpl(DataLoader loader, ModelBuilder builder,
+				Set<Model<?>> modelSet) {
+			includeModel = builder.configure(loader).id("include")
 					.bindingClass(ModelLoader.class).dataClass(Object.class).create();
 			modelSet.add(includeModel);
 		}
@@ -280,6 +263,8 @@ public class BaseSchemaImpl implements BaseSchema {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder) {
+		DataLoader loader = null;
+
 		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
 				new Namespace(BaseSchema.class.getPackage().getName()));
 
@@ -288,7 +273,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
-		DataBindingType<Object> primitive = dataTypeBuilder.configure()
+		DataBindingType<Object> primitive = dataTypeBuilder.configure(loader)
 				.name("primitive").bindingClass(BufferedDataSource.class)
 				.bindingStrategy(BindingStrategy.PROVIDED)
 				.unbindingClass(DataTarget.class)
@@ -300,21 +285,21 @@ public class BaseSchemaImpl implements BaseSchema {
 				.<DataType> getConstants(DataType.class)
 				.stream()
 				.collect(
-						Collectors.toMap(
-								t -> t,
-								t -> dataTypeBuilder.configure().name(t.name())
+						Collectors.toMap(Function.identity(),
+								t -> dataTypeBuilder.configure(loader).name(t.name())
 										.dataClass((Class<?>) t.dataClass()).baseType(primitive)
 										.create()));
 		primitives.values().stream().forEach(typeSet::add);
 
-		derivedTypes = new DerivedTypesImpl(dataTypeBuilder, typeSet, primitives);
+		derivedTypes = new DerivedTypesImpl(loader, dataTypeBuilder, typeSet,
+				primitives);
 
 		/*
 		 * Models
 		 */
 		Set<Model<?>> modelSet = new LinkedHashSet<>();
 
-		models = new BaseModelsImpl(modelBuilder, modelSet);
+		models = new BaseModelsImpl(loader, modelBuilder, modelSet);
 
 		/*
 		 * Schema

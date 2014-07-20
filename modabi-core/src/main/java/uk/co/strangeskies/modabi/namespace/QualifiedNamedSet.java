@@ -52,10 +52,6 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 		return elements.get(name);
 	}
 
-	public/* @ReadOnly */Map<QualifiedName, T> getMap() {
-		return elements;
-	}
-
 	@Override
 	public String toString() {
 		return elements.toString();

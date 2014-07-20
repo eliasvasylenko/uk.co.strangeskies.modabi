@@ -1,7 +1,8 @@
-package uk.co.strangeskies.modabi.model.building;
+package uk.co.strangeskies.modabi.model.building.configurators;
 
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;

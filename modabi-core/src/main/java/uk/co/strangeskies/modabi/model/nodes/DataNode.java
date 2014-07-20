@@ -17,12 +17,12 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 	public interface Value<T> {
 		public enum ValueResolution {
-			COMPILE_TIME, PROCESS_TIME;
+			REGISTRATION_TIME, PROCESSING_TIME;
 		}
 
 		default boolean isValuePresent() {
-			return (resolution() == ValueResolution.PROCESS_TIME && providedBuffer() != null)
-					|| (resolution() == ValueResolution.COMPILE_TIME && provided() != null);
+			return (resolution() == ValueResolution.PROCESSING_TIME && providedBuffer() != null)
+					|| (resolution() == ValueResolution.REGISTRATION_TIME && provided() != null);
 		}
 
 		BufferedDataSource providedBuffer();
@@ -41,7 +41,7 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	Boolean optional();
 
 	@Override
-	public default Class<T> getDataClass() {
+	default Class<T> getDataClass() {
 		return type().getDataClass();
 	}
 
@@ -71,11 +71,11 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	}
 
 	@Override
-	public default void process(SchemaProcessingContext context) {
+	default void process(SchemaProcessingContext context) {
 		context.accept(this);
 	}
 
-	public static <T> DataNode<T> wrapType(DataNode<T> node) {
+	static <T> DataNode<T> wrapType(DataNode<T> node) {
 		if (node.type() == null)
 			return node;
 

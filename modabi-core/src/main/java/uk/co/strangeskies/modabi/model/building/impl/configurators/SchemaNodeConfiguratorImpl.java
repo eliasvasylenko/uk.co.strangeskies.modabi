@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,12 +14,15 @@ import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
@@ -202,12 +205,19 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			throw new InvalidBuildStateException(this);
 	}
 
+	protected abstract DataLoader getDataLoader();
+
 	protected ChildBuilder<C, B> childBuilder() {
 		assertUnblocked();
 		finaliseProperties();
 		blocked = true;
 
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
+			@Override
+			public DataLoader getDataLoader() {
+				return SchemaNodeConfiguratorImpl.this.getDataLoader();
+			}
+
 			@Override
 			public <T extends ChildNode> Set<T> overrideChild(String id,
 					Class<T> nodeClass) {

@@ -3,6 +3,8 @@ package uk.co.strangeskies.modabi.namespace;
 public class Namespace {
 	private final String namespace;
 
+	private final static Namespace DEFAULT = new Namespace("");
+
 	public Namespace(String namespace) {
 		this.namespace = namespace;
 	}
@@ -18,5 +20,9 @@ public class Namespace {
 			return false;
 
 		return namespace.equals(((Namespace) obj).namespace);
+	}
+
+	public static Namespace getDefault() {
+		return DEFAULT;
 	}
 }

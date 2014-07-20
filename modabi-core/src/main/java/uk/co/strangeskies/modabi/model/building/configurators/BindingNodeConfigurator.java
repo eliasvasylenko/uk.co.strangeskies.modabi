@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building;
+package uk.co.strangeskies.modabi.model.building.configurators;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

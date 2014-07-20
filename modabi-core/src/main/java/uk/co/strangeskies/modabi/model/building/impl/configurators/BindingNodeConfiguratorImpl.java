@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -6,7 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import uk.co.strangeskies.modabi.model.building.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;

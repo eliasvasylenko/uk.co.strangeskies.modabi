@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.impl.configurators;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,11 +9,14 @@ import java.util.Set;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
@@ -43,7 +46,6 @@ public class DataNodeConfiguratorImpl<T>
 
 			value = new Value<T>() {
 				private final BufferedDataSource providedBuffer = configurator.providedBufferedValue;
-				private final T provided = configurator.provided;
 				private final ValueResolution resolution = configurator.resolution;
 
 				@Override
@@ -53,7 +55,7 @@ public class DataNodeConfiguratorImpl<T>
 
 				@Override
 				public T provided() {
-					return provided;
+					return null;
 				}
 
 				@Override
@@ -88,7 +90,8 @@ public class DataNodeConfiguratorImpl<T>
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> outputTargetClass) {
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
+				DataLoader loader) {
 			super(overrideWithType(node), overriddenNodes, effectiveChildren,
 					outputTargetClass);
 
@@ -109,10 +112,10 @@ public class DataNodeConfiguratorImpl<T>
 			value = new Value<T>() {
 				private final BufferedDataSource providedBuffer = overrideMerge
 						.getValue(n -> n.value().providedBuffer());
-				private final T provided = overrideMerge.getValue(n -> n.value()
-						.provided(), (n, o) -> n == o);
 				private final ValueResolution resolution = overrideMerge.getValue(
 						n -> n.value().resolution(), (n, o) -> n == o);
+				private final T provided = (resolution == ValueResolution.REGISTRATION_TIME) ? loader
+						.loadData(DataNodeImpl.this, providedBuffer) : null;
 
 				@Override
 				public BufferedDataSource providedBuffer() {
@@ -138,8 +141,12 @@ public class DataNodeConfiguratorImpl<T>
 
 			DataNode<?> other = (DataNode<?>) obj;
 
-			return super.equals(obj) && Objects.equals(type, other.type())
-					&& Objects.equals(value, other.value())
+			return super.equals(obj)
+					&& Objects.equals(type, other.type())
+					&& Objects.equals(value.provided(), other.value().provided())
+					&& Objects.equals(value.providedBuffer(), other.value()
+							.providedBuffer())
+					&& Objects.equals(value.resolution(), other.value().resolution())
 					&& Objects.equals(format, other.format())
 					&& Objects.equals(optional, other.optional());
 		}
@@ -181,6 +188,11 @@ public class DataNodeConfiguratorImpl<T>
 	public DataNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super DataNode<T>> parent) {
 		super(parent);
+	}
+
+	@Override
+	protected DataLoader getDataLoader() {
+		return getContext().getDataLoader();
 	}
 
 	protected final Class<?> getTypeBindingClass() {
@@ -263,7 +275,8 @@ public class DataNodeConfiguratorImpl<T>
 	@Override
 	protected final DataNode<T> getEffective(DataNode<T> node) {
 		return new DataNodeImpl<>(node, getOverriddenNodes(),
-				getEffectiveChildren(), getContext().getCurrentChildOutputTargetClass());
+				getEffectiveChildren(),
+				getContext().getCurrentChildOutputTargetClass(), getDataLoader());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -315,6 +328,11 @@ public class DataNodeConfiguratorImpl<T>
 	@Override
 	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
+			@Override
+			public DataLoader getDataLoader() {
+				return DataNodeConfiguratorImpl.this.getDataLoader();
+			}
+
 			@Override
 			public <U extends ChildNode> Set<U> overrideChild(String id,
 					Class<U> nodeClass) {

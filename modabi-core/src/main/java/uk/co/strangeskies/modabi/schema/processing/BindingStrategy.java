@@ -61,11 +61,14 @@ public enum BindingStrategy {
 	 * The schema binder should attempt to retrieve an implementation of the
 	 * requested class from the object being bound by the parent node. This is
 	 * useful when the parent object is a factory implementation for the child
-	 * object being bound. It is assumed any objects produced from the parent
-	 * don't need to be 'added' after, so the 'inMethod' will be repurposed to
-	 * give the factory method name. If the 'inMethod' is set to 'this' then the
-	 * target object for the parent node will simply be carried forward to the
-	 * child node.
+	 * object being bound. It is possible that objects produced from the parent
+	 * don't need to be 'added' after, so it is optional to omit the'inMethod'
+	 * property by setting it to 'void'.
+	 *
+	 * If a data node binds with this strategy and is set to resolve a provided
+	 * value at registration time, the object to be bound by the parent node will
+	 * not be available yet. In this case, an instance of TODO will be provided,
+	 * so that the configurator stack can be reflected upon.
 	 */
 	TARGET_ADAPTOR;
 }

@@ -17,18 +17,19 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.data.EffectiveDataBindingType;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.SequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.impl.BindingNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.ChoiceNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.DataNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.InputSequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.model.building.impl.SequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.configurators.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.configurators.ChoiceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.configurators.DataNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.configurators.InputSequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.configurators.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
@@ -225,6 +226,8 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		}
 	}
 
+	private final DataLoader loader;
+
 	private String name;
 	private Class<T> dataClass;
 
@@ -248,7 +251,9 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	private boolean blocked;
 	private DataBindingType<? super T> baseType;
 
-	public DataBindingTypeConfiguratorImpl() {
+	public DataBindingTypeConfiguratorImpl(DataLoader loader) {
+		this.loader = loader;
+
 		children = new ArrayList<>();
 		effectiveChildren = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
@@ -342,6 +347,11 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		blocked = true;
 
 		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
+			@Override
+			public DataLoader getDataLoader() {
+				return loader;
+			}
+
 			@Override
 			public <U extends ChildNode> Set<U> overrideChild(String id,
 					Class<U> nodeClass) {
