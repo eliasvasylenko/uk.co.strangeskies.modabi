@@ -34,36 +34,6 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	Boolean optional();
 
 	@Override
-	default Class<T> getDataClass() {
-		return type().getDataClass();
-	}
-
-	@Override
-	default BindingStrategy getBindingStrategy() {
-		return type().getBindingStrategy();
-	}
-
-	@Override
-	default Class<?> getBindingClass() {
-		return type().getBindingClass();
-	}
-
-	@Override
-	default UnbindingStrategy getUnbindingStrategy() {
-		return type().getUnbindingStrategy();
-	}
-
-	@Override
-	default Class<?> getUnbindingClass() {
-		return type().getUnbindingClass();
-	}
-
-	@Override
-	default Method getUnbindingMethod() {
-		return type().getUnbindingMethod();
-	}
-
-	@Override
 	default void process(SchemaProcessingContext context) {
 		context.accept(this);
 	}

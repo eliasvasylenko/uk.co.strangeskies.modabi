@@ -34,7 +34,8 @@ public class OverrideMerge<E> {
 			T overriddenValue = values.iterator().next();
 			if (value != null)
 				if (!validateOverride.test(value, overriddenValue))
-					throw new SchemaException();
+					throw new SchemaException("Cannot override property ["
+							+ overriddenValue + "] with [" + value + "]");
 				else
 					return value;
 			return overriddenValue;
