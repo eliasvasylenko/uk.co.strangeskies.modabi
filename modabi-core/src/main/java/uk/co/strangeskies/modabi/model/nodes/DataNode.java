@@ -9,32 +9,25 @@ import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	public enum Format {
 		PROPERTY, CONTENT, SIMPLE_ELEMENT
 	}
 
-	public interface Value<T> {
-		public enum ValueResolution {
-			REGISTRATION_TIME, PROCESSING_TIME;
-		}
-
-		default boolean isValuePresent() {
-			return (resolution() == ValueResolution.PROCESSING_TIME && providedBuffer() != null)
-					|| (resolution() == ValueResolution.REGISTRATION_TIME && provided() != null);
-		}
-
-		BufferedDataSource providedBuffer();
-
-		T provided();
-
-		ValueResolution resolution();
-	}
-
 	Format format();
 
-	Value<T> value();
+	default boolean isValuePresent() {
+		return (valueResolution() == ValueResolution.PROCESSING_TIME && providedValueBuffer() != null)
+				|| (valueResolution() == ValueResolution.REGISTRATION_TIME && providedValue() != null);
+	}
+
+	BufferedDataSource providedValueBuffer();
+
+	T providedValue();
+
+	ValueResolution valueResolution();
 
 	DataBindingType<T> type();
 
@@ -80,22 +73,20 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			return node;
 
 		return new DataNode<T>() {
-			private final Value<T> value = new Value<T>() {
-				@Override
-				public BufferedDataSource providedBuffer() {
-					return node.value().providedBuffer();
-				}
+			@Override
+			public BufferedDataSource providedValueBuffer() {
+				return node.providedValueBuffer();
+			}
 
-				@Override
-				public T provided() {
-					return node.value().provided();
-				}
+			@Override
+			public T providedValue() {
+				return node.providedValue();
+			}
 
-				@Override
-				public ValueResolution resolution() {
-					return node.value().resolution();
-				}
-			};
+			@Override
+			public ValueResolution valueResolution() {
+				return node.valueResolution();
+			}
 
 			@Override
 			public Method getOutMethod() {
@@ -200,11 +191,6 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			@Override
 			public DataBindingType<T> type() {
 				return node.type();
-			}
-
-			@Override
-			public Value<T> value() {
-				return value;
 			}
 
 			@Override

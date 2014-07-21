@@ -4,8 +4,8 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
-import uk.co.strangeskies.modabi.model.nodes.DataNode.Value.ValueResolution;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public interface DataNodeConfigurator<T>
 		extends

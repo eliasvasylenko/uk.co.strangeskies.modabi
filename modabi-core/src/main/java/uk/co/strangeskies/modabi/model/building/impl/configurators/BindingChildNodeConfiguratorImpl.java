@@ -43,18 +43,19 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			outMethodName = configurator.outMethodName;
 			if (outMethodName == "this" && !iterable)
 				throw new SchemaException();
-			outMethod = getOutMethod(configurator.getContext()
-					.getCurrentChildOutputTargetClass(), null);
+			outMethod = (outMethodName == "null") ? null : getOutMethod(configurator
+					.getContext().getCurrentChildOutputTargetClass(), null);
 
 			inMethodName = configurator.inMethodName;
 			Method inMethod = null;
-			try {
-				Class<?> inputClass = configurator.getContext()
-						.getCurrentChildInputTargetClass();
-				inMethod = (inputClass == null || getDataClass() == null || inMethodName == null) ? null
-						: inputClass.getMethod(inMethodName, getDataClass());
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
+			if (inMethodName != "null")
+				try {
+					Class<?> inputClass = configurator.getContext()
+							.getCurrentChildInputTargetClass();
+					inMethod = (inputClass == null || getDataClass() == null || inMethodName == null) ? null
+							: inputClass.getMethod(inMethodName, getDataClass());
+				} catch (NoSuchMethodException | SecurityException e) {
+				}
 			this.inMethod = inMethod;
 			inMethodChained = configurator.inMethodChained;
 		}
@@ -75,13 +76,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			outMethodName = overrideMerge.getValue(n -> n.getOutMethodName());
 
-			outMethod = getOutMethod(outputTargetClass,
-					overrideMerge.getValue(n -> n.getOutMethod()));
+			outMethod = (outMethodName == "null") ? null : getOutMethod(
+					outputTargetClass, overrideMerge.getValue(n -> n.getOutMethod()));
 
 			inMethodName = overrideMerge.getValue(n -> n.getInMethodName());
 
-			inMethod = overrideMerge.getValue(n -> n.getInMethod(),
-					(m, n) -> m.equals(n));
+			inMethod = (inMethodName == "null") ? null : overrideMerge.getValue(
+					n -> n.getInMethod(), (m, n) -> m.equals(n));
 
 			inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
 		}

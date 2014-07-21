@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -46,9 +46,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 	@SuppressWarnings("unchecked")
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
-			DataBindingTypeBuilder dataType, BaseSchema base) {
-		DataLoader loader = null;
-
+			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
 		QualifiedName name = new QualifiedName(MetaSchema.class.getName(),
 				new Namespace(BaseSchema.class.getPackage().getName()));
 

@@ -14,11 +14,13 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataBindingTypeBuilderImpl;
+import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -37,8 +39,6 @@ import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.modabi.schema.impl.BaseSchemaImpl;
-import uk.co.strangeskies.modabi.schema.impl.MetaSchemaImpl;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
@@ -143,10 +143,16 @@ public class SchemaBinderImpl implements SchemaBinder {
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		providers = new ArrayList<>();
 
+		DataLoader loader = new DataLoader() {
+			@Override
+			public <T> T loadData(DataNode<T> node, BufferedDataSource data) {
+				return null;
+			}
+		};
 		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,
-				dataTypeBuilder);
+				dataTypeBuilder, loader);
 		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder,
-				dataTypeBuilder, baseSchema);
+				dataTypeBuilder, loader, baseSchema);
 
 		registeredSchema = new Schemata();
 		Namespace namespace = metaSchema.getQualifiedName().getNamespace();

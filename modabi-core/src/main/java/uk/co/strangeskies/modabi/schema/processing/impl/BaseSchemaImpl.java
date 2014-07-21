@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -22,7 +22,6 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.nodes.DataNode.Value.ValueResolution;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
@@ -31,7 +30,9 @@ import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ModelLoader;
+import uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 
@@ -98,31 +99,60 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingClass(ReferenceSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(DereferenceTarget.class)
+					.unbindingMethod("dereference")
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 					.addChild(
 							d -> d.data().dataClass(Model.class).id("targetDomain")
-									.valueResolution(ValueResolution.REGISTRATION_TIME))
+									.valueResolution(ValueResolution.REGISTRATION_TIME)
+									.inMethod("null").outMethod("null"))
 					.addChild(
 							d -> d.data().type(primitives.get(DataType.STRING)).id("id")
-									.valueResolution(ValueResolution.REGISTRATION_TIME))
+									.valueResolution(ValueResolution.REGISTRATION_TIME)
+									.inMethod("null").outMethod("null"))
 					.addChild(
 							c -> c
 									.inputSequence()
 									.id("reference")
 									.addChild(
-											d -> d.data().dataClass(Model.class).id("targetDomain")
+											d -> d
+													.data()
+													.dataClass(Model.class)
+													.id("targetDomain")
+													.outMethod("null")
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-													.bindingClass(Something.class)
-													// TODO check javadoc for TARGET_ADAPTER for this...
-													.addChild(e -> e.inputSequence().id("context"))
-													.addChild(e -> e.inputSequence().id("parent")))
+													.bindingClass(RegistrationTimeTargetAdapter.class)
+													.addChild(
+															e -> e
+																	.data()
+																	.id("parent")
+																	.type(primitives.get(DataType.INT))
+																	.inMethodChained(true)
+																	.outMethod("null")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.INT, 1).buffer()))
+													.addChild(
+															e -> e
+																	.data()
+																	.id("node")
+																	.type(primitives.get(DataType.STRING))
+																	.inMethodChained(true)
+																	.outMethod("null")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.STRING, "targetDomain")
+																					.buffer()))
+													.addChild(
+															e -> e.inputSequence().id("providedValue")
+																	.inMethodChained(true)))
 									.addChild(
 											d -> d.data().type(primitives.get(DataType.STRING))
-													.id("id")
+													.id("id").outMethod("null")
 													.valueResolution(ValueResolution.REGISTRATION_TIME))
-									.addChild(d -> d.data().type(bufferedDataType).id("ref")))
-					.create();
+									.addChild(
+											d -> d.data().type(bufferedDataType).id("ref")
+													.outMethod("null"))).create();
 			typeSet.add(referenceBaseType);
 
 			referenceType = builder
@@ -135,6 +165,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.data()
 									.id("targetDomain")
 									.type(referenceBaseType)
+									.dataClass(Model.class)
 									.addChild(
 											d -> d
 													.data()
@@ -262,9 +293,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
-			DataBindingTypeBuilder dataTypeBuilder) {
-		DataLoader loader = null;
-
+			DataBindingTypeBuilder dataTypeBuilder, DataLoader loader) {
 		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
 				new Namespace(BaseSchema.class.getPackage().getName()));
 

@@ -56,6 +56,11 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		dereferenceTarget = new DereferenceTarget() {
 			@Override
+			public void dereference(Object object) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
 			public <U> BufferedDataSource dereference(Model<U> model,
 					String idDomain, U object) {
 				if (!bindings.get(model).contains(object))

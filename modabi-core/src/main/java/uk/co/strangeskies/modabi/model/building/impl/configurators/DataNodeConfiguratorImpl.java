@@ -20,11 +20,11 @@ import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationCont
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
-import uk.co.strangeskies.modabi.model.nodes.DataNode.Value.ValueResolution;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeConfiguratorImpl<T>
 		extends
@@ -33,9 +33,11 @@ public class DataNodeConfiguratorImpl<T>
 	protected static class DataNodeImpl<T> extends BindingChildNodeImpl<T>
 			implements DataNode<T> {
 		private final DataBindingType<T> type;
-		private final Value<T> value;
 		private final Format format;
 		private final Boolean optional;
+		private final BufferedDataSource providedBuffer;
+		private final ValueResolution resolution;
+		private T provided;
 
 		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
@@ -44,49 +46,11 @@ public class DataNodeConfiguratorImpl<T>
 			type = configurator.type;
 			optional = configurator.optional;
 
-			value = new Value<T>() {
-				private final BufferedDataSource providedBuffer = configurator.providedBufferedValue;
-				private final ValueResolution resolution = configurator.resolution;
+			providedBuffer = configurator.providedBufferedValue;
+			resolution = configurator.resolution;
+			provided = null;
 
-				@Override
-				public BufferedDataSource providedBuffer() {
-					return providedBuffer;
-				}
-
-				@Override
-				public T provided() {
-					return null;
-				}
-
-				@Override
-				public ValueResolution resolution() {
-					return resolution;
-				}
-			};
-
-			if (super.getDataClass() != null
-					&& !super.getDataClass().isAssignableFrom(type.getDataClass()))
-				throw new SchemaException();
-
-			if (super.getBindingStrategy() != null
-					&& !super.getBindingStrategy().equals(type.getBindingStrategy()))
-				throw new SchemaException();
-
-			if (super.getBindingClass() != null
-					&& !super.getBindingClass().equals(type.getBindingClass()))
-				throw new SchemaException();
-
-			if (super.getUnbindingStrategy() != null
-					&& !super.getUnbindingStrategy().equals(type.getUnbindingStrategy()))
-				throw new SchemaException();
-
-			if (super.getUnbindingClass() != null
-					&& !super.getUnbindingClass().equals(type.getUnbindingClass()))
-				throw new SchemaException();
-
-			if (super.getUnbindingMethod() != null
-					&& !super.getUnbindingMethod().equals(type.getUnbindingMethod()))
-				throw new SchemaException();
+			checkTypeConsistency();
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
@@ -109,29 +73,13 @@ public class DataNodeConfiguratorImpl<T>
 			optional = overrideMerge.getValue(n -> n.optional());
 			format = overrideMerge.getValue(n -> n.format(), (n, o) -> n == o);
 
-			value = new Value<T>() {
-				private final BufferedDataSource providedBuffer = overrideMerge
-						.getValue(n -> n.value().providedBuffer());
-				private final ValueResolution resolution = overrideMerge.getValue(
-						n -> n.value().resolution(), (n, o) -> n == o);
-				private final T provided = (resolution == ValueResolution.REGISTRATION_TIME) ? loader
-						.loadData(DataNodeImpl.this, providedBuffer) : null;
+			providedBuffer = overrideMerge.getValue(n -> n.providedValueBuffer());
+			resolution = overrideMerge.getValue(n -> n.valueResolution(),
+					(n, o) -> n == o);
+			provided = (resolution == ValueResolution.REGISTRATION_TIME) ? loader
+					.loadData(DataNodeImpl.this, providedBuffer) : null;
 
-				@Override
-				public BufferedDataSource providedBuffer() {
-					return providedBuffer;
-				}
-
-				@Override
-				public T provided() {
-					return provided;
-				}
-
-				@Override
-				public ValueResolution resolution() {
-					return resolution;
-				}
-			};
+			checkTypeConsistency();
 		}
 
 		@Override
@@ -141,14 +89,41 @@ public class DataNodeConfiguratorImpl<T>
 
 			DataNode<?> other = (DataNode<?>) obj;
 
-			return super.equals(obj)
-					&& Objects.equals(type, other.type())
-					&& Objects.equals(value.provided(), other.value().provided())
-					&& Objects.equals(value.providedBuffer(), other.value()
-							.providedBuffer())
-					&& Objects.equals(value.resolution(), other.value().resolution())
+			return super.equals(obj) && Objects.equals(type, other.type())
+					&& Objects.equals(providedValue(), other.providedValue())
+					&& Objects.equals(providedValueBuffer(), other.providedValueBuffer())
+					&& Objects.equals(valueResolution(), other.valueResolution())
 					&& Objects.equals(format, other.format())
 					&& Objects.equals(optional, other.optional());
+		}
+
+		private void checkTypeConsistency() {
+			if (type != null) {
+				if (getDataClass() != null
+						&& !(getDataClass().isAssignableFrom(type.getDataClass()) || type
+								.getDataClass().isAssignableFrom(getDataClass())))
+					throw new SchemaException();
+
+				if (getBindingStrategy() != null
+						&& !getBindingStrategy().equals(type.getBindingStrategy()))
+					throw new SchemaException();
+
+				if (getBindingClass() != null
+						&& !getBindingClass().equals(type.getBindingClass()))
+					throw new SchemaException();
+
+				if (getUnbindingStrategy() != null
+						&& !getUnbindingStrategy().equals(type.getUnbindingStrategy()))
+					throw new SchemaException();
+
+				if (getUnbindingClass() != null
+						&& !getUnbindingClass().equals(type.getUnbindingClass()))
+					throw new SchemaException();
+
+				if (getUnbindingMethod() != null
+						&& !getUnbindingMethod().equals(type.getUnbindingMethod()))
+					throw new SchemaException();
+			}
 		}
 
 		private static <T> DataNode<T> overrideWithType(DataNode<T> node) {
@@ -162,11 +137,6 @@ public class DataNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public Value<T> value() {
-			return value;
-		}
-
-		@Override
 		public final Format format() {
 			return format;
 		}
@@ -174,6 +144,21 @@ public class DataNodeConfiguratorImpl<T>
 		@Override
 		public final Boolean optional() {
 			return optional;
+		}
+
+		@Override
+		public BufferedDataSource providedValueBuffer() {
+			return providedBuffer;
+		}
+
+		@Override
+		public T providedValue() {
+			return provided;
+		}
+
+		@Override
+		public ValueResolution valueResolution() {
+			return resolution;
 		}
 	}
 
@@ -219,7 +204,6 @@ public class DataNodeConfiguratorImpl<T>
 	public final <U extends T> DataNodeConfigurator<U> type(
 			DataBindingType<U> type) {
 		requireConfigurable(this.type);
-		dataClass(type.getDataClass());
 		this.type = (DataBindingType<T>) type;
 
 		inheritChildren(type.effectiveType().getChildren());
