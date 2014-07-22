@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.Collection;
 import java.util.List;
@@ -83,8 +83,8 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode, B extends BindingCh
 
 	@Override
 	protected ChoiceNode getEffective(ChoiceNode node) {
-		return new ChoiceNodeImpl(node, getOverriddenNodes(),
-				getEffectiveChildren());
+		return new ChoiceNodeImpl(node, getOverriddenNodes(), getChildren()
+				.getEffectiveChildren());
 	}
 
 	@Override

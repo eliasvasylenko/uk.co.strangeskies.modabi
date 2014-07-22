@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -176,10 +176,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	protected Class<?> getCurrentChildInputTargetClass() {
-		if (getChildren().isEmpty())
+		if (getChildren().getChildren().isEmpty())
 			return getBindingClass() != null ? getBindingClass() : getDataClass();
 		else
-			return getChildren().get(getChildren().size() - 1).getPostInputClass();
+			return getChildren().getChildren()
+					.get(getChildren().getChildren().size() - 1).getPostInputClass();
 	}
 
 	@Override

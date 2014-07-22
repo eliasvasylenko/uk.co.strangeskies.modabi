@@ -4,12 +4,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.data.AbstractDataBindingType;
@@ -18,18 +14,9 @@ import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.data.EffectiveDataBindingType;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
-import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.impl.Children;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
-import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.model.building.impl.configurators.BindingNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.configurators.ChoiceNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.configurators.DataNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.configurators.InputSequenceNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.configurators.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
@@ -78,7 +65,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			isPrivate = configurator.isPrivate;
 
 			children = Collections.unmodifiableList(new ArrayList<>(
-					configurator.children));
+					configurator.children.getChildren()));
 
 			baseType = configurator.baseType;
 		}
@@ -210,7 +197,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 			effectiveType = new EffectiveDataBindingTypeImpl<T>(this,
 					baseType() == null ? null : baseType().effectiveType(),
-					configurator.getEffectiveChildren());
+					configurator.children.getEffectiveChildren());
 		}
 
 		@Override
@@ -242,22 +229,15 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	private Boolean isAbstract;
 	private Boolean isPrivate;
 
-	private final List<ChildNode> children;
-	private final List<ChildNode> effectiveChildren;
-	private final SetMultiMap<String, ChildNode> namedInheritedChildren;
-	private final List<ChildNode> inheritedChildren;
+	private final Children<DataNodeChildNode, DataNode<?>> children;
 
 	private boolean finalisedProperties;
-	private boolean blocked;
 	private DataBindingType<? super T> baseType;
 
 	public DataBindingTypeConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
 
-		children = new ArrayList<>();
-		effectiveChildren = new ArrayList<>();
-		inheritedChildren = new ArrayList<>();
-		namedInheritedChildren = new HashSetMultiHashMap<>();
+		children = new Children<>();
 
 		finalisedProperties = false;
 	}
@@ -324,85 +304,20 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	}
 
 	protected Class<?> getCurrentChildInputTargetClass() {
-		if (children.isEmpty())
+		if (children.getChildren().isEmpty())
 			return bindingClass != null ? bindingClass : dataClass;
 		else
-			return children.get(children.size() - 1).getPostInputClass();
-	}
-
-	protected void assertUnblocked() {
-		if (blocked)
-			throw new InvalidBuildStateException(this);
-	}
-
-	void addChild(ChildNode result, ChildNode effective) {
-		blocked = false;
-		children.add(result);
-		effectiveChildren.add(effective);
+			return children.getChildren().get(children.getChildren().size() - 1)
+					.getPostInputClass();
 	}
 
 	@Override
 	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
-		assertUnblocked();
-		blocked = true;
+		children.assertUnblocked();
+		finaliseProperties();
 
-		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
-			@Override
-			public DataLoader getDataLoader() {
-				return loader;
-			}
-
-			@Override
-			public <U extends ChildNode> Set<U> overrideChild(String id,
-					Class<U> nodeClass) {
-				return DataBindingTypeConfiguratorImpl.this
-						.overrideChild(id, nodeClass);
-			}
-
-			@Override
-			public Class<?> getCurrentChildOutputTargetClass() {
-				return DataBindingTypeConfiguratorImpl.this
-						.getCurrentChildOutputTargetClass();
-			}
-
-			@Override
-			public Class<?> getCurrentChildInputTargetClass() {
-				return DataBindingTypeConfiguratorImpl.this
-						.getCurrentChildInputTargetClass();
-			}
-
-			@Override
-			public void addChild(ChildNode result, ChildNode effective) {
-				DataBindingTypeConfiguratorImpl.this.addChild(result, effective);
-			}
-		};
-
-		return new ChildBuilder<DataNodeChildNode, DataNode<?>>() {
-			@Override
-			public InputSequenceNodeConfigurator<DataNode<?>> inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public DataNodeConfigurator<Object> data() {
-				return new DataNodeConfiguratorImpl<Object>(context);
-			}
-
-			@Override
-			public ChoiceNodeConfigurator<DataNodeChildNode, DataNode<?>> choice() {
-				return new ChoiceNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public SequenceNodeConfigurator<DataNodeChildNode, DataNode<?>> sequence() {
-				return new SequenceNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public ElementNodeConfigurator<Object> element() {
-				throw new UnsupportedOperationException();
-			}
-		};
+		return children.addChild(loader, getCurrentChildInputTargetClass(),
+				getCurrentChildOutputTargetClass());
 	}
 
 	@Override
@@ -453,44 +368,9 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		requireConfigurable(this.baseType);
 		this.baseType = (DataBindingType<? super T>) baseType;
 
-		inheritChildren(baseType.effectiveType().getChildren());
+		children.inheritChildren(baseType.effectiveType().getChildren());
 
 		return (DataBindingTypeConfigurator<U>) this;
 	}
 
-	protected void inheritChildren(List<? extends ChildNode> nodes) {
-		inheritChildren(inheritedChildren.size(), nodes);
-	}
-
-	protected void inheritChildren(int index, List<? extends ChildNode> nodes) {
-		requireConfigurable();
-		inheritNamedChildren(nodes);
-		inheritedChildren.addAll(index, nodes);
-	}
-
-	private void inheritNamedChildren(List<? extends ChildNode> nodes) {
-		nodes.stream().filter(c -> c.getId() != null)
-				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
-	}
-
-	@SuppressWarnings("unchecked")
-	<U extends ChildNode> Set<U> overrideChild(String id, Class<U> nodeClass) {
-		Set<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
-
-		if (overriddenNodes != null) {
-			if (overriddenNodes.stream().anyMatch(
-					n -> !nodeClass.isAssignableFrom(n.getClass())))
-				throw new InvalidBuildStateException(this);
-		} else
-			overriddenNodes = new HashSet<>();
-
-		return (Set<U>) Collections.unmodifiableSet(overriddenNodes);
-	}
-
-	protected final List<ChildNode> getEffectiveChildren() {
-		List<ChildNode> effectiveChildren = new ArrayList<>();
-		effectiveChildren.addAll(inheritedChildren);
-		effectiveChildren.addAll(this.effectiveChildren);
-		return effectiveChildren;
-	}
 }

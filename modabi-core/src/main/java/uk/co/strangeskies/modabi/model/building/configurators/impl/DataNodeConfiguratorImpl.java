@@ -1,20 +1,16 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
+import uk.co.strangeskies.modabi.data.EffectiveDataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
-import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -49,8 +45,6 @@ public class DataNodeConfiguratorImpl<T>
 			providedBuffer = configurator.providedBufferedValue;
 			resolution = configurator.resolution;
 			provided = null;
-
-			checkTypeConsistency();
 		}
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
@@ -99,6 +93,8 @@ public class DataNodeConfiguratorImpl<T>
 
 		private void checkTypeConsistency() {
 			if (type != null) {
+				EffectiveDataBindingType<T> type = this.type.effectiveType();
+
 				if (getDataClass() != null
 						&& !(getDataClass().isAssignableFrom(type.getDataClass()) || type
 								.getDataClass().isAssignableFrom(getDataClass())))
@@ -206,7 +202,7 @@ public class DataNodeConfiguratorImpl<T>
 		requireConfigurable(this.type);
 		this.type = (DataBindingType<T>) type;
 
-		inheritChildren(type.effectiveType().getChildren());
+		getChildren().inheritChildren(type.effectiveType().getChildren());
 
 		return (DataNodeConfigurator<U>) getThis();
 	}
@@ -218,7 +214,7 @@ public class DataNodeConfiguratorImpl<T>
 			getOverriddenNodes().forEach(
 					c -> c.getChildren().forEach(n -> newInheritedChildren.add(n)));
 
-			inheritChildren(0, newInheritedChildren);
+			getChildren().inheritChildren(0, newInheritedChildren);
 		}
 
 		super.finaliseProperties();
@@ -258,9 +254,9 @@ public class DataNodeConfiguratorImpl<T>
 
 	@Override
 	protected final DataNode<T> getEffective(DataNode<T> node) {
-		return new DataNodeImpl<>(node, getOverriddenNodes(),
-				getEffectiveChildren(),
-				getContext().getCurrentChildOutputTargetClass(), getDataLoader());
+		return new DataNodeImpl<>(node, getOverriddenNodes(), getChildren()
+				.getEffectiveChildren(), getContext()
+				.getCurrentChildOutputTargetClass(), getDataLoader());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -311,59 +307,10 @@ public class DataNodeConfiguratorImpl<T>
 
 	@Override
 	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
-		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
-			@Override
-			public DataLoader getDataLoader() {
-				return DataNodeConfiguratorImpl.this.getDataLoader();
-			}
+		getChildren().assertUnblocked();
+		finaliseProperties();
 
-			@Override
-			public <U extends ChildNode> Set<U> overrideChild(String id,
-					Class<U> nodeClass) {
-				return DataNodeConfiguratorImpl.this.overrideChild(id, nodeClass);
-			}
-
-			@Override
-			public Class<?> getCurrentChildOutputTargetClass() {
-				return DataNodeConfiguratorImpl.this.getCurrentChildOutputTargetClass();
-			}
-
-			@Override
-			public Class<?> getCurrentChildInputTargetClass() {
-				return DataNodeConfiguratorImpl.this.getCurrentChildInputTargetClass();
-			}
-
-			@Override
-			public void addChild(ChildNode result, ChildNode effective) {
-				DataNodeConfiguratorImpl.this.addChild(result, effective);
-			}
-		};
-
-		return new ChildBuilder<DataNodeChildNode, DataNode<?>>() {
-			@Override
-			public SequenceNodeConfigurator<DataNodeChildNode, DataNode<?>> sequence() {
-				return new SequenceNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public InputSequenceNodeConfigurator<DataNode<?>> inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public DataNodeConfigurator<Object> data() {
-				return new DataNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public ChoiceNodeConfigurator<DataNodeChildNode, DataNode<?>> choice() {
-				return new ChoiceNodeConfiguratorImpl<>(context);
-			}
-
-			@Override
-			public ElementNodeConfigurator<Object> element() {
-				throw new UnsupportedOperationException();
-			}
-		};
+		return getChildren().addChild(getDataLoader(),
+				getCurrentChildInputTargetClass(), getCurrentChildOutputTargetClass());
 	}
 }

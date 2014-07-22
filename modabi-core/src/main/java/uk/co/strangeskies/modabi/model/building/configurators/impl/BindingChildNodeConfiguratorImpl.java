@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

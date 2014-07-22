@@ -80,7 +80,12 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 			@Override
 			public Class<T> getDataClass() {
-				return node.type().getDataClass();
+				if (node.type().getDataClass() != null
+						&& (node.getDataClass() == null || node.getDataClass()
+								.isAssignableFrom(node.type().getDataClass())))
+					return node.type().getDataClass();
+				else
+					return node.getDataClass();
 			}
 
 			@Override
@@ -90,7 +95,12 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 			@Override
 			public Class<?> getBindingClass() {
-				return node.type().getBindingClass();
+				if (node.type().getBindingClass() != null
+						&& (node.getBindingClass() == null || node.getBindingClass()
+								.isAssignableFrom(node.type().getBindingClass())))
+					return node.type().getBindingClass();
+				else
+					return node.getBindingClass();
 			}
 
 			@Override
@@ -100,7 +110,12 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 			@Override
 			public Class<?> getUnbindingClass() {
-				return node.type().getUnbindingClass();
+				if (node.type().getUnbindingClass() != null
+						&& (node.getUnbindingClass() == null || node.getUnbindingClass()
+								.isAssignableFrom(node.type().getUnbindingClass())))
+					return node.type().getUnbindingClass();
+				else
+					return node.getUnbindingClass();
 			}
 
 			@Override

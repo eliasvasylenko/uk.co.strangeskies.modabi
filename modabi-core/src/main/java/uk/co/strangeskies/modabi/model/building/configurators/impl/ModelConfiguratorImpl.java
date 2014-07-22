@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,7 +113,7 @@ public class ModelConfiguratorImpl<T>
 
 			effectiveModel = new EffectiveModelImpl<T>(this, baseModel().stream()
 					.map(m -> m.effectiveModel()).collect(Collectors.toList()),
-					configurator.getEffectiveChildren());
+					configurator.getChildren().getEffectiveChildren());
 		}
 
 		@Override
@@ -158,7 +158,7 @@ public class ModelConfiguratorImpl<T>
 		baseModel = Arrays.asList((Model<T>[]) base);
 
 		baseModel.forEach(m -> {
-			inheritChildren(m.effectiveModel().getChildren());
+			getChildren().inheritChildren(m.effectiveModel().getChildren());
 		});
 
 		return (ModelConfigurator<V>) this;

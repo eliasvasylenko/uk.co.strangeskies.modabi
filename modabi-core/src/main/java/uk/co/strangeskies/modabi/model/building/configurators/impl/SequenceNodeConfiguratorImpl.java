@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.Collection;
 import java.util.List;
@@ -52,16 +52,17 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode, B extends Binding
 
 	@Override
 	protected Class<?> getCurrentChildInputTargetClass() {
-		if (getChildren().isEmpty())
+		if (getChildren().getChildren().isEmpty())
 			return getContext().getCurrentChildInputTargetClass();
 		else
-			return getChildren().get(getChildren().size() - 1).getPostInputClass();
+			return getChildren().getChildren()
+					.get(getChildren().getChildren().size() - 1).getPostInputClass();
 	}
 
 	@Override
 	protected SequenceNode getEffective(SequenceNode node) {
-		return new SequenceNodeImpl(node, getOverriddenNodes(),
-				getEffectiveChildren());
+		return new SequenceNodeImpl(node, getOverriddenNodes(), getChildren()
+				.getEffectiveChildren());
 	}
 
 	@Override

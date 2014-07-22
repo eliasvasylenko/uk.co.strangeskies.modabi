@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,7 +118,7 @@ public class ElementNodeConfiguratorImpl<T>
 		baseModel = Arrays.asList((Model<? super T>[]) base);
 
 		baseModel.forEach(m -> {
-			inheritChildren(m.effectiveModel().getChildren());
+			getChildren().inheritChildren(m.effectiveModel().getChildren());
 		});
 
 		return (ElementNodeConfigurator<V>) this;
@@ -132,8 +132,9 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@Override
 	protected ElementNode<T> getEffective(ElementNode<T> node) {
-		return new ElementNodeImpl<T>(node, getOverriddenNodes(),
-				getEffectiveChildren(), getContext().getCurrentChildOutputTargetClass());
+		return new ElementNodeImpl<T>(node, getOverriddenNodes(), getChildren()
+				.getEffectiveChildren(), getContext()
+				.getCurrentChildOutputTargetClass());
 	}
 
 	@SuppressWarnings("unchecked")

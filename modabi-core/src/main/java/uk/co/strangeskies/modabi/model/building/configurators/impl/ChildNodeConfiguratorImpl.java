@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.impl.configurators;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,7 +45,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 					c -> c.getChildren().forEach(
 							n -> newInheritedChildren.add((ChildNodeImpl) n)));
 
-			inheritChildren(0, newInheritedChildren);
+			getChildren().inheritChildren(0, newInheritedChildren);
 		}
 
 		super.finaliseProperties();
