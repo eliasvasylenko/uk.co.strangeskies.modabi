@@ -36,15 +36,18 @@ public class ElementNodeConfiguratorImpl<T>
 
 		public ElementNodeImpl(ElementNode<T> node,
 				Collection<? extends ElementNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> parentClass) {
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
+				Class<?> inputTargetClass) {
 			this(node, overriddenWithBase(node, overriddenNodes), effectiveChildren,
-					parentClass, null);
+					outputTargetClass, inputTargetClass, null);
 		}
 
 		private ElementNodeImpl(ElementNode<T> node,
 				Collection<ElementNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> outputTargetClass, Void flag) {
-			super(node, overriddenNodes, effectiveChildren, outputTargetClass);
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
+				Class<?> inputTargetClass, Void flag) {
+			super(node, overriddenNodes, effectiveChildren, outputTargetClass,
+					inputTargetClass);
 
 			baseModel = new ArrayList<>();
 			overriddenNodes.forEach(n -> baseModel.addAll(n.baseModel()));
@@ -134,7 +137,7 @@ public class ElementNodeConfiguratorImpl<T>
 	protected ElementNode<T> getEffective(ElementNode<T> node) {
 		return new ElementNodeImpl<T>(node, getOverriddenNodes(), getChildren()
 				.getEffectiveChildren(), getContext()
-				.getCurrentChildOutputTargetClass());
+				.getCurrentChildOutputTargetClass(), getCurrentChildInputTargetClass());
 	}
 
 	@SuppressWarnings("unchecked")

@@ -80,57 +80,60 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 			@Override
 			public Class<T> getDataClass() {
-				if (node.type().getDataClass() != null
+				if (node.type().effectiveType().getDataClass() != null
 						&& (node.getDataClass() == null || node.getDataClass()
-								.isAssignableFrom(node.type().getDataClass())))
-					return node.type().getDataClass();
+								.isAssignableFrom(node.type().effectiveType().getDataClass())))
+					return node.type().effectiveType().getDataClass();
 				else
 					return node.getDataClass();
 			}
 
 			@Override
 			public BindingStrategy getBindingStrategy() {
-				return node.type().getBindingStrategy();
+				return node.type().effectiveType().getBindingStrategy();
 			}
 
 			@Override
 			public Class<?> getBindingClass() {
-				if (node.type().getBindingClass() != null
-						&& (node.getBindingClass() == null || node.getBindingClass()
-								.isAssignableFrom(node.type().getBindingClass())))
-					return node.type().getBindingClass();
+				if (node.type().effectiveType().getBindingClass() != null
+						&& (node.getBindingClass() == null || node
+								.getBindingClass()
+								.isAssignableFrom(node.type().effectiveType().getBindingClass())))
+					return node.type().effectiveType().getBindingClass();
 				else
 					return node.getBindingClass();
 			}
 
 			@Override
 			public UnbindingStrategy getUnbindingStrategy() {
-				return node.type().getUnbindingStrategy();
+				return node.type().effectiveType().getUnbindingStrategy();
 			}
 
 			@Override
 			public Class<?> getUnbindingClass() {
-				if (node.type().getUnbindingClass() != null
+				if (node.type().effectiveType().getUnbindingClass() != null
 						&& (node.getUnbindingClass() == null || node.getUnbindingClass()
-								.isAssignableFrom(node.type().getUnbindingClass())))
-					return node.type().getUnbindingClass();
+								.isAssignableFrom(
+										node.type().effectiveType().getUnbindingClass())))
+					return node.type().effectiveType().getUnbindingClass();
 				else
 					return node.getUnbindingClass();
 			}
 
 			@Override
 			public Method getUnbindingMethod() {
-				return node.type().getUnbindingMethod();
+				return node.type().effectiveType().getUnbindingMethod();
 			}
 
 			@Override
 			public String getUnbindingMethodName() {
-				return node.type().getUnbindingMethodName();
+				return node.type().effectiveType().getUnbindingMethodName();
 			}
 
 			@Override
 			public String getId() {
-				return node.getId() != null ? node.getId() : node.type().getName();
+				return node.getId() != null ? node.getId() : node.type()
+						.effectiveType().getName();
 			}
 
 			@Override

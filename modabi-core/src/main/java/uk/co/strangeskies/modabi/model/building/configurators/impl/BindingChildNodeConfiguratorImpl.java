@@ -41,28 +41,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			occurances = configurator.occurances;
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
-			if (outMethodName == "this" && !iterable)
-				throw new SchemaException();
-			outMethod = (outMethodName == "null") ? null : getOutMethod(configurator
-					.getContext().getCurrentChildOutputTargetClass(), null);
+			outMethod = null;
 
 			inMethodName = configurator.inMethodName;
-			Method inMethod = null;
-			if (inMethodName != "null")
-				try {
-					Class<?> inputClass = configurator.getContext()
-							.getCurrentChildInputTargetClass();
-					inMethod = (inputClass == null || getDataClass() == null || inMethodName == null) ? null
-							: inputClass.getMethod(inMethodName, getDataClass());
-				} catch (NoSuchMethodException | SecurityException e) {
-				}
-			this.inMethod = inMethod;
+			inMethod = null;
 			inMethodChained = configurator.inMethodChained;
 		}
 
 		BindingChildNodeImpl(BindingChildNode<T> node,
 				Collection<? extends BindingChildNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> outputTargetClass) {
+				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
+				Class<?> inputTargetClass) {
 			super(node, overriddenNodes, effectiveChildren);
 
 			OverrideMerge<BindingChildNode<? super T>> overrideMerge = new OverrideMerge<>(
@@ -76,15 +65,20 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			outMethodName = overrideMerge.getValue(n -> n.getOutMethodName());
 
-			outMethod = (outMethodName == "null") ? null : getOutMethod(
-					outputTargetClass, overrideMerge.getValue(n -> n.getOutMethod()));
-
 			inMethodName = overrideMerge.getValue(n -> n.getInMethodName());
 
-			inMethod = (inMethodName == "null") ? null : overrideMerge.getValue(
-					n -> n.getInMethod(), (m, n) -> m.equals(n));
-
 			inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
+
+			if (outMethodName == "this" && !iterable)
+				throw new SchemaException();
+			outMethod = (outMethodName == "null") ? null : getOutMethod(
+					outputTargetClass,
+					overrideMerge.getValue(n -> n.getOutMethod(), (m, n) -> m.equals(n)));
+
+			inMethod = (inMethodName == "null") ? null : getInMethod(
+					inputTargetClass,
+					overrideMerge.getValue(n -> n.getInMethod(), (m, n) -> m.equals(n)));
+
 		}
 
 		@Override
@@ -101,6 +95,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					&& Objects.equals(inMethodName, other.getInMethodName())
 					&& Objects.equals(inMethod, other.getInMethod())
 					&& Objects.equals(inMethodChained, other.isInMethodChained());
+		}
+
+		private Method getInMethod(Class<?> receiverClass, Method inheritedInMethod) {
+			try {
+				return (receiverClass == null || getDataClass() == null || inMethodName == null) ? null
+						: BindingNodeConfigurator.findMethod(
+								BindingNodeConfigurator.generateInMethodNames(this),
+								receiverClass, null, getDataClass());
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException(e);
+			}
 		}
 
 		private Method getOutMethod(Class<?> receiverClass,

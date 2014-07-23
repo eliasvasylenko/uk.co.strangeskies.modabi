@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ClassUtils;
 
@@ -33,23 +34,33 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	 */
 
 	public static Method findMethod(List<String> names, Class<?> receiver,
-			Class<?> result, Class<?>... parameter) throws NoSuchMethodException {
-		for (String methodName : names) {
-			try {
-				Method method = receiver.getMethod(methodName, parameter);
-				if (method != null
-						&& (result == null || ClassUtils.isAssignable(
-								method.getReturnType(), result, true)))
-					return method;
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
-		}
+			Class<?> result, Class<?>... parameters) throws NoSuchMethodException {
+		Method method = Stream
+				.concat(Arrays.stream(receiver.getMethods()),
+						Arrays.stream(Object.class.getMethods())).filter(m -> {
+					if (!names.contains(m.getName()))
+						return false;
+
+					Class<?>[] methodParameters = m.getParameterTypes();
+					int i = 0;
+					for (Class<?> parameter : parameters)
+						if (!methodParameters[i++].isAssignableFrom(parameter))
+							return false;
+
+					return true;
+				}).findAny().orElse(null);
+
+		if (method != null
+				&& (result == null || ClassUtils.isAssignable(method.getReturnType(),
+						result, true)))
+			return method;
+
 		throw new NoSuchMethodException("For "
 				+ names
 				+ " in "
 				+ receiver
 				+ " as [ "
-				+ Arrays.asList(parameter).stream()
+				+ Arrays.asList(parameters).stream()
 						.map(p -> p == null ? "WAT" : p.getName())
 						.collect(Collectors.joining(", ")) + " ] -> " + result);
 	}

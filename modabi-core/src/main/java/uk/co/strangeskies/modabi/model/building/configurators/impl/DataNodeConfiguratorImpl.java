@@ -49,9 +49,9 @@ public class DataNodeConfiguratorImpl<T>
 
 		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
 				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
-				DataLoader loader) {
+				Class<?> inputTargetClass, DataLoader loader) {
 			super(overrideWithType(node), overriddenNodes, effectiveChildren,
-					outputTargetClass);
+					outputTargetClass, inputTargetClass);
 
 			OverrideMerge<DataNode<T>> overrideMerge = new OverrideMerge<>(node,
 					overriddenNodes);
@@ -256,7 +256,8 @@ public class DataNodeConfiguratorImpl<T>
 	protected final DataNode<T> getEffective(DataNode<T> node) {
 		return new DataNodeImpl<>(node, getOverriddenNodes(), getChildren()
 				.getEffectiveChildren(), getContext()
-				.getCurrentChildOutputTargetClass(), getDataLoader());
+				.getCurrentChildOutputTargetClass(), getContext()
+				.getCurrentChildInputTargetClass(), getDataLoader());
 	}
 
 	@SuppressWarnings("unchecked")

@@ -250,8 +250,9 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						node.getUnbindingMethod().invoke(o, u);
 						return o;
 					} catch (IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(e);
+							| InvocationTargetException | SecurityException
+							| NullPointerException e) {
+						throw new SchemaException(data + " @ " + node.getId(), e);
 					}
 				};
 				break;
@@ -266,7 +267,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						return o;
 					} catch (IllegalAccessException | IllegalArgumentException
 							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(e);
+						throw new SchemaException(node.getId(), e);
 					}
 				};
 				break;
@@ -278,7 +279,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException | InvocationTargetException
 							| NoSuchMethodException | SecurityException e) {
-						throw new SchemaException(e);
+						throw new SchemaException(node.getId(), e);
 					}
 				};
 				break;
@@ -288,7 +289,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						return node.getUnbindingMethod().invoke(null, u);
 					} catch (IllegalAccessException | IllegalArgumentException
 							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(e);
+						throw new SchemaException(node.getId(), e);
 					}
 				};
 				break;

@@ -38,6 +38,7 @@ import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private final Schema metaSchema;
@@ -245,30 +246,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).id("type").type(typeType))
 				.addChild(
-						n -> n
-								.data()
-								.format(Format.PROPERTY)
-								.id("format")
-								.type(base.derivedTypes().enumType())
-								.dataClass(Format.class)
-								.addChild(
-										o -> o
-												.inputSequence()
-												.id("valueOf")
-												.addChild(
-														p -> p
-																.data()
-																.id("enumType")
-																.provideValue(
-																		new BufferingDataTarget()
-																				.put(DataType.STRING,
-																						"uk.co.strangeskies.modabi.model.nodes.DataNode.Format")
-																				.buffer()))
-												.addChild(p -> p.data().id("name"))))
+						n -> n.data().format(Format.PROPERTY).id("format")
+								.type(base.derivedTypes().enumType()).dataClass(Format.class))
 				.addChild(
-						n -> n.data().format(Format.SIMPLE_ELEMENT).id("value")
-								.optional(true).type(base.derivedTypes().bufferedDataType()))
-				.create();
+						n -> n.data().format(Format.SIMPLE_ELEMENT).id("providedValue")
+								.outMethod("providedValueBuffer").optional(true)
+								.type(base.derivedTypes().bufferedDataType())).create();
 		modelSet.add(typedDataModel);
 
 		@SuppressWarnings("rawtypes")
@@ -295,8 +278,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.data()
 								.id("format")
 								.provideValue(
-										new BufferingDataTarget().put(DataType.STRING, "Content")
-												.buffer())).addChild(n -> n.data().id("id")).create();
+										new BufferingDataTarget().put(DataType.STRING, "CONTENT")
+												.buffer())
+								.valueResolution(ValueResolution.REGISTRATION_TIME))
+				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 
 		@SuppressWarnings("rawtypes")
@@ -311,8 +296,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.data()
 								.id("format")
 								.provideValue(
-										new BufferingDataTarget().put(DataType.STRING, "Property")
-												.buffer())).addChild(n -> n.data().id("id")).create();
+										new BufferingDataTarget().put(DataType.STRING, "PROPERTY")
+												.buffer())
+								.valueResolution(ValueResolution.REGISTRATION_TIME))
+				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
 
 		@SuppressWarnings("rawtypes")
@@ -328,7 +315,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.id("format")
 								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING,
-												"Simple Element").buffer()))
+												"SIMPLE_ELEMENT").buffer())
+								.valueResolution(ValueResolution.REGISTRATION_TIME))
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(simpleElementModel);
 

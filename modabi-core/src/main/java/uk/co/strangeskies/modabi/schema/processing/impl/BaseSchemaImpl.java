@@ -183,13 +183,10 @@ public class BaseSchemaImpl implements BaseSchema {
 																	"id").buffer()))).create();
 			typeSet.add(referenceType);
 
-			classType = builder
-					.configure(loader)
-					.name("class")
+			classType = builder.configure(loader).name("class")
 					.dataClass(Class.class)
-					.bindingClass(Class.class)
-					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.addChild(
+					.bindingStrategy(BindingStrategy.STATIC_FACTORY).addChild(
+					// TODO outMethod not being carried through to unbinding process...
 							p -> p.data().type(primitives.get(DataType.STRING)).id("name"))
 					.create();
 			typeSet.add(classType);
@@ -203,8 +200,27 @@ public class BaseSchemaImpl implements BaseSchema {
 									.inputSequence()
 									.id("valueOf")
 									.addChild(
-											o -> o.data().id("enumType").outMethod("getClass")
-													.type(referenceType).dataClass(Class.class))
+											o -> o
+													.data()
+													.dataClass(Model.class)
+													.id("enumType")
+													.outMethod("null")
+													.valueResolution(ValueResolution.REGISTRATION_TIME)
+													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+													.bindingClass(RegistrationTimeTargetAdapter.class)
+													.addChild(
+															p -> p
+																	.data()
+																	.id("parent")
+																	.type(primitives.get(DataType.INT))
+																	.inMethodChained(true)
+																	.outMethod("null")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.INT, 2).buffer()))
+													.addChild(
+															p -> p.inputSequence().id("getDataClass")
+																	.inMethodChained(true)))
 									.addChild(
 											o -> o.data().id("name")
 													.type(primitives.get(DataType.STRING)))).create();
