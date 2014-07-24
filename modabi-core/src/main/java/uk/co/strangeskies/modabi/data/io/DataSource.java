@@ -80,8 +80,7 @@ public interface DataSource {
 
 		@Override
 		public BufferedDataSource buffer(int items) {
-			// TODO Auto-generated method stub
-			return null;
+			return pipe(new BufferingDataTarget(), items).buffer();
 		}
 	}
 }

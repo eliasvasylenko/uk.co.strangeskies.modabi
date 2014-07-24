@@ -108,17 +108,26 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 		}
 
-		private Method getOutMethod(Class<?> receiverClass,
-				Method inheritedOutMethod) {
+		private Method getOutMethod(Class<?> targetClass, Method inheritedOutMethod) {
 			try {
 				Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
 						: getDataClass();
 
-				return (receiverClass == null || resultClass == null || outMethodName == "this") ? null
-						: inheritedOutMethod != null ? inheritedOutMethod
-								: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
-										.generateOutMethodNames(this, resultClass), receiverClass,
-										resultClass);
+				Method outMethod;
+				if (targetClass == null || resultClass == null
+						|| outMethodName == "this")
+					outMethod = null;
+				else {
+					outMethod = BindingNodeConfigurator
+							.findMethod(BindingNodeConfigurator.generateOutMethodNames(this,
+									resultClass), targetClass, resultClass);
+
+					if (inheritedOutMethod != null
+							&& !outMethod.equals(inheritedOutMethod))
+						throw new SchemaException();
+				}
+
+				return outMethod;
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException(e);
 			}

@@ -43,9 +43,10 @@ public enum BindingStrategy {
 
 	/**
 	 * The schema binder should attempt to find the static factory method to call
-	 * on the requested class named by the first of any child nodes. This child
-	 * node must be an input node, though it may be an empty sequence, and any
-	 * data it binds should be passed to the factory method as parameters.
+	 * on the requested binding class, named by the input method of the first
+	 * child nodes. This child node must be an input node, though it may be an
+	 * empty input sequence, and any data it binds should be passed to the factory
+	 * method as parameters.
 	 */
 	STATIC_FACTORY,
 
@@ -66,9 +67,10 @@ public enum BindingStrategy {
 	 * property by setting it to 'void'.
 	 *
 	 * If a data node binds with this strategy and is set to resolve a provided
-	 * value at registration time, the object to be bound by the parent node will
-	 * not be available yet. In this case, an instance of TODO will be provided,
-	 * so that the configurator stack can be reflected upon.
+	 * value at registration time, the object being bound by the parent node
+	 * during processing will not be available yet. In this case, an instance of
+	 * {@link RegistrationTimeTargetAdapter} will be provided, so that the
+	 * configurator stack can be reflected upon.
 	 */
 	TARGET_ADAPTOR;
 }

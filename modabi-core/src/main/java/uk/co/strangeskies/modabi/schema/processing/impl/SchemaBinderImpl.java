@@ -120,7 +120,6 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		@Override
 		public void accept(SequenceNode node) {
-			// TODO Auto-generated method stub
 
 		}
 	}

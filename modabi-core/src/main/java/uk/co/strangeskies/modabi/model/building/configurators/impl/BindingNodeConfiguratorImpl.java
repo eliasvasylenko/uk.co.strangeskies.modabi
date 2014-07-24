@@ -133,6 +133,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	private Class<?> unbindingClass;
 	public String unbindingMethod;
 
+	private Class<?> unbindingStaticFactoryClass;
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
@@ -235,48 +237,112 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return getThis();
 	}
 
+	@Override
+	public S unbindingStaticFactoryClass(Class<?> factoryClass) {
+		requireConfigurable(unbindingStaticFactoryClass);
+		unbindingStaticFactoryClass = factoryClass;
+
+		return getThis();
+	}
+
+	private Method getOutMethod(Class<?> targetClass,
+			OverrideMerge<BindingChildNode<? super T>> overrideMerge) {
+		try {
+			Method overriddenMethod = overrideMerge.getValue(n -> n.getOutMethod(), (
+					m, n) -> m.equals(n));
+
+			Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
+					: getDataClass();
+
+			Class<?> receiverClass = null;
+			Class<?>[] parameters = new Class<?>[0];
+			UnbindingStrategy unbindingStrategy = getUnbindingStrategy() == null ? UnbindingStrategy.SIMPLE
+					: getUnbindingStrategy();
+			switch (unbindingStrategy) {
+			case CONSTRUCTOR:
+			case PASS_TO_PROVIDED:
+			case STATIC_FACTORY:
+				parameters = new Class<?>[] { targetClass };
+				receiverClass = getUnbindingClass() != null ? getUnbindingClass()
+						: getDataClass();
+				break;
+			case ACCEPT_PROVIDED:
+				parameters = new Class<?>[] { getUnbindingClass() != null ? getUnbindingClass()
+						: getDataClass() };
+			case SIMPLE:
+				receiverClass = targetClass;
+			}
+
+			return (targetClass == null || resultClass == null || outMethodName == "this") ? null
+					: overriddenMethod != null ? overriddenMethod
+							: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
+									.generateOutMethodNames(this, resultClass), receiverClass,
+									resultClass, parameters);
+		} catch (NoSuchMethodException e) {
+			throw new SchemaException(e);
+		}
+	}
+
 	public static Method findUnbindingMethod(String propertyName,
 			UnbindingStrategy unbindingStrategy, String unbindingMethodName,
-			Class<?> unbindingClass, Class<?> dataClass) {
-		if (unbindingStrategy == null || dataClass == null)
+			Class<?> unbindingClass, Class<?> dataClass, Class<?> factoryClass) {
+		if (dataClass == null)
 			return null;
 
-		Method unbindingMethod;
+		if (unbindingStrategy == null)
+			unbindingStrategy = UnbindingStrategy.SIMPLE;
 
-		if (unbindingStrategy == UnbindingStrategy.SIMPLE
-				|| unbindingStrategy == null) {
-			if (unbindingClass != null || unbindingMethodName != null)
+		Class<?> resultClass = null;
+		Class<?> targetClass = null;
+		Class<?>[] parameters = new Class<?>[0];
+
+		switch (unbindingStrategy) {
+		case SIMPLE:
+			if (unbindingClass != null)
 				throw new SchemaException();
-			unbindingMethod = null;
-		} else if (unbindingStrategy == UnbindingStrategy.CONSTRUCTOR) {
+		case CONSTRUCTOR:
 			if (unbindingMethodName != null)
 				throw new SchemaException();
-			unbindingMethod = null;
-		} else {
-			unbindingClass = unbindingClass != null ? unbindingClass : dataClass;
+			return null;
+		case STATIC_FACTORY:
+		case PROVIDED_FACTORY:
+			targetClass = factoryClass != null ? factoryClass : unbindingClass;
+			parameters = new Class<?>[] { dataClass };
+			resultClass = unbindingClass;
+			break;
+		case PASS_TO_PROVIDED:
+			targetClass = unbindingClass;
+			parameters = new Class<?>[] { dataClass };
+			break;
+		case ACCEPT_PROVIDED:
+			targetClass = dataClass;
+			if (unbindingClass == null)
+				throw new SchemaException();
+			parameters = new Class<?>[] { unbindingClass };
+		}
+		try {
 
-			try {
-				Class<?> resultClass = (unbindingStrategy == UnbindingStrategy.STATIC_FACTORY) ? Object.class
-						: null;
-
-				List<String> names;
-				if (unbindingMethodName != null)
-					names = Arrays.asList(unbindingMethodName);
-				else {
-					names = BindingNodeConfigurator.generateOutMethodNames(propertyName,
-							false, resultClass);
-				}
-
-				if (unbindingStrategy == UnbindingStrategy.ACCEPT_PROVIDED)
-					unbindingMethod = BindingNodeConfigurator.findMethod(names,
-							dataClass, resultClass, unbindingClass);
-				else
-					unbindingMethod = BindingNodeConfigurator.findMethod(names,
-							unbindingClass, resultClass, dataClass);
-			} catch (NoSuchMethodException | SecurityException e) {
-				throw new SchemaException(e);
-			}
+			if (unbindingStrategy == UnbindingStrategy.ACCEPT_PROVIDED)
+				unbindingMethod = BindingNodeConfigurator.findMethod(names, dataClass,
+						resultClass, unbindingClass);
+			else
+				unbindingMethod = BindingNodeConfigurator.findMethod(names,
+						unbindingClass, resultClass, dataClass);
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new SchemaException(e);
 		}
 		return unbindingMethod;
+	}
+
+	List<String> getNames(String propertyName, String unbindingMethodName,
+			Class<?> resultClass) {
+		List<String> names;
+		if (unbindingMethodName != null)
+			names = Arrays.asList(unbindingMethodName);
+		else {
+			names = BindingNodeConfigurator.generateOutMethodNames(propertyName,
+					false, resultClass);
+		}
+		return names;
 	}
 }
