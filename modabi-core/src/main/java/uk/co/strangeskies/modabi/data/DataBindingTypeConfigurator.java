@@ -70,6 +70,14 @@ public interface DataBindingTypeConfigurator<T> extends
 	/**
 	 * @param name
 	 *          The value to be returned by
+	 *          {@link DataBindingType#getUnbindingClass()}.
+	 * @return
+	 */
+	DataBindingTypeConfigurator<T> unbindingFactroyClass(Class<?> factoryClass);
+
+	/**
+	 * @param name
+	 *          The value to be returned by
 	 *          {@link DataBindingType#getUnbindingStrategy()}.
 	 * @return
 	 */

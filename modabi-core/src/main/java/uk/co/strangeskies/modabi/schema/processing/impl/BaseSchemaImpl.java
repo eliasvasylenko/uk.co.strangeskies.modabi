@@ -47,6 +47,8 @@ public class BaseSchemaImpl implements BaseSchema {
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Enum> enumType;
 		@SuppressWarnings("rawtypes")
+		private final DataBindingType<Enumeration> enumerationType;
+		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Range> rangeType;
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<List> listType;
@@ -55,7 +57,8 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		public DerivedTypesImpl(DataLoader loader, DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
-				Map<DataType<?>, DataBindingType<?>> primitives) {
+				Map<DataType<?>, DataBindingType<?>> primitives,
+				DataBindingType<Enumeration> enumerationBaseType) {
 			qualifiedNameType = builder.configure(loader).name("qualifiedName")
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);
@@ -147,9 +150,37 @@ public class BaseSchemaImpl implements BaseSchema {
 															e -> e.inputSequence().id("providedValue")
 																	.inMethodChained(true)))
 									.addChild(
-											d -> d.data().type(primitives.get(DataType.STRING))
-													.id("id").outMethod("null")
-													.valueResolution(ValueResolution.REGISTRATION_TIME))
+											d -> d
+													.data()
+													.dataClass(String.class)
+													.id("id")
+													.outMethod("null")
+													.valueResolution(ValueResolution.REGISTRATION_TIME)
+													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+													.bindingClass(RegistrationTimeTargetAdapter.class)
+													.addChild(
+															e -> e
+																	.data()
+																	.id("parent")
+																	.type(primitives.get(DataType.INT))
+																	.inMethodChained(true)
+																	.outMethod("null")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.INT, 1).buffer()))
+													.addChild(
+															e -> e
+																	.data()
+																	.id("node")
+																	.type(primitives.get(DataType.STRING))
+																	.inMethodChained(true)
+																	.outMethod("null")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.STRING, "id").buffer()))
+													.addChild(
+															e -> e.inputSequence().id("providedValue")
+																	.inMethodChained(true)))
 									.addChild(
 											d -> d.data().type(bufferedDataType).id("ref")
 													.outMethod("null"))).create();
@@ -226,6 +257,41 @@ public class BaseSchemaImpl implements BaseSchema {
 													.type(primitives.get(DataType.STRING)))).create();
 			typeSet.add(enumType);
 
+			enumerationType = builder
+					.configure(loader)
+					.name("enumeration")
+					.baseType(enumerationBaseType)
+					.addChild(
+							n -> n
+									.inputSequence()
+									.id("valueOf")
+									.addChild(
+											o -> o
+													.data()
+													.dataClass(Model.class)
+													.id("enumerationType")
+													.outMethod("null")
+													.valueResolution(ValueResolution.REGISTRATION_TIME)
+													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+													.bindingClass(RegistrationTimeTargetAdapter.class)
+													.addChild(
+															p -> p
+																	.data()
+																	.id("parent")
+																	.type(primitives.get(DataType.INT))
+																	.inMethodChained(true)
+																	.outMethod("null")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.INT, 2).buffer()))
+													.addChild(
+															p -> p.inputSequence().id("getDataClass")
+																	.inMethodChained(true)))
+									.addChild(
+											o -> o.data().id("name")
+													.type(primitives.get(DataType.STRING)))).create();
+			typeSet.add(enumType);
+
 			rangeType = builder
 					.configure(loader)
 					.name("range")
@@ -248,6 +314,12 @@ public class BaseSchemaImpl implements BaseSchema {
 		@SuppressWarnings("rawtypes")
 		public DataBindingType<Enum> enumType() {
 			return enumType;
+		}
+
+		@Override
+		@SuppressWarnings("rawtypes")
+		public DataBindingType<Enumeration> enumerationType() {
+			return enumerationType;
 		}
 
 		@Override
@@ -318,26 +390,50 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
-		DataBindingType<Object> primitive = dataTypeBuilder.configure(loader)
-				.name("primitive").bindingClass(BufferedDataSource.class)
+		DataBindingType<Enumeration> enumerationBaseType = dataTypeBuilder
+				.configure(loader).name("enumerationBase").isAbstract(true)
+				.isPrivate(true).dataClass(Enumeration.class).create();
+		typeSet.add(enumerationBaseType);
+
+		DataBindingType<Object> primitive = dataTypeBuilder
+				.configure(loader)
+				.name("primitive")
+				.isAbstract(true)
+				.isPrivate(true)
+				.bindingClass(BufferedDataSource.class)
 				.bindingStrategy(BindingStrategy.PROVIDED)
 				.unbindingClass(DataTarget.class)
 				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-				.unbindingMethod("put").create();
+				.unbindingMethod("put")
+				.addChild(
+						c -> c.data().id("dataType").type(enumerationBaseType)
+								.dataClass(DataType.class).outMethod("null")).create();
 		typeSet.add(primitive);
 
 		primitives = Enumeration
 				.<DataType> getConstants(DataType.class)
 				.stream()
 				.collect(
-						Collectors.toMap(Function.identity(),
-								t -> dataTypeBuilder.configure(loader).name(t.name())
-										.dataClass((Class<?>) t.dataClass()).baseType(primitive)
-										.create()));
+						Collectors.toMap(
+								Function.identity(),
+								t -> dataTypeBuilder
+										.configure(loader)
+										.name(t.name())
+										.baseType(primitive)
+										.isAbstract(false)
+										.isPrivate(false)
+										.dataClass((Class<?>) t.dataClass())
+										.addChild(
+												c -> c
+														.data()
+														.id("dataType")
+														.provideValue(
+																new BufferingDataTarget().put(DataType.STRING,
+																		t.name()).buffer())).create()));
 		primitives.values().stream().forEach(typeSet::add);
 
 		derivedTypes = new DerivedTypesImpl(loader, dataTypeBuilder, typeSet,
-				primitives);
+				primitives, enumerationBaseType);
 
 		/*
 		 * Models

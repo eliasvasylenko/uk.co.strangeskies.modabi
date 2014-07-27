@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.gears.utilities.Enumeration;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.DataType;
@@ -29,6 +30,9 @@ public interface BaseSchema extends Schema {
 
 		@SuppressWarnings("rawtypes")
 		DataBindingType<Enum> enumType();
+
+		@SuppressWarnings("rawtypes")
+		DataBindingType<Enumeration> enumerationType();
 
 		@SuppressWarnings("rawtypes")
 		DataBindingType<Class> classType();

@@ -37,6 +37,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		private final Class<?> unbindingClass;
 		private final String unbindingMethodName;
 		private final Method unbindingMethod;
+		private final Class<?> unbindingFactoryClass;
 
 		private final Boolean isAbstract;
 		private final Boolean isPrivate;
@@ -55,11 +56,12 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 			unbindingStrategy = configurator.unbindingStrategy;
 			unbindingClass = configurator.unbindingClass;
+			unbindingFactoryClass = configurator.unbindingFactoryClass;
 
 			unbindingMethodName = configurator.unbindingMethodName;
 			unbindingMethod = BindingNodeConfiguratorImpl.findUnbindingMethod(name,
 					getUnbindingStrategy(), getUnbindingMethodName(),
-					getUnbindingClass(), getDataClass());
+					getUnbindingClass(), getDataClass(), getUnbindingFactoryClass());
 
 			isAbstract = configurator.isAbstract;
 			isPrivate = configurator.isPrivate;
@@ -85,6 +87,9 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			bindingClass = overrideMerge.getValue(n -> n.getBindingClass());
 
 			unbindingClass = overrideMerge.getValue(n -> n.getUnbindingClass());
+
+			unbindingFactoryClass = overrideMerge.getValue(n -> n
+					.getUnbindingFactoryClass());
 
 			bindingStrategy = overrideMerge.getValue(n -> n.getBindingStrategy());
 
@@ -167,6 +172,11 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		}
 
 		@Override
+		public Class<?> getUnbindingFactoryClass() {
+			return unbindingFactoryClass;
+		}
+
+		@Override
 		public DataBindingType<? super T> baseType() {
 			return baseType;
 		}
@@ -223,7 +233,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 	private UnbindingStrategy unbindingStrategy;
 	private Class<?> unbindingClass;
-
+	private Class<?> unbindingFactoryClass;
 	private String unbindingMethodName;
 
 	private Boolean isAbstract;
@@ -341,6 +351,15 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	public DataBindingTypeConfigurator<T> unbindingClass(Class<?> unbindingClass) {
 		requireConfigurable(this.unbindingClass);
 		this.unbindingClass = unbindingClass;
+
+		return this;
+	}
+
+	@Override
+	public DataBindingTypeConfigurator<T> unbindingFactroyClass(
+			Class<?> factoryClass) {
+		requireConfigurable(this.unbindingFactoryClass);
+		this.unbindingFactoryClass = factoryClass;
 
 		return this;
 	}

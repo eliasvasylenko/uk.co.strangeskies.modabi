@@ -23,6 +23,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		private final Class<T> dataClass;
 		private final Class<?> bindingClass;
 		private final Class<?> unbindingClass;
+		private final Class<?> unbindingFactoryClass;
 		private final BindingStrategy bindingStrategy;
 		private final UnbindingStrategy unbindingStrategy;
 		private final String unbindingMethodName;
@@ -40,9 +41,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingStrategy = configurator.unbindingStrategy;
 			unbindingClass = configurator.unbindingClass;
 			unbindingMethodName = configurator.unbindingMethod;
+			unbindingFactoryClass = configurator.unbindingFactoryClass;
 
 			unbindingMethod = findUnbindingMethod(getId(), getUnbindingStrategy(),
-					getUnbindingMethodName(), getUnbindingClass(), getDataClass());
+					getUnbindingMethodName(), getUnbindingClass(), getDataClass(),
+					getUnbindingFactoryClass());
 		}
 
 		@SuppressWarnings("unchecked")
@@ -60,6 +63,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			bindingClass = overrideMerge.getValue(n -> n.getBindingClass());
 
 			unbindingClass = overrideMerge.getValue(n -> n.getUnbindingClass());
+
+			unbindingFactoryClass = overrideMerge.getValue(n -> n
+					.getUnbindingFactoryClass());
 
 			bindingStrategy = overrideMerge.getValue(n -> n.getBindingStrategy());
 
@@ -114,6 +120,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
+		public Class<?> getUnbindingFactoryClass() {
+			return unbindingFactoryClass;
+		}
+
+		@Override
 		public Method getUnbindingMethod() {
 			return unbindingMethod;
 		}
@@ -133,7 +144,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	private Class<?> unbindingClass;
 	public String unbindingMethod;
 
-	private Class<?> unbindingStaticFactoryClass;
+	private Class<?> unbindingFactoryClass;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -238,49 +249,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public S unbindingStaticFactoryClass(Class<?> factoryClass) {
-		requireConfigurable(unbindingStaticFactoryClass);
-		unbindingStaticFactoryClass = factoryClass;
+	public S unbindingFactoryClass(Class<?> factoryClass) {
+		requireConfigurable(unbindingFactoryClass);
+		unbindingFactoryClass = factoryClass;
 
 		return getThis();
-	}
-
-	private Method getOutMethod(Class<?> targetClass,
-			OverrideMerge<BindingChildNode<? super T>> overrideMerge) {
-		try {
-			Method overriddenMethod = overrideMerge.getValue(n -> n.getOutMethod(), (
-					m, n) -> m.equals(n));
-
-			Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
-					: getDataClass();
-
-			Class<?> receiverClass = null;
-			Class<?>[] parameters = new Class<?>[0];
-			UnbindingStrategy unbindingStrategy = getUnbindingStrategy() == null ? UnbindingStrategy.SIMPLE
-					: getUnbindingStrategy();
-			switch (unbindingStrategy) {
-			case CONSTRUCTOR:
-			case PASS_TO_PROVIDED:
-			case STATIC_FACTORY:
-				parameters = new Class<?>[] { targetClass };
-				receiverClass = getUnbindingClass() != null ? getUnbindingClass()
-						: getDataClass();
-				break;
-			case ACCEPT_PROVIDED:
-				parameters = new Class<?>[] { getUnbindingClass() != null ? getUnbindingClass()
-						: getDataClass() };
-			case SIMPLE:
-				receiverClass = targetClass;
-			}
-
-			return (targetClass == null || resultClass == null || outMethodName == "this") ? null
-					: overriddenMethod != null ? overriddenMethod
-							: BindingNodeConfigurator.findMethod(BindingNodeConfigurator
-									.generateOutMethodNames(this, resultClass), receiverClass,
-									resultClass, parameters);
-		} catch (NoSuchMethodException e) {
-			throw new SchemaException(e);
-		}
 	}
 
 	public static Method findUnbindingMethod(String propertyName,
@@ -292,8 +265,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		if (unbindingStrategy == null)
 			unbindingStrategy = UnbindingStrategy.SIMPLE;
 
+		Class<?> receiverClass = null;
 		Class<?> resultClass = null;
-		Class<?> targetClass = null;
 		Class<?>[] parameters = new Class<?>[0];
 
 		switch (unbindingStrategy) {
@@ -306,36 +279,34 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			return null;
 		case STATIC_FACTORY:
 		case PROVIDED_FACTORY:
-			targetClass = factoryClass != null ? factoryClass : unbindingClass;
+			receiverClass = factoryClass != null ? factoryClass
+					: unbindingClass != null ? unbindingClass : dataClass;
 			parameters = new Class<?>[] { dataClass };
 			resultClass = unbindingClass;
 			break;
 		case PASS_TO_PROVIDED:
-			targetClass = unbindingClass;
+			receiverClass = unbindingClass;
 			parameters = new Class<?>[] { dataClass };
 			break;
 		case ACCEPT_PROVIDED:
-			targetClass = dataClass;
+			receiverClass = dataClass;
 			if (unbindingClass == null)
 				throw new SchemaException();
 			parameters = new Class<?>[] { unbindingClass };
 		}
+		Method unbindingMethod = null;
 		try {
-
-			if (unbindingStrategy == UnbindingStrategy.ACCEPT_PROVIDED)
-				unbindingMethod = BindingNodeConfigurator.findMethod(names, dataClass,
-						resultClass, unbindingClass);
-			else
-				unbindingMethod = BindingNodeConfigurator.findMethod(names,
-						unbindingClass, resultClass, dataClass);
+			unbindingMethod = BindingNodeConfigurator.findMethod(
+					getNames(propertyName, unbindingMethodName, resultClass),
+					receiverClass, resultClass, parameters);
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new SchemaException(e);
 		}
 		return unbindingMethod;
 	}
 
-	List<String> getNames(String propertyName, String unbindingMethodName,
-			Class<?> resultClass) {
+	public static List<String> getNames(String propertyName,
+			String unbindingMethodName, Class<?> resultClass) {
 		List<String> names;
 		if (unbindingMethodName != null)
 			names = Arrays.asList(unbindingMethodName);

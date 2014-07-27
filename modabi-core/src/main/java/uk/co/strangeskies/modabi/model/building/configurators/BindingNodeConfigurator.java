@@ -25,7 +25,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	public S unbindingStrategy(UnbindingStrategy strategy);
 
-	public S unbindingStaticFactoryClass(Class<?> factoryClass);
+	public S unbindingFactoryClass(Class<?> factoryClass);
 
 	public S unbindingClass(Class<?> unbindingClass);
 

@@ -18,6 +18,8 @@ public interface AbstractDataBindingType<T> {
 
 	Class<?> getUnbindingClass();
 
+	Class<?> getUnbindingFactoryClass();
+
 	UnbindingStrategy getUnbindingStrategy();
 
 	Method getUnbindingMethod();

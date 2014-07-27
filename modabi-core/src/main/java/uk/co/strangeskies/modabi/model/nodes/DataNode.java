@@ -121,6 +121,17 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			}
 
 			@Override
+			public Class<?> getUnbindingFactoryClass() {
+				if (node.type().effectiveType().getUnbindingFactoryClass() != null
+						&& (node.getUnbindingFactoryClass() == null || node
+								.getUnbindingFactoryClass().isAssignableFrom(
+										node.type().effectiveType().getUnbindingFactoryClass())))
+					return node.type().effectiveType().getUnbindingFactoryClass();
+				else
+					return node.getUnbindingFactoryClass();
+			}
+
+			@Override
 			public Method getUnbindingMethod() {
 				return node.type().effectiveType().getUnbindingMethod();
 			}

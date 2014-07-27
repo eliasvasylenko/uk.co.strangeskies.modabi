@@ -108,6 +108,11 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 	}
 
 	@Override
+	public Class<?> getUnbindingFactoryClass() {
+		return component.getUnbindingFactoryClass();
+	}
+
+	@Override
 	public String getId() {
 		return component.getId();
 	}

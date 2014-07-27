@@ -20,5 +20,5 @@ public interface BindingNode<T> extends SchemaNode {
 
 	String getUnbindingMethodName();
 
-	Class<?> getUnbindingStaticFactoryClass();
+	Class<?> getUnbindingFactoryClass();
 }

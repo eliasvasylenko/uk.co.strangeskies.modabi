@@ -252,7 +252,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					} catch (IllegalAccessException | IllegalArgumentException
 							| InvocationTargetException | SecurityException
 							| NullPointerException e) {
-						throw new SchemaException(data + " @ " + node.getId(), e);
+						throw new SchemaException(data + " @ " + node.getId() + "? "
+								+ node.getUnbindingStrategy(), e);
 					}
 				};
 				break;
@@ -267,7 +268,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						return o;
 					} catch (IllegalAccessException | IllegalArgumentException
 							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(node.getId(), e);
+						throw new SchemaException(data + " @ " + node.getId(), e);
 					}
 				};
 				break;
@@ -279,7 +280,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException | InvocationTargetException
 							| NoSuchMethodException | SecurityException e) {
-						throw new SchemaException(node.getId(), e);
+						throw new SchemaException(data + " @ " + node.getId(), e);
 					}
 				};
 				break;
@@ -289,7 +290,23 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						return node.getUnbindingMethod().invoke(null, u);
 					} catch (IllegalAccessException | IllegalArgumentException
 							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(node.getId(), e);
+						throw new SchemaException(data + " @ " + node.getId(), e);
+					}
+				};
+				break;
+			case PROVIDED_FACTORY:
+				supplier = u -> {
+					try {
+						Object o = provide(node.getUnbindingFactoryClass());
+						if (o == null)
+							throw new IllegalArgumentException(node.getUnbindingClass()
+									.getName());
+						o = node.getUnbindingMethod().invoke(o, u);
+						return o;
+					} catch (IllegalAccessException | IllegalArgumentException
+							| InvocationTargetException | SecurityException
+							| NullPointerException e) {
+						throw new SchemaException(data + " @ " + node.getId(), e);
 					}
 				};
 				break;
