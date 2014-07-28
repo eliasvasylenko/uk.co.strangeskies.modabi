@@ -1,6 +1,8 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -234,6 +236,17 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		return itemList;
 	}
 
+	private Object invokeMethod(Method method, Object receiver,
+			Object... parameters) {
+		try {
+			return method.invoke(receiver, parameters);
+		} catch (IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | SecurityException | NullPointerException e) {
+			throw new SchemaException("Cannot invoke method " + method + " on "
+					+ receiver, e);
+		}
+	}
+
 	public <U> Object unbindData(BindingNode<? extends U> node, U data) {
 		Function<Object, Object> supplier = Function.identity();
 		if (node.getUnbindingStrategy() != null) {
@@ -242,73 +255,40 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
-					try {
-						Object o = provide(node.getUnbindingClass());
-						if (o == null)
-							throw new IllegalArgumentException(node.getUnbindingClass()
-									.getName());
-						node.getUnbindingMethod().invoke(o, u);
-						return o;
-					} catch (IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException | SecurityException
-							| NullPointerException e) {
-						throw new SchemaException(data + " @ " + node.getId() + "? "
-								+ node.getUnbindingStrategy(), e);
-					}
+					Object o = provide(node.getUnbindingClass());
+					invokeMethod(node.getUnbindingMethod(), o, u);
+					return o;
 				};
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
-					try {
-						Object o = provide(node.getUnbindingClass());
-						if (o == null)
-							throw new IllegalArgumentException(node.getUnbindingClass()
-									.getName());
-						node.getUnbindingMethod().invoke(u, o);
-						return o;
-					} catch (IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(data + " @ " + node.getId(), e);
-					}
+					Object o = provide(node.getUnbindingClass());
+					invokeMethod(node.getUnbindingMethod(), u, o);
+					return o;
 				};
 				break;
 			case CONSTRUCTOR:
 				supplier = u -> {
+					Constructor<?> c = null;
 					try {
-						return node.getUnbindingClass().getConstructor(u.getClass())
-								.newInstance(u);
+						c = node.getUnbindingClass().getConstructor(u.getClass());
+						return c.newInstance(u);
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException | InvocationTargetException
 							| NoSuchMethodException | SecurityException e) {
-						throw new SchemaException(data + " @ " + node.getId(), e);
+						throw new SchemaException("Cannot invoke constructor " + c + " on "
+								+ node.getUnbindingClass(), e);
 					}
 				};
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> {
-					try {
-						return node.getUnbindingMethod().invoke(null, u);
-					} catch (IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException | SecurityException e) {
-						throw new SchemaException(data + " @ " + node.getId(), e);
-					}
-				};
+				supplier = u -> invokeMethod(node.getUnbindingMethod(), null, u);
+
 				break;
 			case PROVIDED_FACTORY:
-				supplier = u -> {
-					try {
-						Object o = provide(node.getUnbindingFactoryClass());
-						if (o == null)
-							throw new IllegalArgumentException(node.getUnbindingClass()
-									.getName());
-						o = node.getUnbindingMethod().invoke(o, u);
-						return o;
-					} catch (IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException | SecurityException
-							| NullPointerException e) {
-						throw new SchemaException(data + " @ " + node.getId(), e);
-					}
-				};
+				supplier = u -> invokeMethod(node.getUnbindingMethod(),
+						provide(node.getUnbindingFactoryClass()), u);
+
 				break;
 			}
 		}

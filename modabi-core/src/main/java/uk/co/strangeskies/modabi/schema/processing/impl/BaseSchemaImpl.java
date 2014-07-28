@@ -298,6 +298,8 @@ public class BaseSchemaImpl implements BaseSchema {
 					.dataClass(Range.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
+					.unbindingClass(String.class)
+					.unbindingFactroyClass(Range.class)
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING)).id("string"))
 					.create();

@@ -37,34 +37,33 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	public static Method findMethod(List<String> names, Class<?> receiver,
 			Class<?> result, Class<?>... parameters) throws NoSuchMethodException {
-		Method method = Stream
+		return Stream
 				.concat(Arrays.stream(receiver.getMethods()),
-						Arrays.stream(Object.class.getMethods())).filter(m -> {
-					if (!names.contains(m.getName()))
-						return false;
+						Arrays.stream(Object.class.getMethods()))
+				.filter(
+						m -> {
+							if (!names.contains(m.getName()))
+								return false;
 
-					Class<?>[] methodParameters = m.getParameterTypes();
-					int i = 0;
-					for (Class<?> parameter : parameters)
-						if (!methodParameters[i++].isAssignableFrom(parameter))
-							return false;
+							Class<?>[] methodParameters = m.getParameterTypes();
+							int i = 0;
+							for (Class<?> parameter : parameters)
+								if (!methodParameters[i++].isAssignableFrom(parameter))
+									return false;
 
-					return true;
-				}).findAny().orElse(null);
-
-		if (method != null
-				&& (result == null || ClassUtils.isAssignable(method.getReturnType(),
-						result, true)))
-			return method;
-
-		throw new NoSuchMethodException("For "
-				+ names
-				+ " in "
-				+ receiver
-				+ " as [ "
-				+ Arrays.asList(parameters).stream()
-						.map(p -> p == null ? "WAT" : p.getName())
-						.collect(Collectors.joining(", ")) + " ] -> " + result);
+							return result == null
+									|| ClassUtils.isAssignable(m.getReturnType(), result, true);
+						})
+				.findAny()
+				.orElseThrow(
+						() -> new NoSuchMethodException("For "
+								+ names
+								+ " in "
+								+ receiver
+								+ " as [ "
+								+ Arrays.asList(parameters).stream()
+										.map(p -> p == null ? "WAT" : p.getName())
+										.collect(Collectors.joining(", ")) + " ] -> " + result));
 	}
 
 	public static List<String> generateInMethodNames(BindingChildNode<?> node) {
