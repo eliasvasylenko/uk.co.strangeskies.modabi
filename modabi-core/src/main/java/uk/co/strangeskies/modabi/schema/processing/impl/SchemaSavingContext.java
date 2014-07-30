@@ -68,12 +68,14 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				if (!bindings.get(model).contains(object))
 					throw new SchemaException();
 
-				DataNode<?> node = (DataNode<?>) model
-						.effectiveModel()
-						.getChildren()
+				DataNode.Effective<?> node = (DataNode.Effective<?>) model
+						.effective()
+						.children()
 						.stream()
-						.filter(c -> c.getId().equals(idDomain) && c instanceof DataNode<?>)
-						.findAny().orElseThrow(SchemaException::new);
+						.filter(
+								c -> c.getId().equals(idDomain)
+										&& c instanceof DataNode.Effective<?>).findAny()
+						.orElseThrow(SchemaException::new);
 
 				bindingStack.push(object);
 
@@ -86,17 +88,17 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			}
 		};
 
-		unbindModel(model.effectiveModel(), data);
+		unbindModel(model.effective(), data);
 	}
 
 	@Override
-	public <U> void accept(ElementNode<U> node) {
+	public <U> void accept(ElementNode.Effective<U> node) {
 		for (U child : getData(node))
 			unbindElement(node, child);
 	}
 
 	@Override
-	public <U> void accept(DataNode<U> node) {
+	public <U> void accept(DataNode.Effective<U> node) {
 		if (dataTarget == null)
 			dataTarget = new BufferingDataTarget();
 		else if (node.format() != null)
@@ -123,7 +125,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		}
 	}
 
-	public <U> BufferingDataTarget unbindDataNode(DataNode<U> node,
+	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
 			BufferingDataTarget target) {
 		BufferingDataTarget previousDataTarget = dataTarget;
 		dataTarget = target;
@@ -137,17 +139,17 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	}
 
 	@Override
-	public void accept(InputSequenceNode node) {
+	public void accept(InputSequenceNode.Effective node) {
 		processChildren(node);
 	}
 
 	@Override
-	public void accept(SequenceNode node) {
+	public void accept(SequenceNode.Effective node) {
 		processChildren(node);
 	}
 
 	@Override
-	public void accept(ChoiceNode node) {
+	public void accept(ChoiceNode.Effective node) {
 		// processChildren(node); TODO
 	}
 
@@ -161,12 +163,13 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		return this.schemaBinderImpl.provide(clazz);
 	}
 
-	private void processChildren(SchemaNode node) {
-		for (ChildNode child : node.getChildren())
+	private void processChildren(SchemaNode.Effective<?> node) {
+		for (ChildNode.Effective<?> child : node.children())
 			child.process(this);
 	}
 
-	private void processBindingChildren(SchemaNode node, Object binding) {
+	private void processBindingChildren(SchemaNode.Effective<?> node,
+			Object binding) {
 		bindingStack.push(binding);
 		processChildren(node);
 		bindingStack.pop();
@@ -174,24 +177,24 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	// TODO should work with generics & without warning suppression
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <U> void unbindElement(ElementNode<U> node, U data) {
+	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
 		if (node.isAbstract() != null && node.isAbstract())
 			node = new ElementNodeWrapper(this.schemaBinderImpl.registeredModels
-					.getMatchingModels(node, data.getClass()).get(0).effectiveModel(),
-					node);
+					.getMatchingModels(node, data.getClass()).get(0).effective(), node);
 
 		bindings.add(node, data);
 		unbindModel(node, data);
 	}
 
-	private <U> void unbindModel(AbstractModel<? extends U> node, U data) {
+	private <U> void unbindModel(AbstractModel.Effective<? extends U, ?> node,
+			U data) {
 		output.nextChild(node.getId());
 		processBindingChildren(node, unbindData(node, data));
 		output.endChild();
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U> List<U> getData(BindingChildNode<U> node) {
+	public <U> List<U> getData(BindingChildNode.Effective<U, ?> node) {
 		Object parent = bindingStack.peek();
 
 		if (node.getDataClass() == null)
@@ -247,7 +250,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		}
 	}
 
-	public <U> Object unbindData(BindingNode<? extends U> node, U data) {
+	public <U> Object unbindData(BindingNode.Effective<? extends U, ?> node,
+			U data) {
 		Function<Object, Object> supplier = Function.identity();
 		if (node.getUnbindingStrategy() != null) {
 			switch (node.getUnbindingStrategy()) {

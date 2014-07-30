@@ -7,6 +7,7 @@ public interface ElementNode<T> extends
 		AbstractModel<T, ElementNode.Effective<T>>,
 		BindingChildNode<T, ElementNode.Effective<T>> {
 	interface Effective<T> extends ElementNode<T>,
+			AbstractModel.Effective<T, Effective<T>>,
 			BindingChildNode.Effective<T, Effective<T>> {
 		@Override
 		default void process(SchemaProcessingContext context) {

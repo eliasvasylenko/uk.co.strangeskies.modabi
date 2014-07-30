@@ -1,12 +1,12 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.EffectiveDataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
@@ -23,16 +23,116 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeConfiguratorImpl<T>
 		extends
-		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode, DataNode<?>>
+		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode<?>, DataNode<?>>
 		implements DataNodeConfigurator<T> {
-	protected static class DataNodeImpl<T> extends BindingChildNodeImpl<T>
-			implements DataNode<T> {
+	protected static class DataNodeImpl<T> extends
+			BindingChildNodeImpl<T, DataNode.Effective<T>> implements DataNode<T> {
+		private static class Effective<T> extends
+				BindingChildNodeImpl.Effective<T, DataNode.Effective<T>> implements
+				DataNode.Effective<T> {
+			private final DataBindingType.Effective<T> type;
+			private final Format format;
+			private final Boolean optional;
+			private final BufferedDataSource providedBuffer;
+			private final ValueResolution resolution;
+			private T provided;
+
+			protected Effective(
+					OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
+				super(overrideMerge);
+
+				type = overrideMerge.getValue(n -> n.type(), (n, o) -> {
+					DataBindingType<?> type = n;
+					do
+						if (type == o)
+							return true;
+					while ((type = type.baseType()) != null);
+					return false;
+				}).effective();
+				optional = overrideMerge.getValue(n -> n.optional());
+				format = overrideMerge.getValue(n -> n.format(), (n, o) -> n == o);
+
+				providedBuffer = overrideMerge.getValue(n -> n.providedValueBuffer());
+				resolution = overrideMerge.getValue(n -> n.valueResolution(),
+						(n, o) -> n == o);
+				provided = (resolution == ValueResolution.REGISTRATION_TIME) ? overrideMerge
+						.configurator().getContext().getDataLoader()
+						.loadData(DataNodeImpl.Effective.this, providedBuffer)
+						: null;
+
+				checkTypeConsistency();
+			}
+
+			private void checkTypeConsistency() {
+				if (type != null) {
+					DataBindingType.Effective<T> type = this.type.effective();
+
+					if (getDataClass() != null
+							&& !(getDataClass().isAssignableFrom(type.getDataClass()) || type
+									.getDataClass().isAssignableFrom(getDataClass())))
+						throw new SchemaException();
+
+					if (getBindingStrategy() != null
+							&& !getBindingStrategy().equals(type.getBindingStrategy()))
+						throw new SchemaException();
+
+					if (getBindingClass() != null
+							&& !getBindingClass().equals(type.getBindingClass()))
+						throw new SchemaException();
+
+					if (getUnbindingStrategy() != null
+							&& !getUnbindingStrategy().equals(type.getUnbindingStrategy()))
+						throw new SchemaException();
+
+					if (getUnbindingClass() != null
+							&& !getUnbindingClass().equals(type.getUnbindingClass()))
+						throw new SchemaException();
+
+					if (getUnbindingMethod() != null
+							&& !getUnbindingMethod().equals(type.getUnbindingMethod()))
+						throw new SchemaException();
+				}
+			}
+
+			@Override
+			public final DataBindingType.Effective<T> type() {
+				return type;
+			}
+
+			@Override
+			public final Format format() {
+				return format;
+			}
+
+			@Override
+			public final Boolean optional() {
+				return optional;
+			}
+
+			@Override
+			public BufferedDataSource providedValueBuffer() {
+				return providedBuffer;
+			}
+
+			@Override
+			public T providedValue() {
+				return provided;
+			}
+
+			@Override
+			public ValueResolution valueResolution() {
+				return resolution;
+			}
+		}
+
+		private final Effective<T> effective;
+
 		private final DataBindingType<T> type;
 		private final Format format;
 		private final Boolean optional;
 		private final BufferedDataSource providedBuffer;
 		private final ValueResolution resolution;
-		private T provided;
+		private final T provided;
 
 		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
@@ -44,35 +144,9 @@ public class DataNodeConfiguratorImpl<T>
 			providedBuffer = configurator.providedBufferedValue;
 			resolution = configurator.resolution;
 			provided = null;
-		}
 
-		DataNodeImpl(DataNode<T> node, Collection<DataNode<T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
-				Class<?> inputTargetClass, DataLoader loader) {
-			super(overrideWithType(node), overriddenNodes, effectiveChildren,
-					outputTargetClass, inputTargetClass);
-
-			OverrideMerge<DataNode<T>> overrideMerge = new OverrideMerge<>(node,
-					overriddenNodes);
-
-			type = overrideMerge.getValue(n -> n.type(), (n, o) -> {
-				DataBindingType<?> type = n;
-				do
-					if (type == o)
-						return true;
-				while ((type = type.baseType()) != null);
-				return false;
-			});
-			optional = overrideMerge.getValue(n -> n.optional());
-			format = overrideMerge.getValue(n -> n.format(), (n, o) -> n == o);
-
-			providedBuffer = overrideMerge.getValue(n -> n.providedValueBuffer());
-			resolution = overrideMerge.getValue(n -> n.valueResolution(),
-					(n, o) -> n == o);
-			provided = (resolution == ValueResolution.REGISTRATION_TIME) ? loader
-					.loadData(DataNodeImpl.this, providedBuffer) : null;
-
-			checkTypeConsistency();
+			effective = new Effective<>(OverrideMerge.with(DataNode.wrapType(this),
+					configurator));
 		}
 
 		@Override
@@ -88,42 +162,6 @@ public class DataNodeConfiguratorImpl<T>
 					&& Objects.equals(valueResolution(), other.valueResolution())
 					&& Objects.equals(format, other.format())
 					&& Objects.equals(optional, other.optional());
-		}
-
-		private void checkTypeConsistency() {
-			if (type != null) {
-				EffectiveDataBindingType<T> type = this.type.effectiveType();
-
-				if (getDataClass() != null
-						&& !(getDataClass().isAssignableFrom(type.getDataClass()) || type
-								.getDataClass().isAssignableFrom(getDataClass())))
-					throw new SchemaException();
-
-				if (getBindingStrategy() != null
-						&& !getBindingStrategy().equals(type.getBindingStrategy()))
-					throw new SchemaException();
-
-				if (getBindingClass() != null
-						&& !getBindingClass().equals(type.getBindingClass()))
-					throw new SchemaException();
-
-				if (getUnbindingStrategy() != null
-						&& !getUnbindingStrategy().equals(type.getUnbindingStrategy()))
-					throw new SchemaException();
-
-				if (getUnbindingClass() != null
-						&& !getUnbindingClass().equals(type.getUnbindingClass()))
-					throw new SchemaException();
-
-				if (getUnbindingMethod() != null
-						&& !getUnbindingMethod().equals(type.getUnbindingMethod()))
-					throw new SchemaException();
-			}
-		}
-
-		private static <T> DataNode<T> overrideWithType(DataNode<T> node) {
-			node = DataNode.wrapType(node);
-			return node;
 		}
 
 		@Override
@@ -154,6 +192,11 @@ public class DataNodeConfiguratorImpl<T>
 		@Override
 		public ValueResolution valueResolution() {
 			return resolution;
+		}
+
+		@Override
+		public DataNodeImpl.Effective<T> effective() {
+			return effective;
 		}
 	}
 
@@ -201,17 +244,24 @@ public class DataNodeConfiguratorImpl<T>
 		requireConfigurable(this.type);
 		this.type = (DataBindingType<T>) type;
 
-		getChildren().inheritChildren(type.effectiveType().getChildren());
-
 		return (DataNodeConfigurator<U>) getThis();
+	}
+
+	@Override
+	protected Set<DataNode<T>> getOverriddenNodes() {
+		Set<DataNode<T>> overriddenNodes = new HashSet<>(super.getOverriddenNodes());
+
+		overriddenNodes.add(DataNode.wrapType(type.effective()));
+
+		return overriddenNodes;
 	}
 
 	@Override
 	protected void finaliseProperties() {
 		if (!isFinalisedProperties()) {
-			List<ChildNode> newInheritedChildren = new ArrayList<>();
+			List<ChildNode<?>> newInheritedChildren = new ArrayList<>();
 			getOverriddenNodes().forEach(
-					c -> c.getChildren().forEach(n -> newInheritedChildren.add(n)));
+					c -> c.children().forEach(n -> newInheritedChildren.add(n)));
 
 			getChildren().inheritChildren(0, newInheritedChildren);
 		}
@@ -249,14 +299,6 @@ public class DataNodeConfiguratorImpl<T>
 		this.format = format;
 
 		return this;
-	}
-
-	@Override
-	protected final DataNode<T> getEffective(DataNode<T> node) {
-		return new DataNodeImpl<>(node, getOverriddenNodes(), getChildren()
-				.getEffectiveChildren(), getContext()
-				.getCurrentChildOutputTargetClass(), getContext()
-				.getCurrentChildInputTargetClass(), getDataLoader());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -306,7 +348,7 @@ public class DataNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
+	public ChildBuilder<DataNodeChildNode<?>, DataNode<?>> addChild() {
 		getChildren().assertUnblocked();
 		finaliseProperties();
 

@@ -42,9 +42,9 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 		if (!isFinalisedProperties()) {
 			List<ChildNode<?>> newInheritedChildren = new ArrayList<>();
 			getOverriddenNodes().forEach(
-					c -> c.getChildren().forEach(n -> newInheritedChildren.add(n)));
+					c -> c.children().forEach(n -> newInheritedChildren.add(n)));
 
-			getChildren().inheritChildren(0, newInheritedChildren);
+			getChildren().inheritChildren(newInheritedChildren);
 		}
 
 		super.finaliseProperties();

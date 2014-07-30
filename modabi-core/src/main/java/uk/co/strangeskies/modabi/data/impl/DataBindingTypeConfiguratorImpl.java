@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
@@ -12,19 +14,192 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
-import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.building.configurators.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.Children;
+import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class DataBindingTypeConfiguratorImpl<T> extends
 		Configurator<DataBindingType<T>> implements DataBindingTypeConfigurator<T> {
-	public static class AbstractDataBindingTypeImpl<T> implements
-			DataBindingType<T> {
+	public static class DataBindingTypeImpl<T> implements DataBindingType<T> {
+		private static class Effective<T> implements DataBindingType.Effective<T> {
+			private final String name;
+			private final Class<T> dataClass;
+
+			private final BindingStrategy bindingStrategy;
+			private final Class<?> bindingClass;
+
+			private final UnbindingStrategy unbindingStrategy;
+			private final Class<?> unbindingClass;
+			private final String unbindingMethodName;
+			private final Method unbindingMethod;
+			private final Class<?> unbindingFactoryClass;
+
+			private final Boolean isAbstract;
+			private final Boolean isPrivate;
+
+			private final List<ChildNode.Effective<?>> children;
+
+			private final List<DataNode.Effective<?>> providedUnbindingParameters;
+
+			private final DataBindingType.Effective<? super T> baseType;
+
+			public Effective(
+					OverrideMerge<DataBindingType<T>, DataBindingTypeConfiguratorImpl<T>> overrideMerge) {
+				name = overrideMerge.node().getName();
+
+				dataClass = overrideMerge.getValue(n -> n.getDataClass(),
+						(v, o) -> o.isAssignableFrom(v));
+
+				bindingClass = overrideMerge.getValue(n -> n.getBindingClass(),
+						(v, o) -> o.isAssignableFrom(v));
+
+				unbindingClass = overrideMerge.getValue(n -> n.getUnbindingClass(), (v,
+						o) -> o.isAssignableFrom(v));
+
+				unbindingFactoryClass = overrideMerge.getValue(n -> n
+						.getUnbindingFactoryClass());
+
+				bindingStrategy = overrideMerge.getValue(n -> n.getBindingStrategy(),
+						Objects::equals);
+
+				unbindingStrategy = overrideMerge.getValue(
+						n -> n.getUnbindingStrategy(), Objects::equals);
+
+				unbindingMethodName = overrideMerge.getValue(
+						n -> n.getUnbindingMethodName(), Objects::equals);
+
+				isAbstract = overrideMerge.getValue(n -> n.isAbstract());
+				isPrivate = overrideMerge.getValue(n -> n.isPrivate());
+
+				children = overrideMerge.configurator().children.getEffectiveChildren();
+
+				providedUnbindingParameters = overrideMerge.configurator().unbindingParameterNames
+						.stream()
+						.map(
+								p -> {
+									if (p.equals("this"))
+										return null;
+									else {
+										ChildNode.Effective<?> node = children
+												.stream()
+												.filter(c -> c.getId().equals(p))
+												.findAny()
+												.orElseThrow(
+														() -> new SchemaException(
+																"Cannot find node for unbinding parameter: '"
+																		+ p + "'"));
+
+										if (!(node instanceof DataNode.Effective))
+											throw new SchemaException("Unbinding parameter node '"
+													+ node + "' for '" + p + "' is not a data node.");
+
+										DataNode.Effective<?> dataNode = (DataNode.Effective<?>) node;
+
+										if (!dataNode.isValueProvided())
+											throw new SchemaException("Unbinding parameter node '"
+													+ node + "' for '" + p + "' must provide a value.");
+
+										return dataNode;
+									}
+								}).collect(Collectors.toList());
+
+				baseType = overrideMerge.configurator().baseType.effective();
+
+				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (!(obj instanceof Effective))
+					return false;
+				return super.equals(obj);
+			}
+
+			@Override
+			public List<String> providedUnbindingMethodParameterNames() {
+				return providedUnbindingParameters.stream().map(n -> n.getId())
+						.collect(Collectors.toList());
+			}
+
+			@Override
+			public List<DataNode.Effective<?>> providedUnbindingMethodParameters() {
+				return providedUnbindingParameters;
+			}
+
+			@Override
+			public final String getName() {
+				return name;
+			}
+
+			@Override
+			public final Class<T> getDataClass() {
+				return dataClass;
+			}
+
+			@Override
+			public final Class<?> getBindingClass() {
+				return bindingClass;
+			}
+
+			@Override
+			public Boolean isAbstract() {
+				return isAbstract;
+			}
+
+			@Override
+			public Boolean isPrivate() {
+				return isPrivate;
+			}
+
+			@Override
+			public final List<ChildNode.Effective<?>> children() {
+				return children;
+			}
+
+			@Override
+			public BindingStrategy getBindingStrategy() {
+				return bindingStrategy;
+			}
+
+			@Override
+			public Class<?> getUnbindingClass() {
+				return unbindingClass;
+			}
+
+			@Override
+			public UnbindingStrategy getUnbindingStrategy() {
+				return unbindingStrategy;
+			}
+
+			@Override
+			public Method getUnbindingMethod() {
+				return unbindingMethod;
+			}
+
+			@Override
+			public String getUnbindingMethodName() {
+				return unbindingMethodName;
+			}
+
+			@Override
+			public Class<?> getUnbindingFactoryClass() {
+				return unbindingFactoryClass;
+			}
+
+			@Override
+			public DataBindingType.Effective<? super T> baseType() {
+				return baseType;
+			}
+		}
+
+		private final Effective<T> effective;
+
 		private final String name;
 		private final Class<T> dataClass;
 
@@ -34,20 +209,19 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		private final UnbindingStrategy unbindingStrategy;
 		private final Class<?> unbindingClass;
 		private final String unbindingMethodName;
-		private final Method unbindingMethod;
 		private final Class<?> unbindingFactoryClass;
 
 		private final Boolean isAbstract;
 		private final Boolean isPrivate;
 
-		private final List<ChildNode> children;
+		private final List<ChildNode<?>> children;
 
-		private final List<DataNode<?>> providedUnbindingParameters;
+		private final List<String> providedUnbindingParameters;
 
 		private final DataBindingType<? super T> baseType;
 
-		public AbstractDataBindingTypeImpl(
-				DataBindingTypeConfiguratorImpl<T> configurator) {
+		@SuppressWarnings("unchecked")
+		public DataBindingTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
 			name = configurator.name;
 			dataClass = configurator.dataClass;
 
@@ -59,9 +233,6 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			unbindingFactoryClass = configurator.unbindingFactoryClass;
 
 			unbindingMethodName = configurator.unbindingMethodName;
-			unbindingMethod = BindingNodeConfiguratorImpl.findUnbindingMethod(name,
-					getUnbindingStrategy(), getUnbindingMethodName(),
-					getUnbindingClass(), getDataClass(), getUnbindingFactoryClass());
 
 			isAbstract = configurator.isAbstract;
 			isPrivate = configurator.isPrivate;
@@ -70,53 +241,20 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 					configurator.children.getChildren()));
 
 			providedUnbindingParameters = Collections
-					.unmodifiableList(new ArrayList<>(configurator));
+					.unmodifiableList(new ArrayList<>(
+							configurator.unbindingParameterNames));
 
 			baseType = configurator.baseType;
+
+			effective = new Effective<>(new OverrideMerge<>(this, configurator,
+					c -> c.baseType != null ? Arrays
+							.asList((DataBindingType<T>) c.baseType) : Collections
+							.emptyList()));
 		}
 
-		@SuppressWarnings("unchecked")
-		public AbstractDataBindingTypeImpl(AbstractDataBindingType<T> node,
-				AbstractDataBindingType<? super T> overriddenType,
-				List<ChildNode> effectiveChildren) {
-			OverrideMerge<AbstractDataBindingType<? super T>> overrideMerge = new OverrideMerge<>(
-					node, overriddenType == null ? Collections.emptyList()
-							: Arrays.asList(overriddenType));
-			name = node.getName();
-
-			dataClass = (Class<T>) overrideMerge.getValue(n -> n.getDataClass(), (v,
-					o) -> o.isAssignableFrom(v));
-
-			bindingClass = overrideMerge.getValue(n -> n.getBindingClass());
-
-			unbindingClass = overrideMerge.getValue(n -> n.getUnbindingClass());
-
-			unbindingFactoryClass = overrideMerge.getValue(n -> n
-					.getUnbindingFactoryClass());
-
-			bindingStrategy = overrideMerge.getValue(n -> n.getBindingStrategy());
-
-			unbindingStrategy = overrideMerge.getValue(n -> n.getUnbindingStrategy());
-
-			unbindingMethodName = overrideMerge.getValue(
-					n -> n.getUnbindingMethodName(), (o, v) -> o.equals(v));
-
-			unbindingMethod = overrideMerge.getValue(n -> n.getUnbindingMethod());
-
-			isAbstract = overrideMerge.getValue(n -> n.isAbstract());
-			isPrivate = overrideMerge.getValue(n -> n.isPrivate());
-
-			children = effectiveChildren;
-
-			baseType = overrideMerge.getValue(n -> (DataBindingType<T>) n.baseType(),
-					(n, o) -> {
-						DataBindingType<?> p = n;
-						do
-							if (p == o)
-								return true;
-						while ((p = p.baseType()) != null);
-						return false;
-					});
+		@Override
+		public List<String> providedUnbindingMethodParameterNames() {
+			return providedUnbindingParameters;
 		}
 
 		@Override
@@ -145,7 +283,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public final List<ChildNode> getChildren() {
+		public final List<ChildNode<?>> children() {
 			return children;
 		}
 
@@ -165,11 +303,6 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		}
 
 		@Override
-		public Method getUnbindingMethod() {
-			return unbindingMethod;
-		}
-
-		@Override
 		public String getUnbindingMethodName() {
 			return unbindingMethodName;
 		}
@@ -186,49 +319,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 		@Override
 		public Effective<T> effective() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-	}
-
-	protected static class EffectiveDataBindingTypeImpl<T> extends
-			AbstractDataBindingTypeImpl<T> implements EffectiveDataBindingType<T> {
-		public EffectiveDataBindingTypeImpl(DataBindingTypeImpl<T> node,
-				EffectiveDataBindingType<? super T> overriddenType,
-				List<ChildNode> effectiveChildren) {
-			super(node, overriddenType, effectiveChildren);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof EffectiveDataBindingTypeImpl))
-				return false;
-			return super.equals(obj);
-		}
-	}
-
-	protected static class DataBindingTypeImpl<T> extends
-			AbstractDataBindingTypeImpl<T> implements DataBindingType<T> {
-		private final EffectiveDataBindingType<T> effectiveType;
-
-		public DataBindingTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
-			super(configurator);
-
-			effectiveType = new EffectiveDataBindingTypeImpl<T>(this,
-					baseType() == null ? null : baseType().effective(),
-					configurator.children.getEffectiveChildren());
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof DataBindingTypeImpl))
-				return false;
-			return super.equals(obj);
-		}
-
-		@Override
-		public EffectiveDataBindingType<T> effectiveType() {
-			return effectiveType;
+			return effective;
 		}
 	}
 
@@ -248,7 +339,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	private Boolean isAbstract;
 	private Boolean isPrivate;
 
-	private final Children<DataNodeChildNode, DataNode<?>> children;
+	private final Children<DataNodeChildNode<?>, DataNode<?>> children;
 
 	private boolean finalisedProperties;
 	private DataBindingType<? super T> baseType;
@@ -329,11 +420,11 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			return bindingClass != null ? bindingClass : dataClass;
 		else
 			return children.getChildren().get(children.getChildren().size() - 1)
-					.getPostInputClass();
+					.effective().getPostInputClass();
 	}
 
 	@Override
-	public ChildBuilder<DataNodeChildNode, DataNode<?>> addChild() {
+	public ChildBuilder<DataNodeChildNode<?>, DataNode<?>> addChild() {
 		children.assertUnblocked();
 		finaliseProperties();
 
@@ -398,7 +489,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		requireConfigurable(this.baseType);
 		this.baseType = (DataBindingType<? super T>) baseType;
 
-		children.inheritChildren(baseType.effectiveType().getChildren());
+		children.inheritChildren(baseType.effective().children());
 
 		return (DataBindingTypeConfigurator<U>) this;
 	}

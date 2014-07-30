@@ -45,7 +45,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 	private final Model<Schema> schemaModel;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
 			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
 		QualifiedName name = new QualifiedName(MetaSchema.class.getName(),
@@ -94,7 +94,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		modelSet.add(inputModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<BindingChildNode> dataModel = model
 				.configure(loader)
 				.id("data")
@@ -145,7 +144,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(sequenceModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<BindingChildNode> repeatableModel = model
 				.configure(loader)
 				.id("repeatable")
@@ -156,7 +154,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.derivedTypes().rangeType())).create();
 		modelSet.add(repeatableModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<AbstractModel> abstractModelModel = model
 				.configure(loader)
 				.id("abstractModel")
@@ -215,7 +212,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(abstractModelModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<Model> modelModel = model
 				.configure(loader)
 				.id("model")
@@ -226,7 +222,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(modelModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<ElementNode> elementModel = model.configure(loader).id("element")
 				.dataClass(ElementNode.class)
 				.bindingClass(ElementNodeConfigurator.class)
@@ -236,7 +231,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.element().id("child")).create();
 		modelSet.add(elementModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<DataNode> typedDataModel = model
 				.configure(loader)
 				.baseModel(dataModel)
@@ -254,7 +248,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.derivedTypes().bufferedDataType())).create();
 		modelSet.add(typedDataModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<DataNode> optionalModel = model
 				.configure(loader)
 				.id("optional")
@@ -266,7 +259,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.primitiveType(DataType.BOOLEAN))).create();
 		modelSet.add(optionalModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<DataNode> contentModel = model
 				.configure(loader)
 				.id("content")
@@ -284,7 +276,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(contentModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<DataNode> propertyModel = model
 				.configure(loader)
 				.id("property")
@@ -302,7 +293,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().id("id")).create();
 		modelSet.add(propertyModel);
 
-		@SuppressWarnings("rawtypes")
 		Model<DataNode> simpleElementModel = model
 				.configure(loader)
 				.id("simpleElement")
@@ -322,7 +312,6 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		/* Type Models */
 
-		@SuppressWarnings("rawtypes")
 		Model<DataBindingType> typeModel = model
 				.configure(loader)
 				.dataClass(DataBindingType.class)
@@ -346,7 +335,6 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		/* Schema Models */
 
-		@SuppressWarnings("rawtypes")
 		Model<Set> modelsModel = model
 				.configure(loader)
 				.id("models")

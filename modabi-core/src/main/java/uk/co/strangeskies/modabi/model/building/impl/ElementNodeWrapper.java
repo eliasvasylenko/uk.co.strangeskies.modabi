@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.impl;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.gears.mathematics.Range;
@@ -12,17 +13,21 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public class ElementNodeWrapper<T> implements ElementNode<T> {
-	private final AbstractModel<T, ?> component;
-	private final ElementNode<? super T> base;
+public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
+	private final Class<T> dataClass;
+	private final AbstractModel.Effective<? super T, ?> component;
+	private final ElementNode.Effective<? super T> base;
 
-	public ElementNodeWrapper(AbstractModel<T, ?> component) {
+	public ElementNodeWrapper(AbstractModel.Effective<? super T, ?> component,
+			Class<T> dataClass) {
+		this.dataClass = dataClass;
 		this.component = component;
 		base = null;
 	}
 
 	public ElementNodeWrapper(Model.Effective<T> component,
-			ElementNode<? super T> base) {
+			ElementNode.Effective<? super T> base) {
+		this.dataClass = component.getDataClass();
 		this.component = component;
 		this.base = base;
 
@@ -57,7 +62,7 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 				&& base.getUnbindingMethodName() != component.getUnbindingMethodName())
 			throw new SchemaException(message);
 
-		if (!base.getChildren().isEmpty())
+		if (!base.children().isEmpty())
 			throw new SchemaException(message);
 	}
 
@@ -67,13 +72,13 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 	}
 
 	@Override
-	public List<Model<? super T>> baseModel() {
-		return component.baseModel();
+	public List<Model.Effective<? super T>> baseModel() {
+		return Collections.unmodifiableList(component.baseModel());
 	}
 
 	@Override
 	public Class<T> getDataClass() {
-		return component.getDataClass();
+		return dataClass;
 	}
 
 	@Override
@@ -117,8 +122,8 @@ public class ElementNodeWrapper<T> implements ElementNode<T> {
 	}
 
 	@Override
-	public List<? extends ChildNode> getChildren() {
-		return component.getChildren();
+	public List<? extends ChildNode.Effective<?>> children() {
+		return component.children() + base.children();
 	}
 
 	@Override

@@ -41,7 +41,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public List<? extends ChildNode.Effective<?>> getChildren() {
+			public List<? extends ChildNode.Effective<?>> children() {
 				return children;
 			}
 		}
@@ -77,7 +77,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			SchemaNode<?> other = (SchemaNode<?>) obj;
 			return Objects.equals(id, other.getId())
-					&& Objects.equals(children, other.getChildren());
+					&& Objects.equals(children, other.children());
 		}
 
 		@Override
@@ -86,7 +86,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public final List<? extends ChildNode<?>> getChildren() {
+		public final List<? extends ChildNode<?>> children() {
 			return children;
 		}
 	}

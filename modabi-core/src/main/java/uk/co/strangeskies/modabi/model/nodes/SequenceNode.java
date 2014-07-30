@@ -7,13 +7,13 @@ public interface SequenceNode extends ChildNode<SequenceNode.Effective>,
 	interface Effective extends SequenceNode, ChildNode.Effective<Effective> {
 		@Override
 		public default Class<?> getPreInputClass() {
-			return getChildren().get(0).getPreInputClass();
+			return children().get(0).getPreInputClass();
 		}
 
 		@Override
 		public default Class<?> getPostInputClass() {
 			Class<?> outputClass = null;
-			for (ChildNode.Effective<?> child : getChildren()) {
+			for (ChildNode.Effective<?> child : children()) {
 				if (outputClass != null
 						&& !child.getPreInputClass().isAssignableFrom(outputClass))
 					throw new IllegalArgumentException();

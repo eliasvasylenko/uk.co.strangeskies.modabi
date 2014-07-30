@@ -5,7 +5,7 @@ import java.util.List;
 public interface SchemaNode<E extends SchemaNode.Effective<E>> {
 	interface Effective<E extends Effective<E>> extends SchemaNode<E> {
 		@Override
-		List<? extends ChildNode.Effective<?>> getChildren();
+		List<? extends ChildNode.Effective<?>> children();
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -16,7 +16,7 @@ public interface SchemaNode<E extends SchemaNode.Effective<E>> {
 
 	String getId();
 
-	List<? extends ChildNode<?>> getChildren();
+	List<? extends ChildNode<?>> children();
 
 	E effective();
 }

@@ -84,7 +84,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 
 			inMethodChained = configurator.inMethodChained;
 
-			effective = new Effective(new OverrideMerge<>(this, configurator));
+			effective = new Effective(OverrideMerge.with(this, configurator));
 		}
 
 		@Override

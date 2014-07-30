@@ -8,7 +8,7 @@ public interface ChoiceNode extends ChildNode<ChoiceNode.Effective>,
 		@Override
 		default Class<?> getPreInputClass() {
 			Class<?> inputClass = null;
-			for (ChildNode.Effective<?> child : getChildren()) {
+			for (ChildNode.Effective<?> child : children()) {
 				Class<?> nextInputClass = child.getPreInputClass();
 				if (inputClass != null)
 					if (inputClass.isAssignableFrom(nextInputClass))
@@ -22,7 +22,7 @@ public interface ChoiceNode extends ChildNode<ChoiceNode.Effective>,
 		@Override
 		default Class<?> getPostInputClass() {
 			Class<?> outputClass = null;
-			for (ChildNode.Effective<?> child : getChildren()) {
+			for (ChildNode.Effective<?> child : children()) {
 				Class<?> nextOutputClass = child.getPostInputClass();
 				if (outputClass != null)
 					if (nextOutputClass.isAssignableFrom(outputClass))

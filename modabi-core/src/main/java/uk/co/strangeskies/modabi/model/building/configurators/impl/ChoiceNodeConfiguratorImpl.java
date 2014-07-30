@@ -44,7 +44,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 
 			mandatory = configurator.mandatory;
 
-			effective = new Effective(new OverrideMerge<>(this, configurator));
+			effective = new Effective(OverrideMerge.with(this, configurator));
 		}
 
 		@Override

@@ -31,7 +31,7 @@ public interface DataNode<T> extends
 
 	Format format();
 
-	default boolean isValuePresent() {
+	default boolean isValueProvided() {
 		return (valueResolution() == ValueResolution.PROCESSING_TIME && providedValueBuffer() != null)
 				|| (valueResolution() == ValueResolution.REGISTRATION_TIME && providedValue() != null);
 	}
@@ -144,8 +144,8 @@ public interface DataNode<T> extends
 			}
 
 			@Override
-			public List<? extends ChildNode<?>> getChildren() {
-				return node.type().getChildren();
+			public List<? extends ChildNode<?>> children() {
+				return node.type().children();
 			}
 
 			@Override

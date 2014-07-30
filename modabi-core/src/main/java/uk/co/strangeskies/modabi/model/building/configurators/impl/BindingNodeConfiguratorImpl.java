@@ -32,7 +32,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			@SuppressWarnings("unchecked")
 			protected Effective(
-					OverrideMerge<? extends BindingNode<?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge) {
+					OverrideMerge<? extends BindingNode<?, ?>, ? extends BindingNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				dataClass = (Class<T>) overrideMerge.getValue(n -> n.getDataClass(), (
@@ -53,9 +53,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				unbindingMethodName = overrideMerge.getValue(
 						n -> n.getUnbindingMethodName(), (o, v) -> o.equals(v));
 
-				unbindingMethod = findUnbindingMethod(getId(), getUnbindingStrategy(),
-						getUnbindingMethodName(), getUnbindingClass(), getDataClass(),
-						getUnbindingFactoryClass());
+				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
 			}
 
 			@Override
@@ -294,55 +292,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		unbindingFactoryClass = factoryClass;
 
 		return getThis();
-	}
-
-	public static Method findUnbindingMethod(String propertyName,
-			UnbindingStrategy unbindingStrategy, String unbindingMethodName,
-			Class<?> unbindingClass, Class<?> dataClass, Class<?> factoryClass) {
-		if (dataClass == null)
-			return null;
-
-		if (unbindingStrategy == null)
-			unbindingStrategy = UnbindingStrategy.SIMPLE;
-
-		Class<?> receiverClass = null;
-		Class<?> resultClass = null;
-		Class<?>[] parameters = new Class<?>[0];
-
-		switch (unbindingStrategy) {
-		case SIMPLE:
-			if (unbindingClass != null)
-				throw new SchemaException();
-		case CONSTRUCTOR:
-			if (unbindingMethodName != null)
-				throw new SchemaException();
-			return null;
-		case STATIC_FACTORY:
-		case PROVIDED_FACTORY:
-			receiverClass = factoryClass != null ? factoryClass
-					: unbindingClass != null ? unbindingClass : dataClass;
-			parameters = new Class<?>[] { dataClass };
-			resultClass = unbindingClass;
-			break;
-		case PASS_TO_PROVIDED:
-			receiverClass = unbindingClass;
-			parameters = new Class<?>[] { dataClass };
-			break;
-		case ACCEPT_PROVIDED:
-			receiverClass = dataClass;
-			if (unbindingClass == null)
-				throw new SchemaException();
-			parameters = new Class<?>[] { unbindingClass };
-		}
-		Method unbindingMethod = null;
-		try {
-			unbindingMethod = BindingNodeConfigurator.findMethod(
-					getNames(propertyName, unbindingMethodName, resultClass),
-					receiverClass, resultClass, parameters);
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new SchemaException(e);
-		}
-		return unbindingMethod;
 	}
 
 	public static List<String> getNames(String propertyName,

@@ -34,7 +34,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Boolean inMethodChained;
 
 			protected Effective(
-					OverrideMerge<? extends BindingChildNode<?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge) {
+					OverrideMerge<? extends BindingChildNode<?, ?>, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				occurances = overrideMerge.getValue(n -> n.occurances(),
@@ -257,7 +257,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	protected final Set<N> getOverriddenNodes() {
+	protected Set<N> getOverriddenNodes() {
 		return (getId() == null || getContext() == null) ? new HashSet<>()
 				: getContext().overrideChild(getId(), getNodeClass());
 	}

@@ -29,7 +29,7 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bind
 		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
 			super(configurator);
 
-			effective = new Effective(new OverrideMerge<>(this, configurator));
+			effective = new Effective(OverrideMerge.with(this, configurator));
 		}
 
 		@Override

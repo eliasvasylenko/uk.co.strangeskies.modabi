@@ -57,19 +57,19 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		protected Binding<T> load() {
-			return new Binding<T>(model, bind(model.effectiveModel()));
+			return new Binding<T>(model, bind(model.effective()));
 		}
 
 		@Override
-		public void accept(ChoiceNode node) {
+		public void accept(ChoiceNode.Effective node) {
 		}
 
 		@Override
-		public void accept(InputSequenceNode node) {
+		public void accept(InputSequenceNode.Effective node) {
 			processChildren(node);
 		}
 
-		public <U> U bind(AbstractModel<U> node) {
+		public <U> U bind(AbstractModel.Effective<U, ?> node) {
 			// String name = input.nextChild();
 			// String namespace = input.getProperty("xmlns", null);
 
@@ -81,11 +81,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 
 		@Override
-		public <U> void accept(ElementNode<U> node) {
+		public <U> void accept(ElementNode.Effective<U> node) {
 			invokeInMethod(node, (Object) bind(node));
 		}
 
-		private void invokeInMethod(InputNode node, Object... parameters) {
+		private void invokeInMethod(InputNode.Effective<?> node,
+				Object... parameters) {
 			try {
 				Object object = bindingStack
 						.peek()
@@ -108,18 +109,18 @@ public class SchemaBinderImpl implements SchemaBinder {
 			return null;
 		}
 
-		protected void processChildren(SchemaNode node) {
-			for (ChildNode child : node.getChildren())
+		protected void processChildren(SchemaNode.Effective<?> node) {
+			for (ChildNode.Effective<?> child : node.children())
 				child.process(this);
 		}
 
 		@Override
-		public <U> void accept(DataNode<U> node) {
+		public <U> void accept(DataNode.Effective<U> node) {
 			// invokeInMethod(node, (Object) input.getData(node.type()));
 		}
 
 		@Override
-		public void accept(SequenceNode node) {
+		public void accept(SequenceNode.Effective node) {
 
 		}
 	}

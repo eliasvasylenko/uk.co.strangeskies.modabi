@@ -55,10 +55,12 @@ public class BaseSchemaImpl implements BaseSchema {
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Set> setType;
 
-		public DerivedTypesImpl(DataLoader loader, DataBindingTypeBuilder builder,
+		public DerivedTypesImpl(
+				DataLoader loader,
+				DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives,
-				DataBindingType<Enumeration> enumerationBaseType) {
+				@SuppressWarnings("rawtypes") DataBindingType<Enumeration> enumerationBaseType) {
 			qualifiedNameType = builder.configure(loader).name("qualifiedName")
 					.dataClass(QualifiedName.class).create();
 			typeSet.add(qualifiedNameType);

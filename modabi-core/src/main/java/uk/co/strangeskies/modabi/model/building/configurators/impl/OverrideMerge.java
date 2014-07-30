@@ -5,20 +5,32 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public class OverrideMerge<E extends SchemaNode<? extends E>, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> {
+public class OverrideMerge<E, C> {
 	private final E node;
 	private final C configurator;
+	private final Function<C, Collection<? extends E>> overriddenNodesFunction;
 
-	public OverrideMerge(E node, C configurator) {
+	public OverrideMerge(E node, C configurator,
+			Function<C, Collection<? extends E>> overriddenNodesFunction) {
 		this.node = node;
 		this.configurator = configurator;
+		this.overriddenNodesFunction = overriddenNodesFunction;
+	}
+
+	public static <E, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> with(
+			E node, C configurator) {
+		return new OverrideMerge<E, C>(node, configurator,
+				c -> c.getOverriddenNodes());
+	}
+
+	public E node() {
+		return node;
 	}
 
 	public C configurator() {
-		return null;
+		return configurator;
 	}
 
 	public <T> T getValue(Function<E, T> valueFunction) {
@@ -27,9 +39,9 @@ public class OverrideMerge<E extends SchemaNode<? extends E>, C extends SchemaNo
 
 	public <T> T getValue(Function<E, T> valueFunction,
 			BiPredicate<T, T> validateOverride) {
-		T value = valueFunction.apply(node.effective());
+		T value = valueFunction.apply(node);
 
-		Collection<T> values = configurator.getOverriddenNodes().stream()
+		Collection<T> values = overriddenNodesFunction.apply(configurator).stream()
 				.map(n -> valueFunction.apply(n)).filter(v -> v != null)
 				.collect(Collectors.toSet());
 
