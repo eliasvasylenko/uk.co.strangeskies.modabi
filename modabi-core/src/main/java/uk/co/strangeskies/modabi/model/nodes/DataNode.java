@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import uk.co.strangeskies.gears.mathematics.Range;
@@ -11,8 +10,22 @@ import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
-public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
-	public enum Format {
+public interface DataNode<T> extends
+		BindingChildNode<T, DataNode.Effective<T>>,
+		DataNodeChildNode<DataNode.Effective<T>> {
+	interface Effective<T> extends DataNode<T>,
+			BindingChildNode.Effective<T, Effective<T>>,
+			DataNodeChildNode<Effective<T>> {
+		@Override
+		default void process(SchemaProcessingContext context) {
+			context.accept(this);
+		}
+
+		@Override
+		DataBindingType.Effective<T> type();
+	}
+
+	enum Format {
 		PROPERTY, CONTENT, SIMPLE_ELEMENT
 	}
 
@@ -32,11 +45,6 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 	DataBindingType<T> type();
 
 	Boolean optional();
-
-	@Override
-	default void process(SchemaProcessingContext context) {
-		context.accept(this);
-	}
 
 	static <T> DataNode<T> wrapType(DataNode<T> node) {
 		if (node.type() == null)
@@ -59,11 +67,6 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			}
 
 			@Override
-			public Method getOutMethod() {
-				return node.getOutMethod();
-			}
-
-			@Override
 			public String getOutMethodName() {
 				return node.getOutMethodName();
 			}
@@ -80,75 +83,68 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 
 			@Override
 			public Class<T> getDataClass() {
-				if (node.type().effectiveType().getDataClass() != null
+				if (node.type().effective().getDataClass() != null
 						&& (node.getDataClass() == null || node.getDataClass()
-								.isAssignableFrom(node.type().effectiveType().getDataClass())))
-					return node.type().effectiveType().getDataClass();
+								.isAssignableFrom(node.type().effective().getDataClass())))
+					return node.type().effective().getDataClass();
 				else
 					return node.getDataClass();
 			}
 
 			@Override
 			public BindingStrategy getBindingStrategy() {
-				return node.type().effectiveType().getBindingStrategy();
+				return node.type().effective().getBindingStrategy();
 			}
 
 			@Override
 			public Class<?> getBindingClass() {
-				if (node.type().effectiveType().getBindingClass() != null
-						&& (node.getBindingClass() == null || node
-								.getBindingClass()
-								.isAssignableFrom(node.type().effectiveType().getBindingClass())))
-					return node.type().effectiveType().getBindingClass();
+				if (node.type().effective().getBindingClass() != null
+						&& (node.getBindingClass() == null || node.getBindingClass()
+								.isAssignableFrom(node.type().effective().getBindingClass())))
+					return node.type().effective().getBindingClass();
 				else
 					return node.getBindingClass();
 			}
 
 			@Override
 			public UnbindingStrategy getUnbindingStrategy() {
-				return node.type().effectiveType().getUnbindingStrategy();
+				return node.type().effective().getUnbindingStrategy();
 			}
 
 			@Override
 			public Class<?> getUnbindingClass() {
-				if (node.type().effectiveType().getUnbindingClass() != null
+				if (node.type().effective().getUnbindingClass() != null
 						&& (node.getUnbindingClass() == null || node.getUnbindingClass()
-								.isAssignableFrom(
-										node.type().effectiveType().getUnbindingClass())))
-					return node.type().effectiveType().getUnbindingClass();
+								.isAssignableFrom(node.type().effective().getUnbindingClass())))
+					return node.type().effective().getUnbindingClass();
 				else
 					return node.getUnbindingClass();
 			}
 
 			@Override
 			public Class<?> getUnbindingFactoryClass() {
-				if (node.type().effectiveType().getUnbindingFactoryClass() != null
+				if (node.type().effective().getUnbindingFactoryClass() != null
 						&& (node.getUnbindingFactoryClass() == null || node
 								.getUnbindingFactoryClass().isAssignableFrom(
-										node.type().effectiveType().getUnbindingFactoryClass())))
-					return node.type().effectiveType().getUnbindingFactoryClass();
+										node.type().effective().getUnbindingFactoryClass())))
+					return node.type().effective().getUnbindingFactoryClass();
 				else
 					return node.getUnbindingFactoryClass();
 			}
 
 			@Override
-			public Method getUnbindingMethod() {
-				return node.type().effectiveType().getUnbindingMethod();
-			}
-
-			@Override
 			public String getUnbindingMethodName() {
-				return node.type().effectiveType().getUnbindingMethodName();
+				return node.type().effective().getUnbindingMethodName();
 			}
 
 			@Override
 			public String getId() {
-				return node.getId() != null ? node.getId() : node.type()
-						.effectiveType().getName();
+				return node.getId() != null ? node.getId() : node.type().effective()
+						.getName();
 			}
 
 			@Override
-			public List<? extends ChildNode> getChildren() {
+			public List<? extends ChildNode<?>> getChildren() {
 				return node.type().getChildren();
 			}
 
@@ -158,28 +154,8 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			}
 
 			@Override
-			public Method getInMethod() {
-				return node.getInMethod();
-			}
-
-			@Override
 			public Boolean isInMethodChained() {
 				return node.isInMethodChained();
-			}
-
-			@Override
-			public Class<?> getPreInputClass() {
-				return node.getPreInputClass();
-			}
-
-			@Override
-			public Class<?> getPostInputClass() {
-				return node.getPostInputClass();
-			}
-
-			@Override
-			public void process(SchemaProcessingContext context) {
-				context.accept(this);
 			}
 
 			@Override
@@ -195,6 +171,11 @@ public interface DataNode<T> extends BindingChildNode<T>, DataNodeChildNode {
 			@Override
 			public Boolean optional() {
 				return node.optional();
+			}
+
+			@Override
+			public Effective<T> effective() {
+				return node.effective();
 			}
 		};
 	}

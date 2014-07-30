@@ -1,8 +1,5 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.util.Collection;
-import java.util.List;
-
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
@@ -11,20 +8,28 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 
-public class SequenceNodeConfiguratorImpl<C extends ChildNode, B extends BindingChildNode<?>>
+public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends
 		ChildNodeConfiguratorImpl<SequenceNodeConfigurator<C, B>, SequenceNode, C, B>
 		implements SequenceNodeConfigurator<C, B> {
-	protected static class SequenceNodeImpl extends SchemaNodeImpl implements
-			ChildNodeImpl, SequenceNode {
-		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
-			super(configurator);
+	protected static class SequenceNodeImpl extends
+			SchemaNodeImpl<SequenceNode.Effective> implements
+			ChildNodeImpl<SequenceNode.Effective>, SequenceNode {
+		private class Effective extends
+				SchemaNodeImpl.Effective<SequenceNode.Effective> implements
+				SequenceNode.Effective {
+			public Effective(
+					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl<?, ?>> overrideMerge) {
+				super(overrideMerge);
+			}
 		}
 
-		public SequenceNodeImpl(SequenceNode node,
-				Collection<? extends SequenceNode> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
-			super(node, overriddenNodes, effectiveChildren);
+		private final Effective effective;
+
+		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
+			super(configurator);
+
+			effective = new Effective(new OverrideMerge<>(this, configurator));
 		}
 
 		@Override
@@ -32,6 +37,11 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode, B extends Binding
 			if (!(obj instanceof SequenceNode))
 				return false;
 			return super.equals(obj);
+		}
+
+		@Override
+		public Effective effective() {
+			return effective;
 		}
 	}
 
@@ -56,13 +66,8 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode, B extends Binding
 			return getContext().getCurrentChildInputTargetClass();
 		else
 			return getChildren().getChildren()
-					.get(getChildren().getChildren().size() - 1).getPostInputClass();
-	}
-
-	@Override
-	protected SequenceNode getEffective(SequenceNode node) {
-		return new SequenceNodeImpl(node, getOverriddenNodes(), getChildren()
-				.getEffectiveChildren());
+					.get(getChildren().getChildren().size() - 1).effective()
+					.getPostInputClass();
 	}
 
 	@Override

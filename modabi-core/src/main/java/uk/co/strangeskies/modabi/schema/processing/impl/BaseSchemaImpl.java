@@ -407,6 +407,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.unbindingClass(DataTarget.class)
 				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 				.unbindingMethod("put")
+				.providedUnbindingParameters("dataType", "this")
 				.addChild(
 						c -> c.data().id("dataType").type(enumerationBaseType)
 								.dataClass(DataType.class).outMethod("null")).create();

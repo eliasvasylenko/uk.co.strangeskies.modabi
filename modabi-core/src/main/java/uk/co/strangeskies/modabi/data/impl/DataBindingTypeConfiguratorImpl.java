@@ -8,15 +8,13 @@ import java.util.List;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
-import uk.co.strangeskies.modabi.data.AbstractDataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
-import uk.co.strangeskies.modabi.data.EffectiveDataBindingType;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.model.building.configurators.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.Children;
-import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
@@ -26,7 +24,7 @@ import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 public class DataBindingTypeConfiguratorImpl<T> extends
 		Configurator<DataBindingType<T>> implements DataBindingTypeConfigurator<T> {
 	public static class AbstractDataBindingTypeImpl<T> implements
-			AbstractDataBindingType<T> {
+			DataBindingType<T> {
 		private final String name;
 		private final Class<T> dataClass;
 
@@ -43,6 +41,8 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		private final Boolean isPrivate;
 
 		private final List<ChildNode> children;
+
+		private final List<DataNode<?>> providedUnbindingParameters;
 
 		private final DataBindingType<? super T> baseType;
 
@@ -68,6 +68,9 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 			children = Collections.unmodifiableList(new ArrayList<>(
 					configurator.children.getChildren()));
+
+			providedUnbindingParameters = Collections
+					.unmodifiableList(new ArrayList<>(configurator));
 
 			baseType = configurator.baseType;
 		}
@@ -180,6 +183,12 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		public DataBindingType<? super T> baseType() {
 			return baseType;
 		}
+
+		@Override
+		public Effective<T> effective() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 	protected static class EffectiveDataBindingTypeImpl<T> extends
@@ -206,7 +215,7 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 			super(configurator);
 
 			effectiveType = new EffectiveDataBindingTypeImpl<T>(this,
-					baseType() == null ? null : baseType().effectiveType(),
+					baseType() == null ? null : baseType().effective(),
 					configurator.children.getEffectiveChildren());
 		}
 
@@ -243,6 +252,8 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 
 	private boolean finalisedProperties;
 	private DataBindingType<? super T> baseType;
+
+	private ArrayList<String> unbindingParameterNames;
 
 	public DataBindingTypeConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
@@ -392,4 +403,12 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		return (DataBindingTypeConfigurator<U>) this;
 	}
 
+	@Override
+	public DataBindingTypeConfigurator<T> providedUnbindingParameters(
+			List<String> parameterNames) {
+		requireConfigurable(unbindingParameterNames);
+		unbindingParameterNames = new ArrayList<>(parameterNames);
+
+		return this;
+	}
 }

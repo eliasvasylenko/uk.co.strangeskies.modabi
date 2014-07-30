@@ -42,16 +42,16 @@ public class Models extends NamedSet<Model<?>> {
 
 	private void mapModel(Model<?> model) {
 		ListOrderedSet<Model<?>> baseModels = new ListOrderedSet<>();
-		baseModels.addAll(model.effectiveModel().baseModel());
+		baseModels.addAll(model.effective().baseModel());
 		for (int i = 0; i < baseModels.size(); i++) {
 			Model<?> baseModel = baseModels.get(i);
 			derivedModels.add(baseModel, model);
-			baseModels.addAll(baseModel.effectiveModel().baseModel());
+			baseModels.addAll(baseModel.effective().baseModel());
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<? extends T>> getDerivedModels(AbstractModel<T> model) {
+	public <T> List<Model<? extends T>> getDerivedModels(AbstractModel<T, ?> model) {
 		/*
 		 * TODO This extra cast is needed by javac but not JDT... Is it valid
 		 * without?
@@ -64,7 +64,7 @@ public class Models extends NamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getMatchingModels(
-			AbstractModel<T> element, Class<?> dataClass) {
+			AbstractModel<T, ?> element, Class<?> dataClass) {
 		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
 				.iterator();
 
@@ -76,10 +76,10 @@ public class Models extends NamedSet<Model<?>> {
 		subModels = subModels
 				.stream()
 				.filter(
-						m -> (m.effectiveModel().isAbstract() == null || !m
-								.effectiveModel().isAbstract())
-								&& m.effectiveModel().getDataClass()
-										.isAssignableFrom(dataClass)).collect(Collectors.toList());
+						m -> (m.effective().isAbstract() == null || !m.effective()
+								.isAbstract())
+								&& m.effective().getDataClass().isAssignableFrom(dataClass))
+				.collect(Collectors.toList());
 
 		return (List<Model<? extends T>>) subModels;
 

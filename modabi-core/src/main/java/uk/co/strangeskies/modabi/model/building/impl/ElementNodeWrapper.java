@@ -5,7 +5,6 @@ import java.util.List;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.EffectiveModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
@@ -14,15 +13,15 @@ import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class ElementNodeWrapper<T> implements ElementNode<T> {
-	private final AbstractModel<T> component;
+	private final AbstractModel<T, ?> component;
 	private final ElementNode<? super T> base;
 
-	public ElementNodeWrapper(AbstractModel<T> component) {
+	public ElementNodeWrapper(AbstractModel<T, ?> component) {
 		this.component = component;
 		base = null;
 	}
 
-	public ElementNodeWrapper(EffectiveModel<T> component,
+	public ElementNodeWrapper(Model.Effective<T> component,
 			ElementNode<? super T> base) {
 		this.component = component;
 		this.base = base;

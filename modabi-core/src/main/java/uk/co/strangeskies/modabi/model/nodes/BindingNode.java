@@ -5,7 +5,13 @@ import java.lang.reflect.Method;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface BindingNode<T> extends SchemaNode {
+public interface BindingNode<T, E extends BindingNode.Effective<T, E>> extends
+		SchemaNode<E> {
+	interface Effective<T, E extends Effective<T, E>> extends BindingNode<T, E>,
+			SchemaNode.Effective<E> {
+		Method getUnbindingMethod();
+	}
+
 	Class<T> getDataClass();
 
 	BindingStrategy getBindingStrategy();
@@ -15,8 +21,6 @@ public interface BindingNode<T> extends SchemaNode {
 	UnbindingStrategy getUnbindingStrategy();
 
 	Class<?> getUnbindingClass();
-
-	Method getUnbindingMethod();
 
 	String getUnbindingMethodName();
 

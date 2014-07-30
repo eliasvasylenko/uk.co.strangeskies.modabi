@@ -14,7 +14,7 @@ import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T>, T>
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass);
@@ -66,7 +66,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 										.collect(Collectors.joining(", ")) + " ] -> " + result));
 	}
 
-	public static List<String> generateInMethodNames(BindingChildNode<?> node) {
+	public static List<String> generateInMethodNames(BindingChildNode<?, ?> node) {
 		if (node.getInMethodName() != null)
 			return Arrays.asList(node.getInMethodName());
 		else
@@ -94,12 +94,12 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		return names;
 	}
 
-	public static List<String> generateOutMethodNames(BindingChildNode<?> node) {
+	public static List<String> generateOutMethodNames(BindingChildNode<?, ?> node) {
 		return generateOutMethodNames(node, node.getDataClass());
 	}
 
-	public static List<String> generateOutMethodNames(BindingChildNode<?> node,
-			Class<?> resultClass) {
+	public static List<String> generateOutMethodNames(
+			BindingChildNode<?, ?> node, Class<?> resultClass) {
 
 		List<String> names = new ArrayList<>();
 

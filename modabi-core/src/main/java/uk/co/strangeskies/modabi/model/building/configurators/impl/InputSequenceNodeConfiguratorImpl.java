@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -9,20 +8,72 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
-import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 
-public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
+public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 		extends
 		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>
 		implements InputSequenceNodeConfigurator<C> {
-	protected static class InputSequenceNodeImpl extends SchemaNodeImpl implements
-			ChildNodeImpl, InputSequenceNode {
+	protected static class InputSequenceNodeImpl extends
+			SchemaNodeImpl<InputSequenceNode.Effective> implements
+			ChildNodeImpl<InputSequenceNode.Effective>, InputSequenceNode {
+		private static class Effective extends
+				SchemaNodeImpl.Effective<InputSequenceNode.Effective> implements
+				InputSequenceNode.Effective {
+			private final String inMethodName;
+			private final Method inMethod;
+			private final Boolean inMethodChained;
+
+			protected Effective(
+					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl<?>> overrideMerge) {
+				super(overrideMerge);
+
+				inMethodName = overrideMerge.getValue(n -> n.getInMethodName(),
+						(m, n) -> m.equals(n));
+
+				inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
+
+				Method inMethod = null;
+				try {
+					Class<?> inputClass = overrideMerge.configurator().getContext()
+							.getCurrentChildInputTargetClass();
+
+					List<Class<?>> parameterClasses = overrideMerge.configurator()
+							.getChildren() == null ? null : overrideMerge.configurator()
+							.getChildren().getChildren().stream()
+							.map(o -> ((BindingChildNode<?, ?>) o).getDataClass())
+							.collect(Collectors.toList());
+
+					inMethod = (inputClass == null || parameterClasses == null
+							|| parameterClasses.stream().anyMatch(Objects::isNull) || inMethodName == null) ? null
+							: inputClass.getMethod(inMethodName,
+									parameterClasses.toArray(new Class[0]));
+				} catch (NoSuchMethodException | SecurityException e) {
+				}
+				this.inMethod = inMethod;
+			}
+
+			@Override
+			public final String getInMethodName() {
+				return inMethodName;
+			}
+
+			@Override
+			public Method getInMethod() {
+				return inMethod;
+			}
+
+			@Override
+			public final Boolean isInMethodChained() {
+				return inMethodChained;
+			}
+		}
+
+		private final Effective effective;
+
 		private final String inMethodName;
-		private final Method inMethod;
 		private final Boolean inMethodChained;
 
 		public InputSequenceNodeImpl(
@@ -30,43 +81,10 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 			super(configurator);
 
 			inMethodName = configurator.inMethodName;
-			Method inMethod = null;
-			try {
-				Class<?> inputClass = configurator.getContext()
-						.getCurrentChildInputTargetClass();
 
-				List<Class<?>> parameterClasses = configurator.getChildren() == null ? null
-						: configurator.getChildren().getChildren().stream()
-								.map(o -> ((BindingChildNode<?>) o).getDataClass())
-								.collect(Collectors.toList());
-
-				inMethod = (inputClass == null || parameterClasses == null
-						|| parameterClasses.stream().anyMatch(Objects::isNull) || inMethodName == null) ? null
-						: inputClass.getMethod(inMethodName,
-								parameterClasses.toArray(new Class[0]));
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
-			this.inMethod = inMethod;
 			inMethodChained = configurator.inMethodChained;
 
-			getPostInputClass();
-		}
-
-		public InputSequenceNodeImpl(InputSequenceNode node,
-				Collection<? extends InputSequenceNode> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
-			super(node, overriddenNodes, effectiveChildren);
-
-			OverrideMerge<InputSequenceNode> overrideMerge = new OverrideMerge<>(
-					node, overriddenNodes);
-
-			inMethodName = overrideMerge.getValue(n -> n.getInMethodName(),
-					(m, n) -> m.equals(n));
-
-			inMethod = overrideMerge.getValue(n -> n.getInMethod(),
-					(m, n) -> m.equals(n));
-
-			inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
+			effective = new Effective(new OverrideMerge<>(this, configurator));
 		}
 
 		@Override
@@ -77,7 +95,6 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 			InputSequenceNode other = (InputSequenceNode) obj;
 			return super.equals(obj)
 					&& Objects.equals(inMethodName, other.getInMethodName())
-					&& Objects.equals(inMethod, other.getInMethod())
 					&& Objects.equals(inMethodChained, other.isInMethodChained());
 		}
 
@@ -87,13 +104,13 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 		}
 
 		@Override
-		public Method getInMethod() {
-			return inMethod;
+		public final Boolean isInMethodChained() {
+			return inMethodChained;
 		}
 
 		@Override
-		public final Boolean isInMethodChained() {
-			return inMethodChained;
+		public Effective effective() {
+			return effective;
 		}
 	}
 
@@ -135,13 +152,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?>>
 			return getContext().getCurrentChildInputTargetClass();
 		else
 			return getChildren().getChildren()
-					.get(getChildren().getChildren().size() - 1).getPostInputClass();
-	}
-
-	@Override
-	protected InputSequenceNode getEffective(InputSequenceNode node) {
-		return new InputSequenceNodeImpl(node, getOverriddenNodes(), getChildren()
-				.getEffectiveChildren());
+					.get(getChildren().getChildren().size() - 1).effective()
+					.getPostInputClass();
 	}
 
 	@Override

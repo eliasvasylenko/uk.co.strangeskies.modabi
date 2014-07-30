@@ -1,19 +1,24 @@
-package uk.co.strangeskies.modabi.model.building.impl;
+package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.Collection;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public class OverrideMerge<E> {
+public class OverrideMerge<E extends SchemaNode<? extends E>, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> {
 	private final E node;
-	private final Collection<? extends E> overriddenNodes;
+	private final C configurator;
 
-	public OverrideMerge(E node, Collection<? extends E> overriddenNodes) {
+	public OverrideMerge(E node, C configurator) {
 		this.node = node;
-		this.overriddenNodes = overriddenNodes;
+		this.configurator = configurator;
+	}
+
+	public C configurator() {
+		return null;
 	}
 
 	public <T> T getValue(Function<E, T> valueFunction) {
@@ -22,9 +27,9 @@ public class OverrideMerge<E> {
 
 	public <T> T getValue(Function<E, T> valueFunction,
 			BiPredicate<T, T> validateOverride) {
-		T value = valueFunction.apply(node);
+		T value = valueFunction.apply(node.effective());
 
-		Collection<T> values = overriddenNodes.stream()
+		Collection<T> values = configurator.getOverriddenNodes().stream()
 				.map(n -> valueFunction.apply(n)).filter(v -> v != null)
 				.collect(Collectors.toSet());
 

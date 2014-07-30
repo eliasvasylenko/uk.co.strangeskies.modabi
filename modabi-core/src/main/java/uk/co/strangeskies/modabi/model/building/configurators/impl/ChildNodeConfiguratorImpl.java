@@ -7,12 +7,11 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends ChildNode, C extends ChildNode, B extends BindingChildNode<?>>
+public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends ChildNode<?>, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
@@ -20,7 +19,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 			SchemaNodeConfigurationContext<? super N> parent) {
 		this.context = parent;
 
-		addResultListener(result -> parent.addChild(result, getEffective(result)));
+		addResultListener(result -> parent.addChild(result));
 	}
 
 	protected SchemaNodeConfigurationContext<? super N> getContext() {
@@ -32,6 +31,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 		return getContext().getCurrentChildOutputTargetClass();
 	}
 
+	@Override
 	protected Set<N> getOverriddenNodes() {
 		return (getId() == null) ? new HashSet<>() : getContext().overrideChild(
 				getId(), getNodeClass());
@@ -40,10 +40,9 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 	@Override
 	protected void finaliseProperties() {
 		if (!isFinalisedProperties()) {
-			List<ChildNodeImpl> newInheritedChildren = new ArrayList<>();
+			List<ChildNode<?>> newInheritedChildren = new ArrayList<>();
 			getOverriddenNodes().forEach(
-					c -> c.getChildren().forEach(
-							n -> newInheritedChildren.add((ChildNodeImpl) n)));
+					c -> c.getChildren().forEach(n -> newInheritedChildren.add(n)));
 
 			getChildren().inheritChildren(0, newInheritedChildren);
 		}

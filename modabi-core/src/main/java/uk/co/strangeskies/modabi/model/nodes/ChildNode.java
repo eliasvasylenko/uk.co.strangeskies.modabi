@@ -2,10 +2,14 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public interface ChildNode extends SchemaNode {
-	public Class<?> getPreInputClass();
+public interface ChildNode<E extends ChildNode.Effective<E>> extends
+		SchemaNode<E> {
+	interface Effective<E extends Effective<E>> extends ChildNode<E>,
+			SchemaNode.Effective<E> {
+		Class<?> getPreInputClass();
 
-	public Class<?> getPostInputClass();
+		Class<?> getPostInputClass();
 
-	void process(SchemaProcessingContext context);
+		void process(SchemaProcessingContext context);
+	}
 }

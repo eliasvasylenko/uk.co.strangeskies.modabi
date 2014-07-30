@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -13,27 +13,51 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.Children;
-import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode, C extends ChildNode, B extends BindingChildNode<?>>
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?>, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
-	public static abstract class SchemaNodeImpl implements SchemaNode {
+	public static abstract class SchemaNodeImpl<E extends SchemaNode.Effective<E>>
+			implements SchemaNode<E> {
+		protected static class Effective<E extends SchemaNode.Effective<E>>
+				implements SchemaNode.Effective<E> {
+			private final String id;
+			private final List<ChildNode.Effective<?>> children;
+
+			protected Effective(
+					OverrideMerge<? extends SchemaNode<?>, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
+				id = overrideMerge.getValue(n -> n.getId());
+
+				children = overrideMerge.configurator().getChildren()
+						.getEffectiveChildren();
+			}
+
+			@Override
+			public String getId() {
+				return id;
+			}
+
+			@Override
+			public List<? extends ChildNode.Effective<?>> getChildren() {
+				return children;
+			}
+		}
+
 		private final String id;
-		private final List<ChildNode> children;
+		private final List<ChildNode<?>> children;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseProperties();
 
 			id = configurator.getId();
 
-			for (Set<? extends ChildNode> namedChildren : configurator.children
+			for (Set<? extends ChildNode<?>> namedChildren : configurator.children
 					.getNamedInheritedChildren().values())
 				if (namedChildren.size() > 1) {
-					Iterator<? extends ChildNode> i = namedChildren.iterator();
+					Iterator<? extends ChildNode<?>> i = namedChildren.iterator();
 					throw new SchemaException(
 							i.next().equals(i.next())
 									+ " "
@@ -42,18 +66,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 									+ "' is inherited multiple times and must be explicitly overridden.");
 				}
 
-			children = new ArrayList<>(configurator.children.getChildren());
-		}
-
-		protected SchemaNodeImpl(SchemaNode node,
-				Collection<? extends SchemaNode> overriddenNodes,
-				List<ChildNode> effectiveChildren) {
-			OverrideMerge<SchemaNode> overrideMerge = new OverrideMerge<>(node,
-					overriddenNodes);
-
-			id = overrideMerge.getValue(n -> n.getId());
-
-			children = effectiveChildren;
+			children = Collections.unmodifiableList(new ArrayList<>(
+					configurator.children.getChildren()));
 		}
 
 		@Override
@@ -61,7 +75,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			if (!(obj instanceof SchemaNode))
 				return false;
 
-			SchemaNode other = (SchemaNode) obj;
+			SchemaNode<?> other = (SchemaNode<?>) obj;
 			return Objects.equals(id, other.getId())
 					&& Objects.equals(children, other.getChildren());
 		}
@@ -72,7 +86,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public final List<ChildNode> getChildren() {
+		public final List<? extends ChildNode<?>> getChildren() {
 			return children;
 		}
 	}
@@ -92,8 +106,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	public Children<C, B> getChildren() {
 		return children;
 	}
-
-	protected abstract N getEffective(N node);
 
 	protected final void requireConfigurable(Object object) {
 		requireConfigurable();
@@ -128,6 +140,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	protected abstract Class<N> getNodeClass();
+
+	abstract Set<N> getOverriddenNodes();
 
 	protected final String getId() {
 		return id;

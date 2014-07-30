@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.data;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.gears.utilities.factory.Factory;
@@ -92,10 +94,18 @@ public interface DataBindingTypeConfigurator<T> extends
 	DataBindingTypeConfigurator<T> unbindingMethod(String name);
 
 	default DataBindingTypeConfigurator<T> addChild(
-			Function<ChildBuilder<DataNodeChildNode, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode>> propertyConfiguration) {
+			Function<ChildBuilder<DataNodeChildNode<?>, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode<?>>> propertyConfiguration) {
 		propertyConfiguration.apply(addChild()).create();
 		return this;
 	}
 
-	ChildBuilder<DataNodeChildNode, DataNode<?>> addChild();
+	ChildBuilder<DataNodeChildNode<?>, DataNode<?>> addChild();
+
+	DataBindingTypeConfigurator<T> providedUnbindingParameters(
+			List<String> parameterNames);
+
+	default DataBindingTypeConfigurator<T> providedUnbindingParameters(
+			String... parameterNames) {
+		return providedUnbindingParameters(Arrays.asList(parameterNames));
+	}
 }

@@ -8,7 +8,7 @@ import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfig
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public interface ChildBuilder<C extends ChildNode, B extends BindingChildNode<?>> {
+public interface ChildBuilder<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> {
 	public ElementNodeConfigurator<Object> element();
 
 	public InputSequenceNodeConfigurator<B> inputSequence();

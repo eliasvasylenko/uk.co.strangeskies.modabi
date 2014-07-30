@@ -7,13 +7,13 @@ import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 
 public interface SchemaProcessingContext {
-	public <U> void accept(ElementNode<U> node);
+	public <U> void accept(ElementNode.Effective<U> node);
 
-	public <U> void accept(DataNode<U> node);
+	public <U> void accept(DataNode.Effective<U> node);
 
-	public void accept(InputSequenceNode node);
+	public void accept(InputSequenceNode.Effective node);
 
-	public void accept(SequenceNode node);
+	public void accept(SequenceNode.Effective node);
 
-	public void accept(ChoiceNode node);
+	public void accept(ChoiceNode.Effective node);
 }

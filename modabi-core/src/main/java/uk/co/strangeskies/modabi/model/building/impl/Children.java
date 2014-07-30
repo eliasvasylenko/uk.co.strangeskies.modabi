@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
@@ -24,33 +25,32 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public class Children<C extends ChildNode, B extends BindingChildNode<?>> {
+public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> {
 	private boolean blocked;
 
-	private final List<ChildNode> children;
-	private final List<ChildNode> effectiveChildren;
-	private final SetMultiMap<String, ChildNode> namedInheritedChildren;
-	private final List<ChildNode> inheritedChildren;
+	private final List<ChildNode<?>> children;
+	private final SetMultiMap<String, ChildNode.Effective<?>> namedInheritedChildren;
+	private final List<ChildNode.Effective<?>> inheritedChildren;
 
 	public Children() {
 		children = new ArrayList<>();
-		effectiveChildren = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
 		namedInheritedChildren = new HashSetMultiHashMap<>();
 	}
 
-	public List<ChildNode> getChildren() {
+	public List<ChildNode<?>> getChildren() {
 		return children;
 	}
 
-	public List<ChildNode> getEffectiveChildren() {
-		List<ChildNode> effectiveChildren = new ArrayList<>();
+	public List<ChildNode.Effective<?>> getEffectiveChildren() {
+		List<ChildNode.Effective<?>> effectiveChildren = new ArrayList<>();
 		effectiveChildren.addAll(inheritedChildren);
-		effectiveChildren.addAll(this.effectiveChildren);
+		effectiveChildren.addAll(children.stream().map(c -> c.effective())
+				.collect(Collectors.toList()));
 		return effectiveChildren;
 	}
 
-	public SetMultiMap<String, ChildNode> getNamedInheritedChildren() {
+	public SetMultiMap<String, ChildNode.Effective<?>> getNamedInheritedChildren() {
 		return namedInheritedChildren;
 	}
 
@@ -59,35 +59,38 @@ public class Children<C extends ChildNode, B extends BindingChildNode<?>> {
 			throw new SchemaException("Blocked from adding children");
 	}
 
-	public void addChild(ChildNode result, ChildNode effective) {
+	public void addChild(ChildNode<?> result) {
 		blocked = false;
 		children.add(result);
-		effectiveChildren.add(effective);
 		if (result.getId() != null) {
-			Set<ChildNode> removed = namedInheritedChildren.remove(result.getId());
+			Set<ChildNode.Effective<?>> removed = namedInheritedChildren
+					.remove(result.getId());
 			if (removed != null)
 				inheritedChildren.removeAll(removed);
 		}
 	}
 
-	public void inheritChildren(List<? extends ChildNode> nodes) {
+	public void inheritChildren(List<? extends ChildNode<?>> nodes) {
 		inheritChildren(inheritedChildren.size(), nodes);
 	}
 
-	public void inheritChildren(int index, List<? extends ChildNode> nodes) {
-		inheritNamedChildren(nodes);
-		inheritedChildren.addAll(index, nodes);
+	public void inheritChildren(int index, List<? extends ChildNode<?>> nodes) {
+		List<ChildNode.Effective<?>> effectiveList = nodes.stream()
+				.map(n -> n.effective()).collect(Collectors.toList());
+		inheritNamedChildren(effectiveList);
+		inheritedChildren.addAll(index, effectiveList);
 	}
 
-	public void inheritNamedChildren(List<? extends ChildNode> nodes) {
+	public void inheritNamedChildren(List<? extends ChildNode.Effective<?>> nodes) {
 		nodes.stream().filter(c -> c.getId() != null)
 				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U extends ChildNode> Set<U> overrideChild(String id,
+	public <U extends ChildNode<?>> Set<U> overrideChild(String id,
 			Class<U> nodeClass) {
-		Set<ChildNode> overriddenNodes = namedInheritedChildren.get(id);
+		Set<ChildNode.Effective<?>> overriddenNodes = namedInheritedChildren
+				.get(id);
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(
@@ -105,14 +108,14 @@ public class Children<C extends ChildNode, B extends BindingChildNode<?>> {
 		assertUnblocked();
 		blocked = true;
 
-		SchemaNodeConfigurationContext<ChildNode> context = new SchemaNodeConfigurationContext<ChildNode>() {
+		SchemaNodeConfigurationContext<ChildNode<?>> context = new SchemaNodeConfigurationContext<ChildNode<?>>() {
 			@Override
 			public DataLoader getDataLoader() {
 				return loader;
 			}
 
 			@Override
-			public <U extends ChildNode> Set<U> overrideChild(String id,
+			public <U extends ChildNode<?>> Set<U> overrideChild(String id,
 					Class<U> nodeClass) {
 				return Children.this.overrideChild(id, nodeClass);
 			}
@@ -128,8 +131,8 @@ public class Children<C extends ChildNode, B extends BindingChildNode<?>> {
 			}
 
 			@Override
-			public void addChild(ChildNode result, ChildNode effective) {
-				Children.this.addChild(result, effective);
+			public void addChild(ChildNode<?> result) {
+				Children.this.addChild(result);
 			}
 		};
 

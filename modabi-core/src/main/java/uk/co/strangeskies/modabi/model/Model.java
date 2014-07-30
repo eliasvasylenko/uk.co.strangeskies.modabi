@@ -1,5 +1,9 @@
 package uk.co.strangeskies.modabi.model;
 
-public interface Model<T> extends AbstractModel<T> {
-	public EffectiveModel<T> effectiveModel();
+import uk.co.strangeskies.modabi.model.nodes.BindingNode;
+
+public interface Model<T> extends AbstractModel<T, Model.Effective<T>> {
+	interface Effective<T> extends Model<T>,
+			BindingNode.Effective<T, Effective<T>> {
+	}
 }

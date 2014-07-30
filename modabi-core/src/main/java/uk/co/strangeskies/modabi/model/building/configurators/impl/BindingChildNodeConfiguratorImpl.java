@@ -1,11 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -13,25 +9,139 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
-import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T>, T, C extends ChildNode, B extends BindingChildNode<?>>
+public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
 		BindingChildNodeConfigurator<S, N, T> {
-	protected static abstract class BindingChildNodeImpl<T> extends
-			BindingNodeImpl<T> implements ChildNodeImpl, BindingChildNode<T> {
+	protected static abstract class BindingChildNodeImpl<T, E extends BindingChildNode.Effective<T, E>>
+			extends BindingNodeImpl<T, E> implements ChildNodeImpl<E>,
+			BindingChildNode<T, E> {
+		protected static abstract class Effective<T, E extends BindingChildNode.Effective<T, E>>
+				extends BindingNodeImpl.Effective<T, E> implements
+				BindingChildNode.Effective<T, E> {
+			private final Range<Integer> occurances;
+
+			private final Boolean iterable;
+			private final String outMethodName;
+			private final Method outMethod;
+
+			private final String inMethodName;
+			private final Method inMethod;
+			private final Boolean inMethodChained;
+
+			protected Effective(
+					OverrideMerge<? extends BindingChildNode<?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge) {
+				super(overrideMerge);
+
+				occurances = overrideMerge.getValue(n -> n.occurances(),
+						(v, o) -> o.contains(v));
+
+				iterable = overrideMerge.getValue(n -> n.isOutMethodIterable(),
+						(n, o) -> Objects.equals(n, o));
+
+				outMethodName = overrideMerge.getValue(n -> n.getOutMethodName());
+
+				inMethodName = overrideMerge.getValue(n -> n.getInMethodName());
+
+				inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
+
+				if (outMethodName == "this" && !iterable)
+					throw new SchemaException();
+				outMethod = (outMethodName == "null") ? null : getOutMethod(
+						overrideMerge.configurator().getCurrentChildOutputTargetClass(),
+						overrideMerge.getValue(n -> n.effective().getOutMethod(),
+								(m, n) -> m.equals(n)));
+
+				inMethod = (inMethodName == "null") ? null : getInMethod(overrideMerge
+						.configurator().getCurrentChildInputTargetClass(),
+						overrideMerge.getValue(n -> n.effective().getInMethod(),
+								(m, n) -> m.equals(n)));
+			}
+
+			@Override
+			public final Range<Integer> occurances() {
+				return occurances;
+			}
+
+			@Override
+			public final String getOutMethodName() {
+				return outMethodName;
+			}
+
+			@Override
+			public Method getOutMethod() {
+				return outMethod;
+			}
+
+			@Override
+			public final Boolean isOutMethodIterable() {
+				return iterable;
+			}
+
+			@Override
+			public final String getInMethodName() {
+				return inMethodName;
+			}
+
+			@Override
+			public Method getInMethod() {
+				return inMethod;
+			}
+
+			@Override
+			public final Boolean isInMethodChained() {
+				return inMethodChained;
+			}
+
+			private Method getInMethod(Class<?> receiverClass,
+					Method inheritedInMethod) {
+				try {
+					return (receiverClass == null || getDataClass() == null || inMethodName == null) ? null
+							: BindingNodeConfigurator.findMethod(
+									BindingNodeConfigurator.generateInMethodNames(this),
+									receiverClass, null, getDataClass());
+				} catch (NoSuchMethodException e) {
+					throw new SchemaException(e);
+				}
+			}
+
+			private Method getOutMethod(Class<?> targetClass,
+					Method inheritedOutMethod) {
+				try {
+					Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
+							: getDataClass();
+
+					Method outMethod;
+					if (targetClass == null || resultClass == null
+							|| outMethodName == "this")
+						outMethod = null;
+					else {
+						outMethod = BindingNodeConfigurator.findMethod(
+								BindingNodeConfigurator.generateOutMethodNames(this,
+										resultClass), targetClass, resultClass);
+
+						if (inheritedOutMethod != null
+								&& !outMethod.equals(inheritedOutMethod))
+							throw new SchemaException();
+					}
+
+					return outMethod;
+				} catch (NoSuchMethodException e) {
+					throw new SchemaException(e);
+				}
+			}
+		}
+
 		private final Range<Integer> occurances;
 
 		private final Boolean iterable;
 		private final String outMethodName;
-		private final Method outMethod;
 
 		private final String inMethodName;
-		private final Method inMethod;
 		private final Boolean inMethodChained;
 
 		BindingChildNodeImpl(
@@ -41,44 +151,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			occurances = configurator.occurances;
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
-			outMethod = null;
 
 			inMethodName = configurator.inMethodName;
-			inMethod = null;
 			inMethodChained = configurator.inMethodChained;
-		}
-
-		BindingChildNodeImpl(BindingChildNode<T> node,
-				Collection<? extends BindingChildNode<? super T>> overriddenNodes,
-				List<ChildNode> effectiveChildren, Class<?> outputTargetClass,
-				Class<?> inputTargetClass) {
-			super(node, overriddenNodes, effectiveChildren);
-
-			OverrideMerge<BindingChildNode<? super T>> overrideMerge = new OverrideMerge<>(
-					node, overriddenNodes);
-
-			occurances = overrideMerge.getValue(n -> n.occurances(),
-					(v, o) -> o.contains(v));
-
-			iterable = overrideMerge.getValue(n -> n.isOutMethodIterable(),
-					(n, o) -> Objects.equals(n, o));
-
-			outMethodName = overrideMerge.getValue(n -> n.getOutMethodName());
-
-			inMethodName = overrideMerge.getValue(n -> n.getInMethodName());
-
-			inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
-
-			if (outMethodName == "this" && !iterable)
-				throw new SchemaException();
-			outMethod = (outMethodName == "null") ? null : getOutMethod(
-					outputTargetClass,
-					overrideMerge.getValue(n -> n.getOutMethod(), (m, n) -> m.equals(n)));
-
-			inMethod = (inMethodName == "null") ? null : getInMethod(
-					inputTargetClass,
-					overrideMerge.getValue(n -> n.getInMethod(), (m, n) -> m.equals(n)));
-
 		}
 
 		@Override
@@ -86,51 +161,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			if (!(obj instanceof BindingChildNode))
 				return false;
 
-			BindingChildNode<?> other = (BindingChildNode<?>) obj;
+			BindingChildNode<?, ?> other = (BindingChildNode<?, ?>) obj;
 			return super.equals(obj)
 					&& Objects.equals(occurances, other.occurances())
 					&& Objects.equals(iterable, other.isOutMethodIterable())
 					&& Objects.equals(outMethodName, other.getOutMethodName())
-					&& Objects.equals(outMethod, other.getOutMethod())
 					&& Objects.equals(inMethodName, other.getInMethodName())
-					&& Objects.equals(inMethod, other.getInMethod())
 					&& Objects.equals(inMethodChained, other.isInMethodChained());
-		}
-
-		private Method getInMethod(Class<?> receiverClass, Method inheritedInMethod) {
-			try {
-				return (receiverClass == null || getDataClass() == null || inMethodName == null) ? null
-						: BindingNodeConfigurator.findMethod(
-								BindingNodeConfigurator.generateInMethodNames(this),
-								receiverClass, null, getDataClass());
-			} catch (NoSuchMethodException e) {
-				throw new SchemaException(e);
-			}
-		}
-
-		private Method getOutMethod(Class<?> targetClass, Method inheritedOutMethod) {
-			try {
-				Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
-						: getDataClass();
-
-				Method outMethod;
-				if (targetClass == null || resultClass == null
-						|| outMethodName == "this")
-					outMethod = null;
-				else {
-					outMethod = BindingNodeConfigurator
-							.findMethod(BindingNodeConfigurator.generateOutMethodNames(this,
-									resultClass), targetClass, resultClass);
-
-					if (inheritedOutMethod != null
-							&& !outMethod.equals(inheritedOutMethod))
-						throw new SchemaException();
-				}
-
-				return outMethod;
-			} catch (NoSuchMethodException e) {
-				throw new SchemaException(e);
-			}
 		}
 
 		@Override
@@ -157,32 +194,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		public final Boolean isInMethodChained() {
 			return inMethodChained;
 		}
-
-		@Override
-		public final Method getOutMethod() {
-			return outMethod;
-		}
-
-		@Override
-		public final Method getInMethod() {
-			return inMethod;
-		}
-
-		@SuppressWarnings("unchecked")
-		protected Iterable<T> getData(Object parent) {
-			try {
-				if (isOutMethodIterable() != null && isOutMethodIterable()) {
-					if (getOutMethodName() == "this")
-						return (Iterable<T>) parent;
-					else
-						return (Iterable<T>) getOutMethod().invoke(parent);
-				} else
-					return Arrays.asList((T) getOutMethod().invoke(parent));
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				throw new SchemaException(e);
-			}
-		}
 	}
 
 	private final SchemaNodeConfigurationContext<? super N> context;
@@ -197,7 +208,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			SchemaNodeConfigurationContext<? super N> parent) {
 		this.context = parent;
 
-		addResultListener(result -> parent.addChild(result, getEffective(result)));
+		addResultListener(result -> parent.addChild(result));
 	}
 
 	protected final SchemaNodeConfigurationContext<? super N> getContext() {
@@ -245,6 +256,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	protected final Set<N> getOverriddenNodes() {
 		return (getId() == null || getContext() == null) ? new HashSet<>()
 				: getContext().overrideChild(getId(), getNodeClass());
