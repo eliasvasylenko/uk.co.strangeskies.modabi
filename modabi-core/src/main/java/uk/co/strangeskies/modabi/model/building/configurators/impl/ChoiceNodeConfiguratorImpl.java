@@ -26,7 +26,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 					OverrideMerge<ChoiceNode, ChoiceNodeConfiguratorImpl<?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				mandatory = overrideMerge.getValue(n -> n.isMandatory());
+				mandatory = overrideMerge.getValue(ChoiceNode::isMandatory);
 			}
 
 			@Override

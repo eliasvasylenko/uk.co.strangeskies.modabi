@@ -35,23 +35,24 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<? extends BindingNode<?, ?>, ? extends BindingNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				dataClass = (Class<T>) overrideMerge.getValue(n -> n.getDataClass(), (
-						v, o) -> o.isAssignableFrom(v));
+				dataClass = (Class<T>) overrideMerge.getValue(
+						BindingNode::getDataClass, (v, o) -> o.isAssignableFrom(v));
 
-				bindingClass = overrideMerge.getValue(n -> n.getBindingClass());
+				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass);
 
-				unbindingClass = overrideMerge.getValue(n -> n.getUnbindingClass());
+				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingClass);
 
-				unbindingFactoryClass = overrideMerge.getValue(n -> n
-						.getUnbindingFactoryClass());
+				unbindingFactoryClass = overrideMerge
+						.getValue(BindingNode::getUnbindingFactoryClass);
 
-				bindingStrategy = overrideMerge.getValue(n -> n.getBindingStrategy());
+				bindingStrategy = overrideMerge
+						.getValue(BindingNode::getBindingStrategy);
 
-				unbindingStrategy = overrideMerge.getValue(n -> n
-						.getUnbindingStrategy());
+				unbindingStrategy = overrideMerge
+						.getValue(BindingNode::getUnbindingStrategy);
 
 				unbindingMethodName = overrideMerge.getValue(
-						n -> n.getUnbindingMethodName(), (o, v) -> o.equals(v));
+						BindingNode::getUnbindingMethodName, Objects::equals);
 
 				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
 			}

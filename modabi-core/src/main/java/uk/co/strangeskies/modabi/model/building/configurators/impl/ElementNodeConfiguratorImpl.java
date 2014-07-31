@@ -40,10 +40,10 @@ public class ElementNodeConfiguratorImpl<T>
 						.forEach(n -> baseModel.addAll(n.baseModel()));
 				baseModel.addAll(overrideMerge.node().baseModel());
 
-				this.baseModel = baseModel.stream().map(m -> m.effective())
+				this.baseModel = baseModel.stream().map(Model::effective)
 						.collect(Collectors.toList());
 
-				isAbstract = overrideMerge.getValue(n -> n.isAbstract());
+				isAbstract = overrideMerge.getValue(ElementNode::isAbstract);
 			}
 
 			@Override

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
@@ -22,14 +21,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
 	public static abstract class SchemaNodeImpl<E extends SchemaNode.Effective<E>>
 			implements SchemaNode<E> {
-		protected static class Effective<E extends SchemaNode.Effective<E>>
+		protected static abstract class Effective<E extends SchemaNode.Effective<E>>
 				implements SchemaNode.Effective<E> {
 			private final String id;
 			private final List<ChildNode.Effective<?>> children;
 
 			protected Effective(
 					OverrideMerge<? extends SchemaNode<?>, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
-				id = overrideMerge.getValue(n -> n.getId());
+				id = overrideMerge.getValue(SchemaNode::getId);
 
 				children = overrideMerge.configurator().getChildren()
 						.getEffectiveChildren();
@@ -68,16 +67,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			children = Collections.unmodifiableList(new ArrayList<>(
 					configurator.children.getChildren()));
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof SchemaNode))
-				return false;
-
-			SchemaNode<?> other = (SchemaNode<?>) obj;
-			return Objects.equals(id, other.getId())
-					&& Objects.equals(children, other.children());
 		}
 
 		@Override

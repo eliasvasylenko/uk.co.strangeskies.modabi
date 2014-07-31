@@ -33,13 +33,6 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bind
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof SequenceNode))
-				return false;
-			return super.equals(obj);
-		}
-
-		@Override
 		public Effective effective() {
 			return effective;
 		}

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
@@ -40,14 +39,7 @@ public class ModelConfiguratorImpl<T>
 				baseModel.addAll(overrideMerge.node().baseModel().stream()
 						.map(m -> m.effective()).collect(Collectors.toList()));
 
-				isAbstract = overrideMerge.getValue(n -> n.isAbstract());
-			}
-
-			@Override
-			public boolean equals(Object obj) {
-				if (!(obj instanceof Model.Effective))
-					return false;
-				return super.equals(obj);
+				isAbstract = overrideMerge.getValue(Model::isAbstract);
 			}
 
 			@Override
@@ -74,16 +66,6 @@ public class ModelConfiguratorImpl<T>
 			isAbstract = configurator.isAbstract;
 
 			effective = new Effective<>(OverrideMerge.with(this, configurator));
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof AbstractModel))
-				return false;
-
-			AbstractModel<?> other = (AbstractModel<?>) obj;
-			return super.equals(obj) && Objects.equals(baseModel, other.baseModel())
-					&& Objects.equals(isAbstract, other.isAbstract());
 		}
 
 		@Override

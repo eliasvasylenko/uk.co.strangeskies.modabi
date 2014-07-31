@@ -8,14 +8,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.gears.utilities.factory.Configurator;
-import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
+import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.building.configurators.impl.OverrideMerge;
-import uk.co.strangeskies.modabi.model.building.impl.Children;
+import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
@@ -24,8 +23,10 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public class DataBindingTypeConfiguratorImpl<T> extends
-		Configurator<DataBindingType<T>> implements DataBindingTypeConfigurator<T> {
+public class DataBindingTypeConfiguratorImpl<T>
+		extends
+		BindingNodeConfiguratorImpl<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, ChildNode<?>, BindingChildNode<?, ?>>
+		implements DataBindingTypeConfigurator<T> {
 	public static class DataBindingTypeImpl<T> implements DataBindingType<T> {
 		private static class Effective<T> implements DataBindingType.Effective<T> {
 			private final String name;
@@ -339,39 +340,17 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 	private Boolean isAbstract;
 	private Boolean isPrivate;
 
-	private final Children<DataNodeChildNode<?>, DataNode<?>> children;
-
-	private boolean finalisedProperties;
 	private DataBindingType<? super T> baseType;
 
 	private ArrayList<String> unbindingParameterNames;
 
 	public DataBindingTypeConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
-
-		children = new Children<>();
-
-		finalisedProperties = false;
 	}
 
 	@Override
 	protected DataBindingType<T> tryCreate() {
 		return new DataBindingTypeImpl<>(this);
-	}
-
-	protected final void requireConfigurable(Object object) {
-		requireConfigurable();
-		if (object != null)
-			throw new InvalidBuildStateException(this);
-	}
-
-	protected final void requireConfigurable() {
-		if (finalisedProperties)
-			throw new InvalidBuildStateException(this);
-	}
-
-	protected void finaliseProperties() {
-		finalisedProperties = true;
 	}
 
 	@Override
@@ -380,47 +359,6 @@ public class DataBindingTypeConfiguratorImpl<T> extends
 		this.name = name;
 
 		return this;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <U extends T> DataBindingTypeConfigurator<U> dataClass(
-			Class<U> dataClass) {
-		requireConfigurable(this.dataClass);
-		this.dataClass = (Class<T>) dataClass;
-
-		return (DataBindingTypeConfigurator<U>) this;
-	}
-
-	@Override
-	public DataBindingTypeConfigurator<T> bindingClass(Class<?> bindingClass) {
-		requireConfigurable(this.bindingClass);
-		this.bindingClass = bindingClass;
-
-		return this;
-	}
-
-	@Override
-	public DataBindingTypeConfigurator<T> unbindingMethod(String name) {
-		requireConfigurable(unbindingMethodName);
-		unbindingMethodName = name;
-
-		return this;
-	}
-
-	protected final Class<?> getCurrentChildOutputTargetClass() {
-		if (unbindingStrategy == null
-				|| unbindingStrategy == UnbindingStrategy.SIMPLE)
-			return dataClass;
-		return unbindingClass != null ? unbindingClass : dataClass;
-	}
-
-	protected Class<?> getCurrentChildInputTargetClass() {
-		if (children.getChildren().isEmpty())
-			return bindingClass != null ? bindingClass : dataClass;
-		else
-			return children.getChildren().get(children.getChildren().size() - 1)
-					.effective().getPostInputClass();
 	}
 
 	@Override

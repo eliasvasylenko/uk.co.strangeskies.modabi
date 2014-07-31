@@ -41,7 +41,7 @@ public class DataNodeConfiguratorImpl<T>
 					OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				type = overrideMerge.getValue(n -> n.type(), (n, o) -> {
+				type = overrideMerge.getValue(DataNode::type, (n, o) -> {
 					DataBindingType<?> type = n;
 					do
 						if (type == o)
@@ -49,49 +49,17 @@ public class DataNodeConfiguratorImpl<T>
 					while ((type = type.baseType()) != null);
 					return false;
 				}).effective();
-				optional = overrideMerge.getValue(n -> n.optional());
-				format = overrideMerge.getValue(n -> n.format(), (n, o) -> n == o);
 
-				providedBuffer = overrideMerge.getValue(n -> n.providedValueBuffer());
-				resolution = overrideMerge.getValue(n -> n.valueResolution(),
-						(n, o) -> n == o);
+				optional = overrideMerge.getValue(DataNode::optional);
+				format = overrideMerge.getValue(DataNode::format, Objects::equals);
+
+				providedBuffer = overrideMerge.getValue(DataNode::providedValueBuffer);
+				resolution = overrideMerge.getValue(DataNode::valueResolution,
+						Objects::equals);
 				provided = (resolution == ValueResolution.REGISTRATION_TIME) ? overrideMerge
 						.configurator().getContext().getDataLoader()
 						.loadData(DataNodeImpl.Effective.this, providedBuffer)
 						: null;
-
-				checkTypeConsistency();
-			}
-
-			private void checkTypeConsistency() {
-				if (type != null) {
-					DataBindingType.Effective<T> type = this.type.effective();
-
-					if (getDataClass() != null
-							&& !(getDataClass().isAssignableFrom(type.getDataClass()) || type
-									.getDataClass().isAssignableFrom(getDataClass())))
-						throw new SchemaException();
-
-					if (getBindingStrategy() != null
-							&& !getBindingStrategy().equals(type.getBindingStrategy()))
-						throw new SchemaException();
-
-					if (getBindingClass() != null
-							&& !getBindingClass().equals(type.getBindingClass()))
-						throw new SchemaException();
-
-					if (getUnbindingStrategy() != null
-							&& !getUnbindingStrategy().equals(type.getUnbindingStrategy()))
-						throw new SchemaException();
-
-					if (getUnbindingClass() != null
-							&& !getUnbindingClass().equals(type.getUnbindingClass()))
-						throw new SchemaException();
-
-					if (getUnbindingMethod() != null
-							&& !getUnbindingMethod().equals(type.getUnbindingMethod()))
-						throw new SchemaException();
-				}
 			}
 
 			@Override
@@ -147,21 +115,6 @@ public class DataNodeConfiguratorImpl<T>
 
 			effective = new Effective<>(OverrideMerge.with(DataNode.wrapType(this),
 					configurator));
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof DataNode))
-				return false;
-
-			DataNode<?> other = (DataNode<?>) obj;
-
-			return super.equals(obj) && Objects.equals(type, other.type())
-					&& Objects.equals(providedValue(), other.providedValue())
-					&& Objects.equals(providedValueBuffer(), other.providedValueBuffer())
-					&& Objects.equals(valueResolution(), other.valueResolution())
-					&& Objects.equals(format, other.format())
-					&& Objects.equals(optional, other.optional());
 		}
 
 		@Override

@@ -37,29 +37,32 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					OverrideMerge<? extends BindingChildNode<?, ?>, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				occurances = overrideMerge.getValue(n -> n.occurances(),
+				occurances = overrideMerge.getValue(BindingChildNode::occurances,
 						(v, o) -> o.contains(v));
 
-				iterable = overrideMerge.getValue(n -> n.isOutMethodIterable(),
-						(n, o) -> Objects.equals(n, o));
+				iterable = overrideMerge.getValue(
+						BindingChildNode::isOutMethodIterable, Objects::equals);
 
-				outMethodName = overrideMerge.getValue(n -> n.getOutMethodName());
+				outMethodName = overrideMerge
+						.getValue(BindingChildNode::getOutMethodName);
 
-				inMethodName = overrideMerge.getValue(n -> n.getInMethodName());
+				inMethodName = overrideMerge
+						.getValue(BindingChildNode::getInMethodName);
 
-				inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
+				inMethodChained = overrideMerge
+						.getValue(BindingChildNode::isInMethodChained);
 
 				if (outMethodName == "this" && !iterable)
 					throw new SchemaException();
 				outMethod = (outMethodName == "null") ? null : getOutMethod(
 						overrideMerge.configurator().getCurrentChildOutputTargetClass(),
 						overrideMerge.getValue(n -> n.effective().getOutMethod(),
-								(m, n) -> m.equals(n)));
+								Objects::equals));
 
 				inMethod = (inMethodName == "null") ? null : getInMethod(overrideMerge
 						.configurator().getCurrentChildInputTargetClass(),
 						overrideMerge.getValue(n -> n.effective().getInMethod(),
-								(m, n) -> m.equals(n)));
+								Objects::equals));
 			}
 
 			@Override
@@ -154,20 +157,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof BindingChildNode))
-				return false;
-
-			BindingChildNode<?, ?> other = (BindingChildNode<?, ?>) obj;
-			return super.equals(obj)
-					&& Objects.equals(occurances, other.occurances())
-					&& Objects.equals(iterable, other.isOutMethodIterable())
-					&& Objects.equals(outMethodName, other.getOutMethodName())
-					&& Objects.equals(inMethodName, other.getInMethodName())
-					&& Objects.equals(inMethodChained, other.isInMethodChained());
 		}
 
 		@Override

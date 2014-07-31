@@ -30,10 +30,11 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl<?>> overrideMerge) {
 				super(overrideMerge);
 
-				inMethodName = overrideMerge.getValue(n -> n.getInMethodName(),
-						(m, n) -> m.equals(n));
+				inMethodName = overrideMerge.getValue(
+						InputSequenceNode::getInMethodName, Objects::equals);
 
-				inMethodChained = overrideMerge.getValue(n -> n.isInMethodChained());
+				inMethodChained = overrideMerge
+						.getValue(InputSequenceNode::isInMethodChained);
 
 				Method inMethod = null;
 				try {
