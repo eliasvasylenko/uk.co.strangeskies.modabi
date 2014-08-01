@@ -31,7 +31,7 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 		this.component = component;
 		this.base = base;
 
-		String message = component.getId() + " / " + base.getId();
+		String message = component.getName() + " / " + base.getName();
 
 		if (base.getDataClass() != null
 				&& !base.getDataClass().isAssignableFrom(component.getDataClass()))
@@ -117,8 +117,8 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	}
 
 	@Override
-	public String getId() {
-		return component.getId();
+	public String getName() {
+		return component.getName();
 	}
 
 	@Override

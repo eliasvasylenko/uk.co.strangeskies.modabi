@@ -65,6 +65,6 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bind
 
 	@Override
 	public ChildBuilder<C, B> addChild() {
-		return childBuilder();
+		return super.addChild();
 	}
 }

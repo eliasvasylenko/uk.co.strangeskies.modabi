@@ -138,9 +138,15 @@ public interface DataNode<T> extends
 			}
 
 			@Override
-			public String getId() {
-				return node.getId() != null ? node.getId() : node.type().effective()
-						.getName();
+			public List<String> getProvidedUnbindingMethodParameterNames() {
+				return node.type().effective()
+						.getProvidedUnbindingMethodParameterNames();
+			}
+
+			@Override
+			public String getName() {
+				return node.getName() != null ? node.getName() : node.type()
+						.effective().getName();
 			}
 
 			@Override

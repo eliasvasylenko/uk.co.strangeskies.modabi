@@ -28,14 +28,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			protected Effective(
 					OverrideMerge<? extends SchemaNode<?>, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
-				id = overrideMerge.getValue(SchemaNode::getId);
+				id = overrideMerge.getValue(SchemaNode::getName);
 
 				children = overrideMerge.configurator().getChildren()
 						.getEffectiveChildren();
 			}
 
 			@Override
-			public String getId() {
+			public String getName() {
 				return id;
 			}
 
@@ -43,15 +43,25 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			public List<? extends ChildNode.Effective<?>> children() {
 				return children;
 			}
+
+			@Override
+			public final boolean equals(Object obj) {
+				return equalsImpl(obj);
+			}
+
+			@Override
+			public int hashCode() {
+				return hashCodeImpl();
+			}
 		}
 
-		private final String id;
+		private final String name;
 		private final List<ChildNode<?>> children;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseProperties();
 
-			id = configurator.getId();
+			name = configurator.getId();
 
 			for (Set<? extends ChildNode<?>> namedChildren : configurator.children
 					.getNamedInheritedChildren().values())
@@ -61,7 +71,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 							i.next().equals(i.next())
 									+ " "
 									+ "Node '"
-									+ namedChildren.iterator().next().getId()
+									+ namedChildren.iterator().next().getName()
 									+ "' is inherited multiple times and must be explicitly overridden.");
 				}
 
@@ -70,13 +80,23 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public final String getId() {
-			return id;
+		public final String getName() {
+			return name;
 		}
 
 		@Override
 		public final List<? extends ChildNode<?>> children() {
 			return children;
+		}
+
+		@Override
+		public final boolean equals(Object obj) {
+			return equalsImpl(obj);
+		}
+
+		@Override
+		public int hashCode() {
+			return hashCodeImpl();
 		}
 	}
 
@@ -84,7 +104,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	private boolean finalisedProperties;
 
-	private String id;
+	private String name;
 
 	public SchemaNodeConfiguratorImpl() {
 		finalisedProperties = false;
@@ -121,19 +141,19 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@Override
-	public final S id(String id) {
-		requireConfigurable(this.id);
-		this.id = id;
+	public final S name(String name) {
+		requireConfigurable(this.name);
+		this.name = name;
 
 		return getThis();
 	}
 
 	protected abstract Class<N> getNodeClass();
 
-	abstract Set<N> getOverriddenNodes();
+	protected abstract Set<N> getOverriddenNodes();
 
 	protected final String getId() {
-		return id;
+		return name;
 	}
 
 	protected abstract Class<?> getCurrentChildInputTargetClass();
@@ -142,7 +162,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract DataLoader getDataLoader();
 
-	protected ChildBuilder<C, B> childBuilder() {
+	protected ChildBuilder<C, B> addChild() {
 		children.assertUnblocked();
 		finaliseProperties();
 

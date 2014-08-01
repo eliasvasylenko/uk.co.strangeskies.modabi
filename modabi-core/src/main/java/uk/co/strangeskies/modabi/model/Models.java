@@ -16,7 +16,7 @@ public class Models extends NamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;
 
 	public Models(Namespace namespace) {
-		super(namespace, t -> t.getId());
+		super(namespace, t -> t.getName());
 		derivedModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
 	}
 

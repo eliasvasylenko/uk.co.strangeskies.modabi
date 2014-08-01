@@ -6,7 +6,8 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
 public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T, ?>, T>
-		extends BindingNodeConfigurator<S, N, T>,
+		extends
+		BindingNodeConfigurator<S, N, T, ChildNode<?>, BindingChildNode<?, ?>>,
 		BranchingNodeConfigurator<S, N, ChildNode<?>, BindingChildNode<?, ?>> {
 	public S isAbstract(boolean isAbstract);
 

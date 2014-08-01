@@ -98,6 +98,6 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 
 	@Override
 	public ChildBuilder<C, B> addChild() {
-		return childBuilder();
+		return super.addChild();
 	}
 }

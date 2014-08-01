@@ -62,9 +62,9 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	public void addChild(ChildNode<?> result) {
 		blocked = false;
 		children.add(result);
-		if (result.getId() != null) {
+		if (result.getName() != null) {
 			Set<ChildNode.Effective<?>> removed = namedInheritedChildren
-					.remove(result.getId());
+					.remove(result.getName());
 			if (removed != null)
 				inheritedChildren.removeAll(removed);
 		}
@@ -82,8 +82,8 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	}
 
 	public void inheritNamedChildren(List<? extends ChildNode.Effective<?>> nodes) {
-		nodes.stream().filter(c -> c.getId() != null)
-				.forEach(c -> namedInheritedChildren.add(c.getId(), c));
+		nodes.stream().filter(c -> c.getName() != null)
+				.forEach(c -> namedInheritedChildren.add(c.getName(), c));
 	}
 
 	@SuppressWarnings("unchecked")

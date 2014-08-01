@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
@@ -75,16 +73,6 @@ public class ElementNodeConfiguratorImpl<T>
 		@Override
 		public Effective<T> effective() {
 			return effective;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof ElementNode))
-				return false;
-
-			ElementNode<?> other = (ElementNode<?>) obj;
-			return super.equals(obj) && Objects.equals(baseModel, other.baseModel())
-					&& Objects.equals(isAbstract, other.isAbstract());
 		}
 
 		@Override
@@ -156,10 +144,5 @@ public class ElementNodeConfiguratorImpl<T>
 	@Override
 	protected ElementNode<T> tryCreate() {
 		return new ElementNodeImpl<>(this);
-	}
-
-	@Override
-	public ChildBuilder<ChildNode<?>, BindingChildNode<?, ?>> addChild() {
-		return childBuilder();
 	}
 }

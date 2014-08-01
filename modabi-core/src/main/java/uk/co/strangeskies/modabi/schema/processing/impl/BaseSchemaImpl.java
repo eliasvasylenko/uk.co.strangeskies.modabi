@@ -73,7 +73,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.isAbstract(true)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.addChild(
-							c -> c.data().id("element").inMethod("add").outMethod("this")
+							c -> c.data().name("element").inMethod("add").outMethod("this")
 									.occurances(Range.create(0, null)).outMethodIterable(true))
 					.create();
 			typeSet.add(collectionType);
@@ -107,22 +107,22 @@ public class BaseSchemaImpl implements BaseSchema {
 					.unbindingMethod("dereference")
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 					.addChild(
-							d -> d.data().dataClass(Model.class).id("targetDomain")
+							d -> d.data().dataClass(Model.class).name("targetDomain")
 									.valueResolution(ValueResolution.REGISTRATION_TIME)
 									.inMethod("null").outMethod("null"))
 					.addChild(
-							d -> d.data().type(primitives.get(DataType.STRING)).id("id")
+							d -> d.data().type(primitives.get(DataType.STRING)).name("id")
 									.valueResolution(ValueResolution.REGISTRATION_TIME)
 									.inMethod("null").outMethod("null"))
 					.addChild(
 							c -> c
 									.inputSequence()
-									.id("reference")
+									.name("reference")
 									.addChild(
 											d -> d
 													.data()
 													.dataClass(Model.class)
-													.id("targetDomain")
+													.name("targetDomain")
 													.outMethod("null")
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -130,7 +130,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(
 															e -> e
 																	.data()
-																	.id("parent")
+																	.name("parent")
 																	.type(primitives.get(DataType.INT))
 																	.inMethodChained(true)
 																	.outMethod("null")
@@ -140,7 +140,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(
 															e -> e
 																	.data()
-																	.id("node")
+																	.name("node")
 																	.type(primitives.get(DataType.STRING))
 																	.inMethodChained(true)
 																	.outMethod("null")
@@ -149,13 +149,13 @@ public class BaseSchemaImpl implements BaseSchema {
 																					DataType.STRING, "targetDomain")
 																					.buffer()))
 													.addChild(
-															e -> e.inputSequence().id("providedValue")
+															e -> e.inputSequence().name("providedValue")
 																	.inMethodChained(true)))
 									.addChild(
 											d -> d
 													.data()
 													.dataClass(String.class)
-													.id("id")
+													.name("id")
 													.outMethod("null")
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -163,7 +163,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(
 															e -> e
 																	.data()
-																	.id("parent")
+																	.name("parent")
 																	.type(primitives.get(DataType.INT))
 																	.inMethodChained(true)
 																	.outMethod("null")
@@ -173,7 +173,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(
 															e -> e
 																	.data()
-																	.id("node")
+																	.name("node")
 																	.type(primitives.get(DataType.STRING))
 																	.inMethodChained(true)
 																	.outMethod("null")
@@ -181,10 +181,10 @@ public class BaseSchemaImpl implements BaseSchema {
 																			new BufferingDataTarget().put(
 																					DataType.STRING, "id").buffer()))
 													.addChild(
-															e -> e.inputSequence().id("providedValue")
+															e -> e.inputSequence().name("providedValue")
 																	.inMethodChained(true)))
 									.addChild(
-											d -> d.data().type(bufferedDataType).id("ref")
+											d -> d.data().type(bufferedDataType).name("ref")
 													.outMethod("null"))).create();
 			typeSet.add(referenceBaseType);
 
@@ -196,13 +196,13 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(
 							c -> c
 									.data()
-									.id("targetDomain")
+									.name("targetDomain")
 									.type(referenceBaseType)
 									.dataClass(Model.class)
 									.addChild(
 											d -> d
 													.data()
-													.id("targetDomain")
+													.name("targetDomain")
 													.provideValue(
 															new BufferingDataTarget().put(DataType.STRING,
 																	"schema.modabi.strangeskies.co.uk:Model")
@@ -210,7 +210,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(
 											d -> d
 													.data()
-													.id("id")
+													.name("id")
 													.provideValue(
 															new BufferingDataTarget().put(DataType.STRING,
 																	"id").buffer()))).create();
@@ -220,7 +220,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.dataClass(Class.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY).addChild(
 					// TODO outMethod not being carried through to unbinding process...
-							p -> p.data().type(primitives.get(DataType.STRING)).id("name"))
+							p -> p.data().type(primitives.get(DataType.STRING)).name("name"))
 					.create();
 			typeSet.add(classType);
 
@@ -231,12 +231,12 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(
 							n -> n
 									.inputSequence()
-									.id("valueOf")
+									.name("valueOf")
 									.addChild(
 											o -> o
 													.data()
 													.dataClass(Model.class)
-													.id("enumType")
+													.name("enumType")
 													.outMethod("null")
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -244,7 +244,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(
 															p -> p
 																	.data()
-																	.id("parent")
+																	.name("parent")
 																	.type(primitives.get(DataType.INT))
 																	.inMethodChained(true)
 																	.outMethod("null")
@@ -252,10 +252,10 @@ public class BaseSchemaImpl implements BaseSchema {
 																			new BufferingDataTarget().put(
 																					DataType.INT, 2).buffer()))
 													.addChild(
-															p -> p.inputSequence().id("getDataClass")
+															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
 									.addChild(
-											o -> o.data().id("name")
+											o -> o.data().name("name")
 													.type(primitives.get(DataType.STRING)))).create();
 			typeSet.add(enumType);
 
@@ -266,12 +266,12 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(
 							n -> n
 									.inputSequence()
-									.id("valueOf")
+									.name("valueOf")
 									.addChild(
 											o -> o
 													.data()
 													.dataClass(Model.class)
-													.id("enumerationType")
+													.name("enumerationType")
 													.outMethod("null")
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -279,7 +279,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(
 															p -> p
 																	.data()
-																	.id("parent")
+																	.name("parent")
 																	.type(primitives.get(DataType.INT))
 																	.inMethodChained(true)
 																	.outMethod("null")
@@ -287,10 +287,10 @@ public class BaseSchemaImpl implements BaseSchema {
 																			new BufferingDataTarget().put(
 																					DataType.INT, 2).buffer()))
 													.addChild(
-															p -> p.inputSequence().id("getDataClass")
+															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
 									.addChild(
-											o -> o.data().id("name")
+											o -> o.data().name("name")
 													.type(primitives.get(DataType.STRING)))).create();
 			typeSet.add(enumType);
 
@@ -301,10 +301,10 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
 					.unbindingClass(String.class)
-					.unbindingFactroyClass(Range.class)
+					.unbindingFactoryClass(Range.class)
 					.addChild(
-							p -> p.data().type(primitives.get(DataType.STRING)).id("string"))
-					.create();
+							p -> p.data().type(primitives.get(DataType.STRING))
+									.name("string")).create();
 			typeSet.add(rangeType);
 		}
 
@@ -365,7 +365,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		public BaseModelsImpl(DataLoader loader, ModelBuilder builder,
 				Set<Model<?>> modelSet) {
-			includeModel = builder.configure(loader).id("include")
+			includeModel = builder.configure(loader).name("include")
 					.bindingClass(ModelLoader.class).dataClass(Object.class).create();
 			modelSet.add(includeModel);
 		}
@@ -411,7 +411,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.unbindingMethod("put")
 				.providedUnbindingParameters("dataType", "this")
 				.addChild(
-						c -> c.data().id("dataType").type(enumerationBaseType)
+						c -> c.data().name("dataType").type(enumerationBaseType)
 								.dataClass(DataType.class).outMethod("null")).create();
 		typeSet.add(primitive);
 
@@ -431,7 +431,7 @@ public class BaseSchemaImpl implements BaseSchema {
 										.addChild(
 												c -> c
 														.data()
-														.id("dataType")
+														.name("dataType")
 														.provideValue(
 																new BufferingDataTarget().put(DataType.STRING,
 																		t.name()).buffer())).create()));

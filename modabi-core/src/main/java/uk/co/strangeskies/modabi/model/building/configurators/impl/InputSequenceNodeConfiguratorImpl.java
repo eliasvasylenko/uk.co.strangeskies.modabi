@@ -89,17 +89,6 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof InputSequenceNode))
-				return false;
-
-			InputSequenceNode other = (InputSequenceNode) obj;
-			return super.equals(obj)
-					&& Objects.equals(inMethodName, other.getInMethodName())
-					&& Objects.equals(inMethodChained, other.isInMethodChained());
-		}
-
-		@Override
 		public final String getInMethodName() {
 			return inMethodName;
 		}
@@ -159,6 +148,6 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 
 	@Override
 	public ChildBuilder<C, C> addChild() {
-		return childBuilder();
+		return super.addChild();
 	}
 }

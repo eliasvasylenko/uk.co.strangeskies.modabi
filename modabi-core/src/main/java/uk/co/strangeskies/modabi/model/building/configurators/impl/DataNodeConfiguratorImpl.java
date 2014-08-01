@@ -8,7 +8,6 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
-import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
@@ -16,7 +15,6 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
-import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -298,14 +296,5 @@ public class DataNodeConfiguratorImpl<T>
 		if (type != null)
 			return type.getUnbindingClass();
 		return super.getUnbindingClass();
-	}
-
-	@Override
-	public ChildBuilder<DataNodeChildNode<?>, DataNode<?>> addChild() {
-		getChildren().assertUnblocked();
-		finaliseProperties();
-
-		return getChildren().addChild(getDataLoader(),
-				getCurrentChildInputTargetClass(), getCurrentChildOutputTargetClass());
 	}
 }

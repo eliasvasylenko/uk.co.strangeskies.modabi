@@ -73,7 +73,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						.children()
 						.stream()
 						.filter(
-								c -> c.getId().equals(idDomain)
+								c -> c.getName().equals(idDomain)
 										&& c instanceof DataNode.Effective<?>).findAny()
 						.orElseThrow(SchemaException::new);
 
@@ -112,10 +112,10 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 			switch (node.format()) {
 			case PROPERTY:
-				bufferedTarget.pipe(output.property(node.getId())).terminate();
+				bufferedTarget.pipe(output.property(node.getName())).terminate();
 				break;
 			case SIMPLE_ELEMENT:
-				output.nextChild(node.getId());
+				output.nextChild(node.getName());
 				bufferedTarget.pipe(output.content()).terminate();
 				output.endChild();
 				break;
@@ -188,7 +188,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	private <U> void unbindModel(AbstractModel.Effective<? extends U, ?> node,
 			U data) {
-		output.nextChild(node.getId());
+		output.nextChild(node.getName());
 		processBindingChildren(node, unbindData(node, data));
 		output.endChild();
 	}
@@ -198,7 +198,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		Object parent = bindingStack.peek();
 
 		if (node.getDataClass() == null)
-			throw new SchemaException(node.getId());
+			throw new SchemaException(node.getName());
 
 		List<U> itemList;
 
@@ -233,7 +233,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			}
 		} catch (IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
-			throw new SchemaException(node.getId() + " @ " + parent.getClass(), e);
+			throw new SchemaException(node.getName() + " @ " + parent.getClass(), e);
 		}
 
 		return itemList;

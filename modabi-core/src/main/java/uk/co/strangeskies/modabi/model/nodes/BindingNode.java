@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
@@ -13,6 +14,8 @@ public interface BindingNode<T, E extends BindingNode.Effective<T, E>> extends
 	interface Effective<T, E extends Effective<T, E>> extends BindingNode<T, E>,
 			SchemaNode.Effective<E> {
 		Method getUnbindingMethod();
+
+		List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters();
 
 		public static Method findUnbindingMethod(
 				BindingNode.Effective<?, ?> effective) {
@@ -57,7 +60,7 @@ public interface BindingNode<T, E extends BindingNode.Effective<T, E>> extends
 			Method unbindingMethod = null;
 			try {
 				unbindingMethod = BindingNodeConfigurator.findMethod(
-						BindingNodeConfiguratorImpl.getNames(effective.getId(),
+						BindingNodeConfiguratorImpl.getNames(effective.getName(),
 								effective.getUnbindingMethodName(), resultClass),
 						receiverClass, resultClass, parameters);
 			} catch (NoSuchMethodException | SecurityException e) {
@@ -80,4 +83,6 @@ public interface BindingNode<T, E extends BindingNode.Effective<T, E>> extends
 	String getUnbindingMethodName();
 
 	Class<?> getUnbindingFactoryClass();
+
+	List<String> getProvidedUnbindingMethodParameterNames();
 }

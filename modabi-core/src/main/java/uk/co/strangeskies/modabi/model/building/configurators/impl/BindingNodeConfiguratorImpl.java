@@ -1,21 +1,26 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
-		BindingNodeConfigurator<S, N, T> {
+		BindingNodeConfigurator<S, N, T, C, B> {
 	protected static abstract class BindingNodeImpl<T, E extends BindingNode.Effective<T, E>>
 			extends SchemaNodeImpl<E> implements BindingNode<T, E> {
 		protected static abstract class Effective<T, E extends BindingNode.Effective<T, E>>
@@ -29,6 +34,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final UnbindingStrategy unbindingStrategy;
 			private final String unbindingMethodName;
 			private final Method unbindingMethod;
+
+			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 			@SuppressWarnings("unchecked")
 			protected Effective(
@@ -55,6 +62,38 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						BindingNode::getUnbindingMethodName, Objects::equals);
 
 				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
+
+				providedUnbindingParameters = overrideMerge
+						.node()
+						.getProvidedUnbindingMethodParameterNames()
+						.stream()
+						.map(
+								p -> {
+									if (p.equals("this"))
+										return null;
+									else {
+										ChildNode.Effective<?> node = children()
+												.stream()
+												.filter(c -> c.getName().equals(p))
+												.findAny()
+												.orElseThrow(
+														() -> new SchemaException(
+																"Cannot find node for unbinding parameter: '"
+																		+ p + "'"));
+
+										if (!(node instanceof DataNode.Effective))
+											throw new SchemaException("Unbinding parameter node '"
+													+ node + "' for '" + p + "' is not a data node.");
+
+										DataNode.Effective<?> dataNode = (DataNode.Effective<?>) node;
+
+										if (!dataNode.isValueProvided())
+											throw new SchemaException("Unbinding parameter node '"
+													+ node + "' for '" + p + "' must provide a value.");
+
+										return dataNode;
+									}
+								}).collect(Collectors.toList());
 			}
 
 			@Override
@@ -96,6 +135,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			public String getUnbindingMethodName() {
 				return unbindingMethodName;
 			}
+
+			@Override
+			public List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters() {
+				return providedUnbindingParameters;
+			}
+
+			@Override
+			public List<String> getProvidedUnbindingMethodParameterNames() {
+				return providedUnbindingParameters.stream().map(n -> n.getName())
+						.collect(Collectors.toList());
+			}
 		}
 
 		private final Class<T> dataClass;
@@ -105,6 +155,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		private final BindingStrategy bindingStrategy;
 		private final UnbindingStrategy unbindingStrategy;
 		private final String unbindingMethodName;
+
+		private final List<String> unbindingParameterNames;
 
 		public BindingNodeImpl(
 				BindingNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
@@ -119,22 +171,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingClass = configurator.unbindingClass;
 			unbindingMethodName = configurator.unbindingMethod;
 			unbindingFactoryClass = configurator.unbindingFactoryClass;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof BindingNode))
-				return false;
-
-			BindingNode<?, ?> other = (BindingNode<?, ?>) obj;
-			return super.equals(obj)
-					&& Objects.equals(dataClass, other.getDataClass())
-					&& Objects.equals(bindingClass, other.getBindingClass())
-					&& Objects.equals(unbindingClass, other.getUnbindingClass())
-					&& Objects.equals(bindingStrategy, other.getBindingStrategy())
-					&& Objects.equals(unbindingStrategy, other.getUnbindingStrategy())
-					&& Objects
-							.equals(unbindingMethodName, other.getUnbindingMethodName());
+			unbindingParameterNames = Collections.unmodifiableList(new ArrayList<>(
+					configurator.unbindingParameterNames));
 		}
 
 		@Override
@@ -171,6 +209,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		public String getUnbindingMethodName() {
 			return unbindingMethodName;
 		}
+
+		@Override
+		public List<String> getProvidedUnbindingMethodParameterNames() {
+			return unbindingParameterNames;
+		}
 	}
 
 	private Class<T> dataClass;
@@ -180,18 +223,20 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	private UnbindingStrategy unbindingStrategy;
 	private Class<?> unbindingClass;
-	public String unbindingMethod;
+	private String unbindingMethod;
 
 	private Class<?> unbindingFactoryClass;
 
+	private List<String> unbindingParameterNames;
+
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
+	public <V extends T> BindingNodeConfigurator<?, ?, V, C, B> dataClass(
 			Class<V> dataClass) {
 		requireConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
-		return (BindingNodeConfigurator<?, ?, V>) this;
+		return (BindingNodeConfigurator<?, ?, V, C, B>) this;
 	}
 
 	protected UnbindingStrategy getUnbindingStrategy() {
@@ -295,6 +340,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return getThis();
 	}
 
+	@Override
+	public final S providedUnbindingParameters(List<String> parameterNames) {
+		requireConfigurable(unbindingParameterNames);
+		unbindingParameterNames = new ArrayList<>(parameterNames);
+
+		return getThis();
+	}
+
 	public static List<String> getNames(String propertyName,
 			String unbindingMethodName, Class<?> resultClass) {
 		List<String> names;
@@ -305,5 +358,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					false, resultClass);
 		}
 		return names;
+	}
+
+	@Override
+	public final ChildBuilder<C, B> addChild() {
+		return super.addChild();
 	}
 }

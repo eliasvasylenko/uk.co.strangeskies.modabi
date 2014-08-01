@@ -14,9 +14,9 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
-		BindingChildNodeConfigurator<S, N, T> {
+		BindingChildNodeConfigurator<S, N, T, C, B> {
 	protected static abstract class BindingChildNodeImpl<T, E extends BindingChildNode.Effective<T, E>>
 			extends BindingNodeImpl<T, E> implements ChildNodeImpl<E>,
 			BindingChildNode<T, E> {
@@ -205,9 +205,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public <V extends T> BindingChildNodeConfigurator<?, ?, V> dataClass(
+	public <V extends T> BindingChildNodeConfigurator<?, ?, V, C, B> dataClass(
 			Class<V> dataClass) {
-		return (BindingChildNodeConfigurator<?, ?, V>) super.dataClass(dataClass);
+		return (BindingChildNodeConfigurator<?, ?, V, C, B>) super
+				.dataClass(dataClass);
 	}
 
 	@Override

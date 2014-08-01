@@ -11,25 +11,32 @@ import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
+import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?>, T>
-		extends SchemaNodeConfigurator<S, N> {
-	public <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+		extends SchemaNodeConfigurator<S, N>, BranchingNodeConfigurator<S, N, C, B> {
+	<V extends T> BindingNodeConfigurator<?, ?, V, C, B> dataClass(
 			Class<V> dataClass);
 
-	public S bindingStrategy(BindingStrategy strategy);
+	S bindingStrategy(BindingStrategy strategy);
 
-	public S bindingClass(Class<?> bindingClass);
+	S bindingClass(Class<?> bindingClass);
 
-	public S unbindingStrategy(UnbindingStrategy strategy);
+	S unbindingStrategy(UnbindingStrategy strategy);
 
-	public S unbindingFactoryClass(Class<?> factoryClass);
+	S unbindingFactoryClass(Class<?> factoryClass);
 
-	public S unbindingClass(Class<?> unbindingClass);
+	S unbindingClass(Class<?> unbindingClass);
 
-	public S unbindingMethod(String unbindingMethod);
+	S unbindingMethod(String unbindingMethod);
+
+	S providedUnbindingParameters(List<String> parameterNames);
+
+	default S providedUnbindingParameters(String... parameterNames) {
+		return providedUnbindingParameters(Arrays.asList(parameterNames));
+	}
 
 	/*
 	 * Method resolution
@@ -70,7 +77,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		if (node.getInMethodName() != null)
 			return Arrays.asList(node.getInMethodName());
 		else
-			return generateInMethodNames(node.getId());
+			return generateInMethodNames(node.getName());
 
 	}
 
@@ -106,7 +113,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		if (node.getOutMethodName() != null)
 			names.add(node.getOutMethodName());
 		else
-			names.addAll(generateOutMethodNames(node.getId(),
+			names.addAll(generateOutMethodNames(node.getName(),
 					node.isOutMethodIterable() != null && node.isOutMethodIterable(),
 					resultClass));
 

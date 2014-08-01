@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.ModelConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
@@ -117,7 +116,7 @@ public class ModelConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	Set<Model<T>> getOverriddenNodes() {
+	protected Set<Model<T>> getOverriddenNodes() {
 		return (Set<Model<T>>) (Object) baseModel;
 	}
 
@@ -136,10 +135,5 @@ public class ModelConfiguratorImpl<T>
 	@Override
 	protected Class<Model<T>> getNodeClass() {
 		return (Class<Model<T>>) (Object) Model.class;
-	}
-
-	@Override
-	public ChildBuilder<ChildNode<?>, BindingChildNode<?, ?>> addChild() {
-		return childBuilder();
 	}
 }

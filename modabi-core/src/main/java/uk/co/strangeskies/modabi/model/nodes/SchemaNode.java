@@ -12,11 +12,24 @@ public interface SchemaNode<E extends SchemaNode.Effective<E>> {
 		default E effective() {
 			return (E) this;
 		}
+
+		@Override
+		default boolean equalsImpl(Object obj) {
+			return false;
+		}
 	}
 
-	String getId();
+	String getName();
 
 	List<? extends ChildNode<?>> children();
 
 	E effective();
+
+	default boolean equalsImpl(Object obj) {
+		return false;
+	}
+
+	default int hashCodeImpl() {
+		return 0;
+	}
 }
