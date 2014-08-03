@@ -10,6 +10,8 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.DataNodeWrapper;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
@@ -111,8 +113,7 @@ public class DataNodeConfiguratorImpl<T>
 			resolution = configurator.resolution;
 			provided = null;
 
-			effective = new Effective<>(OverrideMerge.with(DataNode.wrapType(this),
-					configurator));
+			effective = new Effective<>(overrideMerge(this, configurator));
 		}
 
 		@Override
@@ -202,7 +203,7 @@ public class DataNodeConfiguratorImpl<T>
 	protected Set<DataNode<T>> getOverriddenNodes() {
 		Set<DataNode<T>> overriddenNodes = new HashSet<>(super.getOverriddenNodes());
 
-		overriddenNodes.add(DataNode.wrapType(type.effective()));
+		overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
 
 		return overriddenNodes;
 	}

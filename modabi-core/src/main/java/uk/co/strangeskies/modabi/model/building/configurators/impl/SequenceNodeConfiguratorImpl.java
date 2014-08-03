@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -29,7 +30,7 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bind
 		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
 			super(configurator);
 
-			effective = new Effective(OverrideMerge.with(this, configurator));
+			effective = new Effective(overrideMerge(this, configurator));
 		}
 
 		@Override

@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.configurators.impl;
+package uk.co.strangeskies.modabi.model.building.impl;
 
 import java.util.Collection;
 import java.util.function.BiPredicate;
@@ -17,12 +17,6 @@ public class OverrideMerge<E, C> {
 		this.node = node;
 		this.configurator = configurator;
 		this.overriddenNodesFunction = overriddenNodesFunction;
-	}
-
-	public static <E, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> with(
-			E node, C configurator) {
-		return new OverrideMerge<E, C>(node, configurator,
-				c -> c.getOverriddenNodes());
 	}
 
 	public E node() {

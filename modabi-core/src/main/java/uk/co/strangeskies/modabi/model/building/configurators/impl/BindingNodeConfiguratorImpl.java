@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -63,37 +64,43 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
 
-				providedUnbindingParameters = overrideMerge
-						.node()
-						.getProvidedUnbindingMethodParameterNames()
-						.stream()
-						.map(
-								p -> {
-									if (p.equals("this"))
-										return null;
-									else {
-										ChildNode.Effective<?> node = children()
-												.stream()
-												.filter(c -> c.getName().equals(p))
-												.findAny()
-												.orElseThrow(
-														() -> new SchemaException(
-																"Cannot find node for unbinding parameter: '"
-																		+ p + "'"));
+				List<String> providedUnbindingMethodParameterNames = overrideMerge
+						.getValue(BindingNode::getProvidedUnbindingMethodParameterNames,
+								Objects::equals);
 
-										if (!(node instanceof DataNode.Effective))
-											throw new SchemaException("Unbinding parameter node '"
-													+ node + "' for '" + p + "' is not a data node.");
+				providedUnbindingParameters = providedUnbindingMethodParameterNames == null ? null
+						: providedUnbindingMethodParameterNames
+								.stream()
+								.map(
+										p -> {
+											if (p.equals("this"))
+												return null;
+											else {
+												ChildNode.Effective<?> node = children()
+														.stream()
+														.filter(c -> c.getName().equals(p))
+														.findAny()
+														.orElseThrow(
+																() -> new SchemaException(
+																		"Cannot find node for unbinding parameter: '"
+																				+ p + "'"));
 
-										DataNode.Effective<?> dataNode = (DataNode.Effective<?>) node;
+												if (!(node instanceof DataNode.Effective))
+													throw new SchemaException(
+															"Unbinding parameter node '" + node + "' for '"
+																	+ p + "' is not a data node.");
 
-										if (!dataNode.isValueProvided())
-											throw new SchemaException("Unbinding parameter node '"
-													+ node + "' for '" + p + "' must provide a value.");
+												DataNode.Effective<?> dataNode = (DataNode.Effective<?>) node;
 
-										return dataNode;
-									}
-								}).collect(Collectors.toList());
+												if (!overrideMerge.configurator().isAbstract()
+														&& !dataNode.isValueProvided())
+													throw new SchemaException(
+															"Unbinding parameter node '" + node + "' for '"
+																	+ p + "' must provide a value.");
+
+												return dataNode;
+											}
+										}).collect(Collectors.toList());
 			}
 
 			@Override
@@ -171,8 +178,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingClass = configurator.unbindingClass;
 			unbindingMethodName = configurator.unbindingMethod;
 			unbindingFactoryClass = configurator.unbindingFactoryClass;
-			unbindingParameterNames = Collections.unmodifiableList(new ArrayList<>(
-					configurator.unbindingParameterNames));
+			unbindingParameterNames = configurator.unbindingParameterNames == null ? null
+					: Collections.unmodifiableList(new ArrayList<>(
+							configurator.unbindingParameterNames));
 		}
 
 		@Override

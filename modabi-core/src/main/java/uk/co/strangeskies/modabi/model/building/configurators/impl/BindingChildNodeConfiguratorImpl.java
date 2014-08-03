@@ -9,6 +9,7 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -56,13 +57,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					throw new SchemaException();
 				outMethod = (outMethodName == "null") ? null : getOutMethod(
 						overrideMerge.configurator().getCurrentChildOutputTargetClass(),
-						overrideMerge.getValue(n -> n.effective().getOutMethod(),
-								Objects::equals));
+						overrideMerge.getValue(n -> n.effective() == null ? null : n
+								.effective().getOutMethod(), Objects::equals));
 
 				inMethod = (inMethodName == "null") ? null : getInMethod(overrideMerge
 						.configurator().getCurrentChildInputTargetClass(),
-						overrideMerge.getValue(n -> n.effective().getInMethod(),
-								Objects::equals));
+						overrideMerge.getValue(n -> n.effective() == null ? null : n
+								.effective().getInMethod(), Objects::equals));
 			}
 
 			@Override

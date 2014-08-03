@@ -8,6 +8,8 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 public interface SchemaNodeConfigurationContext<T extends ChildNode<?>> {
 	DataLoader getDataLoader();
 
+	boolean isAbstract();
+
 	Class<?> getCurrentChildInputTargetClass();
 
 	Class<?> getCurrentChildOutputTargetClass();

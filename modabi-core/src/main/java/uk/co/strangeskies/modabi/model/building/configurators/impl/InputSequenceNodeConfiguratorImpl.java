@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
@@ -85,7 +86,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 
 			inMethodChained = configurator.inMethodChained;
 
-			effective = new Effective(OverrideMerge.with(this, configurator));
+			effective = new Effective(overrideMerge(this, configurator));
 		}
 
 		@Override

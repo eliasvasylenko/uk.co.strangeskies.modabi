@@ -11,6 +11,7 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -67,7 +68,7 @@ public class ElementNodeConfiguratorImpl<T>
 					: new ArrayList<>(configurator.baseModel);
 			isAbstract = configurator.isAbstract;
 
-			effective = new Effective<>(OverrideMerge.with(this, configurator));
+			effective = new Effective<>(overrideMerge(this, configurator));
 		}
 
 		@Override

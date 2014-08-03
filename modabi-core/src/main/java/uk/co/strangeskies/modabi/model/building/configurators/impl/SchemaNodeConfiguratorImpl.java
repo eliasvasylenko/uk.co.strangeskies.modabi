@@ -12,6 +12,7 @@ import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.Children;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
@@ -167,6 +168,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		finaliseProperties();
 
 		return children.addChild(getDataLoader(),
-				getCurrentChildInputTargetClass(), getCurrentChildOutputTargetClass());
+				getCurrentChildInputTargetClass(), getCurrentChildOutputTargetClass(),
+				isAbstract());
+	}
+
+	protected abstract boolean isAbstract();
+
+	public static <E, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> overrideMerge(
+			E node, C configurator) {
+		return new OverrideMerge<E, C>(node, configurator,
+				c -> c.getOverriddenNodes());
 	}
 }

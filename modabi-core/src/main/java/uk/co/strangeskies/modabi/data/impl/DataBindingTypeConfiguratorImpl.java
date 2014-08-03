@@ -9,7 +9,7 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.configurators.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 
@@ -33,10 +33,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 					OverrideMerge<DataBindingType<T>, DataBindingTypeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				isAbstract = overrideMerge.getValue(n -> n.isAbstract());
-				isPrivate = overrideMerge.getValue(n -> n.isPrivate());
+				isAbstract = overrideMerge.getValue(DataBindingType::isAbstract);
+				isPrivate = overrideMerge.getValue(DataBindingType::isPrivate);
 
-				baseType = overrideMerge.configurator().baseType.effective();
+				baseType = overrideMerge.configurator().baseType == null ? null
+						: overrideMerge.configurator().baseType.effective();
 			}
 
 			@Override
@@ -62,7 +63,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 		private final DataBindingType<? super T> baseType;
 
-		@SuppressWarnings("unchecked")
 		public DataBindingTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
@@ -71,10 +71,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 			baseType = configurator.baseType;
 
-			effective = new Effective<>(new OverrideMerge<>(this, configurator,
-					c -> c.baseType != null ? Arrays
-							.asList((DataBindingType<T>) c.baseType) : Collections
-							.emptyList()));
+			effective = new Effective<>(overrideMerge(this, configurator));
 		}
 
 		@Override
@@ -161,6 +158,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Set<DataBindingType<T>> getOverriddenNodes() {
-		return new HashSet<>(Arrays.asList((DataBindingType<T>) baseType));
+		return baseType == null ? Collections.emptySet() : new HashSet<>(
+				Arrays.asList((DataBindingType<T>) baseType));
 	}
 }

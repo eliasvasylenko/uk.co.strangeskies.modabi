@@ -104,7 +104,7 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	}
 
 	public ChildBuilder<C, B> addChild(DataLoader loader, Class<?> inputTarget,
-			Class<?> outputtarget) {
+			Class<?> outputtarget, boolean isAbstract) {
 		assertUnblocked();
 		blocked = true;
 
@@ -112,6 +112,11 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 			@Override
 			public DataLoader getDataLoader() {
 				return loader;
+			}
+
+			@Override
+			public boolean isAbstract() {
+				return isAbstract;
 			}
 
 			@Override

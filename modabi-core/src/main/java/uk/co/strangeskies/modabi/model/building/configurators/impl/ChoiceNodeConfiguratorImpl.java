@@ -5,6 +5,7 @@ import java.util.Objects;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -44,7 +45,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 
 			mandatory = configurator.mandatory;
 
-			effective = new Effective(OverrideMerge.with(this, configurator));
+			effective = new Effective(overrideMerge(this, configurator));
 		}
 
 		@Override

@@ -8,6 +8,7 @@ import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
@@ -37,29 +38,25 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 				&& !base.getDataClass().isAssignableFrom(component.getDataClass()))
 			throw new SchemaException(message);
 
-		if (base.getBindingClass() != null
-				&& !base.getBindingClass()
-						.isAssignableFrom(component.getBindingClass()))
-			throw new SchemaException(message);
-
-		if (base.getUnbindingClass() != null
-				&& !base.getUnbindingClass().isAssignableFrom(
-						component.getUnbindingClass()))
-			throw new SchemaException(message);
-
 		if (!component.baseModel().containsAll(base.baseModel()))
 			throw new SchemaException(message);
 
-		if (base.getBindingStrategy() != null
-				&& base.getBindingStrategy() != component.getBindingStrategy())
+		if (base.getBindingStrategy() != null)
 			throw new SchemaException(message);
 
-		if (base.getUnbindingStrategy() != null
-				&& base.getUnbindingStrategy() != component.getUnbindingStrategy())
+		if (base.getUnbindingStrategy() != null)
 			throw new SchemaException(message);
 
-		if (base.getUnbindingMethodName() != null
-				&& base.getUnbindingMethodName() != component.getUnbindingMethodName())
+		if (base.getBindingClass() != null)
+			throw new SchemaException(message);
+
+		if (base.getUnbindingClass() != null)
+			throw new SchemaException(message);
+
+		if (base.getUnbindingMethodName() != null)
+			throw new SchemaException(message);
+
+		if (base.getProvidedUnbindingMethodParameterNames() != null)
 			throw new SchemaException(message);
 
 		if (!base.children().isEmpty())
@@ -123,7 +120,7 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 
 	@Override
 	public List<? extends ChildNode.Effective<?>> children() {
-		return component.children() + base.children();
+		return component.children();
 	}
 
 	@Override
@@ -169,5 +166,15 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	@Override
 	public Class<?> getPostInputClass() {
 		return base == null ? null : base.getPostInputClass();
+	}
+
+	@Override
+	public List<String> getProvidedUnbindingMethodParameterNames() {
+		return component.getProvidedUnbindingMethodParameterNames();
+	}
+
+	@Override
+	public List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters() {
+		return component.getProvidedUnbindingMethodParameters();
 	}
 }
