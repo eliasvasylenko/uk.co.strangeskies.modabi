@@ -137,4 +137,11 @@ public class ModelConfiguratorImpl<T>
 	protected Class<Model<T>> getNodeClass() {
 		return (Class<Model<T>>) (Object) Model.class;
 	}
+
+	@Override
+	protected boolean isAbstract() {
+		return (isAbstract != null && isAbstract)
+				|| getOverriddenNodes().stream().anyMatch(
+						m -> m.effective().isAbstract());
+	}
 }

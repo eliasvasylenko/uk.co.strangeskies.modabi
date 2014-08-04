@@ -146,4 +146,11 @@ public class ElementNodeConfiguratorImpl<T>
 	protected ElementNode<T> tryCreate() {
 		return new ElementNodeImpl<>(this);
 	}
+
+	@Override
+	protected boolean isAbstract() {
+		return (isAbstract != null && isAbstract)
+				|| getOverriddenNodes().stream().anyMatch(
+						m -> m.effective().isAbstract());
+	}
 }

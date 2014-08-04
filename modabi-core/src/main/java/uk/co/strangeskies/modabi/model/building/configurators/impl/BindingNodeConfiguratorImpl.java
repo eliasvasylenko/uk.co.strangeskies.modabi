@@ -62,13 +62,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				unbindingMethodName = overrideMerge.getValue(
 						BindingNode::getUnbindingMethodName, Objects::equals);
 
-				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
-
 				List<String> providedUnbindingMethodParameterNames = overrideMerge
 						.getValue(BindingNode::getProvidedUnbindingMethodParameterNames,
 								Objects::equals);
 
-				providedUnbindingParameters = providedUnbindingMethodParameterNames == null ? null
+				providedUnbindingParameters = providedUnbindingMethodParameterNames == null ? unbindingMethodName == null ? null
+						: new ArrayList<>()
 						: providedUnbindingMethodParameterNames
 								.stream()
 								.map(
@@ -101,6 +100,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 												return dataNode;
 											}
 										}).collect(Collectors.toList());
+
+				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
+
+				// TODO verify unbinding method overrides okay...
 			}
 
 			@Override
@@ -150,8 +153,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			@Override
 			public List<String> getProvidedUnbindingMethodParameterNames() {
-				return providedUnbindingParameters.stream().map(n -> n.getName())
-						.collect(Collectors.toList());
+				return providedUnbindingParameters == null ? null
+						: providedUnbindingParameters.stream().map(n -> n.getName())
+								.collect(Collectors.toList());
 			}
 		}
 

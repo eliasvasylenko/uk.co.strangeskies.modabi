@@ -54,4 +54,9 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 	protected DataLoader getDataLoader() {
 		return getContext().getDataLoader();
 	}
+
+	@Override
+	protected boolean isAbstract() {
+		return getContext().isAbstract();
+	}
 }

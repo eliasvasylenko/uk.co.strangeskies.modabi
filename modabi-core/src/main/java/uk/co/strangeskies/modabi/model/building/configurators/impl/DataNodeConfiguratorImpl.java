@@ -41,14 +41,16 @@ public class DataNodeConfiguratorImpl<T>
 					OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				type = overrideMerge.getValue(DataNode::type, (n, o) -> {
-					DataBindingType<?> type = n;
-					do
-						if (type == o)
-							return true;
-					while ((type = type.baseType()) != null);
-					return false;
-				}).effective();
+				DataBindingType<T> type = overrideMerge.getValue(DataNode::type,
+						(n, o) -> {
+							DataBindingType<?> p = n;
+							do
+								if (p == o)
+									return true;
+							while ((p = p.baseType()) != null);
+							return false;
+						});
+				this.type = type == null ? null : type.effective();
 
 				optional = overrideMerge.getValue(DataNode::optional);
 				format = overrideMerge.getValue(DataNode::format, Objects::equals);
@@ -203,7 +205,8 @@ public class DataNodeConfiguratorImpl<T>
 	protected Set<DataNode<T>> getOverriddenNodes() {
 		Set<DataNode<T>> overriddenNodes = new HashSet<>(super.getOverriddenNodes());
 
-		overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
+		if (type != null)
+			overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
 
 		return overriddenNodes;
 	}
@@ -297,5 +300,10 @@ public class DataNodeConfiguratorImpl<T>
 		if (type != null)
 			return type.getUnbindingClass();
 		return super.getUnbindingClass();
+	}
+
+	@Override
+	protected boolean isAbstract() {
+		return getContext().isAbstract();
 	}
 }

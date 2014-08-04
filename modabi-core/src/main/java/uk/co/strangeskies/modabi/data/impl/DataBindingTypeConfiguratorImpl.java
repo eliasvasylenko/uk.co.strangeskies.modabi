@@ -161,4 +161,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 		return baseType == null ? Collections.emptySet() : new HashSet<>(
 				Arrays.asList((DataBindingType<T>) baseType));
 	}
+
+	@Override
+	protected boolean isAbstract() {
+		return (isAbstract != null && isAbstract)
+				|| getOverriddenNodes().stream().anyMatch(
+						m -> m.effective().isAbstract());
+	}
 }
