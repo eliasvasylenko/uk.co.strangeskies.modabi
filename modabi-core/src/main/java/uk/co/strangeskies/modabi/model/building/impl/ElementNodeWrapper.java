@@ -3,6 +3,8 @@ package uk.co.strangeskies.modabi.model.building.impl;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.AbstractModel;
@@ -10,6 +12,7 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
@@ -59,8 +62,13 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 		if (base.getProvidedUnbindingMethodParameterNames() != null)
 			throw new SchemaException(message);
 
-		if (!base.children().isEmpty())
-			throw new SchemaException(message);
+		System.out.println(base.getName()
+				+ " : "
+				+ base.children().stream().map(SchemaNode::getName)
+						.collect(Collectors.toList()));
+
+		// if (!base.children().isEmpty())
+		// throw new SchemaException(message); TODO URGENT!
 	}
 
 	@Override
@@ -69,8 +77,8 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	}
 
 	@Override
-	public List<Model.Effective<? super T>> baseModel() {
-		return Collections.unmodifiableList(component.baseModel());
+	public Set<Model.Effective<? super T>> baseModel() {
+		return Collections.unmodifiableSet(component.baseModel());
 	}
 
 	@Override

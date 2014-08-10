@@ -6,6 +6,12 @@ public interface DataBindingType<T> extends
 		BindingNode<T, DataBindingType.Effective<T>> {
 	interface Effective<T> extends DataBindingType<T>,
 			BindingNode.Effective<T, Effective<T>> {
+		@Override
+		DataBindingType<T> source();
+	}
+
+	default DataBindingType<T> source() {
+		return this;
 	}
 
 	Boolean isAbstract();

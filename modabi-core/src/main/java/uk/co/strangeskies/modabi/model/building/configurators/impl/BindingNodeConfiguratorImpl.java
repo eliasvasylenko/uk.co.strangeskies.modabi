@@ -2,20 +2,18 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.Methods;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
@@ -36,6 +34,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final String unbindingMethodName;
 			private final Method unbindingMethod;
 
+			private final List<String> providedUnbindingParameterNames;
 			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 			@SuppressWarnings("unchecked")
@@ -62,46 +61,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				unbindingMethodName = overrideMerge.getValue(
 						BindingNode::getUnbindingMethodName, Objects::equals);
 
-				List<String> providedUnbindingMethodParameterNames = overrideMerge
-						.getValue(BindingNode::getProvidedUnbindingMethodParameterNames,
-								Objects::equals);
+				providedUnbindingParameterNames = overrideMerge.getValue(
+						BindingNode::getProvidedUnbindingMethodParameterNames,
+						Objects::equals);
 
-				providedUnbindingParameters = providedUnbindingMethodParameterNames == null ? unbindingMethodName == null ? null
-						: new ArrayList<>()
-						: providedUnbindingMethodParameterNames
-								.stream()
-								.map(
-										p -> {
-											if (p.equals("this"))
-												return null;
-											else {
-												ChildNode.Effective<?> node = children()
-														.stream()
-														.filter(c -> c.getName().equals(p))
-														.findAny()
-														.orElseThrow(
-																() -> new SchemaException(
-																		"Cannot find node for unbinding parameter: '"
-																				+ p + "'"));
+				providedUnbindingParameters = Methods.findProvidedUnbindingParameters(
+						this, overrideMerge.configurator().isAbstract());
 
-												if (!(node instanceof DataNode.Effective))
-													throw new SchemaException(
-															"Unbinding parameter node '" + node + "' for '"
-																	+ p + "' is not a data node.");
-
-												DataNode.Effective<?> dataNode = (DataNode.Effective<?>) node;
-
-												if (!overrideMerge.configurator().isAbstract()
-														&& !dataNode.isValueProvided())
-													throw new SchemaException(
-															"Unbinding parameter node '" + node + "' for '"
-																	+ p + "' must provide a value.");
-
-												return dataNode;
-											}
-										}).collect(Collectors.toList());
-
-				unbindingMethod = BindingNode.Effective.findUnbindingMethod(this);
+				unbindingMethod = Methods.findUnbindingMethod(this);
 
 				// TODO verify unbinding method overrides okay...
 			}
@@ -153,9 +120,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			@Override
 			public List<String> getProvidedUnbindingMethodParameterNames() {
-				return providedUnbindingParameters == null ? null
-						: providedUnbindingParameters.stream().map(n -> n.getName())
-								.collect(Collectors.toList());
+				return providedUnbindingParameterNames;
 			}
 		}
 
@@ -268,17 +233,20 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
+	protected void finaliseProperties() {
+		if (!isFinalisedProperties()) {
+			List<ChildNode<?>> newInheritedChildren = new ArrayList<>();
+			getOverriddenNodes().forEach(
+					c -> newInheritedChildren.addAll(c.children()));
+
+			getChildren().inheritChildren(newInheritedChildren);
+		}
+
+		super.finaliseProperties();
+	}
+
+	@Override
 	protected final Class<?> getCurrentChildOutputTargetClass() {
-		if (getUnbindingStrategy() == null
-				|| getUnbindingStrategy() == UnbindingStrategy.SIMPLE)
-			return getDataClass();
-		else if (getUnbindingStrategy() == UnbindingStrategy.STATIC_FACTORY)
-			try {
-				return getUnbindingClass().getMethod(getUnbindingMethod(),
-						getDataClass()).getReturnType();
-			} catch (NoSuchMethodException | SecurityException e) {
-				throw new SchemaException(e);
-			}
 		return getUnbindingClass() != null ? getUnbindingClass() : getDataClass();
 	}
 
@@ -358,18 +326,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		unbindingParameterNames = new ArrayList<>(parameterNames);
 
 		return getThis();
-	}
-
-	public static List<String> getNames(String propertyName,
-			String unbindingMethodName, Class<?> resultClass) {
-		List<String> names;
-		if (unbindingMethodName != null)
-			names = Arrays.asList(unbindingMethodName);
-		else {
-			names = BindingNodeConfigurator.generateOutMethodNames(propertyName,
-					false, resultClass);
-		}
-		return names;
 	}
 
 	@Override

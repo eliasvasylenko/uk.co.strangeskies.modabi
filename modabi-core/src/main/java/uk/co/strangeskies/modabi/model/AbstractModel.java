@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model;
 
-import java.util.List;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 
@@ -9,10 +9,10 @@ public interface AbstractModel<T, E extends AbstractModel.Effective<T, E>>
 	interface Effective<T, E extends AbstractModel.Effective<T, E>> extends
 			AbstractModel<T, E>, BindingNode.Effective<T, E> {
 		@Override
-		List<Model.Effective<? super T>> baseModel();
+		Set<Model.Effective<? super T>> baseModel();
 	}
 
 	Boolean isAbstract();
 
-	List<? extends Model<? super T>> baseModel();
+	Set<? extends Model<? super T>> baseModel();
 }

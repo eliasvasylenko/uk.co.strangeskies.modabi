@@ -130,7 +130,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	private final List<Function<Class<?>, ?>> providers;
 
-	final Models registeredModels;
+	final Models registeredModels; // TODO obvs
 	private final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchema;
 

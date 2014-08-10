@@ -1,12 +1,13 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.gears.utilities.IdentityComparator;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
@@ -16,6 +17,7 @@ import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationCont
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -27,20 +29,20 @@ public class ElementNodeConfiguratorImpl<T>
 		private static class Effective<T> extends
 				BindingChildNodeImpl.Effective<T, ElementNode.Effective<T>> implements
 				ElementNode.Effective<T> {
-			private final List<Model.Effective<? super T>> baseModel;
+			private final Set<Model.Effective<? super T>> baseModel;
 			private final Boolean isAbstract;
 
 			protected Effective(
 					OverrideMerge<ElementNode<T>, ElementNodeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				List<Model<? super T>> baseModel = new ArrayList<>();
+				Set<Model.Effective<? super T>> baseModel = new TreeSet<>(
+						new IdentityComparator<>());
 				overrideMerge.configurator().getOverriddenNodes()
-						.forEach(n -> baseModel.addAll(n.baseModel()));
-				baseModel.addAll(overrideMerge.node().baseModel());
-
-				this.baseModel = baseModel.stream().map(Model::effective)
-						.collect(Collectors.toList());
+						.forEach(n -> baseModel.addAll(n.effective().baseModel()));
+				baseModel.addAll(overrideMerge.node().baseModel().stream()
+						.map(SchemaNode::effective).collect(Collectors.toSet()));
+				this.baseModel = Collections.unmodifiableSet(baseModel);
 
 				isAbstract = overrideMerge.getValue(ElementNode::isAbstract);
 			}
@@ -51,21 +53,21 @@ public class ElementNodeConfiguratorImpl<T>
 			}
 
 			@Override
-			public List<Model.Effective<? super T>> baseModel() {
+			public Set<Model.Effective<? super T>> baseModel() {
 				return baseModel;
 			}
 		}
 
 		private final Effective<T> effective;
 
-		private final List<Model<? super T>> baseModel;
+		private final Set<Model<? super T>> baseModel;
 		private final Boolean isAbstract;
 
 		public ElementNodeImpl(ElementNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
-			baseModel = configurator.baseModel == null ? new ArrayList<>()
-					: new ArrayList<>(configurator.baseModel);
+			baseModel = configurator.baseModel == null ? Collections.emptySet()
+					: new HashSet<>(configurator.baseModel);
 			isAbstract = configurator.isAbstract;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
@@ -82,12 +84,12 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public final List<Model<? super T>> baseModel() {
+		public final Set<Model<? super T>> baseModel() {
 			return baseModel;
 		}
 	}
 
-	private List<Model<? super T>> baseModel;
+	private Set<Model<? super T>> baseModel;
 	private Boolean isAbstract;
 
 	public ElementNodeConfiguratorImpl(
@@ -113,19 +115,24 @@ public class ElementNodeConfiguratorImpl<T>
 	public <V extends T> ElementNodeConfigurator<V> baseModel(
 			Model<? super V>... base) {
 		requireConfigurable(this.baseModel);
-		baseModel = Arrays.asList((Model<? super T>[]) base);
+		baseModel = new HashSet<>(Arrays.asList((Model<T>[]) base));
 
 		return (ElementNodeConfigurator<V>) this;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected Set<ElementNode<T>> getOverriddenNodes() {
 		Set<ElementNode<T>> overriddenNodes = new HashSet<>(
 				super.getOverriddenNodes());
 
-		for (Model<? super T> base : baseModel)
-			overriddenNodes.add(new ElementNodeWrapper<T>(base.effective(),
-					getDataClass()));
+		if (baseModel != null)
+			for (Model<? super T> base : baseModel)
+				overriddenNodes.add(new ElementNodeWrapper<T>(base.effective(),
+						(Class<T>) base.effective().getDataClass())); // TODO sanity check
+																													// when not tired as
+																													// balls, probs can be
+																													// made more sensible
 
 		return overriddenNodes;
 	}
@@ -151,6 +158,7 @@ public class ElementNodeConfiguratorImpl<T>
 	protected boolean isAbstract() {
 		return (isAbstract != null && isAbstract)
 				|| getOverriddenNodes().stream().anyMatch(
-						m -> m.effective().isAbstract());
+						m -> m.effective().isAbstract() != null
+								&& m.effective().isAbstract());
 	}
 }

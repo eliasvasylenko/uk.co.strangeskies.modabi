@@ -30,6 +30,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 				Deque<BufferedStructuredData> stack) {
 			this.root = root;
 			this.stack = stack;
+			stack.push(root);
 		}
 
 		@Override
@@ -132,7 +133,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			for (Map.Entry<String, BufferingDataTarget> property : from.properties
 					.entrySet())
 				properties.put(property.getKey(), property.getValue().buffer());
-			content = from.content.buffer();
+			content = from.content == null ? null : from.content.buffer();
 		}
 
 		@Override
@@ -148,6 +149,8 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 		}
 
 		public BufferedStructuredData nextChild() {
+			if (childIndex == children.size())
+				return null;
 			return children.get(childIndex++);
 		}
 

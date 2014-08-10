@@ -1,8 +1,6 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -13,7 +11,6 @@ import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurat
 import uk.co.strangeskies.modabi.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
@@ -43,11 +40,11 @@ public class DataNodeConfiguratorImpl<T>
 
 				DataBindingType<T> type = overrideMerge.getValue(DataNode::type,
 						(n, o) -> {
-							DataBindingType<?> p = n;
+							DataBindingType<?> p = n.effective();
 							do
-								if (p == o)
+								if (p == o.effective())
 									return true;
-							while ((p = p.baseType()) != null);
+							while ((p = p.baseType().effective()) != null);
 							return false;
 						});
 				this.type = type == null ? null : type.effective();
@@ -209,19 +206,6 @@ public class DataNodeConfiguratorImpl<T>
 			overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
 
 		return overriddenNodes;
-	}
-
-	@Override
-	protected void finaliseProperties() {
-		if (!isFinalisedProperties()) {
-			List<ChildNode<?>> newInheritedChildren = new ArrayList<>();
-			getOverriddenNodes().forEach(
-					c -> c.children().forEach(n -> newInheritedChildren.add(n)));
-
-			getChildren().inheritChildren(0, newInheritedChildren);
-		}
-
-		super.finaliseProperties();
 	}
 
 	@Override

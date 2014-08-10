@@ -106,6 +106,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.unbindingClass(DereferenceTarget.class)
 					.unbindingMethod("dereference")
 					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+					.providedUnbindingParameters("targetDomain", "id", "this")
 					.addChild(
 							d -> d.data().dataClass(Model.class).name("targetDomain")
 									.valueResolution(ValueResolution.REGISTRATION_TIME)
@@ -213,7 +214,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.name("id")
 													.provideValue(
 															new BufferingDataTarget().put(DataType.STRING,
-																	"id").buffer()))).create();
+																	"name").buffer()))).create();
 			typeSet.add(referenceType);
 
 			classType = builder.configure(loader).name("class")

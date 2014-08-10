@@ -27,8 +27,7 @@ public interface DataNode<T> extends
 	Format format();
 
 	default boolean isValueProvided() {
-		return (valueResolution() == ValueResolution.PROCESSING_TIME && providedValueBuffer() != null)
-				|| (valueResolution() == ValueResolution.REGISTRATION_TIME && providedValue() != null);
+		return providedValueBuffer() != null;
 	}
 
 	BufferedDataSource providedValueBuffer();

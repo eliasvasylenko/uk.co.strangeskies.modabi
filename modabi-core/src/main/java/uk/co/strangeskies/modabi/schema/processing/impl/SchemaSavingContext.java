@@ -58,15 +58,16 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		dereferenceTarget = new DereferenceTarget() {
 			@Override
-			public void dereference(Object object) {
-				// TODO Auto-generated method stub
-			}
-
-			@Override
 			public <U> BufferedDataSource dereference(Model<U> model,
 					String idDomain, U object) {
-				if (!bindings.get(model).contains(object))
-					throw new SchemaException();
+				return new BufferingDataTarget().buffer();
+				/*-
+				if (!bindings.get(model).contains(object)) {
+					bindings.print();
+
+					throw new SchemaException("Cannot find any instance '" + object
+							+ "' bound to model '" + model.getName());
+				}
 
 				DataNode.Effective<?> node = (DataNode.Effective<?>) model
 						.effective()
@@ -84,7 +85,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 				bindingStack.pop();
 
-				return bufferedData;
+				return bufferedData;*/
 			}
 		};
 
@@ -110,18 +111,19 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			BufferedDataSource bufferedTarget = dataTarget.buffer();
 			dataTarget = null;
 
-			switch (node.format()) {
-			case PROPERTY:
-				bufferedTarget.pipe(output.property(node.getName())).terminate();
-				break;
-			case SIMPLE_ELEMENT:
-				output.nextChild(node.getName());
-				bufferedTarget.pipe(output.content()).terminate();
-				output.endChild();
-				break;
-			case CONTENT:
-				bufferedTarget.pipe(output.content()).terminate();
-			}
+			if (bufferedTarget.size() > 0)
+				switch (node.format()) {
+				case PROPERTY:
+					bufferedTarget.pipe(output.property(node.getName())).terminate();
+					break;
+				case SIMPLE_ELEMENT:
+					output.nextChild(node.getName());
+					bufferedTarget.pipe(output.content()).terminate();
+					output.endChild();
+					break;
+				case CONTENT:
+					bufferedTarget.pipe(output.content()).terminate();
+				}
 		}
 	}
 
@@ -150,7 +152,6 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	@Override
 	public void accept(ChoiceNode.Effective node) {
-		// processChildren(node); TODO
 	}
 
 	@SuppressWarnings("unchecked")
@@ -178,9 +179,21 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	// TODO should work with generics & without warning suppression
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
-		if (node.isAbstract() != null && node.isAbstract())
-			node = new ElementNodeWrapper(this.schemaBinderImpl.registeredModels
-					.getMatchingModels(node, data.getClass()).get(0).effective(), node);
+		if (node.isAbstract() != null && node.isAbstract()) {
+			List<Model<? extends U>> models = this.schemaBinderImpl.registeredModels
+					.getMatchingModels(node, data.getClass());
+
+			if (models.isEmpty())
+				throw new SchemaException("Unable to find model to satisfy element '"
+						+ node.getName()
+						+ "' with model '"
+						+ node.effective().baseModel().stream()
+								.map(m -> m.source().getName())
+								.collect(Collectors.joining(", ")) + "' for object '" + data
+						+ "' to be unbound");
+
+			node = new ElementNodeWrapper(models.get(0).effective(), node);
+		}
 
 		bindings.add(node, data);
 		unbindModel(node, data);
@@ -195,20 +208,20 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	@SuppressWarnings("unchecked")
 	public <U> List<U> getData(BindingChildNode.Effective<U, ?> node) {
-		Object parent = bindingStack.peek();
-
-		if (node.getDataClass() == null)
-			throw new SchemaException(node.getName());
-
 		List<U> itemList;
 
-		try {
+		if (node.getOutMethodName() != "null") {
+			Object parent = bindingStack.peek();
+
+			if (node.getDataClass() == null)
+				return (List<U>) Arrays.asList("");
+
 			if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
 				Iterable<U> iterable = null;
 				if (node.getOutMethodName() == "this")
 					iterable = (Iterable<U>) parent;
 				else
-					iterable = (Iterable<U>) node.getOutMethod().invoke(parent);
+					iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), parent);
 
 				itemList = StreamSupport.stream(iterable.spliterator(), false)
 						.filter(Objects::nonNull).collect(Collectors.toList());
@@ -221,7 +234,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					throw new ClassCastException("Cannot cast " + failedCast.getClass()
 							+ " to " + node.getDataClass());
 			} else {
-				U item = (U) node.getOutMethod().invoke(parent);
+				U item = (U) invokeMethod(node.getOutMethod(), parent);
 				if (item == null)
 					itemList = new ArrayList<>();
 				else {
@@ -231,10 +244,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					itemList = Arrays.asList(item);
 				}
 			}
-		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new SchemaException(node.getName() + " @ " + parent.getClass(), e);
-		}
+		} else
+			itemList = new ArrayList<>();
 
 		return itemList;
 	}
@@ -260,14 +271,16 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					Object o = provide(node.getUnbindingClass());
-					invokeMethod(node.getUnbindingMethod(), o, u);
+					invokeMethod(node.getUnbindingMethod(), o,
+							prepareUnbingingParameterList(node, u));
 					return o;
 				};
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					Object o = provide(node.getUnbindingClass());
-					invokeMethod(node.getUnbindingMethod(), u, o);
+					invokeMethod(node.getUnbindingMethod(), u,
+							prepareUnbingingParameterList(node, o));
 					return o;
 				};
 				break;
@@ -276,7 +289,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					Constructor<?> c = null;
 					try {
 						c = node.getUnbindingClass().getConstructor(u.getClass());
-						return c.newInstance(u);
+						return c.newInstance(prepareUnbingingParameterList(node, u));
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException | InvocationTargetException
 							| NoSuchMethodException | SecurityException e) {
@@ -286,17 +299,40 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				};
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> invokeMethod(node.getUnbindingMethod(), null, u);
+				supplier = u -> invokeMethod(node.getUnbindingMethod(), null,
+						prepareUnbingingParameterList(node, u));
 
 				break;
 			case PROVIDED_FACTORY:
 				supplier = u -> invokeMethod(node.getUnbindingMethod(),
-						provide(node.getUnbindingFactoryClass()), u);
+						provide(node.getUnbindingFactoryClass()),
+						prepareUnbingingParameterList(node, u));
 
 				break;
 			}
 		}
 
 		return supplier.apply(data);
+	}
+
+	private Object[] prepareUnbingingParameterList(
+			BindingNode.Effective<?, ?> node, Object data) {
+		List<Object> parameters = new ArrayList<>();
+
+		boolean addedData = false;
+		if (node.getProvidedUnbindingMethodParameters() != null)
+			for (DataNode.Effective<?> parameter : node
+					.getProvidedUnbindingMethodParameters()) {
+				if (parameter != null)
+					parameters.add(parameter.providedValue());
+				else {
+					parameters.add(data);
+					addedData = true;
+				}
+			}
+		if (!addedData)
+			parameters.add(0, data);
+
+		return parameters.toArray();
 	}
 }

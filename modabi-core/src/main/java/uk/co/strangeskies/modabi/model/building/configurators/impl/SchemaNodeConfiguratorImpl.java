@@ -132,7 +132,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		finalisedProperties = true;
 	}
 
-	public boolean isFinalisedProperties() {
+	public final boolean isFinalisedProperties() {
 		return finalisedProperties;
 	}
 
@@ -174,7 +174,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract boolean isAbstract();
 
-	public static <E, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> overrideMerge(
+	protected static <E extends SchemaNode<? extends E>, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> overrideMerge(
 			E node, C configurator) {
 		return new OverrideMerge<E, C>(node, configurator,
 				c -> c.getOverriddenNodes());

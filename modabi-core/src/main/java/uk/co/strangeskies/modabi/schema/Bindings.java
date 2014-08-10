@@ -48,10 +48,15 @@ public class Bindings {
 
 	@SuppressWarnings("unchecked")
 	public <T> Set<T> get(Model<T> model) {
-		Set<T> all = (Set<T>) bindings.get(model);
+		Set<Object> all = bindings.get(model);
 
-		all.addAll((Set<T>) Collections.unmodifiableSet(models
-				.getDerivedModels(model).stream().map(m -> bindings.get(m))
+		if (all == null) {
+			all = new HashSet<>();
+			bindings.put(model, all);
+		}
+
+		all.addAll(Collections.unmodifiableSet(models.getDerivedModels(model)
+				.stream().map(m -> bindings.get(m))
 				.reduce(Collections.emptySet(), (s, t) -> {
 					Set<Object> set = new HashSet<>();
 					set.addAll(s);
@@ -59,6 +64,6 @@ public class Bindings {
 					return set;
 				})));
 
-		return all;
+		return (Set<T>) all;
 	}
 }

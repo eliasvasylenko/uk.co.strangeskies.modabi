@@ -29,8 +29,8 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	private boolean blocked;
 
 	private final List<ChildNode<?>> children;
-	private final SetMultiMap<String, ChildNode.Effective<?>> namedInheritedChildren;
-	private final List<ChildNode.Effective<?>> inheritedChildren;
+	private final SetMultiMap<String, ChildNode<?>> namedInheritedChildren;
+	private final List<ChildNode<?>> inheritedChildren;
 
 	public Children() {
 		children = new ArrayList<>();
@@ -44,13 +44,14 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 
 	public List<ChildNode.Effective<?>> getEffectiveChildren() {
 		List<ChildNode.Effective<?>> effectiveChildren = new ArrayList<>();
-		effectiveChildren.addAll(inheritedChildren);
+		effectiveChildren.addAll(inheritedChildren.stream().map(c -> c.effective())
+				.collect(Collectors.toList()));
 		effectiveChildren.addAll(children.stream().map(c -> c.effective())
 				.collect(Collectors.toList()));
 		return effectiveChildren;
 	}
 
-	public SetMultiMap<String, ChildNode.Effective<?>> getNamedInheritedChildren() {
+	public SetMultiMap<String, ChildNode<?>> getNamedInheritedChildren() {
 		return namedInheritedChildren;
 	}
 
@@ -63,25 +64,19 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 		blocked = false;
 		children.add(result);
 		if (result.getName() != null) {
-			Set<ChildNode.Effective<?>> removed = namedInheritedChildren
-					.remove(result.getName());
+			Set<ChildNode<?>> removed = namedInheritedChildren.remove(result
+					.getName());
 			if (removed != null)
 				inheritedChildren.removeAll(removed);
 		}
 	}
 
 	public void inheritChildren(List<? extends ChildNode<?>> nodes) {
-		inheritChildren(inheritedChildren.size(), nodes);
+		inheritNamedChildren(nodes);
+		inheritedChildren.addAll(nodes);
 	}
 
-	public void inheritChildren(int index, List<? extends ChildNode<?>> nodes) {
-		List<ChildNode.Effective<?>> effectiveList = nodes.stream()
-				.map(n -> n.effective()).collect(Collectors.toList());
-		inheritNamedChildren(effectiveList);
-		inheritedChildren.addAll(index, effectiveList);
-	}
-
-	public void inheritNamedChildren(List<? extends ChildNode.Effective<?>> nodes) {
+	public void inheritNamedChildren(List<? extends ChildNode<?>> nodes) {
 		nodes.stream().filter(c -> c.getName() != null)
 				.forEach(c -> namedInheritedChildren.add(c.getName(), c));
 	}
@@ -89,8 +84,7 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	@SuppressWarnings("unchecked")
 	public <U extends ChildNode<?>> Set<U> overrideChild(String id,
 			Class<U> nodeClass) {
-		Set<ChildNode.Effective<?>> overriddenNodes = namedInheritedChildren
-				.get(id);
+		Set<ChildNode<?>> overriddenNodes = namedInheritedChildren.get(id);
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(

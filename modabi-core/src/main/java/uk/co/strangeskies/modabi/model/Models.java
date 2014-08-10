@@ -22,7 +22,7 @@ public class Models extends NamedSet<Model<?>> {
 
 	@Override
 	public boolean add(Model<?> element) {
-		boolean added = super.add(element);
+		boolean added = super.add(element.source());
 
 		if (added)
 			mapModel(element);
@@ -32,7 +32,7 @@ public class Models extends NamedSet<Model<?>> {
 
 	@Override
 	public boolean add(Model<?> model, Namespace namespace) {
-		boolean added = super.add(model, namespace);
+		boolean added = super.add(model.source(), namespace);
 
 		if (added)
 			mapModel(model);
@@ -41,32 +41,30 @@ public class Models extends NamedSet<Model<?>> {
 	}
 
 	private void mapModel(Model<?> model) {
-		ListOrderedSet<Model<?>> baseModels = new ListOrderedSet<>();
-		baseModels.addAll(model.effective().baseModel());
-		for (int i = 0; i < baseModels.size(); i++) {
-			Model<?> baseModel = baseModels.get(i);
-			derivedModels.add(baseModel, model);
-			baseModels.addAll(baseModel.effective().baseModel());
-		}
+		model = model.source();
+
+		derivedModels.addToAll(
+				model.effective().baseModel().stream().map(Model::source)
+						.collect(Collectors.toSet()), model);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<? extends T>> getDerivedModels(AbstractModel<T, ?> model) {
+	public <T> List<Model<? extends T>> getDerivedModels(Model<T> model) {
 		/*
 		 * TODO This extra cast is needed by javac but not JDT... Is it valid
 		 * without?
 		 */
-		Object derivedModelListObject = derivedModels.get(model);
-		ListOrderedSet<? extends Model<? extends T>> subModelList = (ListOrderedSet<? extends Model<? extends T>>) derivedModelListObject;
-		return subModelList == null ? new ArrayList<>() : new ArrayList<>(
-				subModelList);
+		ListOrderedSet<Model<?>> subModelList = derivedModels.get(model.source());
+		return subModelList == null ? new ArrayList<>()
+				: new ArrayList<Model<? extends T>>(subModelList.stream()
+						.map(m -> (Model<? extends T>) m).collect(Collectors.toList()));
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getMatchingModels(
 			AbstractModel<T, ?> element, Class<?> dataClass) {
-		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
-				.iterator();
+		Iterator<? extends Model.Effective<?>> baseModelIterator = element
+				.effective().baseModel().iterator();
 
 		List<? extends Model<?>> subModels = new ArrayList<>(
 				getDerivedModels(baseModelIterator.next()));

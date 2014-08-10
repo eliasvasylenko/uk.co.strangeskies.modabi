@@ -20,8 +20,10 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 		qualifiedNamingFunction = namingFunction;
 		elements = new LinkedHashMap<>();
 
-		getComponentProperty().set(
-				new SetTransformationView<T, T>(elements.values(), e -> e));
+		getComponentProperty()
+				.set(
+						new SetTransformationView<T, T>(elements.values(), Function
+								.identity()));
 	}
 
 	protected Map<QualifiedName, T> getElements() {

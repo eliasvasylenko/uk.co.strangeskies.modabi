@@ -7,8 +7,8 @@ import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.Methods;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
@@ -55,13 +55,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				if (outMethodName == "this" && !iterable)
 					throw new SchemaException();
-				outMethod = (outMethodName == "null") ? null : getOutMethod(
-						overrideMerge.configurator().getCurrentChildOutputTargetClass(),
-						overrideMerge.getValue(n -> n.effective() == null ? null : n
-								.effective().getOutMethod(), Objects::equals));
+				outMethod = (outMethodName == "null") ? null : Methods.getOutMethod(
+						this, overrideMerge.configurator().getContext()
+								.getCurrentChildOutputTargetClass(), overrideMerge.getValue(
+								n -> n.effective() == null ? null : n.effective()
+										.getOutMethod(), Objects::equals));
 
-				inMethod = (inMethodName == "null") ? null : getInMethod(overrideMerge
-						.configurator().getCurrentChildInputTargetClass(),
+				inMethod = (inMethodName == "null") ? null : Methods.getInMethod(this,
+						overrideMerge.configurator().getCurrentChildInputTargetClass(),
 						overrideMerge.getValue(n -> n.effective() == null ? null : n
 								.effective().getInMethod(), Objects::equals));
 			}
@@ -99,44 +100,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			@Override
 			public final Boolean isInMethodChained() {
 				return inMethodChained;
-			}
-
-			private Method getInMethod(Class<?> receiverClass,
-					Method inheritedInMethod) {
-				try {
-					return (receiverClass == null || getDataClass() == null || inMethodName == null) ? null
-							: BindingNodeConfigurator.findMethod(
-									BindingNodeConfigurator.generateInMethodNames(this),
-									receiverClass, null, getDataClass());
-				} catch (NoSuchMethodException e) {
-					throw new SchemaException(e);
-				}
-			}
-
-			private Method getOutMethod(Class<?> targetClass,
-					Method inheritedOutMethod) {
-				try {
-					Class<?> resultClass = (isOutMethodIterable() != null && isOutMethodIterable()) ? Iterable.class
-							: getDataClass();
-
-					Method outMethod;
-					if (targetClass == null || resultClass == null
-							|| outMethodName == "this")
-						outMethod = null;
-					else {
-						outMethod = BindingNodeConfigurator.findMethod(
-								BindingNodeConfigurator.generateOutMethodNames(this,
-										resultClass), targetClass, resultClass);
-
-						if (inheritedOutMethod != null
-								&& !outMethod.equals(inheritedOutMethod))
-							throw new SchemaException();
-					}
-
-					return outMethod;
-				} catch (NoSuchMethodException e) {
-					throw new SchemaException(e);
-				}
 			}
 		}
 
@@ -249,7 +212,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	protected Set<N> getOverriddenNodes() {
-		return (getId() == null || getContext() == null) ? new HashSet<>()
-				: getContext().overrideChild(getId(), getNodeClass());
+		return getId() == null ? new HashSet<>() : getContext().overrideChild(
+				getId(), getNodeClass());
 	}
 }

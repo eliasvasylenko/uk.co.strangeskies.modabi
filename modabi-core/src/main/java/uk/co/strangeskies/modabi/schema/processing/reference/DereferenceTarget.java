@@ -5,6 +5,4 @@ import uk.co.strangeskies.modabi.model.Model;
 
 public interface DereferenceTarget {
 	<T> BufferedDataSource dereference(Model<T> model, String idDomain, T object);
-
-	void dereference(Object object);
 }
