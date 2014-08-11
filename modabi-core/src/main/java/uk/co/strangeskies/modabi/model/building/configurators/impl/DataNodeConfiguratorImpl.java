@@ -1,8 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
@@ -199,11 +198,13 @@ public class DataNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected Set<DataNode<T>> getOverriddenNodes() {
-		Set<DataNode<T>> overriddenNodes = new HashSet<>(super.getOverriddenNodes());
+	protected LinkedHashSet<DataNode<T>> getOverriddenNodes() {
+		LinkedHashSet<DataNode<T>> overriddenNodes = new LinkedHashSet<>();
 
 		if (type != null)
 			overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
+
+		overriddenNodes.addAll(super.getOverriddenNodes());
 
 		return overriddenNodes;
 	}

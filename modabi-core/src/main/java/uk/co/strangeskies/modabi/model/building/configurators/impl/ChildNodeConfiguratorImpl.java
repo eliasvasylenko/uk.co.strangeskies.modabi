@@ -1,9 +1,6 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
@@ -32,22 +29,9 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 	}
 
 	@Override
-	protected Set<N> getOverriddenNodes() {
-		return (getId() == null) ? new HashSet<>() : getContext().overrideChild(
-				getId(), getNodeClass());
-	}
-
-	@Override
-	protected void finaliseProperties() {
-		if (!isFinalisedProperties()) {
-			List<ChildNode.Effective<?>> newInheritedChildren = new ArrayList<>();
-			getOverriddenNodes().forEach(
-					c -> newInheritedChildren.addAll(c.effective().children()));
-
-			getChildren().inheritChildren(newInheritedChildren);
-		}
-
-		super.finaliseProperties();
+	protected LinkedHashSet<N> getOverriddenNodes() {
+		return (getId() == null) ? new LinkedHashSet<>() : getContext()
+				.overrideChild(getId(), getNodeClass());
 	}
 
 	@Override

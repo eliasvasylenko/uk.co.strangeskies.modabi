@@ -1,14 +1,13 @@
 package uk.co.strangeskies.modabi.model.building.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
+import uk.co.strangeskies.gears.utilities.collection.MultiHashMap;
+import uk.co.strangeskies.gears.utilities.collection.MultiMap;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
@@ -30,13 +29,27 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	private boolean blocked;
 
 	private final List<ChildNode<?>> children;
-	private final SetMultiMap<String, ChildNode.Effective<?>> namedInheritedChildren;
+	private final MultiMap<String, ChildNode.Effective<?>, LinkedHashSet<ChildNode.Effective<?>>> namedInheritedChildren;
 	private final List<ChildNode.Effective<?>> inheritedChildren;
 
-	public Children() {
+	public Children(LinkedHashSet<? extends SchemaNode<?>> overriddenNodes) {
 		children = new ArrayList<>();
 		inheritedChildren = new ArrayList<>();
-		namedInheritedChildren = new HashSetMultiHashMap<>();
+		namedInheritedChildren = new MultiHashMap<>(LinkedHashSet::new);
+
+		for (SchemaNode<?> overriddenNode : overriddenNodes) {
+			/*
+			 * TODO:
+			 * 
+			 * Starting from the first overridden node, for each one we go through
+			 * each child, adding them to a special list.
+			 * 
+			 * Merge together whilst preserving order!
+			 */
+		}
+
+		inheritedChildren.stream().filter(c -> c.getName() != null)
+				.forEach(c -> namedInheritedChildren.add(c.getName(), c));
 	}
 
 	public List<ChildNode<?>> getChildren() {
@@ -78,20 +91,10 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 			throw new SchemaException("Blocked from adding children");
 	}
 
-	public void inheritChildren(List<? extends ChildNode.Effective<?>> nodes) {
-		inheritNamedChildren(nodes);
-		inheritedChildren.addAll(nodes);
-	}
-
-	private void inheritNamedChildren(List<? extends ChildNode.Effective<?>> nodes) {
-		nodes.stream().filter(c -> c.getName() != null)
-				.forEach(c -> namedInheritedChildren.add(c.getName(), c));
-	}
-
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?>> Set<U> overrideChild(String id,
+	private <U extends ChildNode<?>> LinkedHashSet<U> overrideChild(String id,
 			Class<U> nodeClass) {
-		Set<ChildNode.Effective<?>> overriddenNodes = namedInheritedChildren
+		LinkedHashSet<ChildNode.Effective<?>> overriddenNodes = namedInheritedChildren
 				.get(id);
 
 		if (overriddenNodes != null) {
@@ -100,9 +103,9 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 				throw new SchemaException(
 						"Cannot override with node of a different class");
 		} else
-			overriddenNodes = new HashSet<>();
+			overriddenNodes = new LinkedHashSet<>();
 
-		return (Set<U>) Collections.unmodifiableSet(overriddenNodes);
+		return (LinkedHashSet<U>) overriddenNodes;
 	}
 
 	private void addChild(ChildNode<?> result) {
@@ -133,7 +136,7 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 			}
 
 			@Override
-			public <U extends ChildNode<?>> Set<U> overrideChild(String id,
+			public <U extends ChildNode<?>> LinkedHashSet<U> overrideChild(String id,
 					Class<U> nodeClass) {
 				return Children.this.overrideChild(id, nodeClass);
 			}

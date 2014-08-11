@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -122,9 +123,8 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected Set<ElementNode<T>> getOverriddenNodes() {
-		Set<ElementNode<T>> overriddenNodes = new HashSet<>(
-				super.getOverriddenNodes());
+	protected LinkedHashSet<ElementNode<T>> getOverriddenNodes() {
+		LinkedHashSet<ElementNode<T>> overriddenNodes = new LinkedHashSet<>();
 
 		if (baseModel != null)
 			for (Model<? super T> base : baseModel)
@@ -133,6 +133,8 @@ public class ElementNodeConfiguratorImpl<T>
 																													// when not tired as
 																													// balls, probs can be
 																													// made more sensible
+
+		overriddenNodes.addAll(super.getOverriddenNodes());
 
 		return overriddenNodes;
 	}

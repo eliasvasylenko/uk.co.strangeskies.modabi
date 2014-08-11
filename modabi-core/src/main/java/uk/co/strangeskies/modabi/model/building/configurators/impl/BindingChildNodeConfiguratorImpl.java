@@ -1,9 +1,8 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
@@ -211,8 +210,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	protected Set<N> getOverriddenNodes() {
-		return getId() == null ? new HashSet<>() : getContext().overrideChild(
-				getId(), getNodeClass());
+	protected LinkedHashSet<N> getOverriddenNodes() {
+		return getId() == null ? new LinkedHashSet<>() : getContext()
+				.overrideChild(getId(), getNodeClass());
 	}
 }

@@ -233,19 +233,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	protected void finaliseProperties() {
-		if (!isFinalisedProperties()) {
-			List<ChildNode.Effective<?>> newInheritedChildren = new ArrayList<>();
-			getOverriddenNodes().forEach(
-					c -> newInheritedChildren.addAll(c.effective().children()));
-
-			getChildren().inheritChildren(newInheritedChildren);
-		}
-
-		super.finaliseProperties();
-	}
-
-	@Override
 	protected final Class<?> getCurrentChildOutputTargetClass() {
 		return getUnbindingClass() != null ? getUnbindingClass() : getDataClass();
 	}

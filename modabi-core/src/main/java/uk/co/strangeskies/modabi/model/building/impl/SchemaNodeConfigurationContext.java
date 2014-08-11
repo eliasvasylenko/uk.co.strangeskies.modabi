@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.building.impl;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -16,5 +16,5 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?>> {
 
 	void addChild(T result);
 
-	<U extends T> Set<U> overrideChild(String id, Class<U> nodeClass);
+	<U extends T> LinkedHashSet<U> overrideChild(String id, Class<U> nodeClass);
 }

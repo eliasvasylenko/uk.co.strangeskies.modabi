@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -52,10 +53,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				return children;
 			}
 
-			/*@Override
-			public final boolean equals(Object obj) {
-				return equalsImpl(obj);
-			}*/
+			/*
+			 * @Override public final boolean equals(Object obj) { return
+			 * equalsImpl(obj); }
+			 */
 
 			@Override
 			public int hashCode() {
@@ -67,12 +68,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		private final List<ChildNode<?>> children;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
-			configurator.finaliseProperties();
+			configurator.finaliseInheritedChildren();
 
 			name = configurator.getId();
 
-			children = Collections.unmodifiableList(new ArrayList<>(
-					configurator.children.getChildren()));
+			children = Collections.unmodifiableList(new ArrayList<>(configurator
+					.getChildren().getChildren()));
 		}
 
 		@Override
@@ -85,10 +86,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			return children;
 		}
 
-		/*@Override
-		public final boolean equals(Object obj) {
-			return equalsImpl(obj);
-		}*/
+		/*
+		 * @Override public final boolean equals(Object obj) { return
+		 * equalsImpl(obj); }
+		 */
 
 		@Override
 		public int hashCode() {
@@ -96,16 +97,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 	}
 
-	private final Children<C, B> children;
+	private Children<C, B> children;
 
-	private boolean finalisedProperties;
+	private boolean finalisedInheritedChildren;
 
 	private String name;
 
 	public SchemaNodeConfiguratorImpl() {
-		finalisedProperties = false;
-
-		children = new Children<>();
+		finalisedInheritedChildren = false;
 	}
 
 	public Children<C, B> getChildren() {
@@ -119,16 +118,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	protected final void requireConfigurable() {
-		if (finalisedProperties)
+		if (finalisedInheritedChildren)
 			throw new InvalidBuildStateException(this);
 	}
 
-	protected void finaliseProperties() {
-		finalisedProperties = true;
-	}
-
-	public final boolean isFinalisedProperties() {
-		return finalisedProperties;
+	protected final void finaliseInheritedChildren() {
+		if (!finalisedInheritedChildren) {
+			children = new Children<>(getOverriddenNodes());
+		}
+		finalisedInheritedChildren = true;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -146,7 +144,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Class<N> getNodeClass();
 
-	protected abstract Set<N> getOverriddenNodes();
+	protected abstract LinkedHashSet<N> getOverriddenNodes();
 
 	protected final String getId() {
 		return name;
@@ -159,8 +157,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected abstract DataLoader getDataLoader();
 
 	protected ChildBuilder<C, B> addChild() {
-		children.assertUnblocked();
-		finaliseProperties();
+		finaliseInheritedChildren();
 
 		return children.addChild(getDataLoader(),
 				getCurrentChildInputTargetClass(), getCurrentChildOutputTargetClass(),
