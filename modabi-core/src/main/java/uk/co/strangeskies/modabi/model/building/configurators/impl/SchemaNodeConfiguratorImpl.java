@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,20 +24,27 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			implements SchemaNode<E> {
 		protected static abstract class Effective<E extends SchemaNode.Effective<E>>
 				implements SchemaNode.Effective<E> {
-			private final String id;
+			private final String name;
 			private final List<ChildNode.Effective<?>> children;
 
 			protected Effective(
 					OverrideMerge<? extends SchemaNode<?>, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
-				id = overrideMerge.getValue(SchemaNode::getName);
+				name = overrideMerge.getValue(SchemaNode::getName);
 
 				children = overrideMerge.configurator().getChildren()
 						.getEffectiveChildren();
+
+				Set<String> names = new HashSet<>();
+				for (ChildNode<?> child : children)
+					if (!names.add(child.effective().getName())) {
+						throw new SchemaException("Node '" + child.effective().getName()
+								+ "' is present multiple times in '" + name + "'.");
+					}
 			}
 
 			@Override
 			public String getName() {
-				return id;
+				return name;
 			}
 
 			@Override
@@ -45,10 +52,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				return children;
 			}
 
-			@Override
+			/*@Override
 			public final boolean equals(Object obj) {
 				return equalsImpl(obj);
-			}
+			}*/
 
 			@Override
 			public int hashCode() {
@@ -64,18 +71,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			name = configurator.getId();
 
-			for (Set<? extends ChildNode<?>> namedChildren : configurator.children
-					.getNamedInheritedChildren().values())
-				if (namedChildren.size() > 1) {
-					Iterator<? extends ChildNode<?>> i = namedChildren.iterator();
-					throw new SchemaException(
-							i.next().equals(i.next())
-									+ " "
-									+ "Node '"
-									+ namedChildren.iterator().next().getName()
-									+ "' is inherited multiple times and must be explicitly overridden.");
-				}
-
 			children = Collections.unmodifiableList(new ArrayList<>(
 					configurator.children.getChildren()));
 		}
@@ -90,10 +85,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			return children;
 		}
 
-		@Override
+		/*@Override
 		public final boolean equals(Object obj) {
 			return equalsImpl(obj);
-		}
+		}*/
 
 		@Override
 		public int hashCode() {

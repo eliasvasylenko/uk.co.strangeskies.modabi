@@ -40,9 +40,9 @@ public abstract class ChildNodeConfiguratorImpl<S extends SchemaNodeConfigurator
 	@Override
 	protected void finaliseProperties() {
 		if (!isFinalisedProperties()) {
-			List<ChildNode<?>> newInheritedChildren = new ArrayList<>();
+			List<ChildNode.Effective<?>> newInheritedChildren = new ArrayList<>();
 			getOverriddenNodes().forEach(
-					c -> c.children().forEach(n -> newInheritedChildren.add(n)));
+					c -> newInheritedChildren.addAll(c.effective().children()));
 
 			getChildren().inheritChildren(newInheritedChildren);
 		}

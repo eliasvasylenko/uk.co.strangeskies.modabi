@@ -23,14 +23,15 @@ import uk.co.strangeskies.modabi.model.building.configurators.impl.InputSequence
 import uk.co.strangeskies.modabi.model.building.configurators.impl.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
 public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> {
 	private boolean blocked;
 
 	private final List<ChildNode<?>> children;
-	private final SetMultiMap<String, ChildNode<?>> namedInheritedChildren;
-	private final List<ChildNode<?>> inheritedChildren;
+	private final SetMultiMap<String, ChildNode.Effective<?>> namedInheritedChildren;
+	private final List<ChildNode.Effective<?>> inheritedChildren;
 
 	public Children() {
 		children = new ArrayList<>();
@@ -43,48 +44,55 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 	}
 
 	public List<ChildNode.Effective<?>> getEffectiveChildren() {
+		System.out.println(inheritedChildren.stream().map(SchemaNode::getName)
+				.collect(Collectors.joining(", ")));
+		System.out.println("  "
+				+ children.stream().map(SchemaNode::getName)
+						.collect(Collectors.joining(", ")));
+		System.out.println("  "
+				+ namedInheritedChildren
+						.keySet()
+						.stream()
+						.map(
+								k -> "(" + k + " @ " + namedInheritedChildren.get(k).size()
+										+ ")").collect(Collectors.joining(", ")));
+
+		for (Set<? extends ChildNode.Effective<?>> namedChildren : namedInheritedChildren
+				.values())
+			if (namedChildren.size() > 1) {
+				throw new SchemaException(
+						"Node '"
+								+ namedChildren.iterator().next().getName()
+								+ "' is inherited multiple times and must be explicitly overridden.");
+			}
+
 		List<ChildNode.Effective<?>> effectiveChildren = new ArrayList<>();
-		effectiveChildren.addAll(inheritedChildren.stream().map(c -> c.effective())
-				.collect(Collectors.toList()));
+		effectiveChildren.addAll(inheritedChildren);
 		effectiveChildren.addAll(children.stream().map(c -> c.effective())
 				.collect(Collectors.toList()));
 		return effectiveChildren;
 	}
 
-	public SetMultiMap<String, ChildNode<?>> getNamedInheritedChildren() {
-		return namedInheritedChildren;
-	}
-
-	public void assertUnblocked() {
+	private void assertUnblocked() {
 		if (blocked)
 			throw new SchemaException("Blocked from adding children");
 	}
 
-	public void addChild(ChildNode<?> result) {
-		blocked = false;
-		children.add(result);
-		if (result.getName() != null) {
-			Set<ChildNode<?>> removed = namedInheritedChildren.remove(result
-					.getName());
-			if (removed != null)
-				inheritedChildren.removeAll(removed);
-		}
-	}
-
-	public void inheritChildren(List<? extends ChildNode<?>> nodes) {
+	public void inheritChildren(List<? extends ChildNode.Effective<?>> nodes) {
 		inheritNamedChildren(nodes);
 		inheritedChildren.addAll(nodes);
 	}
 
-	public void inheritNamedChildren(List<? extends ChildNode<?>> nodes) {
+	private void inheritNamedChildren(List<? extends ChildNode.Effective<?>> nodes) {
 		nodes.stream().filter(c -> c.getName() != null)
 				.forEach(c -> namedInheritedChildren.add(c.getName(), c));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U extends ChildNode<?>> Set<U> overrideChild(String id,
+	private <U extends ChildNode<?>> Set<U> overrideChild(String id,
 			Class<U> nodeClass) {
-		Set<ChildNode<?>> overriddenNodes = namedInheritedChildren.get(id);
+		Set<ChildNode.Effective<?>> overriddenNodes = namedInheritedChildren
+				.get(id);
 
 		if (overriddenNodes != null) {
 			if (overriddenNodes.stream().anyMatch(
@@ -95,6 +103,17 @@ public class Children<C extends ChildNode<?>, B extends BindingChildNode<?, ?>> 
 			overriddenNodes = new HashSet<>();
 
 		return (Set<U>) Collections.unmodifiableSet(overriddenNodes);
+	}
+
+	private void addChild(ChildNode<?> result) {
+		blocked = false;
+		children.add(result);
+		if (result.effective().getName() != null) {
+			Set<ChildNode.Effective<?>> removed = namedInheritedChildren
+					.remove(result.getName());
+			if (removed != null)
+				inheritedChildren.removeAll(removed);
+		}
 	}
 
 	public ChildBuilder<C, B> addChild(DataLoader loader, Class<?> inputTarget,
