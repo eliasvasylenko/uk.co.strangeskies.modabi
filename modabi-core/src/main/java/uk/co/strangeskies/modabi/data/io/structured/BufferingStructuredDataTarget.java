@@ -7,6 +7,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -138,14 +139,29 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 
 		@Override
 		public boolean equals(Object obj) {
-			// TODO
-			return super.equals(obj);
+			if (!(obj instanceof BufferedStructuredData))
+				return false;
+			BufferedStructuredData that = (BufferedStructuredData) obj;
+
+			return super.equals(obj) && childIndex == that.childIndex
+					&& Objects.equals(name, that.name)
+					&& Objects.equals(properties, that.properties)
+					&& Objects.equals(content, that.content)
+					&& Objects.equals(children, that.children);
 		}
 
 		@Override
 		public int hashCode() {
-			return name.hashCode() + properties.hashCode() + content.hashCode()
-					+ children.hashCode() + childIndex;
+			int hashCode = childIndex;
+			if (name != null)
+				hashCode += name.hashCode();
+			if (properties != null)
+				hashCode += properties.hashCode();
+			if (content != null)
+				hashCode += content.hashCode();
+			if (children != null)
+				hashCode += children.hashCode();
+			return hashCode;
 		}
 
 		public BufferedStructuredData nextChild() {

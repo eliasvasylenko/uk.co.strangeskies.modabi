@@ -38,12 +38,12 @@ public class Bindings {
 	}
 
 	public void add(Collection<? extends Binding<?>> bindings) {
-		addGeneric(bindings);
+		for (Binding<?> binding : bindings)
+			addGeneric(binding);
 	}
 
-	private <T> void addGeneric(Collection<? extends Binding<T>> bindings) {
-		for (Binding<T> binding : bindings)
-			add(binding.getModel(), binding.getData());
+	private <T> void addGeneric(Binding<T> binding) {
+		add(binding.getModel(), binding.getData());
 	}
 
 	@SuppressWarnings("unchecked")

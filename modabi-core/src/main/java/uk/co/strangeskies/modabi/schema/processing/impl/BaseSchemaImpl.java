@@ -6,8 +6,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.map.HashedMap;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.gears.utilities.Enumeration;
@@ -413,26 +413,28 @@ public class BaseSchemaImpl implements BaseSchema {
 								.dataClass(DataType.class).outMethod("null")).create();
 		typeSet.add(primitive);
 
-		primitives = Enumeration
-				.<DataType> getConstants(DataType.class)
-				.stream()
-				.collect(
-						Collectors.toMap(
-								Function.identity(),
-								t -> dataTypeBuilder
-										.configure(loader)
-										.name(t.name())
-										.baseType(primitive)
-										.isAbstract(false)
-										.isPrivate(false)
-										.dataClass((Class<?>) t.dataClass())
-										.addChild(
-												c -> c
-														.data()
-														.name("dataType")
-														.provideValue(
-																new BufferingDataTarget().put(DataType.STRING,
-																		t.name()).buffer())).create()));
+		primitives = new HashedMap<>();
+		// TODO yet more seemingly unnecessary casts:
+		for (DataType dataType : (List<DataType>) Enumeration
+				.getConstants(DataType.class)) {
+			primitives.put(
+					dataType,
+					dataTypeBuilder
+							.configure(loader)
+							.name(dataType.name())
+							.baseType(primitive)
+							.isAbstract(false)
+							.isPrivate(false)
+							.dataClass((Class<?>) dataType.dataClass())
+							.addChild(
+									c -> c
+											.data()
+											.name("dataType")
+											.provideValue(
+													new BufferingDataTarget().put(DataType.STRING,
+															dataType.name()).buffer())).create());
+		}
+
 		primitives.values().stream().forEach(typeSet::add);
 
 		derivedTypes = new DerivedTypesImpl(loader, dataTypeBuilder, typeSet,

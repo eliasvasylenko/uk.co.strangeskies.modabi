@@ -112,19 +112,14 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
-		System.out.println();
-		System.out.println(":");
-
 		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(
 				overriddenNodes);
 		Collections.reverse(reversedNodes);
 		for (SchemaNode<?> overriddenNode : reversedNodes) {
 			int index = 0;
 
-			System.out.println(" #" + overriddenNode.getName());
-			for (ChildNode<?> child : overriddenNode.children()) {
+			for (ChildNode<?> child : overriddenNode.children())
 				index = merge(overriddenNode.getName(), child.effective(), index, false);
-			}
 		}
 
 		this.inputTarget = inputTarget;
@@ -140,8 +135,6 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 			boolean override) {
 		String name = child.getName();
 
-		System.out.println("  " + name + " @ " + index);
-
 		if (name != null) {
 			MergeGroup group = namedMergeGroups.get(name);
 
@@ -151,6 +144,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 				mergedChildren.add(index++, group);
 			} else {
 				int newIndex = mergedChildren.indexOf(group) + 1;
+
 				if (newIndex < index)
 					if (override)
 						throw new SchemaException(
@@ -163,6 +157,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 						throw new SchemaException("The child node '" + name
 								+ "' inherited from the overridden node '" + parentName
 								+ "' cannot be merged with order preservation.");
+
 				if (override)
 					group.override(child);
 				else
@@ -177,11 +172,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 
 	@Override
 	public ChildrenContainer create() {
-		List<ChildNode.Effective<?>> effectiveChildren = new ArrayList<>();
-		effectiveChildren.addAll(mergedChildren.stream().map(MergeGroup::getChild)
-				.collect(Collectors.toList()));
-		effectiveChildren.addAll(children.stream().map(c -> c.effective())
-				.collect(Collectors.toList()));
+		List<ChildNode.Effective<?>> effectiveChildren = mergedChildren.stream()
+				.map(MergeGroup::getChild).collect(Collectors.toList());
 
 		return new ChildrenContainer(children, effectiveChildren);
 	}

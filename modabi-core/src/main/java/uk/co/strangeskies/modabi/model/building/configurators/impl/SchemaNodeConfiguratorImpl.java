@@ -40,7 +40,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public List<? extends ChildNode.Effective<?>> children() {
+			public List<ChildNode.Effective<?>> children() {
 				return children;
 			}
 

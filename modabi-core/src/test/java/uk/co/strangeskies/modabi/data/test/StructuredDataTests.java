@@ -18,9 +18,7 @@ public class StructuredDataTests {
 
 				{ new BufferingStructuredDataTarget().nextChild("one")
 						.property("two", o -> o.put(DataType.STRING, "twoValue"))
-						.endChild().buffer() }
-
-		};
+						.endChild().buffer() } };
 	}
 
 	@Test

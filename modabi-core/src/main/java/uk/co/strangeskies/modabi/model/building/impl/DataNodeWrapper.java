@@ -95,7 +95,7 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 	}
 
 	@Override
-	public List<? extends ChildNode.Effective<?>> children() {
+	public List<ChildNode.Effective<?>> children() {
 		return type.children();
 	}
 

@@ -127,7 +127,7 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	}
 
 	@Override
-	public List<? extends ChildNode.Effective<?>> children() {
+	public List<ChildNode.Effective<?>> children() {
 		return component.children();
 	}
 

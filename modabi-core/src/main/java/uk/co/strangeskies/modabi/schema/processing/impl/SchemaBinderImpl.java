@@ -128,7 +128,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	private final BaseSchema baseSchema;
 	private final MetaSchema metaSchema;
 
-	private final List<Function<Class<?>, ?>> providers;
+	private final List<Function<Class<?>, Object>> providers;
 
 	final Models registeredModels; // TODO obvs
 	private final DataBindingTypes registeredTypes;

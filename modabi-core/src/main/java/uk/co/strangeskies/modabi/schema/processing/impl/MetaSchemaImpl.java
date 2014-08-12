@@ -99,6 +99,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("branch")
 				.baseModel(nodeModel)
 				.dataClass(SchemaNode.class)
+				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.element().name("child").outMethod("children")
 								.baseModel(nodeModel).outMethodIterable(true)
