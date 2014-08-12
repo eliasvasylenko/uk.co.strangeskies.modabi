@@ -5,6 +5,7 @@ import java.util.Objects;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
@@ -81,6 +82,12 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 	}
 
 	@Override
+	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
+		return null; // TODO create hiding children configurator! options can be
+									// reduced, not increased, but overriding nodes.
+	}
+
+	@Override
 	public ChoiceNodeConfigurator<C, B> mandatory(boolean mandatory) {
 		this.mandatory = mandatory;
 
@@ -90,11 +97,6 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 	@Override
 	protected Class<ChoiceNode> getNodeClass() {
 		return ChoiceNode.class;
-	}
-
-	@Override
-	protected Class<?> getCurrentChildInputTargetClass() {
-		return getContext().getCurrentChildInputTargetClass();
 	}
 
 	@Override

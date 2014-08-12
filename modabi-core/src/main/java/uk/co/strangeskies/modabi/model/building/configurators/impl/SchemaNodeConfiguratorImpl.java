@@ -2,22 +2,20 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import uk.co.strangeskies.gears.utilities.factory.Configurator;
 import uk.co.strangeskies.gears.utilities.factory.InvalidBuildStateException;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.impl.Children;
+import uk.co.strangeskies.modabi.model.building.impl.ChildrenConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.ChildrenContainer;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.schema.SchemaException;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?>, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
@@ -32,15 +30,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 					OverrideMerge<? extends SchemaNode<?>, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
 				name = overrideMerge.getValue(SchemaNode::getName);
 
-				children = overrideMerge.configurator().getChildren()
+				children = overrideMerge.configurator().getChildrenContainer()
 						.getEffectiveChildren();
-
-				Set<String> names = new HashSet<>();
-				for (ChildNode<?> child : children)
-					if (!names.add(child.effective().getName())) {
-						throw new SchemaException("Node '" + child.effective().getName()
-								+ "' is present multiple times in '" + name + "'.");
-					}
 			}
 
 			@Override
@@ -68,12 +59,13 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		private final List<ChildNode<?>> children;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
-			configurator.finaliseInheritedChildren();
+			configurator.finaliseConfiguration();
+			configurator.finaliseChildren();
 
 			name = configurator.getId();
 
 			children = Collections.unmodifiableList(new ArrayList<>(configurator
-					.getChildren().getChildren()));
+					.getChildrenContainer().getChildren()));
 		}
 
 		@Override
@@ -97,18 +89,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 	}
 
-	private Children<C, B> children;
+	private ChildrenConfigurator<C, B> childrenConfigurator;
+	private ChildrenContainer childrenContainer;
 
-	private boolean finalisedInheritedChildren;
+	private boolean finalised;
 
 	private String name;
 
 	public SchemaNodeConfiguratorImpl() {
-		finalisedInheritedChildren = false;
-	}
-
-	public Children<C, B> getChildren() {
-		return children;
+		finalised = false;
 	}
 
 	protected final void requireConfigurable(Object object) {
@@ -118,15 +107,28 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	protected final void requireConfigurable() {
-		if (finalisedInheritedChildren)
+		if (finalised)
 			throw new InvalidBuildStateException(this);
 	}
 
-	protected final void finaliseInheritedChildren() {
-		if (!finalisedInheritedChildren) {
-			children = new Children<>(getOverriddenNodes());
-		}
-		finalisedInheritedChildren = true;
+	private final void finaliseConfiguration() {
+		finalised = true;
+
+		if (childrenConfigurator == null)
+			childrenConfigurator = createChildrenConfigurator();
+	}
+
+	public void finaliseChildren() {
+		if (childrenContainer == null)
+			childrenContainer = childrenConfigurator.create();
+	}
+
+	public ChildrenContainer getChildrenContainer() {
+		return childrenContainer;
+	}
+
+	public ChildrenConfigurator<C, B> getChildrenConfigurator() {
+		return childrenConfigurator;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -144,27 +146,23 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Class<N> getNodeClass();
 
+	protected abstract DataLoader getDataLoader();
+
+	protected abstract boolean isAbstract();
+
 	protected abstract LinkedHashSet<N> getOverriddenNodes();
 
 	protected final String getId() {
 		return name;
 	}
 
-	protected abstract Class<?> getCurrentChildInputTargetClass();
-
-	protected abstract Class<?> getCurrentChildOutputTargetClass();
-
-	protected abstract DataLoader getDataLoader();
+	protected abstract ChildrenConfigurator<C, B> createChildrenConfigurator();
 
 	protected ChildBuilder<C, B> addChild() {
-		finaliseInheritedChildren();
+		finaliseConfiguration();
 
-		return children.addChild(getDataLoader(),
-				getCurrentChildInputTargetClass(), getCurrentChildOutputTargetClass(),
-				isAbstract());
+		return childrenConfigurator.addChild();
 	}
-
-	protected abstract boolean isAbstract();
 
 	protected static <E extends SchemaNode<? extends E>, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> overrideMerge(
 			E node, C configurator) {

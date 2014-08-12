@@ -3,8 +3,10 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.model.building.impl.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
@@ -55,13 +57,11 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bind
 	}
 
 	@Override
-	protected Class<?> getCurrentChildInputTargetClass() {
-		if (getChildren().getChildren().isEmpty())
-			return getContext().getCurrentChildInputTargetClass();
-		else
-			return getChildren().getChildren()
-					.get(getChildren().getChildren().size() - 1).effective()
-					.getPostInputClass();
+	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
+		Class<?> inputTarget = getContext().getInputTargetClass();
+
+		return new SequentialChildrenConfigurator<>(getOverriddenNodes(),
+				inputTarget, null, null, isAbstract());
 	}
 
 	@Override

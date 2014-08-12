@@ -8,8 +8,10 @@ import java.util.Objects;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.model.building.impl.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.Methods;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.model.building.impl.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -233,18 +235,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	protected final Class<?> getCurrentChildOutputTargetClass() {
-		return getUnbindingClass() != null ? getUnbindingClass() : getDataClass();
-	}
+	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
+		Class<?> inputTarget = getBindingClass() != null ? getBindingClass()
+				: getDataClass();
+		Class<?> outputTarget = getUnbindingClass() != null ? getUnbindingClass()
+				: getDataClass();
 
-	@Override
-	protected Class<?> getCurrentChildInputTargetClass() {
-		if (getChildren().getChildren().isEmpty())
-			return getBindingClass() != null ? getBindingClass() : getDataClass();
-		else
-			return getChildren().getChildren()
-					.get(getChildren().getChildren().size() - 1).effective()
-					.getPostInputClass();
+		return new SequentialChildrenConfigurator<>(getOverriddenNodes(),
+				inputTarget, outputTarget, getDataLoader(), isAbstract());
 	}
 
 	@Override

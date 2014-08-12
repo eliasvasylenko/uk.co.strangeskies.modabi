@@ -183,10 +183,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																					DataType.STRING, "id").buffer()))
 													.addChild(
 															e -> e.inputSequence().name("providedValue")
-																	.inMethodChained(true)))
-									.addChild(
-											d -> d.data().type(bufferedDataType).name("ref")
-													.outMethod("null"))).create();
+																	.inMethodChained(true)))).create();
 			typeSet.add(referenceBaseType);
 
 			referenceType = builder

@@ -56,12 +56,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					throw new SchemaException();
 				outMethod = (outMethodName == "null") ? null : Methods.getOutMethod(
 						this, overrideMerge.configurator().getContext()
-								.getCurrentChildOutputTargetClass(), overrideMerge.getValue(
+								.getOutputTargetClass(), overrideMerge.getValue(
 								n -> n.effective() == null ? null : n.effective()
 										.getOutMethod(), Objects::equals));
 
 				inMethod = (inMethodName == "null") ? null : Methods.getInMethod(this,
-						overrideMerge.configurator().getCurrentChildInputTargetClass(),
+						overrideMerge.configurator().getContext()
+								.getInputTargetClass(),
 						overrideMerge.getValue(n -> n.effective() == null ? null : n
 								.effective().getInMethod(), Objects::equals));
 			}

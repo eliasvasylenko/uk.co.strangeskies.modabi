@@ -8,8 +8,10 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
+import uk.co.strangeskies.modabi.model.building.impl.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.model.building.impl.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 
@@ -40,11 +42,10 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 				Method inMethod = null;
 				try {
 					Class<?> inputClass = overrideMerge.configurator().getContext()
-							.getCurrentChildInputTargetClass();
+							.getInputTargetClass();
 
 					List<Class<?>> parameterClasses = overrideMerge.configurator()
-							.getChildren() == null ? null : overrideMerge.configurator()
-							.getChildren().getChildren().stream()
+							.getChildrenContainer().getChildren().stream()
 							.map(o -> ((BindingChildNode<?, ?>) o).getDataClass())
 							.collect(Collectors.toList());
 
@@ -138,13 +139,11 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 	}
 
 	@Override
-	protected Class<?> getCurrentChildInputTargetClass() {
-		if (getChildren().getChildren().isEmpty())
-			return getContext().getCurrentChildInputTargetClass();
-		else
-			return getChildren().getChildren()
-					.get(getChildren().getChildren().size() - 1).effective()
-					.getPostInputClass();
+	public ChildrenConfigurator<C, C> createChildrenConfigurator() {
+		Class<?> outputTarget = getContext().getOutputTargetClass();
+
+		return new SequentialChildrenConfigurator<>(getOverriddenNodes(), null,
+				outputTarget, getDataLoader(), isAbstract());
 	}
 
 	@Override
