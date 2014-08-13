@@ -26,16 +26,12 @@ public class ModelConfiguratorImpl<T>
 		private static class Effective<T> extends
 				BindingNodeImpl.Effective<T, Model<T>, Model.Effective<T>> implements
 				Model.Effective<T> {
-			private final Model<T> source;
-
 			private final Set<Model.Effective<? super T>> baseModel;
 			private final Boolean isAbstract;
 
 			protected Effective(
 					OverrideMerge<Model<T>, ModelConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
-
-				this.source = overrideMerge.node();
 
 				Set<Model.Effective<? super T>> baseModel = new TreeSet<>(
 						new IdentityComparator<>());
@@ -46,11 +42,6 @@ public class ModelConfiguratorImpl<T>
 				this.baseModel = Collections.unmodifiableSet(baseModel);
 
 				isAbstract = overrideMerge.getValue(Model::isAbstract);
-			}
-
-			@Override
-			public Model<T> source() {
-				return source;
 			}
 
 			@Override
@@ -128,7 +119,7 @@ public class ModelConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected LinkedHashSet<Model<T>> getOverriddenNodes() {
+	public LinkedHashSet<Model<T>> getOverriddenNodes() {
 		return baseModel != null ? new LinkedHashSet<>(baseModel.stream()
 				.map(m -> (Model<T>) m.effective()).collect(Collectors.toList()))
 				: new LinkedHashSet<>();

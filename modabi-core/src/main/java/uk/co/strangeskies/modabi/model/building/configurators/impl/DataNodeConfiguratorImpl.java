@@ -199,7 +199,7 @@ public class DataNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected LinkedHashSet<DataNode<T>> getOverriddenNodes() {
+	public LinkedHashSet<DataNode<T>> getOverriddenNodes() {
 		LinkedHashSet<DataNode<T>> overriddenNodes = new LinkedHashSet<>();
 
 		if (type != null)

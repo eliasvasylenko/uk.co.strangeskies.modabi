@@ -80,6 +80,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 		}
 
 		public boolean addChild(ChildNode.Effective<?, ?> child) {
+			if (overridden)
+				throw new SchemaException(""); // TODO ################
 			return children.add(child);
 		}
 

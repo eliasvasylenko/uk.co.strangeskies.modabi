@@ -381,7 +381,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	private final BaseModels models;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder, DataLoader loader) {
 		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
@@ -415,8 +415,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		primitives = new HashedMap<>();
 		// TODO yet more seemingly unnecessary casts:
-		for (DataType dataType : (List<DataType>) Enumeration
-				.getConstants(DataType.class)) {
+		for (DataType dataType : Enumeration.getConstants(DataType.class)) {
 			primitives.put(
 					dataType,
 					dataTypeBuilder

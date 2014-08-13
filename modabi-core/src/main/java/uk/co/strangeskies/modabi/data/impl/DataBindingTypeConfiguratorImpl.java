@@ -22,8 +22,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 				extends
 				BindingNodeImpl.Effective<T, DataBindingType<T>, DataBindingType.Effective<T>>
 				implements DataBindingType.Effective<T> {
-			private final DataBindingType<T> source;
-
 			private final Boolean isAbstract;
 			private final Boolean isPrivate;
 
@@ -33,18 +31,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 					OverrideMerge<DataBindingType<T>, DataBindingTypeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				source = overrideMerge.node();
-
 				isAbstract = overrideMerge.getValue(DataBindingType::isAbstract);
 				isPrivate = overrideMerge.getValue(DataBindingType::isPrivate);
 
 				baseType = overrideMerge.configurator().baseType == null ? null
 						: overrideMerge.configurator().baseType.effective();
-			}
-
-			@Override
-			public DataBindingType<T> source() {
-				return source;
 			}
 
 			@Override
@@ -164,7 +155,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected LinkedHashSet<DataBindingType<T>> getOverriddenNodes() {
+	public LinkedHashSet<DataBindingType<T>> getOverriddenNodes() {
 		return baseType == null ? new LinkedHashSet<>() : new LinkedHashSet<>(
 				Arrays.asList((DataBindingType<T>) baseType));
 	}

@@ -210,7 +210,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	protected LinkedHashSet<N> getOverriddenNodes() {
+	public LinkedHashSet<N> getOverriddenNodes() {
 		return getId() == null ? new LinkedHashSet<>() : getContext()
 				.overrideChild(getId(), getNodeClass());
 	}

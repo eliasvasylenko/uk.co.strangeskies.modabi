@@ -21,13 +21,14 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 		@Override
 		default boolean equalsImpl(Object object) {
-			return propertySet().equal(object)
-					&& effectivePropertySet().equals(object);
+			return propertySet().testEquality(object)
+					&& effectivePropertySet().testEquality(object);
 		}
 
 		@Override
 		default int hashCodeImpl() {
-			return propertySet().hashCode() ^ effectivePropertySet().hashCode();
+			return propertySet().generateHashCode()
+					^ effectivePropertySet().generateHashCode();
 		}
 
 		default PropertySet<E> effectivePropertySet() {
@@ -36,16 +37,17 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	}
 
 	default boolean equalsImpl(Object object) {
-		return propertySet().equal(object)
+		return propertySet().testEquality(object)
 				&& effective().equalsImpl(((SchemaNode<?, ?>) object).effective());
 	}
 
 	default int hashCodeImpl() {
-		return propertySet().hashCode();
+		return propertySet().generateHashCode();
 	}
 
+	@SuppressWarnings("unchecked")
 	default PropertySet<S> propertySet() {
-		return new PropertySet<>(getNodeClass(), source())
+		return new PropertySet<>(getNodeClass(), (S) this)
 				.add(SchemaNode::children).add(SchemaNode::getName);
 	}
 
@@ -63,4 +65,9 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	Class<E> getEffectiveClass();
 
 	Class<S> getNodeClass();
+
+	default ChildNode<?, ?> child(String name) {
+		return children().stream().filter(c -> c.getName().equals(name)).findAny()
+				.get();
+	}
 }

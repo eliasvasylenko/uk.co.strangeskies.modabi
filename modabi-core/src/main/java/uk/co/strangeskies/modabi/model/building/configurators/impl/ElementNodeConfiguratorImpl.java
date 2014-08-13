@@ -124,7 +124,7 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected LinkedHashSet<ElementNode<T>> getOverriddenNodes() {
+	public LinkedHashSet<ElementNode<T>> getOverriddenNodes() {
 		LinkedHashSet<ElementNode<T>> overriddenNodes = new LinkedHashSet<>();
 
 		if (baseModel != null)

@@ -62,6 +62,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			public int hashCode() {
 				return hashCodeImpl();
 			}
+
+			@Override
+			public String toString() {
+				return propertySet().toString();
+			}
 		}
 
 		private final String name;
@@ -95,6 +100,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		@Override
 		public int hashCode() {
 			return hashCodeImpl();
+		}
+
+		@Override
+		public String toString() {
+			return propertySet().toString();
 		}
 	}
 
@@ -159,7 +169,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract boolean isAbstract();
 
-	protected abstract LinkedHashSet<N> getOverriddenNodes();
+	public abstract LinkedHashSet<N> getOverriddenNodes();
 
 	protected final String getId() {
 		return name;
@@ -175,7 +185,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected static <S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> OverrideMerge<S, C> overrideMerge(
 			S node, C configurator) {
-		return new OverrideMerge<S, C>(node, configurator,
-				c -> c.getOverriddenNodes());
+		return new OverrideMerge<S, C>(node, configurator);
 	}
 }

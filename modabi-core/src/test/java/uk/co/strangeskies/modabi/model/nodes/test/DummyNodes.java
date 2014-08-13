@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.model.building.test;
+package uk.co.strangeskies.modabi.model.nodes.test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 
 public class DummyNodes {
@@ -16,8 +15,13 @@ public class DummyNodes {
 	public static SequenceNode sequenceNode(String name, String... children) {
 		return sequenceNode(
 				name,
-				Arrays.asList(children).stream().map(DummyNodes::schemaNode)
+				Arrays.asList(children).stream().map(DummyNodes::sequenceNode)
 						.collect(Collectors.toList()));
+	}
+
+	public static SequenceNode sequenceNode(String name,
+			ChildNode<?, ?>... children) {
+		return sequenceNode(name, Arrays.asList(children));
 	}
 
 	public static SequenceNode sequenceNode(String name,
@@ -34,11 +38,33 @@ public class DummyNodes {
 			}
 
 			@Override
+			public boolean equals(Object object) {
+				return equalsImpl(object);
+			}
+
+			@Override
+			public int hashCode() {
+				return hashCodeImpl();
+			}
+
+			@Override
 			public Effective effective() {
+				SequenceNode thisNode = this;
+
 				return new Effective() {
 					@Override
 					public String getName() {
 						return name;
+					}
+
+					@Override
+					public boolean equals(Object object) {
+						return equalsImpl(object);
+					}
+
+					@Override
+					public int hashCode() {
+						return hashCodeImpl();
 					}
 
 					@Override
@@ -55,14 +81,14 @@ public class DummyNodes {
 
 					@Override
 					public SequenceNode source() {
-						return SequenceNode.this;
+						return thisNode;
 					}
 				};
 			}
 		};
 	}
 
-	public static SchemaNode<?, ?> schemaNode(String name) {
+	public static SequenceNode sequenceNode(String name) {
 		return new SequenceNode.Effective() {
 			@Override
 			public String getName() {
@@ -77,6 +103,16 @@ public class DummyNodes {
 			@Override
 			public SequenceNode source() {
 				return this;
+			}
+
+			@Override
+			public boolean equals(Object object) {
+				return equalsImpl(object);
+			}
+
+			@Override
+			public int hashCode() {
+				return hashCodeImpl();
 			}
 		};
 	}

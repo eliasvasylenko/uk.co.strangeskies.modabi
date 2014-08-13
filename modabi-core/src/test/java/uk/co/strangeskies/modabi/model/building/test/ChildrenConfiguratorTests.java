@@ -14,6 +14,7 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.model.nodes.test.DummyNodes;
 
 public class ChildrenConfiguratorTests {
 	private class MergeTestData {
@@ -65,7 +66,7 @@ public class ChildrenConfiguratorTests {
 
 	@Test(dataProvider = "mergeData")
 	public void childrenMergeTest(MergeTestData mergeTestData) {
-		SequentialChildrenConfigurator<ChildNode<?>, BindingChildNode<?, ?>> configurator = new SequentialChildrenConfigurator<ChildNode<?>, BindingChildNode<?, ?>>(
+		SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>> configurator = new SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>>(
 				mergeTestData.sequences(), Object.class, Object.class, null, true);
 
 		for (String override : mergeTestData.overrides())

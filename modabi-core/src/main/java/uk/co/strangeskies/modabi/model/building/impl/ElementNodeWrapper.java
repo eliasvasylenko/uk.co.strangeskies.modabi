@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.AbstractModel;
@@ -12,7 +11,6 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
@@ -35,7 +33,8 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 		this.component = component;
 		this.base = base;
 
-		String message = component.getName() + " / " + base.getName();
+		String message = "Cannot override '" + base.getName() + "' with '"
+				+ component.getName() + "'.";
 
 		if (base.getDataClass() != null
 				&& !base.getDataClass().isAssignableFrom(component.getDataClass()))
@@ -62,13 +61,8 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 		if (base.getProvidedUnbindingMethodParameterNames() != null)
 			throw new SchemaException(message);
 
-		System.out.println(base.getName()
-				+ " : "
-				+ base.children().stream().map(SchemaNode::getName)
-						.collect(Collectors.toList()));
-
-		// if (!base.children().isEmpty())
-		// throw new SchemaException(message); TODO URGENT!
+		if (!component.children().containsAll(base.children()))
+			throw new SchemaException(message);
 	}
 
 	@Override

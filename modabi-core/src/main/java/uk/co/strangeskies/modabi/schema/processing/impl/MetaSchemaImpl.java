@@ -203,17 +203,17 @@ public class MetaSchemaImpl implements MetaSchema {
 												.addChild(
 														p -> p
 																.data()
-																.name("id")
-																.provideValue(
-																		new BufferingDataTarget().put(
-																				DataType.STRING, "name").buffer()))
-												.addChild(
-														p -> p
-																.data()
 																.name("targetDomain")
 																.provideValue(
 																		new BufferingDataTarget().put(
-																				DataType.STRING, "model").buffer()))))
+																				DataType.STRING, "model").buffer()))
+												.addChild(
+														p -> p
+																.data()
+																.name("id")
+																.provideValue(
+																		new BufferingDataTarget().put(
+																				DataType.STRING, "name").buffer()))))
 				.addChild(n -> n.element().name("child")).create();
 		modelSet.add(abstractModelModel);
 
@@ -333,17 +333,17 @@ public class MetaSchemaImpl implements MetaSchema {
 								.addChild(
 										p -> p
 												.data()
-												.name("id")
-												.provideValue(
-														new BufferingDataTarget().put(DataType.STRING,
-																"name").buffer()))
-								.addChild(
-										p -> p
-												.data()
 												.name("targetDomain")
 												.provideValue(
 														new BufferingDataTarget().put(DataType.STRING,
-																"type").buffer()))).create();
+																"type").buffer()))
+								.addChild(
+										p -> p
+												.data()
+												.name("id")
+												.provideValue(
+														new BufferingDataTarget().put(DataType.STRING,
+																"name").buffer()))).create();
 		modelSet.add(typeModel);
 
 		/* Schema Models */
