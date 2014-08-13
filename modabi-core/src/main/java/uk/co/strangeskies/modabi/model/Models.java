@@ -62,7 +62,7 @@ public class Models extends NamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getMatchingModels(
-			AbstractModel<T, ?> element, Class<?> dataClass) {
+			AbstractModel<T, ?, ?> element, Class<?> dataClass) {
 		Iterator<? extends Model.Effective<?>> baseModelIterator = element
 				.effective().baseModel().iterator();
 

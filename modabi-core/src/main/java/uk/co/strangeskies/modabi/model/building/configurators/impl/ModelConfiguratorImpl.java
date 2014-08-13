@@ -19,12 +19,12 @@ import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
 public class ModelConfiguratorImpl<T>
 		extends
-		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T, ChildNode<?>, BindingChildNode<?, ?>>
+		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>>
 		implements ModelConfigurator<T> {
 	protected static class ModelImpl<T> extends
-			BindingNodeImpl<T, Model.Effective<T>> implements Model<T> {
+			BindingNodeImpl<T, Model<T>, Model.Effective<T>> implements Model<T> {
 		private static class Effective<T> extends
-				BindingNodeImpl.Effective<T, Model.Effective<T>> implements
+				BindingNodeImpl.Effective<T, Model<T>, Model.Effective<T>> implements
 				Model.Effective<T> {
 			private final Model<T> source;
 

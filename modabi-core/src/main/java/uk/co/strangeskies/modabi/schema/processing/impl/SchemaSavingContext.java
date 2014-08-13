@@ -164,12 +164,12 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		return this.schemaBinderImpl.provide(clazz);
 	}
 
-	private void processChildren(SchemaNode.Effective<?> node) {
-		for (ChildNode.Effective<?> child : node.children())
+	private void processChildren(SchemaNode.Effective<?, ?> node) {
+		for (ChildNode.Effective<?, ?> child : node.children())
 			child.process(this);
 	}
 
-	private void processBindingChildren(SchemaNode.Effective<?> node,
+	private void processBindingChildren(SchemaNode.Effective<?, ?> node,
 			Object binding) {
 		bindingStack.push(binding);
 		processChildren(node);
@@ -199,7 +199,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		unbindModel(node, data);
 	}
 
-	private <U> void unbindModel(AbstractModel.Effective<? extends U, ?> node,
+	private <U> void unbindModel(AbstractModel.Effective<? extends U, ?, ?> node,
 			U data) {
 		output.nextChild(node.getName());
 		processBindingChildren(node, unbindData(node, data));
@@ -207,7 +207,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U> List<U> getData(BindingChildNode.Effective<U, ?> node) {
+	public <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node) {
 		List<U> itemList;
 
 		if (node.getOutMethodName() != "null") {
@@ -261,7 +261,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		}
 	}
 
-	public <U> Object unbindData(BindingNode.Effective<? extends U, ?> node,
+	public <U> Object unbindData(BindingNode.Effective<? extends U, ?, ?> node,
 			U data) {
 		Function<Object, Object> supplier = Function.identity();
 		if (node.getUnbindingStrategy() != null) {
@@ -316,7 +316,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	}
 
 	private Object[] prepareUnbingingParameterList(
-			BindingNode.Effective<?, ?> node, Object data) {
+			BindingNode.Effective<?, ?, ?> node, Object data) {
 		List<Object> parameters = new ArrayList<>();
 
 		boolean addedData = false;

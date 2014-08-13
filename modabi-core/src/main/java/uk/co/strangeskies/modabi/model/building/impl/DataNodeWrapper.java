@@ -95,7 +95,7 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 	}
 
 	@Override
-	public List<ChildNode.Effective<?>> children() {
+	public List<ChildNode.Effective<?, ?>> children() {
 		return type.children();
 	}
 
@@ -142,5 +142,10 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 	@Override
 	public Method getInMethod() {
 		return null;
+	}
+
+	@Override
+	public DataNode<T> source() {
+		return this;
 	}
 }

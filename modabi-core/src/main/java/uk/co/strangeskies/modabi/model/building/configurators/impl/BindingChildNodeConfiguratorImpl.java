@@ -14,15 +14,15 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
 		BindingChildNodeConfigurator<S, N, T, C, B> {
-	protected static abstract class BindingChildNodeImpl<T, E extends BindingChildNode.Effective<T, E>>
-			extends BindingNodeImpl<T, E> implements ChildNodeImpl<E>,
-			BindingChildNode<T, E> {
-		protected static abstract class Effective<T, E extends BindingChildNode.Effective<T, E>>
-				extends BindingNodeImpl.Effective<T, E> implements
-				BindingChildNode.Effective<T, E> {
+	protected static abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
+			extends BindingNodeImpl<T, S, E> implements ChildNodeImpl<S, E>,
+			BindingChildNode<T, S, E> {
+		protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
+				extends BindingNodeImpl.Effective<T, S, E> implements
+				BindingChildNode.Effective<T, S, E> {
 			private final Range<Integer> occurances;
 
 			private final Boolean iterable;
@@ -34,7 +34,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Boolean inMethodChained;
 
 			protected Effective(
-					OverrideMerge<? extends BindingChildNode<?, ?>, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				occurances = overrideMerge.getValue(BindingChildNode::occurances,
@@ -56,13 +56,12 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					throw new SchemaException();
 				outMethod = (outMethodName == "null") ? null : Methods.getOutMethod(
 						this, overrideMerge.configurator().getContext()
-								.getOutputTargetClass(), overrideMerge.getValue(
-								n -> n.effective() == null ? null : n.effective()
-										.getOutMethod(), Objects::equals));
+								.getOutputTargetClass(), overrideMerge.getValue(n -> n
+								.effective() == null ? null : n.effective().getOutMethod(),
+								Objects::equals));
 
 				inMethod = (inMethodName == "null") ? null : Methods.getInMethod(this,
-						overrideMerge.configurator().getContext()
-								.getInputTargetClass(),
+						overrideMerge.configurator().getContext().getInputTargetClass(),
 						overrideMerge.getValue(n -> n.effective() == null ? null : n
 								.effective().getInMethod(), Objects::equals));
 			}

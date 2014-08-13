@@ -11,16 +11,16 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 
-public class SequenceNodeConfiguratorImpl<C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends
 		ChildNodeConfiguratorImpl<SequenceNodeConfigurator<C, B>, SequenceNode, C, B>
 		implements SequenceNodeConfigurator<C, B> {
 	protected static class SequenceNodeImpl extends
-			SchemaNodeImpl<SequenceNode.Effective> implements
-			ChildNodeImpl<SequenceNode.Effective>, SequenceNode {
+			SchemaNodeImpl<SequenceNode, SequenceNode.Effective> implements
+			ChildNodeImpl<SequenceNode, SequenceNode.Effective>, SequenceNode {
 		private class Effective extends
-				SchemaNodeImpl.Effective<SequenceNode.Effective> implements
-				SequenceNode.Effective {
+				SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
+				implements SequenceNode.Effective {
 			public Effective(
 					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl<?, ?>> overrideMerge) {
 				super(overrideMerge);

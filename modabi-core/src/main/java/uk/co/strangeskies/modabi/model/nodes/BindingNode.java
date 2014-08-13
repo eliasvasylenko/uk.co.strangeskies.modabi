@@ -3,16 +3,35 @@ package uk.co.strangeskies.modabi.model.nodes;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface BindingNode<T, E extends BindingNode.Effective<T, E>> extends
-		SchemaNode<E> {
-	interface Effective<T, E extends Effective<T, E>> extends BindingNode<T, E>,
-			SchemaNode.Effective<E> {
+public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
+		extends SchemaNode<S, E> {
+	interface Effective<T, S extends BindingNode<T, S, E>, E extends Effective<T, S, E>>
+			extends BindingNode<T, S, E>, SchemaNode.Effective<S, E> {
 		Method getUnbindingMethod();
 
 		List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters();
+
+		@Override
+		default PropertySet<E> effectivePropertySet() {
+			return SchemaNode.Effective.super.effectivePropertySet()
+					.add(BindingNode.Effective::getUnbindingMethod)
+					.add(BindingNode.Effective::getProvidedUnbindingMethodParameters);
+		}
+	}
+
+	@Override
+	default PropertySet<S> propertySet() {
+		return SchemaNode.super.propertySet().add(BindingNode::getDataClass)
+				.add(BindingNode::getBindingStrategy).add(BindingNode::getBindingClass)
+				.add(BindingNode::getUnbindingStrategy)
+				.add(BindingNode::getUnbindingClass)
+				.add(BindingNode::getUnbindingMethodName)
+				.add(BindingNode::getUnbindingFactoryClass)
+				.add(BindingNode::getProvidedUnbindingMethodParameterNames);
 	}
 
 	Class<T> getDataClass();

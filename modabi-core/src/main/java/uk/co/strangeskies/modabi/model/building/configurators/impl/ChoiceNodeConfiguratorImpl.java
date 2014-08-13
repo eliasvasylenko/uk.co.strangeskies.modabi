@@ -12,15 +12,15 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
 
-public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends
 		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator<C, B>, ChoiceNode, C, B>
 		implements ChoiceNodeConfigurator<C, B> {
 	protected static class ChoiceNodeImpl extends
-			SchemaNodeImpl<ChoiceNode.Effective> implements
-			ChildNodeImpl<ChoiceNode.Effective>, ChoiceNode {
+			SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective> implements
+			ChildNodeImpl<ChoiceNode, ChoiceNode.Effective>, ChoiceNode {
 		private static class Effective extends
-				SchemaNodeImpl.Effective<ChoiceNode.Effective> implements
+				SchemaNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective> implements
 				ChoiceNode.Effective {
 			private final boolean mandatory;
 
@@ -72,7 +72,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?>, B extends Bindin
 	private boolean mandatory;
 
 	public ChoiceNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super ChildNode<?>> parent) {
+			SchemaNodeConfigurationContext<? super ChildNode<?, ?>> parent) {
 		super(parent);
 	}
 

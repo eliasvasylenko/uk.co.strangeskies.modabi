@@ -4,7 +4,7 @@ import uk.co.strangeskies.modabi.model.building.configurators.BranchingNodeConfi
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
 public interface RegistrationTimeTargetAdapter {
-	public ChildNode<?> getNode(String id);
+	public ChildNode<?, ?> getNode(String id);
 
 	public Class<?> getDataClass();
 

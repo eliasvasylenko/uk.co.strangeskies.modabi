@@ -19,10 +19,10 @@ import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	private final Class<T> dataClass;
-	private final AbstractModel.Effective<? super T, ?> component;
+	private final AbstractModel.Effective<? super T, ?, ?> component;
 	private final ElementNode.Effective<? super T> base;
 
-	public ElementNodeWrapper(AbstractModel.Effective<? super T, ?> component,
+	public ElementNodeWrapper(AbstractModel.Effective<? super T, ?, ?> component,
 			Class<T> dataClass) {
 		this.dataClass = dataClass;
 		this.component = component;
@@ -127,7 +127,7 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	}
 
 	@Override
-	public List<ChildNode.Effective<?>> children() {
+	public List<ChildNode.Effective<?, ?>> children() {
 		return component.children();
 	}
 
@@ -184,5 +184,10 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	@Override
 	public List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters() {
 		return component.getProvidedUnbindingMethodParameters();
+	}
+
+	@Override
+	public ElementNode<T> source() {
+		return this;
 	}
 }

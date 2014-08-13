@@ -22,14 +22,15 @@ import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
-		BindingChildNodeConfiguratorImpl<ElementNodeConfigurator<T>, ElementNode<T>, T, ChildNode<?>, BindingChildNode<?, ?>>
+		BindingChildNodeConfiguratorImpl<ElementNodeConfigurator<T>, ElementNode<T>, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>>
 		implements ElementNodeConfigurator<T> {
 	protected static class ElementNodeImpl<T> extends
-			BindingChildNodeImpl<T, ElementNode.Effective<T>> implements
-			ElementNode<T> {
-		private static class Effective<T> extends
-				BindingChildNodeImpl.Effective<T, ElementNode.Effective<T>> implements
-				ElementNode.Effective<T> {
+			BindingChildNodeImpl<T, ElementNode<T>, ElementNode.Effective<T>>
+			implements ElementNode<T> {
+		private static class Effective<T>
+				extends
+				BindingChildNodeImpl.Effective<T, ElementNode<T>, ElementNode.Effective<T>>
+				implements ElementNode.Effective<T> {
 			private final Set<Model.Effective<? super T>> baseModel;
 			private final Boolean isAbstract;
 

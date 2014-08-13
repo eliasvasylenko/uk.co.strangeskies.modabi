@@ -17,21 +17,30 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?>, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
-	public static abstract class SchemaNodeImpl<E extends SchemaNode.Effective<E>>
-			implements SchemaNode<E> {
-		protected static abstract class Effective<E extends SchemaNode.Effective<E>>
-				implements SchemaNode.Effective<E> {
+	public static abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
+			implements SchemaNode<S, E> {
+		protected static abstract class Effective<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
+				implements SchemaNode.Effective<S, E> {
+			private final S source;
+
 			private final String name;
-			private final List<ChildNode.Effective<?>> children;
+			private final List<ChildNode.Effective<?, ?>> children;
 
 			protected Effective(
-					OverrideMerge<? extends SchemaNode<?>, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
+				source = overrideMerge.node().source();
+
 				name = overrideMerge.getValue(SchemaNode::getName);
 
 				children = overrideMerge.configurator().getChildrenContainer()
 						.getEffectiveChildren();
+			}
+
+			@Override
+			public S source() {
+				return source;
 			}
 
 			@Override
@@ -40,14 +49,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public List<ChildNode.Effective<?>> children() {
+			public List<ChildNode.Effective<?, ?>> children() {
 				return children;
 			}
 
-			/*
-			 * @Override public final boolean equals(Object obj) { return
-			 * equalsImpl(obj); }
-			 */
+			@Override
+			public final boolean equals(Object obj) {
+				return equalsImpl(obj);
+			}
 
 			@Override
 			public int hashCode() {
@@ -56,7 +65,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		private final String name;
-		private final List<ChildNode<?>> children;
+		private final List<ChildNode<?, ?>> children;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseConfiguration();
@@ -74,14 +83,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public final List<? extends ChildNode<?>> children() {
+		public final List<? extends ChildNode<?, ?>> children() {
 			return children;
 		}
 
-		/*
-		 * @Override public final boolean equals(Object obj) { return
-		 * equalsImpl(obj); }
-		 */
+		@Override
+		public final boolean equals(Object obj) {
+			return equalsImpl(obj);
+		}
 
 		@Override
 		public int hashCode() {
@@ -164,9 +173,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return childrenConfigurator.addChild();
 	}
 
-	protected static <E extends SchemaNode<? extends E>, C extends SchemaNodeConfiguratorImpl<?, ? extends E, ?, ?>> OverrideMerge<E, C> overrideMerge(
-			E node, C configurator) {
-		return new OverrideMerge<E, C>(node, configurator,
+	protected static <S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> OverrideMerge<S, C> overrideMerge(
+			S node, C configurator) {
+		return new OverrideMerge<S, C>(node, configurator,
 				c -> c.getOverriddenNodes());
 	}
 }

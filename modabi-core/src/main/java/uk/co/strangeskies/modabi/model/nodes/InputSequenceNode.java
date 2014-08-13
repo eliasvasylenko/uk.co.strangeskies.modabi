@@ -5,9 +5,10 @@ import java.lang.reflect.Method;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface InputSequenceNode extends
-		InputNode<InputSequenceNode.Effective>,
-		DataNodeChildNode<InputSequenceNode.Effective> {
-	interface Effective extends InputSequenceNode, InputNode.Effective<Effective> {
+		InputNode<InputSequenceNode, InputSequenceNode.Effective>,
+		DataNodeChildNode<InputSequenceNode, InputSequenceNode.Effective> {
+	interface Effective extends InputSequenceNode,
+			InputNode.Effective<InputSequenceNode, Effective> {
 		@Override
 		default Class<?> getPreInputClass() {
 			Method inMethod = getInMethod();
@@ -24,5 +25,15 @@ public interface InputSequenceNode extends
 		default void process(SchemaProcessingContext context) {
 			context.accept(this);
 		}
+	}
+
+	@Override
+	default Class<Effective> getEffectiveClass() {
+		return Effective.class;
+	}
+
+	@Override
+	default Class<InputSequenceNode> getNodeClass() {
+		return InputSequenceNode.class;
 	}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 
 public class DummyNodes {
@@ -20,7 +21,7 @@ public class DummyNodes {
 	}
 
 	public static SequenceNode sequenceNode(String name,
-			List<? extends ChildNode<?>> children) {
+			List<? extends ChildNode<?, ?>> children) {
 		return new SequenceNode() {
 			@Override
 			public String getName() {
@@ -28,7 +29,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public List<? extends ChildNode<?>> children() {
+			public List<? extends ChildNode<?, ?>> children() {
 				return children;
 			}
 
@@ -41,22 +42,27 @@ public class DummyNodes {
 					}
 
 					@Override
-					public List<ChildNode.Effective<?>> children() {
+					public List<ChildNode.Effective<?, ?>> children() {
 						/*
 						 * TODO Yet another compiler bug to report? Should be able to supply
 						 * SchemaNode::effective as the argument to map, and leave out the
 						 * explicit parametrisation,but javac gets upset.
 						 */
 						return children.stream()
-								.<ChildNode.Effective<?>> map(c -> c.effective())
+								.<ChildNode.Effective<?, ?>> map(c -> c.effective())
 								.collect(Collectors.toList());
+					}
+
+					@Override
+					public SequenceNode source() {
+						return SequenceNode.this;
 					}
 				};
 			}
 		};
 	}
 
-	public static SequenceNode schemaNode(String name) {
+	public static SchemaNode<?, ?> schemaNode(String name) {
 		return new SequenceNode.Effective() {
 			@Override
 			public String getName() {
@@ -64,8 +70,13 @@ public class DummyNodes {
 			}
 
 			@Override
-			public List<ChildNode.Effective<?>> children() {
+			public List<ChildNode.Effective<?, ?>> children() {
 				return Collections.emptyList();
+			}
+
+			@Override
+			public SequenceNode source() {
+				return this;
 			}
 		};
 	}

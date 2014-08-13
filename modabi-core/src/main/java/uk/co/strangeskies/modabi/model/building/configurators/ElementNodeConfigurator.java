@@ -9,7 +9,7 @@ import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 public interface ElementNodeConfigurator<T>
 		extends
 		AbstractModelConfigurator<ElementNodeConfigurator<T>, ElementNode<T>, T>,
-		BindingChildNodeConfigurator<ElementNodeConfigurator<T>, ElementNode<T>, T, ChildNode<?>, BindingChildNode<?, ?>> {
+		BindingChildNodeConfigurator<ElementNodeConfigurator<T>, ElementNode<T>, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>> {
 	@Override
 	public <V extends T> ElementNodeConfigurator<V> baseModel(
 			@SuppressWarnings("unchecked") Model<? super V>... baseModel);

@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 
 public interface DataBindingTypeConfigurator<T>
 		extends
-		BindingNodeConfigurator<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, DataNodeChildNode<?>, DataNode<?>> {
+		BindingNodeConfigurator<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, DataNodeChildNode<?, ?>, DataNode<?>> {
 	/**
 	 * @param name
 	 *          The value to be returned by {@link DataBindingType#getName()}.
@@ -38,11 +38,11 @@ public interface DataBindingTypeConfigurator<T>
 
 	@Override
 	default DataBindingTypeConfigurator<T> addChild(
-			Function<ChildBuilder<DataNodeChildNode<?>, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode<?>>> propertyConfiguration) {
+			Function<ChildBuilder<DataNodeChildNode<?, ?>, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode<?, ?>>> propertyConfiguration) {
 		propertyConfiguration.apply(addChild()).create();
 		return this;
 	}
 
 	@Override
-	ChildBuilder<DataNodeChildNode<?>, DataNode<?>> addChild();
+	ChildBuilder<DataNodeChildNode<?, ?>, DataNode<?>> addChild();
 }

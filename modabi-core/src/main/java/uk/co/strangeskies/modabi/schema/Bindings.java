@@ -16,7 +16,7 @@ import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public class Bindings {
 	private final Models models;
-	private final SetMultiMap<AbstractModel<?, ?>, Object> bindings;
+	private final SetMultiMap<AbstractModel<?, ?, ?>, Object> bindings;
 
 	public Bindings() {
 		models = new Models(Namespace.getDefault());

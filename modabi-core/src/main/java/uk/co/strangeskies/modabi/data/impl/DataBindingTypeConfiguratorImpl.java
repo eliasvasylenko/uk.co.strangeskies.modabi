@@ -13,14 +13,15 @@ import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends
-		BindingNodeConfiguratorImpl<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, DataNodeChildNode<?>, DataNode<?>>
+		BindingNodeConfiguratorImpl<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, DataNodeChildNode<?, ?>, DataNode<?>>
 		implements DataBindingTypeConfigurator<T> {
 	public static class DataBindingTypeImpl<T> extends
-			BindingNodeImpl<T, DataBindingType.Effective<T>> implements
-			DataBindingType<T> {
-		private static class Effective<T> extends
-				BindingNodeImpl.Effective<T, DataBindingType.Effective<T>> implements
-				DataBindingType.Effective<T> {
+			BindingNodeImpl<T, DataBindingType<T>, DataBindingType.Effective<T>>
+			implements DataBindingType<T> {
+		private static class Effective<T>
+				extends
+				BindingNodeImpl.Effective<T, DataBindingType<T>, DataBindingType.Effective<T>>
+				implements DataBindingType.Effective<T> {
 			private final DataBindingType<T> source;
 
 			private final Boolean isAbstract;

@@ -19,13 +19,14 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeConfiguratorImpl<T>
 		extends
-		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode<?>, DataNode<?>>
+		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode<?, ?>, DataNode<?>>
 		implements DataNodeConfigurator<T> {
 	protected static class DataNodeImpl<T> extends
-			BindingChildNodeImpl<T, DataNode.Effective<T>> implements DataNode<T> {
+			BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>> implements
+			DataNode<T> {
 		private static class Effective<T> extends
-				BindingChildNodeImpl.Effective<T, DataNode.Effective<T>> implements
-				DataNode.Effective<T> {
+				BindingChildNodeImpl.Effective<T, DataNode<T>, DataNode.Effective<T>>
+				implements DataNode.Effective<T> {
 			private final DataBindingType.Effective<T> type;
 			private final Format format;
 			private final Boolean optional;

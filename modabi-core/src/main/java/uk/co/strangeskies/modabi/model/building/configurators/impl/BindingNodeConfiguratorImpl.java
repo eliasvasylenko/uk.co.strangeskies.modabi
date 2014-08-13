@@ -19,14 +19,14 @@ import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, ?>, T, C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
 		BindingNodeConfigurator<S, N, T, C, B> {
-	protected static abstract class BindingNodeImpl<T, E extends BindingNode.Effective<T, E>>
-			extends SchemaNodeImpl<E> implements BindingNode<T, E> {
-		protected static abstract class Effective<T, E extends BindingNode.Effective<T, E>>
-				extends SchemaNodeImpl.Effective<E> implements
-				BindingNode.Effective<T, E> {
+	protected static abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
+			extends SchemaNodeImpl<S, E> implements BindingNode<T, S, E> {
+		protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
+				extends SchemaNodeImpl.Effective<S, E> implements
+				BindingNode.Effective<T, S, E> {
 			private final Class<T> dataClass;
 			private final Class<?> bindingClass;
 			private final Class<?> unbindingClass;
@@ -39,13 +39,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final List<String> providedUnbindingParameterNames;
 			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
-			@SuppressWarnings("unchecked")
 			protected Effective(
-					OverrideMerge<? extends BindingNode<?, ?>, ? extends BindingNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				dataClass = (Class<T>) overrideMerge.getValue(
-						BindingNode::getDataClass, (v, o) -> o.isAssignableFrom(v));
+				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
+						(v, o) -> o.isAssignableFrom(v));
 
 				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass);
 

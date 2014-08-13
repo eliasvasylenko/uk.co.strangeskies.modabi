@@ -2,13 +2,15 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public interface ChoiceNode extends ChildNode<ChoiceNode.Effective>,
-		DataNodeChildNode<ChoiceNode.Effective> {
-	interface Effective extends ChoiceNode, ChildNode.Effective<Effective> {
+public interface ChoiceNode extends
+		ChildNode<ChoiceNode, ChoiceNode.Effective>,
+		DataNodeChildNode<ChoiceNode, ChoiceNode.Effective> {
+	interface Effective extends ChoiceNode,
+			ChildNode.Effective<ChoiceNode, Effective> {
 		@Override
 		default Class<?> getPreInputClass() {
 			Class<?> inputClass = null;
-			for (ChildNode.Effective<?> child : children()) {
+			for (ChildNode.Effective<?, ?> child : children()) {
 				Class<?> nextInputClass = child.getPreInputClass();
 				if (inputClass != null)
 					if (inputClass.isAssignableFrom(nextInputClass))
@@ -22,7 +24,7 @@ public interface ChoiceNode extends ChildNode<ChoiceNode.Effective>,
 		@Override
 		default Class<?> getPostInputClass() {
 			Class<?> outputClass = null;
-			for (ChildNode.Effective<?> child : children()) {
+			for (ChildNode.Effective<?, ?> child : children()) {
 				Class<?> nextOutputClass = child.getPostInputClass();
 				if (outputClass != null)
 					if (nextOutputClass.isAssignableFrom(outputClass))
@@ -37,6 +39,16 @@ public interface ChoiceNode extends ChildNode<ChoiceNode.Effective>,
 		default void process(SchemaProcessingContext context) {
 			context.accept(this);
 		}
+	}
+
+	@Override
+	default Class<Effective> getEffectiveClass() {
+		return ChoiceNode.Effective.class;
+	}
+
+	@Override
+	default Class<ChoiceNode> getNodeClass() {
+		return ChoiceNode.class;
 	}
 
 	Boolean isMandatory();

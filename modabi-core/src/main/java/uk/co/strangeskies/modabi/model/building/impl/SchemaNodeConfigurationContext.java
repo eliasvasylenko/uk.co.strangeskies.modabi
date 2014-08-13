@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 
-public interface SchemaNodeConfigurationContext<T extends ChildNode<?>> {
+public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 	DataLoader getDataLoader();
 
 	boolean isAbstract();

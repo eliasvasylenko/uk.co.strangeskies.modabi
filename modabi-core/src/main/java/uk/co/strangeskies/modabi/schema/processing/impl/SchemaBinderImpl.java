@@ -69,7 +69,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			processChildren(node);
 		}
 
-		public <U> U bind(AbstractModel.Effective<U, ?> node) {
+		public <U> U bind(AbstractModel.Effective<U, ?, ?> node) {
 			// String name = input.nextChild();
 			// String namespace = input.getProperty("xmlns", null);
 
@@ -85,7 +85,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 			invokeInMethod(node, (Object) bind(node));
 		}
 
-		private void invokeInMethod(InputNode.Effective<?> node,
+		private void invokeInMethod(InputNode.Effective<?, ?> node,
 				Object... parameters) {
 			try {
 				Object object = bindingStack
@@ -109,8 +109,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 			return null;
 		}
 
-		protected void processChildren(SchemaNode.Effective<?> node) {
-			for (ChildNode.Effective<?> child : node.children())
+		protected void processChildren(SchemaNode.Effective<?, ?> node) {
+			for (ChildNode.Effective<?, ?> child : node.children())
 				child.process(this);
 		}
 

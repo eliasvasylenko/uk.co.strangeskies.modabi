@@ -15,16 +15,18 @@ import uk.co.strangeskies.modabi.model.building.impl.SequentialChildrenConfigura
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 
-public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
+public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, ?>>
 		extends
 		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>
 		implements InputSequenceNodeConfigurator<C> {
 	protected static class InputSequenceNodeImpl extends
-			SchemaNodeImpl<InputSequenceNode.Effective> implements
-			ChildNodeImpl<InputSequenceNode.Effective>, InputSequenceNode {
-		private static class Effective extends
-				SchemaNodeImpl.Effective<InputSequenceNode.Effective> implements
-				InputSequenceNode.Effective {
+			SchemaNodeImpl<InputSequenceNode, InputSequenceNode.Effective> implements
+			ChildNodeImpl<InputSequenceNode, InputSequenceNode.Effective>,
+			InputSequenceNode {
+		private static class Effective
+				extends
+				SchemaNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
+				implements InputSequenceNode.Effective {
 			private final String inMethodName;
 			private final Method inMethod;
 			private final Boolean inMethodChained;
@@ -46,7 +48,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?>>
 
 					List<Class<?>> parameterClasses = overrideMerge.configurator()
 							.getChildrenContainer().getChildren().stream()
-							.map(o -> ((BindingChildNode<?, ?>) o).getDataClass())
+							.map(o -> ((BindingChildNode<?, ?, ?>) o).getDataClass())
 							.collect(Collectors.toList());
 
 					inMethod = (inputClass == null || parameterClasses == null

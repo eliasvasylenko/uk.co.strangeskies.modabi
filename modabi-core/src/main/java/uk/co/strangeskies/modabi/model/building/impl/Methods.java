@@ -22,7 +22,7 @@ public class Methods {
 	private Methods() {
 	}
 
-	public static Method getInMethod(BindingChildNode.Effective<?, ?> node,
+	public static Method getInMethod(BindingChildNode.Effective<?, ?, ?> node,
 			Class<?> receiverClass, Method inheritedInMethod) {
 		try {
 			return (receiverClass == null || node.getDataClass() == null || node
@@ -34,7 +34,7 @@ public class Methods {
 		}
 	}
 
-	public static Method getOutMethod(BindingChildNode.Effective<?, ?> node,
+	public static Method getOutMethod(BindingChildNode.Effective<?, ?, ?> node,
 			Class<?> targetClass, Method inheritedOutMethod) {
 		try {
 			Class<?> resultClass = (node.isOutMethodIterable() != null && node
@@ -59,7 +59,7 @@ public class Methods {
 	}
 
 	private static List<String> generateInMethodNames(
-			BindingChildNode.Effective<?, ?> node) {
+			BindingChildNode.Effective<?, ?, ?> node) {
 		List<String> names;
 
 		if (node.getInMethodName() != null)
@@ -86,7 +86,7 @@ public class Methods {
 	}
 
 	private static List<String> generateOutMethodNames(
-			BindingChildNode.Effective<?, ?> node, Class<?> resultClass) {
+			BindingChildNode.Effective<?, ?, ?> node, Class<?> resultClass) {
 		List<String> names;
 
 		if (node.getOutMethodName() != null)
@@ -99,7 +99,7 @@ public class Methods {
 		return names;
 	}
 
-	public static Method findUnbindingMethod(BindingNode.Effective<?, ?> node) {
+	public static Method findUnbindingMethod(BindingNode.Effective<?, ?, ?> node) {
 		if (node.getDataClass() == null)
 			return null;
 
@@ -135,7 +135,7 @@ public class Methods {
 	}
 
 	private static List<Class<?>> findUnbindingMethodParameterClasses(
-			Effective<?, ?> node, Function<Effective<?, ?>, Class<?>> nodeClass) {
+			Effective<?, ?, ?> node, Function<Effective<?, ?, ?>, Class<?>> nodeClass) {
 		List<Class<?>> classList = new ArrayList<>();
 
 		boolean addedNodeClass = false;
@@ -161,8 +161,9 @@ public class Methods {
 		return classList;
 	}
 
-	private static Method findUnbindingMethod(BindingNode.Effective<?, ?> node,
-			Class<?> result, Class<?> receiver, List<Class<?>> parameters) {
+	private static Method findUnbindingMethod(
+			BindingNode.Effective<?, ?, ?> node, Class<?> result, Class<?> receiver,
+			List<Class<?>> parameters) {
 		try {
 			return findMethod(generateUnbindingMethodNames(node, result), receiver,
 					result, parameters.toArray(new Class<?>[] {}));
@@ -203,7 +204,7 @@ public class Methods {
 	}
 
 	private static List<String> generateUnbindingMethodNames(
-			BindingNode.Effective<?, ?> node, Class<?> resultClass) {
+			BindingNode.Effective<?, ?, ?> node, Class<?> resultClass) {
 		List<String> names;
 
 		if (node.getUnbindingMethodName() != null)
@@ -253,7 +254,7 @@ public class Methods {
 	}
 
 	public static List<DataNode.Effective<?>> findProvidedUnbindingParameters(
-			BindingNode.Effective<?, ?> node, boolean isAbstract) {
+			BindingNode.Effective<?, ?, ?> node, boolean isAbstract) {
 		return node.getProvidedUnbindingMethodParameterNames() == null ? node
 				.getUnbindingMethodName() == null ? null : new ArrayList<>()
 				: node
@@ -264,7 +265,7 @@ public class Methods {
 									if (p.equals("this"))
 										return null;
 									else {
-										ChildNode.Effective<?> effective = node
+										ChildNode.Effective<?, ?> effective = node
 												.children()
 												.stream()
 												.filter(c -> c.getName().equals(p))

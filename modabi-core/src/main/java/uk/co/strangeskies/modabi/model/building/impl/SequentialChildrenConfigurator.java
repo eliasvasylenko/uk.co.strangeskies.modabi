@@ -49,14 +49,14 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
  * @param <C>
  * @param <B>
  */
-public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends BindingChildNode<?, ?>>
+public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		implements ChildrenConfigurator<C, B> {
 	private class MergeGroup {
 		private final String name;
-		private final Set<ChildNode.Effective<?>> children;
+		private final Set<ChildNode.Effective<?, ?>> children;
 		private boolean overridden;
 
-		public MergeGroup(ChildNode.Effective<?> node) {
+		public MergeGroup(ChildNode.Effective<?, ?> node) {
 			this.name = node.getName();
 			children = new HashSet<>();
 			children.add(node);
@@ -66,7 +66,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 			return name;
 		}
 
-		public ChildNode.Effective<?> getChild() {
+		public ChildNode.Effective<?, ?> getChild() {
 			if (children.size() > 1)
 				throw new SchemaException(
 						"Node '"
@@ -75,15 +75,15 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 			return children.stream().findAny().get();
 		}
 
-		public Set<ChildNode.Effective<?>> getChildren() {
+		public Set<ChildNode.Effective<?, ?>> getChildren() {
 			return Collections.unmodifiableSet(children);
 		}
 
-		public boolean addChild(ChildNode.Effective<?> child) {
+		public boolean addChild(ChildNode.Effective<?, ?> child) {
 			return children.add(child);
 		}
 
-		public void override(ChildNode.Effective<?> result) {
+		public void override(ChildNode.Effective<?, ?> result) {
 			if (overridden)
 				throw new SchemaException(""); // TODO ################
 			children.clear();
@@ -95,7 +95,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 	private boolean blocked;
 	private int childIndex;
 
-	private final List<ChildNode<?>> children;
+	private final List<ChildNode<?, ?>> children;
 	private final List<MergeGroup> mergedChildren;
 	private final Map<String, MergeGroup> namedMergeGroups;
 
@@ -105,20 +105,20 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 	private final boolean isAbstract;
 
 	public SequentialChildrenConfigurator(
-			LinkedHashSet<? extends SchemaNode<?>> overriddenNodes,
+			LinkedHashSet<? extends SchemaNode<?, ?>> overriddenNodes,
 			Class<?> inputTarget, Class<?> outputTarget, DataLoader loader,
 			boolean isAbstract) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
-		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(
+		List<? extends SchemaNode<?, ?>> reversedNodes = new ArrayList<>(
 				overriddenNodes);
 		Collections.reverse(reversedNodes);
-		for (SchemaNode<?> overriddenNode : reversedNodes) {
+		for (SchemaNode<?, ?> overriddenNode : reversedNodes) {
 			int index = 0;
 
-			for (ChildNode<?> child : overriddenNode.children())
+			for (ChildNode<?, ?> child : overriddenNode.children())
 				index = merge(overriddenNode.getName(), child.effective(), index, false);
 		}
 
@@ -131,8 +131,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 		childIndex = 0;
 	}
 
-	private int merge(String parentName, ChildNode.Effective<?> child, int index,
-			boolean override) {
+	private int merge(String parentName, ChildNode.Effective<?, ?> child,
+			int index, boolean override) {
 		String name = child.getName();
 
 		if (name != null) {
@@ -172,7 +172,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 
 	@Override
 	public ChildrenContainer create() {
-		List<ChildNode.Effective<?>> effectiveChildren = mergedChildren.stream()
+		List<ChildNode.Effective<?, ?>> effectiveChildren = mergedChildren.stream()
 				.map(MergeGroup::getChild).collect(Collectors.toList());
 
 		return new ChildrenContainer(children, effectiveChildren);
@@ -184,9 +184,9 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?>> LinkedHashSet<U> overrideChild(String id,
+	private <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(String id,
 			Class<U> nodeClass) {
-		LinkedHashSet<ChildNode.Effective<?>> overriddenNodes = new LinkedHashSet<>();
+		LinkedHashSet<ChildNode.Effective<?, ?>> overriddenNodes = new LinkedHashSet<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
@@ -201,11 +201,11 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 		return (LinkedHashSet<U>) overriddenNodes;
 	}
 
-	private void addChild(ChildNode<?> result) {
+	private void addChild(ChildNode<?, ?> result) {
 		blocked = false;
 		children.add(result);
 
-		ChildNode.Effective<?> effective = result.effective();
+		ChildNode.Effective<?, ?> effective = result.effective();
 
 		childIndex = merge("?", effective, childIndex, true);
 
@@ -217,7 +217,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 		assertUnblocked();
 		blocked = true;
 
-		SchemaNodeConfigurationContext<ChildNode<?>> context = new SchemaNodeConfigurationContext<ChildNode<?>>() {
+		SchemaNodeConfigurationContext<ChildNode<?, ?>> context = new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 			@Override
 			public DataLoader getDataLoader() {
 				return loader;
@@ -229,8 +229,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 			}
 
 			@Override
-			public <U extends ChildNode<?>> LinkedHashSet<U> overrideChild(String id,
-					Class<U> nodeClass) {
+			public <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(
+					String id, Class<U> nodeClass) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 
@@ -245,7 +245,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?>, B extends Bi
 			}
 
 			@Override
-			public void addChild(ChildNode<?> result) {
+			public void addChild(ChildNode<?, ?> result) {
 				SequentialChildrenConfigurator.this.addChild(result);
 			}
 		};
