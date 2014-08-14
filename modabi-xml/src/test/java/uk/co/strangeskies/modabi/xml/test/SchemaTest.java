@@ -11,6 +11,10 @@ public class SchemaTest {
 	private void run() {
 		SchemaBinder schemaBinder = new SchemaBinderImpl(new SchemaBuilderImpl(),
 				new ModelBuilderImpl(), new DataBindingTypeBuilderImpl());
+
+		schemaBinder.processOutput(schemaBinder.getMetaSchema().getSchemaModel(),
+				new XMLOutput(), schemaBinder.getBaseSchema());
+
 		schemaBinder.processOutput(schemaBinder.getMetaSchema().getSchemaModel(),
 				new XMLOutput(), schemaBinder.getMetaSchema());
 	}

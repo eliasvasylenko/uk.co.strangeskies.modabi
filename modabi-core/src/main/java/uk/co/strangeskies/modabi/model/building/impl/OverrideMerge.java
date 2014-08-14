@@ -53,7 +53,8 @@ public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfi
 			return overriddenValue;
 		} else if (value == null
 				|| !values.stream().allMatch(v -> validateOverride.test(value, v)))
-			throw new SchemaException("value: " + value);
+			throw new SchemaException("Cannot override properties [" + values
+					+ "] with [" + value + "]");
 		return value;
 	}
 }

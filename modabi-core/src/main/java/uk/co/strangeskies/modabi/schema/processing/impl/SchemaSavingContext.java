@@ -129,6 +129,10 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
 			BufferingDataTarget target) {
+		if (node.type().isAbstract() != null && node.type().isAbstract()) {
+			// TODO figure out how to get this working as nicely as possible.
+		}
+
 		BufferingDataTarget previousDataTarget = dataTarget;
 		dataTarget = target;
 

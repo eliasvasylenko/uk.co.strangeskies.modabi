@@ -248,7 +248,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("format")
 								.type(base.derivedTypes().enumType()).dataClass(Format.class))
 				.addChild(
-						n -> n.data().format(Format.SIMPLE_ELEMENT).name("providedValue")
+						n -> n.data().format(Format.SIMPLE_ELEMENT).name("value")
 								.outMethod("providedValueBuffer").optional(true)
 								.type(base.derivedTypes().bufferedDataType())).create();
 		modelSet.add(typedDataModel);
@@ -362,6 +362,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("schemaModel")
 				.dataClass(Schema.class)
 				.bindingClass(SchemaConfigurator.class)
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("qualifiedName")
+								.type(base.derivedTypes().qualifiedNameType()))
 				.addChild(
 						n -> n
 								.element()

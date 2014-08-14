@@ -162,8 +162,8 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@Override
 	protected boolean isAbstract() {
-		return (isAbstract != null && isAbstract)
-				|| getOverriddenNodes().stream().anyMatch(
-						m -> m.effective().isAbstract());
+		return (isAbstract == null && getOverriddenNodes().stream().anyMatch(
+				m -> m.effective().isAbstract()))
+				|| isAbstract;
 	}
 }

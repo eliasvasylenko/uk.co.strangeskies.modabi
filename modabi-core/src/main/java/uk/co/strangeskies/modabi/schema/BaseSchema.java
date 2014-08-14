@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +14,9 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
 	public interface DerivedTypes {
+		@SuppressWarnings("rawtypes")
+		DataBindingType<Collection> collectionType();
+
 		@SuppressWarnings("rawtypes")
 		DataBindingType<List> listType();
 
