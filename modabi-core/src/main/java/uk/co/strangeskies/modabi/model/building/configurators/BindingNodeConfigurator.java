@@ -6,6 +6,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
@@ -26,9 +27,11 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	S unbindingMethod(String unbindingMethod);
 
-	S providedUnbindingParameters(List<String> parameterNames);
+	S providedUnbindingParameters(List<QualifiedName> parameterNames);
 
-	default S providedUnbindingParameters(String... parameterNames) {
+	default S providedUnbindingParameters(QualifiedName... parameterNames) {
 		return providedUnbindingParameters(Arrays.asList(parameterNames));
 	}
+
+	S providedUnbindingParameters(String... parameterNames);
 }

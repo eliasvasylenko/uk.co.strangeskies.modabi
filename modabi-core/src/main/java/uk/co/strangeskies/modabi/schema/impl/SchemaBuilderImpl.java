@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -23,7 +22,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		private final Schemata dependencySet;
 
 		public SchemaConfiguratorImpl() {
-			typeSet = new HashSet<>();
+			typeSet = new LinkedHashSet<>();
 			modelSet = new LinkedHashSet<>();
 			dependencySet = new Schemata();
 		}
@@ -31,9 +30,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		@Override
 		public Schema create() {
 			final QualifiedName qualifiedName = this.qualifiedName;
-			final DataBindingTypes types = new DataBindingTypes(qualifiedName.getNamespace());
+			final DataBindingTypes types = new DataBindingTypes();
 			types.addAll(typeSet);
-			final Models models = new Models(qualifiedName.getNamespace());
+			final Models models = new Models();
 			models.addAll(modelSet);
 			final Schemata dependencies = dependencySet;
 
@@ -68,7 +67,8 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		}
 
 		@Override
-		public SchemaConfigurator types(Collection<? extends DataBindingType<?>> types) {
+		public SchemaConfigurator types(
+				Collection<? extends DataBindingType<?>> types) {
 			typeSet.clear();
 			typeSet.addAll(types);
 

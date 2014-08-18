@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import uk.co.strangeskies.gears.utilities.PropertySet;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
@@ -48,5 +49,5 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	Class<?> getUnbindingFactoryClass();
 
-	List<String> getProvidedUnbindingMethodParameterNames();
+	List<QualifiedName> getProvidedUnbindingMethodParameterNames();
 }

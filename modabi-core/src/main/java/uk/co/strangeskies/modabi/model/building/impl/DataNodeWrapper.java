@@ -8,6 +8,7 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -85,12 +86,12 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 	}
 
 	@Override
-	public List<String> getProvidedUnbindingMethodParameterNames() {
+	public List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
 		return type.effective().getProvidedUnbindingMethodParameterNames();
 	}
 
 	@Override
-	public String getName() {
+	public QualifiedName getName() {
 		return type.getName();
 	}
 
@@ -137,6 +138,11 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 	@Override
 	public List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters() {
 		return type.getProvidedUnbindingMethodParameters();
+	}
+
+	@Override
+	public Boolean isAbstract() {
+		return type.isAbstract();
 	}
 
 	@Override

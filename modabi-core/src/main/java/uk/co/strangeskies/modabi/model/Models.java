@@ -9,14 +9,13 @@ import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.gears.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.gears.utilities.collection.MultiMap;
-import uk.co.strangeskies.modabi.namespace.NamedSet;
-import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
 
-public class Models extends NamedSet<Model<?>> {
+public class Models extends QualifiedNamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;
 
-	public Models(Namespace namespace) {
-		super(namespace, t -> t.getName());
+	public Models() {
+		super(t -> t.getName());
 		derivedModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
 	}
 
@@ -26,16 +25,6 @@ public class Models extends NamedSet<Model<?>> {
 
 		if (added)
 			mapModel(element);
-
-		return added;
-	}
-
-	@Override
-	public boolean add(Model<?> model, Namespace namespace) {
-		boolean added = super.add(model.source(), namespace);
-
-		if (added)
-			mapModel(model);
 
 		return added;
 	}

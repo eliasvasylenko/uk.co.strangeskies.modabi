@@ -3,13 +3,17 @@ package uk.co.strangeskies.modabi.data.io.structured;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface StructuredDataSource {
-	public String nextChild();
+	public Namespace namespace();
 
-	public Set<String> properties();
+	public QualifiedName nextChild();
 
-	public TerminatingDataSource propertyData(String name);
+	public Set<QualifiedName> properties();
+
+	public TerminatingDataSource propertyData(QualifiedName name);
 
 	public TerminatingDataSource content();
 
@@ -20,14 +24,17 @@ public interface StructuredDataSource {
 	public int indexAtDepth();
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
-		String childElement;
+		if (namespace() != null)
+			output.namespace(namespace());
+
+		QualifiedName childElement;
 
 		int depth = 0;
 		do {
 			while ((childElement = nextChild()) != null) {
 				output.nextChild(childElement);
 
-				for (String property : properties())
+				for (QualifiedName property : properties())
 					propertyData(property).pipe(output.property(property)).terminate();
 
 				TerminatingDataSource content = content();

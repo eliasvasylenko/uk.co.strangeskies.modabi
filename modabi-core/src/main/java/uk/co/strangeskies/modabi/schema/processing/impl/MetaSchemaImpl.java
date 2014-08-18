@@ -48,16 +48,17 @@ public class MetaSchemaImpl implements MetaSchema {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
 			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
+		Namespace namespace = new Namespace(BaseSchema.class.getPackage().getName());
 		QualifiedName name = new QualifiedName(MetaSchema.class.getName(),
-				new Namespace(BaseSchema.class.getPackage().getName()));
+				namespace);
 
 		/*
 		 * Types
 		 */
 		Set<DataBindingType<?>> typeSet = new HashSet<>();
 
-		DataBindingType<?> typeType = dataType.configure(loader).name("type")
-				.dataClass(DataBindingType.class)
+		DataBindingType<?> typeType = dataType.configure(loader)
+				.name("type", namespace).dataClass(DataBindingType.class)
 				.bindingClass(DataBindingTypeConfigurator.class).create();
 		typeSet.add(typeType);
 
@@ -70,18 +71,18 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<SchemaNode> nodeModel = model
 				.configure(loader)
-				.name("node")
+				.name("node", namespace)
 				.isAbstract(true)
 				.dataClass(SchemaNode.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
-								.type(base.primitiveType(DataType.STRING)).name("name")
+								.type(base.derivedTypes().qualifiedNameType()).name("name")
 								.optional(true)).create();
 		modelSet.add(nodeModel);
 
 		Model<InputNode> inputModel = model
 				.configure(loader)
-				.name("input")
+				.name("input", namespace)
 				.baseModel(nodeModel)
 				.dataClass(InputNode.class)
 				.addChild(
@@ -96,7 +97,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<SchemaNode> branchModel = model
 				.configure(loader)
-				.name("branch")
+				.name("branch", namespace)
 				.baseModel(nodeModel)
 				.dataClass(SchemaNode.class)
 				.addChild(n -> n.data().name("name"))
@@ -108,7 +109,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<BindingNode> bindingNodeModel = model
 				.configure(loader)
-				.name("binding")
+				.name("binding", namespace)
 				.baseModel(nodeModel, branchModel)
 				.dataClass(BindingNode.class)
 				.addChild(
@@ -135,7 +136,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<BindingChildNode> bindingChildNodeModel = model
 				.configure(loader)
-				.name("bindingChild")
+				.name("bindingChild", namespace)
 				.dataClass(BindingChildNode.class)
 				.baseModel(inputModel, bindingNodeModel)
 				.addChild(
@@ -150,7 +151,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<ChoiceNode> choiceModel = model
 				.configure(loader)
-				.name("choice")
+				.name("choice", namespace)
 				.isAbstract(false)
 				.dataClass(ChoiceNode.class)
 				.bindingClass(ChoiceNodeConfigurator.class)
@@ -162,7 +163,8 @@ public class MetaSchemaImpl implements MetaSchema {
 		modelSet.add(choiceModel);
 
 		Model<InputSequenceNode> sequenceModel = model.configure(loader)
-				.name("sequence").isAbstract(false).dataClass(InputSequenceNode.class)
+				.name("sequence", namespace).isAbstract(false)
+				.dataClass(InputSequenceNode.class)
 				.bindingClass(InputSequenceNodeConfigurator.class)
 				.baseModel(inputModel, branchModel)
 				.addChild(n -> n.data().name("name"))
@@ -171,7 +173,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<BindingChildNode> repeatableModel = model
 				.configure(loader)
-				.name("repeatable")
+				.name("repeatable", namespace)
 				.baseModel(nodeModel)
 				.dataClass(BindingChildNode.class)
 				.addChild(
@@ -181,7 +183,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<AbstractModel> abstractModelModel = model
 				.configure(loader)
-				.name("abstractModel")
+				.name("abstractModel", namespace)
 				.baseModel(bindingNodeModel)
 				.dataClass(AbstractModel.class)
 				.addChild(
@@ -203,14 +205,14 @@ public class MetaSchemaImpl implements MetaSchema {
 												.addChild(
 														p -> p
 																.data()
-																.name("targetDomain")
+																.name("targetModel")
 																.provideValue(
 																		new BufferingDataTarget().put(
 																				DataType.STRING, "model").buffer()))
 												.addChild(
 														p -> p
 																.data()
-																.name("id")
+																.name("targetId")
 																.provideValue(
 																		new BufferingDataTarget().put(
 																				DataType.STRING, "name").buffer()))))
@@ -219,7 +221,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<Model> modelModel = model
 				.configure(loader)
-				.name("model")
+				.name("model", namespace)
 				.baseModel(abstractModelModel)
 				.isAbstract(false)
 				.dataClass(Model.class)
@@ -228,8 +230,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.element().name("child")).create();
 		modelSet.add(modelModel);
 
-		Model<ElementNode> elementModel = model.configure(loader).name("element")
-				.dataClass(ElementNode.class)
+		Model<ElementNode> elementModel = model.configure(loader)
+				.name("element", namespace).dataClass(ElementNode.class)
 				.bindingClass(ElementNodeConfigurator.class)
 				.baseModel(bindingChildNodeModel, repeatableModel, abstractModelModel)
 				.isAbstract(false).addChild(o -> o.data().name("dataClass"))
@@ -239,7 +241,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<DataNode> typedDataModel = model
 				.configure(loader)
 				.baseModel(bindingChildNodeModel)
-				.name("typedData")
+				.name("typedData", namespace)
 				.dataClass(DataNode.class)
 				.bindingClass(DataNodeConfigurator.class)
 				.addChild(
@@ -255,7 +257,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<DataNode> optionalModel = model
 				.configure(loader)
-				.name("optional")
+				.name("optional", namespace)
 				.baseModel(nodeModel)
 				.dataClass(DataNode.class)
 				.addChild(
@@ -265,7 +267,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<DataNode> contentModel = model
 				.configure(loader)
-				.name("content")
+				.name("content", namespace)
 				.baseModel(typedDataModel, optionalModel)
 				.isAbstract(false)
 				.dataClass(DataNode.class)
@@ -281,7 +283,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<DataNode> propertyModel = model
 				.configure(loader)
-				.name("property")
+				.name("property", namespace)
 				.isAbstract(false)
 				.baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class)
@@ -297,7 +299,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<DataNode> simpleElementModel = model
 				.configure(loader)
-				.name("simpleElement")
+				.name("simpleElement", namespace)
 				.isAbstract(false)
 				.baseModel(typedDataModel, optionalModel)
 				.dataClass(DataNode.class)
@@ -318,7 +320,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(bindingNodeModel)
 				.dataClass(DataBindingType.class)
 				.isAbstract(false)
-				.name("type")
+				.name("type", namespace)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("abstract")
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
@@ -333,14 +335,14 @@ public class MetaSchemaImpl implements MetaSchema {
 								.addChild(
 										p -> p
 												.data()
-												.name("targetDomain")
+												.name("targetModel")
 												.provideValue(
 														new BufferingDataTarget().put(DataType.STRING,
 																"type").buffer()))
 								.addChild(
 										p -> p
 												.data()
-												.name("id")
+												.name("targetId")
 												.provideValue(
 														new BufferingDataTarget().put(DataType.STRING,
 																"name").buffer()))).create();
@@ -350,7 +352,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<Set> modelsModel = model
 				.configure(loader)
-				.name("models")
+				.name("models", namespace)
 				.dataClass(Set.class)
 				.addChild(
 						n -> n.element().baseModel(modelModel).outMethodIterable(true)
@@ -359,7 +361,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		schemaModel = model
 				.configure(loader)
-				.name("schemaModel")
+				.name("schemaModel", namespace)
 				.dataClass(Schema.class)
 				.bindingClass(SchemaConfigurator.class)
 				.addChild(

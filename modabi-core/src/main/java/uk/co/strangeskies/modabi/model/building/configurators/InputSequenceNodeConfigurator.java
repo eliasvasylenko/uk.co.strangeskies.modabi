@@ -5,6 +5,7 @@ import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 
 public interface InputSequenceNodeConfigurator<C extends BindingChildNode<?, ?, ?>>
 		extends
+		ChildNodeConfigurator<InputSequenceNodeConfigurator<C>, InputSequenceNode>,
 		BranchingNodeConfigurator<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>,
 		InputNodeConfigurator<InputSequenceNodeConfigurator<C>, InputSequenceNode> {
 }

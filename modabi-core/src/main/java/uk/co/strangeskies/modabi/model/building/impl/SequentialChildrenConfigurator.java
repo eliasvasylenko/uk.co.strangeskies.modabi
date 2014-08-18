@@ -25,6 +25,8 @@ import uk.co.strangeskies.modabi.model.building.configurators.impl.SequenceNodeC
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
 /**
@@ -52,7 +54,7 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		implements ChildrenConfigurator<C, B> {
 	private class MergeGroup {
-		private final String name;
+		private final QualifiedName name;
 		private final Set<ChildNode.Effective<?, ?>> children;
 		private boolean overridden;
 
@@ -62,7 +64,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			children.add(node);
 		}
 
-		public String getName() {
+		public QualifiedName getName() {
 			return name;
 		}
 
@@ -97,16 +99,18 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	private boolean blocked;
 	private int childIndex;
 
+	private final Namespace namespace;
+
 	private final List<ChildNode<?, ?>> children;
 	private final List<MergeGroup> mergedChildren;
-	private final Map<String, MergeGroup> namedMergeGroups;
+	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
 	private Class<?> inputTarget;
 	private final Class<?> outputTarget;
 	private final DataLoader loader;
 	private final boolean isAbstract;
 
-	public SequentialChildrenConfigurator(
+	public SequentialChildrenConfigurator(Namespace namespace,
 			LinkedHashSet<? extends SchemaNode<?, ?>> overriddenNodes,
 			Class<?> inputTarget, Class<?> outputTarget, DataLoader loader,
 			boolean isAbstract) {
@@ -124,6 +128,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 				index = merge(overriddenNode.getName(), child.effective(), index, false);
 		}
 
+		this.namespace = namespace;
+
 		this.inputTarget = inputTarget;
 		this.outputTarget = outputTarget;
 
@@ -133,9 +139,9 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 		childIndex = 0;
 	}
 
-	private int merge(String parentName, ChildNode.Effective<?, ?> child,
+	private int merge(QualifiedName parentName, ChildNode.Effective<?, ?> child,
 			int index, boolean override) {
-		String name = child.getName();
+		QualifiedName name = child.getName();
 
 		if (name != null) {
 			MergeGroup group = namedMergeGroups.get(name);
@@ -186,8 +192,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(String id,
-			Class<U> nodeClass) {
+	private <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(
+			QualifiedName id, Class<U> nodeClass) {
 		LinkedHashSet<ChildNode.Effective<?, ?>> overriddenNodes = new LinkedHashSet<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
@@ -209,7 +215,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		childIndex = merge("?", effective, childIndex, true);
+		childIndex = merge(new QualifiedName("?", "?"), effective, childIndex, true);
 
 		inputTarget = effective.getPostInputClass();
 	}
@@ -226,13 +232,18 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
+			public Namespace getNamespace() {
+				return namespace;
+			}
+
+			@Override
 			public boolean isAbstract() {
 				return isAbstract;
 			}
 
 			@Override
 			public <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(
-					String id, Class<U> nodeClass) {
+					QualifiedName id, Class<U> nodeClass) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 

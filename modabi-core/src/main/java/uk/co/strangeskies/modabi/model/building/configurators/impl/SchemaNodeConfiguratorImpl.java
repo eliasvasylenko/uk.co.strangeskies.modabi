@@ -16,6 +16,8 @@ import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
@@ -25,7 +27,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				implements SchemaNode.Effective<S, E> {
 			private final S source;
 
-			private final String name;
+			private final QualifiedName name;
 			private final List<ChildNode.Effective<?, ?>> children;
 
 			protected Effective(
@@ -44,7 +46,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public String getName() {
+			public QualifiedName getName() {
 				return name;
 			}
 
@@ -69,21 +71,21 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 		}
 
-		private final String name;
+		private final QualifiedName name;
 		private final List<ChildNode<?, ?>> children;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseConfiguration();
 			configurator.finaliseChildren();
 
-			name = configurator.getId();
+			name = configurator.name;
 
 			children = Collections.unmodifiableList(new ArrayList<>(configurator
 					.getChildrenContainer().getChildren()));
 		}
 
 		@Override
-		public final String getName() {
+		public final QualifiedName getName() {
 			return name;
 		}
 
@@ -113,7 +115,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	private boolean finalised;
 
-	private String name;
+	private QualifiedName name;
 
 	public SchemaNodeConfiguratorImpl() {
 		finalised = false;
@@ -156,7 +158,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@Override
-	public final S name(String name) {
+	public final S name(QualifiedName name) {
 		requireConfigurable(this.name);
 		this.name = name;
 
@@ -167,11 +169,13 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract DataLoader getDataLoader();
 
+	protected abstract Namespace getNamespace();
+
 	protected abstract boolean isAbstract();
 
 	public abstract LinkedHashSet<N> getOverriddenNodes();
 
-	protected final String getId() {
+	protected final QualifiedName getName() {
 		return name;
 	}
 

@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 
 import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
 import uk.co.strangeskies.modabi.model.building.impl.Methods;
@@ -12,7 +13,7 @@ import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
@@ -52,8 +53,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethodChained = overrideMerge
 						.getValue(BindingChildNode::isInMethodChained);
 
-				if (outMethodName == "this" && !iterable)
-					throw new SchemaException();
 				outMethod = (outMethodName == "null") ? null : Methods.getOutMethod(
 						this, overrideMerge.configurator().getContext()
 								.getOutputTargetClass(), overrideMerge.getValue(n -> n
@@ -168,6 +167,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
+	protected Namespace getNamespace() {
+		return getName() != null ? getName().getNamespace() : getContext()
+				.getNamespace();
+	}
+
+	@Override
+	protected DataLoader getDataLoader() {
+		return getContext().getDataLoader();
+	}
+
+	@Override
 	public <V extends T> BindingChildNodeConfigurator<?, ?, V, C, B> dataClass(
 			Class<V> dataClass) {
 		return (BindingChildNodeConfigurator<?, ?, V, C, B>) super
@@ -211,7 +221,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public LinkedHashSet<N> getOverriddenNodes() {
-		return getId() == null ? new LinkedHashSet<>() : getContext()
-				.overrideChild(getId(), getNodeClass());
+		return getName() == null ? new LinkedHashSet<>() : getContext()
+				.overrideChild(getName(), getNodeClass());
 	}
 }

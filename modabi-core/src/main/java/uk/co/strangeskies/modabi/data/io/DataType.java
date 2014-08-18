@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import uk.co.strangeskies.gears.utilities.Enumeration;
 
 public class DataType<T> extends Enumeration<DataType<T>> {
-	public static final DataType<byte[]> BYTES = new DataType<>("binary",
+	public static final DataType<byte[]> BINARY = new DataType<>("binary",
 			byte[].class);
 	public static final DataType<String> STRING = new DataType<>("string",
 			String.class);

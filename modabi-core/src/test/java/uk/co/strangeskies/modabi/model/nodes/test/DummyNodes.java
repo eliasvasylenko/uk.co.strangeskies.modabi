@@ -7,12 +7,19 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class DummyNodes {
 	private DummyNodes() {
 	}
 
 	public static SequenceNode sequenceNode(String name, String... children) {
+		return sequenceNode(new QualifiedName(name), Arrays.asList(children)
+				.stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
+	}
+
+	public static SequenceNode sequenceNode(QualifiedName name,
+			QualifiedName... children) {
 		return sequenceNode(
 				name,
 				Arrays.asList(children).stream().map(DummyNodes::sequenceNode)
@@ -21,14 +28,19 @@ public class DummyNodes {
 
 	public static SequenceNode sequenceNode(String name,
 			ChildNode<?, ?>... children) {
+		return sequenceNode(new QualifiedName(name), children);
+	}
+
+	public static SequenceNode sequenceNode(QualifiedName name,
+			ChildNode<?, ?>... children) {
 		return sequenceNode(name, Arrays.asList(children));
 	}
 
-	public static SequenceNode sequenceNode(String name,
+	public static SequenceNode sequenceNode(QualifiedName name,
 			List<? extends ChildNode<?, ?>> children) {
 		return new SequenceNode() {
 			@Override
-			public String getName() {
+			public QualifiedName getName() {
 				return name;
 			}
 
@@ -53,7 +65,7 @@ public class DummyNodes {
 
 				return new Effective() {
 					@Override
-					public String getName() {
+					public QualifiedName getName() {
 						return name;
 					}
 
@@ -89,9 +101,13 @@ public class DummyNodes {
 	}
 
 	public static SequenceNode sequenceNode(String name) {
+		return sequenceNode(new QualifiedName(name));
+	}
+
+	public static SequenceNode sequenceNode(QualifiedName name) {
 		return new SequenceNode.Effective() {
 			@Override
-			public String getName() {
+			public QualifiedName getName() {
 				return name;
 			}
 

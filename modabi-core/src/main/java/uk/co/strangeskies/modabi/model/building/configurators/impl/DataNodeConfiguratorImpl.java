@@ -5,7 +5,6 @@ import java.util.Objects;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
-import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
@@ -13,6 +12,7 @@ import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationCont
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -32,6 +32,7 @@ public class DataNodeConfiguratorImpl<T>
 			private final Boolean optional;
 			private final BufferedDataSource providedBuffer;
 			private final ValueResolution resolution;
+			private final Boolean isAbstract;
 			private T provided;
 
 			protected Effective(
@@ -48,6 +49,8 @@ public class DataNodeConfiguratorImpl<T>
 							return false;
 						});
 				this.type = type == null ? null : type.effective();
+
+				isAbstract = overrideMerge.getValue(DataNode::isAbstract);
 
 				optional = overrideMerge.getValue(DataNode::optional);
 				format = overrideMerge.getValue(DataNode::format, Objects::equals);
@@ -90,6 +93,11 @@ public class DataNodeConfiguratorImpl<T>
 			public ValueResolution valueResolution() {
 				return resolution;
 			}
+
+			@Override
+			public Boolean isAbstract() {
+				return isAbstract;
+			}
 		}
 
 		private final Effective<T> effective;
@@ -100,6 +108,7 @@ public class DataNodeConfiguratorImpl<T>
 		private final BufferedDataSource providedBuffer;
 		private final ValueResolution resolution;
 		private final T provided;
+		private final Boolean isAbstract;
 
 		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
@@ -111,6 +120,8 @@ public class DataNodeConfiguratorImpl<T>
 			providedBuffer = configurator.providedBufferedValue;
 			resolution = configurator.resolution;
 			provided = null;
+
+			isAbstract = configurator.isAbstract;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
 		}
@@ -149,6 +160,11 @@ public class DataNodeConfiguratorImpl<T>
 		public DataNodeImpl.Effective<T> effective() {
 			return effective;
 		}
+
+		@Override
+		public Boolean isAbstract() {
+			return isAbstract;
+		}
 	}
 
 	public Format format;
@@ -159,14 +175,16 @@ public class DataNodeConfiguratorImpl<T>
 
 	private Boolean optional;
 
+	private Boolean isAbstract;
+
 	public DataNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super DataNode<T>> parent) {
 		super(parent);
 	}
 
 	@Override
-	protected DataLoader getDataLoader() {
-		return getContext().getDataLoader();
+	public DataNodeConfigurator<T> name(String name) {
+		return name(new QualifiedName(name, getContext().getNamespace()));
 	}
 
 	protected final Class<?> getTypeBindingClass() {
@@ -242,6 +260,14 @@ public class DataNodeConfiguratorImpl<T>
 		return this;
 	}
 
+	@Override
+	public final DataNodeConfigurator<T> isAbstract(boolean isAbstract) {
+		requireConfigurable(this.isAbstract);
+		this.isAbstract = isAbstract;
+
+		return this;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected final Class<DataNode<T>> getNodeClass() {
@@ -290,6 +316,9 @@ public class DataNodeConfiguratorImpl<T>
 
 	@Override
 	protected boolean isAbstract() {
-		return getContext().isAbstract();
+		return (isAbstract != null && isAbstract)
+				|| getOverriddenNodes().stream().anyMatch(
+						m -> m.effective().isAbstract() != null
+								&& m.effective().isAbstract());
 	}
 }

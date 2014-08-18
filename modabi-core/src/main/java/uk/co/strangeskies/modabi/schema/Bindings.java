@@ -12,14 +12,13 @@ import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public class Bindings {
 	private final Models models;
 	private final SetMultiMap<AbstractModel<?, ?, ?>, Object> bindings;
 
 	public Bindings() {
-		models = new Models(Namespace.getDefault());
+		models = new Models();
 		bindings = new HashSetMultiHashMap<>();
 	}
 

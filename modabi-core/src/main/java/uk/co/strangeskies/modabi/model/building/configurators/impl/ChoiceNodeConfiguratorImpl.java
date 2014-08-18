@@ -1,7 +1,5 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
-import java.util.Objects;
-
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
@@ -11,6 +9,7 @@ import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationCont
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends
@@ -60,20 +59,16 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends Bin
 		}
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof ChoiceNode))
-			return false;
-
-		ChoiceNode other = (ChoiceNode) obj;
-		return super.equals(obj) && Objects.equals(mandatory, other.isMandatory());
-	}
-
 	private boolean mandatory;
 
 	public ChoiceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super ChildNode<?, ?>> parent) {
 		super(parent);
+	}
+
+	@Override
+	public ChoiceNodeConfigurator<C, B> name(String name) {
+		return name(new QualifiedName(name, getContext().getNamespace()));
 	}
 
 	@Override

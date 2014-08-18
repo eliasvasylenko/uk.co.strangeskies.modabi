@@ -54,6 +54,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		bindingStack = new ArrayDeque<>();
 		this.output = output;
 
+		output.namespace(model.getName().getNamespace());
+
 		bindings = new Bindings();
 
 		dereferenceTarget = new DereferenceTarget() {
@@ -100,10 +102,16 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	@Override
 	public <U> void accept(DataNode.Effective<U> node) {
-		if (dataTarget == null)
+		if (dataTarget == null) {
+			if (node.format() == null)
+				throw new SchemaException(
+						"Data format must be provided for data node '" + node.getName()
+								+ "'.");
 			dataTarget = new BufferingDataTarget();
-		else if (node.format() != null)
-			throw new SchemaException();
+		} else if (node.format() != null)
+			throw new SchemaException(
+					"Data format should be null for nested data node '" + node.getName()
+							+ "'.");
 
 		unbindDataNode(node, dataTarget);
 
@@ -129,9 +137,17 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
 			BufferingDataTarget target) {
-		if (node.type() != null && node.type().isAbstract() != null
-				&& node.type().isAbstract()) {
-			// TODO figure out how to get this working as nicely as possible.
+		if (node.isAbstract() != null && node.isAbstract()) {
+			/*
+			 * TODO allow node.isAbstract() rather than only on type. choose specific
+			 * concrete data type using "@<data-type-qualified-name>, <data-values>"
+			 * syntax, e.g. "@intVector, 1, 2, 3". This will also help in cases where
+			 * the expected data type is not abstract, but is ambiguous, for example
+			 * due to a choice node in the data node tree. Also a good idea to allow,
+			 * but not require, data to be grouped with braces, e.g. "{1, 2, 3}", or
+			 * "{@intVector, 1, 2, 3}". This should further help resolve data
+			 * structure when groupings are ambiguous.
+			 */
 		}
 
 		BufferingDataTarget previousDataTarget = dataTarget;
@@ -193,7 +209,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						+ node.getName()
 						+ "' with model '"
 						+ node.effective().baseModel().stream()
-								.map(m -> m.source().getName())
+								.map(m -> m.source().getName().toString())
 								.collect(Collectors.joining(", ")) + "' for object '" + data
 						+ "' to be unbound");
 
@@ -223,7 +239,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 			if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
 				Iterable<U> iterable = null;
-				if (node.getOutMethodName() == "this")
+				if (node.getOutMethodName().equals("this"))
 					iterable = (Iterable<U>) parent;
 				else
 					iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), parent);
@@ -239,7 +255,13 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					throw new ClassCastException("Cannot cast " + failedCast.getClass()
 							+ " to " + node.getDataClass());
 			} else {
-				U item = (U) invokeMethod(node.getOutMethod(), parent);
+				U item;
+				if (node.getOutMethodName() != null
+						&& node.getOutMethodName().equals("this"))
+					item = (U) parent;
+				else
+					item = (U) invokeMethod(node.getOutMethod(), parent);
+
 				if (item == null)
 					itemList = new ArrayList<>();
 				else {

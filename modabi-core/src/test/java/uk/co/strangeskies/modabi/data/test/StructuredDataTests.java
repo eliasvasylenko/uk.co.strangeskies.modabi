@@ -7,18 +7,20 @@ import org.testng.annotations.Test;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.data.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class StructuredDataTests {
 	@DataProvider(name = "bufferedData")
 	public Object[][] createBufferedSources() {
 		return new Object[][] {
 
-				{ new BufferingStructuredDataTarget().nextChild("one").endChild()
-						.buffer() },
+				{ new BufferingStructuredDataTarget()
+						.nextChild(new QualifiedName("one")).endChild().buffer() },
 
-				{ new BufferingStructuredDataTarget().nextChild("one")
-						.property("two", o -> o.put(DataType.STRING, "twoValue"))
-						.endChild().buffer() } };
+				{ new BufferingStructuredDataTarget()
+						.nextChild(new QualifiedName("one"))
+						.property(new QualifiedName("two"),
+								o -> o.put(DataType.STRING, "twoValue")).endChild().buffer() } };
 	}
 
 	@Test

@@ -41,8 +41,12 @@ public class Methods {
 					.isOutMethodIterable()) ? Iterable.class : node.getDataClass();
 
 			Method outMethod;
-			if (targetClass == null || resultClass == null
-					|| node.getOutMethodName() == "this")
+			if (node.getOutMethodName() != null
+					&& node.getOutMethodName().equals("this")) {
+				if (!resultClass.isAssignableFrom(targetClass))
+					throw new SchemaException();
+				outMethod = null;
+			} else if (targetClass == null || resultClass == null)
 				outMethod = null;
 			else {
 				outMethod = findMethod(generateOutMethodNames(node, resultClass),
@@ -67,8 +71,8 @@ public class Methods {
 		else {
 			names = new ArrayList<>();
 
-			names.add(node.getName());
-			names.add(node.getName() + "Value");
+			names.add(node.getName().getName());
+			names.add(node.getName().getName() + "Value");
 
 			List<String> namesAndBlank = new ArrayList<>(names);
 			namesAndBlank.add("");
@@ -92,7 +96,7 @@ public class Methods {
 		if (node.getOutMethodName() != null)
 			names = Arrays.asList(node.getOutMethodName());
 		else
-			names = generateUnbindingMethodNames(node.getName(),
+			names = generateUnbindingMethodNames(node.getName().getName(),
 					node.isOutMethodIterable() != null && node.isOutMethodIterable(),
 					resultClass);
 
@@ -190,17 +194,17 @@ public class Methods {
 
 							return result == null
 									|| ClassUtils.isAssignable(m.getReturnType(), result, true);
-						})
-				.findAny()
-				.orElseThrow(
-						() -> new NoSuchMethodException("For "
-								+ names
-								+ " in "
-								+ receiver
-								+ " as [ "
-								+ Arrays.asList(parameters).stream()
-										.map(p -> p == null ? "WAT" : p.getName())
-										.collect(Collectors.joining(", ")) + " ] -> " + result));
+						}).findAny().orElse(null);
+		/*-
+		.orElseThrow(
+				() -> new NoSuchMethodException("For "
+						+ names
+						+ " in "
+						+ receiver
+						+ " as [ "
+						+ Arrays.asList(parameters).stream()
+								.map(p -> p == null ? "WAT" : p.getName())
+								.collect(Collectors.joining(", ")) + " ] -> " + result));*/
 	}
 
 	private static List<String> generateUnbindingMethodNames(
@@ -210,7 +214,8 @@ public class Methods {
 		if (node.getUnbindingMethodName() != null)
 			names = Arrays.asList(node.getUnbindingMethodName());
 		else
-			names = generateUnbindingMethodNames(node.getName(), false, resultClass);
+			names = generateUnbindingMethodNames(node.getName().getName(), false,
+					resultClass);
 
 		return names;
 	}
@@ -262,7 +267,7 @@ public class Methods {
 						.stream()
 						.map(
 								p -> {
-									if (p.equals("this"))
+									if (p.getName().equals("this"))
 										return null;
 									else {
 										ChildNode.Effective<?, ?> effective = node

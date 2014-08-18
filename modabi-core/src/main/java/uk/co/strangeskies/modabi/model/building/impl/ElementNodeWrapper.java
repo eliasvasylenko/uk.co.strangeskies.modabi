@@ -11,6 +11,7 @@ import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
@@ -116,7 +117,7 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	}
 
 	@Override
-	public String getName() {
+	public QualifiedName getName() {
 		return component.getName();
 	}
 
@@ -171,7 +172,7 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 	}
 
 	@Override
-	public List<String> getProvidedUnbindingMethodParameterNames() {
+	public List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
 		return component.getProvidedUnbindingMethodParameterNames();
 	}
 

@@ -17,5 +17,7 @@ public interface RegistrationTimeTargetAdapter {
 
 	public RegistrationTimeTargetAdapter getParent();
 
+	public RegistrationTimeTargetAdapter getRoot();
+
 	public BranchingNodeConfigurator<?, ?, ?, ?> getConfigurator();
 }

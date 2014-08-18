@@ -14,6 +14,7 @@ import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationCont
 import uk.co.strangeskies.modabi.model.building.impl.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, ?>>
 		extends
@@ -117,6 +118,11 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	}
 
 	@Override
+	public InputSequenceNodeConfigurator<C> name(String name) {
+		return name(new QualifiedName(name, getContext().getNamespace()));
+	}
+
+	@Override
 	public InputSequenceNode tryCreate() {
 		return new InputSequenceNodeImpl(this);
 	}
@@ -144,8 +150,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	public ChildrenConfigurator<C, C> createChildrenConfigurator() {
 		Class<?> outputTarget = getContext().getOutputTargetClass();
 
-		return new SequentialChildrenConfigurator<>(getOverriddenNodes(), null,
-				outputTarget, getDataLoader(), isAbstract());
+		return new SequentialChildrenConfigurator<>(getNamespace(),
+				getOverriddenNodes(), null, outputTarget, getDataLoader(), isAbstract());
 	}
 
 	@Override

@@ -3,13 +3,17 @@ package uk.co.strangeskies.modabi.data.io.structured;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface StructuredDataTarget {
-	public StructuredDataTarget nextChild(String name);
+	public StructuredDataTarget namespace(Namespace namespace);
 
-	public TerminatingDataTarget property(String name);
+	public StructuredDataTarget nextChild(QualifiedName name);
 
-	public default StructuredDataTarget property(String name,
+	public TerminatingDataTarget property(QualifiedName name);
+
+	public default StructuredDataTarget property(QualifiedName name,
 			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
 		TerminatingDataTarget target = property(name);
 		if (target != targetOperation.apply(target))

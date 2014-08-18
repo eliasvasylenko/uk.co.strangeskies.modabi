@@ -1,5 +1,8 @@
 package uk.co.strangeskies.modabi.namespace;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Namespace {
 	private final String namespace;
 
@@ -14,12 +17,21 @@ public class Namespace {
 		return namespace;
 	}
 
+	public List<String> split() {
+		return Arrays.asList(namespace.split("\\."));
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Namespace))
 			return false;
 
 		return namespace.equals(((Namespace) obj).namespace);
+	}
+
+	@Override
+	public int hashCode() {
+		return namespace.hashCode();
 	}
 
 	public static Namespace getDefault() {

@@ -16,6 +16,7 @@ import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public class ModelConfiguratorImpl<T>
 		extends
@@ -98,6 +99,11 @@ public class ModelConfiguratorImpl<T>
 	@Override
 	protected DataLoader getDataLoader() {
 		return loader;
+	}
+
+	@Override
+	protected Namespace getNamespace() {
+		return getName().getNamespace();
 	}
 
 	@Override

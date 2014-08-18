@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.namespace;
 
-
 public class QualifiedName {
 	private final String name;
 	private final Namespace namespace;
@@ -8,6 +7,14 @@ public class QualifiedName {
 	public QualifiedName(String name, Namespace namespace) {
 		this.name = name;
 		this.namespace = namespace;
+	}
+
+	public QualifiedName(String name) {
+		this(name, Namespace.getDefault());
+	}
+
+	public QualifiedName(String name, String namespace) {
+		this(name, new Namespace(namespace));
 	}
 
 	public String getName() {
@@ -20,7 +27,7 @@ public class QualifiedName {
 
 	@Override
 	public String toString() {
-		return namespace + name;
+		return namespace + ":" + name;
 	}
 
 	@Override
@@ -30,5 +37,10 @@ public class QualifiedName {
 
 		return namespace.equals(((QualifiedName) obj).namespace)
 				&& name.equals(((QualifiedName) obj).name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode() ^ namespace.hashCode();
 	}
 }

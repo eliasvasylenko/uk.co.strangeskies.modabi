@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 import java.util.List;
 
 import uk.co.strangeskies.gears.utilities.PropertySet;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
 	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>>
@@ -51,7 +52,7 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 				.add(SchemaNode::children).add(SchemaNode::getName);
 	}
 
-	String getName();
+	QualifiedName getName();
 
 	List<? extends ChildNode<?, ?>> children();
 
@@ -66,8 +67,12 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 	Class<S> getNodeClass();
 
-	default ChildNode<?, ?> child(String name) {
+	default ChildNode<?, ?> child(QualifiedName name) {
 		return children().stream().filter(c -> c.getName().equals(name)).findAny()
 				.get();
+	}
+
+	default ChildNode<?, ?> child(String name) {
+		return child(new QualifiedName(name, getName().getNamespace()));
 	}
 }

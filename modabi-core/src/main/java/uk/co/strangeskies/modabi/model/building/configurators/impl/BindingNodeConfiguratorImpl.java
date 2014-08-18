@@ -2,9 +2,11 @@ package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
@@ -16,6 +18,7 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
@@ -36,7 +39,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final String unbindingMethodName;
 			private final Method unbindingMethod;
 
-			private final List<String> providedUnbindingParameterNames;
+			private final List<QualifiedName> providedUnbindingParameterNames;
 			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 			protected Effective(
@@ -120,7 +123,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
-			public List<String> getProvidedUnbindingMethodParameterNames() {
+			public List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
 				return providedUnbindingParameterNames;
 			}
 		}
@@ -133,7 +136,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		private final UnbindingStrategy unbindingStrategy;
 		private final String unbindingMethodName;
 
-		private final List<String> unbindingParameterNames;
+		private final List<QualifiedName> unbindingParameterNames;
 
 		public BindingNodeImpl(
 				BindingNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
@@ -189,7 +192,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
-		public List<String> getProvidedUnbindingMethodParameterNames() {
+		public List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
 			return unbindingParameterNames;
 		}
 	}
@@ -205,7 +208,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	private Class<?> unbindingFactoryClass;
 
-	private List<String> unbindingParameterNames;
+	private List<QualifiedName> unbindingParameterNames;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -240,8 +243,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		Class<?> outputTarget = getUnbindingClass() != null ? getUnbindingClass()
 				: getDataClass();
 
-		return new SequentialChildrenConfigurator<>(getOverriddenNodes(),
-				inputTarget, outputTarget, getDataLoader(), isAbstract());
+		return new SequentialChildrenConfigurator<>(getNamespace(),
+				getOverriddenNodes(), inputTarget, outputTarget, getDataLoader(),
+				isAbstract());
 	}
 
 	@Override
@@ -305,11 +309,18 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public final S providedUnbindingParameters(List<String> parameterNames) {
+	public final S providedUnbindingParameters(List<QualifiedName> parameterNames) {
 		requireConfigurable(unbindingParameterNames);
 		unbindingParameterNames = new ArrayList<>(parameterNames);
 
 		return getThis();
+	}
+
+	@Override
+	public S providedUnbindingParameters(String... parameterNames) {
+		return providedUnbindingParameters(Arrays.asList(parameterNames).stream()
+				.map(n -> new QualifiedName(n, getName().getNamespace()))
+				.collect(Collectors.toList()));
 	}
 
 	@Override

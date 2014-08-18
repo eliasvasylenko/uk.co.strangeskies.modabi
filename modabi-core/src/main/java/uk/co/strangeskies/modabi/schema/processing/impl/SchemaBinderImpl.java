@@ -156,8 +156,8 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 		registeredSchema = new Schemata();
 		Namespace namespace = metaSchema.getQualifiedName().getNamespace();
-		registeredModels = new Models(namespace);
-		registeredTypes = new DataBindingTypes(namespace);
+		registeredModels = new Models();
+		registeredTypes = new DataBindingTypes();
 
 		registerSchema(baseSchema);
 		registerSchema(metaSchema);
@@ -174,19 +174,19 @@ public class SchemaBinderImpl implements SchemaBinder {
 				registerSchema(dependency);
 
 			for (Model<?> model : schema.getModels())
-				registerModel(model, schema.getQualifiedName().getNamespace());
+				registerModel(model);
 
 			for (DataBindingType<?> type : schema.getDataTypes())
-				registerDataType(type, schema.getQualifiedName().getNamespace());
+				registerDataType(type);
 		}
 	}
 
-	private void registerModel(Model<?> model, Namespace namespace) {
-		registeredModels.add(model, namespace);
+	private void registerModel(Model<?> model) {
+		registeredModels.add(model);
 	}
 
-	private void registerDataType(DataBindingType<?> type, Namespace namespace) {
-		registeredTypes.add(type, namespace);
+	private void registerDataType(DataBindingType<?> type) {
+		registeredTypes.add(type);
 	}
 
 	@Override

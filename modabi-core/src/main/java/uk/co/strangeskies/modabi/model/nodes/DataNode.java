@@ -35,6 +35,8 @@ public interface DataNode<T> extends
 
 	Format format();
 
+	Boolean isAbstract();
+
 	default boolean isValueProvided() {
 		return providedValueBuffer() != null;
 	}

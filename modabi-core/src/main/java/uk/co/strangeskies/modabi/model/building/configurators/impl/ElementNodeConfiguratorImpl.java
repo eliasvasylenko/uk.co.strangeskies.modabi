@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.gears.utilities.IdentityComparator;
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
@@ -19,6 +18,7 @@ import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends
@@ -100,8 +100,8 @@ public class ElementNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected DataLoader getDataLoader() {
-		return getContext().getDataLoader();
+	public ElementNodeConfigurator<T> name(String name) {
+		return name(new QualifiedName(name, getContext().getNamespace()));
 	}
 
 	@Override

@@ -16,36 +16,46 @@ import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	private static class BufferedStructuredDataSourceImpl implements
 			BufferedStructuredDataSource {
+		private final Namespace namespace;
 		private final BufferedStructuredData root;
 		private final Deque<BufferedStructuredData> stack;
 
-		public BufferedStructuredDataSourceImpl(BufferedStructuredData root) {
-			this(root, new ArrayDeque<>());
+		public BufferedStructuredDataSourceImpl(Namespace namespace,
+				BufferedStructuredData root) {
+			this(namespace, root, new ArrayDeque<>());
 		}
 
-		public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
-				Deque<BufferedStructuredData> stack) {
+		public BufferedStructuredDataSourceImpl(Namespace namespace,
+				BufferedStructuredData root, Deque<BufferedStructuredData> stack) {
+			this.namespace = namespace;
 			this.root = root;
 			this.stack = stack;
 			stack.push(root);
 		}
 
 		@Override
-		public TerminatingDataSource propertyData(String name) {
+		public Namespace namespace() {
+			return namespace;
+		}
+
+		@Override
+		public TerminatingDataSource propertyData(QualifiedName name) {
 			return stack.peek().propertyData(name);
 		}
 
 		@Override
-		public Set<String> properties() {
+		public Set<QualifiedName> properties() {
 			return stack.peek().properties();
 		}
 
 		@Override
-		public String nextChild() {
+		public QualifiedName nextChild() {
 			BufferedStructuredData child = stack.peek().nextChild();
 
 			if (child == null)
@@ -77,7 +87,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 		@Override
 		public BufferedStructuredDataSourceImpl copy() {
 			BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-					root, stack);
+					namespace, root, stack);
 			return copy;
 		}
 
@@ -87,6 +97,10 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 				return false;
 
 			BufferedStructuredDataSource thatCopy = (BufferedStructuredDataSource) that;
+
+			if (!namespace().equals(thatCopy.namespace()))
+				return false;
+
 			if (depth() != thatCopy.depth()
 					|| indexAtDepth() != thatCopy.indexAtDepth())
 				return false;
@@ -115,9 +129,9 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	}
 
 	private static class BufferedStructuredData {
-		private final String name;
+		private final QualifiedName name;
 
-		private final Map<String, BufferedDataSource> properties;
+		private final Map<QualifiedName, BufferedDataSource> properties;
 		private final BufferedDataSource content;
 
 		private final List<BufferedStructuredData> children;
@@ -131,7 +145,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			childIndex = 0;
 
 			properties = new HashMap<>();
-			for (Map.Entry<String, BufferingDataTarget> property : from.properties
+			for (Map.Entry<QualifiedName, BufferingDataTarget> property : from.properties
 					.entrySet())
 				properties.put(property.getKey(), property.getValue().buffer());
 			content = from.content == null ? null : from.content.buffer();
@@ -170,15 +184,15 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			return children.get(childIndex++);
 		}
 
-		public String name() {
+		public QualifiedName name() {
 			return name;
 		}
 
-		public Set<String> properties() {
+		public Set<QualifiedName> properties() {
 			return properties.keySet();
 		}
 
-		public BufferedDataSource propertyData(String name) {
+		public BufferedDataSource propertyData(QualifiedName name) {
 			return properties.get(name);
 		}
 
@@ -198,20 +212,20 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	}
 
 	private static class BufferingStructuredData {
-		private final String name;
+		private final QualifiedName name;
 
-		private final Map<String, BufferingDataTarget> properties;
+		private final Map<QualifiedName, BufferingDataTarget> properties;
 		private BufferingDataTarget content;
 
 		private final List<BufferingStructuredData> children;
 
-		public BufferingStructuredData(String name) {
+		public BufferingStructuredData(QualifiedName name) {
 			children = new ArrayList<>();
 			properties = new HashMap<>();
 			this.name = name;
 		}
 
-		public void addProperty(String name, BufferingDataTarget target) {
+		public void addProperty(QualifiedName name, BufferingDataTarget target) {
 			properties.put(name, target);
 		}
 
@@ -224,11 +238,19 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 		}
 	}
 
+	private Namespace namespace;
 	private final Deque<BufferingStructuredData> stack = new ArrayDeque<>(
 			Arrays.asList(new BufferingStructuredData(null)));
 
 	@Override
-	public BufferingStructuredDataTarget property(String name,
+	public StructuredDataTarget namespace(Namespace namespace) {
+		this.namespace = namespace;
+
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget property(QualifiedName name,
 			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
 		return (BufferingStructuredDataTarget) StructuredDataTarget.super.property(
 				name, targetOperation);
@@ -242,7 +264,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	}
 
 	@Override
-	public TerminatingDataTarget property(String name) {
+	public TerminatingDataTarget property(QualifiedName name) {
 		BufferingDataTarget target = new BufferingDataTarget();
 		stack.peek().addProperty(name, target);
 
@@ -265,7 +287,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	}
 
 	@Override
-	public BufferingStructuredDataTarget nextChild(String name) {
+	public BufferingStructuredDataTarget nextChild(QualifiedName name) {
 		stack.push(new BufferingStructuredData(name));
 		return this;
 	}
@@ -278,7 +300,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 		if (stack.size() != 1)
 			throw new IllegalStateException();
 
-		return new BufferedStructuredDataSourceImpl(new BufferedStructuredData(
-				stack.pop()));
+		return new BufferedStructuredDataSourceImpl(namespace,
+				new BufferedStructuredData(stack.pop()));
 	}
 }

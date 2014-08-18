@@ -10,6 +10,7 @@ import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeCo
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
+import uk.co.strangeskies.modabi.namespace.Namespace;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends
@@ -140,6 +141,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 	public <V extends T> DataBindingTypeConfigurator<V> dataClass(
 			Class<V> dataClass) {
 		return (DataBindingTypeConfigurator<V>) super.dataClass(dataClass);
+	}
+
+	@Override
+	protected Namespace getNamespace() {
+		return getName().getNamespace();
 	}
 
 	@SuppressWarnings("unchecked")

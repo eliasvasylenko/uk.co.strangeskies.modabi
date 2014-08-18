@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,16 +58,18 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		public DerivedTypesImpl(
 				DataLoader loader,
+				Namespace namespace,
 				DataBindingTypeBuilder builder,
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives,
 				@SuppressWarnings("rawtypes") DataBindingType<Enumeration> enumerationBaseType) {
 			typeSet.add(qualifiedNameType = builder.configure(loader)
-					.name("qualifiedName").dataClass(QualifiedName.class).create());
+					.name("qualifiedName", namespace).dataClass(QualifiedName.class)
+					.create());
 
 			typeSet.add(collectionType = builder
 					.configure(loader)
-					.name("collection")
+					.name("collection", namespace)
 					.dataClass(Collection.class)
 					.isAbstract(true)
 					.bindingStrategy(BindingStrategy.PROVIDED)
@@ -77,16 +78,16 @@ public class BaseSchemaImpl implements BaseSchema {
 									.occurances(Range.create(0, null)).outMethodIterable(true))
 					.create());
 
-			typeSet.add(listType = builder.configure(loader).name("list")
+			typeSet.add(listType = builder.configure(loader).name("list", namespace)
 					.isAbstract(false).dataClass(List.class).baseType(collectionType)
 					.create());
 
-			typeSet.add(setType = builder.configure(loader).name("set")
+			typeSet.add(setType = builder.configure(loader).name("set", namespace)
 					.isAbstract(false).dataClass(Set.class).baseType(collectionType)
 					.create());
 
 			typeSet.add(bufferedDataType = builder.configure(loader)
-					.name("bufferedData").dataClass(BufferedDataSource.class)
+					.name("bufferedData", namespace).dataClass(BufferedDataSource.class)
 					.bindingClass(BufferedDataSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(DataTarget.class)
@@ -94,105 +95,114 @@ public class BaseSchemaImpl implements BaseSchema {
 					.unbindingMethod("pipe").create());
 
 			DataBindingType<Object> referenceBaseType;
-			typeSet.add(referenceBaseType = builder
-					.configure(loader)
-					.name("referenceBase")
-					.dataClass(Object.class)
-					.isAbstract(true)
-					.isPrivate(true)
-					.bindingClass(ReferenceSource.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingClass(DereferenceTarget.class)
-					.unbindingMethod("dereference")
-					.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-					.providedUnbindingParameters("targetDomain", "id", "this")
-					.addChild(
-							d -> d.data().dataClass(Model.class).name("targetDomain")
-									.valueResolution(ValueResolution.REGISTRATION_TIME)
-									.inMethod("null").outMethod("null"))
-					.addChild(
-							d -> d.data().type(primitives.get(DataType.STRING)).name("id")
-									.valueResolution(ValueResolution.REGISTRATION_TIME)
-									.inMethod("null").outMethod("null"))
-					.addChild(
-							c -> c
-									.inputSequence()
-									.name("reference")
-									.addChild(
-											d -> d
-													.data()
-													.dataClass(Model.class)
-													.name("targetDomain")
-													.outMethod("null")
-													.valueResolution(ValueResolution.REGISTRATION_TIME)
-													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-													.bindingClass(RegistrationTimeTargetAdapter.class)
-													.addChild(
-															e -> e
-																	.data()
-																	.name("parent")
-																	.type(primitives.get(DataType.INT))
-																	.inMethodChained(true)
-																	.outMethod("null")
-																	.provideValue(
-																			new BufferingDataTarget().put(
-																					DataType.INT, 1).buffer()))
-													.addChild(
-															e -> e
-																	.data()
-																	.name("node")
-																	.type(primitives.get(DataType.STRING))
-																	.inMethodChained(true)
-																	.outMethod("null")
-																	.provideValue(
-																			new BufferingDataTarget().put(
-																					DataType.STRING, "targetDomain")
-																					.buffer()))
-													.addChild(
-															e -> e.inputSequence().name("providedValue")
-																	.inMethodChained(true)))
-									.addChild(
-											d -> d
-													.data()
-													.dataClass(String.class)
-													.name("id")
-													.outMethod("null")
-													.valueResolution(ValueResolution.REGISTRATION_TIME)
-													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-													.bindingClass(RegistrationTimeTargetAdapter.class)
-													.addChild(
-															e -> e
-																	.data()
-																	.name("parent")
-																	.type(primitives.get(DataType.INT))
-																	.inMethodChained(true)
-																	.outMethod("null")
-																	.provideValue(
-																			new BufferingDataTarget().put(
-																					DataType.INT, 1).buffer()))
-													.addChild(
-															e -> e
-																	.data()
-																	.name("node")
-																	.type(primitives.get(DataType.STRING))
-																	.inMethodChained(true)
-																	.outMethod("null")
-																	.provideValue(
-																			new BufferingDataTarget().put(
-																					DataType.STRING, "id").buffer()))
-													.addChild(
-															e -> e.inputSequence().name("providedValue")
-																	.inMethodChained(true)))).create());
+			typeSet
+					.add(referenceBaseType = builder
+							.configure(loader)
+							.name("referenceBase", namespace)
+							.dataClass(Object.class)
+							.isAbstract(true)
+							.isPrivate(true)
+							.bindingClass(ReferenceSource.class)
+							.bindingStrategy(BindingStrategy.PROVIDED)
+							.unbindingFactoryClass(DereferenceTarget.class)
+							.unbindingClass(BufferedDataSource.class)
+							.unbindingMethod("dereference")
+							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
+							.providedUnbindingParameters("targetModel", "targetId", "this")
+							.addChild(
+									d -> d.data().dataClass(Model.class).name("targetModel")
+											.valueResolution(ValueResolution.REGISTRATION_TIME)
+											.inMethod("null").outMethod("null"))
+							.addChild(
+									d -> d.data().type(primitives.get(DataType.STRING))
+											.name("targetId")
+											.valueResolution(ValueResolution.REGISTRATION_TIME)
+											.inMethod("null").outMethod("null"))
+							.addChild(
+									c -> c
+											.inputSequence()
+											.name("reference")
+											.addChild(
+													d -> d
+															.data()
+															.dataClass(Model.class)
+															.name("targetModel")
+															.outMethod("null")
+															.valueResolution(
+																	ValueResolution.REGISTRATION_TIME)
+															.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+															.bindingClass(RegistrationTimeTargetAdapter.class)
+															.addChild(
+																	e -> e
+																			.data()
+																			.name("parent")
+																			.type(primitives.get(DataType.INT))
+																			.inMethodChained(true)
+																			.outMethod("null")
+																			.provideValue(
+																					new BufferingDataTarget().put(
+																							DataType.INT, 1).buffer()))
+															.addChild(
+																	e -> e
+																			.data()
+																			.name("node")
+																			.type(primitives.get(DataType.STRING))
+																			.inMethodChained(true)
+																			.outMethod("null")
+																			.provideValue(
+																					new BufferingDataTarget().put(
+																							DataType.STRING, "targetModel")
+																							.buffer()))
+															.addChild(
+																	e -> e.inputSequence().name("providedValue")
+																			.inMethodChained(true)))
+											.addChild(
+													d -> d
+															.data()
+															.dataClass(String.class)
+															.name("targetId")
+															.outMethod("null")
+															.valueResolution(
+																	ValueResolution.REGISTRATION_TIME)
+															.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+															.bindingClass(RegistrationTimeTargetAdapter.class)
+															.addChild(
+																	e -> e
+																			.data()
+																			.name("parent")
+																			.type(primitives.get(DataType.INT))
+																			.inMethodChained(true)
+																			.outMethod("null")
+																			.provideValue(
+																					new BufferingDataTarget().put(
+																							DataType.INT, 1).buffer()))
+															.addChild(
+																	e -> e
+																			.data()
+																			.name("node")
+																			.type(primitives.get(DataType.STRING))
+																			.inMethodChained(true)
+																			.outMethod("null")
+																			.provideValue(
+																					new BufferingDataTarget().put(
+																							DataType.STRING, "targetId")
+																							.buffer()))
+															.addChild(
+																	e -> e.inputSequence().name("providedValue")
+																			.inMethodChained(true)))
+											.addChild(
+													d -> d.data().name("data").type(bufferedDataType)
+															.outMethod("this"))).create());
 			typeSet.add(referenceBaseType);
 
 			typeSet.add(referenceType = builder
 					.configure(loader)
-					.name("reference")
+					.name("reference", namespace)
 					.baseType(referenceBaseType)
 					.addChild(
 							c -> c
 									.data()
-									.name("targetDomain")
+									.name("targetModel")
 									.type(referenceBaseType)
 									.dataClass(Model.class)
 									.addChild(
@@ -206,13 +216,13 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(
 											d -> d
 													.data()
-													.name("id")
+													.name("targetId")
 													.provideValue(
 															new BufferingDataTarget().put(DataType.STRING,
 																	"name").buffer()))).create());
 
-			typeSet.add(classType = builder.configure(loader).name("class")
-					.dataClass(Class.class)
+			typeSet.add(classType = builder.configure(loader)
+					.name("class", namespace).dataClass(Class.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY).addChild(
 					// TODO outMethod not being carried through to unbinding process...
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name"))
@@ -220,7 +230,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			typeSet.add(enumType = builder
 					.configure(loader)
-					.name("enum")
+					.name("enum", namespace)
 					.dataClass(Enum.class)
 					.addChild(
 							n -> n
@@ -254,7 +264,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			typeSet.add(enumerationType = builder
 					.configure(loader)
-					.name("enumeration")
+					.name("enumeration", namespace)
 					.baseType(enumerationBaseType)
 					.isAbstract(false)
 					.isPrivate(false)
@@ -290,7 +300,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			typeSet.add(rangeType = builder
 					.configure(loader)
-					.name("range")
+					.name("range", namespace)
 					.dataClass(Range.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
@@ -362,9 +372,9 @@ public class BaseSchemaImpl implements BaseSchema {
 	private class BaseModelsImpl implements BaseModels {
 		private final Model<Object> includeModel;
 
-		public BaseModelsImpl(DataLoader loader, ModelBuilder builder,
-				Set<Model<?>> modelSet) {
-			includeModel = builder.configure(loader).name("include")
+		public BaseModelsImpl(DataLoader loader, Namespace namespace,
+				ModelBuilder builder, Set<Model<?>> modelSet) {
+			includeModel = builder.configure(loader).name("include", namespace)
 					.bindingClass(ModelLoader.class).dataClass(Object.class).create();
 			modelSet.add(includeModel);
 		}
@@ -385,23 +395,24 @@ public class BaseSchemaImpl implements BaseSchema {
 	@SuppressWarnings({ "rawtypes" })
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder, DataLoader loader) {
+		Namespace namespace = new Namespace(BaseSchema.class.getPackage().getName());
 		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
-				new Namespace(BaseSchema.class.getPackage().getName()));
+				namespace);
 
 		/*
 		 * Types
 		 */
-		Set<DataBindingType<?>> typeSet = new HashSet<>();
+		Set<DataBindingType<?>> typeSet = new LinkedHashSet<>();
 
 		DataBindingType<Enumeration> enumerationBaseType;
 		typeSet.add(enumerationBaseType = dataTypeBuilder.configure(loader)
-				.name("enumerationBase").isAbstract(true).isPrivate(true)
+				.name("enumerationBase", namespace).isAbstract(true).isPrivate(true)
 				.dataClass(Enumeration.class).create());
 
 		DataBindingType<Object> primitive;
 		typeSet.add(primitive = dataTypeBuilder
 				.configure(loader)
-				.name("primitive")
+				.name("primitive", namespace)
 				.isAbstract(true)
 				.isPrivate(true)
 				.bindingClass(BufferedDataSource.class)
@@ -420,7 +431,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					dataType,
 					dataTypeBuilder
 							.configure(loader)
-							.name(dataType.name())
+							.name(dataType.name(), namespace)
 							.baseType(primitive)
 							.isAbstract(false)
 							.isPrivate(false)
@@ -435,15 +446,15 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		primitives.values().stream().forEach(typeSet::add);
 
-		derivedTypes = new DerivedTypesImpl(loader, dataTypeBuilder, typeSet,
-				primitives, enumerationBaseType);
+		derivedTypes = new DerivedTypesImpl(loader, namespace, dataTypeBuilder,
+				typeSet, primitives, enumerationBaseType);
 
 		/*
 		 * Models
 		 */
 		Set<Model<?>> modelSet = new LinkedHashSet<>();
 
-		models = new BaseModelsImpl(loader, modelBuilder, modelSet);
+		models = new BaseModelsImpl(loader, namespace, modelBuilder, modelSet);
 
 		/*
 		 * Schema
