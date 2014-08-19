@@ -1,5 +1,9 @@
 package uk.co.strangeskies.modabi.namespace;
 
+import java.time.LocalDate;
+
+import org.apache.commons.lang3.Validate;
+
 public class QualifiedName {
 	private final String name;
 	private final Namespace namespace;
@@ -13,10 +17,6 @@ public class QualifiedName {
 		this(name, Namespace.getDefault());
 	}
 
-	public QualifiedName(String name, String namespace) {
-		this(name, new Namespace(namespace));
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -28,6 +28,24 @@ public class QualifiedName {
 	@Override
 	public String toString() {
 		return namespace + ":" + name;
+	}
+
+	public String toHttpString() {
+		return namespace.toHttpString() + name;
+	}
+
+	public static QualifiedName parseString(String string) {
+		int splitIndex = string.lastIndexOf(':');
+
+		return new QualifiedName(string.substring(splitIndex + 1),
+				Namespace.parseString(string.substring(0, splitIndex)));
+	}
+
+	public static QualifiedName parseHttpString(String string) {
+		int splitIndex = string.lastIndexOf('/');
+
+		return new QualifiedName(string.substring(splitIndex + 1),
+				Namespace.parseHttpString(string.substring(0, splitIndex + 1)));
 	}
 
 	@Override

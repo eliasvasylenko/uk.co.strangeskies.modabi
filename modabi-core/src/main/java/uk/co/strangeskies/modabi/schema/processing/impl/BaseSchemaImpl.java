@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,10 +29,11 @@ import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.ModelLoader;
 import uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.modabi.schema.processing.namespace.QualifiedNameFormatter;
+import uk.co.strangeskies.modabi.schema.processing.namespace.QualifiedNameParser;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 
@@ -63,9 +65,18 @@ public class BaseSchemaImpl implements BaseSchema {
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives,
 				@SuppressWarnings("rawtypes") DataBindingType<Enumeration> enumerationBaseType) {
-			typeSet.add(qualifiedNameType = builder.configure(loader)
-					.name("qualifiedName", namespace).dataClass(QualifiedName.class)
-					.create());
+			typeSet.add(qualifiedNameType = builder
+					.configure(loader)
+					.bindingClass(QualifiedNameParser.class)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingFactoryClass(QualifiedNameFormatter.class)
+					.unbindingClass(String.class)
+					.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
+					.name("qualifiedName", namespace)
+					.dataClass(QualifiedName.class)
+					.addChild(
+							c -> c.data().name("string", namespace)
+									.type(primitives.get(DataType.STRING))).create());
 
 			typeSet.add(collectionType = builder
 					.configure(loader)
@@ -375,7 +386,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		public BaseModelsImpl(DataLoader loader, Namespace namespace,
 				ModelBuilder builder, Set<Model<?>> modelSet) {
 			includeModel = builder.configure(loader).name("include", namespace)
-					.bindingClass(ModelLoader.class).dataClass(Object.class).create();
+					.bindingClass(Object.class).dataClass(Object.class).create();
 			modelSet.add(includeModel);
 		}
 
@@ -395,8 +406,9 @@ public class BaseSchemaImpl implements BaseSchema {
 	@SuppressWarnings({ "rawtypes" })
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder, DataLoader loader) {
-		Namespace namespace = new Namespace(BaseSchema.class.getPackage().getName());
-		QualifiedName name = new QualifiedName(BaseSchema.class.getName(),
+		Namespace namespace = new Namespace(BaseSchema.class.getPackage(),
+				LocalDate.of(2014, 1, 1));
+		QualifiedName name = new QualifiedName(BaseSchema.class.getSimpleName(),
 				namespace);
 
 		/*

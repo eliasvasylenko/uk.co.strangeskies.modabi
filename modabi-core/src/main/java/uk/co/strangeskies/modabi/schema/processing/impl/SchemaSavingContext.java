@@ -34,6 +34,7 @@ import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.namespace.QualifiedNameFormatter;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 
 class SchemaSavingContext<T> implements SchemaProcessingContext {
@@ -45,6 +46,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	private BufferingDataTarget dataTarget;
 	private final DereferenceTarget dereferenceTarget;
+	private QualifiedNameFormatter qualifiedNameFormatter;
 
 	private final Bindings bindings;
 
@@ -54,7 +56,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		bindingStack = new ArrayDeque<>();
 		this.output = output;
 
-		output.namespace(model.getName().getNamespace());
+		output.defaultNamespaceHint(model.getName().getNamespace());
 
 		bindings = new Bindings();
 
@@ -90,6 +92,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				return bufferedData;*/
 			}
 		};
+
+		qualifiedNameFormatter = q -> output.composeQualifiedName(q);
 
 		unbindModel(model.effective(), data);
 	}
@@ -181,6 +185,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			return (U) dataTarget;
 		if (clazz.equals(DereferenceTarget.class))
 			return (U) dereferenceTarget;
+		if (clazz.equals(QualifiedNameFormatter.class))
+			return (U) qualifiedNameFormatter;
 
 		return this.schemaBinderImpl.provide(clazz);
 	}

@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -42,14 +43,14 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private final Schema metaSchema;
-
 	private final Model<Schema> schemaModel;
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
 			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
-		Namespace namespace = new Namespace(BaseSchema.class.getPackage().getName());
-		QualifiedName name = new QualifiedName(MetaSchema.class.getName(),
+		Namespace namespace = new Namespace(MetaSchema.class.getPackage(),
+				LocalDate.of(2014, 1, 1));
+		QualifiedName name = new QualifiedName(MetaSchema.class.getSimpleName(),
 				namespace);
 
 		/*

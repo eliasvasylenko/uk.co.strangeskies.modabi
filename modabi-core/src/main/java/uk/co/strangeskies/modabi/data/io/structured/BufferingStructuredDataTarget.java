@@ -243,7 +243,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			Arrays.asList(new BufferingStructuredData(null)));
 
 	@Override
-	public StructuredDataTarget namespace(Namespace namespace) {
+	public StructuredDataTarget defaultNamespaceHint(Namespace namespace) {
 		this.namespace = namespace;
 
 		return this;

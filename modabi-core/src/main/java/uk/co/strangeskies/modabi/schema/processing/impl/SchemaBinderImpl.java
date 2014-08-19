@@ -226,7 +226,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	public void registerProvider(Function<Class<?>, ?> provider) {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
-			if (!c.isInstance(provided))
+			if (provided != null && !c.isInstance(provided))
 				throw new SchemaException("Invalid object provided for the class [" + c
 						+ "] by provider [" + provider + "]");
 			return provided;

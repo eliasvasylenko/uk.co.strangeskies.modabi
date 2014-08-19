@@ -25,7 +25,7 @@ public interface StructuredDataSource {
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
 		if (namespace() != null)
-			output.namespace(namespace());
+			output.defaultNamespaceHint(namespace());
 
 		QualifiedName childElement;
 

@@ -215,7 +215,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		childIndex = merge(new QualifiedName("?", "?"), effective, childIndex, true);
+		childIndex = merge(new QualifiedName("?", Namespace.getDefault()),
+				effective, childIndex, true);
 
 		inputTarget = effective.getPostInputClass();
 	}
