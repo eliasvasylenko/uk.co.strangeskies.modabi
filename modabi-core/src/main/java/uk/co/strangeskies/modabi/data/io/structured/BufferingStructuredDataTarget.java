@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,29 +20,63 @@ import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
+/**
+ * It shouldn't matter what order attributes are added to a child, or whether
+ * they are added before, after, or between other children. Because of this,
+ * {@link BufferingStructuredDataTarget} does not produce a
+ * {@link BufferedStructuredDataSource} which tries to match input order.
+ * Instead, in an effort to make it easier for consumers to deal with stream
+ * order, it actually adds a guarantee that attributes will appear before any
+ * other children types when piped. Similarly, it guarantees that all global
+ * namespace hints will be piped before the rest of the document begins, and
+ * non-global hints will be piped before any children of the child they occur
+ * in.
+ * 
+ * @author eli
+ *
+ */
 public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	private static class BufferedStructuredDataSourceImpl implements
 			BufferedStructuredDataSource {
-		private final Namespace namespace;
+		private final Namespace defaultNamespaceHint;
+		private final Set<Namespace> namespaceHints;
+
 		private final BufferedStructuredData root;
 		private final Deque<BufferedStructuredData> stack;
 
-		public BufferedStructuredDataSourceImpl(Namespace namespace,
-				BufferedStructuredData root) {
-			this(namespace, root, new ArrayDeque<>());
+		public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
+				Namespace defaultNamespaceHint, Set<Namespace> namespaceHints) {
+			this(root, new ArrayDeque<>(Arrays.asList(root)), defaultNamespaceHint,
+					namespaceHints);
 		}
 
-		public BufferedStructuredDataSourceImpl(Namespace namespace,
-				BufferedStructuredData root, Deque<BufferedStructuredData> stack) {
-			this.namespace = namespace;
+		public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
+				Deque<BufferedStructuredData> stack, Namespace defaultNamespaceHint,
+				Set<Namespace> namespaceHints) {
 			this.root = root;
 			this.stack = stack;
-			stack.push(root);
+			this.defaultNamespaceHint = defaultNamespaceHint;
+			this.namespaceHints = namespaceHints;
 		}
 
 		@Override
-		public Namespace namespace() {
-			return namespace;
+		public Namespace globalDefaultNamespaceHint() {
+			return defaultNamespaceHint;
+		}
+
+		@Override
+		public Set<Namespace> globalNamespaceHints() {
+			return namespaceHints;
+		}
+
+		@Override
+		public Namespace defaultNamespaceHint() {
+			return stack.peek().defaultNamespaceHint();
+		}
+
+		@Override
+		public Set<Namespace> namespaceHints() {
+			return stack.peek().namespaceHints();
 		}
 
 		@Override
@@ -87,7 +122,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 		@Override
 		public BufferedStructuredDataSourceImpl copy() {
 			BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-					namespace, root, stack);
+					root, stack, defaultNamespaceHint, namespaceHints);
 			return copy;
 		}
 
@@ -98,7 +133,11 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 
 			BufferedStructuredDataSource thatCopy = (BufferedStructuredDataSource) that;
 
-			if (!namespace().equals(thatCopy.namespace()))
+			if (!Objects.equals(globalDefaultNamespaceHint(),
+					thatCopy.globalDefaultNamespaceHint()))
+				return false;
+			if (!Objects.equals(globalNamespaceHints(),
+					thatCopy.globalNamespaceHints()))
 				return false;
 
 			if (depth() != thatCopy.depth()
@@ -131,6 +170,9 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	private static class BufferedStructuredData {
 		private final QualifiedName name;
 
+		private final Namespace defaultNamespaceHint;
+		private final Set<Namespace> namespaceHints;
+
 		private final Map<QualifiedName, BufferedDataSource> properties;
 		private final BufferedDataSource content;
 
@@ -139,6 +181,9 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 
 		public BufferedStructuredData(BufferingStructuredData from) {
 			name = from.name;
+
+			defaultNamespaceHint = from.defaultNamespaceHint;
+			namespaceHints = new HashSet<>(from.namespaceHints);
 
 			children = from.children.stream().map(b -> new BufferedStructuredData(b))
 					.collect(Collectors.toList());
@@ -151,6 +196,14 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			content = from.content == null ? null : from.content.buffer();
 		}
 
+		public Set<Namespace> namespaceHints() {
+			return namespaceHints;
+		}
+
+		public Namespace defaultNamespaceHint() {
+			return defaultNamespaceHint;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (!(obj instanceof BufferedStructuredData))
@@ -158,6 +211,8 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			BufferedStructuredData that = (BufferedStructuredData) obj;
 
 			return super.equals(obj) && childIndex == that.childIndex
+					&& Objects.equals(defaultNamespaceHint, that.defaultNamespaceHint)
+					&& Objects.equals(namespaceHints, that.namespaceHints)
 					&& Objects.equals(name, that.name)
 					&& Objects.equals(properties, that.properties)
 					&& Objects.equals(content, that.content)
@@ -214,6 +269,9 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	private static class BufferingStructuredData {
 		private final QualifiedName name;
 
+		private Namespace defaultNamespaceHint;
+		private final Set<Namespace> namespaceHints = new HashSet<>();
+
 		private final Map<QualifiedName, BufferingDataTarget> properties;
 		private BufferingDataTarget content;
 
@@ -225,26 +283,53 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 			this.name = name;
 		}
 
-		public void addProperty(QualifiedName name, BufferingDataTarget target) {
+		public BufferingDataTarget addProperty(QualifiedName name) {
+			BufferingDataTarget target = new BufferingDataTarget();
 			properties.put(name, target);
+			return target;
 		}
 
 		public void addChild(BufferingStructuredData element) {
 			children.add(element);
 		}
 
-		public void addContent(BufferingDataTarget target) {
-			content = target;
+		public BufferingDataTarget addContent() {
+			content = new BufferingDataTarget();
+			return content;
 		}
 	}
 
-	private Namespace namespace;
 	private final Deque<BufferingStructuredData> stack = new ArrayDeque<>(
 			Arrays.asList(new BufferingStructuredData(null)));
 
+	private Namespace defaultNamespaceHint;
+	private final Set<Namespace> namespaceHints = new HashSet<>();
+
 	@Override
-	public StructuredDataTarget defaultNamespaceHint(Namespace namespace) {
-		this.namespace = namespace;
+	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace,
+			boolean global) {
+		if (global)
+			if (defaultNamespaceHint != null)
+				// TODO more sensible exception
+				throw new UnsupportedOperationException();
+			else
+				defaultNamespaceHint = namespace;
+		else if (stack.peek().defaultNamespaceHint != null)
+			// TODO more sensible exception
+			throw new UnsupportedOperationException();
+		else
+			stack.peek().defaultNamespaceHint = namespace;
+
+		return this;
+	}
+
+	@Override
+	public StructuredDataTarget registerNamespaceHint(Namespace namespace,
+			boolean global) {
+		if (global)
+			namespaceHints.add(namespace);
+		else
+			stack.peek().namespaceHints.add(namespace);
 
 		return this;
 	}
@@ -265,30 +350,24 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 
 	@Override
 	public TerminatingDataTarget property(QualifiedName name) {
-		BufferingDataTarget target = new BufferingDataTarget();
-		stack.peek().addProperty(name, target);
+		return stack.peek().addProperty(name);
+	}
 
-		return target;
+	@Override
+	public TerminatingDataTarget content() {
+		return stack.peek().addContent();
+	}
+
+	@Override
+	public BufferingStructuredDataTarget nextChild(QualifiedName name) {
+		stack.push(new BufferingStructuredData(name));
+		return this;
 	}
 
 	@Override
 	public BufferingStructuredDataTarget endChild() {
 		BufferingStructuredData element = stack.pop();
 		stack.peek().addChild(element);
-		return this;
-	}
-
-	@Override
-	public TerminatingDataTarget content() {
-		BufferingDataTarget target = new BufferingDataTarget();
-		stack.peek().addContent(target);
-
-		return target;
-	}
-
-	@Override
-	public BufferingStructuredDataTarget nextChild(QualifiedName name) {
-		stack.push(new BufferingStructuredData(name));
 		return this;
 	}
 
@@ -300,7 +379,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 		if (stack.size() != 1)
 			throw new IllegalStateException();
 
-		return new BufferedStructuredDataSourceImpl(namespace,
-				new BufferedStructuredData(stack.pop()));
+		return new BufferedStructuredDataSourceImpl(new BufferedStructuredData(
+				stack.pop()), defaultNamespaceHint, namespaceHints);
 	}
 }

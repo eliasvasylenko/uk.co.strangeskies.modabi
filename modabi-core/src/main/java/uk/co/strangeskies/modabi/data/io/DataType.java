@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import uk.co.strangeskies.gears.utilities.Enumeration;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class DataType<T> extends Enumeration<DataType<T>> {
 	public static final DataType<byte[]> BINARY = new DataType<>("binary",
@@ -25,6 +26,9 @@ public class DataType<T> extends Enumeration<DataType<T>> {
 
 	public static final DataType<Boolean> BOOLEAN = new DataType<>("boolean",
 			boolean.class);
+
+	public static final DataType<QualifiedName> QUALIFIED_NAME = new DataType<>(
+			"qualifiedName", QualifiedName.class);
 
 	private final Class<T> dataClass;
 

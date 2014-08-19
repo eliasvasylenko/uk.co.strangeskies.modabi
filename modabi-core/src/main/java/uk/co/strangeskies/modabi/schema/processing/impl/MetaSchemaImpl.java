@@ -77,7 +77,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(SchemaNode.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
-								.type(base.derivedTypes().qualifiedNameType()).name("name")
+								.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
 								.optional(true)).create();
 		modelSet.add(nodeModel);
 
@@ -367,7 +367,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.bindingClass(SchemaConfigurator.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("qualifiedName")
-								.type(base.derivedTypes().qualifiedNameType()))
+								.type(base.primitiveType(DataType.QUALIFIED_NAME)))
 				.addChild(
 						n -> n
 								.element()

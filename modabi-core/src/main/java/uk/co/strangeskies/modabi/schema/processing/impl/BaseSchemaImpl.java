@@ -32,14 +32,11 @@ import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
-import uk.co.strangeskies.modabi.schema.processing.namespace.QualifiedNameFormatter;
-import uk.co.strangeskies.modabi.schema.processing.namespace.QualifiedNameParser;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 
 public class BaseSchemaImpl implements BaseSchema {
 	private class DerivedTypesImpl implements DerivedTypes {
-		private final DataBindingType<QualifiedName> qualifiedNameType;
 		private final DataBindingType<Object> referenceType;
 		private final DataBindingType<BufferedDataSource> bufferedDataType;
 
@@ -65,19 +62,6 @@ public class BaseSchemaImpl implements BaseSchema {
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives,
 				@SuppressWarnings("rawtypes") DataBindingType<Enumeration> enumerationBaseType) {
-			typeSet.add(qualifiedNameType = builder
-					.configure(loader)
-					.bindingClass(QualifiedNameParser.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingFactoryClass(QualifiedNameFormatter.class)
-					.unbindingClass(String.class)
-					.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
-					.name("qualifiedName", namespace)
-					.dataClass(QualifiedName.class)
-					.addChild(
-							c -> c.data().name("string", namespace)
-									.type(primitives.get(DataType.STRING))).create());
-
 			typeSet.add(collectionType = builder
 					.configure(loader)
 					.name("collection", namespace)
@@ -344,11 +328,6 @@ public class BaseSchemaImpl implements BaseSchema {
 		@SuppressWarnings("rawtypes")
 		public DataBindingType<Range> rangeType() {
 			return rangeType;
-		}
-
-		@Override
-		public DataBindingType<QualifiedName> qualifiedNameType() {
-			return qualifiedNameType;
 		}
 
 		@Override

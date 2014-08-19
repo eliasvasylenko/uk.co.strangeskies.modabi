@@ -1,11 +1,16 @@
 package uk.co.strangeskies.modabi.xml.impl;
 
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import uk.co.strangeskies.modabi.data.io.DataItem;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
@@ -15,8 +20,24 @@ import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class XMLOutput implements StructuredDataTarget {
-	private Namespace defaultNamespace;
-	private final Map<Namespace, String> namespaceAliases;
+	public class StackElement {
+		private Namespace defaultNamespace;
+		private final Map<Namespace, String> namespaceAliases;
+		private final QualifiedName qualifiedName;
+
+		public StackElement(QualifiedName qualifiedName) {
+			this.qualifiedName = qualifiedName;
+			namespaceAliases = new HashMap<>();
+		}
+
+		public StackElement(Namespace defaultNamespace, Set<Namespace> namespaces) {
+			this.qualifiedName = null;
+			this.defaultNamespace = defaultNamespace;
+			namespaceAliases = new HashMap<>();
+			
+			for (namespaces);
+		}
+	}
 
 	private final BufferingStructuredDataTarget bufferingOutput;
 	private int depth;
@@ -24,13 +45,16 @@ public class XMLOutput implements StructuredDataTarget {
 	public XMLOutput() {
 		bufferingOutput = new BufferingStructuredDataTarget();
 		depth = 0;
-		namespaceAliases = new HashMap<>();
 	}
 
 	class PipeTarget implements StructuredDataTarget {
 		private boolean openingElement;
 		private boolean hasChildren;
-		private final Deque<QualifiedName> elementStack;
+
+		private Namespace defaultNamespace;
+		private final Set<Namespace> namespaces;
+
+		private final Deque<StackElement> elementStack;
 
 		private String indent = "";
 
@@ -38,10 +62,32 @@ public class XMLOutput implements StructuredDataTarget {
 			openingElement = false;
 			hasChildren = false;
 			elementStack = new ArrayDeque<>();
+			namespaces = new HashSet<>();
 		}
 
 		@Override
-		public StructuredDataTarget defaultNamespaceHint(Namespace namespace) {
+		public StructuredDataTarget registerDefaultNamespaceHint(
+				Namespace namespace, boolean global) {
+			if (global)
+				defaultNamespace = namespace;
+			else {
+				System.out.print(" xmlns=\"" + namespace.toHttpString() + "\"");
+			}
+
+			return this;
+		}
+
+		@Override
+		public StructuredDataTarget registerNamespaceHint(Namespace namespace,
+				boolean global) {
+			if (global)
+				namespaces.add(namespace);
+			else {
+				String alias = "test";
+				System.out.print(" xmlns:" + alias + "=\"" + namespace.toHttpString()
+						+ "\"");
+			}
+
 			return this;
 		}
 
@@ -49,24 +95,22 @@ public class XMLOutput implements StructuredDataTarget {
 		public StructuredDataTarget nextChild(QualifiedName name) {
 			endProperties();
 
-			String line = indent + "<" + getNameString(name);
+			System.out.print(indent + "<" + getNameString(name));
 
 			if (elementStack.isEmpty()) {
 				if (defaultNamespace != null)
-					line += " xmlns=\"" + defaultNamespace.toHttpString() + "\"";
+					registerDefaultNamespaceHint(defaultNamespace, false);
 
-				for (Map.Entry<Namespace, String> alias : namespaceAliases.entrySet())
-					line += " xmlns:" + alias.getValue() + "=\""
-							+ alias.getKey().toHttpString() + "\"";
+				for (Namespace namespace : namespaces)
+					registerNamespaceHint(namespace, false);
 			}
 
-			System.out.print(line);
 			indent += "  ";
 
 			openingElement = true;
 			hasChildren = false;
 
-			elementStack.push(name);
+			elementStack.push(new StackElement(name));
 
 			return this;
 		}
@@ -104,11 +148,32 @@ public class XMLOutput implements StructuredDataTarget {
 			} else {
 				endProperties();
 
-				System.out.println(indent + "</" + getNameString(elementStack.pop())
-						+ ">");
+				System.out.println(indent + "</"
+						+ getNameString(elementStack.pop().qualifiedName) + ">");
 			}
 
 			return this;
+		}
+
+		private String getNameString(QualifiedName name) {
+			Spliterator<StackElement> spliterator = Spliterators
+					.spliteratorUnknownSize(elementStack.descendingIterator(),
+							Spliterator.ORDERED);
+
+			return Stream
+					.concat(StreamSupport.stream(spliterator, false),
+							Stream.of(new StackElement(defaultNamespace, namespaces)))
+					.map(
+							e -> {
+								if (e.defaultNamespace != null
+										&& e.defaultNamespace.equals(name.getNamespace()))
+									return name.getName();
+								else if (e.namespaces.contains(name.getNamespace()))
+									return null;
+								else
+									return null;
+							}).filter(Objects::nonNull).findFirst()
+					.orElseThrow(IllegalArgumentException::new);
 		}
 
 		private TerminatingDataTarget getDataSink(boolean property) {
@@ -152,50 +217,7 @@ public class XMLOutput implements StructuredDataTarget {
 	}
 
 	@Override
-	public StructuredDataTarget defaultNamespaceHint(Namespace namespace) {
-		this.defaultNamespace = namespace;
-
-		return this;
-	}
-
-	@Override
-	public String composeQualifiedName(QualifiedName name) {
-		String nameString = tryGetNameString(name);
-
-		if (nameString == null) {
-			List<String> namespace = Arrays.asList(name.getNamespace().getPackage()
-					.getName().split("\\."));
-			String alias = namespace.get(namespace.size() - 1);
-			namespaceAliases.put(name.getNamespace(), alias);
-			nameString = alias + ":" + name.getName();
-		}
-
-		return nameString;
-	}
-
-	private String tryGetNameString(QualifiedName name) {
-		if (name.getNamespace().equals(defaultNamespace))
-			return name.getName();
-
-		String alias = namespaceAliases.get(name.getNamespace());
-		if (alias != null)
-			return alias + ":" + name.getName();
-		else
-			return null;
-	}
-
-	private String getNameString(QualifiedName name) {
-		String nameString = tryGetNameString(name);
-
-		if (nameString == null)
-			throw new AssertionError();
-
-		return nameString;
-	}
-
-	@Override
 	public StructuredDataTarget nextChild(QualifiedName name) {
-		composeQualifiedName(name);
 		bufferingOutput.nextChild(name);
 		depth++;
 
@@ -204,7 +226,6 @@ public class XMLOutput implements StructuredDataTarget {
 
 	@Override
 	public TerminatingDataTarget property(QualifiedName name) {
-		composeQualifiedName(name);
 		return bufferingOutput.property(name);
 	}
 
@@ -216,9 +237,21 @@ public class XMLOutput implements StructuredDataTarget {
 	@Override
 	public StructuredDataTarget endChild() {
 		bufferingOutput.endChild();
-		if (depth-- == 1)
+		if (--depth == 0)
 			bufferingOutput.buffer().pipeNextChild(new PipeTarget());
 
 		return this;
+	}
+
+	@Override
+	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace,
+			boolean global) {
+		return bufferingOutput.registerDefaultNamespaceHint(namespace, global);
+	}
+
+	@Override
+	public StructuredDataTarget registerNamespaceHint(Namespace namespace,
+			boolean global) {
+		return bufferingOutput.registerNamespaceHint(namespace, global);
 	}
 }

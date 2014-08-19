@@ -10,7 +10,6 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface BaseSchema extends Schema {
 	public interface DerivedTypes {
@@ -22,8 +21,6 @@ public interface BaseSchema extends Schema {
 
 		@SuppressWarnings("rawtypes")
 		DataBindingType<Set> setType();
-
-		DataBindingType<QualifiedName> qualifiedNameType();
 
 		DataBindingType<Object> referenceType();
 
