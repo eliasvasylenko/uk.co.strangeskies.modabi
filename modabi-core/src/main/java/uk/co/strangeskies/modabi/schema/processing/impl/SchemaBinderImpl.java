@@ -14,13 +14,11 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataBindingTypeBuilderImpl;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
-import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -31,7 +29,6 @@ import uk.co.strangeskies.modabi.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
-import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
@@ -125,8 +122,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 		}
 	}
 
-	private final BaseSchema baseSchema;
-	private final MetaSchema metaSchema;
+	private final CoreSchemata coreSchemata;
 
 	private final List<Function<Class<?>, Object>> providers;
 
@@ -143,24 +139,15 @@ public class SchemaBinderImpl implements SchemaBinder {
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		providers = new ArrayList<>();
 
-		DataLoader loader = new DataLoader() {
-			@Override
-			public <T> T loadData(DataNode<T> node, BufferedDataSource data) {
-				return null;
-			}
-		};
-		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,
-				dataTypeBuilder, loader);
-		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder,
-				dataTypeBuilder, loader, baseSchema);
+		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
+				dataTypeBuilder);
 
 		registeredSchema = new Schemata();
-		Namespace namespace = metaSchema.getQualifiedName().getNamespace();
 		registeredModels = new Models();
 		registeredTypes = new DataBindingTypes();
 
-		registerSchema(baseSchema);
-		registerSchema(metaSchema);
+		registerSchema(coreSchemata.baseSchema());
+		registerSchema(coreSchemata.metaSchema());
 
 		registerProvider(DataBindingTypeBuilder.class, () -> dataTypeBuilder);
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
@@ -191,12 +178,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	@Override
 	public MetaSchema getMetaSchema() {
-		return metaSchema;
+		return coreSchemata.metaSchema();
 	}
 
 	@Override
 	public BaseSchema getBaseSchema() {
-		return baseSchema;
+		return coreSchemata.baseSchema();
 	}
 
 	@Override

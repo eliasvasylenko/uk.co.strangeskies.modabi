@@ -139,14 +139,14 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			BufferingDataTarget target) {
 		if (node.isAbstract() != null && node.isAbstract()) {
 			/*
-			 * TODO allow node.isAbstract() rather than only on type. choose specific
-			 * concrete data type using "@<data-type-qualified-name>, <data-values>"
-			 * syntax, e.g. "@intVector, 1, 2, 3". This will also help in cases where
-			 * the expected data type is not abstract, but is ambiguous, for example
-			 * due to a choice node in the data node tree. Also a good idea to allow,
-			 * but not require, data to be grouped with braces, e.g. "{1, 2, 3}", or
-			 * "{@intVector, 1, 2, 3}". This should further help resolve data
-			 * structure when groupings are ambiguous.
+			 * TODO Choose specific concrete data type using
+			 * "<data-type-qualified-name>, <data-values>" syntax, e.g.
+			 * "intVector, 1, 2, 3". This will also help in cases where the expected
+			 * data type is not abstract, but is ambiguous, for example due to a
+			 * choice node in the data node tree. Also a good idea to allow, but not
+			 * require, data to be grouped with braces, e.g. "{1, 2, 3}", or
+			 * "{intVector, 1, 2, 3}". This should further help resolve data structure
+			 * when groupings are ambiguous.
 			 */
 		}
 
