@@ -193,6 +193,8 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(referenceType = builder
 					.configure(loader)
 					.name("reference", namespace)
+					.isAbstract(false)
+					.isPrivate(false)
 					.baseType(referenceBaseType)
 					.addChild(
 							c -> c

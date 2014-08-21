@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -137,6 +138,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		}
 	}
 
+	// TODO should work with generics & without warning suppression
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
 			BufferingDataTarget target) {
 		BufferingDataTarget previousDataTarget = dataTarget;
@@ -145,16 +148,6 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		for (U data : getData(node)) {
 			DataNode.Effective<U> concreteNode;
 			if (node.isAbstract() != null && node.isAbstract()) {
-				/*
-				 * TODO Choose specific concrete data type using
-				 * "<data-type-qualified-name>, <data-values>" syntax, e.g.
-				 * "intVector, 1, 2, 3". This will also help in cases where the expected
-				 * data type is not abstract, but is ambiguous, for example due to a
-				 * choice node in the data node tree. Also a good idea to allow, but not
-				 * require, data to be grouped with braces, e.g. "{1, 2, 3}", or
-				 * "{intVector, 1, 2, 3}". This should further help resolve data
-				 * structure when groupings are ambiguous.
-				 */
 				List<DataBindingType<? extends U>> types = this.schemaBinderImpl.registeredTypes
 						.getMatchingTypes(node, data.getClass());
 
@@ -228,11 +221,45 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 								.collect(Collectors.joining(", ")) + "' for object '" + data
 						+ "' to be unbound");
 
-			node = new ElementNodeWrapper(models.get(0).effective(), node);
-		}
+			List<SchemaException> failures = tryUnbindingForEach(models,
+					model -> {
+						ElementNode.Effective<U> concreteNode = new ElementNodeWrapper(
+								model.effective(), node);
+						unbindModel(concreteNode, data);
+						bindings.add(concreteNode, data);
+					});
 
-		bindings.add(node, data);
-		unbindModel(node, data);
+			if (!failures.isEmpty())
+				throw new SchemaException("Unable to unbind element '"
+						+ node.getName()
+						+ "' with model candidates '"
+						+ models.stream().map(m -> m.source().getName().toString())
+								.collect(Collectors.joining(", ")) + "' for object '" + data
+						+ "' to be unbound", failures.get(0));
+		} else {
+			unbindModel(node, data);
+			bindings.add(node, data);
+		}
+	}
+
+	private <I> List<SchemaException> tryUnbindingForEach(List<I> unbindingItems,
+			Consumer<I> unbindingMethod) {
+		List<SchemaException> failures = new ArrayList<>();
+		for (I item : unbindingItems)
+			try {
+				// TODO mark output location! (and begin buffering output)
+
+				unbindingMethod.accept(item);
+				failures.clear();
+
+				// TODO remove mark! (by flushing buffer into output)
+				break;
+			} catch (SchemaException e) {
+				failures.add(e);
+
+				// TODO reset output to mark! (by discarding buffer)
+			}
+		return failures;
 	}
 
 	private <U> void unbindModel(AbstractModel.Effective<? extends U, ?, ?> node,

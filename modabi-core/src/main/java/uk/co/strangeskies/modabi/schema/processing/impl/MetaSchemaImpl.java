@@ -39,6 +39,7 @@ import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class MetaSchemaImpl implements MetaSchema {
@@ -125,7 +126,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.derivedTypes().classType()))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("unbindingStrategy")
-								.type(base.derivedTypes().referenceType()).optional(true))
+								.type(base.derivedTypes().enumType())
+								.dataClass(UnbindingStrategy.class).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("unbindingMethod")
 								.outMethod("getUnbindingMethodName")
