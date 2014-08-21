@@ -122,18 +122,18 @@ public class ElementNodeConfiguratorImpl<T>
 		return (ElementNodeConfigurator<V>) this;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public LinkedHashSet<ElementNode<T>> getOverriddenNodes() {
 		LinkedHashSet<ElementNode<T>> overriddenNodes = new LinkedHashSet<>();
 
 		if (baseModel != null)
 			for (Model<? super T> base : baseModel)
-				overriddenNodes.add(new ElementNodeWrapper<T>(base.effective(),
-						(Class<T>) base.effective().getDataClass())); // TODO sanity check
-																													// when not tired as
-																													// balls, probs can be
-																													// made more sensible
+				overriddenNodes.add(new ElementNodeWrapper<T>(base.effective())); // TODO
+																																					// sanity
+																																					// check
+		// when not tired as
+		// balls, probs can be
+		// made more sensible
 
 		overriddenNodes.addAll(super.getOverriddenNodes());
 

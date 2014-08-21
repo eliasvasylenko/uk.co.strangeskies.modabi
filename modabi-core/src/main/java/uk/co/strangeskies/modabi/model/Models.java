@@ -30,11 +30,9 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	}
 
 	private void mapModel(Model<?> model) {
-		model = model.source();
-
 		derivedModels.addToAll(
 				model.effective().baseModel().stream().map(Model::source)
-						.collect(Collectors.toSet()), model);
+						.collect(Collectors.toSet()), model.source());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -51,9 +49,9 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getMatchingModels(
-			AbstractModel<T, ?, ?> element, Class<?> dataClass) {
-		Iterator<? extends Model.Effective<?>> baseModelIterator = element
-				.effective().baseModel().iterator();
+			AbstractModel.Effective<T, ?, ?> element, Class<?> dataClass) {
+		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
+				.iterator();
 
 		List<? extends Model<?>> subModels = new ArrayList<>(
 				getDerivedModels(baseModelIterator.next()));

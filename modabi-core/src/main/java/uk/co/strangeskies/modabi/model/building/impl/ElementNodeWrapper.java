@@ -17,20 +17,16 @@ import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
-	private final Class<T> dataClass;
 	private final AbstractModel.Effective<? super T, ?, ?> component;
 	private final ElementNode.Effective<? super T> base;
 
-	public ElementNodeWrapper(AbstractModel.Effective<? super T, ?, ?> component,
-			Class<T> dataClass) {
-		this.dataClass = dataClass;
+	public ElementNodeWrapper(AbstractModel.Effective<? super T, ?, ?> component) {
 		this.component = component;
 		base = null;
 	}
 
 	public ElementNodeWrapper(Model.Effective<T> component,
 			ElementNode.Effective<? super T> base) {
-		this.dataClass = component.getDataClass();
 		this.component = component;
 		this.base = base;
 
@@ -76,9 +72,10 @@ public class ElementNodeWrapper<T> implements ElementNode.Effective<T> {
 		return Collections.unmodifiableSet(component.baseModel());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Class<T> getDataClass() {
-		return dataClass;
+		return (Class<T>) component.getDataClass();
 	}
 
 	@Override

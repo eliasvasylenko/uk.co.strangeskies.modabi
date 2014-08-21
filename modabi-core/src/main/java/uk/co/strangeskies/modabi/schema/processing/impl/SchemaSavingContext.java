@@ -15,12 +15,14 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
+import uk.co.strangeskies.modabi.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
@@ -137,24 +139,37 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
 			BufferingDataTarget target) {
-		if (node.isAbstract() != null && node.isAbstract()) {
-			/*
-			 * TODO Choose specific concrete data type using
-			 * "<data-type-qualified-name>, <data-values>" syntax, e.g.
-			 * "intVector, 1, 2, 3". This will also help in cases where the expected
-			 * data type is not abstract, but is ambiguous, for example due to a
-			 * choice node in the data node tree. Also a good idea to allow, but not
-			 * require, data to be grouped with braces, e.g. "{1, 2, 3}", or
-			 * "{intVector, 1, 2, 3}". This should further help resolve data structure
-			 * when groupings are ambiguous.
-			 */
-		}
-
 		BufferingDataTarget previousDataTarget = dataTarget;
 		dataTarget = target;
 
-		for (U item : getData(node))
-			processBindingChildren(node, unbindData(node, item));
+		for (U data : getData(node)) {
+			DataNode.Effective<U> concreteNode;
+			if (node.isAbstract() != null && node.isAbstract()) {
+				/*
+				 * TODO Choose specific concrete data type using
+				 * "<data-type-qualified-name>, <data-values>" syntax, e.g.
+				 * "intVector, 1, 2, 3". This will also help in cases where the expected
+				 * data type is not abstract, but is ambiguous, for example due to a
+				 * choice node in the data node tree. Also a good idea to allow, but not
+				 * require, data to be grouped with braces, e.g. "{1, 2, 3}", or
+				 * "{intVector, 1, 2, 3}". This should further help resolve data
+				 * structure when groupings are ambiguous.
+				 */
+				List<DataBindingType<? extends U>> types = this.schemaBinderImpl.registeredTypes
+						.getMatchingTypes(node, data.getClass());
+
+				if (types.isEmpty())
+					throw new SchemaException(
+							"Unable to find model to satisfy data node '" + node.getName()
+									+ "' with type '" + node.effective().type().getName()
+									+ "' for object '" + data + "' to be unbound");
+
+				concreteNode = new DataNodeWrapper(types.get(0).effective(), node);
+			} else
+				concreteNode = node;
+
+			processBindingChildren(concreteNode, unbindData(concreteNode, data));
+		}
 
 		dataTarget = previousDataTarget;
 
