@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
+import java.util.List;
+
 import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
@@ -43,7 +45,7 @@ public interface DataNode<T> extends
 
 	BufferedDataSource providedValueBuffer();
 
-	T providedValue();
+	List<T> providedValue();
 
 	ValueResolution valueResolution();
 

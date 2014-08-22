@@ -105,63 +105,80 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	@Override
 	public <U> void accept(DataNode.Effective<U> node) {
-		if (dataTarget == null) {
-			if (node.format() == null)
+		if (node.getOutMethodName() == null
+				|| !node.getOutMethodName().equals("null")) {
+			if (dataTarget == null) {
+				if (node.format() == null)
+					throw new SchemaException(
+							"Data format must be provided for data node '" + node.getName()
+									+ "'.");
+				dataTarget = new BufferingDataTarget();
+			} else if (node.format() != null)
 				throw new SchemaException(
-						"Data format must be provided for data node '" + node.getName()
-								+ "'.");
-			dataTarget = new BufferingDataTarget();
-		} else if (node.format() != null)
-			throw new SchemaException(
-					"Data format should be null for nested data node '" + node.getName()
-							+ "'.");
+						"Data format should be null for nested data node '"
+								+ node.getName() + "'.");
 
-		unbindDataNode(node, dataTarget);
+			if (node.isValueProvided())
+				switch (node.valueResolution()) {
+				case PROCESSING_TIME:
 
-		if (node.format() != null) {
-			BufferedDataSource bufferedTarget = dataTarget.buffer();
-			dataTarget = null;
-
-			if (bufferedTarget.size() > 0)
-				switch (node.format()) {
-				case PROPERTY:
-					bufferedTarget.pipe(output.property(node.getName())).terminate();
 					break;
-				case SIMPLE_ELEMENT:
-					output.nextChild(node.getName());
-					bufferedTarget.pipe(output.content()).terminate();
-					output.endChild();
+				case REGISTRATION_TIME:
+					List<U> data = getData(node);
+					if (!node.providedValue().equals(data))
+						throw new SchemaException("Provided value '" + node.providedValue()
+								+ "'does not match unbinding object '" + data + "' for node '"
+								+ node.getName() + "'.");
 					break;
-				case CONTENT:
-					bufferedTarget.pipe(output.content()).terminate();
 				}
+			else
+				unbindDataNode(node, dataTarget, getData(node));
+
+			if (node.format() != null) {
+				BufferedDataSource bufferedTarget = dataTarget.buffer();
+				dataTarget = null;
+
+				if (bufferedTarget.size() > 0)
+					switch (node.format()) {
+					case PROPERTY:
+						bufferedTarget.pipe(output.property(node.getName())).terminate();
+						break;
+					case SIMPLE_ELEMENT:
+						output.nextChild(node.getName());
+						bufferedTarget.pipe(output.content()).terminate();
+						output.endChild();
+						break;
+					case CONTENT:
+						bufferedTarget.pipe(output.content()).terminate();
+					}
+			}
 		}
 	}
 
 	// TODO should work with generics & without warning suppression
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
-			BufferingDataTarget target) {
+			BufferingDataTarget target, List<U> data) {
 		BufferingDataTarget previousDataTarget = dataTarget;
 		dataTarget = target;
 
-		for (U data : getData(node)) {
+		for (U item : data) {
 			DataNode.Effective<U> concreteNode;
 			if (node.isAbstract() != null && node.isAbstract()) {
 				List<DataBindingType<? extends U>> types = this.schemaBinderImpl.registeredTypes
-						.getMatchingTypes(node, data.getClass());
+						.getMatchingTypes(node, item.getClass());
 
 				if (types.isEmpty())
 					throw new SchemaException(
 							"Unable to find model to satisfy data node '" + node.getName()
 									+ "' with type '" + node.effective().type().getName()
-									+ "' for object '" + data + "' to be unbound");
+									+ "' for object '" + item + "' to be unbound");
 
 				concreteNode = new DataNodeWrapper(types.get(0).effective(), node);
 			} else
 				concreteNode = node;
 
-			processBindingChildren(concreteNode, unbindData(concreteNode, data));
+			processBindingChildren(concreteNode, unbindData(concreteNode, item));
 		}
 
 		dataTarget = previousDataTarget;
@@ -252,12 +269,12 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				unbindingMethod.accept(item);
 				failures.clear();
 
-				// TODO remove mark! (by flushing buffer into output)
+				// remove mark! (by flushing buffer into output)
 				break;
 			} catch (SchemaException e) {
 				failures.add(e);
 
-				// TODO reset output to mark! (by discarding buffer)
+				// reset output to mark! (by discarding buffer)
 			}
 		return failures;
 	}
@@ -273,48 +290,46 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	public <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node) {
 		List<U> itemList;
 
-		if (node.getOutMethodName() != "null") {
-			Object parent = bindingStack.peek();
+		Object parent = bindingStack.peek();
 
-			if (node.getDataClass() == null)
-				return (List<U>) Arrays.asList("");
+		if (node.getDataClass() == null)
+			throw new SchemaException("Cannot unbind node '" + node.getName()
+					+ "' with no data class.");
 
-			if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
-				Iterable<U> iterable = null;
-				if (node.getOutMethodName().equals("this"))
-					iterable = (Iterable<U>) parent;
-				else
-					iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), parent);
+		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
+			Iterable<U> iterable = null;
+			if (node.getOutMethodName().equals("this"))
+				iterable = (Iterable<U>) parent;
+			else
+				iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), parent);
 
-				itemList = StreamSupport.stream(iterable.spliterator(), false)
-						.filter(Objects::nonNull).collect(Collectors.toList());
-				U failedCast = itemList
-						.stream()
-						.filter(
-								o -> !ClassUtils.isAssignable(o.getClass(), node.getDataClass()))
-						.findAny().orElse(null);
-				if (failedCast != null)
-					throw new ClassCastException("Cannot cast " + failedCast.getClass()
+			itemList = StreamSupport.stream(iterable.spliterator(), false)
+					.filter(Objects::nonNull).collect(Collectors.toList());
+			U failedCast = itemList
+					.stream()
+					.filter(
+							o -> !ClassUtils.isAssignable(o.getClass(), node.getDataClass()))
+					.findAny().orElse(null);
+			if (failedCast != null)
+				throw new ClassCastException("Cannot cast " + failedCast.getClass()
+						+ " to " + node.getDataClass());
+		} else {
+			U item;
+			if (node.getOutMethodName() != null
+					&& node.getOutMethodName().equals("this"))
+				item = (U) parent;
+			else
+				item = (U) invokeMethod(node.getOutMethod(), parent);
+
+			if (item == null)
+				itemList = new ArrayList<>();
+			else {
+				if (!ClassUtils.isAssignable(item.getClass(), node.getDataClass()))
+					throw new ClassCastException("Cannot cast " + item.getClass()
 							+ " to " + node.getDataClass());
-			} else {
-				U item;
-				if (node.getOutMethodName() != null
-						&& node.getOutMethodName().equals("this"))
-					item = (U) parent;
-				else
-					item = (U) invokeMethod(node.getOutMethod(), parent);
-
-				if (item == null)
-					itemList = new ArrayList<>();
-				else {
-					if (!ClassUtils.isAssignable(item.getClass(), node.getDataClass()))
-						throw new ClassCastException("Cannot cast " + item.getClass()
-								+ " to " + node.getDataClass());
-					itemList = Arrays.asList(item);
-				}
+				itemList = Arrays.asList(item);
 			}
-		} else
-			itemList = new ArrayList<>();
+		}
 
 		return itemList;
 	}

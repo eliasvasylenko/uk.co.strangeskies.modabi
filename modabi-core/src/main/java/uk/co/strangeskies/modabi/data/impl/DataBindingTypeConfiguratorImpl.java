@@ -32,8 +32,10 @@ public class DataBindingTypeConfiguratorImpl<T>
 					OverrideMerge<DataBindingType<T>, DataBindingTypeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				isAbstract = overrideMerge.getValue(DataBindingType::isAbstract);
-				isPrivate = overrideMerge.getValue(DataBindingType::isPrivate);
+				isAbstract = overrideMerge.node().isAbstract() != null
+						&& overrideMerge.node().isAbstract();
+				isPrivate = overrideMerge.node().isPrivate() != null
+						&& overrideMerge.node().isPrivate();
 
 				baseType = overrideMerge.configurator().baseType == null ? null
 						: overrideMerge.configurator().baseType.effective();
@@ -168,8 +170,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@Override
 	protected boolean isAbstract() {
-		return (isAbstract != null && isAbstract)
-				|| getOverriddenNodes().stream().anyMatch(
-						m -> m.effective().isAbstract());
+		return isAbstract != null && isAbstract;
 	}
 }

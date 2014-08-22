@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.configurators.impl;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
@@ -13,6 +14,7 @@ import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -33,7 +35,7 @@ public class DataNodeConfiguratorImpl<T>
 			private final BufferedDataSource providedBuffer;
 			private final ValueResolution resolution;
 			private final Boolean isAbstract;
-			private T provided;
+			private List<T> provided;
 
 			protected Effective(
 					OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
@@ -50,7 +52,8 @@ public class DataNodeConfiguratorImpl<T>
 						});
 				this.type = type == null ? null : type.effective();
 
-				isAbstract = overrideMerge.getValue(DataNode::isAbstract);
+				isAbstract = overrideMerge.node().isAbstract() != null
+						&& overrideMerge.node().isAbstract();
 
 				optional = overrideMerge.getValue(DataNode::optional);
 				format = overrideMerge.getValue(DataNode::format, Objects::equals);
@@ -58,7 +61,15 @@ public class DataNodeConfiguratorImpl<T>
 				providedBuffer = overrideMerge.getValue(DataNode::providedValueBuffer);
 				resolution = overrideMerge.getValue(DataNode::valueResolution,
 						Objects::equals);
-				provided = (resolution == ValueResolution.REGISTRATION_TIME) ? overrideMerge
+
+				if (providedBuffer == null
+						&& resolution == ValueResolution.REGISTRATION_TIME
+						&& !overrideMerge.configurator().isAbstract())
+					throw new SchemaException(
+							"Value must be provided at registration time for node '"
+									+ getName() + "'.");
+
+				provided = (resolution == ValueResolution.REGISTRATION_TIME && providedBuffer != null) ? overrideMerge
 						.configurator().getContext().getDataLoader()
 						.loadData(DataNodeImpl.Effective.this, providedBuffer)
 						: null;
@@ -85,7 +96,7 @@ public class DataNodeConfiguratorImpl<T>
 			}
 
 			@Override
-			public T providedValue() {
+			public List<T> providedValue() {
 				return provided;
 			}
 
@@ -107,7 +118,7 @@ public class DataNodeConfiguratorImpl<T>
 		private final Boolean optional;
 		private final BufferedDataSource providedBuffer;
 		private final ValueResolution resolution;
-		private final T provided;
+		private final List<T> provided;
 		private final Boolean isAbstract;
 
 		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
@@ -147,7 +158,7 @@ public class DataNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public T providedValue() {
+		public List<T> providedValue() {
 			return provided;
 		}
 
@@ -316,9 +327,6 @@ public class DataNodeConfiguratorImpl<T>
 
 	@Override
 	protected boolean isAbstract() {
-		return (isAbstract != null && isAbstract)
-				|| getOverriddenNodes().stream().anyMatch(
-						m -> m.effective().isAbstract() != null
-								&& m.effective().isAbstract());
+		return (isAbstract != null && isAbstract) || getContext().isAbstract();
 	}
 }

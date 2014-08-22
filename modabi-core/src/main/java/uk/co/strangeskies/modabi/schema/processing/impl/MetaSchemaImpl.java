@@ -85,6 +85,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<InputNode> inputModel = model
 				.configure(loader)
 				.name("input", namespace)
+				.isAbstract(true)
 				.baseModel(nodeModel)
 				.dataClass(InputNode.class)
 				.addChild(
@@ -100,12 +101,13 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<SchemaNode> branchModel = model
 				.configure(loader)
 				.name("branch", namespace)
+				.isAbstract(true)
 				.baseModel(nodeModel)
 				.dataClass(SchemaNode.class)
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.element().name("child").outMethod("children")
-								.baseModel(nodeModel).outMethodIterable(true)
+								.isAbstract(true).baseModel(nodeModel).outMethodIterable(true)
 								.occurances(Range.create(0, null))).create();
 		modelSet.add(branchModel);
 
@@ -113,6 +115,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("binding", namespace)
 				.baseModel(nodeModel, branchModel)
+				.isAbstract(true)
 				.dataClass(BindingNode.class)
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("dataClass")
@@ -140,6 +143,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<BindingChildNode> bindingChildNodeModel = model
 				.configure(loader)
 				.name("bindingChild", namespace)
+				.isAbstract(true)
 				.dataClass(BindingChildNode.class)
 				.baseModel(inputModel, bindingNodeModel)
 				.addChild(
@@ -155,7 +159,6 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<ChoiceNode> choiceModel = model
 				.configure(loader)
 				.name("choice", namespace)
-				.isAbstract(false)
 				.dataClass(ChoiceNode.class)
 				.bindingClass(ChoiceNodeConfigurator.class)
 				.baseModel(branchModel)
@@ -177,6 +180,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<BindingChildNode> repeatableModel = model
 				.configure(loader)
 				.name("repeatable", namespace)
+				.isAbstract(true)
 				.baseModel(nodeModel)
 				.dataClass(BindingChildNode.class)
 				.addChild(
@@ -188,6 +192,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("abstractModel", namespace)
 				.baseModel(bindingNodeModel)
+				.isAbstract(true)
 				.dataClass(AbstractModel.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("abstract")
@@ -226,7 +231,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("model", namespace)
 				.baseModel(abstractModelModel)
-				.isAbstract(false)
 				.dataClass(Model.class)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("name").optional(false))
@@ -237,7 +241,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("element", namespace).dataClass(ElementNode.class)
 				.bindingClass(ElementNodeConfigurator.class)
 				.baseModel(bindingChildNodeModel, repeatableModel, abstractModelModel)
-				.isAbstract(false).addChild(o -> o.data().name("dataClass"))
+				.addChild(o -> o.data().name("dataClass"))
 				.addChild(n -> n.element().name("child")).create();
 		modelSet.add(elementModel);
 
@@ -247,8 +251,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("typedData", namespace)
 				.dataClass(DataNode.class)
 				.bindingClass(DataNodeConfigurator.class)
+				.isAbstract(false)
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("type").type(typeType))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("optional")
+								.type(base.primitiveType(DataType.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("format")
 								.type(base.derivedTypes().enumType()).dataClass(Format.class))
@@ -258,63 +266,51 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.derivedTypes().bufferedDataType())).create();
 		modelSet.add(typedDataModel);
 
-		Model<DataNode> optionalModel = model
-				.configure(loader)
-				.name("optional", namespace)
-				.baseModel(nodeModel)
-				.dataClass(DataNode.class)
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("optional")
-								.type(base.primitiveType(DataType.BOOLEAN))).create();
-		modelSet.add(optionalModel);
-
 		Model<DataNode> contentModel = model
 				.configure(loader)
 				.name("content", namespace)
-				.baseModel(typedDataModel, optionalModel)
-				.isAbstract(false)
-				.dataClass(DataNode.class)
+				.baseModel(typedDataModel)
 				.addChild(
 						n -> n
 								.data()
 								.name("format")
+								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING, "CONTENT")
-												.buffer())
-								.valueResolution(ValueResolution.REGISTRATION_TIME)).create();
+												.buffer())).create();
 		modelSet.add(contentModel);
 
 		Model<DataNode> propertyModel = model
 				.configure(loader)
 				.name("property", namespace)
-				.isAbstract(false)
-				.baseModel(typedDataModel, optionalModel)
-				.dataClass(DataNode.class)
+				.baseModel(typedDataModel)
 				.addChild(
 						n -> n
 								.data()
 								.name("format")
+								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING, "PROPERTY")
-												.buffer())
-								.valueResolution(ValueResolution.REGISTRATION_TIME)).create();
+												.buffer())).create();
 		modelSet.add(propertyModel);
 
 		Model<DataNode> simpleElementModel = model
 				.configure(loader)
 				.name("simpleElement", namespace)
-				.isAbstract(false)
-				.baseModel(typedDataModel, optionalModel)
-				.dataClass(DataNode.class)
+				.baseModel(typedDataModel)
 				.addChild(
 						n -> n
 								.data()
 								.name("format")
+								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.provideValue(
 										new BufferingDataTarget().put(DataType.STRING,
-												"SIMPLE_ELEMENT").buffer())
-								.valueResolution(ValueResolution.REGISTRATION_TIME)).create();
+												"SIMPLE_ELEMENT").buffer())).create();
 		modelSet.add(simpleElementModel);
+
+		Model<DataNode> dataModel = model.configure(loader).name("data", namespace)
+				.baseModel(typedDataModel).create();
+		modelSet.add(dataModel);
 
 		/* Type Models */
 

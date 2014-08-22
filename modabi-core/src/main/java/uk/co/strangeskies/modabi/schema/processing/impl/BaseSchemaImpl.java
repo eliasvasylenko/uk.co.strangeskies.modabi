@@ -74,12 +74,10 @@ public class BaseSchemaImpl implements BaseSchema {
 					.create());
 
 			typeSet.add(listType = builder.configure(loader).name("list", namespace)
-					.isAbstract(false).dataClass(List.class).baseType(collectionType)
-					.create());
+					.dataClass(List.class).baseType(collectionType).create());
 
 			typeSet.add(setType = builder.configure(loader).name("set", namespace)
-					.isAbstract(false).dataClass(Set.class).baseType(collectionType)
-					.create());
+					.dataClass(Set.class).baseType(collectionType).create());
 
 			typeSet.add(bufferedDataType = builder.configure(loader)
 					.name("bufferedData", namespace).dataClass(BufferedDataSource.class)
@@ -193,9 +191,8 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(referenceType = builder
 					.configure(loader)
 					.name("reference", namespace)
-					.isAbstract(false)
-					.isPrivate(false)
 					.baseType(referenceBaseType)
+					.isAbstract(true)
 					.addChild(
 							c -> c
 									.data()
@@ -229,6 +226,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.configure(loader)
 					.name("enum", namespace)
 					.dataClass(Enum.class)
+					.isAbstract(true)
 					.addChild(
 							n -> n
 									.inputSequence()
@@ -263,8 +261,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.configure(loader)
 					.name("enumeration", namespace)
 					.baseType(enumerationBaseType)
-					.isAbstract(false)
-					.isPrivate(false)
+					.isAbstract(true)
 					.addChild(
 							n -> n
 									.inputSequence()
@@ -426,8 +423,6 @@ public class BaseSchemaImpl implements BaseSchema {
 							.configure(loader)
 							.name(dataType.name(), namespace)
 							.baseType(primitive)
-							.isAbstract(false)
-							.isPrivate(false)
 							.dataClass((Class<?>) dataType.dataClass())
 							.addChild(
 									c -> c

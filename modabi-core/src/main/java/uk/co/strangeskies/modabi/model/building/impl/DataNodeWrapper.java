@@ -81,8 +81,8 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public T providedValue() {
-		return base == null ? null : (T) base.providedValue();
+	public List<T> providedValue() {
+		return base == null ? null : (List<T>) base.providedValue();
 	}
 
 	@Override

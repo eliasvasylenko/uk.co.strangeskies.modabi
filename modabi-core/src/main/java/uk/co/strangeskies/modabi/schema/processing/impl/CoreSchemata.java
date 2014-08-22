@@ -1,6 +1,8 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
@@ -21,8 +23,9 @@ public class CoreSchemata {
 	public CoreSchemata(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder) {
 		DataLoader loader = new DataLoader() {
+			@SuppressWarnings("unchecked")
 			@Override
-			public <T> T loadData(DataNode<T> node, BufferedDataSource data) {
+			public <T> List<T> loadData(DataNode<T> node, BufferedDataSource data) {
 				System.out.println(node.getName() + ": " + data);
 
 				Namespace namespace = new Namespace(BaseSchema.class.getPackage(),
@@ -30,7 +33,8 @@ public class CoreSchemata {
 
 				if (node.getName().getNamespace().equals(namespace)
 						&& node.getName().getName().equals("format"))
-					return (T) Format.valueOf(data.get(DataType.STRING));
+					return (List<T>) Arrays.asList(Format.valueOf(data
+							.get(DataType.STRING)));
 
 				return null;
 			}

@@ -67,7 +67,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			@Override
 			public String toString() {
-				return propertySet().toString();
+				return getName().toString();
 			}
 		}
 
@@ -106,7 +106,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		@Override
 		public String toString() {
-			return propertySet().toString();
+			return getName().toString();
 		}
 	}
 

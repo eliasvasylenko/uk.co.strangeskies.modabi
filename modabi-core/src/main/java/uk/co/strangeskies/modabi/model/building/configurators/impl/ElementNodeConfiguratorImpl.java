@@ -46,7 +46,8 @@ public class ElementNodeConfiguratorImpl<T>
 						.map(SchemaNode::effective).collect(Collectors.toSet()));
 				this.baseModel = Collections.unmodifiableSet(baseModel);
 
-				isAbstract = overrideMerge.getValue(ElementNode::isAbstract);
+				isAbstract = overrideMerge.node().isAbstract() != null
+						&& overrideMerge.node().isAbstract();
 			}
 
 			@Override
@@ -159,9 +160,6 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@Override
 	protected boolean isAbstract() {
-		return (isAbstract != null && isAbstract)
-				|| getOverriddenNodes().stream().anyMatch(
-						m -> m.effective().isAbstract() != null
-								&& m.effective().isAbstract());
+		return (isAbstract != null && isAbstract) || getContext().isAbstract();
 	}
 }
