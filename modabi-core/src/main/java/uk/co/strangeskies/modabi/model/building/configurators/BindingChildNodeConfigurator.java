@@ -13,6 +13,8 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	public S occurances(Range<Integer> occuranceRange);
 
+	public S isExtensible(boolean isExtensible);
+
 	/*
 	 * TODO 'isOrdered' hint, for ranges above ..2, to help magically minimise
 	 * impact of updating a 'ModifiableStructuredDataTarget' (e.g. saving over an

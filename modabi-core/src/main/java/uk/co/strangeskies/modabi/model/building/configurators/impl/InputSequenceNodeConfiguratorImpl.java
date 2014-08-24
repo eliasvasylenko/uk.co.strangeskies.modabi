@@ -151,7 +151,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		Class<?> outputTarget = getContext().getOutputTargetClass();
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
-				getOverriddenNodes(), null, outputTarget, getDataLoader(), isAbstract());
+				getOverriddenNodes(), null, outputTarget, getDataLoader(), getContext()
+						.isAbstract());
 	}
 
 	@Override

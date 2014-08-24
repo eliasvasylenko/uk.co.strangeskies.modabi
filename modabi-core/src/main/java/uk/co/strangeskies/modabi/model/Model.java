@@ -1,16 +1,10 @@
 package uk.co.strangeskies.modabi.model;
 
+
 public interface Model<T> extends
 		AbstractModel<T, Model<T>, Model.Effective<T>> {
 	interface Effective<T> extends Model<T>,
 			AbstractModel.Effective<T, Model<T>, Effective<T>> {
-		@Override
-		Model<T> source();
-	}
-
-	@Override
-	default Model<T> source() {
-		return this;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

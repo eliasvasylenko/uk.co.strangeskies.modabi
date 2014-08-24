@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.io.DataItem;
+import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
@@ -229,7 +230,10 @@ public class XMLOutput implements StructuredDataTarget {
 
 				@Override
 				public <T> TerminatingDataTarget put(DataItem<T> item) {
-					next(item.data());
+					if (item.type() == DataType.QUALIFIED_NAME)
+						next(elementStack.getNameString((QualifiedName) item.data()));
+					else
+						next(item.data());
 					return this;
 				}
 

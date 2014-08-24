@@ -9,8 +9,6 @@ public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S
 		extends
 		BindingNodeConfigurator<S, N, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>>,
 		BranchingNodeConfigurator<S, N, ChildNode<?, ?>, BindingChildNode<?, ?, ?>> {
-	public S isAbstract(boolean isAbstract);
-
 	public <V extends T> AbstractModelConfigurator<?, ?, V> baseModel(
 			@SuppressWarnings("unchecked") Model<? super V>... baseModel);
 

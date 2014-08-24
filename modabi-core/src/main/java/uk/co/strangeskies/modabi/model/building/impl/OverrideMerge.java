@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.model.building.configurators.impl.SchemaNodeCon
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> {
+public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> {
 	private final S node;
 	private final C configurator;
 
@@ -33,28 +33,39 @@ public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfi
 
 	public <T> T getValue(Function<S, T> valueFunction,
 			BiPredicate<T, T> validateOverride) {
-		T value = valueFunction.apply(node);
+		return getValueWithOverride(
+				node == null ? null : valueFunction.apply(node), valueFunction,
+				validateOverride);
+	}
 
+	public <T> T getValueWithOverride(T valueOverride,
+			Function<S, T> valueFunction) {
+		return getValueWithOverride(valueOverride, valueFunction, (v, o) -> true);
+	}
+
+	public <T> T getValueWithOverride(T valueOverride,
+			Function<S, T> valueFunction, BiPredicate<T, T> validateOverride) {
 		@SuppressWarnings("unchecked")
 		Collection<T> values = configurator.getOverriddenNodes().stream()
 				.map(n -> valueFunction.apply((S) n.effective()))
 				.filter(Objects::nonNull).collect(Collectors.toSet());
 
 		if (values.isEmpty())
-			return value;
+			return valueOverride;
 		else if (values.size() == 1) {
 			T overriddenValue = values.iterator().next();
-			if (value != null)
-				if (!validateOverride.test(value, overriddenValue))
+			if (valueOverride != null)
+				if (!validateOverride.test(valueOverride, overriddenValue))
 					throw new SchemaException("Cannot override property ["
-							+ overriddenValue + "] with [" + value + "]");
+							+ overriddenValue + "] with [" + valueOverride + "]");
 				else
-					return value;
+					return valueOverride;
 			return overriddenValue;
-		} else if (value == null
-				|| !values.stream().allMatch(v -> validateOverride.test(value, v)))
+		} else if (valueOverride == null
+				|| !values.stream().allMatch(
+						v -> validateOverride.test(valueOverride, v)))
 			throw new SchemaException("Cannot override properties [" + values
-					+ "] with [" + value + "]");
-		return value;
+					+ "] with [" + valueOverride + "]");
+		return valueOverride;
 	}
 }

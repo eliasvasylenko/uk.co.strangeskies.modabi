@@ -171,8 +171,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Namespace getNamespace();
 
-	protected abstract boolean isAbstract();
-
 	public abstract LinkedHashSet<N> getOverriddenNodes();
 
 	protected final QualifiedName getName() {

@@ -28,7 +28,6 @@ public class ModelConfiguratorImpl<T>
 				BindingNodeImpl.Effective<T, Model<T>, Model.Effective<T>> implements
 				Model.Effective<T> {
 			private final Set<Model.Effective<? super T>> baseModel;
-			private final Boolean isAbstract;
 
 			protected Effective(
 					OverrideMerge<Model<T>, ModelConfiguratorImpl<T>> overrideMerge) {
@@ -41,14 +40,6 @@ public class ModelConfiguratorImpl<T>
 				baseModel.addAll(overrideMerge.node().baseModel().stream()
 						.map(SchemaNode::effective).collect(Collectors.toSet()));
 				this.baseModel = Collections.unmodifiableSet(baseModel);
-
-				isAbstract = overrideMerge.node().isAbstract() != null
-						&& overrideMerge.node().isAbstract();
-			}
-
-			@Override
-			public final Boolean isAbstract() {
-				return isAbstract;
 			}
 
 			@Override
@@ -60,21 +51,14 @@ public class ModelConfiguratorImpl<T>
 		private final Effective<T> effective;
 
 		private final Set<Model<? super T>> baseModel;
-		private final Boolean isAbstract;
 
 		public ModelImpl(ModelConfiguratorImpl<T> configurator) {
 			super(configurator);
 
 			baseModel = configurator.baseModel == null ? Collections.emptySet()
 					: new HashSet<>(configurator.baseModel);
-			isAbstract = configurator.isAbstract;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
-		}
-
-		@Override
-		public final Boolean isAbstract() {
-			return isAbstract;
 		}
 
 		@Override
@@ -91,7 +75,6 @@ public class ModelConfiguratorImpl<T>
 	private final DataLoader loader;
 
 	private Set<Model<? super T>> baseModel;
-	private Boolean isAbstract;
 
 	public ModelConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
@@ -105,14 +88,6 @@ public class ModelConfiguratorImpl<T>
 	@Override
 	protected Namespace getNamespace() {
 		return getName().getNamespace();
-	}
-
-	@Override
-	public final ModelConfigurator<T> isAbstract(boolean isAbstract) {
-		requireConfigurable(this.isAbstract);
-		this.isAbstract = isAbstract;
-
-		return getThis();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -147,10 +122,5 @@ public class ModelConfiguratorImpl<T>
 	@Override
 	protected Class<Model<T>> getNodeClass() {
 		return (Class<Model<T>>) (Object) Model.class;
-	}
-
-	@Override
-	protected boolean isAbstract() {
-		return isAbstract != null && isAbstract;
 	}
 }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.co.strangeskies.gears.utilities.Enumeration;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.DataType;
@@ -26,8 +27,6 @@ public class CoreSchemata {
 			@SuppressWarnings("unchecked")
 			@Override
 			public <T> List<T> loadData(DataNode<T> node, BufferedDataSource data) {
-				System.out.println(node.getName() + ": " + data);
-
 				Namespace namespace = new Namespace(BaseSchema.class.getPackage(),
 						LocalDate.of(2014, 1, 1));
 
@@ -35,6 +34,11 @@ public class CoreSchemata {
 						&& node.getName().getName().equals("format"))
 					return (List<T>) Arrays.asList(Format.valueOf(data
 							.get(DataType.STRING)));
+
+				if (node.getName().getNamespace().equals(namespace)
+						&& node.getName().getName().equals("dataType"))
+					return (List<T>) Arrays.asList(Enumeration.valueOf(DataType.class,
+							data.get(DataType.STRING)));
 
 				return null;
 			}

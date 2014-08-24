@@ -24,5 +24,6 @@ public interface DataNodeConfigurator<T>
 
 	public DataNodeConfigurator<T> format(Format format);
 
+	@Override
 	public DataNodeConfigurator<T> isAbstract(boolean isAbstract);
 }

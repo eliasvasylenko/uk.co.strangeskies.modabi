@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.data;
 
+import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 
 public interface DataBindingType<T> extends
@@ -15,11 +16,15 @@ public interface DataBindingType<T> extends
 		return this;
 	}
 
-	Boolean isAbstract();
-
 	Boolean isPrivate();
 
 	DataBindingType<? super T> baseType();
+
+	@Override
+	default PropertySet<DataBindingType<T>> propertySet() {
+		return BindingNode.super.propertySet().add(DataBindingType::isPrivate)
+				.add(DataBindingType::baseType);
+	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override

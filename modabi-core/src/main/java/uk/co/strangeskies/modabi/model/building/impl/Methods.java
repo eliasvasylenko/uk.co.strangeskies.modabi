@@ -46,9 +46,17 @@ public class Methods {
 				if (!resultClass.isAssignableFrom(targetClass))
 					throw new SchemaException();
 				outMethod = null;
-			} else if (targetClass == null || resultClass == null)
+			} else if (targetClass == null) {
+				if (!node.isAbstract())
+					throw new SchemaException("Can't find out method for node '"
+							+ node.getName() + "' as target class cannot be found.");
 				outMethod = null;
-			else {
+			} else if (resultClass == null) {
+				if (!node.isAbstract())
+					throw new SchemaException("Can't find out method for node '"
+							+ node.getName() + "' as result class cannot be found.");
+				outMethod = null;
+			} else {
 				outMethod = findMethod(generateOutMethodNames(node, resultClass),
 						targetClass, resultClass);
 
@@ -259,7 +267,7 @@ public class Methods {
 	}
 
 	public static List<DataNode.Effective<?>> findProvidedUnbindingParameters(
-			BindingNode.Effective<?, ?, ?> node, boolean isAbstract) {
+			BindingNode.Effective<?, ?, ?> node) {
 		return node.getProvidedUnbindingMethodParameterNames() == null ? node
 				.getUnbindingMethodName() == null ? null : new ArrayList<>()
 				: node
@@ -286,7 +294,15 @@ public class Methods {
 
 										DataNode.Effective<?> dataNode = (DataNode.Effective<?>) effective;
 
-										if (!isAbstract && !dataNode.isValueProvided())
+										if (dataNode.occurances() != null
+												&& (dataNode.occurances().getTo() != 1 || dataNode
+														.occurances().getFrom() != 1))
+											throw new SchemaException("Unbinding parameter node '"
+													+ effective + "' for '" + p
+													+ "' must occur exactly once.");
+
+										if (!(node.isAbstract() != null && node.isAbstract())
+												&& !dataNode.isValueProvided())
 											throw new SchemaException("Unbinding parameter node '"
 													+ dataNode + "' for '" + p
 													+ "' must provide a value.");

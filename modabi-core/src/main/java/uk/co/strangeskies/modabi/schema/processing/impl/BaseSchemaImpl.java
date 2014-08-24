@@ -104,11 +104,12 @@ public class BaseSchemaImpl implements BaseSchema {
 							.providedUnbindingParameters("targetModel", "targetId", "this")
 							.addChild(
 									d -> d.data().dataClass(Model.class).name("targetModel")
+											.isAbstract(true)
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.inMethod("null").outMethod("null"))
 							.addChild(
 									d -> d.data().type(primitives.get(DataType.STRING))
-											.name("targetId")
+											.isAbstract(true).name("targetId")
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.inMethod("null").outMethod("null"))
 							.addChild(
@@ -120,6 +121,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.data()
 															.dataClass(Model.class)
 															.name("targetModel")
+															.isAbstract(true)
 															.outMethod("null")
 															.valueResolution(
 																	ValueResolution.REGISTRATION_TIME)
@@ -155,6 +157,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.dataClass(String.class)
 															.name("targetId")
 															.outMethod("null")
+															.isAbstract(true)
 															.valueResolution(
 																	ValueResolution.REGISTRATION_TIME)
 															.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -198,11 +201,13 @@ public class BaseSchemaImpl implements BaseSchema {
 									.data()
 									.name("targetModel")
 									.type(referenceBaseType)
+									.isExtensible(true)
+									.isAbstract(true)
 									.dataClass(Model.class)
 									.addChild(
 											d -> d
 													.data()
-													.name("targetDomain")
+													.name("targetModel")
 													.provideValue(
 															new BufferingDataTarget().put(DataType.STRING,
 																	"schema.modabi.strangeskies.co.uk:Model")
@@ -237,6 +242,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.dataClass(Model.class)
 													.name("enumType")
 													.outMethod("null")
+													.provideValue(new BufferingDataTarget().buffer())
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 													.bindingClass(RegistrationTimeTargetAdapter.class)
@@ -272,6 +278,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.dataClass(Model.class)
 													.name("enumerationType")
 													.outMethod("null")
+													.provideValue(new BufferingDataTarget().buffer())
 													.valueResolution(ValueResolution.REGISTRATION_TIME)
 													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 													.bindingClass(RegistrationTimeTargetAdapter.class)
@@ -413,6 +420,8 @@ public class BaseSchemaImpl implements BaseSchema {
 				.providedUnbindingParameters("dataType", "this")
 				.addChild(
 						c -> c.data().name("dataType").type(enumerationBaseType)
+								.isAbstract(true).isExtensible(true)
+								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.dataClass(DataType.class).outMethod("null")).create());
 
 		primitives = new HashedMap<>();
@@ -428,6 +437,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									c -> c
 											.data()
 											.name("dataType")
+											.isAbstract(true)
 											.provideValue(
 													new BufferingDataTarget().put(DataType.STRING,
 															dataType.name()).buffer())).create());

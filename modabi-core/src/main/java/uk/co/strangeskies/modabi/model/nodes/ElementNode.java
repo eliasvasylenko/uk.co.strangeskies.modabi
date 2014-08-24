@@ -18,8 +18,7 @@ public interface ElementNode<T> extends
 
 	@Override
 	default PropertySet<ElementNode<T>> propertySet() {
-		return BindingChildNode.super.propertySet().add(AbstractModel::baseModel)
-				.add(AbstractModel::isAbstract);
+		return BindingChildNode.super.propertySet().add(AbstractModel::baseModel);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

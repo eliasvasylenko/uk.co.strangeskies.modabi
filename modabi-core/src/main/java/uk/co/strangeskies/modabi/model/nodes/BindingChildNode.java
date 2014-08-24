@@ -26,7 +26,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 				.add(BindingChildNode::getOutMethodName)
 				.add(BindingChildNode::isOutMethodIterable)
 				.add(BindingChildNode::occurances).add(InputNode::getInMethodName)
-				.add(InputNode::isInMethodChained);
+				.add(InputNode::isInMethodChained).add(BindingChildNode::isExtensible);
 	}
 
 	String getOutMethodName();
@@ -40,4 +40,6 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	Boolean isOutMethodIterable();
 
 	Range<Integer> occurances();
+
+	Boolean isExtensible();
 }

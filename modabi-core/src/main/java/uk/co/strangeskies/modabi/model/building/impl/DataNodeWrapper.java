@@ -191,6 +191,11 @@ public final class DataNodeWrapper<T> implements DataNode.Effective<T> {
 	}
 
 	@Override
+	public Boolean isExtensible() {
+		return base == null ? null : base.isExtensible();
+	}
+
+	@Override
 	public Boolean isAbstract() {
 		return component.isAbstract();
 	}

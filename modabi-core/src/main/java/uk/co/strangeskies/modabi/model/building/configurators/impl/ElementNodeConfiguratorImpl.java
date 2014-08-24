@@ -32,7 +32,6 @@ public class ElementNodeConfiguratorImpl<T>
 				BindingChildNodeImpl.Effective<T, ElementNode<T>, ElementNode.Effective<T>>
 				implements ElementNode.Effective<T> {
 			private final Set<Model.Effective<? super T>> baseModel;
-			private final Boolean isAbstract;
 
 			protected Effective(
 					OverrideMerge<ElementNode<T>, ElementNodeConfiguratorImpl<T>> overrideMerge) {
@@ -45,14 +44,6 @@ public class ElementNodeConfiguratorImpl<T>
 				baseModel.addAll(overrideMerge.node().baseModel().stream()
 						.map(SchemaNode::effective).collect(Collectors.toSet()));
 				this.baseModel = Collections.unmodifiableSet(baseModel);
-
-				isAbstract = overrideMerge.node().isAbstract() != null
-						&& overrideMerge.node().isAbstract();
-			}
-
-			@Override
-			public Boolean isAbstract() {
-				return isAbstract;
 			}
 
 			@Override
@@ -64,14 +55,12 @@ public class ElementNodeConfiguratorImpl<T>
 		private final Effective<T> effective;
 
 		private final Set<Model<? super T>> baseModel;
-		private final Boolean isAbstract;
 
 		public ElementNodeImpl(ElementNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
 			baseModel = configurator.baseModel == null ? Collections.emptySet()
 					: new HashSet<>(configurator.baseModel);
-			isAbstract = configurator.isAbstract;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
 		}
@@ -82,18 +71,12 @@ public class ElementNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public final Boolean isAbstract() {
-			return isAbstract;
-		}
-
-		@Override
 		public final Set<Model<? super T>> baseModel() {
 			return baseModel;
 		}
 	}
 
 	private Set<Model<? super T>> baseModel;
-	private Boolean isAbstract;
 
 	public ElementNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super ElementNode<T>> parent) {
@@ -103,14 +86,6 @@ public class ElementNodeConfiguratorImpl<T>
 	@Override
 	public ElementNodeConfigurator<T> name(String name) {
 		return name(new QualifiedName(name, getContext().getNamespace()));
-	}
-
-	@Override
-	public final ElementNodeConfigurator<T> isAbstract(boolean isAbstract) {
-		requireConfigurable(this.isAbstract);
-		this.isAbstract = isAbstract;
-
-		return getThis();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -129,12 +104,7 @@ public class ElementNodeConfiguratorImpl<T>
 
 		if (baseModel != null)
 			for (Model<? super T> base : baseModel)
-				overriddenNodes.add(new ElementNodeWrapper<T>(base.effective())); // TODO
-																																					// sanity
-																																					// check
-		// when not tired as
-		// balls, probs can be
-		// made more sensible
+				overriddenNodes.add(new ElementNodeWrapper<>(base.effective()));
 
 		overriddenNodes.addAll(super.getOverriddenNodes());
 
@@ -156,10 +126,5 @@ public class ElementNodeConfiguratorImpl<T>
 	@Override
 	protected ElementNode<T> tryCreate() {
 		return new ElementNodeImpl<>(this);
-	}
-
-	@Override
-	protected boolean isAbstract() {
-		return (isAbstract != null && isAbstract) || getContext().isAbstract();
 	}
 }

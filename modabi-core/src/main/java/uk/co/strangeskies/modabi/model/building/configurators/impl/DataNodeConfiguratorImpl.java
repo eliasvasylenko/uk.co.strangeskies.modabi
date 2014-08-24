@@ -34,7 +34,6 @@ public class DataNodeConfiguratorImpl<T>
 			private final Boolean optional;
 			private final BufferedDataSource providedBuffer;
 			private final ValueResolution resolution;
-			private final Boolean isAbstract;
 			private List<T> provided;
 
 			protected Effective(
@@ -52,9 +51,6 @@ public class DataNodeConfiguratorImpl<T>
 						});
 				this.type = type == null ? null : type.effective();
 
-				isAbstract = overrideMerge.node().isAbstract() != null
-						&& overrideMerge.node().isAbstract();
-
 				optional = overrideMerge.getValue(DataNode::optional);
 				format = overrideMerge.getValue(DataNode::format, Objects::equals);
 
@@ -64,7 +60,7 @@ public class DataNodeConfiguratorImpl<T>
 
 				if (providedBuffer == null
 						&& resolution == ValueResolution.REGISTRATION_TIME
-						&& !overrideMerge.configurator().isAbstract())
+						&& !(isAbstract() != null && isAbstract()))
 					throw new SchemaException(
 							"Value must be provided at registration time for node '"
 									+ getName() + "'.");
@@ -92,7 +88,7 @@ public class DataNodeConfiguratorImpl<T>
 
 			@Override
 			public BufferedDataSource providedValueBuffer() {
-				return providedBuffer;
+				return providedBuffer == null ? null : providedBuffer.buffer();
 			}
 
 			@Override
@@ -104,11 +100,6 @@ public class DataNodeConfiguratorImpl<T>
 			public ValueResolution valueResolution() {
 				return resolution;
 			}
-
-			@Override
-			public Boolean isAbstract() {
-				return isAbstract;
-			}
 		}
 
 		private final Effective<T> effective;
@@ -119,7 +110,6 @@ public class DataNodeConfiguratorImpl<T>
 		private final BufferedDataSource providedBuffer;
 		private final ValueResolution resolution;
 		private final List<T> provided;
-		private final Boolean isAbstract;
 
 		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
@@ -131,8 +121,6 @@ public class DataNodeConfiguratorImpl<T>
 			providedBuffer = configurator.providedBufferedValue;
 			resolution = configurator.resolution;
 			provided = null;
-
-			isAbstract = configurator.isAbstract;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
 		}
@@ -154,7 +142,7 @@ public class DataNodeConfiguratorImpl<T>
 
 		@Override
 		public BufferedDataSource providedValueBuffer() {
-			return providedBuffer;
+			return providedBuffer == null ? null : providedBuffer.buffer();
 		}
 
 		@Override
@@ -171,11 +159,6 @@ public class DataNodeConfiguratorImpl<T>
 		public DataNodeImpl.Effective<T> effective() {
 			return effective;
 		}
-
-		@Override
-		public Boolean isAbstract() {
-			return isAbstract;
-		}
 	}
 
 	public Format format;
@@ -185,8 +168,6 @@ public class DataNodeConfiguratorImpl<T>
 	private ValueResolution resolution;
 
 	private Boolean optional;
-
-	private Boolean isAbstract;
 
 	public DataNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super DataNode<T>> parent) {
@@ -271,14 +252,6 @@ public class DataNodeConfiguratorImpl<T>
 		return this;
 	}
 
-	@Override
-	public final DataNodeConfigurator<T> isAbstract(boolean isAbstract) {
-		requireConfigurable(this.isAbstract);
-		this.isAbstract = isAbstract;
-
-		return this;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	protected final Class<DataNode<T>> getNodeClass() {
@@ -323,10 +296,5 @@ public class DataNodeConfiguratorImpl<T>
 		if (type != null)
 			return type.getUnbindingClass();
 		return super.getUnbindingClass();
-	}
-
-	@Override
-	protected boolean isAbstract() {
-		return (isAbstract != null && isAbstract) || getContext().isAbstract();
 	}
 }

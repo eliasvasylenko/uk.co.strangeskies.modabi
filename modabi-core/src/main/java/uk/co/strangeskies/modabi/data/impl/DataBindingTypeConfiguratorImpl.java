@@ -23,7 +23,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 				extends
 				BindingNodeImpl.Effective<T, DataBindingType<T>, DataBindingType.Effective<T>>
 				implements DataBindingType.Effective<T> {
-			private final Boolean isAbstract;
 			private final Boolean isPrivate;
 
 			private final DataBindingType.Effective<? super T> baseType;
@@ -32,18 +31,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 					OverrideMerge<DataBindingType<T>, DataBindingTypeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				isAbstract = overrideMerge.node().isAbstract() != null
-						&& overrideMerge.node().isAbstract();
 				isPrivate = overrideMerge.node().isPrivate() != null
 						&& overrideMerge.node().isPrivate();
 
 				baseType = overrideMerge.configurator().baseType == null ? null
 						: overrideMerge.configurator().baseType.effective();
-			}
-
-			@Override
-			public Boolean isAbstract() {
-				return isAbstract;
 			}
 
 			@Override
@@ -59,7 +51,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 		private final Effective<T> effective;
 
-		private final Boolean isAbstract;
 		private final Boolean isPrivate;
 
 		private final DataBindingType<? super T> baseType;
@@ -67,17 +58,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 		public DataBindingTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
 			super(configurator);
 
-			isAbstract = configurator.isAbstract;
 			isPrivate = configurator.isPrivate;
 
 			baseType = configurator.baseType;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
-		}
-
-		@Override
-		public Boolean isAbstract() {
-			return isAbstract;
 		}
 
 		@Override
@@ -98,7 +83,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	private final DataLoader loader;
 
-	private Boolean isAbstract;
 	private Boolean isPrivate;
 
 	private DataBindingType<? super T> baseType;
@@ -110,14 +94,6 @@ public class DataBindingTypeConfiguratorImpl<T>
 	@Override
 	protected DataBindingType<T> tryCreate() {
 		return new DataBindingTypeImpl<>(this);
-	}
-
-	@Override
-	public DataBindingTypeConfigurator<T> isAbstract(boolean isAbstract) {
-		requireConfigurable(this.isAbstract);
-		this.isAbstract = isAbstract;
-
-		return this;
 	}
 
 	@Override
@@ -166,10 +142,5 @@ public class DataBindingTypeConfiguratorImpl<T>
 	public LinkedHashSet<DataBindingType<T>> getOverriddenNodes() {
 		return baseType == null ? new LinkedHashSet<>() : new LinkedHashSet<>(
 				Arrays.asList((DataBindingType<T>) baseType));
-	}
-
-	@Override
-	protected boolean isAbstract() {
-		return isAbstract != null && isAbstract;
 	}
 }

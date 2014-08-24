@@ -15,6 +15,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	<V extends T> BindingNodeConfigurator<?, ?, V, C, B> dataClass(
 			Class<V> dataClass);
 
+	S isAbstract(boolean isAbstract);
+
 	S bindingStrategy(BindingStrategy strategy);
 
 	S bindingClass(Class<?> bindingClass);

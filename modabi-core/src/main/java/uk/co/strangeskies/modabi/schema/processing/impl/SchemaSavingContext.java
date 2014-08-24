@@ -20,6 +20,7 @@ import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
+import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
@@ -42,9 +43,10 @@ import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 class SchemaSavingContext<T> implements SchemaProcessingContext {
 	private final SchemaBinderImpl schemaBinderImpl;
 
-	private final StructuredDataTarget output;
+	private StructuredDataTarget output;
 
 	private final Deque<Object> bindingStack;
+	private final Deque<SchemaNode<?, ?>> nodeStack;
 
 	private BufferingDataTarget dataTarget;
 	private final DereferenceTarget dereferenceTarget;
@@ -55,6 +57,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			StructuredDataTarget output, T data) {
 		this.schemaBinderImpl = schemaBinderImpl;
 		bindingStack = new ArrayDeque<>();
+		nodeStack = new ArrayDeque<>();
+		nodeStack.push(model);
 		this.output = output;
 
 		output.registerDefaultNamespaceHint(model.getName().getNamespace(), true);
@@ -94,17 +98,36 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			}
 		};
 
-		unbindModel(model.effective(), data);
+		try {
+			unbindModel(model.effective(), data);
+		} catch (SchemaException e) {
+			throw new SchemaException("Problem at node '"
+					+ nodeStack.stream().map(n -> n.getName().toString())
+							.collect(Collectors.joining(" < ")) + "' unbinding data '" + data
+					+ "' with model '" + model.getName() + "'.", e);
+		} catch (Exception e) {
+			throw new SchemaException("Unexpected problem at node '"
+					+ getNodeStackString() + "' unbinding data '" + data
+					+ "' with model '" + model.getName() + "'.", e);
+		}
+	}
+
+	private String getNodeStackString() {
+		return nodeStack.stream().map(n -> n.getName().toString())
+				.collect(Collectors.joining(" < "));
 	}
 
 	@Override
 	public <U> void accept(ElementNode.Effective<U> node) {
+		nodeStack.push(node);
 		for (U child : getData(node))
 			unbindElement(node, child);
+		nodeStack.pop();
 	}
 
 	@Override
 	public <U> void accept(DataNode.Effective<U> node) {
+		nodeStack.push(node);
 		if (node.getOutMethodName() == null
 				|| !node.getOutMethodName().equals("null")) {
 			if (dataTarget == null) {
@@ -125,10 +148,11 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					break;
 				case REGISTRATION_TIME:
 					List<U> data = getData(node);
-					if (!node.providedValue().equals(data))
+					if (!node.providedValue().equals(data)) {
 						throw new SchemaException("Provided value '" + node.providedValue()
 								+ "'does not match unbinding object '" + data + "' for node '"
 								+ node.getName() + "'.");
+					}
 					break;
 				}
 			else
@@ -153,6 +177,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					}
 			}
 		}
+		nodeStack.pop();
 	}
 
 	// TODO should work with generics & without warning suppression
@@ -164,7 +189,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		for (U item : data) {
 			DataNode.Effective<U> concreteNode;
-			if (node.isAbstract() != null && node.isAbstract()) {
+			if (node.isExtensible() != null && node.isExtensible()) {
 				List<DataBindingType<? extends U>> types = this.schemaBinderImpl.registeredTypes
 						.getMatchingTypes(node, item.getClass());
 
@@ -188,16 +213,22 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	@Override
 	public void accept(InputSequenceNode.Effective node) {
+		nodeStack.push(node);
 		processChildren(node);
+		nodeStack.pop();
 	}
 
 	@Override
 	public void accept(SequenceNode.Effective node) {
+		nodeStack.push(node);
 		processChildren(node);
+		nodeStack.pop();
 	}
 
 	@Override
 	public void accept(ChoiceNode.Effective node) {
+		nodeStack.push(node);
+		nodeStack.pop();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -225,7 +256,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	// TODO should work with generics & without warning suppression
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
-		if (node.isAbstract() != null && node.isAbstract()) {
+		if (node.isExtensible() != null && node.isExtensible()) {
 			List<Model<? extends U>> models = this.schemaBinderImpl.registeredModels
 					.getMatchingModels(node, data.getClass());
 
@@ -262,20 +293,47 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	private <I> List<SchemaException> tryUnbindingForEach(List<I> unbindingItems,
 			Consumer<I> unbindingMethod) {
 		List<SchemaException> failures = new ArrayList<>();
-		for (I item : unbindingItems)
-			try {
-				// TODO mark output location! (and begin buffering output)
+		Deque<SchemaNode<?, ?>> nodeStack = new ArrayDeque<>(this.nodeStack);
+		Deque<Object> bindingStack = new ArrayDeque<>(this.bindingStack);
 
+		BufferingDataTarget dataTarget = null;
+		StructuredDataTarget output = null;
+		for (I item : unbindingItems) {
+			// mark output! (by redirecting to a new buffer)
+			if (this.dataTarget != null) {
+				dataTarget = this.dataTarget;
+				this.dataTarget = new BufferingDataTarget();
+			}
+			output = this.output;
+			this.output = new BufferingStructuredDataTarget();
+
+			try {
 				unbindingMethod.accept(item);
 				failures.clear();
-
-				// remove mark! (by flushing buffer into output)
 				break;
 			} catch (SchemaException e) {
 				failures.add(e);
 
 				// reset output to mark! (by discarding buffer)
+				this.dataTarget = dataTarget;
+				this.output = output;
+				this.nodeStack.clear();
+				this.nodeStack.addAll(nodeStack);
+				this.bindingStack.clear();
+				this.bindingStack.addAll(bindingStack);
 			}
+		}
+
+		// remove mark! (by flushing buffer into output)
+		if (dataTarget != null)
+			this.dataTarget = this.dataTarget.buffer().pipe(dataTarget);
+		this.output = ((BufferingStructuredDataTarget) this.output).buffer()
+				.pipeNextChild(output);
+
+		this.nodeStack.clear();
+		this.nodeStack.addAll(nodeStack);
+		this.bindingStack.clear();
+		this.bindingStack.addAll(bindingStack);
 		return failures;
 	}
 
@@ -340,8 +398,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | SecurityException | NullPointerException e) {
-			throw new SchemaException("Cannot invoke method " + method + " on "
-					+ receiver, e);
+			throw new SchemaException("Cannot invoke method '" + method + "' on '"
+					+ receiver + "' at node '" + getNodeStackString() + "'.", e);
 		}
 	}
 
@@ -408,7 +466,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			for (DataNode.Effective<?> parameter : node
 					.getProvidedUnbindingMethodParameters()) {
 				if (parameter != null)
-					parameters.add(parameter.providedValue());
+					parameters.add(parameter.providedValue() == null ? null : parameter
+							.providedValue().get(0));
 				else {
 					parameters.add(data);
 					addedData = true;

@@ -14,8 +14,9 @@ import uk.co.strangeskies.modabi.model.building.impl.SchemaNodeConfigurationCont
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
+public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, N, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
 		BindingChildNodeConfigurator<S, N, T, C, B> {
 	protected static abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
@@ -34,9 +35,21 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Method inMethod;
 			private final Boolean inMethodChained;
 
+			private Boolean isExtensible;
+
 			protected Effective(
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
+
+				isExtensible = overrideMerge.getValue(BindingChildNode::isExtensible);
+
+				if (isAbstract()
+						&& !overrideMerge.configurator().getContext().isAbstract()
+						&& !(isExtensible() != null && isExtensible()))
+					throw new SchemaException(
+							"Node '"
+									+ getName()
+									+ "' is not extensible and has no abstract parents, so cannot be abstract.");
 
 				occurances = overrideMerge.getValue(BindingChildNode::occurances,
 						(v, o) -> o.contains(v));
@@ -66,6 +79,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
+			public final Boolean isExtensible() {
+				return isExtensible;
+			}
+
+			@Override
 			public final Range<Integer> occurances() {
 				return occurances;
 			}
@@ -76,7 +94,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			public Method getOutMethod() {
+			public final Method getOutMethod() {
 				return outMethod;
 			}
 
@@ -91,7 +109,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			public Method getInMethod() {
+			public final Method getInMethod() {
 				return inMethod;
 			}
 
@@ -109,9 +127,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 
+		private Boolean isExtensible;
+
 		BindingChildNodeImpl(
 				BindingChildNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
 			super(configurator);
+
+			isExtensible = configurator.isExtensible;
 
 			occurances = configurator.occurances;
 			iterable = configurator.iterable;
@@ -119,6 +141,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
+		}
+
+		@Override
+		public final Boolean isExtensible() {
+			return isExtensible;
 		}
 
 		@Override
@@ -154,6 +181,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private String outMethodName;
 	private String inMethodName;
 	private Boolean inMethodChained;
+	private Boolean isExtensible;
 
 	public BindingChildNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super N> parent) {
@@ -220,8 +248,21 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
+	public final S isExtensible(boolean isExtensible) {
+		requireConfigurable(this.isExtensible);
+		this.isExtensible = isExtensible;
+
+		return getThis();
+	}
+
+	@Override
 	public LinkedHashSet<N> getOverriddenNodes() {
 		return getName() == null ? new LinkedHashSet<>() : getContext()
 				.overrideChild(getName(), getNodeClass());
+	}
+
+	@Override
+	protected final boolean isChildContextAbstract() {
+		return super.isChildContextAbstract() || getContext().isAbstract();
 	}
 }

@@ -41,9 +41,4 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		return getName() != null ? getName().getNamespace() : getContext()
 				.getNamespace();
 	}
-
-	@Override
-	protected boolean isAbstract() {
-		return getContext().isAbstract();
-	}
 }

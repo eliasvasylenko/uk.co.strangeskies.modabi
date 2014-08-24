@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.model;
 
 import java.util.Set;
 
+import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 
 public interface AbstractModel<T, S extends AbstractModel<T, S, E>, E extends AbstractModel.Effective<T, S, E>>
@@ -12,7 +13,10 @@ public interface AbstractModel<T, S extends AbstractModel<T, S, E>, E extends Ab
 		Set<Model.Effective<? super T>> baseModel();
 	}
 
-	Boolean isAbstract();
+	@Override
+	default PropertySet<S> propertySet() {
+		return BindingNode.super.propertySet().add(AbstractModel::baseModel);
+	}
 
 	Set<? extends Model<? super T>> baseModel();
 }

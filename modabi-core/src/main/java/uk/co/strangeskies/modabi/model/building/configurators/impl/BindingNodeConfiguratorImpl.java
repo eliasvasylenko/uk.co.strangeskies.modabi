@@ -22,7 +22,7 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, N, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
 		BindingNodeConfigurator<S, N, T, C, B> {
 	protected static abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
@@ -30,6 +30,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 				extends SchemaNodeImpl.Effective<S, E> implements
 				BindingNode.Effective<T, S, E> {
+			private final Boolean isAbstract;
+
 			private final Class<T> dataClass;
 			private final Class<?> bindingClass;
 			private final Class<?> unbindingClass;
@@ -45,6 +47,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			protected Effective(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
+
+				isAbstract = overrideMerge.node().isAbstract() != null
+						&& overrideMerge.node().isAbstract();
 
 				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
 						(v, o) -> o.isAssignableFrom(v));
@@ -69,12 +74,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						BindingNode::getProvidedUnbindingMethodParameterNames,
 						Objects::equals);
 
-				providedUnbindingParameters = Methods.findProvidedUnbindingParameters(
-						this, overrideMerge.configurator().isAbstract());
+				providedUnbindingParameters = Methods
+						.findProvidedUnbindingParameters(this);
 
 				unbindingMethod = Methods.findUnbindingMethod(this);
 
 				// TODO verify unbinding method overrides okay...
+			}
+
+			@Override
+			public Boolean isAbstract() {
+				return isAbstract;
 			}
 
 			@Override
@@ -128,6 +138,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 		}
 
+		private final Boolean isAbstract;
+
 		private final Class<T> dataClass;
 		private final Class<?> bindingClass;
 		private final Class<?> unbindingClass;
@@ -142,6 +154,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				BindingNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
 			super(configurator);
 
+			isAbstract = configurator.isAbstract;
+
 			dataClass = configurator.dataClass;
 
 			bindingStrategy = configurator.bindingStrategy;
@@ -154,6 +168,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingParameterNames = configurator.unbindingParameterNames == null ? null
 					: Collections.unmodifiableList(new ArrayList<>(
 							configurator.unbindingParameterNames));
+		}
+
+		@Override
+		public Boolean isAbstract() {
+			return isAbstract;
 		}
 
 		@Override
@@ -197,6 +216,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 	}
 
+	private Boolean isAbstract;
+
 	private Class<T> dataClass;
 
 	private BindingStrategy bindingStrategy;
@@ -238,14 +259,22 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
-		Class<?> inputTarget = getBindingClass() != null ? getBindingClass()
-				: getDataClass();
-		Class<?> outputTarget = getUnbindingClass() != null ? getUnbindingClass()
-				: getDataClass();
+		OverrideMerge<? extends BindingNode<?, ?, ?>, ?> overrideMerge = overrideMerge(
+				null, this);
+
+		Class<?> unbindingClass = overrideMerge.getValueWithOverride(
+				this.unbindingClass, BindingNode::getUnbindingClass);
+		Class<?> bindingClass = overrideMerge.getValueWithOverride(
+				this.bindingClass, BindingNode::getBindingClass);
+		Class<?> dataClass = overrideMerge.getValueWithOverride(this.dataClass,
+				BindingNode::getDataClass);
+
+		Class<?> inputTarget = bindingClass != null ? bindingClass : dataClass;
+		Class<?> outputTarget = unbindingClass != null ? unbindingClass : dataClass;
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
 				getOverriddenNodes(), inputTarget, outputTarget, getDataLoader(),
-				isAbstract());
+				isChildContextAbstract());
 	}
 
 	@Override
@@ -258,6 +287,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	protected Class<?> getBindingClass() {
 		return bindingClass;
+	}
+
+	@Override
+	public final S isAbstract(boolean isAbstract) {
+		requireConfigurable(this.isAbstract);
+		this.isAbstract = isAbstract;
+
+		return getThis();
 	}
 
 	@Override
@@ -326,5 +363,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	@Override
 	public final ChildBuilder<C, B> addChild() {
 		return super.addChild();
+	}
+
+	protected boolean isChildContextAbstract() {
+		return isAbstract != null && isAbstract;
 	}
 }

@@ -28,7 +28,7 @@ public interface DataNode<T> extends
 		return BindingChildNode.super.propertySet().add(DataNode::format)
 				.add(DataNode::providedValueBuffer).add(DataNode::providedValue)
 				.add(DataNode::valueResolution).add(DataNode::type)
-				.add(DataNode::optional);
+				.add(DataNode::optional).add(DataNode::isExtensible);
 	}
 
 	enum Format {
@@ -36,8 +36,6 @@ public interface DataNode<T> extends
 	}
 
 	Format format();
-
-	Boolean isAbstract();
 
 	default boolean isValueProvided() {
 		return providedValueBuffer() != null;
