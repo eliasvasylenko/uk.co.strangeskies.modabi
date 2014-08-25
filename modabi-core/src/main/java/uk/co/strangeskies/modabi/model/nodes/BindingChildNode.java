@@ -39,7 +39,20 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	 */
 	Boolean isOutMethodIterable();
 
+	/**
+	 * Default behaviour is as if 1..1.
+	 * 
+	 * @return
+	 */
 	Range<Integer> occurances();
+
+	/**
+	 * Default behaviour is as if true. If unordered, may input concurrently, and
+	 * semantics of updating existing binding are more flexible.
+	 * 
+	 * @return
+	 */
+	Boolean isOrdered();
 
 	Boolean isExtensible();
 }

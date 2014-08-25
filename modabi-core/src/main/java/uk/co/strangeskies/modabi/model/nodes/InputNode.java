@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import uk.co.strangeskies.gears.utilities.PropertySet;
 
@@ -15,9 +16,9 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 
 		@Override
 		default Class<?> getPostInputClass() {
-			return (isInMethodChained() == null) ? null
-					: (!isInMethodChained() ? getPreInputClass()
-							: (getInMethod() == null ? null : getInMethod().getReturnType()));
+			return (isInMethodChained() == null || !isInMethodChained() || Objects
+					.equals(getInMethodName(), "null")) ? getPreInputClass()
+					: (getInMethod() == null ? null : getInMethod().getReturnType());
 		}
 
 		Method getInMethod();

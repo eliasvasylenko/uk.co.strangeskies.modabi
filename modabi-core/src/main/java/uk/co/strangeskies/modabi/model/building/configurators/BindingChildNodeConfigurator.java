@@ -13,7 +13,9 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	public S occurances(Range<Integer> occuranceRange);
 
-	public S isExtensible(boolean isExtensible);
+	public S extensible(boolean extensible);
+
+	public S ordered(boolean ordered);
 
 	/*
 	 * TODO 'isOrdered' hint, for ranges above ..2, to help magically minimise

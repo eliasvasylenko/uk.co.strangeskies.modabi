@@ -259,7 +259,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
-		OverrideMerge<? extends BindingNode<?, ?, ?>, ?> overrideMerge = overrideMerge(
+		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
 		Class<?> unbindingClass = overrideMerge.getValueWithOverride(

@@ -26,9 +26,9 @@ public interface DataNode<T> extends
 	@Override
 	default PropertySet<DataNode<T>> propertySet() {
 		return BindingChildNode.super.propertySet().add(DataNode::format)
-				.add(DataNode::providedValueBuffer).add(DataNode::providedValue)
-				.add(DataNode::valueResolution).add(DataNode::type)
-				.add(DataNode::optional).add(DataNode::isExtensible);
+				.add(DataNode::providedValueBuffer).add(DataNode::valueResolution)
+				.add(DataNode::type).add(DataNode::optional)
+				.add(DataNode::isExtensible);
 	}
 
 	enum Format {

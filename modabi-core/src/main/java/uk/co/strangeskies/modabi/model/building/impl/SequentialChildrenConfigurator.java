@@ -74,6 +74,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 						"Node '"
 								+ getName()
 								+ "' is inherited multiple times and must be explicitly overridden.");
+
 			return children.stream().findAny().get();
 		}
 
@@ -255,6 +256,11 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 
 			@Override
 			public Class<?> getInputTargetClass() {
+				/*
+				 * TODO inputTarget may change due to ordering if this child's name
+				 * would see it merging with an overridden child further along the
+				 * chain.
+				 */
 				return inputTarget;
 			}
 

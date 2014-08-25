@@ -16,7 +16,6 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
-import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
@@ -35,6 +34,7 @@ import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
@@ -45,11 +45,12 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	private StructuredDataTarget output;
 
-	private final Deque<Object> bindingStack;
-	private final Deque<SchemaNode<?, ?>> nodeStack;
+	private Deque<Object> bindingStack;
+	private Deque<SchemaNode<?, ?>> nodeStack;
 
 	private BufferingDataTarget dataTarget;
 	private final DereferenceTarget dereferenceTarget;
+	private final IncludeTarget includeTarget;
 
 	private final Bindings bindings;
 
@@ -68,15 +69,10 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		dereferenceTarget = new DereferenceTarget() {
 			@Override
 			public <U> BufferedDataSource dereference(Model<U> model,
-					String idDomain, U object) {
-				return new BufferingDataTarget().buffer();
-				/*-
-				if (!bindings.get(model).contains(object)) {
-					bindings.print();
-
+					QualifiedName idDomain, U object) {
+				if (!bindings.get(model).contains(object))
 					throw new SchemaException("Cannot find any instance '" + object
-							+ "' bound to model '" + model.getName());
-				}
+							+ "' bound to model '" + model.getName() + "'.");
 
 				DataNode.Effective<?> node = (DataNode.Effective<?>) model
 						.effective()
@@ -94,7 +90,14 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 				bindingStack.pop();
 
-				return bufferedData;*/
+				return bufferedData;
+			}
+		};
+
+		includeTarget = new IncludeTarget() {
+			@Override
+			public <U> void include(Model<U> model, U object) {
+				bindings.add(model, object);
 			}
 		};
 
@@ -156,7 +159,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					break;
 				}
 			else
-				unbindDataNode(node, dataTarget, getData(node));
+				unbindDataNode(node, dataTarget);
 
 			if (node.format() != null) {
 				BufferedDataSource bufferedTarget = dataTarget.buffer();
@@ -180,33 +183,43 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		nodeStack.pop();
 	}
 
-	// TODO should work with generics & without warning suppression
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
-			BufferingDataTarget target, List<U> data) {
-		BufferingDataTarget previousDataTarget = dataTarget;
-		dataTarget = target;
+			BufferingDataTarget target) {
+		for (U data : getData(node)) {
+			BufferingDataTarget previousDataTarget = dataTarget;
+			dataTarget = target;
 
-		for (U item : data) {
-			DataNode.Effective<U> concreteNode;
 			if (node.isExtensible() != null && node.isExtensible()) {
-				List<DataBindingType<? extends U>> types = this.schemaBinderImpl.registeredTypes
-						.getMatchingTypes(node, item.getClass());
+				List<DataNode.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredTypes
+						.getMatchingTypes(node, data.getClass()).stream()
+						.map(type -> new DataNodeWrapper<>(type.effective(), node))
+						.collect(Collectors.toCollection(ArrayList::new));
 
-				if (types.isEmpty())
+				if (node.isAbstract() == null || !node.isAbstract())
+					nodes.add(node);
+
+				if (nodes.isEmpty())
 					throw new SchemaException(
-							"Unable to find model to satisfy data node '" + node.getName()
-									+ "' with type '" + node.effective().type().getName()
-									+ "' for object '" + item + "' to be unbound");
+							"Unable to find concrete type to satisfy data node '"
+									+ node.getName() + "' with type '"
+									+ node.effective().type().getName() + "' for object '" + data
+									+ "' to be unbound.");
 
-				concreteNode = new DataNodeWrapper(types.get(0).effective(), node);
-			} else
-				concreteNode = node;
+				tryUnbindingForEach(
+						nodes,
+						n -> processBindingChildren(n, unbindData(node, data)),
+						l -> new MultiException("Unable to unbind data node '"
+								+ node.getName()
+								+ "' with type candidates '"
+								+ nodes.stream().map(m -> m.source().getName().toString())
+										.collect(Collectors.joining(", ")) + "' for object '"
+								+ data + "' to be unbound.", l));
+			} else {
+				processBindingChildren(node, unbindData(node, data));
+			}
 
-			processBindingChildren(concreteNode, unbindData(concreteNode, item));
+			dataTarget = previousDataTarget;
 		}
-
-		dataTarget = previousDataTarget;
 
 		return target;
 	}
@@ -237,6 +250,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			return (U) dataTarget;
 		if (clazz.equals(DereferenceTarget.class))
 			return (U) dereferenceTarget;
+		if (clazz.equals(IncludeTarget.class))
+			return (U) includeTarget;
 
 		return this.schemaBinderImpl.provide(clazz);
 	}
@@ -253,45 +268,50 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		bindingStack.pop();
 	}
 
-	// TODO should work with generics & without warning suppression
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
 		if (node.isExtensible() != null && node.isExtensible()) {
-			List<Model<? extends U>> models = this.schemaBinderImpl.registeredModels
-					.getMatchingModels(node, data.getClass());
+			List<ElementNode.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredModels
+					.getMatchingModels(node, data.getClass()).stream()
+					.map(n -> new ElementNodeWrapper<>(n.effective(), node))
+					.collect(Collectors.toCollection(ArrayList::new));
 
-			if (models.isEmpty())
+			if (node.isAbstract() == null || !node.isAbstract())
+				nodes.add(node);
+
+			if (nodes.isEmpty())
 				throw new SchemaException("Unable to find model to satisfy element '"
 						+ node.getName()
 						+ "' with model '"
 						+ node.effective().baseModel().stream()
 								.map(m -> m.source().getName().toString())
 								.collect(Collectors.joining(", ")) + "' for object '" + data
-						+ "' to be unbound");
+						+ "' to be unbound.");
 
-			List<SchemaException> failures = tryUnbindingForEach(models,
-					model -> {
-						ElementNode.Effective<U> concreteNode = new ElementNodeWrapper(
-								model.effective(), node);
-						unbindModel(concreteNode, data);
-						bindings.add(concreteNode, data);
-					});
-
-			if (!failures.isEmpty())
-				throw new SchemaException("Unable to unbind element '"
-						+ node.getName()
-						+ "' with model candidates '"
-						+ models.stream().map(m -> m.source().getName().toString())
-								.collect(Collectors.joining(", ")) + "' for object '" + data
-						+ "' to be unbound", failures.get(0));
+			tryUnbindingForEach(
+					nodes,
+					n -> {
+						unbindModel(n, data);
+						bindings.add(n, data);
+					},
+					l -> new MultiException("Unable to unbind element '"
+							+ node.getName()
+							+ "' with model candidates '"
+							+ nodes.stream().map(m -> m.source().getName().toString())
+									.collect(Collectors.joining(", ")) + "' for object '" + data
+							+ "' to be unbound.", l));
 		} else {
 			unbindModel(node, data);
 			bindings.add(node, data);
 		}
 	}
 
-	private <I> List<SchemaException> tryUnbindingForEach(List<I> unbindingItems,
-			Consumer<I> unbindingMethod) {
+	private <I extends ChildNode.Effective<?, ?>> void tryUnbindingForEach(
+			List<I> unbindingItems, Consumer<I> unbindingMethod,
+			Function<List<SchemaException>, MultiException> onFailure) {
+		if (unbindingItems.isEmpty())
+			throw new IllegalArgumentException(
+					"Must supply items for unbinding attempt.");
+
 		List<SchemaException> failures = new ArrayList<>();
 		Deque<SchemaNode<?, ?>> nodeStack = new ArrayDeque<>(this.nodeStack);
 		Deque<Object> bindingStack = new ArrayDeque<>(this.bindingStack);
@@ -324,17 +344,17 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			}
 		}
 
-		// remove mark! (by flushing buffer into output)
-		if (dataTarget != null)
-			this.dataTarget = this.dataTarget.buffer().pipe(dataTarget);
-		this.output = ((BufferingStructuredDataTarget) this.output).buffer()
-				.pipeNextChild(output);
+		if (failures.isEmpty()) {
+			// remove mark! (by flushing buffer into output)
+			if (dataTarget != null)
+				this.dataTarget = this.dataTarget.buffer().pipe(dataTarget);
+			this.output = ((BufferingStructuredDataTarget) this.output).buffer()
+					.pipeNextChild(output);
 
-		this.nodeStack.clear();
-		this.nodeStack.addAll(nodeStack);
-		this.bindingStack.clear();
-		this.bindingStack.addAll(bindingStack);
-		return failures;
+			this.nodeStack = nodeStack;
+			this.bindingStack = bindingStack;
+		} else
+			throw onFailure.apply(failures);
 	}
 
 	private <U> void unbindModel(AbstractModel.Effective<? extends U, ?, ?> node,
@@ -356,7 +376,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
 			Iterable<U> iterable = null;
-			if (node.getOutMethodName().equals("this"))
+			if (node.getOutMethodName() != null
+					&& node.getOutMethodName().equals("this"))
 				iterable = (Iterable<U>) parent;
 			else
 				iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), parent);

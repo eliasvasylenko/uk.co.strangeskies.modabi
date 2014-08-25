@@ -17,6 +17,8 @@ public interface InputSequenceNode extends
 
 		@Override
 		default Class<?> getPostInputClass() {
+			if (isInMethodChained() == null || !isInMethodChained())
+				return getPreInputClass();
 			Method inMethod = getInMethod();
 			return inMethod == null ? null : inMethod.getReturnType();
 		}

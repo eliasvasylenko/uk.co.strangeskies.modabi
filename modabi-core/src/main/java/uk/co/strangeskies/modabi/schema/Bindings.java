@@ -14,8 +14,8 @@ import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 
 public class Bindings {
-	private final Models models;
-	private final SetMultiMap<AbstractModel<?, ?, ?>, Object> bindings;
+	public final Models models;
+	public final SetMultiMap<AbstractModel<?, ?, ?>, Object> bindings;
 
 	public Bindings() {
 		models = new Models();
@@ -23,8 +23,8 @@ public class Bindings {
 	}
 
 	public <T> void add(ElementNode<?> element, T data) {
-		models.addAll(element.baseModel());
-		bindings.addToAll(element.baseModel(), data);
+		models.addAll(element.source().baseModel());
+		bindings.addToAll(element.source().baseModel(), data);
 	}
 
 	public <T> void add(Model<T> model, T data) {
@@ -49,10 +49,8 @@ public class Bindings {
 	public <T> Set<T> get(Model<T> model) {
 		Set<Object> all = bindings.get(model);
 
-		if (all == null) {
+		if (all == null)
 			all = new HashSet<>();
-			bindings.put(model, all);
-		}
 
 		all.addAll(Collections.unmodifiableSet(models.getDerivedModels(model)
 				.stream().map(m -> bindings.get(m))
@@ -64,5 +62,10 @@ public class Bindings {
 				})));
 
 		return (Set<T>) all;
+	}
+
+	@Override
+	public String toString() {
+		return bindings.toString();
 	}
 }

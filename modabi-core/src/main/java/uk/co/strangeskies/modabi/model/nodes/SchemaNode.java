@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
+import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.gears.utilities.PropertySet;
@@ -72,7 +73,28 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 				.get();
 	}
 
-	default ChildNode<?, ?> child(String name) {
-		return child(new QualifiedName(name, getName().getNamespace()));
+	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {
+		if (names.length == 0)
+			return child(name);
+		else
+			return child(name).child(Arrays.asList(names));
+	}
+
+	default ChildNode<?, ?> child(List<QualifiedName> names) {
+		if (names.isEmpty())
+			throw new IllegalArgumentException();
+
+		if (names.size() == 1)
+			return child(names.get(0));
+		else
+			return child(names.get(0)).child(names.subList(1, names.size()));
+	}
+
+	default ChildNode<?, ?> child(String name, String... names) {
+		if (names.length == 0)
+			return child(new QualifiedName(name, getName().getNamespace()));
+		else
+			return child(name).child(names[0],
+					Arrays.copyOfRange(names, 1, names.length));
 	}
 }

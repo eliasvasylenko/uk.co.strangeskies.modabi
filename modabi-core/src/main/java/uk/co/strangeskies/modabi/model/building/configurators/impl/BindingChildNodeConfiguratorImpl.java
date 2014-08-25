@@ -35,21 +35,24 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Method inMethod;
 			private final Boolean inMethodChained;
 
-			private Boolean isExtensible;
+			private Boolean extensible;
+			private Boolean ordered;
 
 			protected Effective(
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				isExtensible = overrideMerge.getValue(BindingChildNode::isExtensible);
+				extensible = overrideMerge.getValue(BindingChildNode::isExtensible);
 
-				if (isAbstract()
+				if (isAbstract() != null && isAbstract()
 						&& !overrideMerge.configurator().getContext().isAbstract()
 						&& !(isExtensible() != null && isExtensible()))
 					throw new SchemaException(
 							"Node '"
 									+ getName()
 									+ "' is not extensible and has no abstract parents, so cannot be abstract.");
+
+				ordered = overrideMerge.getValue(BindingChildNode::isOrdered);
 
 				occurances = overrideMerge.getValue(BindingChildNode::occurances,
 						(v, o) -> o.contains(v));
@@ -79,8 +82,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
+			public Boolean isOrdered() {
+				return ordered;
+			}
+
+			@Override
 			public final Boolean isExtensible() {
-				return isExtensible;
+				return extensible;
 			}
 
 			@Override
@@ -127,14 +135,15 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 
-		private Boolean isExtensible;
+		private Boolean extensible;
+		private Boolean ordered;
 
 		BindingChildNodeImpl(
 				BindingChildNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
 			super(configurator);
 
-			isExtensible = configurator.isExtensible;
-
+			extensible = configurator.extensible;
+			ordered = configurator.ordered;
 			occurances = configurator.occurances;
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
@@ -144,8 +153,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
+		public Boolean isOrdered() {
+			return ordered;
+		}
+
+		@Override
 		public final Boolean isExtensible() {
-			return isExtensible;
+			return extensible;
 		}
 
 		@Override
@@ -181,7 +195,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private String outMethodName;
 	private String inMethodName;
 	private Boolean inMethodChained;
-	private Boolean isExtensible;
+	private Boolean extensible;
+	private Boolean ordered;
 
 	public BindingChildNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super N> parent) {
@@ -248,9 +263,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public final S isExtensible(boolean isExtensible) {
-		requireConfigurable(this.isExtensible);
-		this.isExtensible = isExtensible;
+	public final S extensible(boolean extensible) {
+		requireConfigurable(this.extensible);
+		this.extensible = extensible;
+
+		return getThis();
+	}
+
+	@Override
+	public final S ordered(boolean ordered) {
+		requireConfigurable(this.ordered);
+		this.ordered = ordered;
 
 		return getThis();
 	}

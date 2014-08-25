@@ -27,6 +27,11 @@ public class BufferingDataTarget implements TerminatingDataTarget {
 		}
 
 		@Override
+		public int hashCode() {
+			return index ^ dataSequence.hashCode();
+		}
+
+		@Override
 		public <T> T get(DataType<T> type) {
 			return dataSequence.get(index++).data(type);
 		}

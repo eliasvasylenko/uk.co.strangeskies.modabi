@@ -38,6 +38,25 @@ public interface DataSource {
 			this.index = index;
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof RepeatingDataSource))
+				return false;
+
+			RepeatingDataSource that = (RepeatingDataSource) obj;
+			return !that.isTerminating() && item.equals(that.item)
+					&& index == that.index;
+		}
+
+		@Override
+		public int hashCode() {
+			return item.hashCode() ^ index ^ (isTerminating() ? 1 : 0);
+		}
+
+		public boolean isTerminating() {
+			return false;
+		}
+
 		protected DataItem<?> getItem() {
 			return item;
 		}

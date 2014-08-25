@@ -20,7 +20,8 @@ public class DataItem<T> {
 	@SuppressWarnings("unchecked")
 	public <U> U data(DataType<U> type) {
 		if (this.type != type)
-			throw new ClassCastException();
+			throw new ClassCastException("Cannot convert type '" + this.type
+					+ "' to type '" + type + "'.");
 		return (U) data;
 	}
 

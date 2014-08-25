@@ -30,6 +30,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private final QualifiedName name;
 			private final List<ChildNode.Effective<?, ?>> children;
 
+			private Integer hashCode;
+
 			protected Effective(
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
 				source = overrideMerge.node().source();
@@ -61,8 +63,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public int hashCode() {
-				return hashCodeImpl();
+			public final int hashCode() {
+				if (hashCode == null)
+					hashCode = hashCodeImpl();
+				return hashCode;
 			}
 
 			@Override
@@ -100,7 +104,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public int hashCode() {
+		public final int hashCode() {
 			return hashCodeImpl();
 		}
 

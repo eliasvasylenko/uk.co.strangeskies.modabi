@@ -1,34 +1,21 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.gears.utilities.function.collection.ListTransformationFunction;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataBindingTypeBuilderImpl;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.model.building.impl.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.model.nodes.InputNode;
-import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
@@ -37,91 +24,10 @@ import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
+import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public class SchemaBinderImpl implements SchemaBinder {
-	private static class SchemaLoadingContext<T> implements
-			SchemaProcessingContext {
-		private final Model<T> model;
-
-		private final Deque<Object> bindingStack;
-
-		public SchemaLoadingContext(Model<T> model, StructuredDataSource input) {
-			bindingStack = new ArrayDeque<>();
-
-			this.model = model;
-		}
-
-		protected Binding<T> load() {
-			return new Binding<T>(model, bind(model.effective()));
-		}
-
-		@Override
-		public void accept(ChoiceNode.Effective node) {
-		}
-
-		@Override
-		public void accept(InputSequenceNode.Effective node) {
-			processChildren(node);
-		}
-
-		public <U> U bind(AbstractModel.Effective<U, ?, ?> node) {
-			// String name = input.nextChild();
-			// String namespace = input.getProperty("xmlns", null);
-
-			bindingStack.push(provideInstance(node.getBindingClass()));
-			processChildren(node);
-			@SuppressWarnings("unchecked")
-			U boundObject = (U) bindingStack.pop();
-			return boundObject;
-		}
-
-		@Override
-		public <U> void accept(ElementNode.Effective<U> node) {
-			invokeInMethod(node, (Object) bind(node));
-		}
-
-		private void invokeInMethod(InputNode.Effective<?, ?> node,
-				Object... parameters) {
-			try {
-				Object object = bindingStack
-						.peek()
-						.getClass()
-						.getMethod(node.getInMethodName(),
-								ListTransformationFunction.apply(parameters, Object::getClass))
-						.invoke(bindingStack.peek(), parameters);
-				if (node.isInMethodChained()) {
-					bindingStack.pop();
-					bindingStack.push(object);
-				}
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | NoSuchMethodException
-					| SecurityException e) {
-				e.printStackTrace();
-			}
-		}
-
-		private <U> U provideInstance(Class<U> builderClass) {
-			return null;
-		}
-
-		protected void processChildren(SchemaNode.Effective<?, ?> node) {
-			for (ChildNode.Effective<?, ?> child : node.children())
-				child.process(this);
-		}
-
-		@Override
-		public <U> void accept(DataNode.Effective<U> node) {
-			// invokeInMethod(node, (Object) input.getData(node.type()));
-		}
-
-		@Override
-		public void accept(SequenceNode.Effective node) {
-
-		}
-	}
-
 	private final CoreSchemata coreSchemata;
 
 	private final List<Function<Class<?>, Object>> providers;
@@ -177,6 +83,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
+	public void registerBinding(Binding<?> binding) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public MetaSchema getMetaSchema() {
 		return coreSchemata.metaSchema();
 	}
@@ -187,23 +99,25 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	@Override
-	public <T> T processInput(Model<T> model, StructuredDataSource input) {
-		return new SchemaLoadingContext<>(model, input).load().getData();
-	}
-
-	@Override
-	public Binding<?> processInput(StructuredDataSource input) {
-		Model<?> model = null;
-		// input.peekNext(model);
+	public <T> BindingFuture<T> bindFuture(Model<T> model,
+			StructuredDataSource input) {
 		return new SchemaLoadingContext<>(model, input).load();
 	}
 
 	@Override
-	public <T> void processOutput(Model<T> model, StructuredDataTarget output,
-			T data) {
+	public BindingFuture<?> bindFuture(StructuredDataSource input) {
+		Model<?> model = null;
+		// input.peekNext(model);
+		return new SchemaLoadingContext<>(model, input).load();
+
+	}
+
+	@Override
+	public <T> void unbind(Model<T> model, StructuredDataTarget output, T data) {
 		new SchemaSavingContext<>(this, model, output, data);
 	}
 
+	// TODO disallow provider registrations overriding built-in providers
 	@Override
 	public <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
 		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);

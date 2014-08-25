@@ -1,9 +1,5 @@
 package uk.co.strangeskies.modabi.namespace;
 
-import java.time.LocalDate;
-
-import org.apache.commons.lang3.Validate;
-
 public class QualifiedName {
 	private final String name;
 	private final Namespace namespace;

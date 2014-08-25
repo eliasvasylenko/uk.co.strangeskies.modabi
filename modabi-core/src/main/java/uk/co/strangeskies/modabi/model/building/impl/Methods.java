@@ -44,7 +44,9 @@ public class Methods {
 			if (node.getOutMethodName() != null
 					&& node.getOutMethodName().equals("this")) {
 				if (!resultClass.isAssignableFrom(targetClass))
-					throw new SchemaException();
+					throw new SchemaException("Can't use out method 'this' for node '"
+							+ node.getName() + "', as result class '" + resultClass
+							+ "' cannot be assugbed from target class'" + targetClass + "'.");
 				outMethod = null;
 			} else if (targetClass == null) {
 				if (!node.isAbstract())
@@ -112,9 +114,6 @@ public class Methods {
 	}
 
 	public static Method findUnbindingMethod(BindingNode.Effective<?, ?, ?> node) {
-		if (node.getDataClass() == null)
-			return null;
-
 		UnbindingStrategy unbindingStrategy = node.getUnbindingStrategy();
 		if (unbindingStrategy == null)
 			unbindingStrategy = UnbindingStrategy.SIMPLE;
@@ -176,11 +175,15 @@ public class Methods {
 	private static Method findUnbindingMethod(
 			BindingNode.Effective<?, ?, ?> node, Class<?> result, Class<?> receiver,
 			List<Class<?>> parameters) {
+		List<String> names = generateUnbindingMethodNames(node, result);
 		try {
-			return findMethod(generateUnbindingMethodNames(node, result), receiver,
-					result, parameters.toArray(new Class<?>[] {}));
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new SchemaException(e);
+			return findMethod(names, receiver, result,
+					parameters.toArray(new Class<?>[] {}));
+		} catch (NoSuchMethodException | SchemaException | SecurityException e) {
+			throw new SchemaException("Cannot find unbinding method for node '"
+					+ node + "' of class '" + result + "', reveiver '" + receiver
+					+ "', and parameters '" + parameters + "' with any name of '" + names
+					+ "'.", e);
 		}
 	}
 
@@ -202,7 +205,13 @@ public class Methods {
 
 							return result == null
 									|| ClassUtils.isAssignable(m.getReturnType(), result, true);
-						}).findAny().orElse(null);
+						})
+				.findAny()
+				.orElseThrow(
+						() -> new SchemaException("Cannot find method of class '" + result
+								+ "', reveiver '" + receiver + "', and parameters '"
+								+ Arrays.asList(parameters) + "' with any name of '" + names
+								+ "'."));
 		/*-
 		.orElseThrow(
 				() -> new NoSuchMethodException("For "

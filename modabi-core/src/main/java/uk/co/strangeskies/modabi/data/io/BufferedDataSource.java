@@ -37,6 +37,24 @@ public interface BufferedDataSource extends TerminatingDataSource,
 		}
 
 		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof BufferedDataSource))
+				return false;
+
+			return size == ((BufferedDataSource) obj).size() && super.equals(obj);
+		}
+
+		@Override
+		public int hashCode() {
+			return size ^ super.hashCode();
+		}
+
+		@Override
+		public boolean isTerminating() {
+			return true;
+		}
+
+		@Override
 		public BufferedDataSource buffer() {
 			return new BufferedRepeatingDataSource(getItem(), 0, size - index());
 		}
