@@ -9,39 +9,28 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
-import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
 public class XMLSource implements StructuredDataSource {
-	private final BufferingStructuredDataTarget bufferingOutput;
-	private final int depth;
-
 	private final XMLStreamReader in;
 
-	public XMLSource(InputStream in) {
-		bufferingOutput = new BufferingStructuredDataTarget();
-		depth = 0;
+	public XMLSource(XMLStreamReader in) {
+		this.in = in;
+	}
 
+	public XMLSource(InputStream in) {
+		this(createXMLStreamReader(in));
+	}
+
+	private static XMLStreamReader createXMLStreamReader(InputStream in) {
 		try {
-			this.in = XMLInputFactory.newInstance().createXMLStreamReader(in);
+			return XMLInputFactory.newInstance().createXMLStreamReader(in);
 		} catch (XMLStreamException | FactoryConfigurationError e) {
 			throw new SchemaException(e);
 		}
-	}
-
-	@Override
-	public Namespace globalDefaultNamespaceHint() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<Namespace> globalNamespaceHints() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

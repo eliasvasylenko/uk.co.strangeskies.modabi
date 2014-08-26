@@ -306,9 +306,8 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	private final Set<Namespace> namespaceHints = new HashSet<>();
 
 	@Override
-	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace,
-			boolean global) {
-		if (global)
+	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace) {
+		if (stack.isEmpty())
 			if (defaultNamespaceHint != null)
 				// TODO more sensible exception
 				throw new UnsupportedOperationException();
@@ -324,9 +323,8 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 	}
 
 	@Override
-	public StructuredDataTarget registerNamespaceHint(Namespace namespace,
-			boolean global) {
-		if (global)
+	public StructuredDataTarget registerNamespaceHint(Namespace namespace) {
+		if (stack.isEmpty())
 			namespaceHints.add(namespace);
 		else
 			stack.peek().namespaceHints.add(namespace);

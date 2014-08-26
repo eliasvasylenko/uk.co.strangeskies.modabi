@@ -7,10 +7,6 @@ import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface StructuredDataSource {
-	public Namespace globalDefaultNamespaceHint();
-
-	public Set<Namespace> globalNamespaceHints();
-
 	public Namespace defaultNamespaceHint();
 
 	public Set<Namespace> namespaceHints();
@@ -31,11 +27,11 @@ public interface StructuredDataSource {
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
 		if (globalDefaultNamespaceHint() != null)
-			output.registerDefaultNamespaceHint(globalDefaultNamespaceHint(), true);
+			output.registerDefaultNamespaceHint(globalDefaultNamespaceHint());
 
 		if (!globalNamespaceHints().isEmpty())
 			for (Namespace hint : globalNamespaceHints())
-				output.registerNamespaceHint(hint, true);
+				output.registerNamespaceHint(hint);
 
 		QualifiedName childElement;
 
@@ -45,9 +41,9 @@ public interface StructuredDataSource {
 				output.nextChild(childElement);
 
 				if (defaultNamespaceHint() != null)
-					output.registerDefaultNamespaceHint(defaultNamespaceHint(), false);
+					output.registerDefaultNamespaceHint(defaultNamespaceHint());
 				for (Namespace hint : namespaceHints())
-					output.registerNamespaceHint(hint, false);
+					output.registerNamespaceHint(hint);
 
 				for (QualifiedName property : properties())
 					propertyData(property).pipe(output.property(property)).terminate();

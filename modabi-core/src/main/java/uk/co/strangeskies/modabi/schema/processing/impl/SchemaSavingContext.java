@@ -63,7 +63,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		nodeStack.push(model);
 		this.output = output;
 
-		output.registerDefaultNamespaceHint(model.getName().getNamespace(), true);
+		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
 		bindings = new Bindings();
 

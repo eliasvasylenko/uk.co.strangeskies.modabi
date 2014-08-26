@@ -16,11 +16,9 @@ public interface StructuredDataTarget {
 	 * @param namespace
 	 * @return
 	 */
-	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace,
-			boolean global);
+	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace);
 
-	public StructuredDataTarget registerNamespaceHint(Namespace namespace,
-			boolean global);
+	public StructuredDataTarget registerNamespaceHint(Namespace namespace);
 
 	public StructuredDataTarget nextChild(QualifiedName name);
 
