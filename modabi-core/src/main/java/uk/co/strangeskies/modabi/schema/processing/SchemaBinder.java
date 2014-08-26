@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.processing;
 
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
@@ -23,29 +24,24 @@ public interface SchemaBinder {
 	// So we can import from manually added data.
 	void registerBinding(Binding<?> binding);
 
-	// So we can import from manually added data.
 	default <T> void registerBinding(Model<T> model, T data) {
 		registerBinding(new Binding<T>(model, data));
 	}
 
 	default <T> T bind(Model<T> model, StructuredDataSource input) {
-		BindingFuture<T> future = bindFuture(model, input);
-		// TODO check if completed, if not throw exception based on blocking binding
-		// futures. then the resolve will be guaranteed to return instantly:
-		return future.resolve().getData();
+		return bindFuture(model, input).resolveNow().getData();
+	}
+
+	default Binding<?> bind(StructuredDataSource input) {
+		return bindFuture(input).resolveNow();
 	}
 
 	// Blocks until all possible processing is done other than waiting imports:
 	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input);
 
-	default Binding<?> bind(StructuredDataSource input) {
-		BindingFuture<?> future = bindFuture(input);
-		// TODO check if completed, if not throw exception based on blocking binding
-		// futures. then the resolve will be guaranteed to return instantly:
-		return future.resolve();
-	}
-
 	BindingFuture<?> bindFuture(StructuredDataSource input);
+
+	Set<BindingFuture<?>> bindingFutures();
 
 	default Schema registerSchemaBinding(StructuredDataSource input) {
 		Schema schema = bind(getMetaSchema().getSchemaModel(), input);

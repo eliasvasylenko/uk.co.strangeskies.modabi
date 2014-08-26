@@ -16,6 +16,7 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
 
@@ -30,7 +31,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private final QualifiedName name;
 			private final List<ChildNode.Effective<?, ?>> children;
 
-			private Integer hashCode;
+			private PropertySet<E> combinedPropertySet;
 
 			protected Effective(
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
@@ -58,15 +59,20 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public final boolean equals(Object obj) {
-				return equalsImpl(obj);
+			public final boolean equals(Object object) {
+				return combinedPropertySet().testEquality(object);
 			}
 
 			@Override
 			public final int hashCode() {
-				if (hashCode == null)
-					hashCode = hashCodeImpl();
-				return hashCode;
+				return combinedPropertySet().generateHashCode();
+			}
+
+			private final PropertySet<E> combinedPropertySet() {
+				if (combinedPropertySet == null)
+					combinedPropertySet = new PropertySet<>(getEffectiveClass(),
+							propertySet(), true).add(effectivePropertySet());
+				return combinedPropertySet;
 			}
 
 			@Override
@@ -77,6 +83,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		private final QualifiedName name;
 		private final List<ChildNode<?, ?>> children;
+
+		private PropertySet<S> propertySet;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseConfiguration();
@@ -99,13 +107,18 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public final boolean equals(Object obj) {
-			return equalsImpl(obj);
+		public final boolean equals(Object object) {
+			if (propertySet == null)
+				propertySet = propertySet();
+			return propertySet.testEquality(object)
+					&& effective().equals(((SchemaNode<?, ?>) object).effective());
 		}
 
 		@Override
 		public final int hashCode() {
-			return hashCodeImpl();
+			if (propertySet == null)
+				propertySet = propertySet();
+			return propertySet.generateHashCode();
 		}
 
 		@Override

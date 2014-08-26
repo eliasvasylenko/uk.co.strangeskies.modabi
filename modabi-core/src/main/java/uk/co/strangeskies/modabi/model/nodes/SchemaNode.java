@@ -21,36 +21,15 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 		@Override
 		S source();
 
-		@Override
-		default boolean equalsImpl(Object object) {
-			return propertySet().testEquality(object)
-					&& effectivePropertySet().testEquality(object);
-		}
-
-		@Override
-		default int hashCodeImpl() {
-			return propertySet().generateHashCode()
-					^ effectivePropertySet().generateHashCode();
-		}
-
 		default PropertySet<E> effectivePropertySet() {
-			return new PropertySet<>(getEffectiveClass(), effective());
+			return new PropertySet<>(getEffectiveClass(), effective(), true);
 		}
-	}
-
-	default boolean equalsImpl(Object object) {
-		return propertySet().testEquality(object)
-				&& effective().equalsImpl(((SchemaNode<?, ?>) object).effective());
-	}
-
-	default int hashCodeImpl() {
-		return propertySet().generateHashCode();
 	}
 
 	@SuppressWarnings("unchecked")
 	default PropertySet<S> propertySet() {
-		return new PropertySet<>(getNodeClass(), (S) this)
-				.add(SchemaNode::children).add(SchemaNode::getName);
+		return new PropertySet<>(getNodeClass(), (S) this, true).add(
+				SchemaNode::children).add(SchemaNode::getName);
 	}
 
 	QualifiedName getName();

@@ -5,7 +5,7 @@ import uk.co.strangeskies.modabi.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.schema.processing.impl.SchemaBinderImpl;
-import uk.co.strangeskies.modabi.xml.impl.XMLOutput;
+import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
 	private void run() {
@@ -13,10 +13,10 @@ public class SchemaTest {
 				new ModelBuilderImpl(), new DataBindingTypeBuilderImpl());
 
 		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(),
-				new XMLOutput(), schemaBinder.getBaseSchema());
+				new XMLTarget(System.out), schemaBinder.getBaseSchema());
 
 		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(),
-				new XMLOutput(), schemaBinder.getMetaSchema());
+				new XMLTarget(System.out), schemaBinder.getMetaSchema());
 	}
 
 	public static void main(String... args) {

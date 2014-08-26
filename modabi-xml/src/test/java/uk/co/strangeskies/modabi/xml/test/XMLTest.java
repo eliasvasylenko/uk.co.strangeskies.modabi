@@ -3,11 +3,11 @@ package uk.co.strangeskies.modabi.xml.test;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.xml.impl.XMLOutput;
+import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
-public class XMLOutputTest {
+public class XMLTest {
 	private void run() {
-		StructuredDataTarget output = new XMLOutput();
+		StructuredDataTarget output = new XMLTarget(System.out);
 
 		output.nextChild(new QualifiedName("root"));
 		output.nextChild(new QualifiedName("poot"));
@@ -22,6 +22,6 @@ public class XMLOutputTest {
 	}
 
 	public static void main(String... args) {
-		new XMLOutputTest().run();
+		new XMLTest().run();
 	}
 }

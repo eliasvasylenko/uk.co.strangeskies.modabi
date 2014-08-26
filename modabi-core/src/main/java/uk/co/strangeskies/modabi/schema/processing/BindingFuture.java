@@ -27,4 +27,15 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 					+ "' with model '" + getModel().getName() + "'.", e.getCause());
 		}
 	}
+
+	default Binding<T> resolveNow() {
+		Set<BindingFuture<?>> blockingBindings = getBlockingBindings();
+
+		if (!isDone() && cancel(true))
+			throw new SchemaException(
+					"Binding has been blocked by the following missing dependencies: "
+							+ blockingBindings);
+
+		return resolve();
+	}
 }

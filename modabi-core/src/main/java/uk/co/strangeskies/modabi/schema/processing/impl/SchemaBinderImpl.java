@@ -1,8 +1,13 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,11 +33,12 @@ import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
 
 public class SchemaBinderImpl implements SchemaBinder {
+	private final List<Function<Class<?>, Object>> providers;
+	private final Set<BindingFuture<?>> bindingFutures;
+
 	private final CoreSchemata coreSchemata;
 
-	private final List<Function<Class<?>, Object>> providers;
-
-	final Models registeredModels; // TODO private, obvs
+	final Models registeredModels;
 	final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchema;
 
@@ -44,6 +50,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		providers = new ArrayList<>();
+		bindingFutures = Collections.synchronizedSet(new HashSet<>());
 
 		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
 				dataTypeBuilder);
@@ -101,15 +108,31 @@ public class SchemaBinderImpl implements SchemaBinder {
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
 			StructuredDataSource input) {
-		return new SchemaLoadingContext<>(model, input).load();
+		return addBindingFuture(SchemaLoadingContext.load(this, model, input));
 	}
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		Model<?> model = null;
-		// input.peekNext(model);
-		return new SchemaLoadingContext<>(model, input).load();
+		return addBindingFuture(SchemaLoadingContext.load(this, input));
+	}
 
+	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
+		bindingFutures.add(binding);
+		new Thread(() -> {
+			try {
+				binding.get();
+			} catch (CancellationException e) {
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+			bindingFutures.remove(binding);
+		});
+		return binding;
+	}
+
+	@Override
+	public Set<BindingFuture<?>> bindingFutures() {
+		return new HashSet<>(bindingFutures);
 	}
 
 	@Override

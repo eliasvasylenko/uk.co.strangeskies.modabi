@@ -3,6 +3,10 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.model.AbstractModel;
@@ -15,23 +19,95 @@ import uk.co.strangeskies.modabi.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.Binding;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.utilities.function.collection.ListTransformationFunction;
 
 class SchemaLoadingContext<T> implements SchemaProcessingContext {
+	private final SchemaBinderImpl schemaBinderImpl;
 	private final Model<T> model;
+	private final StructuredDataSource input;
 
 	private final Deque<Object> bindingStack;
 
-	public SchemaLoadingContext(Model<T> model, StructuredDataSource input) {
-		bindingStack = new ArrayDeque<>();
-
+	private SchemaLoadingContext(SchemaBinderImpl schemaBinderImpl,
+			Model<T> model, StructuredDataSource input) {
+		this.schemaBinderImpl = schemaBinderImpl;
 		this.model = model;
+		this.input = input;
+
+		bindingStack = new ArrayDeque<>();
 	}
 
-	protected BindingFuture<T> load() {
-		return null;// new Binding<T>(model, bind(model.effective()));
+	public static <T> BindingFuture<T> load(SchemaBinderImpl schemaBinderImpl,
+			Model<T> model, StructuredDataSource input) {
+		QualifiedName name = input.nextChild();
+		if (!name.equals(model.getName()))
+			throw new SchemaException("Input root name '" + name
+					+ "' does not match model name '" + model.getName() + "'.");
+		return new SchemaLoadingContext<>(schemaBinderImpl, model, input).load();
+	}
+
+	public static BindingFuture<?> load(SchemaBinderImpl schemaBinderImpl,
+			StructuredDataSource input) {
+		Model<?> model = schemaBinderImpl.registeredModels.get(input.nextChild());
+		return new SchemaLoadingContext<>(schemaBinderImpl, model, input).load();
+	}
+
+	private BindingFuture<T> load() {
+		return new BindingFuture<T>() {
+			@Override
+			public boolean cancel(boolean mayInterruptIfRunning) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean isCancelled() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean isDone() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public Binding<T> get() throws InterruptedException, ExecutionException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public Binding<T> get(long timeout, TimeUnit unit)
+					throws InterruptedException, ExecutionException, TimeoutException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public QualifiedName getName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public Model<T> getModel() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public Set<BindingFuture<?>> getBlockingBindings() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		};
 	}
 
 	@Override
