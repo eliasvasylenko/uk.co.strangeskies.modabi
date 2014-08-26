@@ -2,10 +2,10 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.util.Collection;
 
-import uk.co.strangeskies.gears.utilities.factory.Factory;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface SchemaConfigurator extends Factory<Schema> {
 	public SchemaConfigurator qualifiedName(QualifiedName name);

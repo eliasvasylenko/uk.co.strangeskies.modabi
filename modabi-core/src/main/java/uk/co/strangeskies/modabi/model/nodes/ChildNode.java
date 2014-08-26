@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
-import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
 		extends SchemaNode<S, E> {

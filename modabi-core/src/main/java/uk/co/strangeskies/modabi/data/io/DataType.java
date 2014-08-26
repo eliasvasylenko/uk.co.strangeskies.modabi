@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.data.io;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import uk.co.strangeskies.gears.utilities.Enumeration;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.utilities.Enumeration;
 
 public class DataType<T> extends Enumeration<DataType<T>> {
 	public static final DataType<byte[]> BINARY = new DataType<>("binary",

@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.model.nodes;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
 	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>>

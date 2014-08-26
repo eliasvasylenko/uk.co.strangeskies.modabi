@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 
-import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
 import uk.co.strangeskies.modabi.model.building.configurators.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ChildNodeImpl;
@@ -35,8 +35,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Method inMethod;
 			private final Boolean inMethodChained;
 
-			private Boolean extensible;
-			private Boolean ordered;
+			private final Boolean extensible;
+			private final Boolean ordered;
 
 			protected Effective(
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
@@ -135,8 +135,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 
-		private Boolean extensible;
-		private Boolean ordered;
+		private final Boolean extensible;
+		private final Boolean ordered;
 
 		BindingChildNodeImpl(
 				BindingChildNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {

@@ -9,8 +9,7 @@ import java.util.Set;
 
 import org.apache.commons.collections4.map.HashedMap;
 
-import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.gears.utilities.Enumeration;
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
@@ -35,6 +34,7 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
+import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
 	private class DerivedTypesImpl implements DerivedTypes {

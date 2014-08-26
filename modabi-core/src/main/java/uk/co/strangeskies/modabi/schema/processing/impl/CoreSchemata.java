@@ -9,7 +9,6 @@ import org.apache.commons.proxy.ObjectProvider;
 import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.provider.SingletonProvider;
 
-import uk.co.strangeskies.gears.utilities.Enumeration;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.DataType;
@@ -24,6 +23,7 @@ import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.utilities.Enumeration;
 
 public class CoreSchemata {
 	private final BaseSchema baseSchema;

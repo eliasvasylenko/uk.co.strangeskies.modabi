@@ -6,12 +6,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.co.strangeskies.gears.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.SetMultiMap;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
+import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
+import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
 public class Bindings {
 	public final Models models;

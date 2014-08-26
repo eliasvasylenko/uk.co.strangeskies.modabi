@@ -2,8 +2,8 @@ package uk.co.strangeskies.modabi.model;
 
 import java.util.Set;
 
-import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface AbstractModel<T, S extends AbstractModel<T, S, E>, E extends AbstractModel.Effective<T, S, E>>
 		extends BindingNode<T, S, E> {

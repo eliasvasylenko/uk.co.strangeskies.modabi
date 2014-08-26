@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.gears.utilities.IdentityComparator;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
@@ -19,6 +18,7 @@ import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.utilities.IdentityComparator;
 
 public class ElementNodeConfiguratorImpl<T>
 		extends

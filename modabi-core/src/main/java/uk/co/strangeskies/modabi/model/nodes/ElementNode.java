@@ -1,8 +1,8 @@
 package uk.co.strangeskies.modabi.model.nodes;
 
-import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.model.AbstractModel;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface ElementNode<T> extends
 		AbstractModel<T, ElementNode<T>, ElementNode.Effective<T>>,

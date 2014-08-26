@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.set.ListOrderedSet;
 
-import uk.co.strangeskies.gears.utilities.collection.MultiHashMap;
-import uk.co.strangeskies.gears.utilities.collection.MultiMap;
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
+import uk.co.strangeskies.utilities.collection.MultiHashMap;
+import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Models extends QualifiedNamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;

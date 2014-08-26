@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.data.io;
 
-import uk.co.strangeskies.gears.utilities.Copyable;
+import uk.co.strangeskies.utilities.Copyable;
 
 public interface BufferedDataSource extends TerminatingDataSource,
 		Copyable<BufferedDataSource> {

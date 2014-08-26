@@ -2,11 +2,11 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import java.util.List;
 
-import uk.co.strangeskies.gears.utilities.PropertySet;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface DataNode<T> extends
 		BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>,

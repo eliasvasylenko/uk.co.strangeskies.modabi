@@ -4,8 +4,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,7 +31,7 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
  * namespace hints will be piped before the rest of the document begins, and
  * non-global hints will be piped before any children of the child they occur
  * in.
- * 
+ *
  * @author eli
  *
  */
@@ -189,7 +189,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 					.collect(Collectors.toList());
 			childIndex = 0;
 
-			properties = new HashMap<>();
+			properties = new LinkedHashMap<>();
 			for (Map.Entry<QualifiedName, BufferingDataTarget> property : from.properties
 					.entrySet())
 				properties.put(property.getKey(), property.getValue().buffer());
@@ -279,7 +279,7 @@ public class BufferingStructuredDataTarget implements StructuredDataTarget {
 
 		public BufferingStructuredData(QualifiedName name) {
 			children = new ArrayList<>();
-			properties = new HashMap<>();
+			properties = new LinkedHashMap<>();
 			this.name = name;
 		}
 

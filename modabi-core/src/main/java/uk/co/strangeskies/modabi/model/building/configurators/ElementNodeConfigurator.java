@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.model.building.configurators;
 
-import uk.co.strangeskies.gears.mathematics.Range;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
@@ -16,7 +15,4 @@ public interface ElementNodeConfigurator<T>
 
 	@Override
 	public <V extends T> ElementNodeConfigurator<V> dataClass(Class<V> dataClass);
-
-	@Override
-	public ElementNodeConfigurator<T> occurances(Range<Integer> occuranceRange);
 }

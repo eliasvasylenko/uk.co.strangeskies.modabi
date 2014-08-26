@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.model.building.configurators;
 
-import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;
 

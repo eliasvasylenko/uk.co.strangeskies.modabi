@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.model.building.impl;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import uk.co.strangeskies.gears.mathematics.Range;
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.model.nodes.ChildNode;

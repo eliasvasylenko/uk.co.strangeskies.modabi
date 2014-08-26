@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.model.nodes;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import uk.co.strangeskies.gears.utilities.PropertySet;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effective<S, E>>
 		extends ChildNode<S, E> {

@@ -2,8 +2,8 @@ package uk.co.strangeskies.modabi.model.nodes;
 
 import java.lang.reflect.Method;
 
-import uk.co.strangeskies.gears.mathematics.Range;
-import uk.co.strangeskies.gears.utilities.PropertySet;
+import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNode<T, S, E>, InputNode<S, E> {
@@ -41,7 +41,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 
 	/**
 	 * Default behaviour is as if 1..1.
-	 * 
+	 *
 	 * @return
 	 */
 	Range<Integer> occurances();
@@ -49,7 +49,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	/**
 	 * Default behaviour is as if true. If unordered, may input concurrently, and
 	 * semantics of updating existing binding are more flexible.
-	 * 
+	 *
 	 * @return
 	 */
 	Boolean isOrdered();
