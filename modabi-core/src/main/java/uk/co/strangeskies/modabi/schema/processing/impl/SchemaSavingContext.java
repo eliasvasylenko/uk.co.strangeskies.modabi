@@ -99,6 +99,9 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			@Override
 			public <U> void include(Model<U> model, U object) {
 				bindings.add(model, object);
+
+				SchemaSavingContext.this.output.registerNamespaceHint(model.getName()
+						.getNamespace());
 			}
 		};
 

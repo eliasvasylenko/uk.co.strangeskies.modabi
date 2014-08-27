@@ -48,7 +48,8 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 
 	/**
 	 * Default behaviour is as if true. If unordered, may input concurrently, and
-	 * semantics of updating existing binding are more flexible.
+	 * semantics of updating existing binding are more flexible. Also note that
+	 * unordered nodes may bind and unbind with less memory-efficiency...
 	 *
 	 * @return
 	 */

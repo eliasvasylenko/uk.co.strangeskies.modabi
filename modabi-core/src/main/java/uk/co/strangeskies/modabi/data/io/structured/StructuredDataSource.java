@@ -26,11 +26,11 @@ public interface StructuredDataSource {
 	public int indexAtDepth();
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
-		if (globalDefaultNamespaceHint() != null)
-			output.registerDefaultNamespaceHint(globalDefaultNamespaceHint());
+		if (defaultNamespaceHint() != null)
+			output.registerDefaultNamespaceHint(defaultNamespaceHint());
 
-		if (!globalNamespaceHints().isEmpty())
-			for (Namespace hint : globalNamespaceHints())
+		if (!namespaceHints().isEmpty())
+			for (Namespace hint : namespaceHints())
 				output.registerNamespaceHint(hint);
 
 		QualifiedName childElement;
