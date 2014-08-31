@@ -1,7 +1,10 @@
 package uk.co.strangeskies.modabi.xml.impl;
 
 import java.io.OutputStream;
-import java.util.function.Consumer;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
 
@@ -10,20 +13,112 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import uk.co.strangeskies.modabi.data.io.DataItem;
-import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.data.io.IOException;
 import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTargetDecorator;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
-public class XMLTarget implements StructuredDataTarget {
-	private final XMLStreamWriter out;
-	private int depth = 0;
+class NamespaceStack {
+	private Namespace defaultNamespace;
+	private Map<Namespace, String> namespaceAliases;
 
-	public XMLTarget(XMLStreamWriter out) {
+	private NamespaceStack next;
+
+	public NamespaceStack() {
+		namespaceAliases = new HashMap<>();
+	}
+
+	private NamespaceStack(NamespaceStack from) {
+		setFrom(from);
+	}
+
+	private void setFrom(NamespaceStack from) {
+		defaultNamespace = from.defaultNamespace;
+		namespaceAliases = from.namespaceAliases;
+		next = from.next;
+	}
+
+	public String getNameString(QualifiedName name) {
+		if (defaultNamespace != null
+				&& defaultNamespace.equals(name.getNamespace()))
+			return name.getName();
+
+		String alias = namespaceAliases.get(name.getNamespace());
+		if (alias != null)
+			return alias + ":" + name.getName();
+
+		if (!isBase())
+			return next.getNameString(name);
+
+		return name.toString();
+	}
+
+	public void push() {
+		next = new NamespaceStack(this);
+		namespaceAliases = new HashMap<>();
+		defaultNamespace = null;
+	}
+
+	public void pop() {
+		if (isBase())
+			throw new AssertionError();
+
+		setFrom(next);
+	}
+
+	public boolean isBase() {
+		return next == null;
+	}
+
+	private String generateAlias() {
+		Set<String> existingAliases = new HashSet<>(namespaceAliases.values());
+		NamespaceStack next = this.next;
+		while (next != null) {
+			existingAliases.addAll(next.namespaceAliases.values());
+			next = next.next;
+		}
+
+		String alias = "";
+		do {
+			alias += "a";
+		} while (existingAliases.contains(alias));
+
+		return alias;
+	}
+
+	public void setDefaultNamespace(Namespace namespace) {
+		if (defaultNamespace != null)
+			throw new AssertionError();
+		defaultNamespace = namespace;
+	}
+
+	public Namespace getDefaultNamespace() {
+		return defaultNamespace;
+	}
+
+	public String addNamespace(Namespace namespace) {
+		return "test";
+	}
+
+	public Set<Namespace> getNamespaces() {
+		return namespaceAliases.keySet();
+	}
+
+	public String getNamespaceAlias(Namespace namespace) {
+		return "test";
+	}
+}
+
+class XMLTargetImpl implements StructuredDataTarget {
+	private final XMLStreamWriter out;
+	private final NamespaceStack namespaces;
+
+	public XMLTargetImpl(XMLStreamWriter out) {
 		this.out = out;
+		namespaces = new NamespaceStack();
+
 		try {
 			out.writeStartDocument();
 		} catch (XMLStreamException | FactoryConfigurationError e) {
@@ -31,35 +126,11 @@ public class XMLTarget implements StructuredDataTarget {
 		}
 	}
 
-	public XMLTarget(OutputStream out, boolean formatted) {
-		this(createXMLStreamWriter(out, formatted));
-	}
-
-	public XMLTarget(OutputStream out) {
-		this(out, true);
-	}
-
-	private static XMLStreamWriter createXMLStreamWriter(OutputStream out,
-			boolean formatted) {
-		try {
-			XMLStreamWriter writer = XMLOutputFactory.newInstance()
-					.createXMLStreamWriter(out);
-			if (formatted)
-				writer = new IndentingXMLStreamWriter(writer);
-			return writer;
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new IOException(e);
-		}
-	}
-
-	private String generateAlias(Namespace namespace) {
-		return "test";
-	}
-
 	@Override
 	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace) {
 		try {
-			out.writeDefaultNamespace(namespace.toHttpString());
+			namespaces.setDefaultNamespace(namespace);
+			out.setDefaultNamespace(namespace.toHttpString());
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
@@ -72,7 +143,10 @@ public class XMLTarget implements StructuredDataTarget {
 		String alias = generateAlias(namespace);
 
 		try {
-			out.writeNamespace(alias, namespace.toHttpString());
+			if (!namespaceAliases.peek().containsKey(namespace))
+				namespaceAliases.peek().put(namespace, alias);
+			if (namespaceAliases.size() > 1)
+				out.writeNamespace(alias, namespace.toHttpString());
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
@@ -83,12 +157,23 @@ public class XMLTarget implements StructuredDataTarget {
 	@Override
 	public StructuredDataTarget nextChild(QualifiedName name) {
 		try {
-			out.writeStartElement(name.getNamespace().toHttpString(), name.getName());
+			if (namespaces.isBase()) {
+				out.writeStartElement(
+						namespaces.getNamespaceAlias(name.getNamespace()), name.getName(),
+						name.getNamespace().toHttpString());
+
+				for (Namespace namespace : namespaceAliases.peek().keySet())
+					if (namespace != name.getNamespace())
+						out.writeNamespace(namespaceAliases.peek().get(namespace),
+								namespace.toHttpString());
+			} else
+				out.writeStartElement(name.getNamespace().toHttpString(),
+						name.getName());
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
 
-		depth++;
+		namespaces.push();
 
 		return this;
 	}
@@ -101,7 +186,8 @@ public class XMLTarget implements StructuredDataTarget {
 			throw new IOException(e);
 		}
 
-		if (--depth == 0)
+		namespaces.pop();
+		if (namespaces.isBase())
 			try {
 				out.writeEndDocument();
 			} catch (XMLStreamException e) {
@@ -113,72 +199,75 @@ public class XMLTarget implements StructuredDataTarget {
 
 	@Override
 	public TerminatingDataTarget property(QualifiedName name) {
-		return getDataSink(s -> {
-			try {
-				out.writeAttribute(name.getNamespace().toHttpString(), name.getName(),
-						s);
-			} catch (XMLStreamException e) {
-				throw new IOException(e);
-			}
-		});
+		return TerminatingDataTarget.composeString(
+				s -> {
+					try {
+						out.writeAttribute(name.getNamespace().toHttpString(),
+								name.getName(), s);
+					} catch (XMLStreamException e) {
+						throw new IOException(e);
+					}
+				}, this::formatName);
 	}
 
 	@Override
 	public TerminatingDataTarget content() {
-		return getDataSink(s -> {
+		return TerminatingDataTarget.composeString(s -> {
 			try {
 				out.writeCharacters(s);
 			} catch (XMLStreamException e) {
 				throw new IOException(e);
 			}
-		});
+		}, this::formatName);
 	}
 
-	private TerminatingDataTarget getDataSink(Consumer<String> resultConsumer) {
-		return new TerminatingDataTarget() {
-			private boolean terminated;
-			private boolean compound;
+	private String formatName(QualifiedName name) {
+		String prefix = out.getNamespaceContext().getPrefix(
+				name.getNamespace().toHttpString());
+		if (prefix.length() > 0)
+			prefix += ":";
+		return prefix + name;
+	}
 
-			StringBuilder stringBuilder = new StringBuilder();
+	@Override
+	public StructuredDataTarget comment(String comment) {
+		try {
+			out.writeComment(comment);
+		} catch (XMLStreamException e) {
+			throw new IOException(e);
+		}
+		return this;
+	}
 
-			private void next(Object value) {
-				if (compound)
-					stringBuilder.append(", ");
-				else
-					compound = true;
-				stringBuilder.append(value);
-			}
+	@Override
+	public State currentState() {
+		return null;
+	}
+}
 
-			@Override
-			public <T> TerminatingDataTarget put(DataItem<T> item) {
-				if (terminated)
-					throw new IOException();
+public class XMLTarget extends StructuredDataTargetDecorator {
+	public XMLTarget(XMLStreamWriter out) {
+		super(new XMLTargetImpl(out));
+	}
 
-				if (item.type() == DataType.QUALIFIED_NAME) {
-					QualifiedName name = (QualifiedName) item.data();
+	public XMLTarget(OutputStream out, boolean formatted) {
+		this(createXMLStreamWriter(out, formatted));
+	}
 
-					String prefix = out.getNamespaceContext().getPrefix(
-							name.getNamespace().toHttpString());
-					if (prefix.length() > 0)
-						prefix += ":";
+	private static XMLStreamWriter createXMLStreamWriter(OutputStream out,
+			boolean formatted) {
+		try {
+			XMLOutputFactory factory = XMLOutputFactory.newInstance();
+			XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+			if (formatted)
+				writer = new IndentingXMLStreamWriter(writer);
+			return writer;
+		} catch (XMLStreamException | FactoryConfigurationError e) {
+			throw new IOException(e);
+		}
+	}
 
-					next(prefix + name.getName());
-				} else
-					next(item.data());
-				return this;
-			}
-
-			@Override
-			public void terminate() {
-				resultConsumer.accept(stringBuilder.toString());
-
-				terminated = true;
-			}
-
-			@Override
-			public boolean isTerminated() {
-				return terminated;
-			}
-		};
+	public XMLTarget(OutputStream out) {
+		this(out, true);
 	}
 }

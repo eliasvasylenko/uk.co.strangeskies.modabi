@@ -8,4 +8,8 @@ public interface TerminatingDataSource extends DataSource {
 	default <T extends DataTarget> T pipe(T target) {
 		return pipe(target, size());
 	}
+
+	static TerminatingDataSource parseString(String content) {
+		return null; // TODO
+	}
 }

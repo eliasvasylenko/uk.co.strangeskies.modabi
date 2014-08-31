@@ -11,6 +11,8 @@ public interface StructuredDataSource {
 
 	public Set<Namespace> namespaceHints();
 
+	public Set<String> comments();
+
 	public QualifiedName nextChild();
 
 	public Set<QualifiedName> properties();

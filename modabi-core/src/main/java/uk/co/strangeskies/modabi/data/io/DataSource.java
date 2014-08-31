@@ -99,7 +99,7 @@ public interface DataSource {
 
 		@Override
 		public BufferedDataSource buffer(int items) {
-			return pipe(new BufferingDataTarget(), items).buffer();
+			return pipe(new BufferingDataTargetImpl(), items).buffer();
 		}
 	}
 }

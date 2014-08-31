@@ -69,6 +69,13 @@ public interface SchemaBinder {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
+	/*
+	 * TODO Best effort at unbinding, outputting comments on errors instead of
+	 * throwing exceptions
+	 * 
+	 * <T> Set<Exception> unbind(Model<T> model, StructuredDataTarget output, T
+	 * data);
+	 */
 	MetaSchema getMetaSchema();
 
 	BaseSchema getBaseSchema();
