@@ -32,6 +32,7 @@ import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 import uk.co.strangeskies.utilities.Enumeration;
@@ -367,101 +368,131 @@ public class BaseSchemaImpl implements BaseSchema {
 							.name("import", namespace)
 							.dataClass(Object.class)
 							.isAbstract(true)
-							.bindingClass(ImportSource.class)
-							.bindingStrategy(BindingStrategy.PROVIDED)
+							.bindingStrategy(BindingStrategy.SOURCE_ADAPTOR)
 							.unbindingMethod("this")
 							.addChild(
-									c -> c
+									b -> b
 											.data()
-											.name("targetModel")
-											.type(referenceType)
+											.name("import")
+											.outMethod("this")
 											.isAbstract(true)
-											.dataClass(Model.class)
-											.outMethod("null")
-											.inMethod("null")
-											.valueResolution(ValueResolution.REGISTRATION_TIME)
+											.dataClass(Object.class)
+											.bindingClass(ImportSource.class)
+											.bindingStrategy(BindingStrategy.PROVIDED)
+											.unbindingFactoryClass(ImportDereferenceTarget.class)
+											.unbindingClass(BufferedDataSource.class)
+											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
+											.unbindingMethod("dereferenceImport")
+											.providedUnbindingParameters("targetModel", "targetId",
+													"this")
 											.addChild(
-													d -> d
+													c -> c
 															.data()
 															.name("targetModel")
-															.provideValue(
-																	new BufferingDataTarget().put(
-																			DataType.QUALIFIED_NAME,
-																			new QualifiedName("model", namespace))
-																			.buffer()))
-											.addChild(
-													d -> d
-															.data()
-															.name("targetId")
-															.provideValue(
-																	new BufferingDataTarget().put(
-																			DataType.QUALIFIED_NAME,
-																			new QualifiedName("name", namespace))
-																			.buffer())))
-							.addChild(
-									d -> d.data().type(primitives.get(DataType.QUALIFIED_NAME))
-											.isAbstract(true).name("targetId")
-											.valueResolution(ValueResolution.REGISTRATION_TIME)
-											.outMethod("null").inMethod("null"))
-							.addChild(
-									c -> c
-											.inputSequence()
-											.name("importObject")
-											.addChild(
-													d -> d
-															.data()
+															.type(referenceType)
+															.isAbstract(true)
 															.dataClass(Model.class)
-															.name("targetModel")
 															.outMethod("null")
-															.bindingStrategy(BindingStrategy.PROVIDED)
-															.bindingClass(BindingChildNode.class)
-															.provideValue(new BufferingDataTarget().buffer())
+															.inMethod("null")
+															.valueResolution(
+																	ValueResolution.REGISTRATION_TIME)
 															.addChild(
-																	e -> e
+																	d -> d
 																			.data()
-																			.name("child")
-																			.type(
-																					primitives
-																							.get(DataType.QUALIFIED_NAME))
-																			.inMethodChained(true)
-																			.outMethod("null")
+																			.name("targetModel")
 																			.provideValue(
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
-																							new QualifiedName("targetModel",
+																							new QualifiedName("model",
 																									namespace)).buffer()))
 															.addChild(
-																	e -> e.inputSequence().name("providedValue")
-																			.inMethodChained(true)))
-											.addChild(
-													d -> d
-															.data()
-															.dataClass(Model.class)
-															.name("targetId")
-															.outMethod("null")
-															.bindingStrategy(BindingStrategy.PROVIDED)
-															.bindingClass(BindingChildNode.class)
-															.provideValue(new BufferingDataTarget().buffer())
-															.addChild(
-																	e -> e
+																	d -> d
 																			.data()
-																			.name("child")
-																			.type(
-																					primitives
-																							.get(DataType.QUALIFIED_NAME))
-																			.inMethodChained(true)
-																			.outMethod("null")
+																			.name("targetId")
 																			.provideValue(
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
-																							new QualifiedName("targetId",
-																									namespace)).buffer()))
-															.addChild(
-																	e -> e.inputSequence().name("providedValue")
-																			.inMethodChained(true)))
+																							new QualifiedName("name",
+																									namespace)).buffer())))
 											.addChild(
-													d -> d.data().name("data").type(bufferedDataType)
-															.outMethod("null"))).create());
+													d -> d
+															.data()
+															.type(primitives.get(DataType.QUALIFIED_NAME))
+															.isAbstract(true)
+															.name("targetId")
+															.valueResolution(
+																	ValueResolution.REGISTRATION_TIME)
+															.outMethod("null").inMethod("null"))
+											.addChild(
+													c -> c
+															.inputSequence()
+															.name("importObject")
+															.addChild(
+																	d -> d
+																			.data()
+																			.dataClass(Model.class)
+																			.name("targetModel")
+																			.outMethod("null")
+																			.bindingStrategy(BindingStrategy.PROVIDED)
+																			.bindingClass(BindingChildNode.class)
+																			.provideValue(
+																					new BufferingDataTarget().buffer())
+																			.addChild(
+																					e -> e
+																							.data()
+																							.name("child")
+																							.type(
+																									primitives
+																											.get(DataType.QUALIFIED_NAME))
+																							.inMethodChained(true)
+																							.outMethod("null")
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(
+																													DataType.QUALIFIED_NAME,
+																													new QualifiedName(
+																															"targetModel",
+																															namespace))
+																											.buffer()))
+																			.addChild(
+																					e -> e.inputSequence()
+																							.name("providedValue")
+																							.inMethodChained(true)))
+															.addChild(
+																	d -> d
+																			.data()
+																			.dataClass(QualifiedName.class)
+																			.name("targetId")
+																			.outMethod("null")
+																			.bindingStrategy(BindingStrategy.PROVIDED)
+																			.bindingClass(BindingChildNode.class)
+																			.provideValue(
+																					new BufferingDataTarget().buffer())
+																			.addChild(
+																					e -> e
+																							.data()
+																							.name("child")
+																							.type(
+																									primitives
+																											.get(DataType.QUALIFIED_NAME))
+																							.inMethodChained(true)
+																							.outMethod("null")
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(
+																													DataType.QUALIFIED_NAME,
+																													new QualifiedName(
+																															"targetId",
+																															namespace))
+																											.buffer()))
+																			.addChild(
+																					e -> e.inputSequence()
+																							.name("providedValue")
+																							.inMethodChained(true)))
+															.addChild(
+																	d -> d.data().name("data")
+																			.type(bufferedDataType).outMethod("this"))))
+							.create());
 		}
 
 		@Override

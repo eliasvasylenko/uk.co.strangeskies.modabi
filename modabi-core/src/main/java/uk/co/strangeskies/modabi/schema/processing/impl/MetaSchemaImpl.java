@@ -307,6 +307,11 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("format")
 								.type(base.derivedTypes().enumType()).dataClass(Format.class))
+				/*
+				 * TODO Figure out how to have value output itself as a SIMPLE_ELEMENT
+				 * if there are no 'child' elements. Perhaps can work something out once
+				 * 'choice' nodes are fully implemented.
+				 */
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("value")
 								.outMethod("providedValueBuffer").optional(true)
@@ -432,14 +437,30 @@ public class MetaSchemaImpl implements MetaSchema {
 												.outMethod("this")
 												.occurances(Range.create(0, null))
 												.addChild(
-														p -> p
+														i -> i
 																.data()
-																.name("targetModel")
-																.provideValue(
-																		new BufferingDataTarget().put(
-																				DataType.QUALIFIED_NAME,
-																				new QualifiedName("schemaModel",
-																						namespace)).buffer()))
+																.name("import")
+																.addChild(
+																		p -> p
+																				.data()
+																				.name("targetModel")
+																				.provideValue(
+																						new BufferingDataTarget().put(
+																								DataType.QUALIFIED_NAME,
+																								new QualifiedName(
+																										"schemaModel", namespace))
+																								.buffer()))
+																.addChild(
+																		p -> p
+																				.data()
+																				.name("targetId")
+																				.provideValue(
+																						new BufferingDataTarget()
+																								.put(
+																										DataType.QUALIFIED_NAME,
+																										new QualifiedName(
+																												"qualifiedName",
+																												namespace)).buffer())))
 												.addChild(
 														p -> p
 																.data()

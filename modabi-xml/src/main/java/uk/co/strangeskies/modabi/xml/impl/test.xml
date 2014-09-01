@@ -1,229 +1,352 @@
+<?xml version="1.0" ?>
 <schemaModel xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/"
-	qualifiedName="uk.co.strangeskies.modabi.schema:2014-01-01:BaseSchema">
-	<dependencies />
+	qualifiedName="BaseSchema">
+	<dependencies></dependencies>
 	<types>
-		<type dataClass="uk.co.strangeskies.gears.utilities.Enumeration"
-			abstract="true"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:enumerationBase" />
-		<type bindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
-			unbindingMethod="put" bindingStrategy="PROVIDED"
-			unbindingClass="uk.co.strangeskies.modabi.data.io.DataTarget"
-			abstract="true" name="uk.co.strangeskies.modabi.schema:2014-01-01:primitive">
-			<content dataClass="uk.co.strangeskies.modabi.data.io.DataType"
-				outMethod="null" name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType" />
-		</type>
-		<type dataClass="boolean" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:boolean">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					boolean
-				</value>
-			</content>
-		</type>
-		<type dataClass="double" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:double">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					double
-				</value>
-			</content>
-		</type>
-		<type dataClass="float" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:float">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					float
-				</value>
-			</content>
-		</type>
-		<type dataClass="long" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:long">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					long
-				</value>
-			</content>
-		</type>
-		<type dataClass="uk.co.strangeskies.modabi.namespace.QualifiedName"
-			abstract="false" name="uk.co.strangeskies.modabi.schema:2014-01-01:qualifiedName">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					qualifiedName
-				</value>
-			</content>
-		</type>
-		<type dataClass="java.math.BigDecimal" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:decimal">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					decimal
-				</value>
-			</content>
-		</type>
-		<type dataClass="java.math.BigInteger" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:integer">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					integer
-				</value>
-			</content>
-		</type>
-		<type dataClass="[B" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:binary">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					binary
-				</value>
-			</content>
-		</type>
-		<type dataClass="java.lang.String" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:string">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					string
-				</value>
-			</content>
-		</type>
-		<type dataClass="int" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:int">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:dataType">
-				<value>
-					int
-				</value>
-			</content>
-		</type>
-		<type dataClass="java.util.Collection" bindingStrategy="PROVIDED"
-			abstract="true" name="uk.co.strangeskies.modabi.schema:2014-01-01:collection">
-			<content outMethodIterable="true" inMethod="add" outMethod="this"
-				name="uk.co.strangeskies.modabi.schema:2014-01-01:element" />
-		</type>
-		<type dataClass="java.util.List" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:list" />
-		<type dataClass="java.util.Set" abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:set" />
-		<type dataClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+		<type name="enumerationBase" abstract="true"
+			dataClass="uk.co.strangeskies.utilities.Enumeration"></type>
+		<type name="primitive" abstract="true" bindingStrategy="PROVIDED"
 			bindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
-			unbindingMethod="pipe" bindingStrategy="PROVIDED"
+			unbindingStrategy="PASS_TO_PROVIDED" unbindingMethod="put"
 			unbindingClass="uk.co.strangeskies.modabi.data.io.DataTarget"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:bufferedData" />
-		<type dataClass="java.lang.Object"
+			providedUnbindingMethodParameters="dataType, this">
+			<data name="dataType" type="enumerationBase" extensible="true"
+				outMethod="null" abstract="true"
+				dataClass="uk.co.strangeskies.modabi.data.io.DataType"></data>
+		</type>
+		<type name="binary" baseType="primitive" dataClass="[B">
+			<data name="dataType" value="binary" abstract="true"></data>
+		</type>
+		<type name="long" baseType="primitive" dataClass="long">
+			<data name="dataType" value="long" abstract="true"></data>
+		</type>
+		<type name="boolean" baseType="primitive" dataClass="boolean">
+			<data name="dataType" value="boolean" abstract="true"></data>
+		</type>
+		<type name="decimal" baseType="primitive" dataClass="java.math.BigDecimal">
+			<data name="dataType" value="decimal" abstract="true"></data>
+		</type>
+		<type name="double" baseType="primitive" dataClass="double">
+			<data name="dataType" value="double" abstract="true"></data>
+		</type>
+		<type name="integer" baseType="primitive" dataClass="java.math.BigInteger">
+			<data name="dataType" value="integer" abstract="true"></data>
+		</type>
+		<type name="int" baseType="primitive" dataClass="int">
+			<data name="dataType" value="int" abstract="true"></data>
+		</type>
+		<type name="string" baseType="primitive" dataClass="java.lang.String">
+			<data name="dataType" value="string" abstract="true"></data>
+		</type>
+		<type name="float" baseType="primitive" dataClass="float">
+			<data name="dataType" value="float" abstract="true"></data>
+		</type>
+		<type name="qualifiedName" baseType="primitive"
+			dataClass="uk.co.strangeskies.modabi.namespace.QualifiedName">
+			<data name="dataType" value="qualifiedName" abstract="true"></data>
+		</type>
+		<type name="collection" abstract="true" dataClass="java.util.Collection"
+			bindingStrategy="PROVIDED">
+			<data name="element" outMethod="this" outMethodIterable="true"
+				inMethod="add"></data>
+		</type>
+		<type name="list" baseType="collection" dataClass="java.util.List"></type>
+		<type name="set" baseType="collection" dataClass="java.util.Set"></type>
+		<type name="bufferedData" dataClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+			bindingStrategy="PROVIDED"
+			bindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+			unbindingStrategy="ACCEPT_PROVIDED" unbindingMethod="pipe"
+			unbindingClass="uk.co.strangeskies.modabi.data.io.DataTarget"></type>
+		<type name="referenceBase" abstract="true" dataClass="java.lang.Object"
+			bindingStrategy="PROVIDED"
 			bindingClass="uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource"
-			unbindingMethod="dereference" bindingStrategy="PROVIDED"
+			unbindingStrategy="PROVIDED_FACTORY" unbindingMethod="dereference"
 			unbindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
-			abstract="true" name="uk.co.strangeskies.modabi.schema:2014-01-01:referenceBase">
-			<content dataClass="uk.co.strangeskies.modabi.model.Model"
-				inMethod="null" outMethod="null"
-				name="uk.co.strangeskies.modabi.schema:2014-01-01:targetModel" />
-			<content inMethod="null" outMethod="null"
-				name="uk.co.strangeskies.modabi.schema:2014-01-01:targetId" />
-			<sequence name="uk.co.strangeskies.modabi.schema:2014-01-01:reference">
-				<content dataClass="uk.co.strangeskies.modabi.model.Model"
-					bindingClass="uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter"
-					bindingStrategy="TARGET_ADAPTOR" outMethod="null"
-					name="uk.co.strangeskies.modabi.schema:2014-01-01:targetModel">
-					<content inMethodChained="true" outMethod="null"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:parent">
-						<value>
-							1
-						</value>
-					</content>
-					<content inMethodChained="true" outMethod="null"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:node">
-						<value>
-							targetModel
-						</value>
-					</content>
-					<sequence inMethodChained="true"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:providedValue" />
-				</content>
-				<content dataClass="java.lang.String"
-					bindingClass="uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter"
-					bindingStrategy="TARGET_ADAPTOR" outMethod="null"
-					name="uk.co.strangeskies.modabi.schema:2014-01-01:targetId">
-					<content inMethodChained="true" outMethod="null"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:parent">
-						<value>
-							1
-						</value>
-					</content>
-					<content inMethodChained="true" outMethod="null"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:node">
-						<value>
-							targetId
-						</value>
-					</content>
-					<sequence inMethodChained="true"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:providedValue" />
-				</content>
-				<content outMethod="this"
-					name="uk.co.strangeskies.modabi.schema:2014-01-01:data" />
-			</sequence>
+			providedUnbindingMethodParameters="targetModel, targetId, this"
+			unbindingFactoryClass="uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget">
+			<data name="targetModel" outMethod="null" inMethod="null"
+				abstract="true" dataClass="uk.co.strangeskies.modabi.model.Model"></data>
+			<data name="targetId" type="qualifiedName" outMethod="null"
+				inMethod="null" abstract="true"></data>
+			<inputSequence name="reference">
+				<data name="targetModel" outMethod="null"
+					dataClass="uk.co.strangeskies.modabi.model.Model" bindingStrategy="PROVIDED"
+					bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+					<data name="child" type="qualifiedName" value="targetModel"
+						outMethod="null" inMethodChained="true"></data>
+					<inputSequence name="providedValue" inMethodChained="true"></inputSequence>
+				</data>
+				<data name="targetId" outMethod="null"
+					dataClass="uk.co.strangeskies.modabi.namespace.QualifiedName"
+					bindingStrategy="PROVIDED"
+					bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+					<data name="child" type="qualifiedName" value="targetId"
+						outMethod="null" inMethodChained="true"></data>
+					<inputSequence name="providedValue" inMethodChained="true"></inputSequence>
+				</data>
+				<data name="data" type="bufferedData" outMethod="this"></data>
+			</inputSequence>
 		</type>
-		<type name="uk.co.strangeskies.modabi.schema:2014-01-01:reference">
-			<content dataClass="uk.co.strangeskies.modabi.model.Model"
-				name="uk.co.strangeskies.modabi.schema:2014-01-01:targetModel">
-				<content name="uk.co.strangeskies.modabi.schema:2014-01-01:targetDomain">
-					<value>
-						schema.modabi.strangeskies.co.uk:Model
-					</value>
-				</content>
-				<content name="uk.co.strangeskies.modabi.schema:2014-01-01:targetId">
-					<value>
-						name
-					</value>
-				</content>
-			</content>
+		<type name="reference" abstract="true" baseType="referenceBase">
+			<data name="targetModel" type="referenceBase" abstract="true"
+				dataClass="uk.co.strangeskies.modabi.model.Model">
+				<data name="targetModel" type="referenceBase" value="model"
+					extensible="true" abstract="true" dataClass="uk.co.strangeskies.modabi.model.Model">
+					<data name="targetModel" type="referenceBase" value="model"
+						extensible="true" abstract="true" dataClass="uk.co.strangeskies.modabi.model.Model"></data>
+					<data name="targetId" value="name"></data>
+				</data>
+				<data name="targetId" value="name"></data>
+			</data>
 		</type>
-		<type dataClass="java.lang.Class" bindingStrategy="STATIC_FACTORY"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:class">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:name" />
+		<type name="class" dataClass="java.lang.Class" bindingStrategy="STATIC_FACTORY">
+			<data name="name" type="string"></data>
 		</type>
-		<type dataClass="java.lang.Enum"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:enum">
-			<sequence name="uk.co.strangeskies.modabi.schema:2014-01-01:valueOf">
-				<content dataClass="uk.co.strangeskies.modabi.model.Model"
-					bindingClass="uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter"
-					bindingStrategy="TARGET_ADAPTOR" outMethod="null"
-					name="uk.co.strangeskies.modabi.schema:2014-01-01:enumType">
-					<content inMethodChained="true" outMethod="null"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:parent">
-						<value>
-							2
-						</value>
-					</content>
-					<sequence inMethodChained="true"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:getDataClass" />
-				</content>
-				<content name="uk.co.strangeskies.modabi.schema:2014-01-01:name" />
-			</sequence>
+		<type name="enum" abstract="true" dataClass="java.lang.Enum">
+			<inputSequence name="valueOf">
+				<data name="enumType" outMethod="null" abstract="true"
+					dataClass="java.lang.Enum" bindingStrategy="PROVIDED"
+					bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+					<inputSequence name="getDataClass" inMethodChained="true"></inputSequence>
+				</data>
+				<data name="name" type="string"></data>
+			</inputSequence>
 		</type>
-		<type abstract="false"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:enumeration">
-			<sequence name="uk.co.strangeskies.modabi.schema:2014-01-01:valueOf">
-				<content dataClass="uk.co.strangeskies.modabi.model.Model"
-					bindingClass="uk.co.strangeskies.modabi.schema.processing.RegistrationTimeTargetAdapter"
-					bindingStrategy="TARGET_ADAPTOR" outMethod="null"
-					name="uk.co.strangeskies.modabi.schema:2014-01-01:enumerationType">
-					<content inMethodChained="true" outMethod="null"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:parent">
-						<value>
-							2
-						</value>
-					</content>
-					<sequence inMethodChained="true"
-						name="uk.co.strangeskies.modabi.schema:2014-01-01:getDataClass" />
-				</content>
-				<content name="uk.co.strangeskies.modabi.schema:2014-01-01:name" />
-			</sequence>
+		<type name="enumeration" abstract="true" baseType="enumerationBase">
+			<inputSequence name="valueOf">
+				<data name="enumerationType" outMethod="null"
+					dataClass="uk.co.strangeskies.utilities.Enumeration"
+					bindingStrategy="PROVIDED"
+					bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+					<inputSequence name="getDataClass" inMethodChained="true"></inputSequence>
+				</data>
+				<data name="name" type="string"></data>
+			</inputSequence>
 		</type>
-		<type dataClass="uk.co.strangeskies.gears.mathematics.Range"
-			bindingStrategy="STATIC_FACTORY" unbindingClass="java.lang.String"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:range">
-			<content name="uk.co.strangeskies.modabi.schema:2014-01-01:string" />
+		<type name="range" dataClass="uk.co.strangeskies.mathematics.Range"
+			bindingStrategy="STATIC_FACTORY" unbindingStrategy="STATIC_FACTORY"
+			unbindingClass="java.lang.String" unbindingFactoryClass="uk.co.strangeskies.mathematics.Range">
+			<data name="string" type="string"></data>
+		</type>
+		<type name="include" abstract="true" dataClass="java.lang.Object"
+			bindingStrategy="PROVIDED"
+			bindingClass="uk.co.strangeskies.modabi.schema.processing.impl.IncludeTarget"
+			unbindingStrategy="PASS_TO_PROVIDED" unbindingMethod="include"
+			unbindingClass="uk.co.strangeskies.modabi.schema.processing.impl.IncludeTarget"
+			providedUnbindingMethodParameters="targetModel, this">
+			<data name="targetModel" outMethod="null" inMethod="null"
+				abstract="true" dataClass="uk.co.strangeskies.modabi.model.Model"></data>
+			<inputSequence name="include">
+				<data name="targetModel" outMethod="null"
+					dataClass="uk.co.strangeskies.modabi.model.Model" bindingStrategy="PROVIDED"
+					bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+					<data name="child" type="qualifiedName" value="targetModel"
+						outMethod="null" inMethodChained="true"></data>
+					<inputSequence name="providedValue" inMethodChained="true"></inputSequence>
+				</data>
+				<data name="object" outMethod="null" dataClass="java.lang.Object"
+					bindingStrategy="TARGET_ADAPTOR"></data>
+			</inputSequence>
+		</type>
+		<type name="import" abstract="true" dataClass="java.lang.Object"
+			bindingStrategy="SOURCE_ADAPTOR" unbindingMethod="this">
+			<data name="import" outMethod="this" abstract="true" dataClass="java.lang.Object"
+				bindingStrategy="PROVIDED"
+				bindingClass="uk.co.strangeskies.modabi.schema.processing.reference.ImportSource"
+				unbindingStrategy="PROVIDED_FACTORY" unbindingMethod="dereferenceImport"
+				unbindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+				providedUnbindingMethodParameters="targetModel, targetId, this"
+				unbindingFactoryClass="uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget">
+				<data name="targetModel" type="reference" outMethod="null"
+					inMethod="null" abstract="true" dataClass="uk.co.strangeskies.modabi.model.Model">
+					<data name="targetModel" value="model"></data>
+					<data name="targetId" value="name"></data>
+				</data>
+				<data name="targetId" type="qualifiedName" outMethod="null"
+					inMethod="null" abstract="true"></data>
+				<inputSequence name="importObject">
+					<data name="targetModel" outMethod="null"
+						dataClass="uk.co.strangeskies.modabi.model.Model" bindingStrategy="PROVIDED"
+						bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+						<data name="child" type="qualifiedName" value="targetModel"
+							outMethod="null" inMethodChained="true"></data>
+						<inputSequence name="providedValue" inMethodChained="true"></inputSequence>
+					</data>
+					<data name="targetId" outMethod="null"
+						dataClass="uk.co.strangeskies.modabi.namespace.QualifiedName"
+						bindingStrategy="PROVIDED"
+						bindingClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+						<data name="child" type="qualifiedName" value="targetId"
+							outMethod="null" inMethodChained="true"></data>
+						<inputSequence name="providedValue" inMethodChained="true"></inputSequence>
+					</data>
+					<data name="data" type="bufferedData" outMethod="this"></data>
+				</inputSequence>
+			</data>
 		</type>
 	</types>
+	<models></models>
+</schemaModel>
+
+
+<?xml version="1.0" ?>
+<schemaModel xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/"
+	qualifiedName="MetaSchema">
+	<dependencies>
+		<dependency>BaseSchema</dependency>
+	</dependencies>
+	<types></types>
 	<models>
-		<model dataClass="java.lang.Object" bindingClass="java.lang.Object"
-			name="uk.co.strangeskies.modabi.schema:2014-01-01:include" />
+		<model name="node" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.SchemaNode">
+			<property name="name" type="qualifiedName" optional="true"></property>
+		</model>
+		<model name="branch" baseModel="node" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.SchemaNode">
+			<data name="name"></data>
+			<element name="child" extensible="true" outMethod="children"
+				outMethodIterable="true" occurances="0.." baseModel="node" abstract="true"
+				dataClass="uk.co.strangeskies.modabi.model.nodes.ChildNode"></element>
+		</model>
+		<model name="input" baseModel="branch" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.InputNode">
+			<data name="name"></data>
+			<property name="inMethod" type="string" optional="true"
+				outMethod="getInMethodName"></property>
+			<property name="inMethodChained" type="boolean" optional="true"></property>
+		</model>
+		<model name="binding" baseModel="node, branch" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.BindingNode">
+			<data name="name"></data>
+			<property name="abstract" type="boolean" optional="true"></property>
+			<property name="dataClass" type="class" optional="true"></property>
+			<property name="bindingStrategy" type="enum" optional="true"
+				dataClass="uk.co.strangeskies.modabi.schema.processing.BindingStrategy"></property>
+			<property name="bindingClass" type="class"></property>
+			<property name="unbindingStrategy" type="enum" optional="true"
+				dataClass="uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy"></property>
+			<property name="unbindingMethod" type="string" optional="true"
+				outMethod="getUnbindingMethodName"></property>
+			<property name="unbindingClass" type="class"></property>
+			<property name="providedUnbindingMethodParameters" type="list"
+				outMethod="getProvidedUnbindingMethodParameterNames">
+				<data name="element" type="qualifiedName"></data>
+			</property>
+			<property name="unbindingFactoryClass" type="class"></property>
+		</model>
+		<model name="bindingChild" baseModel="input, binding" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+			<data name="name"></data>
+			<property name="extensible" type="boolean" optional="true"></property>
+			<property name="ordered" type="boolean" optional="true"></property>
+			<property name="outMethod" type="string" optional="true"
+				outMethod="getOutMethodName"></property>
+			<property name="outMethodIterable" type="boolean" optional="true"></property>
+		</model>
+		<model name="choice" baseModel="branch"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.ChoiceNode"
+			bindingClass="uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator">
+			<data name="name"></data>
+			<property name="mandatory" type="boolean"></property>
+		</model>
+		<model name="sequence" baseModel="branch"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.SequenceNode"
+			bindingClass="uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator"></model>
+		<model name="inputSequence" baseModel="input, branch"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.InputSequenceNode"
+			bindingClass="uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator"></model>
+		<model name="repeatable" baseModel="branch" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.BindingChildNode">
+			<data name="name"></data>
+			<property name="occurances" type="range"></property>
+		</model>
+		<model name="abstractModel" baseModel="binding" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.AbstractModel">
+			<data name="name"></data>
+			<property name="baseModel" type="set" optional="true">
+				<data name="element" type="reference"
+					dataClass="uk.co.strangeskies.modabi.model.Model">
+					<data name="targetModel" value="model" abstract="true"></data>
+					<data name="targetId" value="name"></data>
+				</data>
+			</property>
+		</model>
+		<model name="model" baseModel="abstractModel"
+			dataClass="uk.co.strangeskies.modabi.model.Model">
+			<data name="name" optional="false"></data>
+		</model>
+		<model name="element" baseModel="bindingChild, repeatable, abstractModel"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.ElementNode"
+			bindingClass="uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator">
+			<data name="name"></data>
+			<data name="dataClass"></data>
+		</model>
+		<model name="typedData" baseModel="bindingChild" abstract="true"
+			dataClass="uk.co.strangeskies.modabi.model.nodes.DataNode"
+			bindingClass="uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator">
+			<data name="name"></data>
+			<property name="type" type="reference">
+				<data name="targetModel" value="type" abstract="true"></data>
+				<data name="targetId" value="name"></data>
+			</property>
+			<property name="optional" type="boolean"></property>
+			<property name="format" type="enum"
+				dataClass="uk.co.strangeskies.modabi.model.nodes.DataNode$Format"></property>
+			<property name="value" type="bufferedData" optional="true"
+				outMethod="providedValueBuffer"></property>
+		</model>
+		<model name="content" baseModel="typedData">
+			<data name="format" value="CONTENT"></data>
+		</model>
+		<model name="property" baseModel="typedData">
+			<data name="format" value="PROPERTY"></data>
+		</model>
+		<model name="simpleElement" baseModel="typedData">
+			<data name="format" value="SIMPLE_ELEMENT"></data>
+		</model>
+		<model name="data" baseModel="typedData"></model>
+		<model name="type" baseModel="binding"
+			dataClass="uk.co.strangeskies.modabi.data.DataBindingType">
+			<property name="abstract" type="boolean" optional="true"></property>
+			<property name="baseType" type="reference" optional="true"
+				dataClass="uk.co.strangeskies.modabi.data.DataBindingType">
+				<data name="targetModel" value="type"></data>
+				<data name="targetId" value="name"></data>
+			</property>
+		</model>
+		<model name="models" dataClass="java.util.Set">
+			<element outMethod="this" outMethodIterable="true"
+				occurances="0.." baseModel="model"></element>
+		</model>
+		<model name="schemaModel" dataClass="uk.co.strangeskies.modabi.schema.Schema"
+			bindingClass="uk.co.strangeskies.modabi.schema.SchemaConfigurator">
+			<property name="qualifiedName" type="qualifiedName"></property>
+			<element name="dependencies" occurances="0..1" dataClass="java.util.Set">
+				<simpleElement name="dependency" type="import"
+					outMethod="this" outMethodIterable="true"
+					dataClass="uk.co.strangeskies.modabi.schema.Schema">
+					<data name="import">
+						<data name="targetModel" value="schemaModel"></data>
+						<data name="targetId" value="qualifiedName"></data>
+					</data>
+					<data name="dataTypes" type="include" outMethodIterable="true">
+						<data name="targetModel" value="type"></data>
+					</data>
+					<data name="models" type="include" outMethodIterable="true">
+						<data name="targetModel" value="model"></data>
+					</data>
+				</simpleElement>
+			</element>
+			<element name="types" outMethod="getDataTypes" occurances="0..1"
+				dataClass="java.util.Set">
+				<element name="type" outMethod="this" outMethodIterable="true"
+					occurances="0.." baseModel="type"
+					dataClass="uk.co.strangeskies.modabi.data.DataBindingType"></element>
+			</element>
+			<element name="models" occurances="0..1" dataClass="java.util.Set">
+				<element outMethod="this" outMethodIterable="true"
+					occurances="0.." baseModel="model"></element>
+			</element>
+		</model>
 	</models>
 </schemaModel>

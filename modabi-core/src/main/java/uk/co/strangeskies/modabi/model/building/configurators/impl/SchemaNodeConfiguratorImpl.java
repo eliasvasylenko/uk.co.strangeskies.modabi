@@ -77,7 +77,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			@Override
 			public String toString() {
-				return getName().toString();
+				return getName() != null ? getName().toString() : "[Unnamed Node]";
 			}
 		}
 

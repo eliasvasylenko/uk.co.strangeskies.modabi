@@ -1,14 +1,20 @@
 package uk.co.strangeskies.modabi.xml.impl;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -21,14 +27,16 @@ import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTargetDecorato
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
-class NamespaceStack {
+class NamespaceStack implements NamespaceContext {
 	private Namespace defaultNamespace;
 	private Map<Namespace, String> namespaceAliases;
+	private Map<String, Namespace> aliasedNamespaces;
 
 	private NamespaceStack next;
 
 	public NamespaceStack() {
 		namespaceAliases = new HashMap<>();
+		aliasedNamespaces = new HashMap<>();
 	}
 
 	private NamespaceStack(NamespaceStack from) {
@@ -38,6 +46,7 @@ class NamespaceStack {
 	private void setFrom(NamespaceStack from) {
 		defaultNamespace = from.defaultNamespace;
 		namespaceAliases = from.namespaceAliases;
+		aliasedNamespaces = from.aliasedNamespaces;
 		next = from.next;
 	}
 
@@ -59,6 +68,7 @@ class NamespaceStack {
 	public void push() {
 		next = new NamespaceStack(this);
 		namespaceAliases = new HashMap<>();
+		aliasedNamespaces = new HashMap<>();
 		defaultNamespace = null;
 	}
 
@@ -73,7 +83,7 @@ class NamespaceStack {
 		return next == null;
 	}
 
-	private String generateAlias() {
+	private String generateAlias(Namespace namespace) {
 		Set<String> existingAliases = new HashSet<>(namespaceAliases.values());
 		NamespaceStack next = this.next;
 		while (next != null) {
@@ -90,8 +100,6 @@ class NamespaceStack {
 	}
 
 	public void setDefaultNamespace(Namespace namespace) {
-		if (defaultNamespace != null)
-			throw new AssertionError();
 		defaultNamespace = namespace;
 	}
 
@@ -100,7 +108,15 @@ class NamespaceStack {
 	}
 
 	public String addNamespace(Namespace namespace) {
-		return "test";
+		String alias = getNamespaceAlias(namespace);
+		if (alias != null)
+			return alias;
+
+		alias = generateAlias(namespace);
+		namespaceAliases.put(namespace, alias);
+		aliasedNamespaces.put(alias, namespace);
+
+		return alias;
 	}
 
 	public Set<Namespace> getNamespaces() {
@@ -108,7 +124,31 @@ class NamespaceStack {
 	}
 
 	public String getNamespaceAlias(Namespace namespace) {
-		return "test";
+		if (namespace.equals(defaultNamespace))
+			return XMLConstants.DEFAULT_NS_PREFIX;
+
+		if (namespaceAliases.containsKey(namespace))
+			return namespaceAliases.get(namespace);
+
+		if (next != null)
+			return next.getNamespaceAlias(namespace);
+
+		return null;
+	}
+
+	@Override
+	public String getNamespaceURI(String prefix) {
+		return aliasedNamespaces.get(prefix).toHttpString();
+	}
+
+	@Override
+	public String getPrefix(String namespaceURI) {
+		return getNamespaceAlias(Namespace.parseHttpString(namespaceURI));
+	}
+
+	@Override
+	public Iterator<String> getPrefixes(String namespaceURI) {
+		return Arrays.asList(getPrefix(namespaceURI)).iterator();
 	}
 }
 
@@ -116,15 +156,23 @@ class XMLTargetImpl implements StructuredDataTarget {
 	private final XMLStreamWriter out;
 
 	private final NamespaceStack namespaces;
+	private boolean started;
 
 	private QualifiedName currentChild;
-	private List<String> comments;
+	private final Map<QualifiedName, String> properties;
+	private final List<String> comments;
 
 	public XMLTargetImpl(XMLStreamWriter out) {
 		this.out = out;
+
 		namespaces = new NamespaceStack();
+		started = false;
+
+		properties = new LinkedHashMap<>();
+		comments = new ArrayList<>();
 
 		try {
+			out.setNamespaceContext(namespaces);
 			out.writeStartDocument();
 		} catch (XMLStreamException | FactoryConfigurationError e) {
 			throw new IOException(e);
@@ -133,83 +181,75 @@ class XMLTargetImpl implements StructuredDataTarget {
 
 	@Override
 	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace) {
-		try {
-			namespaces.setDefaultNamespace(namespace);
-			out.setDefaultNamespace(namespace.toHttpString());
-		} catch (XMLStreamException e) {
-			throw new IOException(e);
-		}
-
+		namespaces.setDefaultNamespace(namespace);
 		return this;
 	}
 
 	@Override
 	public StructuredDataTarget registerNamespaceHint(Namespace namespace) {
+		namespaces.addNamespace(namespace);
+		return this;
+	}
+
+	private boolean outputCurrentChild(boolean selfClosing) {
+		boolean done = currentChild != null;
 		try {
-			if (!namespaceAliases.peek().containsKey(namespace))
-				namespaceAliases.peek().put(namespace, alias);
-			if (namespaceAliases.size() > 1)
-				out.writeNamespace(alias, namespace.toHttpString());
+			if (done) {
+				// write start of element
+				if (selfClosing)
+					out.writeEmptyElement(currentChild.getNamespace().toHttpString(),
+							currentChild.getName());
+				else
+					out.writeStartElement(currentChild.getNamespace().toHttpString(),
+							currentChild.getName());
+
+				// write namespaces
+				if (namespaces.getDefaultNamespace() != null)
+					out.writeDefaultNamespace(namespaces.getDefaultNamespace()
+							.toHttpString());
+				for (Namespace namespace : namespaces.getNamespaces())
+					out.writeNamespace(namespaces.getNamespaceAlias(namespace),
+							namespace.toHttpString());
+				namespaces.push();
+
+				// write properties
+				for (QualifiedName property : properties.keySet())
+					out.writeAttribute(property.getNamespace().toHttpString(),
+							property.getName(), properties.get(property));
+				properties.clear();
+
+				// write comments
+				for (String comment : comments)
+					out.writeComment(comment);
+				comments.clear();
+
+				started = true;
+				currentChild = null;
+			} else if (!started) {
+				for (String comment : comments)
+					out.writeComment(comment);
+				comments.clear();
+			}
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
-
-		return this;
+		return done;
 	}
 
 	@Override
 	public StructuredDataTarget nextChild(QualifiedName name) {
-		outputCurrentChild();
+		outputCurrentChild(false);
 
 		currentChild = name;
-
-		try {
-			if (namespaces.isBase()) {
-				out.writeStartElement(
-						namespaces.getNamespaceAlias(name.getNamespace()), name.getName(),
-						name.getNamespace().toHttpString());
-
-				for (Namespace namespace : namespaceAliases.peek().keySet())
-					if (namespace != name.getNamespace())
-						out.writeNamespace(namespaceAliases.peek().get(namespace),
-								namespace.toHttpString());
-			} else
-				out.writeStartElement(name.getNamespace().toHttpString(),
-						name.getName());
-		} catch (XMLStreamException e) {
-			throw new IOException(e);
-		}
-
-		namespaces.push();
 
 		return this;
 	}
 
-	private void outputCurrentChild() {
-		if (currentChild != null) {
-			try {
-				out.writeStartElement(currentChild.getNamespace().toHttpString(),
-						currentChild.getName());
-
-				out.writeDefaultNamespace(namespaces.getDefaultNamespace()
-						.toHttpString());
-				for (Namespace namespace : namespaces.getNamespaces())
-					out.writeNamespace(namespaces.getNamespaceAlias(namespace),
-							namespace.toHttpString());
-			} catch (XMLStreamException e) {
-				throw new IOException(e);
-			}
-
-			currentChild = null;
-		}
-	}
-
 	@Override
 	public StructuredDataTarget endChild() {
-		outputCurrentChild();
-
 		try {
-			out.writeEndElement();
+			if (!outputCurrentChild(true))
+				out.writeEndElement();
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
@@ -227,20 +267,13 @@ class XMLTargetImpl implements StructuredDataTarget {
 
 	@Override
 	public TerminatingDataTarget property(QualifiedName name) {
-		return TerminatingDataTarget.composeString(
-				s -> {
-					try {
-						out.writeAttribute(name.getNamespace().toHttpString(),
-								name.getName(), s);
-					} catch (XMLStreamException e) {
-						throw new IOException(e);
-					}
-				}, this::formatName);
+		return TerminatingDataTarget.composeString(s -> properties.put(name, s),
+				this::formatName);
 	}
 
 	@Override
 	public TerminatingDataTarget content() {
-		outputCurrentChild();
+		outputCurrentChild(false);
 
 		return TerminatingDataTarget.composeString(s -> {
 			try {
@@ -252,11 +285,10 @@ class XMLTargetImpl implements StructuredDataTarget {
 	}
 
 	private String formatName(QualifiedName name) {
-		String prefix = out.getNamespaceContext().getPrefix(
-				name.getNamespace().toHttpString());
+		String prefix = namespaces.getNamespaceAlias(name.getNamespace());
 		if (prefix.length() > 0)
 			prefix += ":";
-		return prefix + name;
+		return prefix + name.getName();
 	}
 
 	@Override

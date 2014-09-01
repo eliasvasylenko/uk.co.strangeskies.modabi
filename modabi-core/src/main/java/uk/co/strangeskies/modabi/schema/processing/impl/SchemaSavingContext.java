@@ -39,6 +39,7 @@ import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
 import uk.co.strangeskies.utilities.MultiException;
 
 class SchemaSavingContext<T> implements SchemaProcessingContext {
@@ -52,6 +53,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	private BufferingDataTarget dataTarget;
 	private final DereferenceTarget dereferenceTarget;
 	private final IncludeTarget includeTarget;
+	private final ImportDereferenceTarget importTarget;
 
 	private final Bindings bindings;
 
@@ -75,23 +77,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					throw new SchemaException("Cannot find any instance '" + object
 							+ "' bound to model '" + model.getName() + "'.");
 
-				DataNode.Effective<?> node = (DataNode.Effective<?>) model
-						.effective()
-						.children()
-						.stream()
-						.filter(
-								c -> c.getName().equals(idDomain)
-										&& c instanceof DataNode.Effective<?>).findAny()
-						.orElseThrow(SchemaException::new);
-
-				bindingStack.push(object);
-
-				BufferedDataSource bufferedData = unbindDataNode(node,
-						new BufferingDataTarget()).buffer();
-
-				bindingStack.pop();
-
-				return bufferedData;
+				return importTarget.dereferenceImport(model, idDomain, object);
 			}
 		};
 
@@ -102,6 +88,33 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 				SchemaSavingContext.this.output.registerNamespaceHint(model.getName()
 						.getNamespace());
+			}
+		};
+
+		importTarget = new ImportDereferenceTarget() {
+			@Override
+			public <U> BufferedDataSource dereferenceImport(Model<U> model,
+					QualifiedName idDomain, U object) {
+				DataNode.Effective<?> node = (DataNode.Effective<?>) model
+						.effective()
+						.children()
+						.stream()
+						.filter(
+								c -> c.getName().equals(idDomain)
+										&& c instanceof DataNode.Effective<?>)
+						.findAny()
+						.orElseThrow(
+								() -> new SchemaException("Can't fine child '" + idDomain
+										+ "' to target for model '" + model + "'."));
+
+				bindingStack.push(object);
+
+				BufferedDataSource bufferedData = unbindDataNode(node,
+						new BufferingDataTarget()).buffer();
+
+				bindingStack.pop();
+
+				return bufferedData;
 			}
 		};
 
@@ -256,6 +269,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			return (U) dereferenceTarget;
 		if (clazz.equals(IncludeTarget.class))
 			return (U) includeTarget;
+		if (clazz.equals(ImportDereferenceTarget.class))
+			return (U) importTarget;
 
 		return this.schemaBinderImpl.provide(clazz);
 	}
@@ -413,6 +428,11 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				itemList = Arrays.asList(item);
 			}
 		}
+
+		if (node.occurances() != null
+				&& !node.occurances().contains(itemList.size()))
+			throw new SchemaException("Output list '" + itemList
+					+ "' contains too many items to be unbound by node '" + node + "'.");
 
 		return itemList;
 	}
