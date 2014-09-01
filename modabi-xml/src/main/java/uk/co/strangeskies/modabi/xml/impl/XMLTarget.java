@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.xml.impl;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -113,7 +114,11 @@ class NamespaceStack {
 
 class XMLTargetImpl implements StructuredDataTarget {
 	private final XMLStreamWriter out;
+
 	private final NamespaceStack namespaces;
+
+	private QualifiedName currentChild;
+	private List<String> comments;
 
 	public XMLTargetImpl(XMLStreamWriter out) {
 		this.out = out;
@@ -140,8 +145,6 @@ class XMLTargetImpl implements StructuredDataTarget {
 
 	@Override
 	public StructuredDataTarget registerNamespaceHint(Namespace namespace) {
-		String alias = generateAlias(namespace);
-
 		try {
 			if (!namespaceAliases.peek().containsKey(namespace))
 				namespaceAliases.peek().put(namespace, alias);
@@ -156,6 +159,10 @@ class XMLTargetImpl implements StructuredDataTarget {
 
 	@Override
 	public StructuredDataTarget nextChild(QualifiedName name) {
+		outputCurrentChild();
+
+		currentChild = name;
+
 		try {
 			if (namespaces.isBase()) {
 				out.writeStartElement(
@@ -178,8 +185,29 @@ class XMLTargetImpl implements StructuredDataTarget {
 		return this;
 	}
 
+	private void outputCurrentChild() {
+		if (currentChild != null) {
+			try {
+				out.writeStartElement(currentChild.getNamespace().toHttpString(),
+						currentChild.getName());
+
+				out.writeDefaultNamespace(namespaces.getDefaultNamespace()
+						.toHttpString());
+				for (Namespace namespace : namespaces.getNamespaces())
+					out.writeNamespace(namespaces.getNamespaceAlias(namespace),
+							namespace.toHttpString());
+			} catch (XMLStreamException e) {
+				throw new IOException(e);
+			}
+
+			currentChild = null;
+		}
+	}
+
 	@Override
 	public StructuredDataTarget endChild() {
+		outputCurrentChild();
+
 		try {
 			out.writeEndElement();
 		} catch (XMLStreamException e) {
@@ -212,6 +240,8 @@ class XMLTargetImpl implements StructuredDataTarget {
 
 	@Override
 	public TerminatingDataTarget content() {
+		outputCurrentChild();
+
 		return TerminatingDataTarget.composeString(s -> {
 			try {
 				out.writeCharacters(s);
