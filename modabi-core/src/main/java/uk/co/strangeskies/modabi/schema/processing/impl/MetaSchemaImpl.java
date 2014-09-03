@@ -414,7 +414,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		schemaModel = model
 				.configure(loader)
-				.name("schemaModel", namespace)
+				.name("schema", namespace)
 				.dataClass(Schema.class)
 				.bindingClass(SchemaConfigurator.class)
 				.addChild(
