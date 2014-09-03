@@ -1,77 +1,77 @@
 package uk.co.strangeskies.modabi.data.io.structured;
 
-import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataTargetDecorator;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
+import uk.co.strangeskies.modabi.data.io.DataTargetDecorator;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Decorator;
 
 public class StructuredDataTargetDecorator extends
 		Decorator<StructuredDataTarget> implements StructuredDataTarget {
-	private State currentState;
+	private StructuredDataState currentState;
 	private int depth;
 
 	public StructuredDataTargetDecorator(StructuredDataTarget component) {
 		super(component);
 
-		currentState = State.UNSTARTED;
+		currentState = StructuredDataState.UNSTARTED;
 		depth = 0;
 	}
 
 	@Override
-	public State currentState() {
+	public StructuredDataState currentState() {
 		return currentState;
 	}
 
-	private void enterState(State exitState) {
+	private void enterState(StructuredDataState exitState) {
 		currentState = currentState.enterState(exitState);
 	}
 
 	@Override
 	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace) {
-		currentState().checkValid(State.UNSTARTED, State.EMPTY_ELEMENT);
+		currentState().checkValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START);
 		return getComponent().registerDefaultNamespaceHint(namespace);
 	}
 
 	@Override
 	public StructuredDataTarget registerNamespaceHint(Namespace namespace) {
-		currentState().checkValid(State.UNSTARTED, State.EMPTY_ELEMENT);
+		currentState().checkValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START);
 		return getComponent().registerNamespaceHint(namespace);
 	}
 
 	@Override
 	public StructuredDataTarget comment(String comment) {
-		currentState().checkValid(State.UNSTARTED, State.EMPTY_ELEMENT,
-				State.POPULATED_ELEMENT);
+		currentState().checkValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START,
+				StructuredDataState.POPULATED_ELEMENT);
 		return getComponent().comment(comment);
 	}
 
 	@Override
 	public StructuredDataTarget nextChild(QualifiedName name) {
-		enterState(State.EMPTY_ELEMENT);
+		enterState(StructuredDataState.ELEMENT_START);
 		return getComponent().nextChild(name);
 	}
 
 	@Override
-	public TerminatingDataTarget property(QualifiedName name) {
-		enterState(State.PROPERTY);
-		return new TerminatingDataTargetDecorator(getComponent().property(name)) {
+	public DataTarget writeProperty(QualifiedName name) {
+		enterState(StructuredDataState.PROPERTY);
+		return new DataTargetDecorator(getComponent().writeProperty(name)) {
 			@Override
 			public void terminate() {
 				super.terminate();
-				enterState(StructuredDataTarget.State.EMPTY_ELEMENT);
+				enterState(StructuredDataState.ELEMENT_START);
 			}
 		};
 	}
 
 	@Override
-	public TerminatingDataTarget content() {
-		enterState(State.CONTENT);
-		return new TerminatingDataTargetDecorator(getComponent().content()) {
+	public DataTarget writeContent() {
+		enterState(StructuredDataState.CONTENT);
+		return new DataTargetDecorator(getComponent().writeContent()) {
 			@Override
 			public void terminate() {
 				super.terminate();
-				enterState(StructuredDataTarget.State.ELEMENT_WITH_CONTENT);
+				enterState(StructuredDataState.ELEMENT_WITH_CONTENT);
 			}
 		};
 	}
@@ -79,9 +79,9 @@ public class StructuredDataTargetDecorator extends
 	@Override
 	public StructuredDataTarget endChild() {
 		if (--depth == 0)
-			enterState(State.FINISHED);
+			enterState(StructuredDataState.FINISHED);
 		else
-			enterState(State.POPULATED_ELEMENT);
+			enterState(StructuredDataState.POPULATED_ELEMENT);
 		return getComponent().endChild();
 	}
 }

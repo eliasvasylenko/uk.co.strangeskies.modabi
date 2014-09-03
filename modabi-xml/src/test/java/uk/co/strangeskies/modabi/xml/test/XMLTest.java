@@ -11,9 +11,9 @@ public class XMLTest {
 
 		output.nextChild(new QualifiedName("root"));
 		output.nextChild(new QualifiedName("poot"));
-		output.content().put(DataType.DOUBLE, 2d).put(DataType.STRING, "coot")
+		output.writeContent().put(DataType.DOUBLE, 2d).put(DataType.STRING, "coot")
 				.terminate();
-		output.property(new QualifiedName("groot")).put(DataType.BOOLEAN, true)
+		output.writeProperty(new QualifiedName("groot")).put(DataType.BOOLEAN, true)
 				.terminate();
 		output.endChild();
 		output.nextChild(new QualifiedName("joot"));

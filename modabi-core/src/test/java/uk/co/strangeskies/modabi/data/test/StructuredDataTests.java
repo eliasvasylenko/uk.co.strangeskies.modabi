@@ -19,7 +19,7 @@ public class StructuredDataTests {
 
 				{ new BufferingStructuredDataTarget()
 						.nextChild(new QualifiedName("one"))
-						.property(new QualifiedName("two"),
+						.writeProperty(new QualifiedName("two"),
 								o -> o.put(DataType.STRING, "twoValue")).endChild().buffer() } };
 	}
 

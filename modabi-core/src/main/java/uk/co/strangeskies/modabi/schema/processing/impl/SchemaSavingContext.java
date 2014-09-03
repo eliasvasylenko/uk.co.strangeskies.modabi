@@ -16,7 +16,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
@@ -71,7 +71,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		dereferenceTarget = new DereferenceTarget() {
 			@Override
-			public <U> BufferedDataSource dereference(Model<U> model,
+			public <U> DataSource dereference(Model<U> model,
 					QualifiedName idDomain, U object) {
 				if (!bindings.get(model).contains(object))
 					throw new SchemaException("Cannot find any instance '" + object
@@ -93,7 +93,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		importTarget = new ImportDereferenceTarget() {
 			@Override
-			public <U> BufferedDataSource dereferenceImport(Model<U> model,
+			public <U> DataSource dereferenceImport(Model<U> model,
 					QualifiedName idDomain, U object) {
 				DataNode.Effective<?> node = (DataNode.Effective<?>) model
 						.effective()
@@ -109,7 +109,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 				bindingStack.push(object);
 
-				BufferedDataSource bufferedData = unbindDataNode(node,
+				DataSource bufferedData = unbindDataNode(node,
 						new BufferingDataTarget()).buffer();
 
 				bindingStack.pop();
@@ -179,21 +179,21 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				unbindDataNode(node, dataTarget);
 
 			if (node.format() != null) {
-				BufferedDataSource bufferedTarget = dataTarget.buffer();
+				DataSource bufferedTarget = dataTarget.buffer();
 				dataTarget = null;
 
 				if (bufferedTarget.size() > 0)
 					switch (node.format()) {
 					case PROPERTY:
-						bufferedTarget.pipe(output.property(node.getName())).terminate();
+						bufferedTarget.pipe(output.writeProperty(node.getName())).terminate();
 						break;
 					case SIMPLE_ELEMENT:
 						output.nextChild(node.getName());
-						bufferedTarget.pipe(output.content()).terminate();
+						bufferedTarget.pipe(output.writeContent()).terminate();
 						output.endChild();
 						break;
 					case CONTENT:
-						bufferedTarget.pipe(output.content()).terminate();
+						bufferedTarget.pipe(output.writeContent()).terminate();
 					}
 			}
 		}

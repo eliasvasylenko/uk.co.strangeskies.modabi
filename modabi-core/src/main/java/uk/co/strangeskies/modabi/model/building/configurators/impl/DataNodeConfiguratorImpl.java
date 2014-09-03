@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
@@ -32,7 +32,7 @@ public class DataNodeConfiguratorImpl<T>
 			private final DataBindingType.Effective<T> type;
 			private final Format format;
 			private final Boolean optional;
-			private final BufferedDataSource providedBuffer;
+			private final DataSource providedBuffer;
 			private final ValueResolution resolution;
 			private List<T> provided;
 
@@ -87,8 +87,8 @@ public class DataNodeConfiguratorImpl<T>
 			}
 
 			@Override
-			public BufferedDataSource providedValueBuffer() {
-				return providedBuffer == null ? null : providedBuffer.buffer();
+			public DataSource providedValueBuffer() {
+				return providedBuffer == null ? null : providedBuffer.copy().reset();
 			}
 
 			@Override
@@ -107,7 +107,7 @@ public class DataNodeConfiguratorImpl<T>
 		private final DataBindingType<T> type;
 		private final Format format;
 		private final Boolean optional;
-		private final BufferedDataSource providedBuffer;
+		private final DataSource providedBuffer;
 		private final ValueResolution resolution;
 		private final List<T> provided;
 
@@ -141,8 +141,8 @@ public class DataNodeConfiguratorImpl<T>
 		}
 
 		@Override
-		public BufferedDataSource providedValueBuffer() {
-			return providedBuffer == null ? null : providedBuffer.buffer();
+		public DataSource providedValueBuffer() {
+			return providedBuffer == null ? null : providedBuffer.copy().reset();
 		}
 
 		@Override
@@ -164,7 +164,7 @@ public class DataNodeConfiguratorImpl<T>
 	public Format format;
 
 	private DataBindingType<T> type;
-	private BufferedDataSource providedBufferedValue;
+	private DataSource providedBufferedValue;
 	private ValueResolution resolution;
 
 	private Boolean optional;
@@ -221,7 +221,7 @@ public class DataNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public DataNodeConfigurator<T> provideValue(BufferedDataSource dataSource) {
+	public DataNodeConfigurator<T> provideValue(DataSource dataSource) {
 		requireConfigurable(providedBufferedValue);
 		providedBufferedValue = dataSource;
 

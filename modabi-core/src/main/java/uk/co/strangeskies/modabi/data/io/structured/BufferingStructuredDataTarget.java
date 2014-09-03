@@ -13,11 +13,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.data.io.DataSource;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.IOException;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredData.BufferedStructuredData;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -45,49 +44,6 @@ public class BufferingStructuredDataTarget extends
 		super(new BufferingStructuredDataTargetImpl());
 	}
 
-	@Override
-	public BufferingStructuredDataTarget nextChild(QualifiedName name) {
-		super.nextChild(name);
-		return this;
-	}
-
-	@Override
-	public BufferingStructuredDataTarget endChild() {
-		super.endChild();
-		return this;
-	}
-
-	@Override
-	public TerminatingDataTarget property(QualifiedName name) {
-		return super.property(name);
-	}
-
-	@Override
-	public BufferingStructuredDataTarget property(QualifiedName name,
-			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
-		super.property(name, targetOperation);
-		return this;
-	}
-
-	@Override
-	public BufferingStructuredDataTarget content(
-			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
-		super.content(targetOperation);
-		return this;
-	}
-
-	@Override
-	public TerminatingDataTarget content() {
-		// TODO Auto-generated method stub
-		return super.content();
-	}
-
-	@Override
-	public BufferingStructuredDataTarget comment(String comment) {
-		super.comment(comment);
-		return this;
-	}
-
 	public BufferedStructuredDataSource buffer() {
 		return ((BufferingStructuredDataTargetImpl) getComponent()).buffer();
 	}
@@ -103,7 +59,7 @@ class BufferingStructuredDataTargetImpl implements StructuredDataTarget {
 	private final Set<String> comments = new HashSet<>();
 
 	@Override
-	public State currentState() {
+	public StructuredDataState currentState() {
 		return null;
 	}
 
@@ -132,26 +88,26 @@ class BufferingStructuredDataTargetImpl implements StructuredDataTarget {
 	}
 
 	@Override
-	public BufferingStructuredDataTarget property(QualifiedName name,
-			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
-		return (BufferingStructuredDataTarget) StructuredDataTarget.super.property(
-				name, targetOperation);
+	public BufferingStructuredDataTarget writeProperty(QualifiedName name,
+			Function<DataTarget, DataTarget> targetOperation) {
+		return (BufferingStructuredDataTarget) StructuredDataTarget.super
+				.writeProperty(name, targetOperation);
 	}
 
 	@Override
 	public BufferingStructuredDataTarget content(
-			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
+			Function<DataTarget, DataTarget> targetOperation) {
 		return (BufferingStructuredDataTarget) StructuredDataTarget.super
 				.content(targetOperation);
 	}
 
 	@Override
-	public TerminatingDataTarget property(QualifiedName name) {
+	public DataTarget writeProperty(QualifiedName name) {
 		return stack.peek().addProperty(name);
 	}
 
 	@Override
-	public TerminatingDataTarget content() {
+	public DataTarget writeContent() {
 		return stack.peek().addContent();
 	}
 
@@ -214,7 +170,7 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	}
 
 	@Override
-	public Namespace defaultNamespaceHint() {
+	public Namespace getDefaultNamespaceHint() {
 		if (stack.isEmpty())
 			return defaultNamespaceHint;
 		else
@@ -222,7 +178,7 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	}
 
 	@Override
-	public Set<Namespace> namespaceHints() {
+	public Set<Namespace> getNamespaceHints() {
 		if (stack.isEmpty())
 			return namespaceHints;
 		else
@@ -230,7 +186,7 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	}
 
 	@Override
-	public Set<String> comments() {
+	public Set<String> getComments() {
 		if (stack.isEmpty())
 			return comments;
 		else
@@ -238,17 +194,17 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	}
 
 	@Override
-	public TerminatingDataSource propertyData(QualifiedName name) {
+	public DataSource readProperty(QualifiedName name) {
 		return stack.peek().propertyData(name);
 	}
 
 	@Override
-	public Set<QualifiedName> properties() {
+	public Set<QualifiedName> getProperties() {
 		return stack.peek().properties();
 	}
 
 	@Override
-	public QualifiedName nextChild() {
+	public QualifiedName startNextChild() {
 		BufferedStructuredData child = stack.peek().nextChild();
 
 		if (child == null)
@@ -259,13 +215,18 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	}
 
 	@Override
+	public boolean hasNextChild() {
+		return stack.peek().hasNextChild();
+	}
+
+	@Override
 	public void endChild() {
 		stack.pop();
 	}
 
 	@Override
-	public TerminatingDataSource content() {
-		BufferedDataSource content = stack.peek().content();
+	public DataSource readContent() {
+		DataSource content = stack.peek().content();
 		return content == null ? null : content;
 	}
 
@@ -298,9 +259,10 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 		thatCopy = thatCopy.copy();
 		thatCopy.reset();
 
-		if (!Objects.equals(defaultNamespaceHint, thatCopy.defaultNamespaceHint()))
+		if (!Objects.equals(defaultNamespaceHint,
+				thatCopy.getDefaultNamespaceHint()))
 			return false;
-		if (!Objects.equals(namespaceHints, thatCopy.namespaceHints()))
+		if (!Objects.equals(namespaceHints, thatCopy.getNamespaceHints()))
 			return false;
 
 		return root.equals(((BufferedStructuredDataSourceImpl) thatCopy
@@ -320,6 +282,11 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	@Override
 	public int indexAtDepth() {
 		return stack.peek().childIndex();
+	}
+
+	@Override
+	public StructuredDataState currentState() {
+		return null;
 	}
 }
 
@@ -387,8 +354,8 @@ class BufferingStructuredData {
 
 		private final Set<String> comments;
 
-		private final Map<QualifiedName, BufferedDataSource> properties;
-		private final BufferedDataSource content;
+		private final Map<QualifiedName, DataSource> properties;
+		private final DataSource content;
 
 		private final List<BufferedStructuredData> children;
 		private int childIndex;
@@ -459,6 +426,10 @@ class BufferingStructuredData {
 			return children.get(childIndex++);
 		}
 
+		public boolean hasNextChild() {
+			return childIndex < children.size();
+		}
+
 		public QualifiedName name() {
 			return name;
 		}
@@ -467,11 +438,11 @@ class BufferingStructuredData {
 			return properties.keySet();
 		}
 
-		public BufferedDataSource propertyData(QualifiedName name) {
+		public DataSource propertyData(QualifiedName name) {
 			return properties.get(name);
 		}
 
-		public BufferedDataSource content() {
+		public DataSource content() {
 			return content;
 		}
 
@@ -481,7 +452,7 @@ class BufferingStructuredData {
 
 		public void reset() {
 			content.reset();
-			for (BufferedDataSource property : properties.values())
+			for (DataSource property : properties.values())
 				property.reset();
 
 			childIndex = 0;

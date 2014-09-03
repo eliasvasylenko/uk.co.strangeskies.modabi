@@ -21,7 +21,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import uk.co.strangeskies.modabi.data.io.IOException;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataState;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTargetDecorator;
 import uk.co.strangeskies.modabi.namespace.Namespace;
@@ -266,16 +267,16 @@ class XMLTargetImpl implements StructuredDataTarget {
 	}
 
 	@Override
-	public TerminatingDataTarget property(QualifiedName name) {
-		return TerminatingDataTarget.composeString(s -> properties.put(name, s),
+	public DataTarget writeProperty(QualifiedName name) {
+		return DataTarget.composeString(s -> properties.put(name, s),
 				this::formatName);
 	}
 
 	@Override
-	public TerminatingDataTarget content() {
+	public DataTarget writeContent() {
 		outputCurrentChild(false);
 
-		return TerminatingDataTarget.composeString(s -> {
+		return DataTarget.composeString(s -> {
 			try {
 				out.writeCharacters(s);
 			} catch (XMLStreamException e) {
@@ -302,7 +303,7 @@ class XMLTargetImpl implements StructuredDataTarget {
 	}
 
 	@Override
-	public State currentState() {
+	public StructuredDataState currentState() {
 		return null;
 	}
 }

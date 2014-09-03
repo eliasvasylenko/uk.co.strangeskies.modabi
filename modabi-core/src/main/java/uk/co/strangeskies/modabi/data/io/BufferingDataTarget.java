@@ -4,63 +4,67 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BufferingDataTarget extends TerminatingDataTargetDecorator {
+public class BufferingDataTarget extends DataTargetDecorator {
 	public BufferingDataTarget() {
 		super(new BufferingDataTargetImpl());
 	}
 
-	public BufferedDataSource buffer() {
+	public DataSource buffer() {
 		return ((BufferingDataTargetImpl) getComponent()).buffer();
 	}
 
 	@Override
-	public <T> BufferingDataTarget put(DataItem<T> item) {
+	public <T> BufferingDataTarget put(DataType<T> type, T data) {
+		super.put(type, data);
+		return this;
+	}
+
+	@Override
+	public <U> BufferingDataTarget put(DataItem<U> item) {
 		super.put(item);
 		return this;
 	}
 
-	@Override
-	public <T> BufferingDataTarget put(DataType<T> type, T data) {
-		put(new DataItem<T>(type, data));
-		return this;
+	private static class BufferingDataTargetImpl implements DataTarget {
+		private List<DataItem<?>> dataSequence = new ArrayList<>();
+		private boolean terminated;
+
+		@Override
+		public <T> DataTarget put(DataItem<T> item) {
+			dataSequence.add(item);
+			return this;
+		}
+
+		@Override
+		public void terminate() {
+			if (!terminated)
+				dataSequence = Collections.unmodifiableList(dataSequence);
+			terminated = true;
+		}
+
+		@Override
+		public DataStreamState currentState() {
+			return null;
+		}
+
+		public BufferedDataSource buffer() {
+			terminate();
+			return new BufferedDataSource(dataSequence);
+		}
 	}
 }
 
-class BufferingDataTargetImpl implements TerminatingDataTarget {
-	private List<DataItem<?>> dataSequence = new ArrayList<>();
-	private boolean terminated;
-
-	@Override
-	public <T> TerminatingDataTarget put(DataItem<T> item) {
-		dataSequence.add(item);
-		return this;
-	}
-
-	@Override
-	public void terminate() {
-		if (!terminated)
-			dataSequence = Collections.unmodifiableList(dataSequence);
-		terminated = true;
-	}
-
-	@Override
-	public State currentState() {
-		return null;
-	}
-
-	public BufferedDataSourceImpl buffer() {
-		terminate();
-		return new BufferedDataSourceImpl(dataSequence);
-	}
-}
-
-class BufferedDataSourceImpl implements BufferedDataSource {
+class BufferedDataSource implements DataSource {
 	private final List<DataItem<?>> dataSequence;
 	private int index;
 
-	public BufferedDataSourceImpl(List<DataItem<?>> dataSequence) {
-		index = 0;
+	public BufferedDataSource(List<DataItem<?>> dataSequence) {
+		this(dataSequence, 0);
+	}
+
+	public BufferedDataSource(List<DataItem<?>> dataSequence, int index) {
 		this.dataSequence = dataSequence;
+		this.index = index;
 	}
 
 	@Override
@@ -91,7 +95,7 @@ class BufferedDataSourceImpl implements BufferedDataSource {
 	}
 
 	@Override
-	public BufferedDataSource reset() {
+	public DataSource reset() {
 		index = 0;
 		return this;
 	}
@@ -105,25 +109,17 @@ class BufferedDataSourceImpl implements BufferedDataSource {
 	}
 
 	@Override
-	public BufferedDataSource buffer() {
-		return buffer(dataSequence.size() - index);
-	}
-
-	@Override
-	public BufferedDataSource buffer(int items) {
-		return new BufferedDataSourceImpl(
-				dataSequence.subList(index, index + items));
-	}
-
-	@Override
-	public BufferedDataSource copy() {
-		BufferedDataSourceImpl copy = new BufferedDataSourceImpl(dataSequence);
-		copy.index = index;
-		return copy;
-	}
-
-	@Override
 	public int index() {
 		return index;
+	}
+
+	@Override
+	public DataStreamState currentState() {
+		return null;
+	}
+
+	@Override
+	public DataSource copy() {
+		return new BufferedDataSource(dataSequence, index);
 	}
 }

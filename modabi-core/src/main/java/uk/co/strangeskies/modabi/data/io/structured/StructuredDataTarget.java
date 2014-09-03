@@ -1,59 +1,13 @@
 package uk.co.strangeskies.modabi.data.io.structured;
 
-import java.util.Arrays;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.data.io.IOException;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataTarget;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface StructuredDataTarget {
-	public enum State {
-		UNSTARTED, EMPTY_ELEMENT, POPULATED_ELEMENT, ELEMENT_WITH_CONTENT, PROPERTY, CONTENT, FINISHED;
-
-		public State enterState(State next) {
-			switch (this) {
-			case UNSTARTED:
-				checkExitStateValid(next, EMPTY_ELEMENT);
-				break;
-			case EMPTY_ELEMENT:
-				checkExitStateValid(next, EMPTY_ELEMENT, POPULATED_ELEMENT, PROPERTY,
-						CONTENT);
-				break;
-			case POPULATED_ELEMENT:
-				checkExitStateValid(next, EMPTY_ELEMENT, POPULATED_ELEMENT, FINISHED);
-				break;
-			case ELEMENT_WITH_CONTENT:
-				checkExitStateValid(next, POPULATED_ELEMENT, FINISHED);
-				break;
-			case PROPERTY:
-				checkExitStateValid(next, EMPTY_ELEMENT);
-				break;
-			case CONTENT:
-				checkExitStateValid(next, ELEMENT_WITH_CONTENT);
-				break;
-			case FINISHED:
-				checkExitStateValid(next);
-				break;
-			}
-
-			return next;
-		}
-
-		private void checkExitStateValid(State exitState, State... validExitState) {
-			if (!Arrays.asList(validExitState).contains(exitState))
-				throw new IOException("Cannot move to state '" + exitState
-						+ "' from state '" + this + "'.");
-		}
-
-		public void checkValid(State... validState) {
-			if (!Arrays.asList(validState).contains(this))
-				throw new IOException("Cannot perform action in state '" + this + "'.");
-		}
-	}
-
-	public State currentState();
+	public StructuredDataState currentState();
 
 	/**
 	 * This may help some data targets, e.g. XML, organise content a little more
@@ -78,22 +32,22 @@ public interface StructuredDataTarget {
 
 	public StructuredDataTarget nextChild(QualifiedName name);
 
-	public TerminatingDataTarget property(QualifiedName name);
+	public DataTarget writeProperty(QualifiedName name);
 
-	public default StructuredDataTarget property(QualifiedName name,
-			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
-		TerminatingDataTarget target = property(name);
+	public default StructuredDataTarget writeProperty(QualifiedName name,
+			Function<DataTarget, DataTarget> targetOperation) {
+		DataTarget target = writeProperty(name);
 		if (target != targetOperation.apply(target))
 			throw new IllegalArgumentException();
 		target.terminate();
 		return this;
 	}
 
-	public TerminatingDataTarget content();
+	public DataTarget writeContent();
 
 	public default StructuredDataTarget content(
-			Function<TerminatingDataTarget, TerminatingDataTarget> targetOperation) {
-		TerminatingDataTarget target = content();
+			Function<DataTarget, DataTarget> targetOperation) {
+		DataTarget target = writeContent();
 		if (target != targetOperation.apply(target))
 			throw new IllegalArgumentException();
 		target.terminate();

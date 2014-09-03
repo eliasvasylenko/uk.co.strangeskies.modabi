@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.configurators;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
@@ -16,7 +16,7 @@ public interface DataNodeConfigurator<T>
 	@Override
 	public <U extends T> DataNodeConfigurator<U> dataClass(Class<U> dataClass);
 
-	public DataNodeConfigurator<T> provideValue(BufferedDataSource dataSource);
+	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
 
 	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution);
 

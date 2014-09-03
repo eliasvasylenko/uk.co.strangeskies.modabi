@@ -12,139 +12,161 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.IOException;
-import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSourceDecorator;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataState;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public class XMLSource implements StructuredDataSource {
-	private final XMLStreamReader in;
-	private final Deque<Integer> currentLocation;
-
-	private QualifiedName nextChild;
-	private final Set<String> comments;
-	private String content;
-
+public class XMLSource extends StructuredDataSourceDecorator {
 	public XMLSource(XMLStreamReader in) {
-		this.in = in;
-		currentLocation = new ArrayDeque<>();
-
-		comments = new HashSet<>();
+		super(new XMLSourceImpl(in));
 	}
 
 	public XMLSource(InputStream in) {
-		this(createXMLStreamReader(in));
+		super(new XMLSourceImpl(in));
 	}
 
-	private static XMLStreamReader createXMLStreamReader(InputStream in) {
-		try {
-			return XMLInputFactory.newInstance().createXMLStreamReader(in);
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new SchemaException(e);
+	private static class XMLSourceImpl implements StructuredDataSource {
+		private final XMLStreamReader in;
+		private final Deque<Integer> currentLocation;
+
+		private QualifiedName nextChild;
+		private final Set<String> comments;
+		private String content;
+
+		public XMLSourceImpl(XMLStreamReader in) {
+			this.in = in;
+			currentLocation = new ArrayDeque<>();
+
+			comments = new HashSet<>();
 		}
-	}
 
-	@Override
-	public Namespace defaultNamespaceHint() {
-		return Namespace.parseHttpString(in.getNamespaceURI());
-	}
+		public XMLSourceImpl(InputStream in) {
+			this(createXMLStreamReader(in));
+		}
 
-	@Override
-	public Set<Namespace> namespaceHints() {
-		Set<Namespace> namespaces = new HashSet<>();
-		for (int i = 0; i < in.getNamespaceCount(); i++)
-			namespaces.add(Namespace.parseHttpString(in.getNamespaceURI(i)));
-		return namespaces;
-	}
-
-	@Override
-	public QualifiedName nextChild() {
-		if (nextChild == null)
-			throw new IOException();
-
-		currentLocation.push(0);
-
-		return pumpEvents();
-	}
-
-	private QualifiedName pumpEvents() {
-		QualifiedName thisChild = nextChild;
-		nextChild = null;
-		comments.clear();
-		content = null;
-
-		boolean done = false;
-		do {
-			int code;
+		private static XMLStreamReader createXMLStreamReader(InputStream in) {
 			try {
-				code = in.next();
-			} catch (XMLStreamException e) {
-				throw new IOException(e);
+				return XMLInputFactory.newInstance().createXMLStreamReader(in);
+			} catch (XMLStreamException | FactoryConfigurationError e) {
+				throw new SchemaException(e);
 			}
+		}
 
-			switch (code) {
-			case XMLStreamReader.START_ELEMENT:
-				QName name = in.getName();
-				nextChild = new QualifiedName(name.getLocalPart(),
-						Namespace.parseHttpString(name.getNamespaceURI()));
-			case XMLStreamReader.END_ELEMENT:
-			case XMLStreamReader.END_DOCUMENT:
-				done = true;
-				break;
-			case XMLStreamReader.COMMENT:
-				comments.add(in.getText());
-				break;
-			case XMLStreamReader.CHARACTERS:
-				content = in.getText();
-				break;
-			}
-		} while (!done);
+		@Override
+		public Namespace getDefaultNamespaceHint() {
+			return Namespace.parseHttpString(in.getNamespaceURI());
+		}
 
-		return thisChild;
-	}
+		@Override
+		public Set<Namespace> getNamespaceHints() {
+			Set<Namespace> namespaces = new HashSet<>();
+			for (int i = 0; i < in.getNamespaceCount(); i++)
+				namespaces.add(Namespace.parseHttpString(in.getNamespaceURI(i)));
+			return namespaces;
+		}
 
-	@Override
-	public Set<QualifiedName> properties() {
-		Set<QualifiedName> properties = new HashSet<>();
-		for (int i = 0; i < in.getNamespaceCount(); i++)
-			properties.add(new QualifiedName(in.getAttributeLocalName(i), Namespace
-					.parseHttpString(in.getAttributeNamespace(i))));
-		return properties;
-	}
+		@Override
+		public QualifiedName startNextChild() {
+			if (nextChild == null)
+				throw new IOException();
 
-	@Override
-	public TerminatingDataSource propertyData(QualifiedName name) {
-		return TerminatingDataSource.parseString(in.getAttributeValue(name
-				.getNamespace().toHttpString(), name.getName()));
-	}
+			currentLocation.push(0);
 
-	@Override
-	public TerminatingDataSource content() {
-		return TerminatingDataSource.parseString(content);
-	}
+			return pumpEvents();
+		}
 
-	@Override
-	public void endChild() {
-		while (pumpEvents() != null)
-			;
-		currentLocation.pop();
-		currentLocation.push(currentLocation.pop() + 1);
-	}
+		@Override
+		public boolean hasNextChild() {
+			return nextChild != null;
+		}
 
-	@Override
-	public int depth() {
-		return currentLocation.size();
-	}
+		private QualifiedName pumpEvents() {
+			QualifiedName thisChild = nextChild;
+			nextChild = null;
+			comments.clear();
+			content = null;
 
-	@Override
-	public int indexAtDepth() {
-		return currentLocation.peek();
-	}
+			boolean done = false;
+			do {
+				int code;
+				try {
+					code = in.next();
+				} catch (XMLStreamException e) {
+					throw new IOException(e);
+				}
 
-	@Override
-	public Set<String> comments() {
-		return comments;
+				switch (code) {
+				case XMLStreamReader.START_ELEMENT:
+					QName name = in.getName();
+					nextChild = new QualifiedName(name.getLocalPart(),
+							Namespace.parseHttpString(name.getNamespaceURI()));
+				case XMLStreamReader.END_ELEMENT:
+				case XMLStreamReader.END_DOCUMENT:
+					done = true;
+					break;
+				case XMLStreamReader.COMMENT:
+					comments.add(in.getText());
+					break;
+				case XMLStreamReader.CHARACTERS:
+					content = in.getText();
+					break;
+				}
+			} while (!done);
+
+			return thisChild;
+		}
+
+		@Override
+		public Set<QualifiedName> getProperties() {
+			Set<QualifiedName> properties = new HashSet<>();
+			for (int i = 0; i < in.getNamespaceCount(); i++)
+				properties.add(new QualifiedName(in.getAttributeLocalName(i), Namespace
+						.parseHttpString(in.getAttributeNamespace(i))));
+			return properties;
+		}
+
+		@Override
+		public DataSource readProperty(QualifiedName name) {
+			return DataSource.parseString(in.getAttributeValue(name.getNamespace()
+					.toHttpString(), name.getName()));
+		}
+
+		@Override
+		public DataSource readContent() {
+			return DataSource.parseString(content);
+		}
+
+		@Override
+		public void endChild() {
+			while (pumpEvents() != null)
+				;
+			currentLocation.pop();
+			currentLocation.push(currentLocation.pop() + 1);
+		}
+
+		@Override
+		public int depth() {
+			return currentLocation.size();
+		}
+
+		@Override
+		public int indexAtDepth() {
+			return currentLocation.peek();
+		}
+
+		@Override
+		public Set<String> getComments() {
+			return comments;
+		}
+
+		@Override
+		public StructuredDataState currentState() {
+			return null;
+		}
 	}
 }

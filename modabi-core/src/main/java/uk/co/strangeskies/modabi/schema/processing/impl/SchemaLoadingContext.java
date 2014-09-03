@@ -44,7 +44,7 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 
 	public static <T> BindingFuture<T> load(SchemaBinderImpl schemaBinderImpl,
 			Model<T> model, StructuredDataSource input) {
-		QualifiedName name = input.nextChild();
+		QualifiedName name = input.startNextChild();
 		if (!name.equals(model.getName()))
 			throw new SchemaException("Input root name '" + name
 					+ "' does not match model name '" + model.getName() + "'.");
@@ -53,7 +53,7 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 
 	public static BindingFuture<?> load(SchemaBinderImpl schemaBinderImpl,
 			StructuredDataSource input) {
-		Model<?> model = schemaBinderImpl.registeredModels.get(input.nextChild());
+		Model<?> model = schemaBinderImpl.registeredModels.get(input.startNextChild());
 		return new SchemaLoadingContext<>(schemaBinderImpl, model, input).load();
 	}
 

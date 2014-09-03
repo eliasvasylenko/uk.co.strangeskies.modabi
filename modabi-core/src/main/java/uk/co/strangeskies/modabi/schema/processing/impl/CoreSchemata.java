@@ -10,7 +10,7 @@ import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.provider.SingletonProvider;
 
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.model.building.DataLoader;
@@ -42,7 +42,7 @@ public class CoreSchemata {
 		DataLoader loader = new DataLoader() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public <T> List<T> loadData(DataNode<T> node, BufferedDataSource data) {
+			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
 				Namespace namespace = new Namespace(BaseSchema.class.getPackage(),
 						LocalDate.of(2014, 1, 1));
 

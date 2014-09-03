@@ -13,7 +13,7 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
@@ -40,7 +40,7 @@ import uk.co.strangeskies.utilities.Enumeration;
 public class BaseSchemaImpl implements BaseSchema {
 	private class DerivedTypesImpl implements DerivedTypes {
 		private final DataBindingType<Object> referenceType;
-		private final DataBindingType<BufferedDataSource> bufferedDataType;
+		private final DataBindingType<DataSource> bufferedDataType;
 
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Class> classType;
@@ -84,8 +84,8 @@ public class BaseSchemaImpl implements BaseSchema {
 					.dataClass(Set.class).baseType(collectionType).create());
 
 			typeSet.add(bufferedDataType = builder.configure(loader)
-					.name("bufferedData", namespace).dataClass(BufferedDataSource.class)
-					.bindingClass(BufferedDataSource.class)
+					.name("bufferedData", namespace).dataClass(DataSource.class)
+					.bindingClass(DataSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingClass(DataTarget.class)
 					.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
@@ -102,7 +102,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.bindingClass(ReferenceSource.class)
 							.bindingStrategy(BindingStrategy.PROVIDED)
 							.unbindingFactoryClass(DereferenceTarget.class)
-							.unbindingClass(BufferedDataSource.class)
+							.unbindingClass(DataSource.class)
 							.unbindingMethod("dereference")
 							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 							.providedUnbindingParameters("targetModel", "targetId", "this")
@@ -380,7 +380,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.bindingClass(ImportSource.class)
 											.bindingStrategy(BindingStrategy.PROVIDED)
 											.unbindingFactoryClass(ImportDereferenceTarget.class)
-											.unbindingClass(BufferedDataSource.class)
+											.unbindingClass(DataSource.class)
 											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 											.unbindingMethod("dereferenceImport")
 											.providedUnbindingParameters("targetModel", "targetId",
@@ -525,7 +525,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public DataBindingType<BufferedDataSource> bufferedDataType() {
+		public DataBindingType<DataSource> bufferedDataType() {
 			return bufferedDataType;
 		}
 
@@ -595,7 +595,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.name("primitive", namespace)
 				.isAbstract(true)
 				.isPrivate(true)
-				.bindingClass(BufferedDataSource.class)
+				.bindingClass(DataSource.class)
 				.bindingStrategy(BindingStrategy.PROVIDED)
 				.unbindingClass(DataTarget.class)
 				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)

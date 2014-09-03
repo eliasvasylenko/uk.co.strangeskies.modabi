@@ -6,7 +6,7 @@ import java.util.Set;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataType;
 import uk.co.strangeskies.utilities.Enumeration;
 
@@ -23,7 +23,7 @@ public interface BaseSchema extends Schema {
 
 		DataBindingType<Object> referenceType();
 
-		DataBindingType<BufferedDataSource> bufferedDataType();
+		DataBindingType<DataSource> bufferedDataType();
 
 		@SuppressWarnings("rawtypes")
 		DataBindingType<Range> rangeType();

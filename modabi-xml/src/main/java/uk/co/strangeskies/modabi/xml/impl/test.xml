@@ -6,7 +6,7 @@
 		<type name="enumerationBase" abstract="true"
 			dataClass="uk.co.strangeskies.utilities.Enumeration"></type>
 		<type name="primitive" abstract="true" bindingStrategy="PROVIDED"
-			bindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+			bindingClass="uk.co.strangeskies.modabi.data.io.DataSource"
 			unbindingStrategy="PASS_TO_PROVIDED" unbindingMethod="put"
 			unbindingClass="uk.co.strangeskies.modabi.data.io.DataTarget"
 			providedUnbindingMethodParameters="dataType, this">
@@ -52,16 +52,16 @@
 		</type>
 		<type name="list" baseType="collection" dataClass="java.util.List"></type>
 		<type name="set" baseType="collection" dataClass="java.util.Set"></type>
-		<type name="bufferedData" dataClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+		<type name="bufferedData" dataClass="uk.co.strangeskies.modabi.data.io.DataSource"
 			bindingStrategy="PROVIDED"
-			bindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+			bindingClass="uk.co.strangeskies.modabi.data.io.DataSource"
 			unbindingStrategy="ACCEPT_PROVIDED" unbindingMethod="pipe"
 			unbindingClass="uk.co.strangeskies.modabi.data.io.DataTarget"></type>
 		<type name="referenceBase" abstract="true" dataClass="java.lang.Object"
 			bindingStrategy="PROVIDED"
 			bindingClass="uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource"
 			unbindingStrategy="PROVIDED_FACTORY" unbindingMethod="dereference"
-			unbindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+			unbindingClass="uk.co.strangeskies.modabi.data.io.DataSource"
 			providedUnbindingMethodParameters="targetModel, targetId, this"
 			unbindingFactoryClass="uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget">
 			<data name="targetModel" outMethod="null" inMethod="null"
@@ -154,7 +154,7 @@
 				bindingStrategy="PROVIDED"
 				bindingClass="uk.co.strangeskies.modabi.schema.processing.reference.ImportSource"
 				unbindingStrategy="PROVIDED_FACTORY" unbindingMethod="dereferenceImport"
-				unbindingClass="uk.co.strangeskies.modabi.data.io.BufferedDataSource"
+				unbindingClass="uk.co.strangeskies.modabi.data.io.DataSource"
 				providedUnbindingMethodParameters="targetModel, targetId, this"
 				unbindingFactoryClass="uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget">
 				<data name="targetModel" type="reference" outMethod="null"

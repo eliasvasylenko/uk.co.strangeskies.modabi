@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.model.building.impl;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.io.BufferedDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -40,7 +40,7 @@ public final class DataNodeWrapper<T>
 	}
 
 	@Override
-	public BufferedDataSource providedValueBuffer() {
+	public DataSource providedValueBuffer() {
 		return getBase() == null ? null : getBase().providedValueBuffer();
 	}
 

@@ -2,25 +2,48 @@ package uk.co.strangeskies.modabi.data.io.structured;
 
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.data.io.TerminatingDataSource;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface StructuredDataSource {
-	public Namespace defaultNamespaceHint();
+	public StructuredDataState currentState();
 
-	public Set<Namespace> namespaceHints();
+	public Namespace getDefaultNamespaceHint();
 
-	public Set<String> comments();
+	public Set<Namespace> getNamespaceHints();
 
-	public QualifiedName nextChild();
+	public Set<String> getComments();
 
-	public Set<QualifiedName> properties();
+	public QualifiedName startNextChild();
 
-	public TerminatingDataSource propertyData(QualifiedName name);
+	public Set<QualifiedName> getProperties();
 
-	public TerminatingDataSource content();
+	public DataSource readProperty(QualifiedName name);
 
+	public DataSource readContent();
+
+	public boolean hasNextChild();
+
+	public default boolean skipNextChild() {
+		boolean hasNext = hasNextChild();
+		if (hasNext) {
+			startNextChild();
+			skipChildren();
+			endChild();
+		}
+		return hasNext;
+	}
+
+	public default void skipChildren() {
+		while (skipNextChild())
+			;
+	}
+
+	/**
+	 * throws an exception if there are more children, so call skipChildren()
+	 * first if you want to ignore them.
+	 */
 	public void endChild();
 
 	public int depth();
@@ -28,31 +51,32 @@ public interface StructuredDataSource {
 	public int indexAtDepth();
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
-		if (defaultNamespaceHint() != null)
-			output.registerDefaultNamespaceHint(defaultNamespaceHint());
+		if (getDefaultNamespaceHint() != null)
+			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
 
-		if (!namespaceHints().isEmpty())
-			for (Namespace hint : namespaceHints())
+		if (!getNamespaceHints().isEmpty())
+			for (Namespace hint : getNamespaceHints())
 				output.registerNamespaceHint(hint);
 
 		QualifiedName childElement;
 
 		int depth = 0;
 		do {
-			while ((childElement = nextChild()) != null) {
+			while ((childElement = startNextChild()) != null) {
 				output.nextChild(childElement);
 
-				if (defaultNamespaceHint() != null)
-					output.registerDefaultNamespaceHint(defaultNamespaceHint());
-				for (Namespace hint : namespaceHints())
+				if (getDefaultNamespaceHint() != null)
+					output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
+				for (Namespace hint : getNamespaceHints())
 					output.registerNamespaceHint(hint);
 
-				for (QualifiedName property : properties())
-					propertyData(property).pipe(output.property(property)).terminate();
+				for (QualifiedName property : getProperties())
+					readProperty(property).pipe(output.writeProperty(property))
+							.terminate();
 
-				TerminatingDataSource content = content();
+				DataSource content = readContent();
 				if (content != null)
-					content.pipe(output.content()).terminate();
+					content.pipe(output.writeContent()).terminate();
 
 				depth++;
 			}
