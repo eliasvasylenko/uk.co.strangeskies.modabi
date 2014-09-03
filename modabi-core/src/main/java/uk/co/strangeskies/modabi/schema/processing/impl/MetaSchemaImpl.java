@@ -418,7 +418,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(Schema.class)
 				.bindingClass(SchemaConfigurator.class)
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("qualifiedName")
+						n -> n.data().format(Format.PROPERTY).name("name")
+								.inMethod("qualifiedName").outMethod("getQualifiedName")
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)))
 				.addChild(
 						n -> n
