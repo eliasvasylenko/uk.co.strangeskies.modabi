@@ -45,7 +45,7 @@ public interface StructuredDataTarget {
 
 	public DataTarget writeContent();
 
-	public default StructuredDataTarget content(
+	public default StructuredDataTarget writeContent(
 			Function<DataTarget, DataTarget> targetOperation) {
 		DataTarget target = writeContent();
 		if (target != targetOperation.apply(target))

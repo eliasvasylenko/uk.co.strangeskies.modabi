@@ -448,20 +448,17 @@ public class MetaSchemaImpl implements MetaSchema {
 																				.provideValue(
 																						new BufferingDataTarget().put(
 																								DataType.QUALIFIED_NAME,
-																								new QualifiedName(
-																										"schemaModel", namespace))
-																								.buffer()))
+																								new QualifiedName("schema",
+																										namespace)).buffer()))
 																.addChild(
 																		p -> p
 																				.data()
 																				.name("targetId")
 																				.provideValue(
-																						new BufferingDataTarget()
-																								.put(
-																										DataType.QUALIFIED_NAME,
-																										new QualifiedName(
-																												"qualifiedName",
-																												namespace)).buffer())))
+																						new BufferingDataTarget().put(
+																								DataType.QUALIFIED_NAME,
+																								new QualifiedName("name",
+																										namespace)).buffer())))
 												.addChild(
 														p -> p
 																.data()

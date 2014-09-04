@@ -27,9 +27,8 @@ public class DataSourceDecorator extends Decorator<DataSource> implements
 	}
 
 	@Override
-	public <T> T get(DataType<T> type) {
-		transition(DataStreamState.STARTED);
-		return null;
+	public DataItem<?> get() {
+		return getComponent().get();
 	}
 
 	@Override

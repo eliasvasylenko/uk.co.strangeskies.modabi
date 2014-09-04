@@ -198,6 +198,10 @@ public class Methods {
 								return false;
 
 							Class<?>[] methodParameters = m.getParameterTypes();
+
+							if (methodParameters.length != parameters.length)
+								return false;
+
 							int i = 0;
 							for (Class<?> parameter : parameters)
 								if (!ClassUtils.isAssignable(parameter, methodParameters[i++]))

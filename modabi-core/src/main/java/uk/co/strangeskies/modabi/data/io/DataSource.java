@@ -9,7 +9,11 @@ public interface DataSource extends Copyable<DataSource> {
 
 	int index();
 
-	<T> T get(DataType<T> type);
+	default <T> T get(DataType<T> type) {
+		return get().data(type);
+	}
+
+	DataItem<?> get();
 
 	<T extends DataTarget> T pipe(T target, int items);
 
@@ -59,13 +63,17 @@ public interface DataSource extends Copyable<DataSource> {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof DataSource))
+		public boolean equals(Object that) {
+			if (!(that instanceof DataSource))
 				return false;
 
-			DataSource that = (DataSource) obj;
-			return !that.copy().reset() && item.equals(that.item)
-					&& index == that.index && size == that.size;
+			DataSource thatDataSource = ((DataSource) that).copy().reset();
+			DataItem<?> item;
+			while ((item = thatDataSource.get()) != null)
+				if (!item.equals(this.item))
+					return false;
+
+			return thatDataSource.index() == index && thatDataSource.size() == size;
 		}
 
 		@Override
@@ -83,28 +91,9 @@ public interface DataSource extends Copyable<DataSource> {
 			return size;
 		}
 
-		protected DataItem<?> getItem() {
-			return item;
-		}
-
-		protected void setIndex(int index) {
-			this.index = index;
-		}
-
-		protected void incrementIndex() {
-			index++;
-		}
-
-		protected RuntimeException unimplemented() {
-			return new ClassCastException();
-		}
-
-		@SuppressWarnings("unchecked")
 		@Override
-		public <U> U get(DataType<U> type) {
-			if (type == item.type())
-				return (U) item.data();
-			throw new ClassCastException();
+		public DataItem<?> get() {
+			return item;
 		}
 
 		@Override

@@ -20,8 +20,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import uk.co.strangeskies.modabi.data.io.IOException;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
+import uk.co.strangeskies.modabi.data.io.IOException;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataState;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTargetDecorator;
@@ -259,6 +259,7 @@ class XMLTargetImpl implements StructuredDataTarget {
 		if (namespaces.isBase())
 			try {
 				out.writeEndDocument();
+				out.flush();
 			} catch (XMLStreamException e) {
 				throw new IOException(e);
 			}

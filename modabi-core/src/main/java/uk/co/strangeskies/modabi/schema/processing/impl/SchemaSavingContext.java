@@ -16,8 +16,8 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
-import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
@@ -71,8 +71,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 		dereferenceTarget = new DereferenceTarget() {
 			@Override
-			public <U> DataSource dereference(Model<U> model,
-					QualifiedName idDomain, U object) {
+			public <U> DataSource dereference(Model<U> model, QualifiedName idDomain,
+					U object) {
 				if (!bindings.get(model).contains(object))
 					throw new SchemaException("Cannot find any instance '" + object
 							+ "' bound to model '" + model.getName() + "'.");
@@ -132,6 +132,20 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private <U> U provide(Class<U> clazz) {
+		if (clazz.equals(DataTarget.class))
+			return (U) dataTarget;
+		if (clazz.equals(DereferenceTarget.class))
+			return (U) dereferenceTarget;
+		if (clazz.equals(IncludeTarget.class))
+			return (U) includeTarget;
+		if (clazz.equals(ImportDereferenceTarget.class))
+			return (U) importTarget;
+
+		return this.schemaBinderImpl.provide(clazz);
+	}
+
 	private String getNodeStackString() {
 		return nodeStack.stream().map(n -> n.getName().toString())
 				.collect(Collectors.joining(" < "));
@@ -185,7 +199,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				if (bufferedTarget.size() > 0)
 					switch (node.format()) {
 					case PROPERTY:
-						bufferedTarget.pipe(output.writeProperty(node.getName())).terminate();
+						bufferedTarget.pipe(output.writeProperty(node.getName()))
+								.terminate();
 						break;
 					case SIMPLE_ELEMENT:
 						output.nextChild(node.getName());
@@ -259,20 +274,6 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 	public void accept(ChoiceNode.Effective node) {
 		nodeStack.push(node);
 		nodeStack.pop();
-	}
-
-	@SuppressWarnings("unchecked")
-	private <U> U provide(Class<U> clazz) {
-		if (clazz.equals(DataTarget.class))
-			return (U) dataTarget;
-		if (clazz.equals(DereferenceTarget.class))
-			return (U) dereferenceTarget;
-		if (clazz.equals(IncludeTarget.class))
-			return (U) includeTarget;
-		if (clazz.equals(ImportDereferenceTarget.class))
-			return (U) importTarget;
-
-		return this.schemaBinderImpl.provide(clazz);
 	}
 
 	private void processChildren(SchemaNode.Effective<?, ?> node) {
@@ -443,8 +444,14 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | SecurityException | NullPointerException e) {
-			throw new SchemaException("Cannot invoke method '" + method + "' on '"
-					+ receiver + "' at node '" + getNodeStackString() + "'.", e);
+			throw new SchemaException("Cannot invoke method '"
+					+ method
+					+ "' on '"
+					+ receiver
+					+ "' with arguments '["
+					+ Arrays.asList(parameters).stream().map(Object::toString)
+							.collect(Collectors.joining(", ")) + "]' at node '"
+					+ getNodeStackString() + "'.", e);
 		}
 	}
 

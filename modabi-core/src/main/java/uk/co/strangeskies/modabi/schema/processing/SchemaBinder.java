@@ -72,7 +72,7 @@ public interface SchemaBinder {
 	/*
 	 * TODO Best effort at unbinding, outputting comments on errors instead of
 	 * throwing exceptions
-	 * 
+	 *
 	 * <T> Set<Exception> unbind(Model<T> model, StructuredDataTarget output, T
 	 * data);
 	 */

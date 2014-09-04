@@ -47,6 +47,51 @@ public class BufferingStructuredDataTarget extends
 	public BufferedStructuredDataSource buffer() {
 		return ((BufferingStructuredDataTargetImpl) getComponent()).buffer();
 	}
+
+	@Override
+	public BufferingStructuredDataTarget nextChild(QualifiedName name) {
+		super.nextChild(name);
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget writeProperty(QualifiedName name,
+			Function<DataTarget, DataTarget> targetOperation) {
+		super.writeProperty(name, targetOperation);
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget writeContent(
+			Function<DataTarget, DataTarget> targetOperation) {
+		writeContent(targetOperation);
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget comment(String comment) {
+		super.comment(comment);
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget endChild() {
+		super.endChild();
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget registerDefaultNamespaceHint(
+			Namespace namespace) {
+		super.registerDefaultNamespaceHint(namespace);
+		return this;
+	}
+
+	@Override
+	public BufferingStructuredDataTarget registerNamespaceHint(Namespace namespace) {
+		super.registerNamespaceHint(namespace);
+		return this;
+	}
 }
 
 class BufferingStructuredDataTargetImpl implements StructuredDataTarget {
@@ -95,10 +140,10 @@ class BufferingStructuredDataTargetImpl implements StructuredDataTarget {
 	}
 
 	@Override
-	public BufferingStructuredDataTarget content(
+	public BufferingStructuredDataTarget writeContent(
 			Function<DataTarget, DataTarget> targetOperation) {
 		return (BufferingStructuredDataTarget) StructuredDataTarget.super
-				.content(targetOperation);
+				.writeContent(targetOperation);
 	}
 
 	@Override
