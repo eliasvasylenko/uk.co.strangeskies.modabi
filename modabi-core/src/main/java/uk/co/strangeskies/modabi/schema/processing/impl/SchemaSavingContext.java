@@ -21,22 +21,22 @@ import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.building.impl.DataNodeWrapper;
-import uk.co.strangeskies.modabi.model.building.impl.ElementNodeWrapper;
-import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.model.nodes.BindingNode;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.model.AbstractModel;
+import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.building.impl.DataNodeWrapper;
+import uk.co.strangeskies.modabi.schema.model.building.impl.ElementNodeWrapper;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
@@ -227,7 +227,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 						.map(type -> new DataNodeWrapper<>(type.effective(), node))
 						.collect(Collectors.toCollection(ArrayList::new));
 
-				if (node.isAbstract() == null || !node.isAbstract())
+				if (!node.isAbstract())
 					nodes.add(node);
 
 				if (nodes.isEmpty())
@@ -295,7 +295,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					.map(n -> new ElementNodeWrapper<>(n.effective(), node))
 					.collect(Collectors.toCollection(ArrayList::new));
 
-			if (node.isAbstract() == null || !node.isAbstract())
+			if (!node.isAbstract())
 				nodes.add(node);
 
 			if (nodes.isEmpty())

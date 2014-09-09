@@ -2,11 +2,11 @@ package uk.co.strangeskies.modabi.data;
 
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.model.building.ChildBuilder;
-import uk.co.strangeskies.modabi.model.building.configurators.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
+import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNodeChildNode;
 
 public interface DataBindingTypeConfigurator<T>
 		extends

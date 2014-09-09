@@ -5,10 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 
 public class DummyNodes {
 	private DummyNodes() {
@@ -46,6 +46,11 @@ public class DummyNodes {
 			}
 
 			@Override
+			public boolean isAbstract() {
+				return false;
+			}
+
+			@Override
 			public List<? extends ChildNode<?, ?>> children() {
 				return children;
 			}
@@ -75,6 +80,11 @@ public class DummyNodes {
 					public boolean equals(Object object) {
 						return propertySet().testEquality(object)
 								&& effectivePropertySet().testEquality(object);
+					}
+
+					@Override
+					public boolean isAbstract() {
+						return false;
 					}
 
 					@Override
@@ -123,6 +133,11 @@ public class DummyNodes {
 			@Override
 			public SequenceNode source() {
 				return this;
+			}
+
+			@Override
+			public boolean isAbstract() {
+				return false;
 			}
 
 			@Override

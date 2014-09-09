@@ -8,11 +8,11 @@ import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.model.Model;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.modabi.schema.model.Model;
 
 public interface SchemaBinder {
 	<T> void registerProvider(Class<T> providedClass, Supplier<T> provider);
@@ -41,7 +41,7 @@ public interface SchemaBinder {
 
 	BindingFuture<?> bindFuture(StructuredDataSource input);
 
-	Set<BindingFuture<?>> bindingFutures();
+	<T> Set<BindingFuture<T>> bindingFutures(Model<T> model);
 
 	default Schema registerSchemaBinding(StructuredDataSource input) {
 		Schema schema = bind(getMetaSchema().getSchemaModel(), input);
@@ -72,7 +72,7 @@ public interface SchemaBinder {
 	/*
 	 * TODO Best effort at unbinding, outputting comments on errors instead of
 	 * throwing exceptions
-	 *
+	 * 
 	 * <T> Set<Exception> unbind(Model<T> model, StructuredDataTarget output, T
 	 * data);
 	 */

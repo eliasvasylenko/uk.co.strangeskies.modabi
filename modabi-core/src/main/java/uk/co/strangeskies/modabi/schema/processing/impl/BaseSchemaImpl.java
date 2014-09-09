@@ -13,21 +13,21 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
-import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
-import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.Models;
-import uk.co.strangeskies.modabi.model.building.DataLoader;
-import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Schemata;
+import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.Models;
+import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -35,6 +35,7 @@ import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
+import uk.co.strangeskies.modabi.schema.requirement.Requirements;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
@@ -241,8 +242,8 @@ public class BaseSchemaImpl implements BaseSchema {
 					.dataClass(Class.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.addChild(
-							p -> p.data().type(primitives.get(DataType.STRING)).name("name"))
-					.create());
+							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
+									.inMethod("forName")).create());
 
 			typeSet.add(enumType = builder
 					.configure(loader)
@@ -375,6 +376,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.data()
 											.name("import")
 											.outMethod("this")
+											.inMethod("null")
 											.isAbstract(true)
 											.dataClass(Object.class)
 											.bindingClass(ImportSource.class)
@@ -603,7 +605,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.providedUnbindingParameters("dataType", "this")
 				.addChild(
 						c -> c.data().name("dataType").type(enumerationBaseType)
-								.isAbstract(true).extensible(true)
+								.inMethod("get").isAbstract(true).extensible(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.dataClass(DataType.class).outMethod("null")).create());
 
@@ -670,6 +672,11 @@ public class BaseSchemaImpl implements BaseSchema {
 	@Override
 	public Schemata getDependencies() {
 		return baseSchema.getDependencies();
+	}
+
+	@Override
+	public Requirements getRequirements() {
+		return baseSchema.getRequirements();
 	}
 
 	@Override

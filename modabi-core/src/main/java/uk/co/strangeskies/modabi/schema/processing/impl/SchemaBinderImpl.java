@@ -1,15 +1,17 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
@@ -17,10 +19,6 @@ import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.impl.DataBindingTypeBuilderImpl;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.Models;
-import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
@@ -29,12 +27,18 @@ import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
+import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.Models;
+import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
+import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
+import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
 public class SchemaBinderImpl implements SchemaBinder {
 	private final List<Function<Class<?>, Object>> providers;
-	private final Set<BindingFuture<?>> bindingFutures;
+	private final SetMultiMap<Model<?>, BindingFuture<?>> bindingFutures;
 
 	private final CoreSchemata coreSchemata;
 
@@ -50,7 +54,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		providers = new ArrayList<>();
-		bindingFutures = Collections.synchronizedSet(new HashSet<>());
+		bindingFutures = new HashSetMultiHashMap<>(); // TODO make synchronous
 
 		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
 				dataTypeBuilder);
@@ -65,6 +69,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 		registerProvider(DataBindingTypeBuilder.class, () -> dataTypeBuilder);
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
+
+		registerProvider(Set.class, HashSet::new);
+		registerProvider(List.class, ArrayList::new);
+		registerProvider(Map.class, HashMap::new);
 	}
 
 	@Override
@@ -95,6 +103,10 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	}
 
+	public Set<BindingFuture<?>> getBindings(Model<?> model) {
+		return bindingFutures.get(model);
+	}
+
 	@Override
 	public MetaSchema getMetaSchema() {
 		return coreSchemata.metaSchema();
@@ -117,7 +129,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
-		bindingFutures.add(binding);
+		bindingFutures.add(binding.getModel(), binding);
 		new Thread(() -> {
 			try {
 				binding.get();
@@ -130,9 +142,11 @@ public class SchemaBinderImpl implements SchemaBinder {
 		return binding;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Set<BindingFuture<?>> bindingFutures() {
-		return new HashSet<>(bindingFutures);
+	public <T> Set<BindingFuture<T>> bindingFutures(Model<T> model) {
+		return new HashSet<>(bindingFutures.get(model).stream()
+				.map(t -> (BindingFuture<T>) t).collect(Collectors.toSet()));
 	}
 
 	@Override

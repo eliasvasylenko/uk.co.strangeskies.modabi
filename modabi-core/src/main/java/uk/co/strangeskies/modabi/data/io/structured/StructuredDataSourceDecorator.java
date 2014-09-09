@@ -28,6 +28,11 @@ public class StructuredDataSourceDecorator extends
 	}
 
 	@Override
+	public QualifiedName peekNextChild() {
+		return getComponent().peekNextChild();
+	}
+
+	@Override
 	public Namespace getDefaultNamespaceHint() {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);

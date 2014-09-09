@@ -5,6 +5,7 @@ import java.util.Set;
 import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 
 public interface StructuredDataSource {
 	public StructuredDataState currentState();
@@ -16,6 +17,16 @@ public interface StructuredDataSource {
 	public Set<String> getComments();
 
 	public QualifiedName startNextChild();
+
+	public QualifiedName peekNextChild();
+
+	public default void startNextChild(QualifiedName name) {
+		QualifiedName nextName = startNextChild();
+		if (!nextName.equals(name)) {
+			throw new SchemaException("Next child '" + nextName
+					+ "' does not match expected name '" + name + "'.");
+		}
+	}
 
 	public Set<QualifiedName> getProperties();
 

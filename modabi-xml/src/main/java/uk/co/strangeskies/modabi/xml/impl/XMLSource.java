@@ -81,6 +81,11 @@ public class XMLSource extends StructuredDataSourceDecorator {
 		}
 
 		@Override
+		public QualifiedName peekNextChild() {
+			return nextChild;
+		}
+
+		@Override
 		public boolean hasNextChild() {
 			return nextChild != null;
 		}

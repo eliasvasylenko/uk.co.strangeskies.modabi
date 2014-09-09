@@ -260,6 +260,11 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 	}
 
 	@Override
+	public QualifiedName peekNextChild() {
+		return stack.peek().peekNextChild();
+	}
+
+	@Override
 	public boolean hasNextChild() {
 		return stack.peek().hasNextChild();
 	}
@@ -469,6 +474,12 @@ class BufferingStructuredData {
 			if (childIndex == children.size())
 				return null;
 			return children.get(childIndex++);
+		}
+
+		public QualifiedName peekNextChild() {
+			if (childIndex == children.size())
+				return null;
+			return children.get(childIndex).name();
 		}
 
 		public boolean hasNextChild() {

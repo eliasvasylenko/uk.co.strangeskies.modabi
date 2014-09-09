@@ -5,12 +5,12 @@ import java.util.LinkedHashSet;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
-import uk.co.strangeskies.modabi.model.building.DataLoader;
-import uk.co.strangeskies.modabi.model.building.configurators.impl.BindingNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.model.building.impl.OverrideMerge;
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNodeChildNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.model.building.impl.OverrideMerge;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNodeChildNode;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends

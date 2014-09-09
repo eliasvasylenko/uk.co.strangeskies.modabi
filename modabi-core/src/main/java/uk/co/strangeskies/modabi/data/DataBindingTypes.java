@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.set.ListOrderedSet;
 
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -56,8 +56,7 @@ public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
 		subTypes = subTypes
 				.stream()
 				.filter(
-						m -> (m.effective().isAbstract() == null || !m.effective()
-								.isAbstract())
+						m -> !m.effective().isAbstract()
 								&& m.effective().getDataClass().isAssignableFrom(dataClass))
 				.collect(Collectors.toList());
 

@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.data;
 
-import uk.co.strangeskies.modabi.model.nodes.BindingNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface DataBindingType<T> extends

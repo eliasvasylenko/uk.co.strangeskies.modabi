@@ -6,13 +6,15 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
-import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.Models;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
+import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.Models;
+import uk.co.strangeskies.modabi.schema.requirement.Requirement;
+import uk.co.strangeskies.modabi.schema.requirement.Requirements;
 
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
@@ -20,11 +22,13 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		private QualifiedName qualifiedName;
 		private final Set<Model<?>> modelSet;
 		private final Schemata dependencySet;
+		private Set<Requirement<?>> requirementSet;
 
 		public SchemaConfiguratorImpl() {
 			typeSet = new LinkedHashSet<>();
 			modelSet = new LinkedHashSet<>();
 			dependencySet = new Schemata();
+			requirementSet = new LinkedHashSet<>();
 		}
 
 		@Override
@@ -34,12 +38,19 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 			types.addAll(typeSet);
 			final Models models = new Models();
 			models.addAll(modelSet);
-			final Schemata dependencies = dependencySet;
+			final Schemata dependencies = new Schemata();
+			dependencies.addAll(dependencySet);
+			final Requirements requirements = () -> requirementSet;
 
 			return new Schema() {
 				@Override
 				public DataBindingTypes getDataTypes() {
 					return types;
+				}
+
+				@Override
+				public Requirements getRequirements() {
+					return requirements;
 				}
 
 				@Override
@@ -62,6 +73,15 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		@Override
 		public SchemaConfigurator qualifiedName(QualifiedName name) {
 			qualifiedName = name;
+
+			return this;
+		}
+
+		@Override
+		public SchemaConfigurator requirements(
+				Set<? extends Requirement<?>> requirements) {
+			requirementSet.clear();
+			requirementSet.addAll(requirements);
 
 			return this;
 		}

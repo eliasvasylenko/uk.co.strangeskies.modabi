@@ -2,37 +2,16 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
-import uk.co.strangeskies.modabi.model.AbstractModel;
-import uk.co.strangeskies.modabi.model.Model;
-import uk.co.strangeskies.modabi.model.Models;
-import uk.co.strangeskies.modabi.model.building.DataLoader;
-import uk.co.strangeskies.modabi.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.model.building.configurators.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.building.configurators.SequenceNodeConfigurator;
-import uk.co.strangeskies.modabi.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.model.nodes.BindingNode;
-import uk.co.strangeskies.modabi.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.model.nodes.DataNode.Format;
-import uk.co.strangeskies.modabi.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.model.nodes.InputNode;
-import uk.co.strangeskies.modabi.model.nodes.InputSequenceNode;
-import uk.co.strangeskies.modabi.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
@@ -41,9 +20,30 @@ import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
+import uk.co.strangeskies.modabi.schema.model.AbstractModel;
+import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.Models;
+import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.BranchingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode.Format;
+import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.InputNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.modabi.schema.requirement.Requirement;
+import uk.co.strangeskies.modabi.schema.requirement.Requirements;
+import uk.co.strangeskies.modabi.schema.requirement.impl.RequirementBuilderImpl;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private final Schema metaSchema;
@@ -58,9 +58,31 @@ public class MetaSchemaImpl implements MetaSchema {
 				namespace);
 
 		/*
+		 * Requirements
+		 */
+		Set<Requirement<?>> requirementSet = new LinkedHashSet<>();
+
+		requirementSet.add(new RequirementBuilderImpl()
+				.configure(new QualifiedName("schemaConfigurator", namespace),
+						SchemaBuilder.class)
+				.addProvision(c -> c, SchemaConfigurator.class, "configure").create());
+
+		requirementSet.add(new RequirementBuilderImpl()
+				.configure(new QualifiedName("dataTypeConfigurator", namespace),
+						DataBindingTypeBuilder.class)
+				.addProvision(c -> c, DataBindingTypeConfigurator.class, "configure",
+						DataLoader.class).create());
+
+		requirementSet.add(new RequirementBuilderImpl()
+				.configure(new QualifiedName("modelBuilder", namespace),
+						ModelBuilder.class)
+				.addProvision(c -> c, ModelConfigurator.class, "configure",
+						DataLoader.class).create());
+
+		/*
 		 * Types
 		 */
-		Set<DataBindingType<?>> typeSet = new HashSet<>();
+		Set<DataBindingType<?>> typeSet = new LinkedHashSet<>();
 
 		/*
 		 * Models
@@ -85,7 +107,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("branch", namespace)
 				.isAbstract(true)
 				.baseModel(nodeModel)
-				.dataClass(SchemaNode.class)
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.element().name("child").outMethod("children")
@@ -94,11 +115,23 @@ public class MetaSchemaImpl implements MetaSchema {
 								.occurances(Range.create(0, null))).create();
 		modelSet.add(branchModel);
 
+		Model<ChildNode> childModel = model
+				.configure(loader)
+				.name("child", namespace)
+				.baseModel(branchModel)
+				.isAbstract(true)
+				.dataClass(ChildNode.class)
+				.bindingClass(BranchingNodeConfigurator.class)
+				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+				.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
+				.addChild(c -> c.inputSequence().name("configure").isAbstract(true))
+				.create();
+
 		Model<InputNode> inputModel = model
 				.configure(loader)
 				.name("input", namespace)
 				.isAbstract(true)
-				.baseModel(branchModel)
+				.baseModel(childModel)
 				.dataClass(InputNode.class)
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -184,37 +217,35 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("choice", namespace)
 				.dataClass(ChoiceNode.class)
-				.bindingClass(ChoiceNodeConfigurator.class)
-				.baseModel(branchModel)
+				.baseModel(childModel)
+				.addChild(c -> c.inputSequence().name("addChild"))
+				.addChild(c -> c.inputSequence().name("choice").inMethodChained(true))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("mandatory")
 								.type(base.primitiveType(DataType.BOOLEAN))).create();
 		modelSet.add(choiceModel);
 
-		Model<SequenceNode> sequenceModel = model.configure(loader)
-				.name("sequence", namespace).dataClass(SequenceNode.class)
-				.bindingClass(SequenceNodeConfigurator.class).baseModel(branchModel)
+		Model<SequenceNode> sequenceModel = model
+				.configure(loader)
+				.name("sequence", namespace)
+				.dataClass(SequenceNode.class)
+				.baseModel(childModel)
+				.addChild(c -> c.inputSequence().name("addChild"))
+				.addChild(c -> c.inputSequence().name("sequence").inMethodChained(true))
 				.create();
 		modelSet.add(sequenceModel);
 
-		Model<InputSequenceNode> inputSequenceModel = model.configure(loader)
-				.name("inputSequence", namespace).dataClass(InputSequenceNode.class)
-				.bindingClass(InputSequenceNodeConfigurator.class)
-				.baseModel(inputModel, branchModel).create();
-		modelSet.add(inputSequenceModel);
-
-		Model<BindingChildNode> repeatableModel = model
+		Model<InputSequenceNode> inputSequenceModel = model
 				.configure(loader)
-				.name("repeatable", namespace)
-				.isAbstract(true)
-				.baseModel(branchModel)
-				.dataClass(BindingChildNode.class)
-				.addChild(n -> n.data().name("name"))
+				.name("inputSequence", namespace)
+				.dataClass(InputSequenceNode.class)
+				.baseModel(inputModel, childModel)
+				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("occurances")
-								.type(base.derivedTypes().rangeType())).create();
-		modelSet.add(repeatableModel);
+						c -> c.inputSequence().name("inputSequence").inMethodChained(true))
+				.create();
+		modelSet.add(inputSequenceModel);
 
 		Model<AbstractModel> abstractModelModel = model
 				.configure(loader)
@@ -259,14 +290,22 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<Model> modelModel = model.configure(loader).name("model", namespace)
 				.baseModel(abstractModelModel).dataClass(Model.class)
+				.bindingClass(ModelBuilder.class)
+				.addChild(c -> c.inputSequence().name("configure"))
 				.addChild(n -> n.data().name("name").optional(false)).create();
 		modelSet.add(modelModel);
 
-		Model<ElementNode> elementModel = model.configure(loader)
-				.name("element", namespace).dataClass(ElementNode.class)
-				.bindingClass(ElementNodeConfigurator.class)
-				.baseModel(bindingChildNodeModel, repeatableModel, abstractModelModel)
+		Model<ElementNode> elementModel = model
+				.configure(loader)
+				.name("element", namespace)
+				.dataClass(ElementNode.class)
+				.baseModel(bindingChildNodeModel, abstractModelModel)
+				.addChild(c -> c.inputSequence().name("addChild"))
+				.addChild(c -> c.inputSequence().name("element").inMethodChained(true))
 				.addChild(n -> n.data().name("name"))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("occurances")
+								.type(base.derivedTypes().rangeType()))
 				.addChild(o -> o.data().name("dataClass")).create();
 		modelSet.add(elementModel);
 
@@ -276,7 +315,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("typedData", namespace)
 				.dataClass(DataNode.class)
 				.isAbstract(true)
-				.bindingClass(DataNodeConfigurator.class)
+				.addChild(c -> c.inputSequence().name("addChild"))
+				.addChild(c -> c.inputSequence().name("data").inMethodChained(true))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n
@@ -416,7 +456,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("schema", namespace)
 				.dataClass(Schema.class)
-				.bindingClass(SchemaConfigurator.class)
+				.bindingClass(SchemaBuilder.class)
+				.addChild(
+						c -> c.inputSequence().name("configure").inMethodChained(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("name")
 								.inMethod("qualifiedName").outMethod("getQualifiedName")
@@ -431,6 +473,7 @@ public class MetaSchemaImpl implements MetaSchema {
 										o -> o
 												.data()
 												.format(Format.SIMPLE_ELEMENT)
+												.inMethod("add")
 												.name("dependency")
 												.type(base.derivedTypes().importType())
 												.dataClass(Schema.class)
@@ -510,20 +553,26 @@ public class MetaSchemaImpl implements MetaSchema {
 								.addChild(
 										o -> o.element().baseModel(modelModel)
 												.outMethodIterable(true).outMethod("this")
-												.occurances(Range.create(0, null)))).create();
+												.occurances(Range.create(0, null))))
+				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
+				.create();
 		modelSet.add(schemaModel);
-
 		/*
 		 * Schema
 		 */
 		metaSchema = schema.configure().qualifiedName(name)
-				.dependencies(Arrays.asList(base)).types(typeSet).models(modelSet)
-				.create();
+				.requirements(requirementSet).dependencies(Arrays.asList(base))
+				.types(typeSet).models(modelSet).create();
 	}
 
 	@Override
 	public QualifiedName getQualifiedName() {
 		return metaSchema.getQualifiedName();
+	}
+
+	@Override
+	public Requirements getRequirements() {
+		return metaSchema.getRequirements();
 	}
 
 	@Override
