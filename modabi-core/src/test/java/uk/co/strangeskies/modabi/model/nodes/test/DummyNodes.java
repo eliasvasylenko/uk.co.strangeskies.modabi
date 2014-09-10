@@ -67,6 +67,11 @@ public class DummyNodes {
 			}
 
 			@Override
+			public Class<?> getPostInputClass() {
+				return Object.class;
+			}
+
+			@Override
 			public Effective effective() {
 				SequenceNode thisNode = this;
 
@@ -109,6 +114,16 @@ public class DummyNodes {
 					public SequenceNode source() {
 						return thisNode;
 					}
+
+					@Override
+					public Class<?> getPreInputClass() {
+						return Object.class;
+					}
+
+					@Override
+					public Class<?> getPostInputClass() {
+						return Object.class;
+					}
 				};
 			}
 		};
@@ -150,6 +165,16 @@ public class DummyNodes {
 			public int hashCode() {
 				return propertySet().generateHashCode()
 						^ effectivePropertySet().generateHashCode();
+			}
+
+			@Override
+			public Class<?> getPreInputClass() {
+				return Object.class;
+			}
+
+			@Override
+			public Class<?> getPostInputClass() {
+				return Object.class;
 			}
 		};
 	}

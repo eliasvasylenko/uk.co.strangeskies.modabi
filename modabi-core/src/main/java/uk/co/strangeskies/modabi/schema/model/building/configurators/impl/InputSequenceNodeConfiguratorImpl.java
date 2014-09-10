@@ -2,10 +2,8 @@ package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildNodeImpl;
@@ -33,37 +31,37 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			private final Method inMethod;
 			private final Boolean inMethodChained;
 
+			private final Class<?> preInputClass;
+			private final Class<?> postInputClass;
+
 			protected Effective(
 					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl<?>> overrideMerge) {
 				super(overrideMerge);
 
 				String inMethodName = overrideMerge
 						.getValue(InputSequenceNode::getInMethodName);
-				this.inMethodName = inMethodName == null ? getName().getName()
-						: inMethodName;
+				this.inMethodName = inMethodName != null ? inMethodName
+						: (isAbstract() ? null : getName()).getName();
 
 				inMethodChained = overrideMerge
 						.getValue(InputSequenceNode::isInMethodChained);
-
-				Class<?> inputClass = overrideMerge.configurator().getContext()
-						.getInputTargetClass();
 
 				List<Class<?>> parameterClasses = overrideMerge.configurator()
 						.getChildrenContainer().getChildren().stream()
 						.map(o -> ((BindingChildNode<?, ?, ?>) o).getDataClass())
 						.collect(Collectors.toList());
 
-				inMethod = (inputClass == null || parameterClasses == null
-						|| parameterClasses.stream().anyMatch(Objects::isNull) || inMethodName == null) ? null
-						: inputClass.getMethod(inMethodName,
-								parameterClasses.toArray(new Class[0]));
+				Method overriddenMethod = overrideMerge
+						.getValue(n -> n.effective() == null ? (Method) null : n
+								.effective().getInMethod());
+				inMethod = (isAbstract() || inMethodName == "null") ? null : Methods
+						.getInMethod(this, overriddenMethod, overrideMerge.configurator()
+								.getContext().getInputTargetClass(getName()), parameterClasses);
 
-				inMethod = (isAbstract() || inMethodName == "null") ? null
-						: Methods
-								.getInMethod(this, overrideMerge.configurator().getContext()
-										.getInputTargetClass(), overrideMerge.getValue(n -> n
-										.effective() == null ? null : n.effective().getInMethod(),
-										Objects::equals));
+				preInputClass = isAbstract() ? null : inMethod.getDeclaringClass();
+
+				postInputClass = !isInMethodChained() ? getPreInputClass()
+						: isAbstract() ? null : inMethod.getReturnType();
 			}
 
 			@Override
@@ -80,10 +78,21 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			public final Boolean isInMethodChained() {
 				return inMethodChained;
 			}
+
+			@Override
+			public Class<?> getPostInputClass() {
+				return postInputClass;
+			}
+
+			@Override
+			public Class<?> getPreInputClass() {
+				return preInputClass;
+			}
 		}
 
 		private final Effective effective;
 
+		private final Class<?> postInputClass;
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 
@@ -91,8 +100,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 				InputSequenceNodeConfiguratorImpl<?> configurator) {
 			super(configurator);
 
+			postInputClass = configurator.getPostInputClass();
 			inMethodName = configurator.inMethodName;
-
 			inMethodChained = configurator.inMethodChained;
 
 			effective = new Effective(overrideMerge(this, configurator));
@@ -112,6 +121,11 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		public Effective effective() {
 			return effective;
 		}
+
+		@Override
+		public Class<?> getPostInputClass() {
+			return postInputClass;
+		}
 	}
 
 	private String inMethodName;
@@ -120,11 +134,6 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	public InputSequenceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super InputSequenceNode> parent) {
 		super(parent);
-	}
-
-	@Override
-	public InputSequenceNodeConfigurator<C> name(String name) {
-		return name(new QualifiedName(name, getContext().getNamespace()));
 	}
 
 	@Override
@@ -153,7 +162,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 	@Override
 	public ChildrenConfigurator<C, C> createChildrenConfigurator() {
-		Class<?> outputTarget = getContext().getOutputTargetClass();
+		Class<?> outputTarget = getContext().getOutputSourceClass();
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
 				getOverriddenNodes(), null, outputTarget, getDataLoader(), getContext()

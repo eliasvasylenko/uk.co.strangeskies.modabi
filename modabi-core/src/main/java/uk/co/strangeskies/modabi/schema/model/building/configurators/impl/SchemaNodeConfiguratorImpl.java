@@ -38,7 +38,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
 				source = overrideMerge.node().source();
 
-				name = overrideMerge.getValue(SchemaNode::getName);
+				name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true);
 
 				isAbstract = overrideMerge.node().isAbstract();
 

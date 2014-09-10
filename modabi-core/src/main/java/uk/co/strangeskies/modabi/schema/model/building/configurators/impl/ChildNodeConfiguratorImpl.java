@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 import java.util.LinkedHashSet;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.SchemaNodeConfigurationContext;
@@ -13,6 +14,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
 		ChildNodeConfigurator<S, N> {
 	private final SchemaNodeConfigurationContext<? super N> context;
+
+	private Class<?> postInputClass;
 
 	public ChildNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super N> parent) {
@@ -40,5 +43,22 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	protected Namespace getNamespace() {
 		return getName() != null ? getName().getNamespace() : getContext()
 				.getNamespace();
+	}
+
+	@Override
+	public S name(String name) {
+		return name(new QualifiedName(name, getContext().getNamespace()));
+	}
+
+	@Override
+	public S postInputClass(Class<?> postInputClass) {
+		requireConfigurable(this.postInputClass);
+		this.postInputClass = postInputClass;
+
+		return getThis();
+	}
+
+	protected Class<?> getPostInputClass() {
+		return postInputClass;
 	}
 }

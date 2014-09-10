@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildNodeImpl;
@@ -22,16 +21,49 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 		private class Effective extends
 				SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
 				implements SequenceNode.Effective {
+			private final Class<?> preInputClass;
+			private final Class<?> postInputClass;
+
 			public Effective(
 					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl<?, ?>> overrideMerge) {
 				super(overrideMerge);
+
+				preInputClass = isAbstract() ? null : children().get(0)
+						.getPreInputClass();
+
+				Class<?> postInputClass = overrideMerge
+						.getValue(ChildNode::getPostInputClass);
+				if (postInputClass == null && !isAbstract()) {
+					for (ChildNode.Effective<?, ?> child : children()) {
+						if (postInputClass != null
+								&& !child.getPreInputClass().isAssignableFrom(postInputClass)) {
+							throw new IllegalArgumentException();
+						}
+						postInputClass = child.getPostInputClass();
+					}
+				}
+				this.postInputClass = postInputClass;
+			}
+
+			@Override
+			public Class<?> getPreInputClass() {
+				return preInputClass;
+			}
+
+			@Override
+			public Class<?> getPostInputClass() {
+				return postInputClass;
 			}
 		}
 
 		private final Effective effective;
 
+		private final Class<?> postInputClass;
+
 		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
 			super(configurator);
+
+			postInputClass = configurator.getPostInputClass();
 
 			effective = new Effective(overrideMerge(this, configurator));
 		}
@@ -40,11 +72,11 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 		public Effective effective() {
 			return effective;
 		}
-	}
 
-	@Override
-	public SequenceNodeConfigurator<C, B> name(String name) {
-		return name(new QualifiedName(name, getContext().getNamespace()));
+		@Override
+		public Class<?> getPostInputClass() {
+			return postInputClass;
+		}
 	}
 
 	public SequenceNodeConfiguratorImpl(
@@ -64,7 +96,7 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 
 	@Override
 	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
-		Class<?> inputTarget = getContext().getInputTargetClass();
+		Class<?> inputTarget = getContext().getInputTargetClass(getName());
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
 				getOverriddenNodes(), inputTarget, null, null, getContext()

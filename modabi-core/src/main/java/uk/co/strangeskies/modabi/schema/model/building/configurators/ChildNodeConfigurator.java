@@ -12,4 +12,6 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	 * @return
 	 */
 	public S name(String name);
+
+	public S postInputClass(Class<?> postInputClass);
 }

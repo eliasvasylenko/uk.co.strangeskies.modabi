@@ -9,15 +9,19 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 			extends ChildNode<S, E>, SchemaNode.Effective<S, E> {
 		Class<?> getPreInputClass();
 
-		Class<?> getPostInputClass();
-
 		void process(SchemaProcessingContext context);
 
 		@Override
 		default PropertySet<E> effectivePropertySet() {
-			return SchemaNode.Effective.super.effectivePropertySet()
-					.add(ChildNode.Effective::getPreInputClass)
-					.add(ChildNode.Effective::getPostInputClass);
+			return SchemaNode.Effective.super.effectivePropertySet().add(
+					ChildNode.Effective::getPreInputClass);
 		}
 	}
+
+	@Override
+	public default PropertySet<S> propertySet() {
+		return SchemaNode.super.propertySet().add(ChildNode::getPostInputClass);
+	}
+
+	Class<?> getPostInputClass();
 }

@@ -250,17 +250,20 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public Class<?> getOutputTargetClass() {
+			public Class<?> getOutputSourceClass() {
 				return outputTarget;
 			}
 
 			@Override
-			public Class<?> getInputTargetClass() {
-				/*
-				 * TODO inputTarget may change due to ordering if this child's name
-				 * would see it merging with an overridden child further along the
-				 * chain.
-				 */
+			public Class<?> getInputTargetClass(QualifiedName name) {
+				MergeGroup mergeGroup = namedMergeGroups.get(name);
+				if (mergeGroup != null) {
+					int index = mergedChildren.indexOf(mergeGroup);
+					if (index > 0)
+						inputTarget = mergedChildren.get(index - 1).getChild()
+								.getPostInputClass();
+				}
+
 				return inputTarget;
 			}
 

@@ -12,9 +12,9 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	boolean isAbstract();
 
-	Class<?> getInputTargetClass();
+	Class<?> getInputTargetClass(QualifiedName node);
 
-	Class<?> getOutputTargetClass();
+	Class<?> getOutputSourceClass();
 
 	void addChild(T result);
 

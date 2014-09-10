@@ -1,8 +1,8 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.Namespace;
@@ -38,6 +38,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Boolean extensible;
 			private final Boolean ordered;
 
+			private final Class<?> preInputClass;
+			private final Class<?> postInputClass;
+
 			protected Effective(
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
@@ -52,13 +55,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 									+ getName()
 									+ "' is not extensible and has no abstract parents, so cannot be abstract.");
 
-				ordered = overrideMerge.getValue(BindingChildNode::isOrdered);
+				ordered = overrideMerge.getValue(BindingChildNode::isOrdered, true);
 
 				occurances = overrideMerge.getValue(BindingChildNode::occurances,
-						(v, o) -> o.contains(v));
+						(v, o) -> o.contains(v), Range.create(1, 1));
 
-				iterable = overrideMerge
-						.getValue(BindingChildNode::isOutMethodIterable);
+				iterable = overrideMerge.getValue(
+						BindingChildNode::isOutMethodIterable, false);
 
 				outMethodName = overrideMerge
 						.getValue(BindingChildNode::getOutMethodName);
@@ -66,21 +69,42 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethodName = overrideMerge
 						.getValue(BindingChildNode::getInMethodName);
 
-				inMethodChained = overrideMerge
-						.getValue(BindingChildNode::isInMethodChained);
+				inMethodChained = overrideMerge.getValue(
+						BindingChildNode::isInMethodChained, false);
 
-				outMethod = (isAbstract() || outMethodName == "null") ? null : Methods
-						.getOutMethod(this, overrideMerge.configurator().getContext()
-								.getOutputTargetClass(), overrideMerge.getValue(n -> n
-								.effective() == null ? null : n.effective().getOutMethod(),
-								Objects::equals));
+				Method overriddenOutMethod = overrideMerge
+						.getValue(n -> n.effective() == null ? null : n.effective()
+								.getOutMethod());
 
-				inMethod = (isAbstract() || inMethodName == "null") ? null
-						: Methods
-								.getInMethod(this, overrideMerge.configurator().getContext()
-										.getInputTargetClass(), overrideMerge.getValue(n -> n
-										.effective() == null ? null : n.effective().getInMethod(),
-										Objects::equals));
+				outMethod = (isAbstract() || "null".equals(outMethodName)) ? null
+						: Methods.getOutMethod(this, overriddenOutMethod, overrideMerge
+								.configurator().getContext().getOutputSourceClass());
+
+				Method overriddenInMethod = overrideMerge
+						.getValue(n -> n.effective() == null ? null : n.effective()
+								.getInMethod());
+
+				inMethod = (isAbstract() || "null".equals(inMethodName)) ? null
+						: Methods.getInMethod(this, overriddenInMethod, overrideMerge
+								.configurator().getContext().getInputTargetClass(getName()),
+								Arrays.asList(getDataClass()));
+
+				preInputClass = (isAbstract() || "null".equals(inMethodName)) ? null
+						: inMethod.getDeclaringClass();
+
+				postInputClass = (isAbstract() || "null".equals(inMethodName)) ? null
+						: !isInMethodChained() ? getPreInputClass() : inMethod
+								.getReturnType();
+			}
+
+			@Override
+			public Class<?> getPreInputClass() {
+				return preInputClass;
+			}
+
+			@Override
+			public Class<?> getPostInputClass() {
+				return postInputClass;
 			}
 
 			@Override
@@ -129,6 +153,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 		}
 
+		private final Class<?> postInputClass;
+
 		private final Range<Integer> occurances;
 
 		private final Boolean iterable;
@@ -143,6 +169,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		BindingChildNodeImpl(
 				BindingChildNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
 			super(configurator);
+
+			postInputClass = configurator.postInputClass;
 
 			extensible = configurator.extensible;
 			ordered = configurator.ordered;
@@ -188,10 +216,16 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		public final Boolean isInMethodChained() {
 			return inMethodChained;
 		}
+
+		@Override
+		public Class<?> getPostInputClass() {
+			return postInputClass;
+		}
 	}
 
 	private final SchemaNodeConfigurationContext<? super N> context;
 
+	private Class<?> postInputClass;
 	private Range<Integer> occurances;
 	private Boolean iterable;
 	private String outMethodName;
@@ -289,5 +323,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	protected final boolean isChildContextAbstract() {
 		return super.isChildContextAbstract() || getContext().isAbstract();
+	}
+
+	@Override
+	public S postInputClass(Class<?> postInputClass) {
+		requireConfigurable(this.postInputClass);
+		this.postInputClass = postInputClass;
+
+		return getThis();
 	}
 }

@@ -16,25 +16,28 @@ import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode.Effective;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
 public class Methods {
 	private Methods() {
 	}
 
-	public static Method getInMethod(BindingChildNode.Effective<?, ?, ?> node,
-			Class<?> receiverClass, Method inheritedInMethod) {
+	public static Method getInMethod(InputNode.Effective<?, ?> node,
+			Method inheritedInMethod, Class<?> receiverClass,
+			List<Class<?>> parameters) {
 		try {
-			return (receiverClass == null || node.getDataClass() == null) ? null
-					: findMethod(generateInMethodNames(node), receiverClass, null,
-							node.getDataClass());
+			return (receiverClass == null) ? null : findMethod(
+					generateInMethodNames(node), receiverClass, node.source()
+							.getPostInputClass(), parameters.toArray(new Class<?>[parameters
+							.size()]));
 		} catch (NoSuchMethodException e) {
 			throw new SchemaException(e);
 		}
 	}
 
 	public static Method getOutMethod(BindingChildNode.Effective<?, ?, ?> node,
-			Class<?> targetClass, Method inheritedOutMethod) {
+			Method inheritedOutMethod, Class<?> targetClass) {
 		try {
 			Class<?> resultClass = (node.isOutMethodIterable() != null && node
 					.isOutMethodIterable()) ? Iterable.class : node.getDataClass();
@@ -72,7 +75,7 @@ public class Methods {
 	}
 
 	private static List<String> generateInMethodNames(
-			BindingChildNode.Effective<?, ?, ?> node) {
+			InputNode.Effective<?, ?> node) {
 		List<String> names;
 
 		if (node.getInMethodName() != null)

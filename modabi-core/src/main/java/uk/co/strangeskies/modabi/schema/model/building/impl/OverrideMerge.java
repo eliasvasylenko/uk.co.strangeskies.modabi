@@ -38,6 +38,17 @@ public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfi
 				validateOverride);
 	}
 
+	public <T> T getValue(Function<S, T> valueFunction, T defaultValue) {
+		T value = getValue(valueFunction);
+		return value == null ? defaultValue : value;
+	}
+
+	public <T> T getValue(Function<S, T> valueFunction,
+			BiPredicate<T, T> validateOverride, T defaultValue) {
+		T value = getValue(valueFunction, validateOverride);
+		return value == null ? defaultValue : value;
+	}
+
 	public <T> T getValueWithOverride(T valueOverride,
 			Function<S, T> valueFunction) {
 		return getValueWithOverride(valueOverride, valueFunction, (v, o) -> true);

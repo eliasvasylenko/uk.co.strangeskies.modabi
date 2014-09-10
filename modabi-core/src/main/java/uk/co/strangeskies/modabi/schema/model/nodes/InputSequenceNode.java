@@ -1,7 +1,5 @@
 package uk.co.strangeskies.modabi.schema.model.nodes;
 
-import java.lang.reflect.Method;
-
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface InputSequenceNode extends
@@ -9,20 +7,6 @@ public interface InputSequenceNode extends
 		DataNodeChildNode<InputSequenceNode, InputSequenceNode.Effective> {
 	interface Effective extends InputSequenceNode,
 			InputNode.Effective<InputSequenceNode, Effective> {
-		@Override
-		default Class<?> getPreInputClass() {
-			Method inMethod = getInMethod();
-			return inMethod == null ? null : inMethod.getDeclaringClass();
-		}
-
-		@Override
-		default Class<?> getPostInputClass() {
-			if (isInMethodChained() == null || !isInMethodChained())
-				return getPreInputClass();
-			Method inMethod = getInMethod();
-			return inMethod == null ? null : inMethod.getReturnType();
-		}
-
 		@Override
 		default void process(SchemaProcessingContext context) {
 			context.accept(this);

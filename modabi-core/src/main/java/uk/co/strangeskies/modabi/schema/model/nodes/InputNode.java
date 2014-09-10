@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.schema.model.nodes;
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 import uk.co.strangeskies.utilities.PropertySet;
 
@@ -9,18 +8,6 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 		extends ChildNode<S, E> {
 	interface Effective<S extends InputNode<S, E>, E extends Effective<S, E>>
 			extends InputNode<S, E>, ChildNode.Effective<S, E> {
-		@Override
-		default Class<?> getPreInputClass() {
-			return getInMethod() == null ? null : getInMethod().getDeclaringClass();
-		}
-
-		@Override
-		default Class<?> getPostInputClass() {
-			return (isInMethodChained() == null || !isInMethodChained() || Objects
-					.equals(getInMethodName(), "null")) ? getPreInputClass()
-					: (getInMethod() == null ? null : getInMethod().getReturnType());
-		}
-
 		Method getInMethod();
 
 		@Override
@@ -45,6 +32,4 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 	 * @return
 	 */
 	Boolean isInMethodChained();
-
-	Class<?> getPostInputClass();
 }

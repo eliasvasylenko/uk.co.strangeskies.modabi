@@ -67,13 +67,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				providedUnbindingParameterNames = overrideMerge
 						.getValue(BindingNode::getProvidedUnbindingMethodParameterNames);
 
-				providedUnbindingParameters = Methods
+				providedUnbindingParameters = isAbstract() ? null : Methods
 						.findProvidedUnbindingParameters(this);
 
 				unbindingMethod = isAbstract() ? null : Methods
 						.findUnbindingMethod(this);
-
-				// TODO verify unbinding method overrides okay...
 			}
 
 			@Override
