@@ -42,7 +42,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends Bin
 					}
 				this.preInputClass = preInputClass;
 
-				Class<?> postInputClass = overrideMerge.getValue(
+				Class<?> postInputClass = overrideMerge.tryGetValue(
 						ChildNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
 				if (!isAbstract())
 					if (postInputClass == null)

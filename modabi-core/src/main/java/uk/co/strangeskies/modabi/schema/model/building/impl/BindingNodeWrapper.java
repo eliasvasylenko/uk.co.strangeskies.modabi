@@ -170,6 +170,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
+	public final Boolean allowInMethodResultCast() {
+		return base == null ? null : base.allowInMethodResultCast();
+	}
+
+	@Override
 	public final Class<?> getPreInputClass() {
 		return base == null ? null : base.getPreInputClass();
 	}

@@ -2,7 +2,6 @@ package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.DataSource;
@@ -15,8 +14,6 @@ import uk.co.strangeskies.modabi.schema.model.building.impl.SchemaNodeConfigurat
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNodeChildNode;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeConfiguratorImpl<T>
@@ -40,23 +37,25 @@ public class DataNodeConfiguratorImpl<T>
 					OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				DataBindingType<T> type = overrideMerge.getValue(DataNode::type,
-						(n, o) -> {
-							DataBindingType<?> p = n.effective();
-							do
-								if (p == o.effective())
-									return true;
-							while ((p = p.baseType().effective()) != null);
-							return false;
-						});
+				DataBindingType<T> type = overrideMerge.tryGetValue(DataNode::type, (n,
+						o) -> {
+					DataBindingType<?> p = n.effective();
+					do
+						if (p == o.effective())
+							return true;
+					while ((p = p.baseType().effective()) != null);
+					return false;
+				});
 				this.type = type == null ? null : type.effective();
 
-				optional = overrideMerge.getValue(DataNode::optional);
-				format = overrideMerge.getValue(DataNode::format, Objects::equals);
+				optional = overrideMerge.getValue(DataNode::optional, false);
+				// TODO verify present when needed:
+				format = overrideMerge.tryGetValue(DataNode::format);
 
-				providedBuffer = overrideMerge.getValue(DataNode::providedValueBuffer);
+				providedBuffer = overrideMerge
+						.tryGetValue(DataNode::providedValueBuffer);
 				resolution = overrideMerge.getValue(DataNode::valueResolution,
-						Objects::equals);
+						ValueResolution.PROCESSING_TIME);
 
 				if (providedBuffer == null
 						&& resolution == ValueResolution.REGISTRATION_TIME && !isAbstract())
@@ -178,18 +177,6 @@ public class DataNodeConfiguratorImpl<T>
 		return name(new QualifiedName(name, getContext().getNamespace()));
 	}
 
-	protected final Class<?> getTypeBindingClass() {
-		if (type != null)
-			return type.getBindingClass();
-		return getBindingClass();
-	}
-
-	protected final Class<?> getTypeUnbindingClass() {
-		if (type != null)
-			return type.getUnbindingClass();
-		return getUnbindingClass();
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <V extends T> DataNodeConfigurator<V> dataClass(
@@ -260,40 +247,5 @@ public class DataNodeConfiguratorImpl<T>
 	@Override
 	protected final DataNode<T> tryCreate() {
 		return new DataNodeImpl<>(this);
-	}
-
-	@Override
-	public final Class<T> getDataClass() {
-		if (type != null)
-			return type.getDataClass();
-		return super.getDataClass();
-	}
-
-	@Override
-	public final BindingStrategy getBindingStrategy() {
-		if (type != null)
-			return type.getBindingStrategy();
-		return super.getBindingStrategy();
-	}
-
-	@Override
-	public final Class<?> getBindingClass() {
-		if (type != null)
-			return type.getBindingClass();
-		return super.getBindingClass();
-	}
-
-	@Override
-	public final UnbindingStrategy getUnbindingStrategy() {
-		if (type != null)
-			return type.getUnbindingStrategy();
-		return super.getUnbindingStrategy();
-	}
-
-	@Override
-	public final Class<?> getUnbindingClass() {
-		if (type != null)
-			return type.getUnbindingClass();
-		return super.getUnbindingClass();
 	}
 }

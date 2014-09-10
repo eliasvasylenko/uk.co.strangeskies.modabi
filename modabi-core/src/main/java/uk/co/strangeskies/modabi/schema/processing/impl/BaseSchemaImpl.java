@@ -28,6 +28,7 @@ import uk.co.strangeskies.modabi.schema.model.Models;
 import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
@@ -75,8 +76,8 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.addChild(
 							c -> c.data().name("element").inMethod("add").outMethod("this")
-									.occurances(Range.create(0, null)).outMethodIterable(true))
-					.create());
+									.isAbstract(true).occurances(Range.create(0, null))
+									.outMethodIterable(true)).create());
 
 			typeSet.add(listType = builder.configure(loader).name("list", namespace)
 					.dataClass(List.class).baseType(collectionType).create());
@@ -106,7 +107,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingClass(DataSource.class)
 							.unbindingMethod("dereference")
 							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
-							.providedUnbindingParameters("targetModel", "targetId", "this")
+							.providedUnbindingMethodParameters("targetModel", "targetId", "this")
 							.addChild(
 									d -> d.data().dataClass(Model.class).name("targetModel")
 											.isAbstract(true)
@@ -143,7 +144,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetModel",
-																									namespace)).buffer()))
+																									namespace)).buffer())
+																			.postInputClass(DataNode.class)
+																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -169,7 +172,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetId",
-																									namespace)).buffer()))
+																									namespace)).buffer())
+																			.postInputClass(DataNode.class)
+																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -250,6 +255,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.name("enum", namespace)
 					.dataClass(Enum.class)
 					.isAbstract(true)
+					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.addChild(
 							n -> n
 									.inputSequence()
@@ -257,7 +263,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(
 											o -> o
 													.data()
-													.dataClass(Enum.class)
+													.dataClass(Class.class)
 													.name("enumType")
 													.outMethod("null")
 													.isAbstract(true)
@@ -276,6 +282,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.name("enumeration", namespace)
 					.baseType(enumerationBaseType)
 					.isAbstract(true)
+					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.addChild(
 							n -> n
 									.inputSequence()
@@ -283,7 +290,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(
 											o -> o
 													.data()
-													.dataClass(Enumeration.class)
+													.dataClass(Class.class)
 													.name("enumerationType")
 													.outMethod("null")
 													.provideValue(new BufferingDataTarget().buffer())
@@ -318,7 +325,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.bindingStrategy(BindingStrategy.PROVIDED)
 							.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 							.unbindingMethod("include")
-							.providedUnbindingParameters("targetModel", "this")
+							.providedUnbindingMethodParameters("targetModel", "this")
 							.isAbstract(true)
 							.addChild(
 									c -> c.data().name("targetModel").isAbstract(true)
@@ -352,7 +359,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetModel",
-																									namespace)).buffer()))
+																									namespace)).buffer())
+																			.postInputClass(DataNode.class)
+																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -385,7 +394,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.unbindingClass(DataSource.class)
 											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 											.unbindingMethod("dereferenceImport")
-											.providedUnbindingParameters("targetModel", "targetId",
+											.providedUnbindingMethodParameters("targetModel", "targetId",
 													"this")
 											.addChild(
 													c -> c
@@ -455,7 +464,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																													new QualifiedName(
 																															"targetModel",
 																															namespace))
-																											.buffer()))
+																											.buffer())
+																							.postInputClass(DataNode.class)
+																							.allowInMethodResultCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
 																							.name("providedValue")
@@ -486,7 +497,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																													new QualifiedName(
 																															"targetId",
 																															namespace))
-																											.buffer()))
+																											.buffer())
+																							.postInputClass(DataNode.class)
+																							.allowInMethodResultCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
 																							.name("providedValue")
@@ -602,7 +615,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.unbindingClass(DataTarget.class)
 				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 				.unbindingMethod("put")
-				.providedUnbindingParameters("dataType", "this")
+				.providedUnbindingMethodParameters("dataType", "this")
 				.addChild(
 						c -> c.data().name("dataType").type(enumerationBaseType)
 								.inMethod("get").isAbstract(true).extensible(true)

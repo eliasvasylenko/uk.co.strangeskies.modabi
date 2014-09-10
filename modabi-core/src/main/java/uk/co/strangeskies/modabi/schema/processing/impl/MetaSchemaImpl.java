@@ -25,8 +25,13 @@ import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.Models;
 import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.BranchingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
@@ -97,6 +102,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataClass(SchemaNode.class)
 				.addChild(
+						n -> n.inputSequence().name("configure").isAbstract(true)
+								.postInputClass(SchemaNodeConfigurator.class))
+				.addChild(
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
 								.optional(true)).create();
@@ -124,8 +132,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.bindingClass(BranchingNodeConfigurator.class)
 				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 				.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
-				.addChild(c -> c.inputSequence().name("configure").isAbstract(true))
-				.create();
+				.addChild(
+						c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputClass(ChildNodeConfigurator.class)).create();
 
 		Model<InputNode> inputModel = model
 				.configure(loader)
@@ -133,6 +142,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.baseModel(childModel)
 				.dataClass(InputNode.class)
+				.addChild(
+						c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputClass(InputNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("inMethod")
@@ -150,9 +162,13 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(nodeModel, branchModel)
 				.isAbstract(true)
 				.dataClass(BindingNode.class)
+				.addChild(
+						c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputClass(BindingNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("abstract")
+								.inMethod("isAbstract")
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("dataClass")
@@ -196,6 +212,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataClass(BindingChildNode.class)
 				.baseModel(inputModel, bindingNodeModel)
+				.addChild(
+						c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputClass(BindingChildNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("extensible")

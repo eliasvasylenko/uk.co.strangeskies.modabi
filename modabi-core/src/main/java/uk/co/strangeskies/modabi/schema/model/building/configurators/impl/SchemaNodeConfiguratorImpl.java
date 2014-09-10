@@ -7,6 +7,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.SchemaNodeConfigurator;
@@ -39,6 +40,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				source = overrideMerge.node().source();
 
 				name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true);
+				if (name == null)
+					throw new SchemaException("All nodes must be named.");
 
 				isAbstract = overrideMerge.node().isAbstract();
 

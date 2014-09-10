@@ -31,8 +31,8 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 				preInputClass = isAbstract() ? null : children().get(0)
 						.getPreInputClass();
 
-				Class<?> postInputClass = overrideMerge
-						.getValue(ChildNode::getPostInputClass);
+				Class<?> postInputClass = overrideMerge.tryGetValue(
+						ChildNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
 				if (postInputClass == null && !isAbstract()) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						if (postInputClass != null

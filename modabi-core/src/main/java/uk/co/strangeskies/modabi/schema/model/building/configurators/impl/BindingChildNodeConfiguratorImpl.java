@@ -28,12 +28,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Range<Integer> occurances;
 
 			private final Boolean iterable;
-			private final String outMethodName;
+			private String outMethodName;
 			private final Method outMethod;
 
-			private final String inMethodName;
+			private String inMethodName;
 			private final Method inMethod;
 			private final Boolean inMethodChained;
+			private final Boolean allowInMethodResultCast;
 
 			private final Boolean extensible;
 			private final Boolean ordered;
@@ -45,7 +46,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				extensible = overrideMerge.getValue(BindingChildNode::isExtensible);
+				extensible = overrideMerge.getValue(BindingChildNode::isExtensible,
+						false);
 
 				if (isAbstract()
 						&& !overrideMerge.configurator().getContext().isAbstract()
@@ -55,6 +57,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 									+ getName()
 									+ "' is not extensible and has no abstract parents, so cannot be abstract.");
 
+				Class<?> inputTargetClass = overrideMerge.configurator().getContext()
+						.getInputTargetClass(getName());
+
 				ordered = overrideMerge.getValue(BindingChildNode::isOrdered, true);
 
 				occurances = overrideMerge.getValue(BindingChildNode::occurances,
@@ -63,38 +68,53 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				iterable = overrideMerge.getValue(
 						BindingChildNode::isOutMethodIterable, false);
 
-				outMethodName = overrideMerge
-						.getValue(BindingChildNode::getOutMethodName);
-
-				inMethodName = overrideMerge
-						.getValue(BindingChildNode::getInMethodName);
-
 				inMethodChained = overrideMerge.getValue(
 						BindingChildNode::isInMethodChained, false);
 
-				Method overriddenOutMethod = overrideMerge
-						.getValue(n -> n.effective() == null ? null : n.effective()
-								.getOutMethod());
+				allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
+						: overrideMerge.getValue(BindingChildNode::allowInMethodResultCast,
+								false);
 
+				outMethodName = overrideMerge
+						.tryGetValue(BindingChildNode::getOutMethodName);
+
+				Method overriddenOutMethod = overrideMerge.tryGetValue(n -> n
+						.effective() == null ? null : n.effective().getOutMethod());
 				outMethod = (isAbstract() || "null".equals(outMethodName)) ? null
 						: Methods.getOutMethod(this, overriddenOutMethod, overrideMerge
 								.configurator().getContext().getOutputSourceClass());
 
-				Method overriddenInMethod = overrideMerge
-						.getValue(n -> n.effective() == null ? null : n.effective()
-								.getInMethod());
+				if (outMethodName == null && !isAbstract())
+					outMethodName = outMethod.getName();
 
+				inMethodName = overrideMerge
+						.tryGetValue(BindingChildNode::getInMethodName);
+
+				Method overriddenInMethod = overrideMerge.tryGetValue(n -> n
+						.effective() == null ? null : n.effective().getInMethod());
 				inMethod = (isAbstract() || "null".equals(inMethodName)) ? null
-						: Methods.getInMethod(this, overriddenInMethod, overrideMerge
-								.configurator().getContext().getInputTargetClass(getName()),
+						: Methods.getInMethod(this, overriddenInMethod, inputTargetClass,
 								Arrays.asList(getDataClass()));
+
+				if (inMethodName == null && !isAbstract())
+					inMethodName = inMethod.getName();
 
 				preInputClass = (isAbstract() || "null".equals(inMethodName)) ? null
 						: inMethod.getDeclaringClass();
 
-				postInputClass = (isAbstract() || "null".equals(inMethodName)) ? null
-						: !isInMethodChained() ? getPreInputClass() : inMethod
-								.getReturnType();
+				if (isAbstract())
+					if ("null".equals(inMethodName)
+							|| (isInMethodChained() != null && isInMethodChained())) {
+						postInputClass = inputTargetClass;
+					} else {
+						postInputClass = overrideMerge.tryGetValue(
+								BindingChildNode::getPostInputClass,
+								(n, o) -> o.isAssignableFrom(n));
+					}
+				else
+					postInputClass = ("null".equals(inMethodName) || !isInMethodChained()) ? inputTargetClass
+							: overrideMerge.getValue(BindingChildNode::getPostInputClass, (n,
+									o) -> o.isAssignableFrom(n), inMethod.getReturnType());
 			}
 
 			@Override
@@ -151,6 +171,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			public final Boolean isInMethodChained() {
 				return inMethodChained;
 			}
+
+			@Override
+			public Boolean allowInMethodResultCast() {
+				return allowInMethodResultCast;
+			}
 		}
 
 		private final Class<?> postInputClass;
@@ -162,6 +187,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 		private final String inMethodName;
 		private final Boolean inMethodChained;
+		private final Boolean allowInMethodResultCast;
 
 		private final Boolean extensible;
 		private final Boolean ordered;
@@ -180,6 +206,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
+			allowInMethodResultCast = configurator.allowInMethodResultCast;
 		}
 
 		@Override
@@ -218,6 +245,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
+		public Boolean allowInMethodResultCast() {
+			return allowInMethodResultCast;
+		}
+
+		@Override
 		public Class<?> getPostInputClass() {
 			return postInputClass;
 		}
@@ -231,6 +263,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private String outMethodName;
 	private String inMethodName;
 	private Boolean inMethodChained;
+	private Boolean allowInMethodResultCast;
 	private Boolean extensible;
 	private Boolean ordered;
 
@@ -281,6 +314,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	public final S inMethodChained(boolean chained) {
 		requireConfigurable(this.inMethodChained);
 		this.inMethodChained = chained;
+		return getThis();
+	}
+
+	@Override
+	public final S allowInMethodResultCast(boolean allowInMethodResultCast) {
+		requireConfigurable(this.allowInMethodResultCast);
+		this.allowInMethodResultCast = allowInMethodResultCast;
+
 		return getThis();
 	}
 

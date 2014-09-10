@@ -28,55 +28,85 @@ public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfi
 	}
 
 	public <T> T getValue(Function<S, T> valueFunction) {
-		return getValue(valueFunction, Objects::equals);
-	}
-
-	public <T> T getValue(Function<S, T> valueFunction,
-			BiPredicate<T, T> validateOverride) {
-		return getValueWithOverride(
-				node == null ? null : valueFunction.apply(node), valueFunction,
-				validateOverride);
+		return getValue(valueFunction, (T) null);
 	}
 
 	public <T> T getValue(Function<S, T> valueFunction, T defaultValue) {
-		T value = getValue(valueFunction);
-		return value == null ? defaultValue : value;
+		return getValue(valueFunction, Objects::equals, defaultValue);
 	}
 
 	public <T> T getValue(Function<S, T> valueFunction,
-			BiPredicate<T, T> validateOverride, T defaultValue) {
-		T value = getValue(valueFunction, validateOverride);
-		return value == null ? defaultValue : value;
+			BiPredicate<? super T, ? super T> validateOverride) {
+		return getValue(valueFunction, validateOverride, null);
+	}
+
+	public <T> T getValue(Function<S, T> valueFunction,
+			BiPredicate<? super T, ? super T> validateOverride, T defaultValue) {
+		return checkResult(
+				getValueWithOverride(node == null ? null : valueFunction.apply(node),
+						defaultValue, valueFunction, validateOverride),
+				valueFunction.toString());
+	}
+
+	public <T> T tryGetValue(Function<S, T> valueFunction) {
+		return tryGetValue(valueFunction, Objects::equals);
+	}
+
+	public <T> T tryGetValue(Function<S, T> valueFunction,
+			BiPredicate<? super T, ? super T> validateOverride) {
+		return getValueWithOverride(
+				node == null ? null : valueFunction.apply(node), null, valueFunction,
+				validateOverride);
+	}
+
+	private <T> T checkResult(T value, String valueName) {
+		if (value == null && !node.isAbstract())
+			throw new SchemaException("No value '" + valueName
+					+ "' available for non-abstract node '" + node.getName() + "'.");
+		return value;
 	}
 
 	public <T> T getValueWithOverride(T valueOverride,
 			Function<S, T> valueFunction) {
-		return getValueWithOverride(valueOverride, valueFunction, (v, o) -> true);
+		return getValueWithOverride(valueOverride, valueFunction, Objects::equals);
 	}
 
 	public <T> T getValueWithOverride(T valueOverride,
-			Function<S, T> valueFunction, BiPredicate<T, T> validateOverride) {
+			Function<S, T> valueFunction,
+			BiPredicate<? super T, ? super T> validateOverride) {
+		return getValueWithOverride(valueOverride, null, valueFunction,
+				validateOverride);
+	}
+
+	private <T> T getValueWithOverride(T valueOverride, T defaultValue,
+			Function<S, T> valueFunction,
+			BiPredicate<? super T, ? super T> validateOverride) {
 		@SuppressWarnings("unchecked")
 		Collection<T> values = configurator.getOverriddenNodes().stream()
 				.map(n -> valueFunction.apply((S) n.effective()))
 				.filter(Objects::nonNull).collect(Collectors.toSet());
 
-		if (values.isEmpty())
-			return valueOverride;
-		else if (values.size() == 1) {
+		T value = valueOverride;
+
+		if (values.size() == 1) {
 			T overriddenValue = values.iterator().next();
 			if (valueOverride != null)
 				if (!validateOverride.test(valueOverride, overriddenValue))
 					throw new SchemaException("Cannot override property ["
 							+ overriddenValue + "] with [" + valueOverride + "]");
 				else
-					return valueOverride;
-			return overriddenValue;
-		} else if (valueOverride == null
-				|| !values.stream().allMatch(
-						v -> validateOverride.test(valueOverride, v)))
+					value = valueOverride;
+			else
+				value = overriddenValue;
+		} else if (!values.isEmpty()
+				&& (valueOverride == null || !values.stream().allMatch(
+						v -> validateOverride.test(valueOverride, v))))
 			throw new SchemaException("Cannot override properties [" + values
 					+ "] with [" + valueOverride + "]");
-		return valueOverride;
+
+		if (value == null && (node == null || !node.isAbstract()))
+			value = defaultValue;
+
+		return value;
 	}
 }

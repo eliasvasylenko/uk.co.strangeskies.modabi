@@ -27,11 +27,11 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	S unbindingMethod(String unbindingMethod);
 
-	S providedUnbindingParameters(List<QualifiedName> parameterNames);
+	S providedUnbindingMethodParameters(List<QualifiedName> parameterNames);
 
-	default S providedUnbindingParameters(QualifiedName... parameterNames) {
-		return providedUnbindingParameters(Arrays.asList(parameterNames));
+	default S providedUnbindingMethodParameters(QualifiedName... parameterNames) {
+		return providedUnbindingMethodParameters(Arrays.asList(parameterNames));
 	}
 
-	S providedUnbindingParameters(String... parameterNames);
+	S providedUnbindingMethodParameters(String... parameterNames);
 }

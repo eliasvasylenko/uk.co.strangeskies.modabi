@@ -35,7 +35,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final Class<?> unbindingFactoryClass;
 			private final BindingStrategy bindingStrategy;
 			private final UnbindingStrategy unbindingStrategy;
-			private final String unbindingMethodName;
+			private String unbindingMethodName;
 			private final Method unbindingMethod;
 
 			private final List<QualifiedName> providedUnbindingParameterNames;
@@ -48,30 +48,38 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
 						(v, o) -> o.isAssignableFrom(v));
 
-				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass);
+				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass,
+						dataClass);
 
-				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingClass);
+				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingClass,
+						dataClass);
 
-				unbindingFactoryClass = overrideMerge
-						.getValue(BindingNode::getUnbindingFactoryClass);
+				unbindingFactoryClass = overrideMerge.getValue(
+						BindingNode::getUnbindingFactoryClass, unbindingClass);
 
-				bindingStrategy = overrideMerge
-						.getValue(BindingNode::getBindingStrategy);
+				bindingStrategy = overrideMerge.getValue(
+						BindingNode::getBindingStrategy, BindingStrategy.PROVIDED);
 
-				unbindingStrategy = overrideMerge
-						.getValue(BindingNode::getUnbindingStrategy);
+				unbindingStrategy = overrideMerge.getValue(
+						BindingNode::getUnbindingStrategy, UnbindingStrategy.SIMPLE);
 
-				unbindingMethodName = overrideMerge
-						.getValue(BindingNode::getUnbindingMethodName);
-
-				providedUnbindingParameterNames = overrideMerge
-						.getValue(BindingNode::getProvidedUnbindingMethodParameterNames);
+				providedUnbindingParameterNames = overrideMerge.getValue(
+						BindingNode::getProvidedUnbindingMethodParameterNames,
+						Collections.emptyList());
 
 				providedUnbindingParameters = isAbstract() ? null : Methods
 						.findProvidedUnbindingParameters(this);
 
+				unbindingMethodName = overrideMerge
+						.tryGetValue(BindingNode::getUnbindingMethodName);
+
 				unbindingMethod = isAbstract() ? null : Methods
 						.findUnbindingMethod(this);
+
+				if (unbindingMethodName == null && !isAbstract()
+						&& unbindingStrategy != UnbindingStrategy.SIMPLE
+						&& unbindingStrategy != UnbindingStrategy.CONSTRUCTOR)
+					unbindingMethodName = unbindingMethod.getName();
 			}
 
 			@Override
@@ -217,22 +225,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return (BindingNodeConfigurator<?, ?, V, C, B>) this;
 	}
 
-	protected UnbindingStrategy getUnbindingStrategy() {
-		return unbindingStrategy;
-	}
-
-	protected String getUnbindingMethod() {
-		return unbindingMethod;
-	}
-
-	protected BindingStrategy getBindingStrategy() {
-		return bindingStrategy;
-	}
-
-	protected Class<T> getDataClass() {
-		return dataClass;
-	}
-
 	@Override
 	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
 		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?, ?, ?>> overrideMerge = overrideMerge(
@@ -243,7 +235,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		Class<?> bindingClass = overrideMerge.getValueWithOverride(
 				this.bindingClass, BindingNode::getBindingClass);
 		Class<?> dataClass = overrideMerge.getValueWithOverride(this.dataClass,
-				BindingNode::getDataClass);
+				BindingNode::getDataClass, (o, n) -> n.isAssignableFrom(o));
 
 		Class<?> inputTarget = bindingClass != null ? bindingClass : dataClass;
 		Class<?> outputTarget = unbindingClass != null ? unbindingClass : dataClass;
@@ -261,10 +253,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return getThis();
 	}
 
-	protected Class<?> getBindingClass() {
-		return bindingClass;
-	}
-
 	@Override
 	public S unbindingClass(Class<?> unbindingClass) {
 		requireConfigurable(this.unbindingClass);
@@ -273,20 +261,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return getThis();
 	}
 
-	protected Class<?> getUnbindingClass() {
-		return unbindingClass;
-	}
-
 	@Override
 	public S unbindingMethod(String unbindingMethod) {
 		requireConfigurable(this.unbindingMethod);
 		this.unbindingMethod = unbindingMethod;
 
 		return getThis();
-	}
-
-	protected final Class<?> getBuilderClass() {
-		return bindingClass;
 	}
 
 	@Override
@@ -314,7 +294,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public final S providedUnbindingParameters(List<QualifiedName> parameterNames) {
+	public final S providedUnbindingMethodParameters(List<QualifiedName> parameterNames) {
 		requireConfigurable(unbindingParameterNames);
 		unbindingParameterNames = new ArrayList<>(parameterNames);
 
@@ -322,8 +302,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public S providedUnbindingParameters(String... parameterNames) {
-		return providedUnbindingParameters(Arrays.asList(parameterNames).stream()
+	public S providedUnbindingMethodParameters(String... parameterNames) {
+		return providedUnbindingMethodParameters(Arrays.asList(parameterNames).stream()
 				.map(n -> new QualifiedName(n, getName().getNamespace()))
 				.collect(Collectors.toList()));
 	}

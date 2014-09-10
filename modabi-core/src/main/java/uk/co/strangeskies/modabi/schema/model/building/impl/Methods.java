@@ -23,14 +23,30 @@ public class Methods {
 	private Methods() {
 	}
 
+	/*
+	 * TODO think about whether this input node is first of a special binding
+	 * type, e.g. STATIC_FACTORY, and therefore, in that example, be a static
+	 * method.
+	 */
 	public static Method getInMethod(InputNode.Effective<?, ?> node,
 			Method inheritedInMethod, Class<?> receiverClass,
 			List<Class<?>> parameters) {
 		try {
-			return (receiverClass == null) ? null : findMethod(
-					generateInMethodNames(node), receiverClass, node.source()
-							.getPostInputClass(), parameters.toArray(new Class<?>[parameters
-							.size()]));
+			Class<?> result;
+			if (node.isInMethodChained()) {
+				result = node.source().getPostInputClass();
+				if (result == null)
+					result = Object.class;
+			} else
+				result = null;
+
+			return findMethod(
+					generateInMethodNames(node),
+					receiverClass,
+					result,
+					node != null && node.isInMethodChained()
+							&& node.allowInMethodResultCast(),
+					parameters.toArray(new Class<?>[parameters.size()]));
 		} catch (NoSuchMethodException e) {
 			throw new SchemaException(e);
 		}
@@ -62,7 +78,7 @@ public class Methods {
 				outMethod = null;
 			} else {
 				outMethod = findMethod(generateOutMethodNames(node, resultClass),
-						targetClass, resultClass);
+						targetClass, resultClass, false);
 
 				if (inheritedOutMethod != null && !outMethod.equals(inheritedOutMethod))
 					throw new SchemaException();
@@ -179,7 +195,7 @@ public class Methods {
 			List<Class<?>> parameters) {
 		List<String> names = generateUnbindingMethodNames(node, result);
 		try {
-			return findMethod(names, receiver, result,
+			return findMethod(names, receiver, result, false,
 					parameters.toArray(new Class<?>[] {}));
 		} catch (NoSuchMethodException | SchemaException | SecurityException e) {
 			throw new SchemaException("Cannot find unbinding method for node '"
@@ -190,7 +206,8 @@ public class Methods {
 	}
 
 	public static Method findMethod(List<String> names, Class<?> receiver,
-			Class<?> result, Class<?>... parameters) throws NoSuchMethodException {
+			Class<?> result, boolean allowCast, Class<?>... parameters)
+			throws NoSuchMethodException {
 		return Stream
 				.concat(Arrays.stream(receiver.getMethods()),
 						Arrays.stream(Object.class.getMethods()))
@@ -210,7 +227,8 @@ public class Methods {
 									return false;
 
 							return result == null
-									|| ClassUtils.isAssignable(m.getReturnType(), result, true);
+									|| ClassUtils.isAssignable(m.getReturnType(), result, true)
+									|| (ClassUtils.isAssignable(result, m.getReturnType(), true) && allowCast);
 						})
 				.findAny()
 				.orElseThrow(
@@ -218,16 +236,6 @@ public class Methods {
 								+ "', reveiver '" + receiver + "', and parameters '"
 								+ Arrays.asList(parameters) + "' with any name of '" + names
 								+ "'."));
-		/*-
-		.orElseThrow(
-				() -> new NoSuchMethodException("For "
-						+ names
-						+ " in "
-						+ receiver
-						+ " as [ "
-						+ Arrays.asList(parameters).stream()
-								.map(p -> p == null ? "WAT" : p.getName())
-								.collect(Collectors.joining(", ")) + " ] -> " + result));*/
 	}
 
 	private static List<String> generateUnbindingMethodNames(

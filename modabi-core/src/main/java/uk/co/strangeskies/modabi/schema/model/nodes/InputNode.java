@@ -32,4 +32,6 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 	 * @return
 	 */
 	Boolean isInMethodChained();
+
+	Boolean allowInMethodResultCast();
 }
