@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.Methods;
@@ -294,7 +293,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public final S providedUnbindingMethodParameters(List<QualifiedName> parameterNames) {
+	public final S providedUnbindingMethodParameters(
+			List<QualifiedName> parameterNames) {
 		requireConfigurable(unbindingParameterNames);
 		unbindingParameterNames = new ArrayList<>(parameterNames);
 
@@ -303,14 +303,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S providedUnbindingMethodParameters(String... parameterNames) {
-		return providedUnbindingMethodParameters(Arrays.asList(parameterNames).stream()
-				.map(n -> new QualifiedName(n, getName().getNamespace()))
+		return providedUnbindingMethodParameters(Arrays.asList(parameterNames)
+				.stream().map(n -> new QualifiedName(n, getName().getNamespace()))
 				.collect(Collectors.toList()));
-	}
-
-	@Override
-	public final ChildBuilder<C, B> addChild() {
-		return super.addChild();
 	}
 
 	protected boolean isChildContextAbstract() {

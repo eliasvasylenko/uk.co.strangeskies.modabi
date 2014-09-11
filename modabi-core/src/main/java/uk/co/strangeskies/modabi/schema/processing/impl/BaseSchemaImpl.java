@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -52,6 +53,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataBindingType<Enumeration> enumerationType;
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Range> rangeType;
+		private final DataBindingType<Object[]> arrayType;
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Collection> collectionType;
 		@SuppressWarnings("rawtypes")
@@ -68,6 +70,25 @@ public class BaseSchemaImpl implements BaseSchema {
 				Set<DataBindingType<?>> typeSet,
 				Map<DataType<?>, DataBindingType<?>> primitives,
 				@SuppressWarnings("rawtypes") DataBindingType<Enumeration> enumerationBaseType) {
+			typeSet.add(arrayType = builder
+					.configure(loader)
+					.name("array", namespace)
+					.dataClass(Object[].class)
+					.isAbstract(true)
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.bindingClass(List.class)
+					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
+					.unbindingClass(List.class)
+					.unbindingFactoryClass(Arrays.class)
+					.unbindingMethod("asList")
+					.addChild(
+							c -> c.data().name("element").inMethod("add").outMethod("this")
+									.isAbstract(true).occurances(Range.create(0, null))
+									.inMethodChained(false).outMethodIterable(true))
+					.addChild(
+							c -> c.inputSequence().name("toArray").inMethodChained(true)
+									.allowInMethodResultCast(true)).create());
+
 			typeSet.add(collectionType = builder
 					.configure(loader)
 					.name("collection", namespace)
@@ -107,7 +128,8 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingClass(DataSource.class)
 							.unbindingMethod("dereference")
 							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
-							.providedUnbindingMethodParameters("targetModel", "targetId", "this")
+							.providedUnbindingMethodParameters("targetModel", "targetId",
+									"this")
 							.addChild(
 									d -> d.data().dataClass(Model.class).name("targetModel")
 											.isAbstract(true)
@@ -321,8 +343,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.name("include", namespace)
 							.dataClass(Object.class)
 							.unbindingClass(IncludeTarget.class)
-							.bindingClass(IncludeTarget.class)
-							.bindingStrategy(BindingStrategy.PROVIDED)
+							.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 							.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 							.unbindingMethod("include")
 							.providedUnbindingMethodParameters("targetModel", "this")
@@ -334,43 +355,86 @@ public class BaseSchemaImpl implements BaseSchema {
 											.valueResolution(ValueResolution.REGISTRATION_TIME))
 							.addChild(
 									c -> c
-											.inputSequence()
-											.name("include")
+											.data()
+											.name("in")
+											.outMethod("null")
+											.inMethod("null")
+											.bindingStrategy(BindingStrategy.PROVIDED)
+											.dataClass(IncludeTarget.class)
 											.addChild(
 													d -> d
-															.data()
-															.dataClass(Model.class)
-															.name("targetModel")
-															.outMethod("null")
-															.bindingStrategy(BindingStrategy.PROVIDED)
-															// TODO provided reflectively:
-															.bindingClass(BindingChildNode.class)
-															.provideValue(new BufferingDataTarget().buffer())
+															.inputSequence()
+															.name("include")
 															.addChild(
 																	e -> e
 																			.data()
-																			.name("child")
-																			.type(
-																					primitives
-																							.get(DataType.QUALIFIED_NAME))
-																			.inMethodChained(true)
+																			.dataClass(Model.class)
+																			.name("targetModel")
+																			.outMethod("null")
+																			.bindingStrategy(BindingStrategy.PROVIDED)
+																			// TODO provided reflectively:
+																			.bindingClass(BindingChildNode.class)
+																			.provideValue(
+																					new BufferingDataTarget().buffer())
+																			.addChild(
+																					f -> f
+																							.data()
+																							.name("child")
+																							.type(
+																									primitives
+																											.get(DataType.QUALIFIED_NAME))
+																							.inMethodChained(true)
+																							.outMethod("null")
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(
+																													DataType.QUALIFIED_NAME,
+																													new QualifiedName(
+																															"targetModel",
+																															namespace))
+																											.buffer())
+																							.postInputClass(DataNode.class)
+																							.allowInMethodResultCast(true))
+																			.addChild(
+																					f -> f.inputSequence()
+																							.name("providedValue")
+																							.inMethodChained(true)))
+															.addChild(
+																	e -> e
+																			.data()
+																			.name("object")
+																			.type(referenceType)
+																			.isAbstract(true)
+																			.dataClass(Model.class)
 																			.outMethod("null")
 																			.provideValue(
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
-																							new QualifiedName("targetModel",
+																							new QualifiedName("include",
 																									namespace)).buffer())
-																			.postInputClass(DataNode.class)
-																			.allowInMethodResultCast(true))
-															.addChild(
-																	e -> e.inputSequence().name("providedValue")
-																			.inMethodChained(true)))
-											.addChild(
-													d -> d.data().name("object").dataClass(Object.class)
-															.outMethod("null")
-															.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-															.provideValue(new BufferingDataTarget().buffer())))
-							.create());
+																			.addChild(
+																					f -> f
+																							.data()
+																							.name("targetModel")
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(
+																													DataType.QUALIFIED_NAME,
+																													new QualifiedName(
+																															"include",
+																															namespace))
+																											.buffer()))
+																			.addChild(
+																					f -> f
+																							.data()
+																							.name("targetId")
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(
+																													DataType.QUALIFIED_NAME,
+																													new QualifiedName(
+																															"name", namespace))
+																											.buffer()))))).create());
 
 			typeSet
 					.add(importType = builder
@@ -394,8 +458,8 @@ public class BaseSchemaImpl implements BaseSchema {
 											.unbindingClass(DataSource.class)
 											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 											.unbindingMethod("dereferenceImport")
-											.providedUnbindingMethodParameters("targetModel", "targetId",
-													"this")
+											.providedUnbindingMethodParameters("targetModel",
+													"targetId", "this")
 											.addChild(
 													c -> c
 															.data()
@@ -544,6 +608,11 @@ public class BaseSchemaImpl implements BaseSchema {
 			return bufferedDataType;
 		}
 
+		@Override
+		public DataBindingType<Object[]> arrayType() {
+			return arrayType;
+		}
+
 		@SuppressWarnings("rawtypes")
 		@Override
 		public DataBindingType<Collection> collectionType() {
@@ -635,7 +704,6 @@ public class BaseSchemaImpl implements BaseSchema {
 									c -> c
 											.data()
 											.name("dataType")
-											.isAbstract(true)
 											.provideValue(
 													new BufferingDataTarget().put(DataType.STRING,
 															dataType.name()).buffer())).create());

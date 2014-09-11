@@ -21,8 +21,8 @@ import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N, C, B>, N extends SchemaNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
+		extends Configurator<N> implements SchemaNodeConfigurator<S, N, C, B> {
 	public static abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
 			implements SchemaNode<S, E> {
 		protected static abstract class Effective<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
@@ -228,7 +228,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract ChildrenConfigurator<C, B> createChildrenConfigurator();
 
-	protected ChildBuilder<C, B> addChild() {
+	@Override
+	public ChildBuilder<C, B> addChild() {
 		finaliseConfiguration();
 
 		return childrenConfigurator.addChild();

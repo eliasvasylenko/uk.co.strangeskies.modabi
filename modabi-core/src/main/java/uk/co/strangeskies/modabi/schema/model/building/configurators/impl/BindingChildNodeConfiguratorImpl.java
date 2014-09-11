@@ -50,12 +50,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						false);
 
 				if (isAbstract()
-						&& !overrideMerge.configurator().getContext().isAbstract()
-						&& !(isExtensible() != null && isExtensible()))
-					throw new SchemaException(
-							"Node '"
-									+ getName()
-									+ "' is not extensible and has no abstract parents, so cannot be abstract.");
+						&& !overrideMerge.configurator().getContext().isAbstract())
+					throw new SchemaException("Node '" + getName()
+							+ "' has no abstract or extensible parents, so cannot be abstract.");
 
 				Class<?> inputTargetClass = overrideMerge.configurator().getContext()
 						.getInputTargetClass(getName());
@@ -102,19 +99,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				preInputClass = (isAbstract() || "null".equals(inMethodName)) ? null
 						: inMethod.getDeclaringClass();
 
-				if (isAbstract())
-					if ("null".equals(inMethodName)
-							|| (isInMethodChained() != null && isInMethodChained())) {
-						postInputClass = inputTargetClass;
-					} else {
-						postInputClass = overrideMerge.tryGetValue(
-								BindingChildNode::getPostInputClass,
-								(n, o) -> o.isAssignableFrom(n));
-					}
-				else
-					postInputClass = ("null".equals(inMethodName) || !isInMethodChained()) ? inputTargetClass
-							: overrideMerge.getValue(BindingChildNode::getPostInputClass, (n,
-									o) -> o.isAssignableFrom(n), inMethod.getReturnType());
+				postInputClass = InputSequenceNodeConfiguratorImpl
+						.effectivePostInputClass(isAbstract(), inputTargetClass,
+								inMethodName, inMethod, inMethodChained, overrideMerge);
 			}
 
 			@Override

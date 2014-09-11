@@ -16,6 +16,7 @@ public interface DataBindingTypeConfigurator<T>
 	 *          The value to be returned by {@link DataBindingType#getName()}.
 	 * @return
 	 */
+	@Override
 	DataBindingTypeConfigurator<T> isAbstract(boolean hidden);
 
 	/**
@@ -37,8 +38,8 @@ public interface DataBindingTypeConfigurator<T>
 			DataBindingType<? super U> baseType);
 
 	@Override
-	default DataBindingTypeConfigurator<T> addChild(
-			Function<ChildBuilder<DataNodeChildNode<?, ?>, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode<?, ?>>> propertyConfiguration) {
+	default public DataBindingTypeConfigurator<T> addChild(
+			Function<ChildBuilder<DataNodeChildNode<?, ?>, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode<?, ?>, ?, ?>> propertyConfiguration) {
 		propertyConfiguration.apply(addChild()).create();
 		return this;
 	}

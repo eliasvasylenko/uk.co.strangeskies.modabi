@@ -8,6 +8,7 @@ import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildNodeImpl;
@@ -17,6 +18,7 @@ import uk.co.strangeskies.modabi.schema.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.model.building.impl.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.model.building.impl.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
 
 public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, ?>>
@@ -77,19 +79,9 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 				preInputClass = isAbstract() ? null : inMethod.getDeclaringClass();
 
-				if (isAbstract())
-					if ("null".equals(inMethodName)
-							|| (isInMethodChained() != null && isInMethodChained())) {
-						postInputClass = inputTargetClass;
-					} else {
-						postInputClass = overrideMerge.tryGetValue(
-								InputSequenceNode::getPostInputClass,
-								(n, o) -> o.isAssignableFrom(n));
-					}
-				else
-					postInputClass = ("null".equals(inMethodName) || !isInMethodChained()) ? inputTargetClass
-							: overrideMerge.getValue(InputSequenceNode::getPostInputClass, (
-									n, o) -> o.isAssignableFrom(n), inMethod.getReturnType());
+				postInputClass = effectivePostInputClass(isAbstract(),
+						inputTargetClass, inMethodName, inMethod, inMethodChained,
+						overrideMerge);
 			}
 
 			@Override
@@ -252,8 +244,36 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		};
 	}
 
-	@Override
-	public ChildBuilder<C, C> addChild() {
-		return super.addChild();
+	static final Class<?> effectivePostInputClass(
+			boolean isAbstract,
+			Class<?> inputTargetClass,
+			String inMethodName,
+			Method inMethod,
+			Boolean inMethodChained,
+			OverrideMerge<? extends InputNode<?, ?>, ? extends InputNodeConfigurator<?, ?, ?, ?>> overrideMerge) {
+		Class<?> postInputClass;
+		if (isAbstract) {
+			if ("null".equals(inMethodName)
+					|| (inMethodChained != null && !inMethodChained)) {
+				postInputClass = inputTargetClass;
+			} else {
+				postInputClass = overrideMerge.tryGetValue(
+						InputNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
+			}
+		} else {
+			if ("null".equals(inMethodName) || !inMethodChained) {
+				postInputClass = inputTargetClass;
+			} else {
+				Class<?> localPostInputClass = overrideMerge.node().getPostInputClass();
+				if (localPostInputClass == null
+						|| localPostInputClass.isAssignableFrom(inMethod.getReturnType()))
+					localPostInputClass = inMethod.getReturnType();
+				postInputClass = overrideMerge.getValueWithOverride(
+						localPostInputClass, InputNode::getPostInputClass,
+						(n, o) -> o.isAssignableFrom(n));
+			}
+		}
+
+		return postInputClass;
 	}
 }

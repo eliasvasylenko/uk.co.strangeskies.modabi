@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -92,9 +91,10 @@ public class ModelConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> baseModel(Model<? super V>... base) {
+	public <V extends T> ModelConfigurator<V> baseModel(
+			Set<? extends Model<? super V>> base) {
 		requireConfigurable(this.baseModel);
-		baseModel = new HashSet<>(Arrays.asList((Model<T>[]) base));
+		baseModel = new HashSet<>((Set<? extends Model<? super T>>) base);
 
 		return (ModelConfigurator<V>) this;
 	}

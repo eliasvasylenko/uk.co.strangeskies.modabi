@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
-import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildNodeImpl;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildrenConfigurator;
@@ -101,10 +100,5 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 		return new SequentialChildrenConfigurator<>(getNamespace(),
 				getOverriddenNodes(), inputTarget, null, null, getContext()
 						.isAbstract());
-	}
-
-	@Override
-	public ChildBuilder<C, B> addChild() {
-		return super.addChild();
 	}
 }

@@ -34,10 +34,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				&& !base.getDataClass().isAssignableFrom(component.getDataClass()))
 			throw new SchemaException(message);
 
-		if (base.getBindingStrategy() != null)
+		if (base.getBindingStrategy() != null
+				&& base.getBindingStrategy() != component.getBindingStrategy())
 			throw new SchemaException(message);
 
-		if (base.getUnbindingStrategy() != null)
+		if (base.getUnbindingStrategy() != null
+				&& base.getUnbindingStrategy() != component.getUnbindingStrategy())
 			throw new SchemaException(message);
 
 		if (base.getBindingClass() != null
@@ -50,10 +52,13 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 						component.getUnbindingClass()))
 			throw new SchemaException(message);
 
-		if (base.getUnbindingMethodName() != null)
+		if (base.getUnbindingMethodName() != null
+				&& base.getUnbindingMethodName() != component.getUnbindingMethodName())
 			throw new SchemaException(message);
 
-		if (base.getProvidedUnbindingMethodParameterNames() != null)
+		if (base.getProvidedUnbindingMethodParameterNames() != null
+				&& base.getProvidedUnbindingMethodParameterNames() != component
+						.getProvidedUnbindingMethodParameterNames())
 			throw new SchemaException(message);
 
 		if (!component.children().containsAll(base.children()))
@@ -155,6 +160,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
+	public Boolean allowInMethodResultCast() {
+		return base == null ? null : base.allowInMethodResultCast();
+	}
+
+	@Override
 	public final String getInMethodName() {
 		return base == null ? null : base.getInMethodName();
 	}
@@ -167,11 +177,6 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	@Override
 	public final Boolean isInMethodChained() {
 		return base == null ? null : base.isInMethodChained();
-	}
-
-	@Override
-	public final Boolean allowInMethodResultCast() {
-		return base == null ? null : base.allowInMethodResultCast();
 	}
 
 	@Override

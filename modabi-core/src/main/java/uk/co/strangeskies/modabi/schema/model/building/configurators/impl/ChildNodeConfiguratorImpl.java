@@ -10,9 +10,9 @@ import uk.co.strangeskies.modabi.schema.model.building.impl.SchemaNodeConfigurat
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 
-public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
+public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N, C, B>, N extends ChildNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
-		ChildNodeConfigurator<S, N> {
+		ChildNodeConfigurator<S, N, C, B> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private Class<?> postInputClass;

@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildNodeImpl;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ChildrenConfigurator;
@@ -137,10 +136,5 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends Bin
 	@Override
 	protected Class<ChoiceNode> getNodeClass() {
 		return ChoiceNode.class;
-	}
-
-	@Override
-	public ChildBuilder<C, B> addChild() {
-		return super.addChild();
 	}
 }

@@ -12,6 +12,8 @@ import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
 	public interface DerivedTypes {
+		DataBindingType<Object[]> arrayType();
+
 		@SuppressWarnings("rawtypes")
 		DataBindingType<Collection> collectionType();
 

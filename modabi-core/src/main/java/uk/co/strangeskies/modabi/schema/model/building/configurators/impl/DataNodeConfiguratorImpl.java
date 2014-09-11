@@ -48,7 +48,8 @@ public class DataNodeConfiguratorImpl<T>
 				});
 				this.type = type == null ? null : type.effective();
 
-				optional = overrideMerge.getValue(DataNode::optional, false);
+				optional = overrideMerge.getValue(DataNode::optional,
+						(n, o) -> o || !n, false);
 				// TODO verify present when needed:
 				format = overrideMerge.tryGetValue(DataNode::format);
 

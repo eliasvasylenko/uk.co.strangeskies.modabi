@@ -34,9 +34,6 @@ public final class DataNodeWrapper<T>
 			if (check == null)
 				throw new SchemaException(message);
 		}
-
-		System.out.println(base != null ? base.getName()
-				: "" + " : " + component != null ? component.getName() : "");
 	}
 
 	@Override

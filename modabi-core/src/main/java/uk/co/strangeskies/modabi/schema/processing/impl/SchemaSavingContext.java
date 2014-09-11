@@ -16,6 +16,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.ClassUtils;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
@@ -159,6 +160,42 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		nodeStack.pop();
 	}
 
+	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
+		if (node.isExtensible() != null && node.isExtensible()) {
+			List<Model.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredModels
+					.getMatchingModels(node, data.getClass()).stream()
+					.map(n -> n.effective())
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			if (nodes.isEmpty())
+				throw new SchemaException("Unable to find model to satisfy element '"
+						+ node.getName()
+						+ "' with model '"
+						+ node.effective().baseModel().stream()
+								.map(m -> m.source().getName().toString())
+								.collect(Collectors.joining(", ")) + "' for object '" + data
+						+ "' to be unbound.");
+
+			tryUnbindingForEach(
+					nodes,
+					n -> {
+						ElementNodeWrapper<U> wrapper = new ElementNodeWrapper<>(
+								(Model.Effective<U>) n.effective(), node);
+						unbindModel(wrapper, data);
+						bindings.add(wrapper, data);
+					},
+					l -> new MultiException("Unable to unbind element '"
+							+ node.getName()
+							+ "' with model candidates '"
+							+ nodes.stream().map(m -> m.source().getName().toString())
+									.collect(Collectors.joining(", ")) + "' for object '" + data
+							+ "' to be unbound.", l));
+		} else {
+			unbindModel(node, data);
+			bindings.add(node, data);
+		}
+	}
+
 	@Override
 	public <U> void accept(DataNode.Effective<U> node) {
 		nodeStack.push(node);
@@ -217,41 +254,47 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
 			BufferingDataTarget target) {
-		for (U data : getData(node)) {
-			BufferingDataTarget previousDataTarget = dataTarget;
-			dataTarget = target;
+		List<U> data = getData(node);
 
-			if (node.isExtensible() != null && node.isExtensible()) {
-				List<DataNode.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredTypes
-						.getMatchingTypes(node, data.getClass()).stream()
-						.map(type -> new DataNodeWrapper<>(type.effective(), node))
-						.collect(Collectors.toCollection(ArrayList::new));
+		if (data != null) {
+			for (U item : data) {
+				BufferingDataTarget previousDataTarget = dataTarget;
+				dataTarget = target;
 
-				if (!node.isAbstract())
-					nodes.add(node);
+				if (node.isExtensible() != null && node.isExtensible()) {
+					List<DataNode.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredTypes
+							.getMatchingTypes(node, item.getClass()).stream()
+							.map(type -> new DataNodeWrapper<>(type.effective(), node))
+							.collect(Collectors.toCollection(ArrayList::new));
 
-				if (nodes.isEmpty())
-					throw new SchemaException(
-							"Unable to find concrete type to satisfy data node '"
-									+ node.getName() + "' with type '"
-									+ node.effective().type().getName() + "' for object '" + data
-									+ "' to be unbound.");
+					if (!node.isAbstract())
+						nodes.add(node);
 
-				tryUnbindingForEach(
-						nodes,
-						n -> processBindingChildren(n, unbindData(node, data)),
-						l -> new MultiException("Unable to unbind data node '"
-								+ node.getName()
-								+ "' with type candidates '"
-								+ nodes.stream().map(m -> m.source().getName().toString())
-										.collect(Collectors.joining(", ")) + "' for object '"
-								+ data + "' to be unbound.", l));
-			} else {
-				processBindingChildren(node, unbindData(node, data));
+					if (nodes.isEmpty())
+						throw new SchemaException(
+								"Unable to find concrete type to satisfy data node '"
+										+ node.getName() + "' with type '"
+										+ node.effective().type().getName() + "' for object '"
+										+ item + "' to be unbound.");
+
+					tryUnbindingForEach(
+							nodes,
+							n -> processBindingChildren(n, unbindData(node, item)),
+							l -> new MultiException("Unable to unbind data node '"
+									+ node.getName()
+									+ "' with type candidates '"
+									+ nodes.stream().map(m -> m.source().getName().toString())
+											.collect(Collectors.joining(", ")) + "' for object '"
+									+ item + "' to be unbound.", l));
+				} else {
+					processBindingChildren(node, unbindData(node, item));
+				}
+
+				dataTarget = previousDataTarget;
 			}
-
-			dataTarget = previousDataTarget;
-		}
+		} else if (!node.optional())
+			throw new SchemaException("Non-optional node '" + node.getName()
+					+ "' cannot omit data for unbinding.");
 
 		return target;
 	}
@@ -288,44 +331,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		bindingStack.pop();
 	}
 
-	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
-		if (node.isExtensible() != null && node.isExtensible()) {
-			List<ElementNode.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredModels
-					.getMatchingModels(node, data.getClass()).stream()
-					.map(n -> new ElementNodeWrapper<>(n.effective(), node))
-					.collect(Collectors.toCollection(ArrayList::new));
-
-			if (!node.isAbstract())
-				nodes.add(node);
-
-			if (nodes.isEmpty())
-				throw new SchemaException("Unable to find model to satisfy element '"
-						+ node.getName()
-						+ "' with model '"
-						+ node.effective().baseModel().stream()
-								.map(m -> m.source().getName().toString())
-								.collect(Collectors.joining(", ")) + "' for object '" + data
-						+ "' to be unbound.");
-
-			tryUnbindingForEach(
-					nodes,
-					n -> {
-						unbindModel(n, data);
-						bindings.add(n, data);
-					},
-					l -> new MultiException("Unable to unbind element '"
-							+ node.getName()
-							+ "' with model candidates '"
-							+ nodes.stream().map(m -> m.source().getName().toString())
-									.collect(Collectors.joining(", ")) + "' for object '" + data
-							+ "' to be unbound.", l));
-		} else {
-			unbindModel(node, data);
-			bindings.add(node, data);
-		}
-	}
-
-	private <I extends ChildNode.Effective<?, ?>> void tryUnbindingForEach(
+	private <I extends SchemaNode.Effective<?, ?>> void tryUnbindingForEach(
 			List<I> unbindingItems, Consumer<I> unbindingMethod,
 			Function<List<SchemaException>, MultiException> onFailure) {
 		if (unbindingItems.isEmpty())
@@ -421,7 +427,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				item = (U) invokeMethod(node.getOutMethod(), parent);
 
 			if (item == null)
-				itemList = new ArrayList<>();
+				itemList = null;
 			else {
 				if (!ClassUtils.isAssignable(item.getClass(), node.getDataClass()))
 					throw new ClassCastException("Cannot cast " + item.getClass()
@@ -430,10 +436,12 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			}
 		}
 
-		if (node.occurances() != null
+		if (itemList != null && node.occurances() != null
 				&& !node.occurances().contains(itemList.size()))
 			throw new SchemaException("Output list '" + itemList
-					+ "' contains too many items to be unbound by node '" + node + "'.");
+					+ "' must contain a number of items within range '"
+					+ Range.compose(node.occurances()) + "' to be unbound by node '"
+					+ node + "'.");
 
 		return itemList;
 	}

@@ -6,7 +6,7 @@ import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 
 public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends BindingNodeConfigurator<S, N, T, C, B>,
-		InputNodeConfigurator<S, N>, ChildNodeConfigurator<S, N> {
+		InputNodeConfigurator<S, N, C, B>, ChildNodeConfigurator<S, N, C, B> {
 	public S outMethod(String methodName);
 
 	public S outMethodIterable(boolean iterable);
