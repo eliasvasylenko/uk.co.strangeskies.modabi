@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.impl.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 
-public class OverrideMerge<S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> {
+public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> {
 	private final S node;
 	private final C configurator;
 

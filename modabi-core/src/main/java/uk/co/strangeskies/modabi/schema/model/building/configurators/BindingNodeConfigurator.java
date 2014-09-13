@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<? extends T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends SchemaNodeConfigurator<S, N, C, B> {
 	<V extends T> BindingNodeConfigurator<?, ?, V, C, B> dataClass(
 			Class<V> dataClass);

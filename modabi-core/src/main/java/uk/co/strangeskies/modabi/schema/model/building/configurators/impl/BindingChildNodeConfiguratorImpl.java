@@ -51,8 +51,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				if (isAbstract()
 						&& !overrideMerge.configurator().getContext().isAbstract())
-					throw new SchemaException("Node '" + getName()
-							+ "' has no abstract or extensible parents, so cannot be abstract.");
+					throw new SchemaException(
+							"Node '"
+									+ getName()
+									+ "' has no abstract or extensible parents, so cannot be abstract.");
 
 				Class<?> inputTargetClass = overrideMerge.configurator().getContext()
 						.getInputTargetClass(getName());
