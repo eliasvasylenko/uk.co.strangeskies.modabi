@@ -208,6 +208,18 @@ public class Methods {
 	public static Method findMethod(List<String> names, Class<?> receiver,
 			Class<?> result, boolean allowCast, Class<?>... parameters)
 			throws NoSuchMethodException {
+		Method method = tryFindMethod(names, receiver, result, allowCast,
+				parameters);
+		if (method == null)
+			throw new SchemaException("Cannot find method of class '" + result
+					+ "', reveiver '" + receiver + "', and parameters '"
+					+ Arrays.asList(parameters) + "' with any name of '" + names + "'.");
+		return method;
+	}
+
+	public static Method tryFindMethod(List<String> names, Class<?> receiver,
+			Class<?> result, boolean allowCast, Class<?>... parameters)
+			throws NoSuchMethodException {
 		return Stream
 				.concat(Arrays.stream(receiver.getMethods()),
 						Arrays.stream(Object.class.getMethods()))
@@ -229,13 +241,7 @@ public class Methods {
 							return result == null
 									|| ClassUtils.isAssignable(m.getReturnType(), result, true)
 									|| (ClassUtils.isAssignable(result, m.getReturnType(), true) && allowCast);
-						})
-				.findAny()
-				.orElseThrow(
-						() -> new SchemaException("Cannot find method of class '" + result
-								+ "', reveiver '" + receiver + "', and parameters '"
-								+ Arrays.asList(parameters) + "' with any name of '" + names
-								+ "'."));
+						}).findAny().orElse(null);
 	}
 
 	private static List<String> generateUnbindingMethodNames(

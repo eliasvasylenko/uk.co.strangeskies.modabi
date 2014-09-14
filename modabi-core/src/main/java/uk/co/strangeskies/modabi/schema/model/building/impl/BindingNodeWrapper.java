@@ -84,7 +84,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final boolean isAbstract() {
+	public final Boolean isAbstract() {
 		return component.isAbstract();
 	}
 

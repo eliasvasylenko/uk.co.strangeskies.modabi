@@ -110,11 +110,12 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	private final Class<?> outputTarget;
 	private final DataLoader loader;
 	private final boolean isAbstract;
+	private final boolean dataContext;
 
 	public SequentialChildrenConfigurator(Namespace namespace,
 			LinkedHashSet<? extends SchemaNode<?, ?>> overriddenNodes,
 			Class<?> inputTarget, Class<?> outputTarget, DataLoader loader,
-			boolean isAbstract) {
+			boolean isAbstract, boolean dataContext) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
@@ -136,6 +137,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 
 		this.loader = loader;
 		this.isAbstract = isAbstract;
+		this.dataContext = dataContext;
 
 		childIndex = 0;
 	}
@@ -241,6 +243,11 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			@Override
 			public boolean isAbstract() {
 				return isAbstract;
+			}
+
+			@Override
+			public boolean isDataContext() {
+				return dataContext;
 			}
 
 			@Override

@@ -50,16 +50,32 @@ public class DataNodeConfiguratorImpl<T>
 
 				optional = overrideMerge.getValue(DataNode::optional,
 						(n, o) -> o || !n, false);
-				// TODO verify present when needed:
-				format = overrideMerge.tryGetValue(DataNode::format);
 
 				providedBuffer = overrideMerge
 						.tryGetValue(DataNode::providedValueBuffer);
 				resolution = overrideMerge.getValue(DataNode::valueResolution,
 						ValueResolution.PROCESSING_TIME);
 
+				format = overrideMerge.tryGetValue(DataNode::format);
+				if (format == null) {
+					if (!isAbstract()
+							&& valueResolution() != ValueResolution.REGISTRATION_TIME
+							&& !overrideMerge.configurator().getContext().isDataContext()) {
+						/*- TODO not all nodes actually request input!
+						 * Deal with nodes which don't need format...
+						 * 
+						throw new SchemaException("Node '" + getName()
+								+ "' must provide a format.");
+						 */
+					}
+				} else if (overrideMerge.configurator().getContext().isDataContext()) {
+					throw new SchemaException("Node '" + getName()
+							+ "' must not provide a format.");
+				}
+
 				if (providedBuffer == null
-						&& resolution == ValueResolution.REGISTRATION_TIME && !isAbstract())
+						&& resolution == ValueResolution.REGISTRATION_TIME && !isAbstract()
+						&& optional == false)
 					throw new SchemaException(
 							"Value must be provided at registration time for node '"
 									+ getName() + "'.");
@@ -68,6 +84,11 @@ public class DataNodeConfiguratorImpl<T>
 						.configurator().getContext().getDataLoader()
 						.loadData(DataNodeImpl.Effective.this, providedBuffer)
 						: null;
+			}
+
+			@Override
+			protected QualifiedName defaultName() {
+				return type() == null ? null : type().getName();
 			}
 
 			@Override
@@ -205,6 +226,11 @@ public class DataNodeConfiguratorImpl<T>
 		overriddenNodes.addAll(super.getOverriddenNodes());
 
 		return overriddenNodes;
+	}
+
+	@Override
+	protected boolean isDataContext() {
+		return true;
 	}
 
 	@Override

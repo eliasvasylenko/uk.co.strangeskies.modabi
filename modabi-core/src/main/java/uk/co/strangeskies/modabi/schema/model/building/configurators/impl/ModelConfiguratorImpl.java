@@ -85,6 +85,11 @@ public class ModelConfiguratorImpl<T>
 	}
 
 	@Override
+	protected boolean isDataContext() {
+		return false;
+	}
+
+	@Override
 	protected Namespace getNamespace() {
 		return getName().getNamespace();
 	}

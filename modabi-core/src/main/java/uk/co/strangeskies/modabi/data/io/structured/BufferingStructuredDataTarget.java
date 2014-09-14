@@ -507,7 +507,9 @@ class BufferingStructuredData {
 		}
 
 		public void reset() {
-			content.reset();
+			if (content != null)
+				content.reset();
+
 			for (DataSource property : properties.values())
 				property.reset();
 

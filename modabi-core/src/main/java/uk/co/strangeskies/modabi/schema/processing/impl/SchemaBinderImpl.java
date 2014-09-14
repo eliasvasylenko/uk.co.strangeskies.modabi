@@ -120,12 +120,14 @@ public class SchemaBinderImpl implements SchemaBinder {
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
 			StructuredDataSource input) {
-		return addBindingFuture(SchemaLoadingContext.load(this, model, input));
+		return addBindingFuture(new SchemaLoadingContext<T>(this, model, input)
+				.load());
 	}
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(SchemaLoadingContext.load(this, input));
+		return addBindingFuture(new SchemaLoadingContext<>(this,
+				registeredModels.get(input.startNextChild()), input).load());
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {

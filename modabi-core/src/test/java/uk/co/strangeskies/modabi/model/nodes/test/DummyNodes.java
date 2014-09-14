@@ -46,7 +46,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public boolean isAbstract() {
+			public Boolean isAbstract() {
 				return false;
 			}
 
@@ -88,7 +88,7 @@ public class DummyNodes {
 					}
 
 					@Override
-					public boolean isAbstract() {
+					public Boolean isAbstract() {
 						return false;
 					}
 
@@ -151,7 +151,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public boolean isAbstract() {
+			public Boolean isAbstract() {
 				return false;
 			}
 

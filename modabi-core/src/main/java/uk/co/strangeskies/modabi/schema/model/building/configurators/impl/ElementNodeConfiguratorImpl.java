@@ -116,6 +116,11 @@ public class ElementNodeConfiguratorImpl<T>
 		return (ElementNodeConfigurator<V>) super.dataClass(dataClass);
 	}
 
+	@Override
+	protected boolean isDataContext() {
+		return false;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Class<ElementNode<T>> getNodeClass() {

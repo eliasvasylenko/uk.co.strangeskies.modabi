@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.xml.test;
 
 import uk.co.strangeskies.modabi.data.impl.DataBindingTypeBuilderImpl;
+import uk.co.strangeskies.modabi.data.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
@@ -14,15 +15,16 @@ public class SchemaTest {
 		SchemaBinder schemaBinder = new SchemaBinderImpl(new SchemaBuilderImpl(),
 				new ModelBuilderImpl(), new DataBindingTypeBuilderImpl());
 
-		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(),
-				new XMLTarget(System.out), schemaBinder.getBaseSchema());
-
 		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
 		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(), out,
 				schemaBinder.getBaseSchema());
 
+		BufferedStructuredDataSource buffered = out.buffer();
+		buffered.pipeNextChild(new XMLTarget(System.out));
+		buffered.reset();
+
 		Schema baseSchema = schemaBinder
-				.bindFuture(schemaBinder.getMetaSchema().getSchemaModel(), out.buffer())
+				.bindFuture(schemaBinder.getMetaSchema().getSchemaModel(), buffered)
 				.resolve().getData();
 
 		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(),

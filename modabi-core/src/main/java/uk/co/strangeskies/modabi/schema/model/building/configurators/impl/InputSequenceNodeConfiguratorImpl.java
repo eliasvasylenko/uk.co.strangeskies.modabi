@@ -209,8 +209,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		Class<?> outputTarget = getContext().getOutputSourceClass();
 
 		return new SequentialChildrenConfigurator<C, C>(getNamespace(),
-				getOverriddenNodes(), null, outputTarget, getDataLoader(), getContext()
-						.isAbstract()) {
+				getOverriddenNodes(), null, outputTarget, getDataLoader(),
+				isChildContextAbstract(), getContext().isDataContext()) {
 			@Override
 			public ChildBuilder<C, C> addChild() {
 				ChildBuilder<C, C> component = super.addChild();
@@ -242,6 +242,11 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 				};
 			}
 		};
+	}
+
+	@Override
+	protected boolean isChildContextAbstract() {
+		return getContext().isAbstract() || super.isChildContextAbstract();
 	}
 
 	static final Class<?> effectivePostInputClass(

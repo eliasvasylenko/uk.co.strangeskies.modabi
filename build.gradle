@@ -1,5 +1,13 @@
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.1'
+}
+
 allprojects  {
+	//plugins {
+	//	id 'maven'
+	//}
 	apply plugin: 'maven'
+
 	group = 'uk.co.strangeskies'
 	version = '0.0.1-SNAPSHOT'
 }
@@ -9,9 +17,23 @@ def javaProjects() {
 }
 
 configure(javaProjects()) {
+//	plugins {
+//		id 'java'
+//		id 'osgi'
+//		id 'maven-publish'
+//		id "com.github.hierynomus.license" version "0.11.0"
+//	}
 	apply plugin: 'java'
 	apply plugin: 'osgi'
 	apply plugin: 'maven-publish'
+
+//	license {
+//		include "**/*.java"
+//
+//		ext.project = 'Modabi'
+//		ext.year = Calendar.getInstance().get(Calendar.YEAR)
+//		ext.owner = 'Elias Nikolai Vasylenko'
+//	}
 
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8

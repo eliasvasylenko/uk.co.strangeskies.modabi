@@ -101,10 +101,12 @@ public class BaseSchemaImpl implements BaseSchema {
 									.outMethodIterable(true)).create());
 
 			typeSet.add(listType = builder.configure(loader).name("list", namespace)
-					.dataClass(List.class).baseType(collectionType).create());
+					.isAbstract(true).dataClass(List.class).baseType(collectionType)
+					.create());
 
 			typeSet.add(setType = builder.configure(loader).name("set", namespace)
-					.dataClass(Set.class).baseType(collectionType).create());
+					.isAbstract(true).dataClass(Set.class).baseType(collectionType)
+					.create());
 
 			typeSet.add(bufferedDataType = builder.configure(loader)
 					.name("bufferedData", namespace).dataClass(DataSource.class)
@@ -223,7 +225,6 @@ public class BaseSchemaImpl implements BaseSchema {
 													.name("targetModel")
 													.type(referenceBaseType)
 													.extensible(true)
-													.isAbstract(true)
 													.dataClass(Model.class)
 													.provideValue(
 															new BufferingDataTarget().put(
@@ -288,7 +289,6 @@ public class BaseSchemaImpl implements BaseSchema {
 													.dataClass(Class.class)
 													.name("enumType")
 													.outMethod("null")
-													.isAbstract(true)
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingClass(BindingChildNode.class)
@@ -372,7 +372,6 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			// TODO provided reflectively:
 																			.bindingClass(BindingChildNode.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
@@ -404,7 +403,6 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.data()
 																			.name("object")
 																			.type(referenceType)
-																			.isAbstract(true)
 																			.dataClass(Model.class)
 																			.outMethod("null")
 																			.provideValue(
@@ -688,6 +686,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.addChild(
 						c -> c.data().name("dataType").type(enumerationBaseType)
 								.inMethod("get").isAbstract(true).extensible(true)
+								.inMethodChained(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.dataClass(DataType.class).outMethod("null")).create());
 

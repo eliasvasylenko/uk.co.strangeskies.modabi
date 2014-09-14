@@ -36,11 +36,6 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 	}
 
 	public <T> T getValue(Function<S, T> valueFunction,
-			BiPredicate<? super T, ? super T> validateOverride) {
-		return getValue(valueFunction, validateOverride, null);
-	}
-
-	public <T> T getValue(Function<S, T> valueFunction,
 			BiPredicate<? super T, ? super T> validateOverride, T defaultValue) {
 		return checkResult(
 				getValueWithOverride(node == null ? null : valueFunction.apply(node),
@@ -60,7 +55,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 	}
 
 	private <T> T checkResult(T value, String valueName) {
-		if (value == null && !node.isAbstract())
+		if (value == null && (node.isAbstract() == null || !node.isAbstract()))
 			throw new SchemaException("No value '" + valueName
 					+ "' available for non-abstract node '" + node.getName() + "'.");
 		return value;
@@ -104,7 +99,8 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 			throw new SchemaException("Cannot override properties [" + values
 					+ "] with [" + valueOverride + "]");
 
-		if (value == null && (node == null || !node.isAbstract()))
+		if (value == null
+				&& (node == null || (node.isAbstract() == null || !node.isAbstract())))
 			value = defaultValue;
 
 		return value;

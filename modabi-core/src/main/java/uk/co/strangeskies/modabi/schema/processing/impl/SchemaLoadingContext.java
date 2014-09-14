@@ -6,6 +6,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -24,6 +25,7 @@ import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
@@ -38,6 +40,7 @@ import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.PartialSchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 import uk.co.strangeskies.utilities.ResultWrapper;
@@ -49,8 +52,10 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 
 	private Deque<Object> bindingStack;
 	private Deque<SchemaNode<?, ?>> nodeStack;
+	private List<BindingChildNode<?, ?, ?>> bindingChildNodeStack;
 
 	private DataSource dataSource;
+	private DataLoader loader;
 	private ReferenceSource referenceSource;
 	private IncludeTarget includeTarget;
 	private ImportSource importSource;
@@ -89,16 +94,28 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 						.map(Binding::getData).collect(Collectors.toSet()), idDomain, id);
 			}
 		};
+
+		loader = new DataLoader() {
+			@Override
+			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+				return null;
+			}
+		};
 	}
 
-	private SchemaLoadingContext(SchemaBinderImpl schemaBinderImpl,
+	public SchemaLoadingContext(SchemaBinderImpl schemaBinderImpl,
 			Model<T> model, StructuredDataSource input) {
 		this(schemaBinderImpl, (BindingNode<T, ?, ?>) model, input);
 
+		if (!input.peekNextChild().equals(model.getName()))
+			throw new SchemaException("Model '" + model.getName()
+					+ "' does not match root input node '" + input.peekNextChild() + "'.");
+
 		bindingStack = new ArrayDeque<>();
 		nodeStack = new ArrayDeque<>();
+		bindingChildNodeStack = new ArrayList<>();
 
-		bindingStack.push(model);
+		nodeStack.push(model);
 	}
 
 	private SchemaLoadingContext(SchemaLoadingContext<?> parent,
@@ -107,6 +124,7 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 
 		this.bindingStack = new ArrayDeque<>(parent.bindingStack);
 		this.nodeStack = new ArrayDeque<>(parent.nodeStack);
+		this.bindingChildNodeStack = new ArrayList<>(parent.bindingChildNodeStack);
 	}
 
 	public <U> U matchBinding(Model<U> model, Set<U> bindingCandidates,
@@ -143,6 +161,10 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 			return (U) includeTarget;
 		if (clazz.equals(ImportSource.class))
 			return (U) importSource;
+		if (clazz.equals(DataLoader.class))
+			return (U) loader;
+		if (clazz.equals(BindingChildNode.class))
+			return (U) bindingChildNodeStack.get(bindingChildNodeStack.size() - 2);
 
 		return this.schemaBinderImpl.provide(clazz);
 	}
@@ -152,26 +174,12 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 				.collect(Collectors.joining(" < "));
 	}
 
-	public static <T> BindingFuture<T> load(SchemaBinderImpl schemaBinderImpl,
-			Model<T> model, StructuredDataSource input) {
-		QualifiedName name = input.startNextChild();
-		if (!name.equals(model.getName()))
-			throw new SchemaException("Input root name '" + name
-					+ "' does not match model name '" + model.getName() + "'.");
-		return new SchemaLoadingContext<>(schemaBinderImpl, model, input).load();
-	}
-
-	public static BindingFuture<?> load(SchemaBinderImpl schemaBinderImpl,
-			StructuredDataSource input) {
-		Model<?> model = schemaBinderImpl.registeredModels.get(input
-				.startNextChild());
-		return new SchemaLoadingContext<>(schemaBinderImpl, model, input).load();
-	}
-
 	private Future<T> loadingFuture() {
+		@SuppressWarnings("unchecked")
 		FutureTask<T> future = new FutureTask<>(() -> {
 			try {
-				return bind(bindingNode.effective());
+				input.startNextChild();
+				return bindData(bindingNode.effective());
 			} catch (SchemaException e) {
 				throw new SchemaException("Problem at node '"
 						+ nodeStack.stream().map(n -> n.getName().toString())
@@ -187,7 +195,7 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		return future;
 	}
 
-	private BindingFuture<T> load() {
+	public BindingFuture<T> load() {
 		Future<T> future = loadingFuture();
 
 		return new BindingFuture<T>() {
@@ -237,28 +245,9 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		};
 	}
 
-	@Override
-	public void accept(ChoiceNode.Effective node) {
-		nodeStack.push(node);
-		nodeStack.pop();
-	}
-
-	@Override
-	public void accept(InputSequenceNode.Effective node) {
-		nodeStack.push(node);
-		for (ChildNode<?, ?> child : node.children())
-			child.effective().process(this);
-		nodeStack.pop();
-	}
-
-	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
-		@SuppressWarnings("unchecked")
-		U boundObject = (U) bindData(node);
-		return boundObject;
-	}
-
-	public Object bindData(BindingNode.Effective<?, ?, ?> node) {
-		Object binding = null;
+	@SuppressWarnings("unchecked")
+	public <U> U bindData(BindingNode.Effective<U, ?, ?> node) {
+		System.out.println(node.getName() + "      " + node.getBindingStrategy());
 
 		BindingStrategy strategy = node.getBindingStrategy();
 		if (strategy == null)
@@ -267,14 +256,14 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		case PROVIDED:
 			Class<?> providedClass = node.getBindingClass() != null ? node
 					.getBindingClass() : node.getDataClass();
-			binding = provide(providedClass);
+			bindingStack.push(provide(providedClass));
 
 			for (ChildNode<?, ?> child : node.children())
 				child.effective().process(this);
 
 			break;
 		case CONSTRUCTOR:
-			binding = null;
+			bindingStack.push(null);
 			/*-
 			try {
 				List<Binding<?>> input = getInput();
@@ -292,31 +281,31 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 			break;
 		case IMPLEMENT_IN_PLACE:
 			// TODO some proxy magic with simple bean-like semantics
-			binding = new ProxyFactory().createInvokerProxy(new NullInvoker(),
-					new Class[] { node.getClass() });
+			bindingStack.push(new ProxyFactory().createInvokerProxy(
+					new NullInvoker(), new Class[] { node.getClass() }));
 
 			break;
 		case SOURCE_ADAPTOR:
-			binding = bind(node.children().get(0));
+			bindingStack.push(tryGetBinding(node.children().get(0)));
 			break;
 		case STATIC_FACTORY:
 			Method inputMethod = getFirstChildInputMethod(node);
-			List<Object> parameters = bindings(node.children().get(0));
+			List<Object> parameters = tryGetBindings(node.children().get(0));
 			try {
-				binding = inputMethod.invoke(null, parameters.toArray());
+				bindingStack.push(inputMethod.invoke(null, parameters.toArray()));
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
 				throw new SchemaException("Cannot invoke static factory method '"
-						+ input + "' on class '" + node.getUnbindingClass()
+						+ inputMethod + "' on class '" + node.getUnbindingClass()
 						+ "' with parameters '" + parameters + "'.", e);
 			}
 			break;
 		case TARGET_ADAPTOR:
-			binding = bindingStack.peek();
+			bindingStack.push(bindingStack.peek());
 			break;
 		}
 
-		return binding;
+		return (U) bindingStack.pop();
 	}
 
 	private Method getFirstChildInputMethod(BindingNode.Effective<?, ?, ?> node) {
@@ -340,57 +329,69 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 		return result.getResult();
 	}
 
-	private List<Object> bindings(ChildNode.Effective<?, ?> node) {
+	private List<Object> tryGetBindings(ChildNode.Effective<?, ?> node) {
 		List<Object> parameters = new ArrayList<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
 				for (ChildNode.Effective<?, ?> child : node.children())
-					child.process(this);
+					parameters.add(tryGetBinding(child));
 			}
 
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				parameters.add(bind(node));
+				parameters.add(tryGetBinding(node));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				parameters.add(bind(node));
+				parameters.add(tryGetBinding(node));
 			}
 		});
 		return parameters;
 	}
 
-	private Object bind(ChildNode.Effective<?, ?> node) {
-		List<Object> parameters = new ArrayList<>();
+	private Object tryGetBinding(ChildNode.Effective<?, ?> node) {
+		ResultWrapper<Object> result = new ResultWrapper<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				parameters.add(bind(node));
+				result.setResult(bindData(node));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				parameters.add(bind(node));
+				result.setResult(bindDataNode(node).get(0));
 			}
 		});
-		return parameters;
+		return result.getResult();
 	}
 
-	protected <U> U bind(BindingChildNode.Effective<U, ?, ?> node) {
-		try {
-			return new SchemaLoadingContext<>(SchemaLoadingContext.this, node)
-					.loadingFuture().get();
-		} catch (InterruptedException | ExecutionException e) {
-			throw new SchemaException("Cannot bind node '" + node.getName() + "'.", e);
-		}
+	public void bindAndInput(BindingChildNode.Effective<?, ?, ?> node) {
+		invokeInMethod(node, bindData(node));
 	}
 
 	@Override
 	public <U> void accept(ElementNode.Effective<U> node) {
+		System.out.println("Element @ " + node.getName() + ": ");
 		nodeStack.push(node);
-		invokeInMethod(node, (Object) bind(node));
+		bindingChildNodeStack.add(node);
+
+		System.out.println("   " + input.peekNextChild());
+
+		int count = 0;
+		while (Objects.equals(input.peekNextChild(), node.getName())) {
+			input.startNextChild();
+			bindAndInput(node);
+			input.endChild();
+			count++;
+		}
+
+		if (!node.occurances().contains(count))
+			throw new SchemaException("Node '" + node.getName() + "' occurances '"
+					+ count + "' must be within range '" + node.occurances() + "'.");
+
+		bindingChildNodeStack.remove(bindingChildNodeStack.size() - 1);
 		nodeStack.pop();
 	}
 
@@ -413,28 +414,85 @@ class SchemaLoadingContext<T> implements SchemaProcessingContext {
 	}
 
 	@Override
-	public <U> void accept(DataNode.Effective<U> node) {
+	public void accept(ChoiceNode.Effective node) {
 		nodeStack.push(node);
-		switch (node.format()) {
-		case CONTENT:
-			dataSource = input.readContent();
-			break;
-		case PROPERTY:
-			dataSource = input.readProperty(node.getName());
-			break;
-		case SIMPLE_ELEMENT:
-			while (node.getName().equals(input.peekNextChild())) {
-				input.startNextChild(node.getName());
-				dataSource = input.readContent();
-				input.endChild();
-			}
-		}
 		nodeStack.pop();
+	}
+
+	@Override
+	public void accept(InputSequenceNode.Effective node) {
+		nodeStack.push(node);
+		List<Object> parameters = tryGetBindings(node);
+		invokeInMethod(node, parameters.toArray());
+		nodeStack.pop();
+	}
+
+	@Override
+	public <U> void accept(DataNode.Effective<U> node) {
+		for (U item : bindDataNode(node))
+			invokeInMethod(node, item);
+	}
+
+	public <U> List<U> bindDataNode(DataNode.Effective<U> node) {
+		nodeStack.push(node);
+		bindingChildNodeStack.add(node);
+
+		DataSource previousDataSource = dataSource;
+
+		List<U> result = new ArrayList<>();
+
+		System.out.println("#~~~~" + node.getName() + " / " + node.providedValue());
+
+		if (node.isValueProvided()
+				&& node.valueResolution() == ValueResolution.REGISTRATION_TIME) {
+			result.addAll(node.providedValue());
+		} else if (node.format() != null) {
+			if (node.isValueProvided()
+					&& node.valueResolution() == ValueResolution.PROCESSING_TIME)
+				dataSource = node.providedValueBuffer();
+
+			switch (node.format()) {
+			case CONTENT:
+				if (!node.isValueProvided())
+					dataSource = input.readContent();
+
+				if (dataSource != null)
+					result.add(bindData(node));
+				break;
+			case PROPERTY:
+				if (!node.isValueProvided())
+					dataSource = input.readProperty(node.getName());
+
+				if (dataSource != null)
+					result.add(bindData(node));
+				break;
+			case SIMPLE_ELEMENT:
+				while (node.getName().equals(input.peekNextChild())) {
+					input.startNextChild(node.getName());
+
+					if (!node.isValueProvided())
+						dataSource = input.readContent();
+
+					result.add(bindData(node));
+					input.endChild();
+				}
+			}
+		} else
+			result.add(bindData(node));
+
+		dataSource = previousDataSource;
+
+		bindingChildNodeStack.remove(bindingChildNodeStack.size() - 1);
+		nodeStack.pop();
+
+		return result;
 	}
 
 	@Override
 	public void accept(SequenceNode.Effective node) {
 		nodeStack.push(node);
+		for (ChildNode<?, ?> child : node.children())
+			child.effective().process(this);
 		nodeStack.pop();
 	}
 }

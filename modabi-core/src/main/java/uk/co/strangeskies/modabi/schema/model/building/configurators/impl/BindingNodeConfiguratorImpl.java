@@ -45,16 +45,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				super(overrideMerge);
 
 				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
-						(v, o) -> o.isAssignableFrom(v));
+						(v, o) -> o.isAssignableFrom(v), null);
 
-				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass,
-						dataClass);
+				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass, (v,
+						o) -> o.isAssignableFrom(v), dataClass);
 
 				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingClass,
-						dataClass);
+						(v, o) -> o.isAssignableFrom(v), dataClass);
 
 				unbindingFactoryClass = overrideMerge.getValue(
-						BindingNode::getUnbindingFactoryClass, unbindingClass);
+						BindingNode::getUnbindingFactoryClass,
+						(v, o) -> o.isAssignableFrom(v), unbindingClass);
 
 				bindingStrategy = overrideMerge.getValue(
 						BindingNode::getBindingStrategy, BindingStrategy.PROVIDED);
@@ -230,9 +231,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				null, this);
 
 		Class<?> unbindingClass = overrideMerge.getValueWithOverride(
-				this.unbindingClass, BindingNode::getUnbindingClass);
+				this.unbindingClass, BindingNode::getUnbindingClass,
+				(o, n) -> n.isAssignableFrom(o));
 		Class<?> bindingClass = overrideMerge.getValueWithOverride(
-				this.bindingClass, BindingNode::getBindingClass);
+				this.bindingClass, BindingNode::getBindingClass,
+				(o, n) -> n.isAssignableFrom(o));
 		Class<?> dataClass = overrideMerge.getValueWithOverride(this.dataClass,
 				BindingNode::getDataClass, (o, n) -> n.isAssignableFrom(o));
 
@@ -241,8 +244,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
 				getOverriddenNodes(), inputTarget, outputTarget, getDataLoader(),
-				isChildContextAbstract());
+				isChildContextAbstract(), isDataContext());
 	}
+
+	protected abstract boolean isDataContext();
 
 	@Override
 	public final S bindingClass(Class<?> bindingClass) {
@@ -306,9 +311,5 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return providedUnbindingMethodParameters(Arrays.asList(parameterNames)
 				.stream().map(n -> new QualifiedName(n, getName().getNamespace()))
 				.collect(Collectors.toList()));
-	}
-
-	protected boolean isChildContextAbstract() {
-		return isAbstract() != null && isAbstract();
 	}
 }

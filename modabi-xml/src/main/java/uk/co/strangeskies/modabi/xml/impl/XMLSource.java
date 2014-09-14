@@ -3,7 +3,9 @@ package uk.co.strangeskies.modabi.xml.impl;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -36,6 +38,7 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		private QualifiedName nextChild;
 		private final Set<String> comments;
+		private final Map<QualifiedName, DataSource> properties;
 		private String content;
 
 		public XMLSourceImpl(XMLStreamReader in) {
@@ -43,6 +46,7 @@ public class XMLSource extends StructuredDataSourceDecorator {
 			currentLocation = new ArrayDeque<>();
 
 			comments = new HashSet<>();
+			properties = new HashMap<>();
 		}
 
 		public XMLSourceImpl(InputStream in) {
@@ -105,11 +109,29 @@ public class XMLSource extends StructuredDataSourceDecorator {
 					throw new IOException(e);
 				}
 
+				System.out.println("{}{} " + code + " " + in.getName());
+
 				switch (code) {
 				case XMLStreamReader.START_ELEMENT:
 					QName name = in.getName();
 					nextChild = new QualifiedName(name.getLocalPart(),
 							Namespace.parseHttpString(name.getNamespaceURI()));
+
+					properties.clear();
+
+					System.out.println(" ???? " + name + " " + in.getAttributeCount());
+					for (int i = 0; i < in.getAttributeCount(); i++) {
+						QualifiedName propertyName = new QualifiedName(
+								in.getAttributeLocalName(i), Namespace.parseHttpString(in
+										.getAttributeNamespace(i)));
+
+						properties.put(propertyName,
+								DataSource.parseString(in.getAttributeValue(i)));
+
+						System.out.println(" ? " + i + " " + propertyName + " / "
+								+ in.getAttributeValue(i));
+					}
+					break;
 				case XMLStreamReader.END_ELEMENT:
 				case XMLStreamReader.END_DOCUMENT:
 					done = true;
@@ -128,17 +150,12 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		@Override
 		public Set<QualifiedName> getProperties() {
-			Set<QualifiedName> properties = new HashSet<>();
-			for (int i = 0; i < in.getNamespaceCount(); i++)
-				properties.add(new QualifiedName(in.getAttributeLocalName(i), Namespace
-						.parseHttpString(in.getAttributeNamespace(i))));
-			return properties;
+			return new HashSet<>(properties.keySet());
 		}
 
 		@Override
 		public DataSource readProperty(QualifiedName name) {
-			return DataSource.parseString(in.getAttributeValue(name.getNamespace()
-					.toHttpString(), name.getName()));
+			return properties.get(name);
 		}
 
 		@Override

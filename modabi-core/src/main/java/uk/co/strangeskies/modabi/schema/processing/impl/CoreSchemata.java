@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.proxy.ObjectProvider;
@@ -47,6 +48,9 @@ public class CoreSchemata {
 						LocalDate.of(2014, 1, 1));
 
 				if (node.getName().getNamespace().equals(namespace)) {
+					if (node.getName().getName().equals("configure"))
+						return Collections.emptyList();
+
 					if (node.getName().getName().equals("format"))
 						return (List<T>) Arrays.asList(Format.valueOf(data
 								.get(DataType.STRING)));

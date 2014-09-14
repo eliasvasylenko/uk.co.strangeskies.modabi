@@ -126,6 +126,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 		return getName().getNamespace();
 	}
 
+	@Override
+	protected boolean isDataContext() {
+		return true;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Class<DataBindingType<T>> getNodeClass() {

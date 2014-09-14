@@ -28,7 +28,8 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.AbstractModel;
 import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.building.impl.DataNodeWrapper;
-import uk.co.strangeskies.modabi.schema.model.building.impl.ElementNodeWrapper;
+import uk.co.strangeskies.modabi.schema.model.building.impl.ElementNodeOverrider;
+import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
@@ -127,9 +128,12 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 							.collect(Collectors.joining(" < ")) + "' unbinding data '" + data
 					+ "' with model '" + model.getName() + "'.", e);
 		} catch (Exception e) {
+			/*-
 			throw new SchemaException("Unexpected problem at node '"
 					+ getNodeStackString() + "' unbinding data '" + data
 					+ "' with model '" + model.getName() + "'.", e);
+			 */
+			throw e;
 		}
 	}
 
@@ -179,10 +183,10 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			tryUnbindingForEach(
 					nodes,
 					n -> {
-						ElementNodeWrapper<U> wrapper = new ElementNodeWrapper<>(
-								(Model.Effective<U>) n.effective(), node);
-						unbindModel(wrapper, data);
-						bindings.add(wrapper, data);
+						ElementNode.Effective<? extends U> overridden = new ElementNodeOverrider(
+								new ModelBuilderImpl()).override(node, n.effective());
+						unbindModel(overridden, data);
+						bindings.add(overridden, data);
 					},
 					l -> new MultiException("Unable to unbind element '"
 							+ node.getName()
@@ -219,6 +223,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					break;
 				case REGISTRATION_TIME:
 					List<U> data = getData(node);
+
 					if (!node.providedValue().equals(data)) {
 						throw new SchemaException("Provided value '" + node.providedValue()
 								+ "'does not match unbinding object '" + data + "' for node '"
@@ -457,7 +462,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 					+ "' on '"
 					+ receiver
 					+ "' with arguments '["
-					+ Arrays.asList(parameters).stream().map(Object::toString)
+					+ Arrays.asList(parameters).stream().map(Objects::toString)
 							.collect(Collectors.joining(", ")) + "]' at node '"
 					+ getNodeStackString() + "'.", e);
 		}

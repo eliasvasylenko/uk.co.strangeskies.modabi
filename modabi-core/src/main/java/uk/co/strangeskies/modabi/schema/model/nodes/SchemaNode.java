@@ -2,8 +2,11 @@ package uk.co.strangeskies.modabi.schema.model.nodes;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
@@ -32,7 +35,7 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 				SchemaNode::children).add(SchemaNode::getName);
 	}
 
-	boolean isAbstract();
+	Boolean isAbstract();
 
 	QualifiedName getName();
 
@@ -50,8 +53,19 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	Class<S> getNodeClass();
 
 	default ChildNode<?, ?> child(QualifiedName name) {
-		return children().stream().filter(c -> c.getName().equals(name)).findAny()
-				.get();
+		return children()
+				.stream()
+				.filter(c -> c.getName().equals(name))
+				.findAny()
+				.orElseThrow(
+						() -> new SchemaException("Cannot find child '"
+								+ name
+								+ "' for node '"
+								+ getName()
+								+ "' amongst children '["
+								+ children().stream().map(SchemaNode::getName)
+										.map(Objects::toString).collect(Collectors.joining(", "))
+								+ "]."));
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {

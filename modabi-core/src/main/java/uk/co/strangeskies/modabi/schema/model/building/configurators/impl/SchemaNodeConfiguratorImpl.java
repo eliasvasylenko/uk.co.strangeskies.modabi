@@ -1,9 +1,13 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -16,7 +20,13 @@ import uk.co.strangeskies.modabi.schema.model.building.impl.ChildrenContainer;
 import uk.co.strangeskies.modabi.schema.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
@@ -39,14 +49,66 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
 				source = overrideMerge.node().source();
 
-				name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true);
-				if (name == null)
-					throw new SchemaException("All nodes must be named.");
+				name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true,
+						defaultName());
 
-				isAbstract = overrideMerge.node().isAbstract();
+				isAbstract = overrideMerge.node().isAbstract() == null ? false
+						: overrideMerge.node().isAbstract();
 
 				children = overrideMerge.configurator().getChildrenContainer()
 						.getEffectiveChildren();
+
+				if (!overrideMerge.configurator().isChildContextAbstract())
+					requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
+			}
+
+			protected QualifiedName defaultName() {
+				return null;
+			}
+
+			// TODO more sensible error message & get rid of 'instanceof' temp hack
+			protected void requireNonAbstractDescendents(
+					Deque<SchemaNode.Effective<?, ?>> nodeStack) {
+				for (ChildNode.Effective<?, ?> child : nodeStack.peek().children()) {
+					nodeStack.push(child);
+
+					if (child.isAbstract())
+						throw new SchemaException("Inherited descendent '"
+								+ nodeStack.stream().map(n -> n.getName().toString())
+										.collect(Collectors.joining(" < "))
+								+ "' cannot be abstract.");
+
+					child.process(new SchemaProcessingContext() {
+						@Override
+						public void accept(ChoiceNode.Effective node) {
+							requireNonAbstractDescendents(nodeStack);
+						}
+
+						@Override
+						public void accept(SequenceNode.Effective node) {
+							requireNonAbstractDescendents(nodeStack);
+						}
+
+						@Override
+						public void accept(InputSequenceNode.Effective node) {
+							requireNonAbstractDescendents(nodeStack);
+						}
+
+						@Override
+						public <U> void accept(DataNode.Effective<U> node) {
+							if (!node.isExtensible())
+								requireNonAbstractDescendents(nodeStack);
+						}
+
+						@Override
+						public <U> void accept(ElementNode.Effective<U> node) {
+							if (!node.isExtensible())
+								requireNonAbstractDescendents(nodeStack);
+						}
+					});
+
+					nodeStack.pop();
+				}
 			}
 
 			@Override
@@ -60,7 +122,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			@Override
-			public boolean isAbstract() {
+			public Boolean isAbstract() {
 				return isAbstract;
 			}
 
@@ -93,7 +155,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		private final QualifiedName name;
-		private final boolean isAbstract;
+		private final Boolean isAbstract;
 		private final List<ChildNode<?, ?>> children;
 
 		private PropertySet<S> propertySet;
@@ -104,7 +166,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			name = configurator.name;
 
-			isAbstract = configurator.isAbstract != null && configurator.isAbstract;
+			isAbstract = configurator.isAbstract;
 
 			children = Collections.unmodifiableList(new ArrayList<>(configurator
 					.getChildrenContainer().getChildren()));
@@ -116,7 +178,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 
 		@Override
-		public boolean isAbstract() {
+		public Boolean isAbstract() {
 			return isAbstract;
 		}
 
@@ -222,10 +284,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return name;
 	}
 
-	protected final Boolean isAbstract() {
-		return isAbstract;
-	}
-
 	protected abstract ChildrenConfigurator<C, B> createChildrenConfigurator();
 
 	@Override
@@ -238,5 +296,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected static <S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> OverrideMerge<S, C> overrideMerge(
 			S node, C configurator) {
 		return new OverrideMerge<S, C>(node, configurator);
+	}
+
+	protected boolean isChildContextAbstract() {
+		return isAbstract != null && isAbstract;
 	}
 }

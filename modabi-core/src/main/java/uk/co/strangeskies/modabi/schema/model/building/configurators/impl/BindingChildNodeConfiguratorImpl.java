@@ -352,7 +352,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	protected final boolean isChildContextAbstract() {
-		return super.isChildContextAbstract() || getContext().isAbstract();
+		return super.isChildContextAbstract() || getContext().isAbstract()
+				|| extensible != null && extensible;
 	}
 
 	@Override
