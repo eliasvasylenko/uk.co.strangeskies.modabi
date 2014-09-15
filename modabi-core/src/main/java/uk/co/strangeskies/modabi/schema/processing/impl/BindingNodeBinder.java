@@ -28,12 +28,8 @@ public class BindingNodeBinder {
 		this.bindingContext = bindingContext;
 	}
 
-	public BindingContext getBindingContext() {
-		return bindingContext;
-	}
-
 	@SuppressWarnings("unchecked")
-	public <U> U bindNode(BindingNode.Effective<U, ?, ?> node) {
+	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
 		Object binding;
 		Iterator<ChildNode.Effective<?, ?>> children = node.children().iterator();
 
@@ -134,17 +130,23 @@ public class BindingNodeBinder {
 		return parameters;
 	}
 
+	public BindingContext getChildBindingContext() {
+		return bindingContext;
+	}
+
 	private Object tryGetBinding(ChildNode.Effective<?, ?> node) {
 		ResultWrapper<Object> result = new ResultWrapper<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				result.setResult(bindElementNode(node).get(0));
+				result.setResult(new ElementNodeBinder(getChildBindingContext()).bind(
+						node).get(0));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.setResult(bindDataNode(node).get(0));
+				result.setResult(new DataNodeBinder(getChildBindingContext())
+						.bind(node).get(0));
 			}
 		});
 		return result.getResult();

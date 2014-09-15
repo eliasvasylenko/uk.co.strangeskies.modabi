@@ -1,23 +1,16 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
-import org.apache.commons.proxy.ProxyFactory;
-import org.apache.commons.proxy.invoker.NullInvoker;
 
 import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
@@ -27,10 +20,6 @@ import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.model.building.impl.ElementNodeOverrider;
-import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
@@ -40,62 +29,33 @@ import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.PartialSchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 import uk.co.strangeskies.utilities.ResultWrapper;
 
-class SchemaBinder<T> {
-	private final SchemaManagerImpl schemaBinderImpl;
-	private final BindingNode<T, ?, ?> bindingNode;
-	private final StructuredDataSource input;
+class SchemaBinder {
+	private final SchemaManager manager;
 
-	private Deque<Object> bindingStack;
-	private Deque<SchemaNode<?, ?>> nodeStack;
-	private List<BindingChildNode.Effective<?, ?, ?>> bindingChildNodeStack;
+	private final ImportSource importSource;
+	private final DataLoader loader;
 
-	private DataSource dataSource;
-	private DataLoader loader;
-	private ReferenceSource referenceSource;
-	private IncludeTarget includeTarget;
-	private ImportSource importSource;
-
-	private final Bindings bindings;
-
-	private SchemaBinder(SchemaManagerImpl schemaBinderImpl,
-			BindingNode<T, ?, ?> bindingNode, StructuredDataSource input) {
-		this.schemaBinderImpl = schemaBinderImpl;
-		this.bindingNode = bindingNode;
-		this.input = input;
-
-		bindings = new Bindings();
-
-		referenceSource = new ReferenceSource() {
-			@Override
-			public <U> U reference(Model<U> model, QualifiedName idDomain,
-					DataSource id) {
-				return matchBinding(model, bindings.get(model), idDomain, id);
-			}
-		};
-
-		includeTarget = new IncludeTarget() {
-			@Override
-			public <U> void include(Model<U> model, U object) {
-				bindings.add(model, object);
-			}
-		};
+	public SchemaBinder(SchemaManager manager) {
+		this.manager = manager;
 
 		importSource = new ImportSource() {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(model, schemaBinderImpl.bindingFutures(model)
-						.stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
-						.map(Binding::getData).collect(Collectors.toSet()), idDomain, id);
+				return matchBinding(
+						model,
+						manager.bindingFutures(model).stream()
+								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
+								.map(Binding::getData).collect(Collectors.toSet()), idDomain,
+						id);
 			}
 		};
 
@@ -107,99 +67,83 @@ class SchemaBinder<T> {
 		};
 	}
 
-	public SchemaBinder(SchemaManagerImpl schemaBinderImpl, Model<T> model,
+	public <T> BindingFuture<T> bind(Model.Effective<T> model,
 			StructuredDataSource input) {
-		this(schemaBinderImpl, (BindingNode<T, ?, ?>) model, input);
-
 		if (!input.peekNextChild().equals(model.getName()))
 			throw new SchemaException("Model '" + model.getName()
 					+ "' does not match root input node '" + input.peekNextChild() + "'.");
 
-		bindingStack = new ArrayDeque<>();
-		nodeStack = new ArrayDeque<>();
-		bindingChildNodeStack = new ArrayList<>();
+		Bindings bindings = new Bindings();
 
-		nodeStack.push(model);
-	}
+		ReferenceSource referenceSource = new ReferenceSource() {
+			@Override
+			public <U> U reference(Model<U> model, QualifiedName idDomain,
+					DataSource id) {
+				return matchBinding(model, bindings.get(model), idDomain, id);
+			}
+		};
 
-	private SchemaBinder(SchemaBinder<?> parent,
-			BindingChildNode.Effective<T, ?, ?> bindingNode) {
-		this(parent.schemaBinderImpl, bindingNode, parent.input);
+		IncludeTarget includeTarget = new IncludeTarget() {
+			@Override
+			public <U> void include(Model<U> model, U object) {
+				bindings.add(model, object);
+			}
+		};
 
-		this.bindingStack = new ArrayDeque<>(parent.bindingStack);
-		this.nodeStack = new ArrayDeque<>(parent.nodeStack);
-		this.bindingChildNodeStack = new ArrayList<>(parent.bindingChildNodeStack);
-	}
+		List<SchemaNode.Effective<?, ?>> bindingNodeStack = Collections
+				.unmodifiableList(Arrays.asList(model));
 
-	public <U> U matchBinding(Model<U> model, Set<U> bindingCandidates,
-			QualifiedName idDomain, DataSource id) {
-		DataNode.Effective<?> node = (DataNode.Effective<?>) model
-				.effective()
-				.children()
-				.stream()
-				.filter(
-						c -> c.getName().equals(idDomain)
-								&& c instanceof DataNode.Effective<?>)
-				.findAny()
-				.orElseThrow(
-						() -> new SchemaException("Can't fine child '" + idDomain
-								+ "' to target for model '" + model + "'."));
+		BindingContext context = new BindingContext() {
+			@Override
+			@SuppressWarnings("unchecked")
+			public <U> U provide(Class<U> clazz) {
+				if (clazz.equals(ReferenceSource.class))
+					return (U) referenceSource;
+				if (clazz.equals(IncludeTarget.class))
+					return (U) includeTarget;
+				if (clazz.equals(ImportSource.class))
+					return (U) importSource;
+				if (clazz.equals(DataLoader.class))
+					return (U) loader;
 
-		System.out.println("model: " + model);
-		System.out.println("id: " + id.get().data());
-		int i = 0;
-		for (U binding : bindingCandidates) {
-			System.out.println("choice " + ++i + ": " + binding);
-		}
+				return manager.provide(clazz);
+			}
 
-		return null;
-	}
+			@Override
+			public Object bindingObject() {
+				throw exception("Root node is not bound to an object.");
+			}
 
-	@SuppressWarnings("unchecked")
-	private <U> U provide(Class<U> clazz) {
-		if (clazz.equals(DataSource.class))
-			return (U) dataSource;
-		if (clazz.equals(ReferenceSource.class))
-			return (U) referenceSource;
-		if (clazz.equals(IncludeTarget.class))
-			return (U) includeTarget;
-		if (clazz.equals(ImportSource.class))
-			return (U) importSource;
-		if (clazz.equals(DataLoader.class))
-			return (U) loader;
-		if (clazz.equals(BindingChildNode.Effective.class))
-			return (U) bindingChildNodeStack.get(bindingChildNodeStack.size() - 2);
+			@Override
+			public List<SchemaNode.Effective<?, ?>> bindingNodeStack() {
+				return bindingNodeStack;
+			}
 
-		return this.schemaBinderImpl.provide(clazz);
-	}
+			@Override
+			public Model.Effective<?> getModel(QualifiedName nextElement) {
+				return manager.getModels().get(nextElement);
+			}
 
-	private String getNodeStackString() {
-		return nodeStack.stream().map(n -> n.getName().toString())
-				.collect(Collectors.joining(" < "));
-	}
+			@Override
+			public <U> Set<BindingFuture<U>> bindingFutures(Model<U> model) {
+				return manager.bindingFutures(model);
+			}
 
-	private Future<T> loadingFuture() {
+			@Override
+			public StructuredDataSource input() {
+				return input;
+			}
+		};
+
 		FutureTask<T> future = new FutureTask<>(() -> {
 			try {
-				input.startNextChild();
-				return bindData(bindingNode.effective());
-			} catch (SchemaException e) {
-				throw new SchemaException("Problem at node '"
-						+ nodeStack.stream().map(n -> n.getName().toString())
-								.collect(Collectors.joining(" < "))
-						+ "' binding data with node '" + bindingNode.getName() + "'.", e);
+				context.input().startNextChild();
+				return new BindingNodeBinder(context).bind(model);
 			} catch (Exception e) {
-				throw new SchemaException("Unexpected problem at node '"
-						+ getNodeStackString() + "' binding data with node '"
-						+ bindingNode.getName() + "'.", e);
+				throw context.exception("Unexpected problem during binding.", e);
 			}
 		});
 		future.run();
-		return future;
-	}
-
-	public BindingFuture<T> load() {
-		Future<T> future = loadingFuture();
 
 		return new BindingFuture<T>() {
 			@Override
@@ -231,13 +175,13 @@ class SchemaBinder<T> {
 
 			@Override
 			public QualifiedName getName() {
-				return bindingNode.getName();
+				return model.getName();
 			}
 
 			@SuppressWarnings("unchecked")
 			@Override
 			public Model<T> getModel() {
-				return (Model<T>) bindingNode;
+				return model;
 			}
 
 			@Override
@@ -248,86 +192,28 @@ class SchemaBinder<T> {
 		};
 	}
 
-	@SuppressWarnings("unchecked")
-	public <U> U bindData(BindingNode.Effective<U, ?, ?> node) {
-		BindingStrategy strategy = node.getBindingStrategy();
-		if (strategy == null)
-			strategy = BindingStrategy.PROVIDED;
-		switch (strategy) {
-		case PROVIDED:
-			Class<?> providedClass = node.getBindingClass() != null ? node
-					.getBindingClass() : node.getDataClass();
-			bindingStack.push(provide(providedClass));
+	private static <U> U matchBinding(Model<U> model, Set<U> bindingCandidates,
+			QualifiedName idDomain, DataSource id) {
+		DataNode.Effective<?> node = (DataNode.Effective<?>) model
+				.effective()
+				.children()
+				.stream()
+				.filter(
+						c -> c.getName().equals(idDomain)
+								&& c instanceof DataNode.Effective<?>)
+				.findAny()
+				.orElseThrow(
+						() -> new SchemaException("Can't fine child '" + idDomain
+								+ "' to target for model '" + model + "'."));
 
-			for (ChildNode<?, ?> child : node.children())
-				child.effective().process(getProcessingContext());
-
-			break;
-		case CONSTRUCTOR:
-			bindingStack.push(null);
-			/*-
-			try {
-				List<Binding<?>> input = getInput();
-				Class<?> a = null;
-				a.getc
-				Constructor<?> c = node.getBindingClass().getConstructor();
-				return c.newInstance(prepareUnbingingParameterList(node, u));
-			} catch (InstantiationException | IllegalAccessException
-					| IllegalArgumentException | InvocationTargetException
-					| NoSuchMethodException | SecurityException e) {
-				throw new SchemaException("Cannot invoke constructor " + c + " on "
-						+ node.getUnbindingClass(), e);
-			}
-			 */
-			break;
-		case IMPLEMENT_IN_PLACE:
-			// TODO some proxy magic with simple bean-like semantics
-			bindingStack.push(new ProxyFactory().createInvokerProxy(
-					new NullInvoker(), new Class[] { node.getClass() }));
-
-			break;
-		case SOURCE_ADAPTOR:
-			bindingStack.push(tryGetBinding(node.children().get(0)));
-			break;
-		case STATIC_FACTORY:
-			Method inputMethod = getFirstChildInputMethod(node);
-			List<Object> parameters = tryGetBindings(node.children().get(0));
-			try {
-				bindingStack.push(inputMethod.invoke(null, parameters.toArray()));
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | SecurityException e) {
-				throw new SchemaException("Cannot invoke static factory method '"
-						+ inputMethod + "' on class '" + node.getUnbindingClass()
-						+ "' with parameters '" + parameters + "'.", e);
-			}
-			break;
-		case TARGET_ADAPTOR:
-			bindingStack.push(bindingStack.peek());
-			break;
+		System.out.println("model: " + model);
+		System.out.println("id: " + id.get().data());
+		int i = 0;
+		for (U binding : bindingCandidates) {
+			System.out.println("choice " + ++i + ": " + binding);
 		}
 
-		return (U) bindingStack.pop();
-	}
-
-	private Method getFirstChildInputMethod(BindingNode.Effective<?, ?, ?> node) {
-		ResultWrapper<Method> result = new ResultWrapper<>();
-		node.children().get(0).process(new PartialSchemaProcessingContext() {
-			@Override
-			public void accept(InputSequenceNode.Effective node) {
-				result.setResult(node.getInMethod());
-			}
-
-			@Override
-			public <U> void accept(ElementNode.Effective<U> node) {
-				result.setResult(node.getInMethod());
-			}
-
-			@Override
-			public <U> void accept(DataNode.Effective<U> node) {
-				result.setResult(node.getInMethod());
-			}
-		});
-		return result.getResult();
+		return null;
 	}
 
 	private List<Object> tryGetBindings(ChildNode.Effective<?, ?> node) {
@@ -357,18 +243,18 @@ class SchemaBinder<T> {
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				result.setResult(bindElementNode(node).get(0));
+				result.setResult(new ElementNodeBinder(null).bind(node).get(0));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.setResult(bindDataNode(node).get(0));
+				result.setResult(new DataNodeBinder(null).bind(node).get(0));
 			}
 		});
 		return result.getResult();
 	}
 
-	private void invokeInMethod(InputNode.Effective<?, ?> node,
+	private static void invokeInMethod(InputNode.Effective<?, ?> node,
 			Object... parameters) {
 		if (!"null".equals(node.getInMethodName())) {
 			Object object;
@@ -388,103 +274,8 @@ class SchemaBinder<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public <U> List<U> bindElementNode(ElementNode.Effective<U> node) {
-		nodeStack.push(node);
-		bindingChildNodeStack.add(node);
-
-		List<U> result = new ArrayList<>();
-
-		int count = 0;
-		ElementNode.Effective<? extends U> inputNode;
-		do {
-			inputNode = null;
-
-			QualifiedName nextElement = input.peekNextChild();
-			if (nextElement != null) {
-				if (node.isExtensible()) {
-					Model.Effective<?> extension = schemaBinderImpl.registeredModels.get(
-							nextElement).effective();
-
-					if (node.getDataClass().isAssignableFrom(extension.getDataClass()))
-						inputNode = new ElementNodeOverrider(new ModelBuilderImpl())
-								.override(node,
-										(Model.Effective<? extends U>) extension.effective());
-				} else if (Objects.equals(nextElement, node.getName()))
-					inputNode = node;
-
-				if (inputNode != null) {
-					input.startNextChild();
-					U binding = bindData(node);
-					result.add(binding);
-					bindings.add(inputNode, binding);
-					input.endChild();
-					count++;
-				}
-			}
-		} while (!node.occurances().isValueAbove(count) && inputNode != null);
-
-		if (!node.occurances().contains(count))
-			throw new SchemaException("Node '" + node.getName() + "' occurances '"
-					+ count + "' must be within range '" + node.occurances() + "'.");
-
-		bindingChildNodeStack.remove(bindingChildNodeStack.size() - 1);
-		nodeStack.pop();
-
-		return result;
-	}
-
-	public <U> List<U> bindDataNode(DataNode.Effective<U> node) {
-		nodeStack.push(node);
-		bindingChildNodeStack.add(node);
-
-		DataSource previousDataSource = dataSource;
-
-		List<U> result = new ArrayList<>();
-
-		if (node.isValueProvided()) {
-			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME)
-				result.addAll(node.providedValues());
-			else {
-				dataSource = node.providedValueBuffer();
-				result.add(bindData(node));
-			}
-		} else if (node.format() != null) {
-			switch (node.format()) {
-			case CONTENT:
-				dataSource = input.readContent();
-
-				if (dataSource != null)
-					result.add(bindData(node));
-				break;
-			case PROPERTY:
-				dataSource = input.readProperty(node.getName());
-
-				if (dataSource != null)
-					result.add(bindData(node));
-				break;
-			case SIMPLE_ELEMENT:
-				while (node.getName().equals(input.peekNextChild())) {
-					input.startNextChild(node.getName());
-
-					dataSource = input.readContent();
-
-					result.add(bindData(node));
-					input.endChild();
-				}
-			}
-		} else
-			result.add(bindData(node));
-
-		dataSource = previousDataSource;
-
-		bindingChildNodeStack.remove(bindingChildNodeStack.size() - 1);
-		nodeStack.pop();
-
-		return result;
-	}
-
-	private SchemaProcessingContext getProcessingContext() {
+	static SchemaProcessingContext createProcessingContext(
+			BindingContext bindingContenxt) {
 		return new SchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
@@ -494,7 +285,7 @@ class SchemaBinder<T> {
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				for (U item : bindDataNode(node))
+				for (U item : new DataNodeBinder(bindingContenxt).bind(node))
 					invokeInMethod(node, item);
 			}
 

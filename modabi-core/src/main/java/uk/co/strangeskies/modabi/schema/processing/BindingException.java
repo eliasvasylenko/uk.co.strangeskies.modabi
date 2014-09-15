@@ -26,6 +26,17 @@ public class BindingException extends SchemaException {
 				bindingNodeStack));
 	}
 
+	public BindingException(String message,
+			List<SchemaNode.Effective<?, ?>> bindingNodeStack) {
+		super(message
+				+ " @ [ "
+				+ bindingNodeStack.stream().map(SchemaNode::getName)
+						.map(Objects::toString).collect(Collectors.joining(" < ")) + " ]");
+
+		this.bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(
+				bindingNodeStack));
+	}
+
 	public List<SchemaNode.Effective<?, ?>> getBindingNodeStack() {
 		return bindingNodeStack;
 	}

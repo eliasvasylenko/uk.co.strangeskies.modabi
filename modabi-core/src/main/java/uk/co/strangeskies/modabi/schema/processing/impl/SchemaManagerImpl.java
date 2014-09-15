@@ -121,14 +121,14 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
 			StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder<T>(this, model, input)
-				.load());
+		return addBindingFuture(new SchemaBinder(this).bind(model.effective(),
+				input));
 	}
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder<>(this,
-				registeredModels.get(input.startNextChild()), input).load());
+		return addBindingFuture(new SchemaBinder(this).bind(
+				registeredModels.get(input.peekNextChild()).effective(), input));
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {

@@ -8,9 +8,13 @@ import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeBinder {
-	private DataSource dataSource;
+	private final BindingContext bindingContext;
 
-	public <U> List<U> bindDataNode(DataNode.Effective<U> node) {
+	public DataNodeBinder(BindingContext bindingContext) {
+		this.bindingContext = bindingContext;
+	}
+
+	public <U> List<U> bind(DataNode.Effective<U> node) {
 		nodeStack.push(node);
 		bindingChildNodeStack.add(node);
 
@@ -23,7 +27,7 @@ public class DataNodeBinder {
 				result.addAll(node.providedValues());
 			else {
 				dataSource = node.providedValueBuffer();
-				result.add(bindNode(node));
+				result.add(bind(node));
 			}
 		} else if (node.format() != null) {
 			switch (node.format()) {
@@ -31,13 +35,13 @@ public class DataNodeBinder {
 				dataSource = input.readContent();
 
 				if (dataSource != null)
-					result.add(bindNode(node));
+					result.add(bind(node));
 				break;
 			case PROPERTY:
 				dataSource = input.readProperty(node.getName());
 
 				if (dataSource != null)
-					result.add(bindNode(node));
+					result.add(bind(node));
 				break;
 			case SIMPLE_ELEMENT:
 				while (node.getName().equals(input.peekNextChild())) {
@@ -45,12 +49,12 @@ public class DataNodeBinder {
 
 					dataSource = input.readContent();
 
-					result.add(bindNode(node));
+					result.add(bind(node));
 					input.endChild();
 				}
 			}
 		} else
-			result.add(bindNode(node));
+			result.add(bind(node));
 
 		dataSource = previousDataSource;
 
