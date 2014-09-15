@@ -23,9 +23,9 @@ public final class DataNodeWrapper<T>
 		String message = "Cannot override '" + base.getName() + "' with '"
 				+ component.getName() + "'.";
 
-		if (base.providedValue() != null
+		if (base.providedValues() != null
 				&& !component.getDataClass().isAssignableFrom(
-						base.providedValue().getClass()))
+						base.providedValues().getClass()))
 			throw new SchemaException(message);
 
 		DataBindingType.Effective<? super T> check = component;
@@ -43,8 +43,8 @@ public final class DataNodeWrapper<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<T> providedValue() {
-		return getBase() == null ? null : (List<T>) getBase().providedValue();
+	public List<T> providedValues() {
+		return getBase() == null ? null : (List<T>) getBase().providedValues();
 	}
 
 	@Override

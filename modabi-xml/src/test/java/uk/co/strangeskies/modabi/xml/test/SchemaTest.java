@@ -6,13 +6,13 @@ import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarge
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
-import uk.co.strangeskies.modabi.schema.processing.impl.SchemaBinderImpl;
+import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.processing.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
 	private void run() {
-		SchemaBinder schemaBinder = new SchemaBinderImpl(new SchemaBuilderImpl(),
+		SchemaManager schemaBinder = new SchemaManagerImpl(new SchemaBuilderImpl(),
 				new ModelBuilderImpl(), new DataBindingTypeBuilderImpl());
 
 		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();

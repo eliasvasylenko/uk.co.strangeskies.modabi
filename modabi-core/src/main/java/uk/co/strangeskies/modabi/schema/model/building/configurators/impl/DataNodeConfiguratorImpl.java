@@ -63,7 +63,7 @@ public class DataNodeConfiguratorImpl<T>
 							&& !overrideMerge.configurator().getContext().isDataContext()) {
 						/*- TODO not all nodes actually request input!
 						 * Deal with nodes which don't need format...
-						 * 
+						 *
 						throw new SchemaException("Node '" + getName()
 								+ "' must provide a format.");
 						 */
@@ -112,7 +112,7 @@ public class DataNodeConfiguratorImpl<T>
 			}
 
 			@Override
-			public List<T> providedValue() {
+			public List<T> providedValues() {
 				return provided;
 			}
 
@@ -129,7 +129,6 @@ public class DataNodeConfiguratorImpl<T>
 		private final Boolean optional;
 		private final DataSource providedBuffer;
 		private final ValueResolution resolution;
-		private final List<T> provided;
 
 		DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 			super(configurator);
@@ -140,7 +139,6 @@ public class DataNodeConfiguratorImpl<T>
 
 			providedBuffer = configurator.providedBufferedValue;
 			resolution = configurator.resolution;
-			provided = null;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
 		}
@@ -163,11 +161,6 @@ public class DataNodeConfiguratorImpl<T>
 		@Override
 		public DataSource providedValueBuffer() {
 			return providedBuffer == null ? null : providedBuffer.copy().reset();
-		}
-
-		@Override
-		public List<T> providedValue() {
-			return provided;
 		}
 
 		@Override

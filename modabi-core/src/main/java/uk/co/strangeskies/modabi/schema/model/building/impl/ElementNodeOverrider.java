@@ -234,7 +234,7 @@ public class ElementNodeOverrider {
 			c = tryProperty(source.isExtensible(), c::extensible, c);
 			c = tryProperty(source.optional(), c::optional, c);
 
-			currentProvidedValue = node.providedValue();
+			currentProvidedValue = node.providedValues();
 
 			DataNodeConfigurator<U> cu;
 			if (source.type() == null) {

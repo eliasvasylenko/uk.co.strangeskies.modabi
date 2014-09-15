@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl.schemata;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
+import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 import uk.co.strangeskies.modabi.schema.requirement.Requirements;
 import uk.co.strangeskies.utilities.Enumeration;
@@ -146,6 +147,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									c -> c
 											.inputSequence()
 											.name("reference")
+											.inMethodChained(true)
 											.addChild(
 													d -> d
 															.data()
@@ -154,7 +156,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.provideValue(new BufferingDataTarget().buffer())
 															.outMethod("null")
 															.bindingStrategy(BindingStrategy.PROVIDED)
-															.bindingClass(BindingChildNode.class)
+															.bindingClass(BindingChildNode.Effective.class)
 															.addChild(
 																	e -> e
 																			.data()
@@ -169,7 +171,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetModel",
 																									namespace)).buffer())
-																			.postInputClass(DataNode.class)
+																			.postInputClass(DataNode.Effective.class)
 																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
@@ -182,7 +184,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.outMethod("null")
 															.provideValue(new BufferingDataTarget().buffer())
 															.bindingStrategy(BindingStrategy.PROVIDED)
-															.bindingClass(BindingChildNode.class)
+															.bindingClass(BindingChildNode.Effective.class)
 															.addChild(
 																	e -> e
 																			.data()
@@ -197,7 +199,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetId",
 																									namespace)).buffer())
-																			.postInputClass(DataNode.class)
+																			.postInputClass(DataNode.Effective.class)
 																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
@@ -291,7 +293,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.outMethod("null")
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingClass(BindingChildNode.class)
+													.bindingClass(BindingChildNode.Effective.class)
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -317,7 +319,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.outMethod("null")
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingClass(BindingChildNode.class)
+													.bindingClass(BindingChildNode.Effective.class)
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -372,7 +374,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			.bindingClass(BindingChildNode.class)
+																			.bindingClass(
+																					BindingChildNode.Effective.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
@@ -392,7 +395,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																															"targetModel",
 																															namespace))
 																											.buffer())
-																							.postInputClass(DataNode.class)
+																							.postInputClass(
+																									DataNode.Effective.class)
 																							.allowInMethodResultCast(true))
 																			.addChild(
 																					f -> f.inputSequence()
@@ -507,7 +511,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			.bindingClass(BindingChildNode.class)
+																			.bindingClass(
+																					BindingChildNode.Effective.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
@@ -527,7 +532,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																															"targetModel",
 																															namespace))
 																											.buffer())
-																							.postInputClass(DataNode.class)
+																							.postInputClass(
+																									DataNode.Effective.class)
 																							.allowInMethodResultCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
@@ -540,7 +546,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetId")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			.bindingClass(BindingChildNode.class)
+																			.bindingClass(
+																					BindingChildNode.Effective.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
@@ -560,7 +567,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																															"targetId",
 																															namespace))
 																											.buffer())
-																							.postInputClass(DataNode.class)
+																							.postInputClass(
+																									DataNode.Effective.class)
 																							.allowInMethodResultCast(true))
 																			.addChild(
 																					e -> e.inputSequence()

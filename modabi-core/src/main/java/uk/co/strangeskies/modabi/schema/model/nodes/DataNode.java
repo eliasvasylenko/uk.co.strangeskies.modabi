@@ -2,8 +2,10 @@ package uk.co.strangeskies.modabi.schema.model.nodes;
 
 import java.util.List;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.DataSource;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.utilities.PropertySet;
@@ -21,6 +23,19 @@ public interface DataNode<T> extends
 
 		@Override
 		DataBindingType.Effective<T> type();
+
+		List<T> providedValues();
+
+		default T providedValue() {
+			if (!Range.create(0, 1).contains(occurances()))
+				throw new SchemaException("Cannot request single value from node '"
+						+ getName() + "' with occurances '" + occurances() + "'.");
+
+			if (providedValues().isEmpty())
+				return null;
+			else
+				return providedValues().get(0);
+		}
 	}
 
 	@Override
@@ -42,8 +57,6 @@ public interface DataNode<T> extends
 	}
 
 	DataSource providedValueBuffer();
-
-	List<T> providedValue();
 
 	ValueResolution valueResolution();
 

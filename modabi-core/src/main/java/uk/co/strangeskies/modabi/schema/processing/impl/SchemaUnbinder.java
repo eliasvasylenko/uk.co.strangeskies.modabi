@@ -42,10 +42,11 @@ import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.utilities.MultiException;
 
-class SchemaSavingContext<T> implements SchemaProcessingContext {
-	private final SchemaBinderImpl schemaBinderImpl;
+class SchemaUnbinder<T> {
+	private final SchemaManagerImpl schemaBinderImpl;
 
 	private StructuredDataTarget output;
 
@@ -59,7 +60,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 
 	private final Bindings bindings;
 
-	public SchemaSavingContext(SchemaBinderImpl schemaBinderImpl, Model<T> model,
+	public SchemaUnbinder(SchemaManagerImpl schemaBinderImpl, Model<T> model,
 			StructuredDataTarget output, T data) {
 		this.schemaBinderImpl = schemaBinderImpl;
 		bindingStack = new ArrayDeque<>();
@@ -88,7 +89,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			public <U> void include(Model<U> model, U object) {
 				bindings.add(model, object);
 
-				SchemaSavingContext.this.output.registerNamespaceHint(model.getName()
+				SchemaUnbinder.this.output.registerNamespaceHint(model.getName()
 						.getNamespace());
 			}
 		};
@@ -156,17 +157,9 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				.collect(Collectors.joining(" < "));
 	}
 
-	@Override
-	public <U> void accept(ElementNode.Effective<U> node) {
-		nodeStack.push(node);
-		for (U child : getData(node))
-			unbindElement(node, child);
-		nodeStack.pop();
-	}
-
 	private <U> void unbindElement(ElementNode.Effective<U> node, U data) {
 		if (node.isExtensible() != null && node.isExtensible()) {
-			List<Model.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredModels
+			List<Model.Effective<? extends U>> nodes = schemaBinderImpl.registeredModels
 					.getMatchingModels(node, data.getClass()).stream()
 					.map(n -> n.effective())
 					.collect(Collectors.toCollection(ArrayList::new));
@@ -200,8 +193,7 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		}
 	}
 
-	@Override
-	public <U> void accept(DataNode.Effective<U> node) {
+	public <U> void unbindNode(DataNode.Effective<U> node) {
 		nodeStack.push(node);
 		if (node.getOutMethodName() == null
 				|| !node.getOutMethodName().equals("null")) {
@@ -224,10 +216,10 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 				case REGISTRATION_TIME:
 					List<U> data = getData(node);
 
-					if (!node.providedValue().equals(data)) {
-						throw new SchemaException("Provided value '" + node.providedValue()
-								+ "'does not match unbinding object '" + data + "' for node '"
-								+ node.getName() + "'.");
+					if (!node.providedValues().equals(data)) {
+						throw new SchemaException("Provided value '"
+								+ node.providedValues() + "'does not match unbinding object '"
+								+ data + "' for node '" + node.getName() + "'.");
 					}
 					break;
 				}
@@ -304,29 +296,9 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 		return target;
 	}
 
-	@Override
-	public void accept(InputSequenceNode.Effective node) {
-		nodeStack.push(node);
-		processChildren(node);
-		nodeStack.pop();
-	}
-
-	@Override
-	public void accept(SequenceNode.Effective node) {
-		nodeStack.push(node);
-		processChildren(node);
-		nodeStack.pop();
-	}
-
-	@Override
-	public void accept(ChoiceNode.Effective node) {
-		nodeStack.push(node);
-		nodeStack.pop();
-	}
-
 	private void processChildren(SchemaNode.Effective<?, ?> node) {
 		for (ChildNode.Effective<?, ?> child : node.children())
-			child.process(this);
+			child.process(getProcessingContext());
 	}
 
 	private void processBindingChildren(SchemaNode.Effective<?, ?> node,
@@ -531,8 +503,8 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			for (DataNode.Effective<?> parameter : node
 					.getProvidedUnbindingMethodParameters()) {
 				if (parameter != null)
-					parameters.add(parameter.providedValue() == null ? null : parameter
-							.providedValue().get(0));
+					parameters.add(parameter.providedValues() == null ? null : parameter
+							.providedValues().get(0));
 				else {
 					parameters.add(data);
 					addedData = true;
@@ -542,5 +514,42 @@ class SchemaSavingContext<T> implements SchemaProcessingContext {
 			parameters.add(0, data);
 
 		return parameters.toArray();
+	}
+
+	private SchemaProcessingContext getProcessingContext() {
+		return new SchemaProcessingContext() {
+			@Override
+			public <U> void accept(ElementNode.Effective<U> node) {
+				nodeStack.push(node);
+				for (U child : getData(node))
+					unbindElement(node, child);
+				nodeStack.pop();
+			}
+
+			@Override
+			public <U> void accept(DataNode.Effective<U> node) {
+				unbindNode(node);
+			}
+
+			@Override
+			public void accept(InputSequenceNode.Effective node) {
+				nodeStack.push(node);
+				processChildren(node);
+				nodeStack.pop();
+			}
+
+			@Override
+			public void accept(SequenceNode.Effective node) {
+				nodeStack.push(node);
+				processChildren(node);
+				nodeStack.pop();
+			}
+
+			@Override
+			public void accept(ChoiceNode.Effective node) {
+				nodeStack.push(node);
+				nodeStack.pop();
+			}
+		};
 	}
 }

@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.schema.processing.reference;
 
 import uk.co.strangeskies.modabi.schema.model.Model;
 

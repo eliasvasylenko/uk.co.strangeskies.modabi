@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl.schemata;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

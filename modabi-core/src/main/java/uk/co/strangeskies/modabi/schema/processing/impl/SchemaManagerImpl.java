@@ -32,11 +32,12 @@ import uk.co.strangeskies.modabi.schema.model.Models;
 import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.processing.SchemaBinder;
+import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.processing.impl.schemata.CoreSchemata;
 import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
-public class SchemaBinderImpl implements SchemaBinder {
+public class SchemaManagerImpl implements SchemaManager {
 	private final List<Function<Class<?>, Object>> providers;
 	private final SetMultiMap<Model<?>, BindingFuture<?>> bindingFutures;
 
@@ -46,12 +47,12 @@ public class SchemaBinderImpl implements SchemaBinder {
 	final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchema;
 
-	public SchemaBinderImpl() {
+	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
 				new DataBindingTypeBuilderImpl());
 	}
 
-	public SchemaBinderImpl(SchemaBuilder schemaBuilder,
+	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		providers = new ArrayList<>();
 		bindingFutures = new HashSetMultiHashMap<>(); // TODO make synchronous
@@ -120,13 +121,13 @@ public class SchemaBinderImpl implements SchemaBinder {
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
 			StructuredDataSource input) {
-		return addBindingFuture(new SchemaLoadingContext<T>(this, model, input)
+		return addBindingFuture(new SchemaBinder<T>(this, model, input)
 				.load());
 	}
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(new SchemaLoadingContext<>(this,
+		return addBindingFuture(new SchemaBinder<>(this,
 				registeredModels.get(input.startNextChild()), input).load());
 	}
 
@@ -153,7 +154,7 @@ public class SchemaBinderImpl implements SchemaBinder {
 
 	@Override
 	public <T> void unbind(Model<T> model, StructuredDataTarget output, T data) {
-		new SchemaSavingContext<>(this, model, output, data);
+		new SchemaUnbinder<>(this, model, output, data);
 	}
 
 	// TODO disallow provider registrations overriding built-in providers

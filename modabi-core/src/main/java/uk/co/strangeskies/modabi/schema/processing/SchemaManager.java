@@ -14,7 +14,7 @@ import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.model.Model;
 
-public interface SchemaBinder {
+public interface SchemaManager {
 	<T> void registerProvider(Class<T> providedClass, Supplier<T> provider);
 
 	void registerProvider(Function<Class<?>, ?> provider);
@@ -72,7 +72,7 @@ public interface SchemaBinder {
 	/*
 	 * TODO Best effort at unbinding, outputting comments on errors instead of
 	 * throwing exceptions
-	 * 
+	 *
 	 * <T> Set<Exception> unbind(Model<T> model, StructuredDataTarget output, T
 	 * data);
 	 */
