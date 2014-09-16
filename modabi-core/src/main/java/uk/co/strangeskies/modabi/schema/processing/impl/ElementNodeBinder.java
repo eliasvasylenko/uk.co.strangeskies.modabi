@@ -18,14 +18,12 @@ public class ElementNodeBinder {
 		this.context = context;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <U> List<U> bind(ElementNode.Effective<U> node) {
-		nodeStack.push(node);
-		bindingChildNodeStack.add(node);
-
 		List<U> result = new ArrayList<>();
 
 		int count = 0;
-		ElementNode.Effective<? extends U> inputNode;
+		ElementNode.Effective<U> inputNode;
 		do {
 			inputNode = null;
 
@@ -36,16 +34,23 @@ public class ElementNodeBinder {
 
 					if (node.getDataClass().isAssignableFrom(extension.getDataClass()))
 						inputNode = new ElementNodeOverrider(new ModelBuilderImpl())
-								.override(node,
-										(Model.Effective<? extends U>) extension.effective());
+								.override(node, (Model.Effective<U>) extension.effective());
 				} else if (Objects.equals(nextElement, node.getName()))
 					inputNode = node;
 
+				BindingContext context = this.context;
 				if (inputNode != null) {
 					context.input().startNextChild();
-					U binding = bindData(node);
+
+					BindingNodeBinder binder = new BindingNodeBinder(context);
+
+					U binding = binder.bind(node);
+
+					if (node.isInMethodChained())
+						context = context.withBindingTarget(binding);
+
 					result.add(binding);
-					bindings.add(inputNode, binding);
+					context.bindings().add(inputNode, binding);
 					context.input().endChild();
 					count++;
 				}
@@ -55,9 +60,6 @@ public class ElementNodeBinder {
 		if (!node.occurances().contains(count))
 			throw new SchemaException("Node '" + node.getName() + "' occurances '"
 					+ count + "' must be within range '" + node.occurances() + "'.");
-
-		bindingChildNodeStack.remove(bindingChildNodeStack.size() - 1);
-		nodeStack.pop();
 
 		return result;
 	}

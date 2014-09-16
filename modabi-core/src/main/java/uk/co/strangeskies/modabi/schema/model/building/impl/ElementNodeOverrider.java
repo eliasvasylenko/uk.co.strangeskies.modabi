@@ -45,9 +45,8 @@ public class ElementNodeOverrider {
 		this.builder = builder;
 	}
 
-	public <T> ElementNode.Effective<? extends T> override(
-			ElementNode.Effective<? super T> element,
-			Model.Effective<? extends T> override) {
+	public <T> ElementNode.Effective<T> override(
+			ElementNode.Effective<? super T> element, Model.Effective<T> override) {
 		try {
 			return new OverridingProcessor().process(element, override);
 		} catch (Exception e) {
@@ -106,7 +105,7 @@ public class ElementNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T extends U, U> ElementNode.Effective<T> process(
+		public <T> ElementNode.Effective<T> process(
 				ElementNode.Effective<? super T> element, Model.Effective<T> override) {
 			Set<Model<? super T>> baseModel = new HashSet<>(override.baseModel());
 			baseModel.add(wrapElement(element));

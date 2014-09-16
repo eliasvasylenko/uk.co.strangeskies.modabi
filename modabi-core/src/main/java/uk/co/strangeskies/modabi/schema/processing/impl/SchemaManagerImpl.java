@@ -45,7 +45,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	final Models registeredModels;
 	final DataBindingTypes registeredTypes;
-	private final Schemata registeredSchema;
+	private final Schemata registeredSchemata;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
@@ -60,7 +60,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
 				dataTypeBuilder);
 
-		registeredSchema = new Schemata();
+		registeredSchemata = new Schemata();
 		registeredModels = new Models();
 		registeredTypes = new DataBindingTypes();
 
@@ -78,7 +78,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public void registerSchema(Schema schema) {
-		if (registeredSchema.add(schema)) {
+		if (registeredSchemata.add(schema)) {
 			for (Schema dependency : schema.getDependencies())
 				registerSchema(dependency);
 
@@ -102,10 +102,6 @@ public class SchemaManagerImpl implements SchemaManager {
 	public void registerBinding(Binding<?> binding) {
 		// TODO Auto-generated method stub
 
-	}
-
-	public Set<BindingFuture<?>> getBindings(Model<?> model) {
-		return bindingFutures.get(model);
 	}
 
 	@Override
@@ -174,8 +170,9 @@ public class SchemaManagerImpl implements SchemaManager {
 		});
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	protected <T> T provide(Class<T> clazz) {
+	public <T> T provide(Class<T> clazz) {
 		return (T) providers
 				.stream()
 				.map(p -> p.apply(clazz))
@@ -184,5 +181,20 @@ public class SchemaManagerImpl implements SchemaManager {
 				.orElseThrow(
 						() -> new SchemaException("No provider exists for the class "
 								+ clazz));
+	}
+
+	@Override
+	public Schemata registeredSchemata() {
+		return registeredSchemata;
+	}
+
+	@Override
+	public Models registeredModels() {
+		return registeredModels;
+	}
+
+	@Override
+	public DataBindingTypes registeredTypes() {
+		return registeredTypes;
 	}
 }

@@ -6,13 +6,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.Models;
 
 public interface SchemaManager {
 	<T> void registerProvider(Class<T> providedClass, Supplier<T> provider);
@@ -69,7 +72,7 @@ public interface SchemaManager {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
-	/*
+	/*-
 	 * TODO Best effort at unbinding, outputting comments on errors instead of
 	 * throwing exceptions
 	 *
@@ -79,4 +82,12 @@ public interface SchemaManager {
 	MetaSchema getMetaSchema();
 
 	BaseSchema getBaseSchema();
+
+	<U> U provide(Class<U> clazz);
+
+	Schemata registeredSchemata();
+
+	Models registeredModels();
+
+	DataBindingTypes registeredTypes();
 }

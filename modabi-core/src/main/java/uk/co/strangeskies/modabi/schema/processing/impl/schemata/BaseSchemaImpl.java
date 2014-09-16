@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.Models;
 import uk.co.strangeskies.modabi.schema.model.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
@@ -156,7 +156,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.provideValue(new BufferingDataTarget().buffer())
 															.outMethod("null")
 															.bindingStrategy(BindingStrategy.PROVIDED)
-															.bindingClass(BindingChildNode.Effective.class)
+															.bindingClass(BindingNode.Effective.class)
 															.addChild(
 																	e -> e
 																			.data()
@@ -184,7 +184,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.outMethod("null")
 															.provideValue(new BufferingDataTarget().buffer())
 															.bindingStrategy(BindingStrategy.PROVIDED)
-															.bindingClass(BindingChildNode.Effective.class)
+															.bindingClass(BindingNode.Effective.class)
 															.addChild(
 																	e -> e
 																			.data()
@@ -293,7 +293,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.outMethod("null")
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingClass(BindingChildNode.Effective.class)
+													.bindingClass(BindingNode.Effective.class)
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -319,7 +319,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.outMethod("null")
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingClass(BindingChildNode.Effective.class)
+													.bindingClass(BindingNode.Effective.class)
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -374,8 +374,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			.bindingClass(
-																					BindingChildNode.Effective.class)
+																			.bindingClass(BindingNode.Effective.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
@@ -511,8 +510,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			.bindingClass(
-																					BindingChildNode.Effective.class)
+																			.bindingClass(BindingNode.Effective.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
@@ -546,8 +544,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("targetId")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
-																			.bindingClass(
-																					BindingChildNode.Effective.class)
+																			.bindingClass(BindingNode.Effective.class)
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(

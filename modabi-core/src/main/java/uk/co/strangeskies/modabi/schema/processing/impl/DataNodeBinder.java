@@ -3,64 +3,82 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeBinder {
-	private final BindingContext bindingContext;
+	private final BindingContext context;
 
-	public DataNodeBinder(BindingContext bindingContext) {
-		this.bindingContext = bindingContext;
+	public DataNodeBinder(BindingContext context) {
+		this.context = context;
 	}
 
 	public <U> List<U> bind(DataNode.Effective<U> node) {
-		nodeStack.push(node);
-		bindingChildNodeStack.add(node);
+		DataSource dataSource;
 
-		DataSource previousDataSource = dataSource;
-
-		List<U> result = new ArrayList<>();
+		List<U> results = new ArrayList<>();
 
 		if (node.isValueProvided()) {
 			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME)
-				result.addAll(node.providedValues());
+				results.addAll(node.providedValues());
 			else {
 				dataSource = node.providedValueBuffer();
-				result.add(bind(node));
+				results.add(bindWithDataSource(dataSource, context, node));
 			}
 		} else if (node.format() != null) {
 			switch (node.format()) {
 			case CONTENT:
-				dataSource = input.readContent();
+				dataSource = context.input().readContent();
 
 				if (dataSource != null)
-					result.add(bind(node));
+					results.add(bindWithDataSource(dataSource, context, node));
+
 				break;
 			case PROPERTY:
-				dataSource = input.readProperty(node.getName());
+				dataSource = context.input().readProperty(node.getName());
 
 				if (dataSource != null)
-					result.add(bind(node));
+					results.add(bindWithDataSource(dataSource, context, node));
+
 				break;
 			case SIMPLE_ELEMENT:
-				while (node.getName().equals(input.peekNextChild())) {
-					input.startNextChild(node.getName());
+				BindingContext context = this.context;
 
-					dataSource = input.readContent();
+				while (node.getName().equals(context.input().peekNextChild())) {
+					context.input().startNextChild(node.getName());
 
-					result.add(bind(node));
-					input.endChild();
+					dataSource = context.input().readContent();
+
+					U result = bindWithDataSource(dataSource, context, node);
+					results.add(result);
+
+					if (node.isInMethodChained())
+						context = context.withBindingTarget(result);
+
+					context.input().endChild();
 				}
 			}
 		} else
-			result.add(bind(node));
+			results.add(new BindingNodeBinder(context).bind(node));
 
-		dataSource = previousDataSource;
+		if (results.isEmpty() && !node.optional() && !node.occurances().contains(0))
+			throw context.exception("Node '" + node.getName()
+					+ "' must be bound data.");
 
-		bindingChildNodeStack.remove(bindingChildNodeStack.size() - 1);
-		nodeStack.pop();
+		if (!results.isEmpty() && !node.occurances().contains(results.size()))
+			throw context.exception("Node '" + node.getName()
+					+ "' must be bound data within range of '"
+					+ Range.compose(node.occurances()) + "'.");
 
-		return result;
+		return results;
+	}
+
+	private static <U> U bindWithDataSource(DataSource dataSource,
+			BindingContext context, DataNode.Effective<U> node) {
+		context = context.withProvision(DataSource.class, () -> dataSource);
+
+		return new BindingNodeBinder(context).bind(node);
 	}
 }
