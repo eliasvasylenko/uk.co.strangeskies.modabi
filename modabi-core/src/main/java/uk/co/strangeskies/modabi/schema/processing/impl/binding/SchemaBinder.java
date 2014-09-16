@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl.binding;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,10 +25,12 @@ import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 
-class SchemaBinder {
+public class SchemaBinder {
 	private final BindingContext context;
 
 	public SchemaBinder(SchemaManager manager) {
+		Bindings bindings = new Bindings();
+
 		ImportSource importSource = new ImportSource() {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain,
@@ -48,8 +50,6 @@ class SchemaBinder {
 				return null;
 			}
 		};
-
-		Bindings bindings = new Bindings();
 
 		ReferenceSource referenceSource = new ReferenceSource() {
 			@Override

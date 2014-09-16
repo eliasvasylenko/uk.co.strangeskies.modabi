@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl.binding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +42,9 @@ public class ElementNodeBinder {
 				if (inputNode != null) {
 					context.input().startNextChild();
 
-					BindingNodeBinder binder = new BindingNodeBinder(context);
+					U binding = new BindingNodeBinder(context).bind(inputNode);
 
-					U binding = binder.bind(node);
-
-					if (node.isInMethodChained())
+					if (inputNode.isInMethodChained())
 						context = context.withBindingTarget(binding);
 
 					result.add(binding);

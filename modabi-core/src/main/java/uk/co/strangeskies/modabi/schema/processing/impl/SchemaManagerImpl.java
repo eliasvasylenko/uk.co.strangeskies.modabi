@@ -33,7 +33,9 @@ import uk.co.strangeskies.modabi.schema.model.building.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.processing.impl.binding.SchemaBinder;
 import uk.co.strangeskies.modabi.schema.processing.impl.schemata.CoreSchemata;
+import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.SchemaUnbinder;
 import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
@@ -150,7 +152,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public <T> void unbind(Model<T> model, StructuredDataTarget output, T data) {
-		new SchemaUnbinder<>(this, model, output, data);
+		new SchemaUnbinder(this).unbind(model.effective(), output, data);
 	}
 
 	// TODO disallow provider registrations overriding built-in providers

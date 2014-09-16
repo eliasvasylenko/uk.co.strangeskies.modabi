@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl;
+package uk.co.strangeskies.modabi.schema.processing.impl.binding;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,7 +10,6 @@ import java.util.List;
 import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.invoker.NullInvoker;
 
-import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
@@ -21,8 +20,8 @@ import uk.co.strangeskies.modabi.schema.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.PartialSchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.impl.PartialSchemaProcessingContext;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.ResultWrapper;
 
@@ -117,24 +116,26 @@ public class BindingNodeBinder {
 		next.process(new SchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				process(node, new ElementNodeBinder(context).bind(node));
+				process(node, new ElementNodeBinder(context).bind(node), context);
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				process(node, new DataNodeBinder(context).bind(node));
+				process(node, new DataNodeBinder(context).bind(node), context);
 			}
 
-			public void process(InputNode.Effective<?, ?> node, List<?> data) {
+			public void process(InputNode.Effective<?, ?> node, List<?> data,
+					BindingContext context) {
 				for (Object item : data)
-					result.set(invokeInMethod(node, result.get(), item));
+					result.set(invokeInMethod(node, context, result.get(), item));
 			}
 
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
 				List<Object> parameters = getSingleBindingSequence(node,
 						context.withBindingNode(node));
-				result.set(invokeInMethod(node, result.get(), parameters.toArray()));
+				result.set(invokeInMethod(node, context, result.get(),
+						parameters.toArray()));
 			}
 
 			@Override
@@ -152,18 +153,16 @@ public class BindingNodeBinder {
 	}
 
 	private static Object invokeInMethod(InputNode.Effective<?, ?> node,
-			Object target, Object... parameters) {
+			BindingContext context, Object target, Object... parameters) {
 		if (!"null".equals(node.getInMethodName())) {
 			Object object;
 
 			try {
-				System.out.println(node.getName() + " " + node.getInMethodName());
 				object = node.getInMethod().invoke(target, parameters);
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
-				throw new SchemaException("Unable to call method '"
-						+ node.getInMethod() + "' with parameters '"
-						+ Arrays.toString(parameters) + "'.", e);
+				throw context.exception("Unable to call method '" + node.getInMethod()
+						+ "' with parameters '" + Arrays.toString(parameters) + "'.", e);
 			}
 
 			if (node.isInMethodChained())

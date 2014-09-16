@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing;
+package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
@@ -9,6 +9,7 @@ import uk.co.strangeskies.modabi.schema.model.nodes.InputNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface PartialSchemaProcessingContext extends SchemaProcessingContext {
 	@Override
