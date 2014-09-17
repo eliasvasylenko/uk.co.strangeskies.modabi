@@ -25,8 +25,9 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 		return BindingNode.super.propertySet()
 				.add(BindingChildNode::getOutMethodName)
 				.add(BindingChildNode::isOutMethodIterable)
-				.add(BindingChildNode::occurances).add(InputNode::getInMethodName)
-				.add(InputNode::isInMethodChained).add(BindingChildNode::isExtensible);
+				.add(BindingChildNode::occurances).add(BindingChildNode::isOrdered)
+				.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
+				.add(BindingChildNode::isExtensible);
 	}
 
 	String getOutMethodName();

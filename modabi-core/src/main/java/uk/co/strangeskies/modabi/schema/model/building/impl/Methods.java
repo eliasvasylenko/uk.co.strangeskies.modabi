@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,7 +14,6 @@ import org.apache.commons.lang3.ClassUtils;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode.Effective;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.InputNode;
@@ -164,7 +164,8 @@ public class Methods {
 	}
 
 	private static List<Class<?>> findUnbindingMethodParameterClasses(
-			Effective<?, ?, ?> node, Function<Effective<?, ?, ?>, Class<?>> nodeClass) {
+			BindingNode.Effective<?, ?, ?> node,
+			Function<BindingNode.Effective<?, ?, ?>, Class<?>> nodeClass) {
 		List<Class<?>> classList = new ArrayList<>();
 
 		boolean addedNodeClass = false;
@@ -186,6 +187,13 @@ public class Methods {
 		}
 		if (!addedNodeClass)
 			classList.add(0, nodeClass.apply(node));
+
+		/*
+		 * TODO Figure out why the following here causes a crash somewhere else:
+		 * 
+		 * node.getName().getNamespace().getDate().format(DateTimeFormatter.
+		 * ISO_LOCAL_DATE))
+		 */
 
 		return classList;
 	}
@@ -214,6 +222,21 @@ public class Methods {
 			throw new SchemaException("Cannot find method of class '" + result
 					+ "', reveiver '" + receiver + "', and parameters '"
 					+ Arrays.asList(parameters) + "' with any name of '" + names + "'.");
+
+		// System.out.println(method.getDeclaringClass() + " ? " + receiver +
+		// "     "
+		// + receiver.getInterfaces()); TODO WHAT THE FUCK
+
+		if (method.getDeclaringClass().equals(
+				org.apache.commons.collections4.Factory.class))
+			System.out
+					.println("{"
+							+ Stream
+									.concat(Arrays.stream(receiver.getMethods()),
+											Arrays.stream(Object.class.getMethods()))
+									.map(Objects::toString).collect(Collectors.joining("}, {"))
+							+ "}");
+
 		return method;
 	}
 

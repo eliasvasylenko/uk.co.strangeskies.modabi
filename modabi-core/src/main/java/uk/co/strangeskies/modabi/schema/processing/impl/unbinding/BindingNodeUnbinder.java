@@ -74,7 +74,7 @@ public class BindingNodeUnbinder {
 				};
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> invokeMethod(node.getUnbindingMethod(), null,
+				supplier = u -> invokeMethod(node.getUnbindingMethod(), context, null,
 						prepareUnbingingParameterList(node, u));
 
 				break;

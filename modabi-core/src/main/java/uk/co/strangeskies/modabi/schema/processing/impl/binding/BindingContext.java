@@ -3,17 +3,26 @@ package uk.co.strangeskies.modabi.schema.processing.impl.binding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingException;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface BindingContext {
-	<U> U provide(Class<U> clazz);
+	default <U> U provide(Class<U> clazz) {
+		return provide(clazz, this);
+	}
+
+	<U> U provide(Class<U> clazz, BindingContext headContext);
+
+	boolean isProvided(Class<?> clazz);
 
 	List<SchemaNode.Effective<?, ?>> bindingNodeStack();
 
@@ -25,6 +34,9 @@ public interface BindingContext {
 
 	Bindings bindings();
 
+	<T> List<DataBindingType<? extends T>> getMatchingTypes(
+			DataNode.Effective<T> node, Class<?> dataClass);
+
 	default BindingException exception(String message, Exception cause) {
 		return new BindingException(message, bindingNodeStack(), cause);
 	}
@@ -35,15 +47,25 @@ public interface BindingContext {
 
 	default <T> BindingContext withProvision(Class<T> providedClass,
 			Factory<T> provider) {
+		return withProvision(providedClass, c -> provider.create());
+	}
+
+	default <T> BindingContext withProvision(Class<T> providedClass,
+			Function<BindingContext, T> provider) {
 		BindingContext base = this;
 		return new BindingContext() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public <U> U provide(Class<U> clazz) {
+			public <U> U provide(Class<U> clazz, BindingContext headContext) {
 				if (clazz.equals(providedClass))
-					return (U) provider.create();
+					return (U) provider.apply(headContext);
 
-				return base.provide(clazz);
+				return base.provide(clazz, headContext);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return clazz.equals(providedClass) || base.isProvided(clazz);
 			}
 
 			@Override
@@ -70,6 +92,12 @@ public interface BindingContext {
 			public Bindings bindings() {
 				return base.bindings();
 			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
+			}
 		};
 	}
 
@@ -77,8 +105,13 @@ public interface BindingContext {
 		BindingContext base = this;
 		return new BindingContext() {
 			@Override
-			public <U> U provide(Class<U> clazz) {
-				return base.provide(clazz);
+			public <U> U provide(Class<U> clazz, BindingContext headContext) {
+				return base.provide(clazz, headContext);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
 			}
 
 			@Override
@@ -105,6 +138,12 @@ public interface BindingContext {
 			public Bindings bindings() {
 				return base.bindings();
 			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
+			}
 		};
 	}
 
@@ -112,8 +151,13 @@ public interface BindingContext {
 		BindingContext base = this;
 		return new BindingContext() {
 			@Override
-			public <U> U provide(Class<U> clazz) {
-				return base.provide(clazz);
+			public <U> U provide(Class<U> clazz, BindingContext headContext) {
+				return base.provide(clazz, headContext);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
 			}
 
 			@Override
@@ -143,6 +187,12 @@ public interface BindingContext {
 			public Bindings bindings() {
 				return base.bindings();
 			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
+			}
 		};
 	}
 
@@ -150,8 +200,13 @@ public interface BindingContext {
 		BindingContext base = this;
 		return new BindingContext() {
 			@Override
-			public <U> U provide(Class<U> clazz) {
-				return base.provide(clazz);
+			public <U> U provide(Class<U> clazz, BindingContext headContext) {
+				return base.provide(clazz, headContext);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
 			}
 
 			@Override
@@ -177,6 +232,12 @@ public interface BindingContext {
 			@Override
 			public Bindings bindings() {
 				return base.bindings();
+			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
 			}
 		};
 	}

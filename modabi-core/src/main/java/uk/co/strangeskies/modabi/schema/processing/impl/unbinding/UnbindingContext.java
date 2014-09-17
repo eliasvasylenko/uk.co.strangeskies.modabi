@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
@@ -12,11 +13,14 @@ import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
-import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface UnbindingContext {
-	<U> U provide(Class<U> clazz);
+	default <U> U provide(Class<U> clazz) {
+		return provide(clazz, this);
+	}
+
+	<U> U provide(Class<U> clazz, UnbindingContext headContext);
 
 	boolean isProvided(Class<?> clazz);
 
@@ -34,17 +38,6 @@ public interface UnbindingContext {
 	<T> List<DataBindingType<? extends T>> getMatchingTypes(
 			DataNode.Effective<T> node, Class<?> dataClass);
 
-	public default IncludeTarget provideIncludeTarget() {
-		return new IncludeTarget() {
-			@Override
-			public <U> void include(Model<U> model, U object) {
-				bindings().add(model, object);
-
-				output().registerNamespaceHint(model.getName().getNamespace());
-			}
-		};
-	}
-
 	default UnbindingException exception(String message, Exception cause) {
 		return new UnbindingException(message, unbindingNodeStack(), cause);
 	}
@@ -55,15 +48,20 @@ public interface UnbindingContext {
 
 	default <T> UnbindingContext withProvision(Class<T> providedClass,
 			Factory<T> provider) {
+		return withProvision(providedClass, c -> provider.create());
+	}
+
+	default <T> UnbindingContext withProvision(Class<T> providedClass,
+			Function<UnbindingContext, T> provider) {
 		UnbindingContext base = this;
 		return new UnbindingContext() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public <U> U provide(Class<U> clazz) {
+			public <U> U provide(Class<U> clazz, UnbindingContext headContext) {
 				if (clazz.equals(providedClass))
-					return (U) provider.create();
+					return (U) provider.apply(headContext);
 
-				return base.provide(clazz);
+				return base.provide(clazz, headContext);
 			}
 
 			@Override
@@ -121,8 +119,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public <U> U provide(Class<U> clazz) {
-				return base.provide(clazz);
+			public <U> U provide(Class<U> clazz, UnbindingContext headContext) {
+				return base.provide(clazz, headContext);
 			}
 
 			@Override
@@ -168,8 +166,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public <U> U provide(Class<U> clazz) {
-				return base.provide(clazz);
+			public <U> U provide(Class<U> clazz, UnbindingContext headContext) {
+				return base.provide(clazz, headContext);
 			}
 
 			@Override
@@ -204,7 +202,7 @@ public interface UnbindingContext {
 
 	default UnbindingContext withOutput(StructuredDataTarget output) {
 		UnbindingContext base = this;
-		UnbindingContext context = new UnbindingContext() {
+		return new UnbindingContext() {
 			@Override
 			public <U> List<Model<? extends U>> getMatchingModels(
 					ElementNode.Effective<U> element, Class<?> dataClass) {
@@ -238,8 +236,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public <U> U provide(Class<U> clazz) {
-				return base.provide(clazz);
+			public <U> U provide(Class<U> clazz, UnbindingContext headContext) {
+				return base.provide(clazz, headContext);
 			}
 
 			@Override
@@ -247,8 +245,5 @@ public interface UnbindingContext {
 				return base.isProvided(clazz);
 			}
 		};
-
-		return context.withProvision(IncludeTarget.class,
-				context::provideIncludeTarget);
 	}
 }

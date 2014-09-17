@@ -1,15 +1,22 @@
 package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataSource;
 import uk.co.strangeskies.modabi.data.io.DataTarget;
+import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.utilities.MultiException;
 
 public class DataNodeUnbinder {
@@ -20,7 +27,7 @@ public class DataNodeUnbinder {
 	}
 
 	public <U> void unbind(DataNode.Effective<U> node, List<U> data) {
-		unbindWithFormat(node, data, node.format());
+		unbindWithFormat(node, data, node.format(), context);
 	}
 
 	/**
@@ -29,14 +36,66 @@ public class DataNodeUnbinder {
 	 * @param node
 	 * @param data
 	 */
-	public <U> void unbindToDataTarget(DataNode.Effective<U> node, List<U> data) {
-		unbindWithFormat(node, data, null);
+	public <U> DataSource unbindToDataBuffer(DataNode.Effective<U> node,
+			List<U> data) {
+		BufferingDataTarget target = new BufferingDataTarget();
+
+		UnbindingContext context = new UnbindingContext() {
+			@Override
+			public Object unbindingSource() {
+				return DataNodeUnbinder.this.context.unbindingSource();
+			}
+
+			@Override
+			public List<SchemaNode.Effective<?, ?>> unbindingNodeStack() {
+				return Collections.emptyList();
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public <T> T provide(Class<T> clazz, UnbindingContext context) {
+				if (clazz.equals(DataTarget.class))
+					return (T) target;
+
+				return DataNodeUnbinder.this.context.provide(clazz);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return clazz.equals(DataTarget.class)
+						|| DataNodeUnbinder.this.context.isProvided(clazz);
+			}
+
+			@Override
+			public StructuredDataTarget output() {
+				return null;
+			}
+
+			@Override
+			public <T> List<Model<? extends T>> getMatchingModels(
+					ElementNode.Effective<T> element, Class<?> dataClass) {
+				return null;
+			}
+
+			@Override
+			public <T> List<DataBindingType<? extends T>> getMatchingTypes(
+					DataNode.Effective<T> node, Class<?> dataClass) {
+				return DataNodeUnbinder.this.context.getMatchingTypes(node, dataClass);
+			}
+
+			@Override
+			public Bindings bindings() {
+				return DataNodeUnbinder.this.context.bindings();
+			}
+		};
+
+		unbindWithFormat(node, data, null, context);
+
+		return target.buffer();
 	}
 
 	private <U> void unbindWithFormat(DataNode.Effective<U> node, List<U> data,
-			DataNode.Format format) {
-		UnbindingContext context = this.context;
-
+			DataNode.Format format, UnbindingContext context) {
 		BufferingDataTarget target = null;
 
 		if (format != null) {

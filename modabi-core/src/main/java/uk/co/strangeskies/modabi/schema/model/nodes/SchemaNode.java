@@ -31,8 +31,9 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 	@SuppressWarnings("unchecked")
 	default PropertySet<S> propertySet() {
-		return new PropertySet<>(getNodeClass(), (S) this, true).add(
-				SchemaNode::children).add(SchemaNode::getName);
+		return new PropertySet<>(getNodeClass(), (S) this, true)
+				.add(SchemaNode::children).add(SchemaNode::getName)
+				.add(SchemaNode::isAbstract);
 	}
 
 	Boolean isAbstract();

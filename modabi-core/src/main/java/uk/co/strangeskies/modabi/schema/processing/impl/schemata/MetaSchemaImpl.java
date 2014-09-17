@@ -29,6 +29,7 @@ import uk.co.strangeskies.modabi.schema.model.building.configurators.AbstractMod
 import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.model.building.configurators.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.SchemaNodeConfigurator;
@@ -107,7 +108,11 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
-								.optional(true)).create();
+								.optional(true))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY)
+								.type(base.primitiveType(DataType.BOOLEAN)).name("abstract")
+								.inMethod("isAbstract").optional(true)).create();
 		modelSet.add(nodeModel);
 
 		Model<SchemaNode> branchModel = model
@@ -116,6 +121,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.baseModel(nodeModel)
 				.addChild(n -> n.data().name("name"))
+				.addChild(n -> n.data().name("abstract"))
 				.addChild(
 						n -> n.element().name("child").outMethod("children")
 								.inMethod("null").extensible(true).baseModel(nodeModel)
@@ -139,7 +145,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
 								.inMethodChained(true)
-								.postInputClass(ChildNodeConfigurator.class)).create();
+								.postInputClass(ChildNodeConfigurator.class))
+				.addChild(n -> n.data().name("name"))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY)
+								.type(base.derivedTypes().classType()).name("postInputClass")
+								.optional(true)).create();
 
 		Model<InputNode> inputModel = model
 				.configure(loader)
@@ -158,7 +169,10 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("inMethodChained")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
-				.create();
+				.addChild(
+						n -> n.data().format(Format.PROPERTY)
+								.name("allowInMethodResultCast").optional(true)
+								.type(base.primitiveType(DataType.BOOLEAN))).create();
 		modelSet.add(inputModel);
 
 		Model<BindingNode> bindingNodeModel = model
@@ -171,10 +185,6 @@ public class MetaSchemaImpl implements MetaSchema {
 						c -> c.inputSequence().name("configure").isAbstract(true)
 								.postInputClass(BindingNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("abstract")
-								.inMethod("isAbstract")
-								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("dataClass")
 								.type(base.derivedTypes().classType()).optional(true))
@@ -228,6 +238,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("ordered")
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("occurances")
+								.type(base.derivedTypes().rangeType()).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethod")
 								.outMethod("getOutMethodName").optional(true)
@@ -338,11 +351,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
 						c -> c.inputSequence().name("configure").inMethod("element")
-								.inMethodChained(true))
-				.addChild(n -> n.data().name("name"))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("occurances")
-								.type(base.derivedTypes().rangeType()))
+								.inMethodChained(true)).addChild(n -> n.data().name("name"))
 				.addChild(o -> o.data().name("dataClass")).create();
 		modelSet.add(elementModel);
 
@@ -388,8 +397,13 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("format").optional(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
-								.inMethodChained(false).isAbstract(true)
-								.type(base.derivedTypes().enumType()).dataClass(Format.class))
+								.isAbstract(true).type(base.derivedTypes().enumType())
+								.dataClass(Format.class)
+								.postInputClass(DataNodeConfigurator.class))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("valueResolution")
+								.optional(true).type(base.derivedTypes().enumType())
+								.dataClass(ValueResolution.class))
 				/*
 				 * TODO Figure out how to have value output itself as a SIMPLE_ELEMENT
 				 * if there are no 'child' elements. Perhaps can work something out once
@@ -463,6 +477,10 @@ public class MetaSchemaImpl implements MetaSchema {
 										d -> d.data().dataClass(DataLoader.class)
 												.bindingStrategy(BindingStrategy.PROVIDED)
 												.name("configure").outMethod("null")))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("private")
+								.inMethod("isPrivate").optional(true)
+								.type(base.primitiveType(DataType.BOOLEAN)))
 				.addChild(
 						n -> n
 								.data()

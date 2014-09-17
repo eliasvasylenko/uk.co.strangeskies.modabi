@@ -20,7 +20,8 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 	@Override
 	default PropertySet<S> propertySet() {
 		return ChildNode.super.propertySet().add(InputNode::getInMethodName)
-				.add(InputNode::isInMethodChained);
+				.add(InputNode::isInMethodChained)
+				.add(InputNode::allowInMethodResultCast);
 	}
 
 	String getInMethodName();
