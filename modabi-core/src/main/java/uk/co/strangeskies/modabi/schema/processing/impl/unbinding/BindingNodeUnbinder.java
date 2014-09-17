@@ -22,8 +22,10 @@ import uk.co.strangeskies.modabi.schema.model.nodes.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class BindingNodeUnbinder {
 	private final UnbindingContext context;
@@ -32,11 +34,9 @@ public class BindingNodeUnbinder {
 		this.context = context;
 	}
 
-	@SuppressWarnings("unchecked")
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
-		UnbindingContext context = this.context;
-
-		context.output().nextChild(node.getName());
+		UnbindingContext context = this.context.withUnbindingNode(node)
+				.withProvision(BindingNode.Effective.class, () -> node);
 
 		Function<Object, Object> supplier = Function.identity();
 		if (node.getUnbindingStrategy() != null) {
@@ -46,7 +46,7 @@ public class BindingNodeUnbinder {
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					Object o = context.provide(node.getUnbindingClass());
-					invokeMethod(node.getUnbindingMethod(), o,
+					invokeMethod(node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
 				};
@@ -54,7 +54,7 @@ public class BindingNodeUnbinder {
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					Object o = context.provide(node.getUnbindingClass());
-					invokeMethod(node.getUnbindingMethod(), u,
+					invokeMethod(node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
 				};
@@ -79,7 +79,7 @@ public class BindingNodeUnbinder {
 
 				break;
 			case PROVIDED_FACTORY:
-				supplier = u -> invokeMethod(node.getUnbindingMethod(),
+				supplier = u -> invokeMethod(node.getUnbindingMethod(), context,
 						context.provide(node.getUnbindingFactoryClass()),
 						prepareUnbingingParameterList(node, u));
 
@@ -87,46 +87,49 @@ public class BindingNodeUnbinder {
 			}
 		}
 
-		context.withUnbindingSource(supplier.apply(data));
+		SchemaProcessingContext processingContext = getProcessingContext(context
+				.withUnbindingSource(supplier.apply(data)));
 		for (ChildNode.Effective<?, ?> child : node.children())
-			child.process(getProcessingContext());
-
-		context.output().endChild();
+			child.process(processingContext);
 	}
 
-	private SchemaProcessingContext getProcessingContext() {
+	private SchemaProcessingContext getProcessingContext(UnbindingContext context) {
 		return new SchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				nodeStack.push(node);
-				for (U child : getData(node))
-					unbindElement(node, child);
-				nodeStack.pop();
+				new ElementNodeUnbinder(context).unbind(node, getData(node, context));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				unbindNode(node);
+				if (node.getOutMethodName() == null
+						|| !node.getOutMethodName().equals("null")) {
+					List<U> data = null;
+					if (!node.isValueProvided()
+							|| node.valueResolution() == ValueResolution.REGISTRATION_TIME)
+						data = getData(node, context);
+
+					new DataNodeUnbinder(context).unbind(node, data);
+				}
 			}
 
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
-				nodeStack.push(node);
-				processChildren(node);
-				nodeStack.pop();
+				acceptSequence(node);
 			}
 
 			@Override
 			public void accept(SequenceNode.Effective node) {
-				nodeStack.push(node);
-				processChildren(node);
-				nodeStack.pop();
+				acceptSequence(node);
+			}
+
+			public void acceptSequence(SchemaNode.Effective<?, ?> node) {
+				for (ChildNode.Effective<?, ?> child : node.children())
+					child.process(getProcessingContext(context.withUnbindingNode(node)));
 			}
 
 			@Override
 			public void accept(ChoiceNode.Effective node) {
-				nodeStack.push(node);
-				nodeStack.pop();
 			}
 		};
 	}
@@ -153,31 +156,32 @@ public class BindingNodeUnbinder {
 		return parameters.toArray();
 	}
 
-	private Object invokeMethod(Method method, Object receiver,
-			Object... parameters) {
+	private static Object invokeMethod(Method method, UnbindingContext context,
+			Object receiver, Object... parameters) {
 		try {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | SecurityException | NullPointerException e) {
-			throw new SchemaException("Cannot invoke method '"
-					+ method
-					+ "' on '"
-					+ receiver
-					+ "' with arguments '["
-					+ Arrays.asList(parameters).stream().map(Objects::toString)
-							.collect(Collectors.joining(", ")) + "]' at node '"
-					+ getNodeStackString() + "'.", e);
+			throw context.exception(
+					"Cannot invoke method '"
+							+ method
+							+ "' on '"
+							+ receiver
+							+ "' with arguments '["
+							+ Arrays.asList(parameters).stream().map(Objects::toString)
+									.collect(Collectors.joining(", ")) + "]'.", e);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node) {
+	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node,
+			UnbindingContext context) {
 		List<U> itemList;
 
-		Object parent = bindingStack.peek();
+		Object parent = context.unbindingSource();
 
 		if (node.getDataClass() == null)
-			throw new SchemaException("Cannot unbind node '" + node.getName()
+			throw context.exception("Cannot unbind node '" + node.getName()
 					+ "' with no data class.");
 
 		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
@@ -186,7 +190,8 @@ public class BindingNodeUnbinder {
 					&& node.getOutMethodName().equals("this"))
 				iterable = (Iterable<U>) parent;
 			else
-				iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), parent);
+				iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), context,
+						parent);
 
 			itemList = StreamSupport.stream(iterable.spliterator(), false)
 					.filter(Objects::nonNull).collect(Collectors.toList());
@@ -200,11 +205,10 @@ public class BindingNodeUnbinder {
 						+ " to " + node.getDataClass());
 		} else {
 			U item;
-			if (node.getOutMethodName() != null
-					&& node.getOutMethodName().equals("this"))
+			if ("this".equals(node.getOutMethodName()))
 				item = (U) parent;
 			else
-				item = (U) invokeMethod(node.getOutMethod(), parent);
+				item = (U) invokeMethod(node.getOutMethod(), context, parent);
 
 			if (item == null)
 				itemList = null;
@@ -218,7 +222,7 @@ public class BindingNodeUnbinder {
 
 		if (itemList != null && node.occurances() != null
 				&& !node.occurances().contains(itemList.size()))
-			throw new SchemaException("Output list '" + itemList
+			throw context.exception("Output list '" + itemList
 					+ "' must contain a number of items within range '"
 					+ Range.compose(node.occurances()) + "' to be unbound by node '"
 					+ node + "'.");

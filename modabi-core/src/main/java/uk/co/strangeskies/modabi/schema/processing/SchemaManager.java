@@ -85,6 +85,8 @@ public interface SchemaManager {
 
 	<U> U provide(Class<U> clazz);
 
+	boolean isProvided(Class<?> clazz);
+
 	Schemata registeredSchemata();
 
 	Models registeredModels();

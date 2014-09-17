@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataSource;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
@@ -18,77 +19,74 @@ public class DataNodeUnbinder {
 		this.context = context;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <U> void unbind(DataNode.Effective<U> node) {
+	public <U> void unbind(DataNode.Effective<U> node, List<U> data) {
+		unbindWithFormat(node, data, node.format());
 	}
 
-	public <U> void unbindNode(DataNode.Effective<U> node) {
-		nodeStack.push(node);
-		if (node.getOutMethodName() == null
-				|| !node.getOutMethodName().equals("null")) {
-			if (dataTarget == null) {
-				if (node.format() == null)
-					throw new SchemaException(
-							"Data format must be provided for data node '" + node.getName()
-									+ "'.");
-				dataTarget = new BufferingDataTarget();
-			} else if (node.format() != null)
-				throw new SchemaException(
-						"Data format should be null for nested data node '"
-								+ node.getName() + "'.");
+	/**
+	 * Doesn't output to context.output().
+	 *
+	 * @param node
+	 * @param data
+	 */
+	public <U> void unbindToDataTarget(DataNode.Effective<U> node, List<U> data) {
+		unbindWithFormat(node, data, null);
+	}
 
-			if (node.isValueProvided())
-				switch (node.valueResolution()) {
-				case PROCESSING_TIME:
+	private <U> void unbindWithFormat(DataNode.Effective<U> node, List<U> data,
+			DataNode.Format format) {
+		UnbindingContext context = this.context;
 
-					break;
-				case REGISTRATION_TIME:
-					List<U> data = getData(node);
+		BufferingDataTarget target = null;
 
-					if (!node.providedValues().equals(data)) {
-						throw new SchemaException("Provided value '"
-								+ node.providedValues() + "'does not match unbinding object '"
-								+ data + "' for node '" + node.getName() + "'.");
-					}
-					break;
-				}
-			else
-				unbindDataNode(node, dataTarget);
-
-			if (node.format() != null) {
-				DataSource bufferedTarget = dataTarget.buffer();
-				dataTarget = null;
-
-				if (bufferedTarget.size() > 0)
-					switch (node.format()) {
-					case PROPERTY:
-						bufferedTarget.pipe(output.writeProperty(node.getName()))
-								.terminate();
-						break;
-					case SIMPLE_ELEMENT:
-						output.nextChild(node.getName());
-						bufferedTarget.pipe(output.writeContent()).terminate();
-						output.endChild();
-						break;
-					case CONTENT:
-						bufferedTarget.pipe(output.writeContent()).terminate();
-					}
-			}
+		if (format != null) {
+			target = new BufferingDataTarget();
+			BufferingDataTarget finalTarget = target;
+			context = context.withProvision(DataTarget.class, () -> finalTarget);
 		}
-		nodeStack.pop();
+
+		if (node.isValueProvided())
+			switch (node.valueResolution()) {
+			case PROCESSING_TIME:
+
+				break;
+			case REGISTRATION_TIME:
+				if (!node.providedValues().equals(data)) {
+					throw new SchemaException("Provided value '" + node.providedValues()
+							+ "'does not match unbinding object '" + data + "' for node '"
+							+ node.getName() + "'.");
+				}
+				break;
+			}
+		else
+			unbindToContext(node, data, context);
+
+		if (format != null) {
+			DataSource bufferedTarget = target.buffer();
+
+			if (bufferedTarget.size() > 0)
+				switch (format) {
+				case PROPERTY:
+					bufferedTarget.pipe(context.output().writeProperty(node.getName()))
+							.terminate();
+					break;
+				case SIMPLE_ELEMENT:
+					context.output().nextChild(node.getName());
+					bufferedTarget.pipe(context.output().writeContent()).terminate();
+					context.output().endChild();
+					break;
+				case CONTENT:
+					bufferedTarget.pipe(context.output().writeContent()).terminate();
+				}
+		}
 	}
 
-	public <U> BufferingDataTarget unbindDataNode(DataNode.Effective<U> node,
-			BufferingDataTarget target) {
-		List<U> data = getData(node);
-
+	private <U> void unbindToContext(DataNode.Effective<U> node, List<U> data,
+			UnbindingContext context) {
 		if (data != null) {
 			for (U item : data) {
-				BufferingDataTarget previousDataTarget = dataTarget;
-				dataTarget = target;
-
 				if (node.isExtensible() != null && node.isExtensible()) {
-					List<DataNode.Effective<? extends U>> nodes = this.schemaBinderImpl.registeredTypes
+					List<DataNode.Effective<? extends U>> nodes = context
 							.getMatchingTypes(node, item.getClass()).stream()
 							.map(type -> new DataNodeWrapper<>(type.effective(), node))
 							.collect(Collectors.toCollection(ArrayList::new));
@@ -115,13 +113,9 @@ public class DataNodeUnbinder {
 				} else {
 					new BindingNodeUnbinder(context).unbind(node, item);
 				}
-
-				dataTarget = previousDataTarget;
 			}
 		} else if (!node.optional())
 			throw new SchemaException("Non-optional node '" + node.getName()
 					+ "' cannot omit data for unbinding.");
-
-		return target;
 	}
 }

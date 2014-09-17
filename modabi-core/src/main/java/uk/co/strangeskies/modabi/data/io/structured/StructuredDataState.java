@@ -14,7 +14,7 @@ public enum StructuredDataState {
 			break;
 		case ELEMENT_START:
 			checkExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, PROPERTY,
-					CONTENT);
+					CONTENT, FINISHED);
 			break;
 		case POPULATED_ELEMENT:
 			checkExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, FINISHED);

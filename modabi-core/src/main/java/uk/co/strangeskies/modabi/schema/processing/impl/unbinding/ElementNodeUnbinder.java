@@ -18,44 +18,55 @@ public class ElementNodeUnbinder {
 		this.context = context;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <U> void unbind(ElementNode.Effective<U> node, U data) {
-		if (node.isExtensible() != null && node.isExtensible()) {
-			List<Model.Effective<? extends U>> nodes = context
-					.getMatchingModels(node, data.getClass()).stream()
-					.map(n -> n.effective())
-					.collect(Collectors.toCollection(ArrayList::new));
+	public <U> void unbind(ElementNode.Effective<U> node, List<U> data) {
+		for (U item : data) {
+			if (node.isExtensible() != null && node.isExtensible()) {
+				List<Model.Effective<? extends U>> nodes = context
+						.getMatchingModels(node, item.getClass()).stream()
+						.map(n -> n.effective())
+						.collect(Collectors.toCollection(ArrayList::new));
 
-			if (nodes.isEmpty())
-				throw new SchemaException("Unable to find model to satisfy element '"
-						+ node.getName()
-						+ "' with model '"
-						+ node.effective().baseModel().stream()
-								.map(m -> m.source().getName().toString())
-								.collect(Collectors.joining(", ")) + "' for object '" + data
-						+ "' to be unbound.");
+				if (nodes.isEmpty())
+					throw new SchemaException("Unable to find model to satisfy element '"
+							+ node.getName()
+							+ "' with model '"
+							+ node.effective().baseModel().stream()
+									.map(m -> m.source().getName().toString())
+									.collect(Collectors.joining(", ")) + "' for object '" + item
+							+ "' to be unbound.");
 
-			new UnbindingAttempter(context)
-					.tryForEach(
-							nodes,
-							(c, n) -> {
-								ElementNode.Effective<? extends U> overridden = new ElementNodeOverrider(
-										new ModelBuilderImpl()).override(node, n.effective());
+				new UnbindingAttempter(context)
+						.tryForEach(
+								nodes,
+								(c, n) -> {
+									ElementNode.Effective<? extends U> overridden = new ElementNodeOverrider(
+											new ModelBuilderImpl()).override(node, n.effective());
 
-								new BindingNodeUnbinder(c).unbind(overridden, data);
+									castAndUnbind(c, overridden, item);
+								},
+								l -> new MultiException("Unable to unbind element '"
+										+ node.getName()
+										+ "' with model candidates '"
+										+ nodes.stream().map(m -> m.source().getName().toString())
+												.collect(Collectors.joining(", ")) + "' for object '"
+										+ item + "' to be unbound.", l));
+			} else {
+				castAndUnbind(context, node, item);
+			}
+		}
+	}
 
-								c.bindings().add(overridden, data);
-							},
-							l -> new MultiException("Unable to unbind element '"
-									+ node.getName()
-									+ "' with model candidates '"
-									+ nodes.stream().map(m -> m.source().getName().toString())
-											.collect(Collectors.joining(", ")) + "' for object '"
-									+ data + "' to be unbound.", l));
-		} else {
-			new BindingNodeUnbinder(context).unbind(node, data);
+	private <U extends V, V> void castAndUnbind(UnbindingContext context,
+			ElementNode.Effective<U> element, V data) {
+		try {
+			context.output().nextChild(element.getName());
+			new BindingNodeUnbinder(context).unbind(element, element.getDataClass()
+					.cast(data));
+			context.output().endChild();
 
-			context.bindings().add(node, data);
+			context.bindings().add(element, data);
+		} catch (ClassCastException e) {
+			throw context.exception("Cannot unbind data at this node.", e);
 		}
 	}
 }

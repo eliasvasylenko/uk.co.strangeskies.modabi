@@ -49,8 +49,8 @@ public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
 	}
 
 	public <T> List<DataBindingType<? extends T>> getMatchingTypes(
-			DataNode<T> element, Class<?> dataClass) {
-		List<DataBindingType<? extends T>> subTypes = getDerivedTypes(element
+			DataNode<T> node, Class<?> dataClass) {
+		List<DataBindingType<? extends T>> subTypes = getDerivedTypes(node
 				.effective().type());
 
 		subTypes = subTypes

@@ -171,7 +171,8 @@ class BufferingStructuredDataTargetImpl implements StructuredDataTarget {
 
 	public BufferedStructuredDataSourceImpl buffer() {
 		if (stack.size() != 1)
-			throw new IllegalStateException();
+			throw new IllegalStateException("Stack depth '" + stack.size()
+					+ "' should be 1.");
 
 		return new BufferedStructuredDataSourceImpl(new BufferedStructuredData(
 				stack.pop()), defaultNamespaceHint, namespaceHints, comments);

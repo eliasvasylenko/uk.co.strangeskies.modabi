@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode.Effective;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
@@ -16,6 +17,8 @@ import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface UnbindingContext {
 	<U> U provide(Class<U> clazz);
+
+	boolean isProvided(Class<?> clazz);
 
 	List<SchemaNode.Effective<?, ?>> unbindingNodeStack();
 
@@ -27,6 +30,9 @@ public interface UnbindingContext {
 
 	<T> List<Model<? extends T>> getMatchingModels(
 			ElementNode.Effective<T> element, Class<?> dataClass);
+
+	<T> List<DataBindingType<? extends T>> getMatchingTypes(
+			DataNode.Effective<T> node, Class<?> dataClass);
 
 	public default IncludeTarget provideIncludeTarget() {
 		return new IncludeTarget() {
@@ -61,9 +67,20 @@ public interface UnbindingContext {
 			}
 
 			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return clazz.equals(providedClass) || base.isProvided(clazz);
+			}
+
+			@Override
 			public <U> List<Model<? extends U>> getMatchingModels(
-					Effective<U> element, Class<?> dataClass) {
+					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
+			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
 			}
 
 			@Override
@@ -93,13 +110,24 @@ public interface UnbindingContext {
 		return new UnbindingContext() {
 			@Override
 			public <U> List<Model<? extends U>> getMatchingModels(
-					Effective<U> element, Class<?> dataClass) {
+					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
+			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
 			}
 
 			@Override
 			public <U> U provide(Class<U> clazz) {
 				return base.provide(clazz);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
 			}
 
 			@Override
@@ -129,13 +157,24 @@ public interface UnbindingContext {
 		return new UnbindingContext() {
 			@Override
 			public <U> List<Model<? extends U>> getMatchingModels(
-					Effective<U> element, Class<?> dataClass) {
+					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
+			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
 			}
 
 			@Override
 			public <U> U provide(Class<U> clazz) {
 				return base.provide(clazz);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
 			}
 
 			@Override
@@ -168,8 +207,14 @@ public interface UnbindingContext {
 		UnbindingContext context = new UnbindingContext() {
 			@Override
 			public <U> List<Model<? extends U>> getMatchingModels(
-					Effective<U> element, Class<?> dataClass) {
+					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
+			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
 			}
 
 			@Override
@@ -195,6 +240,11 @@ public interface UnbindingContext {
 			@Override
 			public <U> U provide(Class<U> clazz) {
 				return base.provide(clazz);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
 			}
 		};
 

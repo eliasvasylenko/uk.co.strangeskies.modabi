@@ -3,15 +3,17 @@ package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
 import java.util.Collections;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataSource;
+import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode.Effective;
+import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
@@ -39,12 +41,17 @@ public class SchemaUnbinder {
 								() -> new SchemaException("Can't fine child '" + idDomain
 										+ "' to target for model '" + model + "'."));
 
+				return unbindDataNode(node, object);
+			}
+
+			private <V> DataSource unbindDataNode(DataNode.Effective<V> node,
+					Object source) {
 				BufferingDataTarget target = new BufferingDataTarget();
 
-				new DataNodeUnbinder(new UnbindingContext() {
+				UnbindingContext context = new UnbindingContext() {
 					@Override
 					public Object unbindingSource() {
-						return object;
+						return source;
 					}
 
 					@Override
@@ -53,22 +60,34 @@ public class SchemaUnbinder {
 						return null;
 					}
 
+					@SuppressWarnings("unchecked")
 					@Override
-					public <V> V provide(Class<V> clazz) {
-						// TODO Auto-generated method stub
-						return null;
+					public <T> T provide(Class<T> clazz) {
+						if (clazz.equals(DataTarget.class))
+							return (T) target;
+
+						return manager.provide(clazz);
+					}
+
+					@Override
+					public boolean isProvided(Class<?> clazz) {
+						return manager.isProvided(clazz);
 					}
 
 					@Override
 					public StructuredDataTarget output() {
-						// TODO Auto-generated method stub
 						return null;
 					}
 
 					@Override
 					public <T> List<Model<? extends T>> getMatchingModels(
-							Effective<T> element, Class<?> dataClass) {
-						// TODO Auto-generated method stub
+							ElementNode.Effective<T> element, Class<?> dataClass) {
+						return null;
+					}
+
+					@Override
+					public <T> List<DataBindingType<? extends T>> getMatchingTypes(
+							DataNode.Effective<T> node, Class<?> dataClass) {
 						return null;
 					}
 
@@ -77,7 +96,10 @@ public class SchemaUnbinder {
 						// TODO Auto-generated method stub
 						return null;
 					}
-				}).unbind(node);
+				};
+
+				new DataNodeUnbinder(context).unbindToDataTarget(node,
+						BindingNodeUnbinder.getData(node, context));
 
 				return target.buffer();
 			}
@@ -118,6 +140,13 @@ public class SchemaUnbinder {
 			}
 
 			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return clazz.equals(DereferenceTarget.class)
+						|| clazz.equals(ImportDereferenceTarget.class)
+						|| manager.isProvided(clazz);
+			}
+
+			@Override
 			public StructuredDataTarget output() {
 				return null;
 			}
@@ -129,8 +158,14 @@ public class SchemaUnbinder {
 
 			@Override
 			public <T> List<Model<? extends T>> getMatchingModels(
-					Effective<T> element, Class<?> dataClass) {
+					ElementNode.Effective<T> element, Class<?> dataClass) {
 				return manager.registeredModels().getMatchingModels(element, dataClass);
+			}
+
+			@Override
+			public <T> List<DataBindingType<? extends T>> getMatchingTypes(
+					DataNode.Effective<T> node, Class<?> dataClass) {
+				return manager.registeredTypes().getMatchingTypes(node, dataClass);
 			}
 		};
 	}
@@ -142,7 +177,9 @@ public class SchemaUnbinder {
 		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
 		try {
+			context.output().nextChild(model.getName());
 			new BindingNodeUnbinder(context).unbind(model, data);
+			context.output().endChild();
 		} catch (SchemaException e) {
 			throw e;
 		} catch (Exception e) {

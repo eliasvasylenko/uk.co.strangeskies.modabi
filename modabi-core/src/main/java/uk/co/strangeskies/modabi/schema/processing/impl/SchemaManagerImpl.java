@@ -186,6 +186,12 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
+	public boolean isProvided(Class<?> clazz) {
+		return providers.stream().map(p -> p.apply(clazz))
+				.anyMatch(Objects::nonNull);
+	}
+
+	@Override
 	public Schemata registeredSchemata() {
 		return registeredSchemata;
 	}

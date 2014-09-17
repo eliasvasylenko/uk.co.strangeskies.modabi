@@ -29,25 +29,29 @@ public class StructuredDataTargetDecorator extends
 
 	@Override
 	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace) {
-		currentState().checkValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START);
+		currentState().checkValid(StructuredDataState.UNSTARTED,
+				StructuredDataState.ELEMENT_START);
 		return getComponent().registerDefaultNamespaceHint(namespace);
 	}
 
 	@Override
 	public StructuredDataTarget registerNamespaceHint(Namespace namespace) {
-		currentState().checkValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START);
+		currentState().checkValid(StructuredDataState.UNSTARTED,
+				StructuredDataState.ELEMENT_START);
 		return getComponent().registerNamespaceHint(namespace);
 	}
 
 	@Override
 	public StructuredDataTarget comment(String comment) {
-		currentState().checkValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START,
+		currentState().checkValid(StructuredDataState.UNSTARTED,
+				StructuredDataState.ELEMENT_START,
 				StructuredDataState.POPULATED_ELEMENT);
 		return getComponent().comment(comment);
 	}
 
 	@Override
 	public StructuredDataTarget nextChild(QualifiedName name) {
+		depth++;
 		enterState(StructuredDataState.ELEMENT_START);
 		return getComponent().nextChild(name);
 	}
