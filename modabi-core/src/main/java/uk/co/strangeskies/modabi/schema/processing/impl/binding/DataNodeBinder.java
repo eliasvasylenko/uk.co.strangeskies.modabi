@@ -5,6 +5,7 @@ import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.io.DataSource;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
@@ -25,7 +26,7 @@ public class DataNodeBinder {
 				results.addAll(node.providedValues());
 			else {
 				dataSource = node.providedValueBuffer();
-				results.add(bindWithDataSource(dataSource, context, node));
+				results.addAll(bindListWithDataSource(dataSource, context, node));
 			}
 		} else if (node.format() != null) {
 			switch (node.format()) {
@@ -71,6 +72,31 @@ public class DataNodeBinder {
 			throw context.exception("Node '" + node.getName()
 					+ "' must be bound data within range of '"
 					+ Range.compose(node.occurances()) + "'.");
+
+		return results;
+	}
+
+	private static <U> List<U> bindListWithDataSource(DataSource dataSource,
+			BindingContext context, DataNode.Effective<U> node) {
+		context = context.withProvision(DataSource.class, () -> dataSource);
+
+		return bindList(context, node);
+	}
+
+	private static <U> List<U> bindList(BindingContext context,
+			DataNode.Effective<U> node) {
+		List<U> results = new ArrayList<>();
+
+		int count = 0;
+		try {
+			BindingAttempter attempter = new BindingAttempter(context);
+			while (!node.occurances().isValueAbove(count++))
+				attempter
+						.attempt(c -> results.add(new BindingNodeBinder(c).bind(node)));
+		} catch (SchemaException e) {
+			if (node.occurances().isValueBelow(count))
+				throw e;
+		}
 
 		return results;
 	}

@@ -75,9 +75,7 @@ public class ElementNodeOverrider {
 			Class<I> interfaceClass, Class<W> wrapperClass) {
 		return (W) new ProxyFactory().createInvokerProxy(
 				(proxy, method, parameters) -> {
-					// TODO spurious warning...
-					@SuppressWarnings("rawtypes")
-					Class[] parameterClasses;
+					Class<?>[] parameterClasses;
 
 					if (parameters == null)
 						parameterClasses = new Class[] {};

@@ -1,10 +1,10 @@
 package uk.co.strangeskies.modabi.schema.model.building.impl;
 
 import java.lang.reflect.Method;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -188,12 +188,21 @@ public class Methods {
 		if (!addedNodeClass)
 			classList.add(0, nodeClass.apply(node));
 
-		/*
-		 * TODO Figure out why the following here causes a crash somewhere else:
-		 * 
-		 * node.getName().getNamespace().getDate().format(DateTimeFormatter.
-		 * ISO_LOCAL_DATE))
+		/*-
+		 * TODO Figure out why the following here causes a crash somewhere else...
+		 * But only on some systems...
+		 *
+		   node.getName().getNamespace().getDate().format(DateTimeFormatter.ISO_LOCAL_DATE))
+		 *
+		 * you can get the date, print it out, and it's fine. Just don't try to format it.
+		 *
+		 * Possibly the stupidest error I've ever encountered.
 		 */
+		node.getName().getNamespace().getDate()
+				.format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+		// System.out.println(" " + node.getName() + " ? "
+		// + node.getProvidedUnbindingMethodParameterNames());
 
 		return classList;
 	}
@@ -223,19 +232,11 @@ public class Methods {
 					+ "', reveiver '" + receiver + "', and parameters '"
 					+ Arrays.asList(parameters) + "' with any name of '" + names + "'.");
 
-		// System.out.println(method.getDeclaringClass() + " ? " + receiver +
-		// "     "
-		// + receiver.getInterfaces()); TODO WHAT THE FUCK
-
+		/*-
 		if (method.getDeclaringClass().equals(
 				org.apache.commons.collections4.Factory.class))
-			System.out
-					.println("{"
-							+ Stream
-									.concat(Arrays.stream(receiver.getMethods()),
-											Arrays.stream(Object.class.getMethods()))
-									.map(Objects::toString).collect(Collectors.joining("}, {"))
-							+ "}");
+			TODO crazy ass classloader error? Still seems to work, though.
+		 */
 
 		return method;
 	}
@@ -246,6 +247,19 @@ public class Methods {
 		return Stream
 				.concat(Arrays.stream(receiver.getMethods()),
 						Arrays.stream(Object.class.getMethods()))
+				.map(
+						m -> {
+							try {
+								return receiver.getMethod(m.getName(), m.getParameterTypes());
+							} catch (Exception e) {
+								try {
+									return Object.class.getMethod(m.getName(),
+											m.getParameterTypes());
+								} catch (Exception ee) {
+									throw new SchemaException(ee);
+								}
+							}
+						})
 				.filter(
 						m -> {
 							if (!names.contains(m.getName()))

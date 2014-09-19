@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
@@ -271,9 +272,10 @@ public class BaseSchemaImpl implements BaseSchema {
 					.name("class", namespace)
 					.dataClass(Class.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+					.bindingClass(ClassUtils.class)
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
-									.inMethod("forName")).create());
+									.inMethod("getClass")).create());
 
 			typeSet.add(enumType = builder
 					.configure(loader)

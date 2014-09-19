@@ -134,8 +134,6 @@ public class BindingNodeBinder {
 			public void accept(InputSequenceNode.Effective node) {
 				List<Object> parameters = getSingleBindingSequence(node,
 						context.withBindingNode(node));
-				System.out.println(node.getName() + " : " + node.getInMethodName()
-						+ " ? " + node.effective().getInMethod().getDeclaringClass());
 				result.set(invokeInMethod(node, context, result.get(),
 						parameters.toArray()));
 			}
