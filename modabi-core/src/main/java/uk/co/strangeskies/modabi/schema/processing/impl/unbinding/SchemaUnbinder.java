@@ -94,6 +94,8 @@ public class SchemaUnbinder {
 					return (U) importTarget.apply(context);
 				if (clazz.equals(IncludeTarget.class))
 					return (U) includeTarget.apply(context);
+				if (clazz.equals(UnbindingContext.class))
+					return (U) context;
 
 				return manager.provide(clazz);
 			}
@@ -102,7 +104,9 @@ public class SchemaUnbinder {
 			public boolean isProvided(Class<?> clazz) {
 				return clazz.equals(DereferenceTarget.class)
 						|| clazz.equals(ImportDereferenceTarget.class)
-						|| clazz.equals(IncludeTarget.class) || manager.isProvided(clazz);
+						|| clazz.equals(IncludeTarget.class)
+						|| clazz.equals(UnbindingContext.class)
+						|| manager.isProvided(clazz);
 			}
 
 			@Override

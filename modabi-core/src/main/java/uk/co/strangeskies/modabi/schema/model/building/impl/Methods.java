@@ -247,19 +247,6 @@ public class Methods {
 		return Stream
 				.concat(Arrays.stream(receiver.getMethods()),
 						Arrays.stream(Object.class.getMethods()))
-				.map(
-						m -> {
-							try {
-								return receiver.getMethod(m.getName(), m.getParameterTypes());
-							} catch (Exception e) {
-								try {
-									return Object.class.getMethod(m.getName(),
-											m.getParameterTypes());
-								} catch (Exception ee) {
-									throw new SchemaException(ee);
-								}
-							}
-						})
 				.filter(
 						m -> {
 							if (!names.contains(m.getName()))

@@ -16,22 +16,22 @@ public class SchemaTest {
 		SchemaManager schemaBinder = new SchemaManagerImpl(new SchemaBuilderImpl(),
 				new ModelBuilderImpl(), new DataBindingTypeBuilderImpl());
 
-		System.out.println("Buffering BaseSchema unbinding...");
+		System.out.println("Buffering MetaSchema unbinding...");
 		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
 		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(), out,
-				schemaBinder.getBaseSchema());
+				schemaBinder.getMetaSchema());
 
-		System.out.println("Outputting buffered BaseSchema unbinding...");
+		System.out.println("Outputting buffered MetaSchema unbinding...");
 		BufferedStructuredDataSource buffered = out.buffer();
 		buffered.pipeNextChild(new XMLTarget(System.out));
 		buffered.reset();
 
-		System.out.println("Re-binding buffered BaseSchema unbinding...");
+		System.out.println("Re-binding buffered MetaSchema unbinding...");
 		Schema baseSchema = schemaBinder
 				.bindFuture(schemaBinder.getMetaSchema().getSchemaModel(), buffered)
 				.resolve().getData();
 
-		System.out.println("Re-unbinding re-bound BaseSchema...");
+		System.out.println("Re-unbinding re-bound MetaSchema...");
 		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(),
 				new XMLTarget(System.out), baseSchema);
 	}

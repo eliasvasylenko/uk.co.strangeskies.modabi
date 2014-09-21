@@ -145,15 +145,8 @@ public class ElementNodeOverrider {
 				SchemaNodeConfigurator<?, ? extends N, ?, ?> configurator) {
 			configuratorStack.push(configurator);
 
-			for (ChildNode<?, ?> child : children) {
-				/*-
-				String indent = "";
-				for (int i = 0; i < configuratorStack.size(); i++)
-					indent += "  ";
-				System.out.println(indent + child.getName());
-				 */
+			for (ChildNode<?, ?> child : children)
 				child.effective().process(this);
-			}
 
 			configuratorStack.pop();
 			return configurator.create();

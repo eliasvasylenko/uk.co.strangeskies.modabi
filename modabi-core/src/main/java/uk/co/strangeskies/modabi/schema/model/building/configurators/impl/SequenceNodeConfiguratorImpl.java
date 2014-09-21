@@ -98,7 +98,7 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 		Class<?> inputTarget = getContext().getInputTargetClass(getName());
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
-				getOverriddenNodes(), inputTarget, null, null,
+				getOverriddenNodes(), true, inputTarget, null, null,
 				isChildContextAbstract(), getContext().isDataContext());
 	}
 

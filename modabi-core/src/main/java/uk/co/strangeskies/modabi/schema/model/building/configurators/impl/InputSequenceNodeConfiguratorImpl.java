@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.DataNodeConfigurator;
@@ -67,12 +68,16 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 				inMethodName = overrideMerge
 						.tryGetValue(InputSequenceNode::getInMethodName);
 
+				if (!overrideMerge.configurator().getContext().hasInput())
+					throw new SchemaException(
+							"It doesn't make sense to have inputSequence node '" + getName()
+									+ "' occur in a context without input.");
+
 				Method overriddenMethod = overrideMerge
 						.tryGetValue(n -> n.effective() == null ? (Method) null : n
 								.effective().getInMethod());
-				inMethod = (isAbstract() || inMethodName == "null") ? null : Methods
-						.getInMethod(this, overriddenMethod, inputTargetClass,
-								parameterClasses);
+				inMethod = isAbstract() ? null : Methods.getInMethod(this,
+						overriddenMethod, inputTargetClass, parameterClasses);
 
 				if (inMethodName == null && !isAbstract())
 					inMethodName = inMethod.getName();
@@ -176,6 +181,10 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 	@Override
 	public InputSequenceNodeConfigurator<C> inMethod(String methodName) {
+		if (!getContext().hasInput() && !inMethodName.equals("null"))
+			throw new SchemaException(
+					"No input method should be specified on this node.");
+
 		requireConfigurable(inMethodName);
 		inMethodName = methodName;
 
@@ -209,7 +218,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		Class<?> outputTarget = getContext().getOutputSourceClass();
 
 		return new SequentialChildrenConfigurator<C, C>(getNamespace(),
-				getOverriddenNodes(), null, outputTarget, getDataLoader(),
+				getOverriddenNodes(), false, null, outputTarget, getDataLoader(),
 				isChildContextAbstract(), getContext().isDataContext()) {
 			@Override
 			public ChildBuilder<C, C> addChild() {
@@ -217,7 +226,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 				return new ChildBuilder<C, C>() {
 					@Override
 					public ElementNodeConfigurator<Object> element() {
-						return component.element().inMethod("null");
+						return component.element();
 					}
 
 					@Override
@@ -237,7 +246,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 					@Override
 					public DataNodeConfigurator<Object> data() {
-						return component.data().inMethod("null");
+						return component.data();
 					}
 				};
 			}

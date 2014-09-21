@@ -261,8 +261,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		requireConfigurable(this.name);
 		this.name = name;
 
-		name.toString();
-
 		return getThis();
 	}
 

@@ -21,12 +21,15 @@ public class DataNodeBinder {
 
 		List<U> results = new ArrayList<>();
 
+		System.out.println("@ " + node.getName());
+
 		if (node.isValueProvided()) {
 			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME)
 				results.addAll(node.providedValues());
 			else {
-				dataSource = node.providedValueBuffer();
-				results.addAll(bindListWithDataSource(dataSource, context, node));
+				BindingContext context = this.context.withProvision(DataSource.class,
+						node::providedValueBuffer);
+				results.addAll(bindList(context, node));
 			}
 		} else if (node.format() != null) {
 			switch (node.format()) {
@@ -47,7 +50,10 @@ public class DataNodeBinder {
 			case SIMPLE_ELEMENT:
 				BindingContext context = this.context;
 
+				System.out.println("doin " + node.getName());
+				System.out.println("gets " + context.input().peekNextChild());
 				while (node.getName().equals(context.input().peekNextChild())) {
+					System.out.println("go");
 					context.input().startNextChild(node.getName());
 
 					dataSource = context.input().readContent();
@@ -62,38 +68,46 @@ public class DataNodeBinder {
 				}
 			}
 		} else
-			results.add(new BindingNodeBinder(context).bind(node));
+			results.addAll(bindList(context, node));
 
 		if (results.isEmpty() && !node.optional() && !node.occurances().contains(0))
 			throw context.exception("Node '" + node.getName()
 					+ "' must be bound data.");
 
 		if (!results.isEmpty() && !node.occurances().contains(results.size()))
-			throw context.exception("Node '" + node.getName()
-					+ "' must be bound data within range of '"
-					+ Range.compose(node.occurances()) + "'.");
+			throw context.exception("Node '" + node.getName() + "' binding results '"
+					+ results + "' must be bound data within range of '"
+					+ Range.compose(node.occurances()) + "' occurances.");
 
 		return results;
 	}
 
-	private static <U> List<U> bindListWithDataSource(DataSource dataSource,
-			BindingContext context, DataNode.Effective<U> node) {
-		context = context.withProvision(DataSource.class, () -> dataSource);
-
-		return bindList(context, node);
-	}
-
 	private static <U> List<U> bindList(BindingContext context,
 			DataNode.Effective<U> node) {
+		context = context.withInput(null);
+
 		List<U> results = new ArrayList<>();
 
 		int count = 0;
+		int startIndex = 0;
 		try {
-			BindingAttempter attempter = new BindingAttempter(context);
-			while (!node.occurances().isValueAbove(count++))
-				attempter
-						.attempt(c -> results.add(new BindingNodeBinder(c).bind(node)));
+			DataSource dataSource = null;
+			if (context.isProvided(DataSource.class)) {
+				dataSource = context.provide(DataSource.class);
+				DataSource finalSource = dataSource.copy();
+				startIndex = dataSource.index();
+				context = context.withProvision(DataSource.class, () -> finalSource);
+			}
+
+			while (!node.occurances().isValueAbove(++count)) {
+				results.add(new BindingNodeBinder(context).bind(node));
+			}
+
+			if (dataSource != null)
+				for (int i = 0; i < dataSource.index() - startIndex; i++)
+					dataSource.get();
 		} catch (SchemaException e) {
+			e.printStackTrace();
 			if (node.occurances().isValueBelow(count))
 				throw e;
 		}

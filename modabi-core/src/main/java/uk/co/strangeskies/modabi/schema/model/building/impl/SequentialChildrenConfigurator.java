@@ -106,16 +106,18 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	private final List<MergeGroup> mergedChildren;
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
+	private final boolean hasInput;
 	private Class<?> inputTarget;
 	private final Class<?> outputTarget;
+
 	private final DataLoader loader;
 	private final boolean isAbstract;
 	private final boolean dataContext;
 
 	public SequentialChildrenConfigurator(Namespace namespace,
 			LinkedHashSet<? extends SchemaNode<?, ?>> overriddenNodes,
-			Class<?> inputTarget, Class<?> outputTarget, DataLoader loader,
-			boolean isAbstract, boolean dataContext) {
+			boolean hasInput, Class<?> inputTarget, Class<?> outputTarget,
+			DataLoader loader, boolean isAbstract, boolean dataContext) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
@@ -132,6 +134,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 
 		this.namespace = namespace;
 
+		this.hasInput = hasInput;
 		this.inputTarget = inputTarget;
 		this.outputTarget = outputTarget;
 
@@ -257,12 +260,15 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public Class<?> getOutputSourceClass() {
-				return outputTarget;
+			public boolean hasInput() {
+				return hasInput;
 			}
 
 			@Override
 			public Class<?> getInputTargetClass(QualifiedName name) {
+				if (!hasInput())
+					return null;
+
 				MergeGroup mergeGroup = namedMergeGroups.get(name);
 				if (mergeGroup != null) {
 					int index = mergedChildren.indexOf(mergeGroup);
@@ -272,6 +278,11 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 				}
 
 				return inputTarget;
+			}
+
+			@Override
+			public Class<?> getOutputSourceClass() {
+				return outputTarget;
 			}
 
 			@Override

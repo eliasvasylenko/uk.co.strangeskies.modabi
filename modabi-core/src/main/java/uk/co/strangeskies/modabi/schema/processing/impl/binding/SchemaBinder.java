@@ -85,6 +85,8 @@ public class SchemaBinder {
 					return (U) importSource.apply(context);
 				if (clazz.equals(DataLoader.class))
 					return (U) loader.apply(context);
+				if (clazz.equals(BindingContext.class))
+					return (U) context;
 
 				return manager.provide(clazz);
 			}
@@ -94,7 +96,8 @@ public class SchemaBinder {
 				return clazz.equals(ReferenceSource.class)
 						|| clazz.equals(IncludeTarget.class)
 						|| clazz.equals(ImportSource.class)
-						|| clazz.equals(DataLoader.class) || manager.isProvided(clazz);
+						|| clazz.equals(DataLoader.class)
+						|| clazz.equals(BindingContext.class) || manager.isProvided(clazz);
 			}
 
 			@Override

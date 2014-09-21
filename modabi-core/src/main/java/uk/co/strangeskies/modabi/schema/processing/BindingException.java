@@ -33,10 +33,7 @@ public class BindingException extends SchemaException {
 
 	public BindingException(String message,
 			List<SchemaNode.Effective<?, ?>> bindingNodeStack) {
-		super(message
-				+ " @ [ "
-				+ bindingNodeStack.stream().map(SchemaNode::getName)
-						.map(Objects::toString).collect(Collectors.joining(" < ")) + " ]");
+		super(message + " @ " + getBindingNodeStackString(bindingNodeStack));
 
 		this.bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(
 				bindingNodeStack));

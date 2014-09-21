@@ -26,6 +26,14 @@ public interface BindingContext {
 
 	List<SchemaNode.Effective<?, ?>> bindingNodeStack();
 
+	default SchemaNode.Effective<?, ?> bindingNode() {
+		return bindingNodeStack().get(bindingNodeStack().size() - 1);
+	}
+
+	default SchemaNode.Effective<?, ?> bindingNode(int parent) {
+		return bindingNodeStack().get(bindingNodeStack().size() - 1 - parent);
+	}
+
 	Object bindingTarget();
 
 	Model.Effective<?> getModel(QualifiedName nextElement);
@@ -149,6 +157,13 @@ public interface BindingContext {
 
 	default <T> BindingContext withBindingNode(SchemaNode.Effective<?, ?> node) {
 		BindingContext base = this;
+
+		List<SchemaNode.Effective<?, ?>> bindingStack = new ArrayList<>(
+				base.bindingNodeStack());
+		bindingStack.add(node);
+		List<SchemaNode.Effective<?, ?>> finalBindingStack = Collections
+				.unmodifiableList(bindingStack);
+
 		return new BindingContext() {
 			@Override
 			public <U> U provide(Class<U> clazz, BindingContext headContext) {
@@ -177,10 +192,7 @@ public interface BindingContext {
 
 			@Override
 			public List<SchemaNode.Effective<?, ?>> bindingNodeStack() {
-				List<SchemaNode.Effective<?, ?>> bindingStack = new ArrayList<>(
-						base.bindingNodeStack());
-				bindingStack.add(node);
-				return Collections.unmodifiableList(bindingStack);
+				return finalBindingStack;
 			}
 
 			@Override

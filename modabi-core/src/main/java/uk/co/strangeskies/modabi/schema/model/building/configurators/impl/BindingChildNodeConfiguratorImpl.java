@@ -89,6 +89,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethodName = overrideMerge
 						.tryGetValue(BindingChildNode::getInMethodName);
 
+				if (!overrideMerge.configurator().getContext().hasInput())
+					if (inMethodName == null)
+						inMethodName = "null";
+					else if (inMethodName != "null")
+						throw new SchemaException(
+								"In method name should not be provided for this node.");
+
 				Method overriddenInMethod = overrideMerge.tryGetValue(n -> n
 						.effective() == null ? null : n.effective().getInMethod());
 				inMethod = (isAbstract() || "null".equals(inMethodName)) ? null
@@ -294,8 +301,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S inMethod(String inMethodName) {
+		if (!getContext().hasInput() && !inMethodName.equals("null"))
+			throw new SchemaException(
+					"No input method should be specified on this node.");
+
 		requireConfigurable(this.inMethodName);
 		this.inMethodName = inMethodName;
+
 		return getThis();
 	}
 

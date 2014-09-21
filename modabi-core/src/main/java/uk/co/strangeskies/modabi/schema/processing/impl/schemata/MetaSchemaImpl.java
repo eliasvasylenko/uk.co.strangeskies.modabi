@@ -151,6 +151,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.derivedTypes().classType()).name("postInputClass")
 								.optional(true)).create();
+		modelSet.add(childModel);
 
 		Model<InputNode> inputModel = model
 				.configure(loader)
@@ -347,12 +348,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("element", namespace)
 				.dataClass(ElementNode.class)
-				.baseModel(bindingChildNodeModel, abstractModelModel)
+				.baseModel(abstractModelModel, bindingChildNodeModel)
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
 						c -> c.inputSequence().name("configure").inMethod("element")
 								.inMethodChained(true)).addChild(n -> n.data().name("name"))
-				.addChild(o -> o.data().name("dataClass")).create();
+				.create();
 		modelSet.add(elementModel);
 
 		Model<DataNode> typedDataModel = model
@@ -575,6 +576,7 @@ public class MetaSchemaImpl implements MetaSchema {
 																.name("dataTypes")
 																.outMethodIterable(true)
 																.inMethod("null")
+																.occurances(Range.create(0, null))
 																.type(base.derivedTypes().includeType())
 																.addChild(
 																		q -> q
@@ -591,6 +593,7 @@ public class MetaSchemaImpl implements MetaSchema {
 																.name("models")
 																.outMethodIterable(true)
 																.inMethod("null")
+																.occurances(Range.create(0, null))
 																.type(base.derivedTypes().includeType())
 																.addChild(
 																		q -> q
@@ -608,6 +611,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.outMethod("getDataTypes")
 								.occurances(Range.create(0, 1))
 								.dataClass(Set.class)
+								.bindingClass(LinkedHashSet.class)
 								.addChild(
 										o -> o.element().baseModel(typeModel).outMethod("this")
 												.name("type").outMethodIterable(true)
@@ -619,6 +623,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("models")
 								.occurances(Range.create(0, 1))
 								.dataClass(Set.class)
+								.bindingClass(LinkedHashSet.class)
 								.addChild(
 										o -> o.element().baseModel(modelModel)
 												.outMethodIterable(true).outMethod("this")

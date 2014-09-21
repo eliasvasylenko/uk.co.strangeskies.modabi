@@ -1,8 +1,10 @@
 package uk.co.strangeskies.modabi.schema.processing;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Binding;
@@ -37,5 +39,51 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 							+ blockingBindings);
 
 		return resolve();
+	}
+
+	static <U> BindingFuture<U> forData(Model<U> model, U data) {
+		Binding<U> binding = new Binding<U>(model, data);
+
+		return new BindingFuture<U>() {
+			@Override
+			public boolean cancel(boolean mayInterruptIfRunning) {
+				return false;
+			}
+
+			@Override
+			public boolean isCancelled() {
+				return false;
+			}
+
+			@Override
+			public boolean isDone() {
+				return true;
+			}
+
+			@Override
+			public Binding<U> get() throws InterruptedException, ExecutionException {
+				return binding;
+			}
+
+			@Override
+			public Binding<U> get(long timeout, TimeUnit unit) {
+				return binding;
+			}
+
+			@Override
+			public QualifiedName getName() {
+				return model.getName();
+			}
+
+			@Override
+			public Model<U> getModel() {
+				return model;
+			}
+
+			@Override
+			public Set<BindingFuture<?>> getBlockingBindings() {
+				return new HashSet<>();
+			}
+		};
 	}
 }

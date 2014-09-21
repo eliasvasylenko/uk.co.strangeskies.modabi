@@ -74,7 +74,7 @@ public class ChildrenConfiguratorTests {
 	@Test(dataProvider = "mergeData")
 	public void childrenMergeTest(MergeTestData mergeTestData) {
 		SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>> configurator = new SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>>(
-				Namespace.getDefault(), mergeTestData.sequences(), Object.class,
+				Namespace.getDefault(), mergeTestData.sequences(), true, Object.class,
 				Object.class, null, true, false);
 
 		for (QualifiedName override : mergeTestData.overrides())

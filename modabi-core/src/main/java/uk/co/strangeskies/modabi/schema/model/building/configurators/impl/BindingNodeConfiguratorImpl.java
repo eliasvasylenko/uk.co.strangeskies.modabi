@@ -243,7 +243,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		Class<?> outputTarget = unbindingClass != null ? unbindingClass : dataClass;
 
 		return new SequentialChildrenConfigurator<>(getNamespace(),
-				getOverriddenNodes(), inputTarget, outputTarget, getDataLoader(),
+				getOverriddenNodes(), true, inputTarget, outputTarget, getDataLoader(),
 				isChildContextAbstract(), isDataContext());
 	}
 
@@ -302,8 +302,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			List<QualifiedName> parameterNames) {
 		requireConfigurable(unbindingParameterNames);
 		unbindingParameterNames = new ArrayList<>(parameterNames);
-
-		System.out.println(" :;;;'as;dasf" + getName() + " / " + parameterNames);
 
 		return getThis();
 	}

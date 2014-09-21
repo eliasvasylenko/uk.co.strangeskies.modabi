@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,6 +75,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
 		registerProvider(Set.class, HashSet::new);
+		registerProvider(LinkedHashSet.class, LinkedHashSet::new);
 		registerProvider(List.class, ArrayList::new);
 		registerProvider(Map.class, HashMap::new);
 	}
@@ -89,6 +91,10 @@ public class SchemaManagerImpl implements SchemaManager {
 
 			for (DataBindingType<?> type : schema.getDataTypes())
 				registerDataType(type);
+
+			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel(),
+					BindingFuture.forData(coreSchemata.metaSchema().getSchemaModel(),
+							schema));
 		}
 	}
 
@@ -146,8 +152,13 @@ public class SchemaManagerImpl implements SchemaManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Set<BindingFuture<T>> bindingFutures(Model<T> model) {
-		return new HashSet<>(bindingFutures.get(model).stream()
-				.map(t -> (BindingFuture<T>) t).collect(Collectors.toSet()));
+		Set<BindingFuture<?>> modelBindings = bindingFutures.get(model);
+
+		if (modelBindings == null)
+			return new HashSet<>();
+		else
+			return new HashSet<>(modelBindings.stream()
+					.map(t -> (BindingFuture<T>) t).collect(Collectors.toSet()));
 	}
 
 	@Override

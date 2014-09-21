@@ -33,10 +33,7 @@ public class UnbindingException extends SchemaException {
 
 	public UnbindingException(String message,
 			List<SchemaNode.Effective<?, ?>> bindingNodeStack) {
-		super(message
-				+ " @ [ "
-				+ bindingNodeStack.stream().map(SchemaNode::getName)
-						.map(Objects::toString).collect(Collectors.joining(" < ")) + " ]");
+		super(message + " @ " + getUnbindingNodeStackString(bindingNodeStack));
 
 		this.bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(
 				bindingNodeStack));

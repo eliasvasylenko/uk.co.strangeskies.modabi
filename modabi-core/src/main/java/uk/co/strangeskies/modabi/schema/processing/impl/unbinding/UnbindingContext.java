@@ -152,6 +152,13 @@ public interface UnbindingContext {
 
 	default <T> UnbindingContext withUnbindingNode(SchemaNode.Effective<?, ?> node) {
 		UnbindingContext base = this;
+
+		List<SchemaNode.Effective<?, ?>> unbindingStack = new ArrayList<>(
+				base.unbindingNodeStack());
+		unbindingStack.add(node);
+		List<SchemaNode.Effective<?, ?>> finalUnbindingStack = Collections
+				.unmodifiableList(unbindingStack);
+
 		return new UnbindingContext() {
 			@Override
 			public <U> List<Model<? extends U>> getMatchingModels(
@@ -187,10 +194,7 @@ public interface UnbindingContext {
 
 			@Override
 			public List<SchemaNode.Effective<?, ?>> unbindingNodeStack() {
-				List<SchemaNode.Effective<?, ?>> bindingStack = new ArrayList<>(
-						base.unbindingNodeStack());
-				bindingStack.add(node);
-				return Collections.unmodifiableList(bindingStack);
+				return finalUnbindingStack;
 			}
 
 			@Override

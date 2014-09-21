@@ -14,6 +14,8 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	boolean isDataContext();
 
+	boolean hasInput();
+
 	Class<?> getInputTargetClass(QualifiedName node);
 
 	Class<?> getOutputSourceClass();
