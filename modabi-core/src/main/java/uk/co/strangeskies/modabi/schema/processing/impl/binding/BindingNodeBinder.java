@@ -100,10 +100,16 @@ public class BindingNodeBinder {
 		}
 
 		childContext = childContext.withBindingTarget(binding);
+		System.out.println(node.getName() + " ? "
+				+ childContext.bindingTargetStack());
 
-		while (children.hasNext())
-			binding = bindChild(children.next(),
-					childContext.withBindingTarget(binding));
+		while (children.hasNext()) {
+			ChildNode.Effective<?, ?> next = children.next();
+			childContext = childContext.withReplacedBindingTarget(binding);
+			binding = bindChild(next, childContext);
+			System.out.println(next.getName() + " ? "
+					+ childContext.bindingTargetStack());
+		}
 
 		return (U) binding;
 	}

@@ -47,6 +47,11 @@ public class SchemaBinder {
 						.stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 						.map(Binding::getData).collect(Collectors.toSet()), idDomain, id);
 			}
+
+			@Override
+			public String toString() {
+				return "importSource";
+			}
 		};
 
 		Function<BindingContext, DataLoader> loader = context -> new DataLoader() {
@@ -54,6 +59,11 @@ public class SchemaBinder {
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				// return new DataNodeBinder(context).bind(node); TODO
 				return null;
+			}
+
+			@Override
+			public String toString() {
+				return "dataLoader";
 			}
 		};
 
@@ -64,12 +74,22 @@ public class SchemaBinder {
 				return matchBinding(context, model, context.bindings().get(model),
 						idDomain, id);
 			}
+
+			@Override
+			public String toString() {
+				return "referenceSource";
+			}
 		};
 
 		Function<BindingContext, IncludeTarget> includeTarget = context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, U object) {
 				context.bindings().add(model, object);
+			}
+
+			@Override
+			public String toString() {
+				return "includeTarget";
 			}
 		};
 
@@ -92,6 +112,11 @@ public class SchemaBinder {
 			}
 
 			@Override
+			public String toString() {
+				return "bindingContext";
+			}
+
+			@Override
 			public boolean isProvided(Class<?> clazz) {
 				return clazz.equals(ReferenceSource.class)
 						|| clazz.equals(IncludeTarget.class)
@@ -101,8 +126,8 @@ public class SchemaBinder {
 			}
 
 			@Override
-			public Object bindingTarget() {
-				throw exception("Root node is not bound to an object.");
+			public List<Object> bindingTargetStack() {
+				return Collections.emptyList();
 			}
 
 			@Override

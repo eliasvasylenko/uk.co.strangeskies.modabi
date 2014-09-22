@@ -27,14 +27,22 @@ public interface BindingContext {
 	List<SchemaNode.Effective<?, ?>> bindingNodeStack();
 
 	default SchemaNode.Effective<?, ?> bindingNode() {
-		return bindingNodeStack().get(bindingNodeStack().size() - 1);
+		return bindingNode(0);
 	}
 
 	default SchemaNode.Effective<?, ?> bindingNode(int parent) {
-		return bindingNodeStack().get(bindingNodeStack().size() - 1 - parent);
+		return bindingNodeStack().get(bindingNodeStack().size() - (1 + parent));
 	}
 
-	Object bindingTarget();
+	List<Object> bindingTargetStack();
+
+	default Object bindingTarget() {
+		return bindingTarget(0);
+	}
+
+	default Object bindingTarget(int parent) {
+		return bindingTargetStack().get(bindingTargetStack().size() - (1 + parent));
+	}
 
 	Model.Effective<?> getModel(QualifiedName nextElement);
 
@@ -87,8 +95,8 @@ public interface BindingContext {
 			}
 
 			@Override
-			public Object bindingTarget() {
-				return base.bindingTarget();
+			public List<Object> bindingTargetStack() {
+				return base.bindingTargetStack();
 			}
 
 			@Override
@@ -111,6 +119,11 @@ public interface BindingContext {
 
 	default <T> BindingContext withBindingTarget(Object target) {
 		BindingContext base = this;
+
+		List<Object> targetStack = new ArrayList<>(base.bindingTargetStack());
+		targetStack.add(target);
+		List<Object> finalTargetStack = Collections.unmodifiableList(targetStack);
+
 		return new BindingContext() {
 			@Override
 			public <U> U provide(Class<U> clazz, BindingContext headContext) {
@@ -133,8 +146,60 @@ public interface BindingContext {
 			}
 
 			@Override
-			public Object bindingTarget() {
-				return target;
+			public List<Object> bindingTargetStack() {
+				return finalTargetStack;
+			}
+
+			@Override
+			public List<SchemaNode.Effective<?, ?>> bindingNodeStack() {
+				return base.bindingNodeStack();
+			}
+
+			@Override
+			public Bindings bindings() {
+				return base.bindings();
+			}
+
+			@Override
+			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+					DataNode.Effective<U> node, Class<?> dataClass) {
+				return base.getMatchingTypes(node, dataClass);
+			}
+		};
+	}
+
+	default <T> BindingContext withReplacedBindingTarget(Object target) {
+		BindingContext base = this;
+
+		List<Object> targetStack = new ArrayList<>(base.bindingTargetStack());
+		targetStack.remove(targetStack.size() - 1);
+		targetStack.add(target);
+		List<Object> finalTargetStack = Collections.unmodifiableList(targetStack);
+
+		return new BindingContext() {
+			@Override
+			public <U> U provide(Class<U> clazz, BindingContext headContext) {
+				return base.provide(clazz, headContext);
+			}
+
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return base.isProvided(clazz);
+			}
+
+			@Override
+			public StructuredDataSource input() {
+				return base.input();
+			}
+
+			@Override
+			public Model.Effective<?> getModel(QualifiedName nextElement) {
+				return base.getModel(nextElement);
+			}
+
+			@Override
+			public List<Object> bindingTargetStack() {
+				return finalTargetStack;
 			}
 
 			@Override
@@ -186,8 +251,8 @@ public interface BindingContext {
 			}
 
 			@Override
-			public Object bindingTarget() {
-				return base.bindingTarget();
+			public List<Object> bindingTargetStack() {
+				return base.bindingTargetStack();
 			}
 
 			@Override
@@ -232,8 +297,8 @@ public interface BindingContext {
 			}
 
 			@Override
-			public Object bindingTarget() {
-				return base.bindingTarget();
+			public List<Object> bindingTargetStack() {
+				return base.bindingTargetStack();
 			}
 
 			@Override

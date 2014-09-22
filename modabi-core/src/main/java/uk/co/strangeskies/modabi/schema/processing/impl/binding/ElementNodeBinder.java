@@ -44,8 +44,11 @@ public class ElementNodeBinder {
 
 					U binding = new BindingNodeBinder(context).bind(inputNode);
 
-					if (inputNode.isInMethodChained())
-						context = context.withBindingTarget(binding);
+					if (inputNode.isInMethodChained()) {
+						context = context.withReplacedBindingTarget(binding);
+						System.out.println(inputNode.getName() + " ? "
+								+ context.bindingTargetStack());
+					}
 
 					result.add(binding);
 					context.bindings().add(inputNode, binding);

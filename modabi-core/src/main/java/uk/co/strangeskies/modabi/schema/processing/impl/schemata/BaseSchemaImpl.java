@@ -159,8 +159,13 @@ public class BaseSchemaImpl implements BaseSchema {
 															.bindingStrategy(BindingStrategy.PROVIDED)
 															.bindingClass(BindingContext.class)
 															.addChild(
-																	e -> e.inputSequence().name("bindingNode")
-																			.inMethodChained(true))
+																	e -> e
+																			.inputSequence()
+																			.name("bindingNode")
+																			.inMethodChained(true)
+																			.postInputClass(
+																					DataBindingType.Effective.class)
+																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e
 																			.data()
@@ -190,8 +195,13 @@ public class BaseSchemaImpl implements BaseSchema {
 															.bindingStrategy(BindingStrategy.PROVIDED)
 															.bindingClass(BindingContext.class)
 															.addChild(
-																	e -> e.inputSequence().name("bindingNode")
-																			.inMethodChained(true))
+																	e -> e
+																			.inputSequence()
+																			.name("bindingNode")
+																			.inMethodChained(true)
+																			.postInputClass(
+																					DataBindingType.Effective.class)
+																			.allowInMethodResultCast(true))
 															.addChild(
 																	e -> e
 																			.data()
@@ -303,8 +313,13 @@ public class BaseSchemaImpl implements BaseSchema {
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingClass(BindingContext.class)
 													.addChild(
-															e -> e.inputSequence().name("bindingNode")
-																	.inMethodChained(true))
+															e -> e
+																	.inputSequence()
+																	.name("bindingNode")
+																	.inMethodChained(true)
+																	.postInputClass(
+																			DataBindingType.Effective.class)
+																	.allowInMethodResultCast(true))
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -332,8 +347,13 @@ public class BaseSchemaImpl implements BaseSchema {
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingClass(BindingContext.class)
 													.addChild(
-															e -> e.inputSequence().name("bindingNode")
-																	.inMethodChained(true))
+															e -> e
+																	.inputSequence()
+																	.name("bindingNode")
+																	.inMethodChained(true)
+																	.postInputClass(
+																			DataBindingType.Effective.class)
+																	.allowInMethodResultCast(true))
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -399,7 +419,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							.inMethodChained(true)
 																							.provideValue(
 																									new BufferingDataTarget()
-																											.put(DataType.INT, 1)
+																											.put(DataType.INT, 2)
 																											.buffer()))
 																			.addChild(
 																					f -> f
@@ -429,36 +449,21 @@ public class BaseSchemaImpl implements BaseSchema {
 																	e -> e
 																			.data()
 																			.name("object")
-																			.type(referenceType)
 																			.dataClass(Model.class)
 																			.outMethod("null")
-																			.provideValue(
-																					new BufferingDataTarget().put(
-																							DataType.QUALIFIED_NAME,
-																							new QualifiedName("include",
-																									namespace)).buffer())
+																			.bindingStrategy(BindingStrategy.PROVIDED)
+																			.bindingClass(BindingContext.class)
 																			.addChild(
 																					f -> f
 																							.data()
-																							.name("targetModel")
+																							.name("bindingTarget")
+																							.type(
+																									primitives.get(DataType.INT))
+																							.inMethodChained(true)
+																							.outMethod("null")
 																							.provideValue(
 																									new BufferingDataTarget()
-																											.put(
-																													DataType.QUALIFIED_NAME,
-																													new QualifiedName(
-																															"include",
-																															namespace))
-																											.buffer()))
-																			.addChild(
-																					f -> f
-																							.data()
-																							.name("targetId")
-																							.provideValue(
-																									new BufferingDataTarget()
-																											.put(
-																													DataType.QUALIFIED_NAME,
-																													new QualifiedName(
-																															"name", namespace))
+																											.put(DataType.INT, 2)
 																											.buffer()))))).create());
 
 			typeSet
@@ -475,6 +480,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.name("import")
 											.outMethod("this")
 											.inMethod("null")
+											.inMethodChained(true)
 											.isAbstract(true)
 											.dataClass(Object.class)
 											.bindingClass(ImportSource.class)
@@ -538,9 +544,17 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
-																					e -> e.inputSequence()
+																					f -> f
+																							.data()
 																							.name("bindingNode")
-																							.inMethodChained(true))
+																							.type(
+																									primitives.get(DataType.INT))
+																							.outMethod("null")
+																							.inMethodChained(true)
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(DataType.INT, 1)
+																											.buffer()))
 																			.addChild(
 																					e -> e
 																							.data()
@@ -576,9 +590,17 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.provideValue(
 																					new BufferingDataTarget().buffer())
 																			.addChild(
-																					e -> e.inputSequence()
+																					f -> f
+																							.data()
 																							.name("bindingNode")
-																							.inMethodChained(true))
+																							.type(
+																									primitives.get(DataType.INT))
+																							.outMethod("null")
+																							.inMethodChained(true)
+																							.provideValue(
+																									new BufferingDataTarget()
+																											.put(DataType.INT, 1)
+																											.buffer()))
 																			.addChild(
 																					e -> e
 																							.data()

@@ -31,7 +31,7 @@ public interface DataNode<T> extends
 				throw new SchemaException("Cannot request single value from node '"
 						+ getName() + "' with occurances '" + occurances() + "'.");
 
-			if (providedValues().isEmpty())
+			if (providedValues() == null || providedValues().isEmpty())
 				return null;
 			else
 				return providedValues().get(0);

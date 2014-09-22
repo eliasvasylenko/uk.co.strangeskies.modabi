@@ -21,8 +21,6 @@ public class DataNodeBinder {
 
 		List<U> results = new ArrayList<>();
 
-		System.out.println("@ " + node.getName());
-
 		if (node.isValueProvided()) {
 			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME)
 				results.addAll(node.providedValues());
@@ -50,10 +48,7 @@ public class DataNodeBinder {
 			case SIMPLE_ELEMENT:
 				BindingContext context = this.context;
 
-				System.out.println("doin " + node.getName());
-				System.out.println("gets " + context.input().peekNextChild());
 				while (node.getName().equals(context.input().peekNextChild())) {
-					System.out.println("go");
 					context.input().startNextChild(node.getName());
 
 					dataSource = context.input().readContent();
@@ -61,8 +56,11 @@ public class DataNodeBinder {
 					U result = bindWithDataSource(dataSource, context, node);
 					results.add(result);
 
-					if (node.isInMethodChained())
-						context = context.withBindingTarget(result);
+					if (node.isInMethodChained()) {
+						context = context.withReplacedBindingTarget(result);
+						System.out.println(node.getName() + " ? "
+								+ context.bindingTargetStack());
+					}
 
 					context.input().endChild();
 				}
