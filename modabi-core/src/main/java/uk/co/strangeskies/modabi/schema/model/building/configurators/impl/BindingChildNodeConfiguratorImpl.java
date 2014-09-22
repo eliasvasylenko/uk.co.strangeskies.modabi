@@ -34,6 +34,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private String inMethodName;
 			private final Method inMethod;
 			private final Boolean inMethodChained;
+			private final Boolean isInMethodIterable;
 			private final Boolean allowInMethodResultCast;
 
 			private final Boolean extensible;
@@ -70,9 +71,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethodChained = overrideMerge.getValue(
 						BindingChildNode::isInMethodChained, false);
 
+				isInMethodIterable = overrideMerge.getValue(
+						BindingChildNode::isInMethodIterable, false);
+
 				allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-						: overrideMerge.getValue(BindingChildNode::allowInMethodResultCast,
-								false);
+						: overrideMerge.getValue(BindingChildNode::isInMethodCast, false);
 
 				outMethodName = overrideMerge
 						.tryGetValue(BindingChildNode::getOutMethodName);
@@ -110,7 +113,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				postInputClass = InputSequenceNodeConfiguratorImpl
 						.effectivePostInputClass(isAbstract(), inputTargetClass,
-								inMethodName, inMethod, inMethodChained, overrideMerge);
+								inMethodName, inMethod, inMethodChained, isInMethodIterable,
+								overrideMerge);
 			}
 
 			@Override
@@ -169,7 +173,12 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			public Boolean allowInMethodResultCast() {
+			public final Boolean isInMethodIterable() {
+				return isInMethodIterable;
+			}
+
+			@Override
+			public Boolean isInMethodCast() {
 				return allowInMethodResultCast;
 			}
 		}
@@ -183,6 +192,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 		private final String inMethodName;
 		private final Boolean inMethodChained;
+		private final Boolean isInMethodIterable;
 		private final Boolean allowInMethodResultCast;
 
 		private final Boolean extensible;
@@ -202,6 +212,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
+			isInMethodIterable = configurator.isInMethodIterable;
 			allowInMethodResultCast = configurator.allowInMethodResultCast;
 		}
 
@@ -241,7 +252,12 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
-		public Boolean allowInMethodResultCast() {
+		public final Boolean isInMethodIterable() {
+			return isInMethodIterable;
+		}
+
+		@Override
+		public Boolean isInMethodCast() {
 			return allowInMethodResultCast;
 		}
 
@@ -260,6 +276,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private String inMethodName;
 	private Boolean inMethodChained;
 	private Boolean allowInMethodResultCast;
+	private Boolean isInMethodIterable;
 	private Boolean extensible;
 	private Boolean ordered;
 
@@ -319,9 +336,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public final S allowInMethodResultCast(boolean allowInMethodResultCast) {
+	public final S isInMethodCast(boolean allowInMethodResultCast) {
 		requireConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
+
+		return getThis();
+	}
+
+	@Override
+	public S isInMethodIterable(boolean isInMethodIterable) {
+		requireConfigurable(this.isInMethodIterable);
+		this.isInMethodIterable = isInMethodIterable;
 
 		return getThis();
 	}

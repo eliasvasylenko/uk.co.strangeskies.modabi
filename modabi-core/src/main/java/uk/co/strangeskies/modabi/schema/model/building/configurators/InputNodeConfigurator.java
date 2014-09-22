@@ -10,5 +10,7 @@ public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N, C, 
 
 	public S inMethodChained(boolean chained);
 
-	public S allowInMethodResultCast(boolean allowInMethodResultCast);
+	public S isInMethodCast(boolean isInMethodCast);
+
+	public S isInMethodIterable(boolean isInMethodIterable);
 }

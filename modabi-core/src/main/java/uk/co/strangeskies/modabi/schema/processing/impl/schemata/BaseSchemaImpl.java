@@ -89,7 +89,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.inMethodChained(false).outMethodIterable(true))
 					.addChild(
 							c -> c.inputSequence().name("toArray").inMethodChained(true)
-									.allowInMethodResultCast(true)).create());
+									.isInMethodCast(true)).create());
 
 			typeSet.add(collectionType = builder
 					.configure(loader)
@@ -165,7 +165,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.inMethodChained(true)
 																			.postInputClass(
 																					DataBindingType.Effective.class)
-																			.allowInMethodResultCast(true))
+																			.isInMethodCast(true))
 															.addChild(
 																	e -> e
 																			.data()
@@ -181,7 +181,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							new QualifiedName("targetModel",
 																									namespace)).buffer())
 																			.postInputClass(DataNode.Effective.class)
-																			.allowInMethodResultCast(true))
+																			.isInMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -201,7 +201,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.inMethodChained(true)
 																			.postInputClass(
 																					DataBindingType.Effective.class)
-																			.allowInMethodResultCast(true))
+																			.isInMethodCast(true))
 															.addChild(
 																	e -> e
 																			.data()
@@ -217,7 +217,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							new QualifiedName("targetId",
 																									namespace)).buffer())
 																			.postInputClass(DataNode.Effective.class)
-																			.allowInMethodResultCast(true))
+																			.isInMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -319,7 +319,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.inMethodChained(true)
 																	.postInputClass(
 																			DataBindingType.Effective.class)
-																	.allowInMethodResultCast(true))
+																	.isInMethodCast(true))
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -353,7 +353,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.inMethodChained(true)
 																	.postInputClass(
 																			DataBindingType.Effective.class)
-																	.allowInMethodResultCast(true))
+																	.isInMethodCast(true))
 													.addChild(
 															p -> p.inputSequence().name("getDataClass")
 																	.inMethodChained(true)))
@@ -440,7 +440,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																											.buffer())
 																							.postInputClass(
 																									DataNode.Effective.class)
-																							.allowInMethodResultCast(true))
+																							.isInMethodCast(true))
 																			.addChild(
 																					f -> f.inputSequence()
 																							.name("providedValue")
@@ -533,6 +533,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													c -> c
 															.inputSequence()
 															.name("importObject")
+															.inMethodChained(true)
 															.addChild(
 																	d -> d
 																			.data()
@@ -574,7 +575,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																											.buffer())
 																							.postInputClass(
 																									DataNode.Effective.class)
-																							.allowInMethodResultCast(true))
+																							.isInMethodCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
 																							.name("providedValue")
@@ -620,7 +621,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																											.buffer())
 																							.postInputClass(
 																									DataNode.Effective.class)
-																							.allowInMethodResultCast(true))
+																							.isInMethodCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
 																							.name("providedValue")

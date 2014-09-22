@@ -171,9 +171,9 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("inMethodChained")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY)
-								.name("allowInMethodResultCast").optional(true)
-								.type(base.primitiveType(DataType.BOOLEAN))).create();
+						n -> n.data().format(Format.PROPERTY).name("isInMethodCast")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.create();
 		modelSet.add(inputModel);
 
 		Model<BindingNode> bindingNodeModel = model
@@ -574,10 +574,15 @@ public class MetaSchemaImpl implements MetaSchema {
 														p -> p
 																.data()
 																.name("dataTypes")
-																.outMethodIterable(true)
 																.inMethod("null")
 																.occurances(Range.create(0, null))
+																.outMethodIterable(true)
 																.type(base.derivedTypes().includeType())
+																.bindingClass(Schema.class)
+																.addChild(
+																		q -> q.inputSequence().name("getDataTypes")
+																				.inMethodChained(true)
+																				.isInMethodIterable(true))
 																.addChild(
 																		q -> q
 																				.data()
@@ -591,10 +596,15 @@ public class MetaSchemaImpl implements MetaSchema {
 														p -> p
 																.data()
 																.name("models")
-																.outMethodIterable(true)
 																.inMethod("null")
 																.occurances(Range.create(0, null))
+																.outMethodIterable(true)
 																.type(base.derivedTypes().includeType())
+																.bindingClass(Schema.class)
+																.addChild(
+																		q -> q.inputSequence().name("getModels")
+																				.inMethodChained(true)
+																				.isInMethodIterable(true))
 																.addChild(
 																		q -> q
 																				.data()

@@ -34,6 +34,9 @@ public class BindingNodeBinder {
 
 	@SuppressWarnings("unchecked")
 	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
+		System.out.println(node.getName().getName() + ": "
+				+ context.bindingTargetStack());
+
 		BindingContext childContext = context.withBindingNode(node).withProvision(
 				BindingNode.Effective.class, () -> node);
 
@@ -100,14 +103,14 @@ public class BindingNodeBinder {
 		}
 
 		childContext = childContext.withBindingTarget(binding);
-		System.out.println(node.getName() + " ? "
+		System.out.println("  " + node.getName().getName() + " ? "
 				+ childContext.bindingTargetStack());
 
 		while (children.hasNext()) {
 			ChildNode.Effective<?, ?> next = children.next();
-			childContext = childContext.withReplacedBindingTarget(binding);
 			binding = bindChild(next, childContext);
-			System.out.println(next.getName() + " ? "
+			childContext = childContext.withReplacedBindingTarget(binding);
+			System.out.println("    " + next.getName().getName() + " ? "
 					+ childContext.bindingTargetStack());
 		}
 

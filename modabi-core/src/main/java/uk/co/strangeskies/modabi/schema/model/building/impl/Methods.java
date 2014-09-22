@@ -33,19 +33,17 @@ public class Methods {
 			List<Class<?>> parameters) {
 		try {
 			Class<?> result;
-			if (node.isInMethodChained()) {
+			if (node.isInMethodIterable() != null && node.isInMethodIterable())
+				result = Iterable.class;
+			else if (node.isInMethodChained()) {
 				result = node.source().getPostInputClass();
 				if (result == null)
 					result = Object.class;
 			} else
 				result = null;
 
-			return findMethod(
-					generateInMethodNames(node),
-					receiverClass,
-					result,
-					node != null && node.isInMethodChained()
-							&& node.allowInMethodResultCast(),
+			return findMethod(generateInMethodNames(node), receiverClass, result,
+					node != null && node.isInMethodChained() && node.isInMethodCast(),
 					parameters.toArray(new Class<?>[parameters.size()]));
 		} catch (NoSuchMethodException e) {
 			throw new SchemaException(e);

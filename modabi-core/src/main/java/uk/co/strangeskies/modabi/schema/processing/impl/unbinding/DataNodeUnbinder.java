@@ -17,7 +17,6 @@ import uk.co.strangeskies.modabi.schema.model.building.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
-import uk.co.strangeskies.utilities.MultiException;
 
 public class DataNodeUnbinder {
 	private final UnbindingContext context;
@@ -163,12 +162,14 @@ public class DataNodeUnbinder {
 					new UnbindingAttempter(context).tryForEach(
 							nodes,
 							(c, n) -> new BindingNodeUnbinder(context).unbind(node, item),
-							l -> new MultiException("Unable to unbind data node '"
-									+ node.getName()
-									+ "' with type candidates '"
-									+ nodes.stream().map(m -> m.source().getName().toString())
-											.collect(Collectors.joining(", ")) + "' for object '"
-									+ item + "' to be unbound.", l));
+							l -> context.exception(
+									"Unable to unbind data node '"
+											+ node.getName()
+											+ "' with type candidates '"
+											+ nodes.stream()
+													.map(m -> m.source().getName().toString())
+													.collect(Collectors.joining(", ")) + "' for object '"
+											+ item + "' to be unbound.", l));
 				} else {
 					new BindingNodeUnbinder(context).unbind(node, item);
 				}

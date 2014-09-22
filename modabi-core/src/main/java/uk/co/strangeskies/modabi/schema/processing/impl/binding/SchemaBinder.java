@@ -84,6 +84,8 @@ public class SchemaBinder {
 		Function<BindingContext, IncludeTarget> includeTarget = context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, U object) {
+				System.out.println("             ~~~~ mode: " + model + " obj: "
+						+ object);
 				context.bindings().add(model, object);
 			}
 

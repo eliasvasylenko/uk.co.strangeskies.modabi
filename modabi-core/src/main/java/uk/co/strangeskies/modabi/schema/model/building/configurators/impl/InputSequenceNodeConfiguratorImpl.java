@@ -38,6 +38,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			private final Method inMethod;
 			private final Boolean inMethodChained;
 			private final Boolean allowInMethodResultCast;
+			private final Boolean isInMethodIterable;
 
 			private final Class<?> preInputClass;
 			private final Class<?> postInputClass;
@@ -50,8 +51,11 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 						InputSequenceNode::isInMethodChained, false);
 
 				allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-						: overrideMerge.getValue(
-								InputSequenceNode::allowInMethodResultCast, false);
+						: overrideMerge.getValue(InputSequenceNode::isInMethodCast, false);
+
+				isInMethodIterable = inMethodChained != null && !inMethodChained ? null
+						: overrideMerge.getValue(InputSequenceNode::isInMethodIterable,
+								false);
 
 				List<Class<?>> parameterClasses = overrideMerge
 						.configurator()
@@ -86,7 +90,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 				postInputClass = effectivePostInputClass(isAbstract(),
 						inputTargetClass, inMethodName, inMethod, inMethodChained,
-						overrideMerge);
+						isInMethodIterable, overrideMerge);
 			}
 
 			@Override
@@ -105,8 +109,13 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			}
 
 			@Override
-			public Boolean allowInMethodResultCast() {
+			public Boolean isInMethodCast() {
 				return allowInMethodResultCast;
+			}
+
+			@Override
+			public Boolean isInMethodIterable() {
+				return isInMethodIterable;
 			}
 
 			@Override
@@ -126,6 +135,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
+		private final Boolean isInMethodIterable;
 
 		public InputSequenceNodeImpl(
 				InputSequenceNodeConfiguratorImpl<?> configurator) {
@@ -135,6 +145,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
 			allowInMethodResultCast = configurator.allowInMethodResultCast;
+			isInMethodIterable = configurator.isInMethodIterable;
 
 			effective = new Effective(overrideMerge(this, configurator));
 		}
@@ -150,8 +161,13 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		}
 
 		@Override
-		public Boolean allowInMethodResultCast() {
+		public Boolean isInMethodCast() {
 			return allowInMethodResultCast;
+		}
+
+		@Override
+		public Boolean isInMethodIterable() {
+			return isInMethodIterable;
 		}
 
 		@Override
@@ -168,6 +184,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	private String inMethodName;
 	private Boolean inMethodChained;
 	private Boolean allowInMethodResultCast;
+	private Boolean isInMethodIterable;
 
 	public InputSequenceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super InputSequenceNode> parent) {
@@ -200,10 +217,19 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator<C> allowInMethodResultCast(
+	public InputSequenceNodeConfigurator<C> isInMethodCast(
 			boolean allowInMethodResultCast) {
 		requireConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
+
+		return this;
+	}
+
+	@Override
+	public InputSequenceNodeConfigurator<C> isInMethodIterable(
+			boolean isInMethodIterable) {
+		requireConfigurable(this.isInMethodIterable);
+		this.isInMethodIterable = isInMethodIterable;
 
 		return this;
 	}
@@ -264,28 +290,26 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			String inMethodName,
 			Method inMethod,
 			Boolean inMethodChained,
+			Boolean inMethodIterable,
 			OverrideMerge<? extends InputNode<?, ?>, ? extends InputNodeConfigurator<?, ?, ?, ?>> overrideMerge) {
 		Class<?> postInputClass;
-		if (isAbstract) {
-			if ("null".equals(inMethodName)
-					|| (inMethodChained != null && !inMethodChained)) {
-				postInputClass = inputTargetClass;
-			} else {
-				postInputClass = overrideMerge.tryGetValue(
-						InputNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
-			}
-		} else {
-			if ("null".equals(inMethodName) || !inMethodChained) {
-				postInputClass = inputTargetClass;
-			} else {
-				Class<?> localPostInputClass = overrideMerge.node().getPostInputClass();
-				if (localPostInputClass == null
-						|| localPostInputClass.isAssignableFrom(inMethod.getReturnType()))
-					localPostInputClass = inMethod.getReturnType();
-				postInputClass = overrideMerge.getValueWithOverride(
-						localPostInputClass, InputNode::getPostInputClass,
-						(n, o) -> o.isAssignableFrom(n));
-			}
+
+		if ("null".equals(inMethodName)
+				|| (inMethodChained != null && !inMethodChained))
+			postInputClass = inputTargetClass;
+		else if (isAbstract)
+			postInputClass = overrideMerge.tryGetValue(InputNode::getPostInputClass,
+					(n, o) -> o.isAssignableFrom(n));
+		else {
+			Class<?> methodReturn = inMethodIterable ? Object.class : inMethod
+					.getReturnType();
+
+			Class<?> localPostInputClass = overrideMerge.node().getPostInputClass();
+			if (localPostInputClass == null
+					|| localPostInputClass.isAssignableFrom(methodReturn))
+				localPostInputClass = methodReturn;
+			postInputClass = overrideMerge.getValueWithOverride(localPostInputClass,
+					InputNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
 		}
 
 		return postInputClass;

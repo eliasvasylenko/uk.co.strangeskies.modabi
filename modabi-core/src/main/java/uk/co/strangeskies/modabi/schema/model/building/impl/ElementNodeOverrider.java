@@ -187,8 +187,8 @@ public class ElementNodeOverrider {
 
 		public <U, C extends InputNodeConfigurator<C, ?, ?, ?>> C processInputNode(
 				InputNode<?, ?> node, C c) {
-			c = tryProperty(node.allowInMethodResultCast(),
-					c::allowInMethodResultCast, c);
+			c = tryProperty(node.isInMethodCast(), c::isInMethodCast, c);
+			c = tryProperty(node.isInMethodIterable(), c::isInMethodIterable, c);
 			c = tryProperty(node.getInMethodName(), c::inMethod, c);
 			c = tryProperty(node.isInMethodChained(), c::inMethodChained, c);
 			c = tryProperty(node.getPostInputClass(), c::postInputClass, c);

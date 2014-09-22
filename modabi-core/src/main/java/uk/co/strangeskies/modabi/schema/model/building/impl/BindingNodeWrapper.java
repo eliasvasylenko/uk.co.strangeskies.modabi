@@ -160,8 +160,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public Boolean allowInMethodResultCast() {
-		return base == null ? null : base.allowInMethodResultCast();
+	public Boolean isInMethodCast() {
+		return base == null ? null : base.isInMethodCast();
 	}
 
 	@Override
@@ -177,6 +177,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	@Override
 	public final Boolean isInMethodChained() {
 		return base == null ? null : base.isInMethodChained();
+	}
+
+	@Override
+	public final Boolean isInMethodIterable() {
+		return base == null ? null : base.isInMethodIterable();
 	}
 
 	@Override

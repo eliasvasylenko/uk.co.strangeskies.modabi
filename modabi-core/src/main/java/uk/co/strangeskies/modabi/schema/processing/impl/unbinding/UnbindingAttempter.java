@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.data.io.DataTarget;
 import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
-import uk.co.strangeskies.utilities.MultiException;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
 
 public class UnbindingAttempter {
 	private final UnbindingContext context;
@@ -21,7 +21,7 @@ public class UnbindingAttempter {
 
 	public <I extends SchemaNode.Effective<?, ?>> void tryForEach(
 			List<I> unbindingItems, BiConsumer<UnbindingContext, I> unbindingMethod,
-			Function<List<SchemaException>, MultiException> onFailure) {
+			Function<List<SchemaException>, UnbindingException> onFailure) {
 		if (unbindingItems.isEmpty())
 			throw new IllegalArgumentException(
 					"Must supply items for unbinding attempt.");

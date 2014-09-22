@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -39,6 +40,11 @@ public interface UnbindingContext {
 			DataNode.Effective<T> node, Class<?> dataClass);
 
 	default UnbindingException exception(String message, Exception cause) {
+		return new UnbindingException(message, unbindingNodeStack(), cause);
+	}
+
+	default UnbindingException exception(String message,
+			Collection<? extends Exception> cause) {
 		return new UnbindingException(message, unbindingNodeStack(), cause);
 	}
 

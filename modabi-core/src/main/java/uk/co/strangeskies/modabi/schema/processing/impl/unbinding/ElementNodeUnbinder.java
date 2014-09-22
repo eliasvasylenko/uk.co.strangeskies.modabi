@@ -43,13 +43,15 @@ public class ElementNodeUnbinder {
 											new ModelBuilderImpl()).override(node, n.effective());
 
 									castAndUnbind(c, overridden, item);
-								},
-								l -> new MultiException("Unable to unbind element '"
-										+ node.getName()
-										+ "' with model candidates '"
-										+ nodes.stream().map(m -> m.source().getName().toString())
-												.collect(Collectors.joining(", ")) + "' for object '"
-										+ item + "' to be unbound.", l));
+								}, l -> context.exception(
+										"Unable to unbind element '"
+												+ node.getName()
+												+ "' with model candidates '"
+												+ nodes.stream()
+														.map(m -> m.source().getName().toString())
+														.collect(Collectors.joining(", "))
+												+ "' for object '" + item + "' to be unbound.",
+										new MultiException(l)));
 			} else {
 				castAndUnbind(context, node, item);
 			}

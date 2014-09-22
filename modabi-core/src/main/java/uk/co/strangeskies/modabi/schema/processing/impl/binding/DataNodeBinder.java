@@ -56,11 +56,8 @@ public class DataNodeBinder {
 					U result = bindWithDataSource(dataSource, context, node);
 					results.add(result);
 
-					if (node.isInMethodChained()) {
+					if (node.isInMethodChained())
 						context = context.withReplacedBindingTarget(result);
-						System.out.println(node.getName() + " ? "
-								+ context.bindingTargetStack());
-					}
 
 					context.input().endChild();
 				}
