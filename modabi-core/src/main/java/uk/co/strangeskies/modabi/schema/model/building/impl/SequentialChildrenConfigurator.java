@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -159,6 +160,14 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			} else {
 				int newIndex = mergedChildren.indexOf(group) + 1;
 
+				List<String> nodesSoFar = mergedChildren.stream()
+						.map(MergeGroup::getName).map(Objects::toString)
+						.collect(Collectors.toCollection(ArrayList::new));
+				nodesSoFar.add(newIndex, "*");
+
+				String nodesSoFarMessage = "Nodes so far: ["
+						+ nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
+
 				if (newIndex < index)
 					if (override)
 						throw new SchemaException(
@@ -166,11 +175,13 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 										+ name
 										+ "' declared by '"
 										+ parentName
-										+ "' cannot be merged into the overridden nodes with order preservation.");
+										+ "' cannot be merged into the overridden nodes with order preservation. "
+										+ nodesSoFarMessage);
 					else
 						throw new SchemaException("The child node '" + name
 								+ "' inherited from the overridden node '" + parentName
-								+ "' cannot be merged with order preservation.");
+								+ "' cannot be merged with order preservation. "
+								+ nodesSoFarMessage);
 
 				if (override)
 					group.override(child);

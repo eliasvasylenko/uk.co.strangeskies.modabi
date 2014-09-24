@@ -26,8 +26,8 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 				.add(BindingChildNode::getOutMethodName)
 				.add(BindingChildNode::isOutMethodIterable)
 				.add(BindingChildNode::occurances).add(BindingChildNode::isOrdered)
-				.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
-				.add(BindingChildNode::isExtensible);
+				.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
+				.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
 	}
 
 	String getOutMethodName();

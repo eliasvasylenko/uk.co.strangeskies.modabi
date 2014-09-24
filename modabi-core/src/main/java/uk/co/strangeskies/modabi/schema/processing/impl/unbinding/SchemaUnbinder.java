@@ -15,6 +15,7 @@ import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
@@ -143,7 +144,7 @@ public class SchemaUnbinder {
 			context.output().nextChild(model.getName());
 			new BindingNodeUnbinder(context).unbind(model, data);
 			context.output().endChild();
-		} catch (SchemaException e) {
+		} catch (UnbindingException e) {
 			throw e;
 		} catch (Exception e) {
 			throw context.exception("Unexpected problem during uninding.", e);

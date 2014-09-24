@@ -1,8 +1,7 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.model.AbstractModel;
 import uk.co.strangeskies.modabi.schema.model.Model;
@@ -15,11 +14,11 @@ public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S
 		SchemaNodeConfigurator<S, N, ChildNode<?, ?>, BindingChildNode<?, ?, ?>> {
 	default <V extends T> AbstractModelConfigurator<?, ?, V> baseModel(
 			@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
-		return this.<V> baseModel(new HashSet<>(Arrays.asList(baseModel)));
+		return this.<V> baseModel(Arrays.asList(baseModel));
 	}
 
 	<V extends T> AbstractModelConfigurator<?, ?, V> baseModel(
-			Set<? extends Model<? super V>> baseModel);
+			List<? extends Model<? super V>> baseModel);
 
 	@Override
 	<V extends T> AbstractModelConfigurator<?, ?, V> dataClass(Class<V> dataClass);

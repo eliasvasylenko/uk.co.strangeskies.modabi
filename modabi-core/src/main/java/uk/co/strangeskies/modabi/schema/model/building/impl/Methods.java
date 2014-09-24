@@ -1,10 +1,12 @@
 package uk.co.strangeskies.modabi.schema.model.building.impl;
 
 import java.lang.reflect.Method;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,9 +35,7 @@ public class Methods {
 			List<Class<?>> parameters) {
 		try {
 			Class<?> result;
-			if (node.isInMethodIterable() != null && node.isInMethodIterable())
-				result = Iterable.class;
-			else if (node.isInMethodChained()) {
+			if (node.isInMethodChained()) {
 				result = node.source().getPostInputClass();
 				if (result == null)
 					result = Object.class;
@@ -186,22 +186,6 @@ public class Methods {
 		if (!addedNodeClass)
 			classList.add(0, nodeClass.apply(node));
 
-		/*-
-		 * TODO Figure out why the following here causes a crash somewhere else...
-		 * But only on some systems...
-		 *
-		   node.getName().getNamespace().getDate().format(DateTimeFormatter.ISO_LOCAL_DATE))
-		 *
-		 * you can get the date, print it out, and it's fine. Just don't try to format it.
-		 *
-		 * Possibly the stupidest error I've ever encountered.
-		 */
-		node.getName().getNamespace().getDate()
-				.format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-		// System.out.println(" " + node.getName() + " ? "
-		// + node.getProvidedUnbindingMethodParameterNames());
-
 		return classList;
 	}
 
@@ -242,28 +226,90 @@ public class Methods {
 	public static Method tryFindMethod(List<String> names, Class<?> receiver,
 			Class<?> result, boolean allowCast, Class<?>... parameters)
 			throws NoSuchMethodException {
-		return Stream
+		Set<Method> overloadCandidates = Stream
 				.concat(Arrays.stream(receiver.getMethods()),
-						Arrays.stream(Object.class.getMethods()))
-				.filter(
-						m -> {
-							if (!names.contains(m.getName()))
-								return false;
+						Arrays.stream(Object.class.getMethods())).filter(m -> {
+					if (!names.contains(m.getName()))
+						return false;
 
-							Class<?>[] methodParameters = m.getParameterTypes();
+					Class<?>[] methodParameters = m.getParameterTypes();
 
-							if (methodParameters.length != parameters.length)
-								return false;
+					if (methodParameters.length != parameters.length)
+						return false;
 
-							int i = 0;
-							for (Class<?> parameter : parameters)
-								if (!ClassUtils.isAssignable(parameter, methodParameters[i++]))
-									return false;
+					int i = 0;
+					for (Class<?> parameter : parameters)
+						if (!ClassUtils.isAssignable(parameter, methodParameters[i++]))
+							return false;
 
-							return result == null
-									|| ClassUtils.isAssignable(m.getReturnType(), result, true)
-									|| (ClassUtils.isAssignable(result, m.getReturnType(), true) && allowCast);
-						}).findAny().orElse(null);
+					return true;
+				}).collect(Collectors.toSet());
+
+		if (overloadCandidates.isEmpty())
+			throw new NoSuchMethodException();
+
+		Method mostSpecific = findMostSpecificOverload(overloadCandidates);
+
+		if (result != null
+				&& !ClassUtils.isAssignable(mostSpecific.getReturnType(), result, true)
+				&& !(ClassUtils
+						.isAssignable(result, mostSpecific.getReturnType(), true) && allowCast))
+			throw new NoSuchMethodException(
+					"Resolved method does not have compatible return type.");
+
+		return mostSpecific;
+	}
+
+	private static Method findMostSpecificOverload(Set<Method> candidates)
+			throws NoSuchMethodException {
+		if (candidates.size() == 1)
+			return candidates.iterator().next();
+
+		/*
+		 * Find which candidates have the joint most specific parameters, one
+		 * parameter at a time.
+		 */
+		Set<Method> mostSpecificSoFar = new HashSet<>(candidates);
+		int parameters = candidates.iterator().next().getParameterCount();
+		for (int i = 0; i < parameters; i++) {
+			Set<Method> mostSpecificForParameter = new HashSet<>();
+
+			Class<?> mostSpecificParameterClass = candidates.iterator().next()
+					.getDeclaringClass();
+
+			for (Method overloadCandidate : candidates) {
+				Class<?> parameterClass = overloadCandidate.getDeclaringClass();
+
+				if (mostSpecificParameterClass.isAssignableFrom(parameterClass)) {
+					mostSpecificParameterClass = parameterClass;
+
+					if (!parameterClass.isAssignableFrom(mostSpecificParameterClass))
+						mostSpecificForParameter.clear();
+					mostSpecificForParameter.add(overloadCandidate);
+				} else if (!parameterClass.isAssignableFrom(mostSpecificParameterClass)) {
+					throw new NoSuchMethodException("Cannot resolve method ambiguity.");
+				}
+			}
+
+			mostSpecificSoFar.retainAll(mostSpecificForParameter);
+
+			if (mostSpecificSoFar.isEmpty())
+				throw new NoSuchMethodException("Cannot resolve method ambiguity.");
+		}
+
+		/*
+		 * Find which of the remaining candidates, which should all have identical
+		 * parameter types, is declared in the lowermost class.
+		 */
+		Iterator<Method> overrideCandidateIterator = mostSpecificSoFar.iterator();
+		Method mostSpecific = overrideCandidateIterator.next();
+		while (overrideCandidateIterator.hasNext()) {
+			Method candidate = overrideCandidateIterator.next();
+			mostSpecific = mostSpecific.getDeclaringClass().isAssignableFrom(
+					candidate.getDeclaringClass()) ? candidate : mostSpecific;
+		}
+
+		return mostSpecific;
 	}
 
 	private static List<String> generateUnbindingMethodNames(

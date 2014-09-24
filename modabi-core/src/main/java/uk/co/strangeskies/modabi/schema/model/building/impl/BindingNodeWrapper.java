@@ -180,11 +180,6 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Boolean isInMethodIterable() {
-		return base == null ? null : base.isInMethodIterable();
-	}
-
-	@Override
 	public final Class<?> getPreInputClass() {
 		return base == null ? null : base.getPreInputClass();
 	}

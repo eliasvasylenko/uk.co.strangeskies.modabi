@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.schema.model.building.impl;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.model.AbstractModel;
@@ -28,7 +28,7 @@ public class ElementNodeWrapper<T>
 	}
 
 	@Override
-	public Set<Model.Effective<? super T>> baseModel() {
-		return Collections.unmodifiableSet(getComponent().baseModel());
+	public List<Model.Effective<? super T>> baseModel() {
+		return Collections.unmodifiableList(getComponent().baseModel());
 	}
 }

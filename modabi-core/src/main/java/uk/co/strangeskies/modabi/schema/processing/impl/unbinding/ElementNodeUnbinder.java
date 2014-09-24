@@ -9,7 +9,6 @@ import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ElementNodeOverrider;
 import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
-import uk.co.strangeskies.utilities.MultiException;
 
 public class ElementNodeUnbinder {
 	private final UnbindingContext context;
@@ -50,8 +49,7 @@ public class ElementNodeUnbinder {
 												+ nodes.stream()
 														.map(m -> m.source().getName().toString())
 														.collect(Collectors.joining(", "))
-												+ "' for object '" + item + "' to be unbound.",
-										new MultiException(l)));
+												+ "' for object '" + item + "' to be unbound.", l));
 			} else {
 				castAndUnbind(context, node, item);
 			}

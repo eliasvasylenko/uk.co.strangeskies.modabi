@@ -1,10 +1,9 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
@@ -15,7 +14,6 @@ import uk.co.strangeskies.modabi.schema.model.building.impl.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
-import uk.co.strangeskies.utilities.IdentityComparator;
 
 public class ModelConfiguratorImpl<T>
 		extends
@@ -26,42 +24,42 @@ public class ModelConfiguratorImpl<T>
 		private static class Effective<T> extends
 				BindingNodeImpl.Effective<T, Model<T>, Model.Effective<T>> implements
 				Model.Effective<T> {
-			private final Set<Model.Effective<? super T>> baseModel;
+			private final List<Model.Effective<? super T>> baseModel;
 
 			protected Effective(
 					OverrideMerge<Model<T>, ModelConfiguratorImpl<T>> overrideMerge) {
 				super(overrideMerge);
 
-				Set<Model.Effective<? super T>> baseModel = new TreeSet<>(
-						new IdentityComparator<>());
+				List<Model.Effective<? super T>> baseModel = new ArrayList<>();
 				overrideMerge.configurator().getOverriddenNodes()
 						.forEach(n -> baseModel.addAll(n.effective().baseModel()));
 				baseModel.addAll(overrideMerge.node().baseModel().stream()
 						.map(SchemaNode::effective).collect(Collectors.toSet()));
-				this.baseModel = Collections.unmodifiableSet(baseModel);
+				this.baseModel = Collections.unmodifiableList(baseModel);
 			}
 
 			@Override
-			public final Set<Model.Effective<? super T>> baseModel() {
+			public final List<Model.Effective<? super T>> baseModel() {
 				return baseModel;
 			}
 		}
 
 		private final Effective<T> effective;
 
-		private final Set<Model<? super T>> baseModel;
+		private final List<Model<? super T>> baseModel;
 
 		public ModelImpl(ModelConfiguratorImpl<T> configurator) {
 			super(configurator);
 
-			baseModel = configurator.baseModel == null ? Collections.emptySet()
-					: new HashSet<>(configurator.baseModel);
+			baseModel = configurator.baseModel == null ? Collections.emptyList()
+					: Collections
+							.unmodifiableList(new ArrayList<>(configurator.baseModel));
 
 			effective = new Effective<>(overrideMerge(this, configurator));
 		}
 
 		@Override
-		public final Set<Model<? super T>> baseModel() {
+		public final List<Model<? super T>> baseModel() {
 			return baseModel;
 		}
 
@@ -73,7 +71,7 @@ public class ModelConfiguratorImpl<T>
 
 	private final DataLoader loader;
 
-	private Set<Model<? super T>> baseModel;
+	private List<Model<? super T>> baseModel;
 
 	public ModelConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
@@ -97,9 +95,9 @@ public class ModelConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> ModelConfigurator<V> baseModel(
-			Set<? extends Model<? super V>> base) {
+			List<? extends Model<? super V>> base) {
 		requireConfigurable(this.baseModel);
-		baseModel = new HashSet<>((Set<? extends Model<? super T>>) base);
+		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
 		return (ModelConfigurator<V>) this;
 	}

@@ -299,7 +299,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.format(Format.PROPERTY)
 								.name("baseModel")
 								.optional(true)
-								.type(base.derivedTypes().setType())
+								.type(base.derivedTypes().listType())
 								.addChild(
 										o -> o
 												.data()
@@ -575,14 +575,11 @@ public class MetaSchemaImpl implements MetaSchema {
 																.data()
 																.name("dataTypes")
 																.inMethod("null")
-																.occurances(Range.create(0, null))
-																.outMethodIterable(true)
 																.type(base.derivedTypes().includeType())
 																.bindingClass(Schema.class)
 																.addChild(
 																		q -> q.inputSequence().name("getDataTypes")
-																				.inMethodChained(true)
-																				.isInMethodIterable(true))
+																				.inMethodChained(true))
 																.addChild(
 																		q -> q
 																				.data()
@@ -597,14 +594,11 @@ public class MetaSchemaImpl implements MetaSchema {
 																.data()
 																.name("models")
 																.inMethod("null")
-																.occurances(Range.create(0, null))
-																.outMethodIterable(true)
 																.type(base.derivedTypes().includeType())
 																.bindingClass(Schema.class)
 																.addChild(
 																		q -> q.inputSequence().name("getModels")
-																				.inMethodChained(true)
-																				.isInMethodIterable(true))
+																				.inMethodChained(true))
 																.addChild(
 																		q -> q
 																				.data()

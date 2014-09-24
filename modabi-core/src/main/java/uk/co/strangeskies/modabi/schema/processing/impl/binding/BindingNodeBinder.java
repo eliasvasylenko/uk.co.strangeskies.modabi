@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.proxy.ProxyFactory;
@@ -34,14 +33,11 @@ public class BindingNodeBinder {
 
 	@SuppressWarnings("unchecked")
 	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
-		System.out.println(node.getName().getName() + ": "
-				+ context.bindingTargetStack());
-
 		BindingContext childContext = context.withBindingNode(node).withProvision(
 				BindingNode.Effective.class, () -> node);
 
 		Object binding;
-		Iterator<ChildNode.Effective<?, ?>> children = node.children().iterator();
+		List<ChildNode.Effective<?, ?>> children = node.children();
 
 		BindingStrategy strategy = node.getBindingStrategy();
 		if (strategy == null)
@@ -78,10 +74,12 @@ public class BindingNodeBinder {
 
 			break;
 		case SOURCE_ADAPTOR:
-			binding = getSingleBinding(children.next(), childContext);
+			binding = getSingleBinding(children.get(0), childContext);
+			children = children.subList(1, children.size());
 			break;
 		case STATIC_FACTORY:
-			ChildNode.Effective<?, ?> firstChild = children.next();
+			ChildNode.Effective<?, ?> firstChild = children.get(0);
+			children = children.subList(1, children.size());
 
 			Method inputMethod = getInputMethod(firstChild);
 			List<Object> parameters = getSingleBindingSequence(firstChild,
@@ -103,15 +101,10 @@ public class BindingNodeBinder {
 		}
 
 		childContext = childContext.withBindingTarget(binding);
-		System.out.println("  " + node.getName().getName() + " ? "
-				+ childContext.bindingTargetStack());
 
-		while (children.hasNext()) {
-			ChildNode.Effective<?, ?> next = children.next();
-			binding = bindChild(next, childContext);
+		for (ChildNode.Effective<?, ?> child : children) {
+			binding = bindChild(child, childContext);
 			childContext = childContext.withReplacedBindingTarget(binding);
-			System.out.println("    " + next.getName().getName() + " ? "
-					+ childContext.bindingTargetStack());
 		}
 
 		return (U) binding;
@@ -207,6 +200,7 @@ public class BindingNodeBinder {
 				parameters.add(getSingleBinding(node, context));
 			}
 		});
+
 		return parameters;
 	}
 

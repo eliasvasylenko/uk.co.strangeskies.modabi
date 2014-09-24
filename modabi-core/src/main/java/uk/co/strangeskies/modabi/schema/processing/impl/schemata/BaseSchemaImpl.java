@@ -63,7 +63,8 @@ public class BaseSchemaImpl implements BaseSchema {
 		@SuppressWarnings("rawtypes")
 		private final DataBindingType<Set> setType;
 		private final DataBindingType<Object> importType;
-		private final DataBindingType<Object> includeType;
+		@SuppressWarnings("rawtypes")
+		private final DataBindingType<Collection> includeType;
 
 		public DerivedTypesImpl(
 				DataLoader loader,
@@ -377,7 +378,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.add(includeType = builder
 							.configure(loader)
 							.name("include", namespace)
-							.dataClass(Object.class)
+							.dataClass(Collection.class)
 							.unbindingClass(IncludeTarget.class)
 							.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 							.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
@@ -449,7 +450,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	e -> e
 																			.data()
 																			.name("object")
-																			.dataClass(Model.class)
+																			.dataClass(Collection.class)
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
 																			.bindingClass(BindingContext.class)
@@ -463,7 +464,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							.outMethod("null")
 																							.provideValue(
 																									new BufferingDataTarget()
-																											.put(DataType.INT, 2)
+																											.put(DataType.INT, 1)
 																											.buffer()))))).create());
 
 			typeSet
@@ -690,7 +691,8 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public DataBindingType<Object> includeType() {
+		@SuppressWarnings("rawtypes")
+		public DataBindingType<Collection> includeType() {
 			return includeType;
 		}
 

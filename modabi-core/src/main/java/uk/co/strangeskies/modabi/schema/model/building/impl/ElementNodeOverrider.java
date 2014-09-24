@@ -1,11 +1,10 @@
 package uk.co.strangeskies.modabi.schema.model.building.impl;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.proxy.ProxyFactory;
@@ -49,6 +48,8 @@ public class ElementNodeOverrider {
 			ElementNode.Effective<? super T> element, Model.Effective<T> override) {
 		try {
 			return new OverridingProcessor().process(element, override);
+		} catch (SchemaException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new SchemaException(e);
 		}
@@ -105,7 +106,7 @@ public class ElementNodeOverrider {
 		@SuppressWarnings("unchecked")
 		public <T> ElementNode.Effective<T> process(
 				ElementNode.Effective<? super T> element, Model.Effective<T> override) {
-			Set<Model<? super T>> baseModel = new HashSet<>(override.baseModel());
+			List<Model<? super T>> baseModel = new ArrayList<>(override.baseModel());
 			baseModel.add(wrapElement(element));
 
 			DataLoader loader = new DataLoader() {
@@ -188,7 +189,6 @@ public class ElementNodeOverrider {
 		public <U, C extends InputNodeConfigurator<C, ?, ?, ?>> C processInputNode(
 				InputNode<?, ?> node, C c) {
 			c = tryProperty(node.isInMethodCast(), c::isInMethodCast, c);
-			c = tryProperty(node.isInMethodIterable(), c::isInMethodIterable, c);
 			c = tryProperty(node.getInMethodName(), c::inMethod, c);
 			c = tryProperty(node.isInMethodChained(), c::inMethodChained, c);
 			c = tryProperty(node.getPostInputClass(), c::postInputClass, c);

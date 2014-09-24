@@ -43,7 +43,8 @@ public interface BaseSchema extends Schema {
 		 * during binding / unbinding magically adds items to bindings list (so can
 		 * be referenced)
 		 */
-		DataBindingType<Object> includeType();
+		@SuppressWarnings("rawtypes")
+		DataBindingType<Collection> includeType();
 
 		/*
 		 * retrieves objects already bound by SchemaBinder and 'includes' them, or

@@ -5,6 +5,6 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.model.Model;
 
 public interface ImportDereferenceTarget {
-	<T> DataSource dereferenceImport(Model<T> model,
-			QualifiedName idDomain, T object);
+	<T> DataSource dereferenceImport(Model<T> model, QualifiedName idDomain,
+			T object);
 }
