@@ -301,4 +301,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected boolean isChildContextAbstract() {
 		return isAbstract != null && isAbstract;
 	}
+
+	@Override
+	public String toString() {
+		return getNodeClass().getSimpleName() + " configurator: " + getName();
+	}
 }
