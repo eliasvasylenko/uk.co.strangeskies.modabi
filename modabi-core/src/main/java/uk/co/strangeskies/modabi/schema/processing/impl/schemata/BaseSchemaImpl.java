@@ -161,12 +161,17 @@ public class BaseSchemaImpl implements BaseSchema {
 															.bindingClass(BindingContext.class)
 															.addChild(
 																	e -> e
-																			.inputSequence()
+																			.data()
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputClass(
 																					DataBindingType.Effective.class)
-																			.isInMethodCast(true))
+																			.isInMethodCast(true)
+																			.outMethod("null")
+																			.type(primitives.get(DataType.INT))
+																			.provideValue(
+																					new BufferingDataTarget().put(
+																							DataType.INT, 1).buffer()))
 															.addChild(
 																	e -> e
 																			.data()
@@ -197,12 +202,17 @@ public class BaseSchemaImpl implements BaseSchema {
 															.bindingClass(BindingContext.class)
 															.addChild(
 																	e -> e
-																			.inputSequence()
+																			.data()
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputClass(
 																					DataBindingType.Effective.class)
-																			.isInMethodCast(true))
+																			.type(primitives.get(DataType.INT))
+																			.isInMethodCast(true)
+																			.outMethod("null")
+																			.provideValue(
+																					new BufferingDataTarget().put(
+																							DataType.INT, 1).buffer()))
 															.addChild(
 																	e -> e
 																			.data()

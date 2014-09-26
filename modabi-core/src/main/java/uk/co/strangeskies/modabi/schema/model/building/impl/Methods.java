@@ -59,7 +59,7 @@ public class Methods {
 			Method outMethod;
 			if (node.getOutMethodName() != null
 					&& node.getOutMethodName().equals("this")) {
-				if (!resultClass.isAssignableFrom(targetClass))
+				if (!ClassUtils.isAssignable(targetClass, resultClass))
 					throw new SchemaException("Can't use out method 'this' for node '"
 							+ node.getName() + "', as result class '" + resultClass
 							+ "' cannot be assugbed from target class'" + targetClass + "'.");
@@ -214,12 +214,6 @@ public class Methods {
 					+ "', reveiver '" + receiver + "', and parameters '"
 					+ Arrays.asList(parameters) + "' with any name of '" + names + "'.");
 
-		/*-
-		if (method.getDeclaringClass().equals(
-				org.apache.commons.collections4.Factory.class))
-			TODO crazy ass classloader error? Still seems to work, though.
-		 */
-
 		return method;
 	}
 
@@ -246,7 +240,9 @@ public class Methods {
 				}).collect(Collectors.toSet());
 
 		if (overloadCandidates.isEmpty())
-			throw new NoSuchMethodException();
+			throw new SchemaException("Cannot find output method of class '" + result
+					+ "', reveiver '" + receiver + "', and parameters '" + parameters
+					+ "' with any name of '" + names + "'.");
 
 		Method mostSpecific = findMostSpecificOverload(overloadCandidates);
 
@@ -280,13 +276,15 @@ public class Methods {
 			for (Method overloadCandidate : candidates) {
 				Class<?> parameterClass = overloadCandidate.getDeclaringClass();
 
-				if (mostSpecificParameterClass.isAssignableFrom(parameterClass)) {
+				if (ClassUtils.isAssignable(parameterClass, mostSpecificParameterClass)) {
 					mostSpecificParameterClass = parameterClass;
 
-					if (!parameterClass.isAssignableFrom(mostSpecificParameterClass))
+					if (!ClassUtils.isAssignable(mostSpecificParameterClass,
+							parameterClass))
 						mostSpecificForParameter.clear();
 					mostSpecificForParameter.add(overloadCandidate);
-				} else if (!parameterClass.isAssignableFrom(mostSpecificParameterClass)) {
+				} else if (!ClassUtils.isAssignable(mostSpecificParameterClass,
+						parameterClass)) {
 					throw new NoSuchMethodException("Cannot resolve method ambiguity.");
 				}
 			}
@@ -305,8 +303,8 @@ public class Methods {
 		Method mostSpecific = overrideCandidateIterator.next();
 		while (overrideCandidateIterator.hasNext()) {
 			Method candidate = overrideCandidateIterator.next();
-			mostSpecific = mostSpecific.getDeclaringClass().isAssignableFrom(
-					candidate.getDeclaringClass()) ? candidate : mostSpecific;
+			mostSpecific = ClassUtils.isAssignable(candidate.getDeclaringClass(),
+					mostSpecific.getDeclaringClass()) ? candidate : mostSpecific;
 		}
 
 		return mostSpecific;

@@ -17,14 +17,22 @@ public class DataNodeBinder {
 	}
 
 	public <U> List<U> bind(DataNode.Effective<U> node) {
+		String indent = "";
+		for (int i = 0; i < context.bindingNodeStack().size(); i++) {
+			indent += "  ";
+		}
+		System.out.println(indent + "- " + node.getName().getName() + " @ "
+				+ node.valueResolution() + "                            "
+				+ context.bindingNodeStack());
+
 		DataSource dataSource;
 
 		List<U> results = new ArrayList<>();
 
 		if (node.isValueProvided()) {
-			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME)
+			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME) {
 				results.addAll(node.providedValues());
-			else {
+			} else {
 				BindingContext context = this.context.withProvision(DataSource.class,
 						node::providedValueBuffer);
 				results.addAll(bindList(context, node));
@@ -73,6 +81,9 @@ public class DataNodeBinder {
 			throw context.exception("Node '" + node.getName() + "' binding results '"
 					+ results + "' must be bound data within range of '"
 					+ Range.compose(node.occurances()) + "' occurances.");
+
+		System.out.println(indent + "= " + node.getName().getName() + ": "
+				+ results);
 
 		return results;
 	}

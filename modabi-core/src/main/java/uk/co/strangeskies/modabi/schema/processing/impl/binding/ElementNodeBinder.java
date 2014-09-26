@@ -20,6 +20,12 @@ public class ElementNodeBinder {
 
 	@SuppressWarnings("unchecked")
 	public <U> List<U> bind(ElementNode.Effective<U> node) {
+		String indent = "";
+		for (int i = 0; i < context.bindingNodeStack().size(); i++) {
+			indent += "  ";
+		}
+		System.out.println(indent + "< " + context.input().peekNextChild());
+
 		List<U> result = new ArrayList<>();
 
 		int count = 0;
@@ -58,6 +64,9 @@ public class ElementNodeBinder {
 		if (!node.occurances().contains(count))
 			throw new SchemaException("Node '" + node.getName() + "' occurances '"
 					+ count + "' must be within range '" + node.occurances() + "'.");
+
+		System.out
+				.println(indent + "> " + node.getName().getName() + ": " + result);
 
 		return result;
 	}

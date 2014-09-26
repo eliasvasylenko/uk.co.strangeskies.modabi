@@ -379,7 +379,7 @@ public class MetaSchemaImpl implements MetaSchema {
 										p -> p
 												.data()
 												.name("targetModel")
-												.optional(true)
+												.valueResolution(ValueResolution.REGISTRATION_TIME)
 												.provideValue(
 														new BufferingDataTarget().put(
 																DataType.QUALIFIED_NAME,
@@ -388,6 +388,7 @@ public class MetaSchemaImpl implements MetaSchema {
 										p -> p
 												.data()
 												.name("targetId")
+												.valueResolution(ValueResolution.REGISTRATION_TIME)
 												.provideValue(
 														new BufferingDataTarget().put(
 																DataType.QUALIFIED_NAME,

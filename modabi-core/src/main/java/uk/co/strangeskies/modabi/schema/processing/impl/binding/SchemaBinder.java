@@ -215,7 +215,9 @@ public class SchemaBinder {
 
 		for (U binding : bindingCandidates) {
 			DataSource candidateId = unbindDataNode(context, node, binding);
-			if (candidateId.equals(id)) {
+			if (candidateId.equals(id)) {// TODO this is not good enough! doesn't
+																		// consume from data source, and won't
+																		// properly match a sequence.
 				return binding;
 			}
 		}
