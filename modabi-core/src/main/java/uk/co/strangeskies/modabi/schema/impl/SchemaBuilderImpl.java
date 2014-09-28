@@ -1,6 +1,8 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -13,8 +15,6 @@ import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.model.Model;
 import uk.co.strangeskies.modabi.schema.model.Models;
-import uk.co.strangeskies.modabi.schema.requirement.Requirement;
-import uk.co.strangeskies.modabi.schema.requirement.Requirements;
 
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
@@ -22,7 +22,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		private QualifiedName qualifiedName;
 		private final Set<Model<?>> modelSet;
 		private final Schemata dependencySet;
-		private Set<Requirement<?>> requirementSet;
+		private Set<Class<?>> requirementSet;
 
 		public SchemaConfiguratorImpl() {
 			typeSet = new LinkedHashSet<>();
@@ -40,7 +40,8 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 			models.addAll(modelSet);
 			final Schemata dependencies = new Schemata();
 			dependencies.addAll(dependencySet);
-			final Requirements requirements = () -> requirementSet;
+			final Set<Class<?>> requirements = Collections
+					.unmodifiableSet(new HashSet<>(requirementSet));
 
 			return new Schema() {
 				@Override
@@ -49,7 +50,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 				}
 
 				@Override
-				public Requirements getRequirements() {
+				public Set<Class<?>> getRequirements() {
 					return requirements;
 				}
 
@@ -67,6 +68,30 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 				public Schemata getDependencies() {
 					return dependencies;
 				}
+
+				@Override
+				public boolean equals(Object obj) {
+					if (!(obj instanceof Schema))
+						return false;
+
+					if (obj == this)
+						return true;
+
+					Schema other = (Schema) obj;
+
+					return getDataTypes().equals(other.getDataTypes())
+							&& getRequirements().equals(other.getRequirements())
+							&& getQualifiedName().equals(other.getQualifiedName())
+							&& getModels().equals(other.getModels())
+							&& getDependencies().equals(other.getDependencies());
+				}
+
+				@Override
+				public int hashCode() {
+					return getDataTypes().hashCode() ^ getRequirements().hashCode()
+							^ getQualifiedName().hashCode() ^ getModels().hashCode()
+							^ getDependencies().hashCode();
+				}
 			};
 		}
 
@@ -78,8 +103,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		}
 
 		@Override
-		public SchemaConfigurator requirements(
-				Set<? extends Requirement<?>> requirements) {
+		public SchemaConfigurator requirements(Set<? extends Class<?>> requirements) {
 			requirementSet.clear();
 			requirementSet.addAll(requirements);
 

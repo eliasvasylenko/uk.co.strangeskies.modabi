@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +43,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private final List<ChildNode.Effective<?, ?>> children;
 
 			private PropertySet<E> combinedPropertySet;
+			private Integer hashCode;
 
 			protected Effective(
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
@@ -138,7 +138,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			@Override
 			public final int hashCode() {
-				return combinedPropertySet().generateHashCode();
+				if (hashCode == null)
+					hashCode = combinedPropertySet().generateHashCode();
+				return hashCode;
 			}
 
 			private final PropertySet<E> combinedPropertySet() {
@@ -159,6 +161,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		private final List<ChildNode<?, ?>> children;
 
 		private PropertySet<S> propertySet;
+		private Integer hashCode;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseConfiguration();
@@ -191,20 +194,25 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		public final boolean equals(Object object) {
 			if (propertySet == null)
 				propertySet = propertySet();
+
 			return propertySet.testEquality(object)
 					&& effective().equals(((SchemaNode<?, ?>) object).effective());
 		}
 
 		@Override
 		public final int hashCode() {
-			if (propertySet == null)
-				propertySet = propertySet();
-			return propertySet.generateHashCode();
+			if (hashCode == null) {
+				if (propertySet == null)
+					propertySet = propertySet();
+				hashCode = propertySet.generateHashCode();
+			}
+
+			return hashCode;
 		}
 
 		@Override
 		public String toString() {
-			return getName().toString();
+			return effective().getName().toString();
 		}
 	}
 
@@ -278,7 +286,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Namespace getNamespace();
 
-	public abstract LinkedHashSet<N> getOverriddenNodes();
+	public abstract List<N> getOverriddenNodes();
 
 	protected final QualifiedName getName() {
 		return name;

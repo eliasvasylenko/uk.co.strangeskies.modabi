@@ -61,13 +61,9 @@ public class ElementNodeOverrider {
 				wrapObject(element, AbstractModel.Effective.class,
 						Model.Effective.class), i -> {
 					String method = i.getMethod().getName();
-					switch (method) {
-					case "source":
-					case "effective":
+					if ("source".equals(method) || "effective".equals(method))
 						return wrapElement(element);
-					default:
-						return i.proceed();
-					}
+					return i.proceed();
 				}, new Class[] { Model.Effective.class });
 	}
 
@@ -106,7 +102,8 @@ public class ElementNodeOverrider {
 		@SuppressWarnings("unchecked")
 		public <T> ElementNode.Effective<T> process(
 				ElementNode.Effective<? super T> element, Model.Effective<T> override) {
-			List<Model<? super T>> baseModel = new ArrayList<>(override.baseModel());
+			List<Model<? super T>> baseModel = new ArrayList<>(override.source()
+					.baseModel());
 			baseModel.add(wrapElement(element));
 
 			DataLoader loader = new DataLoader() {

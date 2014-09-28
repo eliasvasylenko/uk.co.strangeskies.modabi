@@ -8,7 +8,6 @@ import java.util.Set;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeBuilder;
-import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.data.DataBindingTypes;
 import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.data.io.DataType;
@@ -18,7 +17,6 @@ import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
-import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.model.AbstractModel;
 import uk.co.strangeskies.modabi.schema.model.Model;
@@ -31,7 +29,6 @@ import uk.co.strangeskies.modabi.schema.model.building.configurators.BindingNode
 import uk.co.strangeskies.modabi.schema.model.building.configurators.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.InputNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.model.building.configurators.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.model.building.configurators.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
@@ -47,9 +44,6 @@ import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
-import uk.co.strangeskies.modabi.schema.requirement.Requirement;
-import uk.co.strangeskies.modabi.schema.requirement.Requirements;
-import uk.co.strangeskies.modabi.schema.requirement.impl.RequirementBuilderImpl;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private final Schema metaSchema;
@@ -66,8 +60,11 @@ public class MetaSchemaImpl implements MetaSchema {
 		/*
 		 * Requirements
 		 */
-		Set<Requirement<?>> requirementSet = new LinkedHashSet<>();
-
+		Set<Class<?>> requirementSet = new LinkedHashSet<>();
+		requirementSet.add(SchemaBuilder.class);
+		requirementSet.add(DataBindingTypeBuilder.class);
+		requirementSet.add(ModelBuilder.class);
+		/*-
 		requirementSet.add(new RequirementBuilderImpl()
 				.configure(new QualifiedName("schemaConfigurator", namespace),
 						SchemaBuilder.class)
@@ -84,6 +81,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						ModelBuilder.class)
 				.addProvision(c -> c, ModelConfigurator.class, "configure",
 						DataLoader.class).create());
+		 */
 
 		/*
 		 * Types
@@ -512,15 +510,6 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		/* Schema Models */
 
-		Model<Set> modelsModel = model
-				.configure(loader)
-				.name("models", namespace)
-				.dataClass(Set.class)
-				.addChild(
-						n -> n.element().baseModel(modelModel).outMethodIterable(true)
-								.outMethod("this").occurances(Range.create(0, null))).create();
-		modelSet.add(modelsModel);
-
 		schemaModel = model
 				.configure(loader)
 				.name("schema", namespace)
@@ -532,6 +521,18 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("name")
 								.inMethod("qualifiedName").outMethod("getQualifiedName")
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)))
+				.addChild(
+						n -> n
+								.element()
+								.name("requirements")
+								.occurances(Range.create(0, 1))
+								.dataClass(Set.class)
+								.addChild(
+										o -> o.data().format(Format.SIMPLE_ELEMENT)
+												.type(base.derivedTypes().classType())
+												.outMethod("this").name("requirement")
+												.outMethodIterable(true)
+												.occurances(Range.create(0, null))))
 				.addChild(
 						n -> n
 								.element()
@@ -651,7 +652,7 @@ public class MetaSchemaImpl implements MetaSchema {
 	}
 
 	@Override
-	public Requirements getRequirements() {
+	public Set<Class<?>> getRequirements() {
 		return metaSchema.getRequirements();
 	}
 

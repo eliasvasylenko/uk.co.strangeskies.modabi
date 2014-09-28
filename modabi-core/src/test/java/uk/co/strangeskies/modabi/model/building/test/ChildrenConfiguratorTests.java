@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.model.building.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,18 +20,18 @@ import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
 
 public class ChildrenConfiguratorTests {
 	private class MergeTestData {
-		private LinkedHashSet<SequenceNode> sequences;
+		private List<SequenceNode> sequences;
 		private List<QualifiedName> overrides;
 		private List<QualifiedName> expected;
 
 		MergeTestData(List<SequenceNode> sequences, List<QualifiedName> overrides,
 				List<QualifiedName> expected) {
-			this.sequences = new LinkedHashSet<>(sequences);
+			this.sequences = new ArrayList<>(sequences);
 			this.overrides = overrides;
 			this.expected = expected;
 		}
 
-		public LinkedHashSet<SequenceNode> sequences() {
+		public List<SequenceNode> sequences() {
 			return sequences;
 		}
 

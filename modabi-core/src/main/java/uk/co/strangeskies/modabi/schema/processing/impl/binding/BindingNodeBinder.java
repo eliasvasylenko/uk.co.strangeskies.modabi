@@ -134,32 +134,16 @@ public class BindingNodeBinder {
 
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
-				String indent = "";
-				for (int i = 0; i < context.bindingNodeStack().size(); i++) {
-					indent += "  ";
-				}
-				System.out.println(indent + "{" + node.getName().getName());
-
 				List<Object> parameters = getSingleBindingSequence(node,
 						context.withBindingNode(node));
 				result.set(invokeInMethod(node, context, result.get(),
 						parameters.toArray()));
-
-				System.out.println(indent + "} " + parameters + " -> " + result.get());
 			}
 
 			@Override
 			public void accept(SequenceNode.Effective node) {
-				String indent = "";
-				for (int i = 0; i < context.bindingNodeStack().size(); i++) {
-					indent += "  ";
-				}
-				System.out.println(indent + "[" + node.getName().getName());
-
 				for (ChildNode.Effective<?, ?> child : node.children())
 					bindChild(child, context.withBindingNode(node));
-
-				System.out.println(indent + "]");
 			}
 
 			@Override

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -116,9 +115,9 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	private final boolean dataContext;
 
 	public SequentialChildrenConfigurator(Namespace namespace,
-			LinkedHashSet<? extends SchemaNode<?, ?>> overriddenNodes,
-			boolean hasInput, Class<?> inputTarget, Class<?> outputTarget,
-			DataLoader loader, boolean isAbstract, boolean dataContext) {
+			List<? extends SchemaNode<?, ?>> overriddenNodes, boolean hasInput,
+			Class<?> inputTarget, Class<?> outputTarget, DataLoader loader,
+			boolean isAbstract, boolean dataContext) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
@@ -209,9 +208,9 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(
-			QualifiedName id, Class<U> nodeClass) {
-		LinkedHashSet<ChildNode.Effective<?, ?>> overriddenNodes = new LinkedHashSet<>();
+	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
+			Class<U> nodeClass) {
+		List<ChildNode.Effective<?, ?>> overriddenNodes = new ArrayList<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
@@ -223,7 +222,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			overriddenNodes.addAll(mergeGroup.getChildren());
 		}
 
-		return (LinkedHashSet<U>) overriddenNodes;
+		return (List<U>) overriddenNodes;
 	}
 
 	private void addChild(ChildNode<?, ?> result) {
@@ -265,7 +264,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public <U extends ChildNode<?, ?>> LinkedHashSet<U> overrideChild(
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(
 					QualifiedName id, Class<U> nodeClass) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}

@@ -2,7 +2,6 @@ package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,10 +103,10 @@ public class ModelConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public LinkedHashSet<Model<T>> getOverriddenNodes() {
-		return baseModel != null ? new LinkedHashSet<>(baseModel.stream()
+	public List<Model<T>> getOverriddenNodes() {
+		return baseModel != null ? new ArrayList<>(baseModel.stream()
 				.map(m -> (Model<T>) m.effective()).collect(Collectors.toList()))
-				: new LinkedHashSet<>();
+				: Collections.emptyList();
 	}
 
 	@SuppressWarnings("unchecked")

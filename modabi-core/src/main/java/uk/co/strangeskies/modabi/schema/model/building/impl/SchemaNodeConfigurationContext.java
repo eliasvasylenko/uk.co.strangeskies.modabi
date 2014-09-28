@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.schema.model.building.impl;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -22,8 +22,7 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	void addChild(T result);
 
-	<U extends T> LinkedHashSet<U> overrideChild(QualifiedName id,
-			Class<U> nodeClass);
+	<U extends T> List<U> overrideChild(QualifiedName id, Class<U> nodeClass);
 
 	Namespace getNamespace();
 }

@@ -200,7 +200,7 @@ public class SchemaBinder {
 	}
 
 	private static <U> U matchBinding(BindingContext context, Model<U> model,
-			Set<U> bindingCandidates, QualifiedName idDomain, DataSource id) {
+			Set<U> bindingCandidates, QualifiedName idDomain, DataSource idSource) {
 		DataNode.Effective<?> node = (DataNode.Effective<?>) model
 				.effective()
 				.children()
@@ -213,16 +213,27 @@ public class SchemaBinder {
 						() -> context.exception("Can't find child '" + idDomain
 								+ "' to target for model '" + model + "'."));
 
-		for (U binding : bindingCandidates) {
-			DataSource candidateId = unbindDataNode(context, node, binding);
-			if (candidateId.equals(id)) {// TODO this is not good enough! doesn't
-																		// consume from data source, and won't
-																		// properly match a sequence.
-				return binding;
+		for (U bindingCandidate : bindingCandidates) {
+			DataSource candidateId = unbindDataNode(context, node, bindingCandidate);
+			DataSource bufferedIdSource = idSource.copy();
+
+			if (bufferedIdSource.size() - bufferedIdSource.index() < candidateId
+					.size())
+				continue;
+
+			boolean match = true;
+			for (int i = 0; i < candidateId.size() && match; i++)
+				match = bufferedIdSource.get().equals(candidateId.get());
+
+			if (match) {
+				for (int i = 0; i < candidateId.size(); i++)
+					idSource.get();
+
+				return bindingCandidate;
 			}
 		}
 
-		throw context.exception("Can't find any bindings matching '" + id
+		throw context.exception("Can't find any bindings matching '" + idSource
 				+ "' in domain '" + idDomain + "' for model '" + model + "'.");
 	}
 

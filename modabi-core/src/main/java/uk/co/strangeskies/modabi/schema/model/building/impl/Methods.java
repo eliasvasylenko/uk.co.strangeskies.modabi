@@ -62,7 +62,7 @@ public class Methods {
 				if (!ClassUtils.isAssignable(targetClass, resultClass))
 					throw new SchemaException("Can't use out method 'this' for node '"
 							+ node.getName() + "', as result class '" + resultClass
-							+ "' cannot be assugbed from target class'" + targetClass + "'.");
+							+ "' cannot be assigned from target class'" + targetClass + "'.");
 				outMethod = null;
 			} else if (targetClass == null) {
 				if (!node.isAbstract())
@@ -241,15 +241,14 @@ public class Methods {
 
 		if (overloadCandidates.isEmpty())
 			throw new SchemaException("Cannot find output method of class '" + result
-					+ "', reveiver '" + receiver + "', and parameters '" + parameters
-					+ "' with any name of '" + names + "'.");
+					+ "', reveiver '" + receiver + "', and parameters '"
+					+ Arrays.toString(parameters) + "' with any name of '" + names + "'.");
 
 		Method mostSpecific = findMostSpecificOverload(overloadCandidates);
 
 		if (result != null
-				&& !ClassUtils.isAssignable(mostSpecific.getReturnType(), result, true)
-				&& !(ClassUtils
-						.isAssignable(result, mostSpecific.getReturnType(), true) && allowCast))
+				&& !ClassUtils.isAssignable(mostSpecific.getReturnType(), result)
+				&& !(ClassUtils.isAssignable(result, mostSpecific.getReturnType()) && allowCast))
 			throw new NoSuchMethodException(
 					"Resolved method does not have compatible return type.");
 

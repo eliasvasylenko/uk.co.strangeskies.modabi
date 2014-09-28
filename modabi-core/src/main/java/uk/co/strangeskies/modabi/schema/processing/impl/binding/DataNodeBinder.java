@@ -17,14 +17,6 @@ public class DataNodeBinder {
 	}
 
 	public <U> List<U> bind(DataNode.Effective<U> node) {
-		String indent = "";
-		for (int i = 0; i < context.bindingNodeStack().size(); i++) {
-			indent += "  ";
-		}
-		System.out.println(indent + "- " + node.getName().getName() + " @ "
-				+ node.valueResolution() + "                            "
-				+ context.bindingNodeStack());
-
 		DataSource dataSource;
 
 		List<U> results = new ArrayList<>();
@@ -33,8 +25,9 @@ public class DataNodeBinder {
 			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME) {
 				results.addAll(node.providedValues());
 			} else {
+				DataSource providedValueBuffer = node.providedValueBuffer();
 				BindingContext context = this.context.withProvision(DataSource.class,
-						node::providedValueBuffer);
+						() -> providedValueBuffer);
 				results.addAll(bindList(context, node));
 			}
 		} else if (node.format() != null) {
@@ -82,9 +75,6 @@ public class DataNodeBinder {
 					+ results + "' must be bound data within range of '"
 					+ Range.compose(node.occurances()) + "' occurances.");
 
-		System.out.println(indent + "= " + node.getName().getName() + ": "
-				+ results);
-
 		return results;
 	}
 
@@ -95,25 +85,27 @@ public class DataNodeBinder {
 		List<U> results = new ArrayList<>();
 
 		int count = 0;
-		int startIndex = 0;
+		DataSource dataSource = null;
+		int successfulIndex = 0;
 		try {
-			DataSource dataSource = null;
-			if (context.isProvided(DataSource.class)) {
+			if (context.isProvided(DataSource.class))
 				dataSource = context.provide(DataSource.class);
-				DataSource finalSource = dataSource.copy();
-				startIndex = dataSource.index();
-				context = context.withProvision(DataSource.class, () -> finalSource);
-			}
+
+			if (dataSource != null)
+				successfulIndex = dataSource.index();
 
 			while (!node.occurances().isValueAbove(++count)) {
 				results.add(new BindingNodeBinder(context).bind(node));
+				if (dataSource != null)
+					successfulIndex = dataSource.index();
+			}
+		} catch (SchemaException e) {
+			if (dataSource != null) {
+				dataSource.reset();
+				while (dataSource.index() < successfulIndex)
+					dataSource.get();
 			}
 
-			if (dataSource != null)
-				for (int i = 0; i < dataSource.index() - startIndex; i++)
-					dataSource.get();
-		} catch (SchemaException e) {
-			e.printStackTrace();
 			if (node.occurances().isValueBelow(count))
 				throw e;
 		}

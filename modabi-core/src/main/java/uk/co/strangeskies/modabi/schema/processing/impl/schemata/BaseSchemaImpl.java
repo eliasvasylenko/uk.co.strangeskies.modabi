@@ -39,7 +39,6 @@ import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTa
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
-import uk.co.strangeskies.modabi.schema.requirement.Requirements;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
@@ -827,7 +826,7 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	@Override
-	public Requirements getRequirements() {
+	public Set<Class<?>> getRequirements() {
 		return baseSchema.getRequirements();
 	}
 

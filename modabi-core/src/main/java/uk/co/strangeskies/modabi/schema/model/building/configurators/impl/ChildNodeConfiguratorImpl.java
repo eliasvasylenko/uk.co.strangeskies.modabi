@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -29,8 +30,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	}
 
 	@Override
-	public LinkedHashSet<N> getOverriddenNodes() {
-		return getName() == null ? new LinkedHashSet<>() : getContext()
+	public List<N> getOverriddenNodes() {
+		return getName() == null ? Collections.emptyList() : getContext()
 				.overrideChild(getName(), getNodeClass());
 	}
 

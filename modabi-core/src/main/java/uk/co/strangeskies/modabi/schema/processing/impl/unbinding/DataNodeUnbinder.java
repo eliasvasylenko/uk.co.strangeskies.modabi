@@ -97,12 +97,6 @@ public class DataNodeUnbinder {
 			DataNode.Format format, UnbindingContext context) {
 		BufferingDataTarget target = null;
 
-		if (format != null) {
-			target = new BufferingDataTarget();
-			BufferingDataTarget finalTarget = target;
-			context = context.withProvision(DataTarget.class, () -> finalTarget);
-		}
-
 		if (node.isValueProvided())
 			switch (node.valueResolution()) {
 			case PROCESSING_TIME:
@@ -116,66 +110,70 @@ public class DataNodeUnbinder {
 				}
 				break;
 			}
-		else
-			unbindToContext(node, data, context);
-
-		if (format != null) {
-			DataSource bufferedTarget = target.buffer();
-
-			if (bufferedTarget.size() > 0)
-				switch (format) {
-				case PROPERTY:
-					bufferedTarget.pipe(context.output().writeProperty(node.getName()))
-							.terminate();
-					break;
-				case SIMPLE_ELEMENT:
-					context.output().nextChild(node.getName());
-					bufferedTarget.pipe(context.output().writeContent()).terminate();
-					context.output().endChild();
-					break;
-				case CONTENT:
-					bufferedTarget.pipe(context.output().writeContent()).terminate();
-				}
-		}
-	}
-
-	private <U> void unbindToContext(DataNode.Effective<U> node, List<U> data,
-			UnbindingContext context) {
-		if (data != null) {
+		else if (data != null) {
 			for (U item : data) {
-				if (node.isExtensible() != null && node.isExtensible()) {
-					List<DataNode.Effective<? extends U>> nodes = context
-							.getMatchingTypes(node, item.getClass()).stream()
-							.map(type -> new DataNodeWrapper<>(type.effective(), node))
-							.collect(Collectors.toCollection(ArrayList::new));
+				if (format != null) {
+					target = new BufferingDataTarget();
+					BufferingDataTarget finalTarget = target;
+					context = context.withProvision(DataTarget.class, () -> finalTarget);
+				}
 
-					if (!node.isAbstract())
-						nodes.add(node);
+				unbindToContext(node, item, context);
 
-					if (nodes.isEmpty())
-						throw new SchemaException(
-								"Unable to find concrete type to satisfy data node '"
-										+ node.getName() + "' with type '"
-										+ node.effective().type().getName() + "' for object '"
-										+ item + "' to be unbound.");
+				if (format != null) {
+					DataSource bufferedTarget = target.buffer();
 
-					new UnbindingAttempter(context).tryForEach(
-							nodes,
-							(c, n) -> new BindingNodeUnbinder(context).unbind(node, item),
-							l -> context.exception(
-									"Unable to unbind data node '"
-											+ node.getName()
-											+ "' with type candidates '"
-											+ nodes.stream()
-													.map(m -> m.source().getName().toString())
-													.collect(Collectors.joining(", ")) + "' for object '"
-											+ item + "' to be unbound.", l));
-				} else {
-					new BindingNodeUnbinder(context).unbind(node, item);
+					if (bufferedTarget.size() > 0)
+						switch (format) {
+						case PROPERTY:
+							bufferedTarget.pipe(
+									context.output().writeProperty(node.getName())).terminate();
+							break;
+						case SIMPLE_ELEMENT:
+							context.output().nextChild(node.getName());
+							bufferedTarget.pipe(context.output().writeContent()).terminate();
+							context.output().endChild();
+							break;
+						case CONTENT:
+							bufferedTarget.pipe(context.output().writeContent()).terminate();
+						}
 				}
 			}
 		} else if (!node.optional())
 			throw new SchemaException("Non-optional node '" + node.getName()
 					+ "' cannot omit data for unbinding.");
+	}
+
+	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
+			UnbindingContext context) {
+		if (node.isExtensible() != null && node.isExtensible()) {
+			List<DataNode.Effective<? extends U>> nodes = context
+					.getMatchingTypes(node, data.getClass()).stream()
+					.map(type -> new DataNodeWrapper<>(type.effective(), node))
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			if (!node.isAbstract())
+				nodes.add(node);
+
+			if (nodes.isEmpty())
+				throw new SchemaException(
+						"Unable to find concrete type to satisfy data node '"
+								+ node.getName() + "' with type '"
+								+ node.effective().type().getName() + "' for object '" + data
+								+ "' to be unbound.");
+
+			new UnbindingAttempter(context).tryForEach(
+					nodes,
+					(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
+					l -> context.exception(
+							"Unable to unbind data node '"
+									+ node.getName()
+									+ "' with type candidates '"
+									+ nodes.stream().map(m -> m.source().getName().toString())
+											.collect(Collectors.joining(", ")) + "' for object '"
+									+ data + "' to be unbound.", l));
+		} else {
+			new BindingNodeUnbinder(context).unbind(node, data);
+		}
 	}
 }

@@ -1,7 +1,9 @@
 package uk.co.strangeskies.modabi.data.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.data.DataBindingTypeConfigurator;
@@ -144,8 +146,8 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public LinkedHashSet<DataBindingType<T>> getOverriddenNodes() {
-		return baseType == null ? new LinkedHashSet<>() : new LinkedHashSet<>(
+	public List<DataBindingType<T>> getOverriddenNodes() {
+		return baseType == null ? Collections.emptyList() : new ArrayList<>(
 				Arrays.asList((DataBindingType<T>) baseType));
 	}
 }

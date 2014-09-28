@@ -2,7 +2,6 @@ package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -96,8 +95,8 @@ public class ElementNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public LinkedHashSet<ElementNode<T>> getOverriddenNodes() {
-		LinkedHashSet<ElementNode<T>> overriddenNodes = new LinkedHashSet<>();
+	public List<ElementNode<T>> getOverriddenNodes() {
+		List<ElementNode<T>> overriddenNodes = new ArrayList<>();
 
 		if (baseModel != null)
 			for (Model<? super T> base : baseModel)

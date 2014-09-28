@@ -283,9 +283,8 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 
 	@Override
 	public void reset() {
-		BufferedStructuredData root = stack.getFirst();
 		stack.clear();
-		stack.add(root);
+		stack.push(root);
 		root.reset();
 	}
 

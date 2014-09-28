@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.schema.model.building.configurators.impl;
 
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.data.DataBindingType;
@@ -210,8 +210,8 @@ public class DataNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public LinkedHashSet<DataNode<T>> getOverriddenNodes() {
-		LinkedHashSet<DataNode<T>> overriddenNodes = new LinkedHashSet<>();
+	public List<DataNode<T>> getOverriddenNodes() {
+		List<DataNode<T>> overriddenNodes = new ArrayList<>();
 
 		if (type != null)
 			overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
