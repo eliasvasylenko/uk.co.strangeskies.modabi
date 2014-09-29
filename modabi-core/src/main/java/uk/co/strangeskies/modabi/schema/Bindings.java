@@ -52,14 +52,13 @@ public class Bindings {
 		if (all == null)
 			all = new HashSet<>();
 
-		all.addAll(Collections.unmodifiableSet(models.getDerivedModels(model)
-				.stream().map(m -> bindings.get(m))
-				.reduce(Collections.emptySet(), (s, t) -> {
+		all.addAll(models.getDerivedModels(model).stream()
+				.map(m -> bindings.get(m)).reduce(Collections.emptySet(), (s, t) -> {
 					Set<Object> set = new HashSet<>();
 					set.addAll(s);
 					set.addAll(t);
 					return set;
-				})));
+				}));
 
 		return (Set<T>) all;
 	}

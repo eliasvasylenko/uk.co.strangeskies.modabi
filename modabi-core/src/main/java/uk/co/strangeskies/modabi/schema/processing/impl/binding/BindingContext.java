@@ -50,7 +50,7 @@ public interface BindingContext {
 
 	Bindings bindings();
 
-	<T> List<DataBindingType<? extends T>> getMatchingTypes(
+	<T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 			DataNode.Effective<T> node, Class<?> dataClass);
 
 	default BindingException exception(String message, Exception cause) {
@@ -110,7 +110,7 @@ public interface BindingContext {
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -161,7 +161,7 @@ public interface BindingContext {
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -213,7 +213,7 @@ public interface BindingContext {
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -266,7 +266,7 @@ public interface BindingContext {
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -312,7 +312,7 @@ public interface BindingContext {
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}

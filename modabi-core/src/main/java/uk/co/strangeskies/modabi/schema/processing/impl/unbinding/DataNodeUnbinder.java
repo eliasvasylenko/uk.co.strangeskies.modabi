@@ -71,13 +71,13 @@ public class DataNodeUnbinder {
 			}
 
 			@Override
-			public <T> List<Model<? extends T>> getMatchingModels(
+			public <T> List<Model.Effective<? extends T>> getMatchingModels(
 					ElementNode.Effective<T> element, Class<?> dataClass) {
 				return null;
 			}
 
 			@Override
-			public <T> List<DataBindingType<? extends T>> getMatchingTypes(
+			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 					DataNode.Effective<T> node, Class<?> dataClass) {
 				return DataNodeUnbinder.this.context.getMatchingTypes(node, dataClass);
 			}
@@ -144,16 +144,14 @@ public class DataNodeUnbinder {
 					+ "' cannot omit data for unbinding.");
 	}
 
+	@SuppressWarnings("unchecked")
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
 			UnbindingContext context) {
 		if (node.isExtensible() != null && node.isExtensible()) {
-			List<DataNode.Effective<? extends U>> nodes = context
+			List<? extends DataNode.Effective<? extends U>> nodes = context
 					.getMatchingTypes(node, data.getClass()).stream()
 					.map(type -> new DataNodeWrapper<>(type.effective(), node))
 					.collect(Collectors.toCollection(ArrayList::new));
-
-			if (!node.isAbstract())
-				nodes.add(node);
 
 			if (nodes.isEmpty())
 				throw new SchemaException(
@@ -162,16 +160,21 @@ public class DataNodeUnbinder {
 								+ node.effective().type().getName() + "' for object '" + data
 								+ "' to be unbound.");
 
-			new UnbindingAttempter(context).tryForEach(
-					nodes,
-					(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
-					l -> context.exception(
-							"Unable to unbind data node '"
-									+ node.getName()
-									+ "' with type candidates '"
-									+ nodes.stream().map(m -> m.source().getName().toString())
-											.collect(Collectors.joining(", ")) + "' for object '"
-									+ data + "' to be unbound.", l));
+			DataNode.Effective<? extends U> success = new UnbindingAttempter(context)
+					.tryForEach(
+							nodes,
+							(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
+							l -> context.exception(
+									"Unable to unbind data node '"
+											+ node.getName()
+											+ "' with type candidates '"
+											+ nodes.stream()
+													.map(m -> m.source().getName().toString())
+													.collect(Collectors.joining(", ")) + "' for object '"
+											+ data + "' to be unbound.", l));
+
+			nodes.remove(success);
+			((List<Object>) nodes).add(0, success);
 		} else {
 			new BindingNodeUnbinder(context).unbind(node, data);
 		}

@@ -1,7 +1,10 @@
 package uk.co.strangeskies.modabi.schema.processing.impl.binding;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -18,9 +21,9 @@ import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
@@ -29,9 +32,9 @@ import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.BindingNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.DataNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
-import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
 
 public class SchemaBinder {
 	private final BindingContext context;
@@ -57,7 +60,7 @@ public class SchemaBinder {
 			}
 		};
 
-		Function<BindingContext, ReferenceSource> referenceSource = context -> new ReferenceSource() {
+		Function<BindingContext, DereferenceSource> referenceSource = context -> new DereferenceSource() {
 			@Override
 			public <U> U reference(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
@@ -74,10 +77,12 @@ public class SchemaBinder {
 		};
 
 		context = new BindingContext() {
+			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
+
 			@Override
 			@SuppressWarnings("unchecked")
 			public <U> U provide(Class<U> clazz, BindingContext context) {
-				if (clazz.equals(ReferenceSource.class))
+				if (clazz.equals(DereferenceSource.class))
 					return (U) referenceSource.apply(context);
 				if (clazz.equals(IncludeTarget.class))
 					return (U) includeTarget.apply(context);
@@ -93,7 +98,7 @@ public class SchemaBinder {
 
 			@Override
 			public boolean isProvided(Class<?> clazz) {
-				return clazz.equals(ReferenceSource.class)
+				return clazz.equals(DereferenceSource.class)
 						|| clazz.equals(IncludeTarget.class)
 						|| clazz.equals(ImportSource.class)
 						|| clazz.equals(DataLoader.class)
@@ -126,9 +131,20 @@ public class SchemaBinder {
 			}
 
 			@Override
-			public <T> List<DataBindingType<? extends T>> getMatchingTypes(
+			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 					Effective<T> node, Class<?> dataClass) {
-				return manager.registeredTypes().getMatchingTypes(node, dataClass);
+				@SuppressWarnings("unchecked")
+				List<DataBindingType.Effective<? extends T>> cached = (List<DataBindingType.Effective<? extends T>>) attemptedMatchingTypes
+						.get(dataClass);
+
+				if (cached == null) {
+					cached = manager.registeredTypes().getMatchingTypes(node, dataClass)
+							.stream().map(n -> n.effective())
+							.collect(Collectors.toCollection(ArrayList::new));
+					attemptedMatchingTypes.put(dataClass, cached);
+				}
+
+				return cached;
 			}
 		};
 	}
@@ -266,13 +282,13 @@ public class SchemaBinder {
 			}
 
 			@Override
-			public <T> List<Model<? extends T>> getMatchingModels(
+			public <T> List<Model.Effective<? extends T>> getMatchingModels(
 					ElementNode.Effective<T> element, Class<?> dataClass) {
 				return Collections.emptyList();
 			}
 
 			@Override
-			public <T> List<DataBindingType<? extends T>> getMatchingTypes(
+			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 					DataNode.Effective<T> node, Class<?> dataClass) {
 				return context.getMatchingTypes(node, dataClass);
 			}

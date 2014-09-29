@@ -1,13 +1,16 @@
 package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ElementNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.impl.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.processing.impl.ElementNodeOverrider;
 
 public class ElementNodeUnbinder {
@@ -17,13 +20,14 @@ public class ElementNodeUnbinder {
 		this.context = context;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <U> void unbind(ElementNode.Effective<U> node, List<U> data) {
-		for (U item : data) {
-			if (node.isExtensible() != null && node.isExtensible()) {
-				List<Model.Effective<? extends U>> nodes = context
-						.getMatchingModels(node, item.getClass()).stream()
-						.map(n -> n.effective())
-						.collect(Collectors.toCollection(ArrayList::new));
+		Map<QualifiedName, ElementNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
+
+		if (node.isExtensible() != null && node.isExtensible()) {
+			for (U item : data) {
+				List<? extends Model.Effective<? extends U>> nodes = context
+						.getMatchingModels(node, item.getClass());
 
 				if (nodes.isEmpty())
 					throw new SchemaException("Unable to find model to satisfy element '"
@@ -34,26 +38,37 @@ public class ElementNodeUnbinder {
 									.collect(Collectors.joining(", ")) + "' for object '" + item
 							+ "' to be unbound.");
 
-				new UnbindingAttempter(context)
+				List<? extends Model.Effective<? extends U>> finalNodes = nodes;
+				Model.Effective<? extends U> success = new UnbindingAttempter(context)
 						.tryForEach(
 								nodes,
 								(c, n) -> {
-									ElementNode.Effective<? extends U> overridden = new ElementNodeOverrider(
-											new ModelBuilderImpl()).override(node, n.effective());
+									ElementNode.Effective<? extends U> overridden = (Effective<? extends U>) attemptedOverrideMap
+											.get(n.getName());
+
+									if (overridden == null) {
+										overridden = new ElementNodeOverrider(context
+												.provide(ModelBuilder.class)).override(node,
+												n.effective());
+										attemptedOverrideMap.put(n.getName(), overridden);
+									}
 
 									castAndUnbind(c, overridden, item);
 								}, l -> context.exception(
 										"Unable to unbind element '"
 												+ node.getName()
 												+ "' with model candidates '"
-												+ nodes.stream()
+												+ finalNodes.stream()
 														.map(m -> m.source().getName().toString())
 														.collect(Collectors.joining(", "))
 												+ "' for object '" + item + "' to be unbound.", l));
-			} else {
-				castAndUnbind(context, node, item);
+
+				nodes.remove(success);
+				((List<Object>) nodes).add(0, success);
 			}
-		}
+		} else
+			for (U item : data)
+				castAndUnbind(context, node, item);
 	}
 
 	private <U extends V, V> void castAndUnbind(UnbindingContext context,

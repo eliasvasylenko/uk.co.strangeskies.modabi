@@ -3,18 +3,16 @@ package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 
-public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingChildNode.Effective<? super T, ?, ?>, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
-		implements BindingChildNode.Effective<T, S, E> {
+public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
+		implements BindingNode.Effective<T, S, E> {
 	private final C component;
 	private final B base;
 
@@ -74,16 +72,6 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Boolean isOrdered() {
-		return base == null ? null : base.isOrdered();
-	}
-
-	@Override
-	public final Boolean isExtensible() {
-		return base == null ? null : base.isExtensible();
-	}
-
-	@Override
 	public final Boolean isAbstract() {
 		return component.isAbstract();
 	}
@@ -137,56 +125,6 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	@Override
 	public final List<ChildNode.Effective<?, ?>> children() {
 		return component.children();
-	}
-
-	@Override
-	public final Method getOutMethod() {
-		return base == null ? null : base.getOutMethod();
-	}
-
-	@Override
-	public final String getOutMethodName() {
-		return base == null ? null : base.getOutMethodName();
-	}
-
-	@Override
-	public final Boolean isOutMethodIterable() {
-		return base == null ? null : base.isOutMethodIterable();
-	}
-
-	@Override
-	public final Range<Integer> occurances() {
-		return base == null ? null : base.occurances();
-	}
-
-	@Override
-	public Boolean isInMethodCast() {
-		return base == null ? null : base.isInMethodCast();
-	}
-
-	@Override
-	public final String getInMethodName() {
-		return base == null ? null : base.getInMethodName();
-	}
-
-	@Override
-	public final Method getInMethod() {
-		return base == null ? null : base.getInMethod();
-	}
-
-	@Override
-	public final Boolean isInMethodChained() {
-		return base == null ? null : base.isInMethodChained();
-	}
-
-	@Override
-	public final Class<?> getPreInputClass() {
-		return base == null ? null : base.getPreInputClass();
-	}
-
-	@Override
-	public final Class<?> getPostInputClass() {
-		return base == null ? null : base.getPostInputClass();
 	}
 
 	@Override

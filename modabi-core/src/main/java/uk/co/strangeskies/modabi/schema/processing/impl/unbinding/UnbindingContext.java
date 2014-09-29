@@ -33,10 +33,10 @@ public interface UnbindingContext {
 
 	Bindings bindings();
 
-	<T> List<Model<? extends T>> getMatchingModels(
+	<T> List<Model.Effective<? extends T>> getMatchingModels(
 			ElementNode.Effective<T> element, Class<?> dataClass);
 
-	<T> List<DataBindingType<? extends T>> getMatchingTypes(
+	<T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 			DataNode.Effective<T> node, Class<?> dataClass);
 
 	default UnbindingException exception(String message, Exception cause) {
@@ -76,13 +76,13 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public <U> List<Model<? extends U>> getMatchingModels(
+			public <U> List<Model.Effective<? extends U>> getMatchingModels(
 					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -113,13 +113,13 @@ public interface UnbindingContext {
 		UnbindingContext base = this;
 		return new UnbindingContext() {
 			@Override
-			public <U> List<Model<? extends U>> getMatchingModels(
+			public <U> List<Model.Effective<? extends U>> getMatchingModels(
 					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -167,13 +167,13 @@ public interface UnbindingContext {
 
 		return new UnbindingContext() {
 			@Override
-			public <U> List<Model<? extends U>> getMatchingModels(
+			public <U> List<Model.Effective<? extends U>> getMatchingModels(
 					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}
@@ -214,13 +214,13 @@ public interface UnbindingContext {
 		UnbindingContext base = this;
 		return new UnbindingContext() {
 			@Override
-			public <U> List<Model<? extends U>> getMatchingModels(
+			public <U> List<Model.Effective<? extends U>> getMatchingModels(
 					ElementNode.Effective<U> element, Class<?> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
 			@Override
-			public <U> List<DataBindingType<? extends U>> getMatchingTypes(
+			public <U> List<DataBindingType.Effective<? extends U>> getMatchingTypes(
 					DataNode.Effective<U> node, Class<?> dataClass) {
 				return base.getMatchingTypes(node, dataClass);
 			}

@@ -8,16 +8,16 @@ import uk.co.strangeskies.modabi.schema.node.AbstractModel;
 import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
-public class ElementNodeWrapper<T>
+public class ModelWrapper<T>
 		extends
-		BindingChildNodeWrapper<T, AbstractModel.Effective<? super T, ?, ?>, ElementNode.Effective<? super T>, ElementNode<T>, ElementNode.Effective<T>>
-		implements ElementNode.Effective<T> {
-	public ElementNodeWrapper(AbstractModel.Effective<? super T, ?, ?> component) {
+		BindingNodeWrapper<T, AbstractModel.Effective<? super T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
+		implements Model.Effective<T> {
+	public ModelWrapper(AbstractModel.Effective<? super T, ?, ?> component) {
 		super(component);
 	}
 
-	public ElementNodeWrapper(Model.Effective<T> component,
-			ElementNode.Effective<? super T> base) {
+	public ModelWrapper(ElementNode.Effective<T> component,
+			Model.Effective<? super T> base) {
 		super(component, base);
 
 		String message = "Cannot override '" + base.getName() + "' with '"

@@ -19,9 +19,11 @@ public class UnbindingAttempter {
 		this.context = context;
 	}
 
-	public <I extends SchemaNode.Effective<?, ?>> void tryForEach(
+	public <I extends SchemaNode.Effective<?, ?>> I tryForEach(
 			List<I> unbindingItems, BiConsumer<UnbindingContext, I> unbindingMethod,
 			Function<List<SchemaException>, UnbindingException> onFailure) {
+		I success = null;
+
 		if (unbindingItems.isEmpty())
 			throw new IllegalArgumentException(
 					"Must supply items for unbinding attempt.");
@@ -43,7 +45,7 @@ public class UnbindingAttempter {
 
 			try {
 				unbindingMethod.accept(context, item);
-				failures.clear();
+				success = item;
 				break;
 			} catch (SchemaException e) {
 				failures.add(e);
@@ -54,12 +56,14 @@ public class UnbindingAttempter {
 			}
 		}
 
-		if (failures.isEmpty()) {
+		if (success != null) {
 			// remove mark! (by flushing buffer into output)
 			if (dataTarget != null)
 				dataTarget.buffer().pipe(this.context.provide(DataTarget.class));
 
 			output.buffer().pipeNextChild(this.context.output());
+
+			return success;
 		} else
 			throw onFailure.apply(failures);
 	}

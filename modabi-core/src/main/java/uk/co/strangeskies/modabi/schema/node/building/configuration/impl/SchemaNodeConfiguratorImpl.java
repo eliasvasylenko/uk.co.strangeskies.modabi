@@ -43,7 +43,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private final List<ChildNode.Effective<?, ?>> children;
 
 			private PropertySet<E> combinedPropertySet;
-			private Integer hashCode;
 
 			protected Effective(
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
@@ -138,9 +137,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			@Override
 			public final int hashCode() {
-				if (hashCode == null)
-					hashCode = combinedPropertySet().generateHashCode();
-				return hashCode;
+				return combinedPropertySet().generateHashCode();
 			}
 
 			private final PropertySet<E> combinedPropertySet() {
@@ -161,7 +158,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		private final List<ChildNode<?, ?>> children;
 
 		private PropertySet<S> propertySet;
-		private Integer hashCode;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
 			configurator.finaliseConfiguration();
@@ -201,13 +197,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		@Override
 		public final int hashCode() {
-			if (hashCode == null) {
-				if (propertySet == null)
-					propertySet = propertySet();
-				hashCode = propertySet.generateHashCode();
-			}
+			if (propertySet == null)
+				propertySet = propertySet();
 
-			return hashCode;
+			return propertySet.generateHashCode();
 		}
 
 		@Override

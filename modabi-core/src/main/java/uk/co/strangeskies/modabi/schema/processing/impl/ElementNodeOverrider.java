@@ -2,17 +2,13 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.proxy.ProxyFactory;
-
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.AbstractModel;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
@@ -32,10 +28,10 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.ElementNodeC
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ModelWrapper;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public class ElementNodeOverrider {
@@ -56,39 +52,8 @@ public class ElementNodeOverrider {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private <T> Model.Effective<T> wrapElement(ElementNode.Effective<T> element) {
-		return (Model.Effective<T>) new ProxyFactory().createInterceptorProxy(
-				wrapObject(element, AbstractModel.Effective.class,
-						Model.Effective.class), i -> {
-					String method = i.getMethod().getName();
-					if ("source".equals(method) || "effective".equals(method))
-						return wrapElement(element);
-					return i.proceed();
-				}, new Class[] { Model.Effective.class });
-	}
-
-	@SuppressWarnings("unchecked")
-	private <I, O extends I, W extends I> W wrapObject(O element,
-			Class<I> interfaceClass, Class<W> wrapperClass) {
-		return (W) new ProxyFactory().createInvokerProxy(
-				(proxy, method, parameters) -> {
-					Class<?>[] parameterClasses;
-
-					if (parameters == null)
-						parameterClasses = new Class[] {};
-					else
-						parameterClasses = Arrays.stream(parameters).map(Object::getClass)
-								.toArray(Class[]::new);
-
-					method = Methods.tryFindMethod(Arrays.asList(method.getName()),
-							interfaceClass, method.getReturnType(), false, parameterClasses);
-
-					if (method != null)
-						return method.invoke(element, parameters);
-
-					return null;
-				}, new Class[] { wrapperClass });
+		return new ModelWrapper<>(element);
 	}
 
 	private class OverridingProcessor implements SchemaProcessingContext {

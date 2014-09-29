@@ -34,11 +34,11 @@ import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.impl.binding.BindingContext;
-import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceTarget;
-import uk.co.strangeskies.modabi.schema.processing.reference.ImportDereferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
-import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceSource;
+import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
@@ -126,9 +126,9 @@ public class BaseSchemaImpl implements BaseSchema {
 							.dataClass(Object.class)
 							.isAbstract(true)
 							.isPrivate(true)
-							.bindingClass(ReferenceSource.class)
+							.bindingClass(DereferenceSource.class)
 							.bindingStrategy(BindingStrategy.PROVIDED)
-							.unbindingFactoryClass(DereferenceTarget.class)
+							.unbindingFactoryClass(ReferenceTarget.class)
 							.unbindingClass(DataSource.class)
 							.unbindingMethod("dereference")
 							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
@@ -495,7 +495,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.dataClass(Object.class)
 											.bindingClass(ImportSource.class)
 											.bindingStrategy(BindingStrategy.PROVIDED)
-											.unbindingFactoryClass(ImportDereferenceTarget.class)
+											.unbindingFactoryClass(ImportReferenceTarget.class)
 											.unbindingClass(DataSource.class)
 											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 											.unbindingMethod("dereferenceImport")

@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public final class DataNodeWrapper<T>
 		extends
-		BindingNodeWrapper<T, DataBindingType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
+		BindingChildNodeWrapper<T, DataBindingType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
 		implements DataNode.Effective<T> {
 	public DataNodeWrapper(DataBindingType.Effective<T> component) {
 		super(component);
