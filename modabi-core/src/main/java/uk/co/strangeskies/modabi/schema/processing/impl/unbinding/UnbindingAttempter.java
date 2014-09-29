@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
-import uk.co.strangeskies.modabi.data.io.DataTarget;
-import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
+import uk.co.strangeskies.modabi.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
 
 public class UnbindingAttempter {

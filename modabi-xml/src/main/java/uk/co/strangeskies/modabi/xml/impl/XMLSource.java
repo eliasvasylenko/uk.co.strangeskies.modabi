@@ -14,11 +14,11 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import uk.co.strangeskies.modabi.data.io.DataSource;
-import uk.co.strangeskies.modabi.data.io.IOException;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSourceDecorator;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataState;
+import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceDecorator;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;

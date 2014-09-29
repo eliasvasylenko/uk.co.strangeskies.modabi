@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.data.io.DataSource;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
 public class DataNodeBinder {

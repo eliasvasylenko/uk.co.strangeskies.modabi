@@ -4,7 +4,7 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 
 public class SchemaNodeTests {
 	@DataProvider(name = "sequences")

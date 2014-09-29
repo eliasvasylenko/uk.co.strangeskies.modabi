@@ -1,0 +1,28 @@
+package uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities;
+
+import java.util.List;
+
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
+
+public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
+	DataLoader getDataLoader();
+
+	boolean isAbstract();
+
+	boolean isDataContext();
+
+	boolean hasInput();
+
+	Class<?> getInputTargetClass(QualifiedName node);
+
+	Class<?> getOutputSourceClass();
+
+	void addChild(T result);
+
+	<U extends T> List<U> overrideChild(QualifiedName id, Class<U> nodeClass);
+
+	Namespace getNamespace();
+}

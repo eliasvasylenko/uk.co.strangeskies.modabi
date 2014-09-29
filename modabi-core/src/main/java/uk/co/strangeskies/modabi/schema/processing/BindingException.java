@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
 public class BindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;

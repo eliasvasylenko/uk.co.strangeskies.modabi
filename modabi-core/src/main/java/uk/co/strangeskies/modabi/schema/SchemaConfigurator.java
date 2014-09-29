@@ -3,9 +3,9 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.Collection;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.data.DataBindingType;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface SchemaConfigurator extends Factory<Schema> {

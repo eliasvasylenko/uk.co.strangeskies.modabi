@@ -4,9 +4,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import uk.co.strangeskies.modabi.data.io.DataType;
-import uk.co.strangeskies.modabi.data.io.structured.BufferedStructuredDataSource;
-import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
+import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public class StructuredDataTests {

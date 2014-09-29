@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.xml.test;
 
-import uk.co.strangeskies.modabi.data.impl.DataBindingTypeBuilderImpl;
-import uk.co.strangeskies.modabi.data.io.structured.BufferedStructuredDataSource;
-import uk.co.strangeskies.modabi.data.io.structured.BufferingStructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
-import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.schema.node.model.impl.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.schema.node.type.impl.DataBindingTypeBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.impl.SchemaManagerImpl;
 

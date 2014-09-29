@@ -15,15 +15,15 @@ import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.InputSequenceNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.node.BindingNode;
+import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 

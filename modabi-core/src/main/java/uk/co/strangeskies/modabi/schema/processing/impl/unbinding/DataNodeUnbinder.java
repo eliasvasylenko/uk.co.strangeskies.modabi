@@ -5,18 +5,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.io.BufferingDataTarget;
-import uk.co.strangeskies.modabi.data.io.DataSource;
-import uk.co.strangeskies.modabi.data.io.DataTarget;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.Model;
-import uk.co.strangeskies.modabi.schema.model.building.impl.DataNodeWrapper;
-import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
 
 public class DataNodeUnbinder {
 	private final UnbindingContext context;

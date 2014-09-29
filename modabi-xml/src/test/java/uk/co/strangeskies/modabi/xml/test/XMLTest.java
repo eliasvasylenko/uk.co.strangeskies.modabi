@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.xml.test;
 
-import uk.co.strangeskies.modabi.data.io.DataType;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 

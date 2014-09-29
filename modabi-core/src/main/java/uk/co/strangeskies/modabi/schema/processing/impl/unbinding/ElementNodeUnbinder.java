@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.Model;
-import uk.co.strangeskies.modabi.schema.model.building.impl.ElementNodeOverrider;
-import uk.co.strangeskies.modabi.schema.model.building.impl.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.model.impl.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.schema.processing.impl.ElementNodeOverrider;
 
 public class ElementNodeUnbinder {
 	private final UnbindingContext context;

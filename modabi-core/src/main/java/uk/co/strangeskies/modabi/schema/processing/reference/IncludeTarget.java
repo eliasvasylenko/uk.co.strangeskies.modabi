@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.schema.processing.reference;
 
 import java.util.Collection;
 
-import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public interface IncludeTarget {
 	<T> void include(Model<T> model, T object);

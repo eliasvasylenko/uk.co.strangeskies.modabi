@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 
 public class DummyNodes {
 	private DummyNodes() {

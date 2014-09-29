@@ -6,16 +6,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.data.DataBindingTypes;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.modabi.schema.model.Model;
-import uk.co.strangeskies.modabi.schema.model.Models;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.model.Models;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 
 public interface SchemaManager {
 	<T> void registerProvider(Class<T> providedClass, Supplier<T> provider);

@@ -20,11 +20,11 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import uk.co.strangeskies.modabi.data.io.DataTarget;
-import uk.co.strangeskies.modabi.data.io.IOException;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataState;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataTargetDecorator;
+import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetDecorator;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 

@@ -6,10 +6,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.schema.model.AbstractModel;
-import uk.co.strangeskies.modabi.schema.model.Model;
-import uk.co.strangeskies.modabi.schema.model.Models;
-import uk.co.strangeskies.modabi.schema.model.nodes.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.AbstractModel;
+import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.utilities.collection.SetMultiMap;
 

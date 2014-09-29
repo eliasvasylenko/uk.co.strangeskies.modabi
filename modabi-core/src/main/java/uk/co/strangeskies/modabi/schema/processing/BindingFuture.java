@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.model.Model;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public interface BindingFuture<T> extends Future<Binding<T>> {
 	QualifiedName getName();

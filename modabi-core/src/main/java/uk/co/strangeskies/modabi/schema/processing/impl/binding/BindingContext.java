@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.data.DataBindingType;
-import uk.co.strangeskies.modabi.data.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
-import uk.co.strangeskies.modabi.schema.model.Model;
-import uk.co.strangeskies.modabi.schema.model.nodes.DataNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.BindingException;
 import uk.co.strangeskies.utilities.factory.Factory;
 

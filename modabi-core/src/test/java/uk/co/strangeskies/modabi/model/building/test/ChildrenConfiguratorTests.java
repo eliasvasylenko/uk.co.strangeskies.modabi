@@ -12,11 +12,11 @@ import org.testng.annotations.Test;
 import uk.co.strangeskies.modabi.model.nodes.test.DummyNodes;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.model.building.impl.SequentialChildrenConfigurator;
-import uk.co.strangeskies.modabi.schema.model.nodes.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.ChildNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SchemaNode;
-import uk.co.strangeskies.modabi.schema.model.nodes.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 
 public class ChildrenConfiguratorTests {
 	private class MergeTestData {
