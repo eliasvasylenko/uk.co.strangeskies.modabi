@@ -93,8 +93,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				registerDataType(type);
 
 			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel(),
-					BindingFuture.forData(coreSchemata.metaSchema()
-							.getSchemaModel(), schema));
+					BindingFuture.forData(coreSchemata.metaSchema().getSchemaModel(),
+							schema));
 		}
 	}
 
@@ -131,8 +131,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder(this).bind(registeredModels
-				.get(input.peekNextChild()).effective(), input));
+		return addBindingFuture(new SchemaBinder(this).bind(
+				registeredModels.get(input.peekNextChild()).effective(), input));
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
@@ -167,14 +167,13 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public <T> void unbind(StructuredDataTarget output, T data) {
+	public void unbind(StructuredDataTarget output, Object data) {
 		new SchemaUnbinder(this).unbind(output, data);
 	}
 
 	// TODO disallow provider registrations overriding built-in providers
 	@Override
-	public <T> void registerProvider(Class<T> providedClass,
-			Supplier<T> provider) {
+	public <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
 		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);
 	}
 
@@ -183,9 +182,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null && !c.isInstance(provided))
-				throw new SchemaException(
-						"Invalid object provided for the class [" + c
-								+ "] by provider [" + provider + "]");
+				throw new SchemaException("Invalid object provided for the class [" + c
+						+ "] by provider [" + provider + "]");
 			return provided;
 		});
 	}
@@ -199,8 +197,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				.filter(Objects::nonNull)
 				.findFirst()
 				.orElseThrow(
-						() -> new SchemaException(
-								"No provider exists for the class " + clazz));
+						() -> new SchemaException("No provider exists for the class "
+								+ clazz));
 	}
 
 	@Override

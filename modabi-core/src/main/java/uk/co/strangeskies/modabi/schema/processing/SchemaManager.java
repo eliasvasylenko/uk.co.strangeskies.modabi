@@ -57,8 +57,8 @@ public interface SchemaManager {
 
 	default BindingFuture<Schema> registerSchemaBindingFuture(
 			StructuredDataSource input) {
-		BindingFuture<Schema> schema = bindFuture(getMetaSchema()
-				.getSchemaModel(), input);
+		BindingFuture<Schema> schema = bindFuture(getMetaSchema().getSchemaModel(),
+				input);
 
 		new Thread(() -> {
 			try {
@@ -73,7 +73,7 @@ public interface SchemaManager {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
-	<T> void unbind(StructuredDataTarget output, T data);
+	void unbind(StructuredDataTarget output, Object data);
 
 	/*-
 	 * TODO Best effort at unbinding, outputting comments on errors instead of

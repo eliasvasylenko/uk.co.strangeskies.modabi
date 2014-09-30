@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.benchmark;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,7 +13,6 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
@@ -22,14 +20,11 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.config.Loggers;
-
-import sun.misc.IOUtils;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.impl.SchemaManagerImpl;
+import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 interface PersonType {
 	String getFirstName();
@@ -73,8 +68,7 @@ public class BenchmarkRunner {
 			}
 
 			String createXmlStr = System.getProperty("create.xml");
-			System.out.println("-Dcreate.xml property was set as "
-					+ createXmlStr);
+			System.out.println("-Dcreate.xml property was set as " + createXmlStr);
 
 			boolean createXml = false;
 
@@ -93,32 +87,26 @@ public class BenchmarkRunner {
 
 			for (int i = 0; i < 10; i++) {
 
-				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-10000.xml"), 10000);
-				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-100000.xml"),
-						100000);
-				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-1000000.xml"),
-						1000000);
+				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-10000.xml"), 10000);
+				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-100000.xml"), 100000);
+				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-1000000.xml"), 1000000);
 
-				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-10000.xml"), 10000);
-				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-100000.xml"),
-						100000);
-				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-1000000.xml"),
-						1000000);
+				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-10000.xml"), 10000);
+				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-100000.xml"), 100000);
+				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-1000000.xml"), 1000000);
 
 				main.readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
 						+ File.separatorChar + "large-person-10000.xml"), 10000);
 				main.readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-100000.xml"),
-						100000);
+						+ File.separatorChar + "large-person-100000.xml"), 100000);
 				main.readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-1000000.xml"),
-						1000000);
+						+ File.separatorChar + "large-person-1000000.xml"), 1000000);
 			}
 
 		} catch (Exception e) {
@@ -164,7 +152,7 @@ public class BenchmarkRunner {
 		OutputStream fos = new FileOutputStream(file);
 
 		try {
-			manager.unbind(model, fos, persons);
+			manager.unbind(new XMLTarget(fos), persons);
 			fos.flush();
 		} finally {
 			fos.close();
@@ -179,8 +167,7 @@ public class BenchmarkRunner {
 				.newInstance("xml.integration.jemos.co.uk.large_file");
 		Unmarshaller unmarshaller = ucontext.createUnmarshaller();
 
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(
-				file));
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
 
 		long start = System.currentTimeMillis();
 		long memstart = Runtime.getRuntime().freeMemory();
@@ -196,8 +183,8 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("JAXB (" + nbrRecords
-					+ "): - Total Memory used: " + (memstart - memend));
+			System.out.println("JAXB (" + nbrRecords + "): - Total Memory used: "
+					+ (memstart - memend));
 
 			System.out.println("JAXB (" + nbrRecords + "): Time taken in ms: "
 					+ (end - start));
@@ -214,8 +201,7 @@ public class BenchmarkRunner {
 
 		// set up a StAX reader
 		XMLInputFactory xmlif = XMLInputFactory.newInstance();
-		XMLStreamReader xmlr = xmlif
-				.createXMLStreamReader(new FileReader(file));
+		XMLStreamReader xmlr = xmlif.createXMLStreamReader(new FileReader(file));
 
 		JAXBContext ucontext = JAXBContext.newInstance(PersonType.class);
 
@@ -244,11 +230,11 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("STax - (" + nbrRecords
-					+ "): - Total memory used: " + (memstart - memend));
+			System.out.println("STax - (" + nbrRecords + "): - Total memory used: "
+					+ (memstart - memend));
 
-			System.out.println("STax - (" + nbrRecords
-					+ "): Time taken in ms: " + (end - start));
+			System.out.println("STax - (" + nbrRecords + "): Time taken in ms: "
+					+ (end - start));
 
 		} finally {
 			xmlr.close();
@@ -262,8 +248,7 @@ public class BenchmarkRunner {
 
 		// set up a StAX reader
 		XMLInputFactory xmlif = XMLInputFactory.newInstance();
-		XMLStreamReader xmlr = xmlif
-				.createXMLStreamReader(new FileReader(file));
+		XMLStreamReader xmlr = xmlif.createXMLStreamReader(new FileReader(file));
 
 		JAXBContext ucontext = JAXBContext.newInstance(PersonType.class);
 
@@ -292,11 +277,11 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("Woodstox - (" + nbrRecords
-					+ "): Total memory used: " + (memstart - memend));
+			System.out.println("Woodstox - (" + nbrRecords + "): Total memory used: "
+					+ (memstart - memend));
 
-			System.out.println("Woodstox - (" + nbrRecords
-					+ "): Time taken in ms: " + (end - start));
+			System.out.println("Woodstox - (" + nbrRecords + "): Time taken in ms: "
+					+ (end - start));
 
 		} finally {
 			xmlr.close();
