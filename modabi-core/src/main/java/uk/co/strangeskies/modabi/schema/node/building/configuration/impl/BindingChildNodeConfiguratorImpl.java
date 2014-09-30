@@ -24,7 +24,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 				extends BindingNodeImpl.Effective<T, S, E> implements
 				BindingChildNode.Effective<T, S, E> {
-			private final Range<Integer> occurances;
+			private final Range<Integer> occurrences;
 
 			private final Boolean iterable;
 			private String outMethodName;
@@ -60,7 +60,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				ordered = overrideMerge.getValue(BindingChildNode::isOrdered, true);
 
-				occurances = overrideMerge.getValue(BindingChildNode::occurances,
+				occurrences = overrideMerge.getValue(BindingChildNode::occurrences,
 						(v, o) -> o.contains(v), Range.create(1, 1));
 
 				iterable = overrideMerge.getValue(
@@ -132,8 +132,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			public final Range<Integer> occurances() {
-				return occurances;
+			public final Range<Integer> occurrences() {
+				return occurrences;
 			}
 
 			@Override
@@ -174,7 +174,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 		private final Class<?> postInputClass;
 
-		private final Range<Integer> occurances;
+		private final Range<Integer> occurrences;
 
 		private final Boolean iterable;
 		private final String outMethodName;
@@ -194,7 +194,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			extensible = configurator.extensible;
 			ordered = configurator.ordered;
-			occurances = configurator.occurances;
+			occurrences = configurator.occurrences;
 			iterable = configurator.iterable;
 			outMethodName = configurator.outMethodName;
 
@@ -214,8 +214,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
-		public final Range<Integer> occurances() {
-			return occurances;
+		public final Range<Integer> occurrences() {
+			return occurrences;
 		}
 
 		@Override
@@ -252,7 +252,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private Class<?> postInputClass;
-	private Range<Integer> occurances;
+	private Range<Integer> occurrences;
 	private Boolean iterable;
 	private String outMethodName;
 	private String inMethodName;
@@ -291,9 +291,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public final S occurances(Range<Integer> range) {
-		requireConfigurable(occurances);
-		occurances = range;
+	public final S occurrences(Range<Integer> range) {
+		requireConfigurable(occurrences);
+		occurrences = range;
 		return getThis();
 	}
 

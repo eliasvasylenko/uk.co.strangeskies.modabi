@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
+package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,8 @@ import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class UnbindingAttempter {
 	private final UnbindingContext context;

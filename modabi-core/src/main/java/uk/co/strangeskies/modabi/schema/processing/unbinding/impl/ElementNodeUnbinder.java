@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
+package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +12,7 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.processing.impl.ElementNodeOverrider;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 
 public class ElementNodeUnbinder {
 	private final UnbindingContext context;
@@ -27,7 +28,7 @@ public class ElementNodeUnbinder {
 		if (node.isExtensible() != null && node.isExtensible()) {
 			for (U item : data) {
 				List<? extends Model.Effective<? extends U>> nodes = context
-						.getMatchingModels(node, item.getClass());
+						.getMatchingModels(node, (Class<? extends U>) item.getClass());
 
 				if (nodes.isEmpty())
 					throw new SchemaException("Unable to find model to satisfy element '"

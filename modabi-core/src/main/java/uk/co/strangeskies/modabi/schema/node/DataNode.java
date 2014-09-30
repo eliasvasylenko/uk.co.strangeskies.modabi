@@ -27,9 +27,9 @@ public interface DataNode<T> extends
 		List<T> providedValues();
 
 		default T providedValue() {
-			if (!Range.create(0, 1).contains(occurances()))
+			if (!Range.create(0, 1).contains(occurrences()))
 				throw new SchemaException("Cannot request single value from node '"
-						+ getName() + "' with occurances '" + occurances() + "'.");
+						+ getName() + "' with occurrences '" + occurrences() + "'.");
 
 			if (providedValues() == null || providedValues().isEmpty())
 				return null;

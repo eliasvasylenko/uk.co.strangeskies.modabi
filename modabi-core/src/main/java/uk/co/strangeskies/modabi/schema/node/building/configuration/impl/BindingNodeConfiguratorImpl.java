@@ -17,8 +17,8 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, N, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements

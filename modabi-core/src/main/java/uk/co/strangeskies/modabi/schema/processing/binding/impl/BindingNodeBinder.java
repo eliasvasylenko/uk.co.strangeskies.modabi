@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.binding;
+package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -18,9 +18,10 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.PartialSchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.schema.processing.impl.PartialSchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.ResultWrapper;
 

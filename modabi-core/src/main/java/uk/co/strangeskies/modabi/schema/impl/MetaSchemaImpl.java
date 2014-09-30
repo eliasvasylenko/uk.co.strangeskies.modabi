@@ -41,9 +41,9 @@ import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private final Schema metaSchema;
@@ -126,7 +126,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 								.bindingClass(SchemaNodeConfigurator.class)
 								.dataClass(ChildNode.class).outMethodIterable(true)
-								.occurances(Range.create(0, null)))
+								.occurrences(Range.create(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(branchModel);
@@ -238,7 +238,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("ordered")
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("occurances")
+						n -> n.data().format(Format.PROPERTY).name("occurrences")
 								.type(base.derivedTypes().rangeType()).optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethod")
@@ -525,19 +525,19 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n
 								.element()
 								.name("requirements")
-								.occurances(Range.create(0, 1))
+								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.addChild(
 										o -> o.data().format(Format.SIMPLE_ELEMENT)
 												.type(base.derivedTypes().classType())
 												.outMethod("this").name("requirement")
 												.outMethodIterable(true)
-												.occurances(Range.create(0, null))))
+												.occurrences(Range.create(0, null))))
 				.addChild(
 						n -> n
 								.element()
 								.name("dependencies")
-								.occurances(Range.create(0, 1))
+								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.addChild(
 										o -> o
@@ -549,7 +549,7 @@ public class MetaSchemaImpl implements MetaSchema {
 												.dataClass(Schema.class)
 												.outMethodIterable(true)
 												.outMethod("this")
-												.occurances(Range.create(0, null))
+												.occurrences(Range.create(0, null))
 												.addChild(
 														i -> i
 																.data()
@@ -615,25 +615,25 @@ public class MetaSchemaImpl implements MetaSchema {
 								.element()
 								.name("types")
 								.outMethod("getDataTypes")
-								.occurances(Range.create(0, 1))
+								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.bindingClass(LinkedHashSet.class)
 								.addChild(
 										o -> o.element().baseModel(typeModel).outMethod("this")
 												.name("type").outMethodIterable(true)
 												.dataClass(DataBindingType.class)
-												.occurances(Range.create(0, null))))
+												.occurrences(Range.create(0, null))))
 				.addChild(
 						n -> n
 								.element()
 								.name("models")
-								.occurances(Range.create(0, 1))
+								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.bindingClass(LinkedHashSet.class)
 								.addChild(
 										o -> o.element().baseModel(modelModel)
 												.outMethodIterable(true).outMethod("this")
-												.occurances(Range.create(0, null))))
+												.occurrences(Range.create(0, null))))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(schemaModel);

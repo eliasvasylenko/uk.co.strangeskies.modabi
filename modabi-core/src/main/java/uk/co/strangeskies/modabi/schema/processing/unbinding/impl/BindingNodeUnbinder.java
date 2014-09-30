@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
+package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -26,6 +26,7 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 
 public class BindingNodeUnbinder {
 	private final UnbindingContext context;
@@ -220,11 +221,11 @@ public class BindingNodeUnbinder {
 			}
 		}
 
-		if (itemList != null && node.occurances() != null
-				&& !node.occurances().contains(itemList.size()))
+		if (itemList != null && node.occurrences() != null
+				&& !node.occurrences().contains(itemList.size()))
 			throw context.exception("Output list '" + itemList
 					+ "' must contain a number of items within range '"
-					+ Range.compose(node.occurances()) + "' to be unbound by node '"
+					+ Range.compose(node.occurrences()) + "' to be unbound by node '"
 					+ node + "'.");
 
 		return itemList;

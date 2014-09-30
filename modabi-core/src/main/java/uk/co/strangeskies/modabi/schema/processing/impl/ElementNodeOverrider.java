@@ -143,7 +143,7 @@ public class ElementNodeOverrider {
 				BindingChildNode<U, ?, ?> node, C c) {
 			c = tryProperty(node.getOutMethodName(), c::outMethod, c);
 			c = tryProperty(node.isOutMethodIterable(), c::outMethodIterable, c);
-			c = tryProperty(node.occurances(), c::occurances, c);
+			c = tryProperty(node.occurrences(), c::occurrences, c);
 			c = tryProperty(node.isOrdered(), c::ordered, c);
 
 			return processInputNode(node, c);

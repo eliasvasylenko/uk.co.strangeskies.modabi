@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.unbinding;
+package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,10 +19,11 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingException;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class SchemaUnbinder {
 	private final UnbindingContext context;
@@ -128,8 +129,15 @@ public class SchemaUnbinder {
 			}
 
 			@Override
+			public <U> List<Model.Effective<U>> getMatchingModels(Class<U> dataClass) {
+				return manager.registeredModels().getMatchingModels(dataClass).stream()
+						.map(n -> n.effective())
+						.collect(Collectors.toCollection(ArrayList::new));
+			}
+
+			@Override
 			public <T> List<Model.Effective<? extends T>> getMatchingModels(
-					ElementNode.Effective<T> element, Class<?> dataClass) {
+					ElementNode.Effective<T> element, Class<? extends T> dataClass) {
 				@SuppressWarnings("unchecked")
 				List<Model.Effective<? extends T>> cached = (List<Model.Effective<? extends T>>) attemptedMatchingModels
 						.get(dataClass);
@@ -179,5 +187,28 @@ public class SchemaUnbinder {
 		} catch (Exception e) {
 			throw context.exception("Unexpected problem during uninding.", e);
 		}
+	}
+
+	public <T> void unbind(StructuredDataTarget output, T data) {
+		UnbindingContext context = this.context.withOutput(output);
+
+		context.getMatchingModels(data.getClass());
+
+		/*-
+		new UnbindingAttempter(context).tryForEach(unbindingItems,
+				unbindingMethod, onFailure);
+
+		output.registerDefaultNamespaceHint(model.getName().getNamespace());
+
+		try {
+			context.output().nextChild(model.getName());
+			new BindingNodeUnbinder(context).unbind(model, data);
+			context.output().endChild();
+		} catch (UnbindingException e) {
+			throw e;
+		} catch (Exception e) {
+			throw context.exception("Unexpected problem during uninding.", e);
+		}
+		 */
 	}
 }

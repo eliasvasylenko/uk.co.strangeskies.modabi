@@ -19,7 +19,7 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
 public class Methods {
 	private Methods() {
@@ -388,9 +388,9 @@ public class Methods {
 
 										DataNode.Effective<?> dataNode = (DataNode.Effective<?>) effective;
 
-										if (dataNode.occurances() != null
-												&& (dataNode.occurances().getTo() != 1 || dataNode
-														.occurances().getFrom() != 1))
+										if (dataNode.occurrences() != null
+												&& (dataNode.occurrences().getTo() != 1 || dataNode
+														.occurrences().getFrom() != 1))
 											throw new SchemaException("Unbinding parameter node '"
 													+ effective + "' for '" + p
 													+ "' must occur exactly once.");

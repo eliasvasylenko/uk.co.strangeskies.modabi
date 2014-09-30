@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing;
+package uk.co.strangeskies.modabi.schema.processing.unbinding;
 
 public enum UnbindingStrategy {
 	/**

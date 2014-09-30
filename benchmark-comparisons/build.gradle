@@ -1,0 +1,7 @@
+description = 'Modabi - Benchmark comparisons'
+
+dependencies {
+	compile group: 'uk.co.jemos.podam', name: 'podam', version: '4.1.0.RELEASE'
+	compile project(':modabi-core')
+	compile project(':modabi-xml')
+}

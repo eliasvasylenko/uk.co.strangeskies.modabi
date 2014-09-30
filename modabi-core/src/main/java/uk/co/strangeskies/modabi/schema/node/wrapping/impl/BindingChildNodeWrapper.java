@@ -43,8 +43,8 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
-	public final Range<Integer> occurances() {
-		return getBase() == null ? null : getBase().occurances();
+	public final Range<Integer> occurrences() {
+		return getBase() == null ? null : getBase().occurrences();
 	}
 
 	@Override

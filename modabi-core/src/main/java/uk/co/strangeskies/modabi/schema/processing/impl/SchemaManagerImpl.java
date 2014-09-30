@@ -33,10 +33,10 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 import uk.co.strangeskies.modabi.schema.node.type.impl.DataBindingTypeBuilderImpl;
-import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
-import uk.co.strangeskies.modabi.schema.processing.impl.binding.SchemaBinder;
-import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.SchemaUnbinder;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingFuture;
+import uk.co.strangeskies.modabi.schema.processing.binding.impl.SchemaBinder;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.SchemaUnbinder;
 import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
@@ -93,8 +93,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				registerDataType(type);
 
 			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel(),
-					BindingFuture.forData(coreSchemata.metaSchema().getSchemaModel(),
-							schema));
+					BindingFuture.forData(coreSchemata.metaSchema()
+							.getSchemaModel(), schema));
 		}
 	}
 
@@ -131,8 +131,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder(this).bind(
-				registeredModels.get(input.peekNextChild()).effective(), input));
+		return addBindingFuture(new SchemaBinder(this).bind(registeredModels
+				.get(input.peekNextChild()).effective(), input));
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
@@ -166,9 +166,15 @@ public class SchemaManagerImpl implements SchemaManager {
 		new SchemaUnbinder(this).unbind(model.effective(), output, data);
 	}
 
+	@Override
+	public <T> void unbind(StructuredDataTarget output, T data) {
+		new SchemaUnbinder(this).unbind(output, data);
+	}
+
 	// TODO disallow provider registrations overriding built-in providers
 	@Override
-	public <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
+	public <T> void registerProvider(Class<T> providedClass,
+			Supplier<T> provider) {
 		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);
 	}
 
@@ -177,8 +183,9 @@ public class SchemaManagerImpl implements SchemaManager {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null && !c.isInstance(provided))
-				throw new SchemaException("Invalid object provided for the class [" + c
-						+ "] by provider [" + provider + "]");
+				throw new SchemaException(
+						"Invalid object provided for the class [" + c
+								+ "] by provider [" + provider + "]");
 			return provided;
 		});
 	}
@@ -192,8 +199,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				.filter(Objects::nonNull)
 				.findFirst()
 				.orElseThrow(
-						() -> new SchemaException("No provider exists for the class "
-								+ clazz));
+						() -> new SchemaException(
+								"No provider exists for the class " + clazz));
 	}
 
 	@Override

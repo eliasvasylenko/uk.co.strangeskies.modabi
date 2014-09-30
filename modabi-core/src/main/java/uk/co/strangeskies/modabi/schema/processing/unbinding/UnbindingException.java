@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing;
+package uk.co.strangeskies.modabi.schema.processing.unbinding;
 
 import java.util.ArrayList;
 import java.util.Collection;

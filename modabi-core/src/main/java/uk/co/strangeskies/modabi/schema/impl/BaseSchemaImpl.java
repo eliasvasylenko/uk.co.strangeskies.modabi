@@ -30,15 +30,15 @@ import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
-import uk.co.strangeskies.modabi.schema.processing.impl.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
@@ -85,7 +85,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.unbindingMethod("asList")
 					.addChild(
 							c -> c.data().name("element").inMethod("add").outMethod("this")
-									.isAbstract(true).occurances(Range.create(0, null))
+									.isAbstract(true).occurrences(Range.create(0, null))
 									.inMethodChained(false).outMethodIterable(true))
 					.addChild(
 							c -> c.inputSequence().name("toArray").inMethodChained(true)
@@ -99,7 +99,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.addChild(
 							c -> c.data().name("element").inMethod("add").outMethod("this")
-									.isAbstract(true).occurances(Range.create(0, null))
+									.isAbstract(true).occurrences(Range.create(0, null))
 									.outMethodIterable(true)).create());
 
 			typeSet.add(listType = builder.configure(loader).name("list", namespace)

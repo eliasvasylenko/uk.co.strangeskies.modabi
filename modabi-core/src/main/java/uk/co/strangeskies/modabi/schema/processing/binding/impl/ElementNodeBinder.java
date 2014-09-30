@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.binding;
+package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +12,7 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.ElementNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.processing.impl.ElementNodeOverrider;
 
 public class ElementNodeBinder {
@@ -66,11 +67,11 @@ public class ElementNodeBinder {
 					count++;
 				}
 			}
-		} while (!node.occurances().isValueAbove(count) && inputNode != null);
+		} while (!node.occurrences().isValueAbove(count) && inputNode != null);
 
-		if (!node.occurances().contains(count))
-			throw new SchemaException("Node '" + node.getName() + "' occurances '"
-					+ count + "' must be within range '" + node.occurances() + "'.");
+		if (!node.occurrences().contains(count))
+			throw new SchemaException("Node '" + node.getName() + "' occurrences '"
+					+ count + "' must be within range '" + node.occurrences() + "'.");
 
 		return result;
 	}

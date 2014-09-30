@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.binding;
+package uk.co.strangeskies.modabi.schema.processing.binding;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +12,6 @@ import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.processing.BindingException;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface BindingContext {

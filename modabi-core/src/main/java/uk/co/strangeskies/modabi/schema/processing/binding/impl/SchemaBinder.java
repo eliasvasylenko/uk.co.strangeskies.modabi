@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.binding;
+package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,14 +27,15 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
-import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.BindingNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.DataNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.processing.impl.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.BindingNodeUnbinder;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.DataNodeUnbinder;
 
 public class SchemaBinder {
 	private final BindingContext context;
@@ -282,8 +283,13 @@ public class SchemaBinder {
 			}
 
 			@Override
-			public <T> List<Model.Effective<? extends T>> getMatchingModels(
-					ElementNode.Effective<T> element, Class<?> dataClass) {
+			public <T> List<Model.Effective<T>> getMatchingModels(Class<T> dataClass) {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public <U> List<Model.Effective<? extends U>> getMatchingModels(
+					ElementNode.Effective<U> element, Class<? extends U> dataClass) {
 				return Collections.emptyList();
 			}
 

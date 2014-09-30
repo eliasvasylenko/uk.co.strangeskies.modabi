@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.impl.binding;
+package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
 
 public class DataNodeBinder {
 	private final BindingContext context;
@@ -66,14 +67,14 @@ public class DataNodeBinder {
 		} else
 			results.addAll(bindList(context, node));
 
-		if (results.isEmpty() && !node.optional() && !node.occurances().contains(0))
+		if (results.isEmpty() && !node.optional() && !node.occurrences().contains(0))
 			throw context.exception("Node '" + node.getName()
 					+ "' must be bound data.");
 
-		if (!results.isEmpty() && !node.occurances().contains(results.size()))
+		if (!results.isEmpty() && !node.occurrences().contains(results.size()))
 			throw context.exception("Node '" + node.getName() + "' binding results '"
 					+ results + "' must be bound data within range of '"
-					+ Range.compose(node.occurances()) + "' occurances.");
+					+ Range.compose(node.occurrences()) + "' occurrences.");
 
 		return results;
 	}
@@ -94,7 +95,7 @@ public class DataNodeBinder {
 			if (dataSource != null)
 				successfulIndex = dataSource.index();
 
-			while (!node.occurances().isValueAbove(++count)) {
+			while (!node.occurrences().isValueAbove(++count)) {
 				results.add(new BindingNodeBinder(context).bind(node));
 				if (dataSource != null)
 					successfulIndex = dataSource.index();
@@ -106,7 +107,7 @@ public class DataNodeBinder {
 					dataSource.get();
 			}
 
-			if (node.occurances().isValueBelow(count))
+			if (node.occurrences().isValueBelow(count))
 				throw e;
 		}
 

@@ -25,7 +25,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 		return BindingNode.super.propertySet()
 				.add(BindingChildNode::getOutMethodName)
 				.add(BindingChildNode::isOutMethodIterable)
-				.add(BindingChildNode::occurances).add(BindingChildNode::isOrdered)
+				.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
 				.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
 				.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
 	}
@@ -45,7 +45,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	 *
 	 * @return
 	 */
-	Range<Integer> occurances();
+	Range<Integer> occurrences();
 
 	/**
 	 * Default behaviour is as if true. If unordered, may input concurrently, and

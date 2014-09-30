@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
-import uk.co.strangeskies.modabi.schema.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<? extends T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
 		extends SchemaNodeConfigurator<S, N, C, B> {

@@ -48,9 +48,13 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 						.map(m -> (Model<? extends T>) m).collect(Collectors.toList()));
 	}
 
+	public <T> List<Model<T>> getMatchingModels(Class<T> dataClass) {
+		return null;
+	}
+
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<? extends T>> getMatchingModels(
-			AbstractModel.Effective<T, ?, ?> element, Class<?> dataClass) {
+	public <T> List<Model<T>> getMatchingModels(
+			AbstractModel.Effective<T, ?, ?> element, Class<? extends T> dataClass) {
 		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
 				.iterator();
 
@@ -66,7 +70,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 								&& m.effective().getDataClass().isAssignableFrom(dataClass))
 				.collect(Collectors.toList());
 
-		return (List<Model<? extends T>>) subModels;
+		return (List<Model<T>>) subModels;
 
 		// ClassUtils.getAllSuperclasses(dataClass); // TODO with no baseModel
 	}

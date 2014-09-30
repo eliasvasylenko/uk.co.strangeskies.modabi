@@ -11,7 +11,7 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	public S outMethodIterable(boolean iterable);
 
-	public S occurances(Range<Integer> occuranceRange);
+	public S occurrences(Range<Integer> occuranceRange);
 
 	public S extensible(boolean extensible);
 

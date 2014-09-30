@@ -15,18 +15,50 @@ public class SchemaTest {
 		SchemaManager schemaBinder = new SchemaManagerImpl(new SchemaBuilderImpl(),
 				new ModelBuilderImpl(), new DataBindingTypeBuilderImpl());
 
-		System.out.println("Unbinding MetaSchema...");
-		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
-		schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(), out,
-				schemaBinder.getMetaSchema());
-		BufferedStructuredDataSource buffered = out.buffer();
+		for (int i = 0; i < 20; i++) {
+			System.out.println("Unbinding MetaSchema...");
+			BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
+			schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(), out,
+					schemaBinder.getMetaSchema());
+			BufferedStructuredDataSource buffered = out.buffer();
 
-		System.out.println("Re-binding MetaSchema...");
-		Schema metaSchema = schemaBinder.bind(schemaBinder.getMetaSchema()
-				.getSchemaModel(), buffered);
+			System.out.println("Re-binding MetaSchema...");
+			Schema metaSchema = schemaBinder.bind(schemaBinder.getMetaSchema()
+					.getSchemaModel(), buffered);
 
-		System.out.println("Success: "
-				+ metaSchema.equals(schemaBinder.getMetaSchema()));
+			System.out.println("Success: "
+					+ metaSchema.equals(schemaBinder.getMetaSchema()));
+		}
+
+		long totalTimeBinding = 0;
+		long totalTimeUnbinding = 0;
+
+		for (int i = 0; i < 20; i++) {
+			long startTime = System.currentTimeMillis();
+
+			System.out.println("Unbinding MetaSchema...");
+			BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
+			schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(), out,
+					schemaBinder.getMetaSchema());
+			BufferedStructuredDataSource buffered = out.buffer();
+
+			totalTimeUnbinding += System.currentTimeMillis() - startTime;
+			startTime = System.currentTimeMillis();
+
+			System.out.println("Re-binding MetaSchema...");
+			Schema metaSchema = schemaBinder.bind(schemaBinder.getMetaSchema()
+					.getSchemaModel(), buffered);
+
+			System.out.println("Success: "
+					+ metaSchema.equals(schemaBinder.getMetaSchema()));
+
+			totalTimeBinding += System.currentTimeMillis() - startTime;
+		}
+
+		System.out.println("Time per unbind: " + (double) totalTimeUnbinding
+				/ 20000 + " seconds");
+		System.out.println("Time per bind: " + (double) totalTimeBinding / 20000
+				+ " seconds");
 	}
 
 	public static void main(String... args) {
