@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/" name="BenchmarkSchema" bindingStrategy="IMPLEMENT_IN_PLACE">
+<schema xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/"
+	name="BenchmarkSchema" bindingStrategy="IMPLEMENT_IN_PLACE">
 	<model name="person" dataClass="uk.co.strangeskies.modabi.benchmark.PersonType">
 		<simpleElement name="firstName" type="string" />
 		<simpleElement name="lastName" type="string" />
@@ -11,7 +12,8 @@
 		<attribute name="active" type="boolean" />
 	</model>
 
-	<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.PersonsType" bindingStrategy="IMPLEMENT_IN_PLACE">
+	<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.PersonsType"
+		bindingStrategy="IMPLEMENT_IN_PLACE">
 		<element model="person" occurrences="1.." />
 	</model>
 </schema>

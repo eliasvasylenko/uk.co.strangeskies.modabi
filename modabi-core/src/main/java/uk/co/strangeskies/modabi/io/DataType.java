@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.io;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.ParseException;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Enumeration;
@@ -39,5 +40,57 @@ public class DataType<T> extends Enumeration<DataType<T>> {
 
 	public Class<T> dataClass() {
 		return dataClass;
+	}
+
+	public T parse(String string) throws ParseException {
+		T data = tryStrictParse(string);
+
+		if (data == null)
+			data = tryParse(string);
+
+		if (data == null)
+			throw new ParseException(string, 0);
+
+		return data;
+	}
+
+	/**
+	 * Unambiguous string parser. Strings will be parsed as the given data types
+	 * if and only if the following conditions are met, with surrounding
+	 * whitespace ignored in each case:
+	 *
+	 * <ul>
+	 * <li>BINARY: 0x#</li>
+	 * <li>STRING: any string with normal escaping rules, surrounded by the
+	 * following character at each end, ignoring quotes: "'"</li>
+	 * <li>INTEGER: #I</li>
+	 * <li>DECIMAL: #D</li>
+	 * <li>INT: #i</li>
+	 * <li>LONG: #l</li>
+	 * <li>FLOAT: #f</li>
+	 * <li>DOUBLE: #d</li>
+	 * <li>BOOLEAN: true|false</li>
+	 * <li>QUALIFIED_NAME: @[Qualified Name]</li>
+	 * </ul>
+	 *
+	 * @param string
+	 * @return
+	 * @throws ParseException
+	 */
+	public T strictParse(String string) throws ParseException {
+		T data = tryStrictParse(string);
+
+		if (data == null)
+			throw new ParseException(string, 0);
+
+		return data;
+	}
+
+	private T tryParse(String string) {
+		return null;
+	}
+
+	private T tryStrictParse(String string) {
+		return null;
 	}
 }

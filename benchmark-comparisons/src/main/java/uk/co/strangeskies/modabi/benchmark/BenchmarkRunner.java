@@ -24,6 +24,7 @@ import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.impl.SchemaManagerImpl;
+import uk.co.strangeskies.modabi.xml.impl.XMLSource;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 interface PersonType {
@@ -52,10 +53,14 @@ public class BenchmarkRunner {
 	private static final String OUTPUT_FOLDER = System.getProperty("user.home")
 			+ File.separatorChar + "xml-benchmark";
 
-	public static void main(String[] args) {
-		BenchmarkRunner main = new BenchmarkRunner();
-		try {
+	private final SchemaManager manager = new SchemaManagerImpl();
 
+	public static void main(String[] args) {
+		new BenchmarkRunner().run();
+	}
+
+	public void run() {
+		try {
 			File outputDir = new File(OUTPUT_FOLDER);
 			if (!outputDir.exists()) {
 				System.out.println("Creating output folder: "
@@ -67,73 +72,61 @@ public class BenchmarkRunner {
 				}
 			}
 
-			String createXmlStr = System.getProperty("create.xml");
-			System.out.println("-Dcreate.xml property was set as " + createXmlStr);
+			manager.registerSchemaBinding(new XMLSource(getClass()
+					.getResourceAsStream("/BenchmarkSchema.xml")));
 
-			boolean createXml = false;
-
-			if (createXmlStr != null && createXmlStr.equalsIgnoreCase("true")) {
-				createXml = true;
-			}
-
+			boolean createXml = true;
 			System.out.println("Will create XML files? " + createXml);
-
 			if (createXml) {
-				main.createXmlPortfolio(main);
+				createXmlPortfolio();
 			}
 
 			System.gc();
 			System.gc();
 
 			for (int i = 0; i < 10; i++) {
-
-				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
+				readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
 						+ "large-person-10000.xml"), 10000);
-				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
+				readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
 						+ "large-person-100000.xml"), 100000);
-				main.readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
+				readLargeFileWithJaxb(new File(OUTPUT_FOLDER + File.separatorChar
 						+ "large-person-1000000.xml"), 1000000);
 
-				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
+				readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
 						+ "large-person-10000.xml"), 10000);
-				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
+				readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
 						+ "large-person-100000.xml"), 100000);
-				main.readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
+				readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
 						+ "large-person-1000000.xml"), 1000000);
 
-				main.readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-10000.xml"), 10000);
-				main.readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-100000.xml"), 100000);
-				main.readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-1000000.xml"), 1000000);
+				readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-10000.xml"), 10000);
+				readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-100000.xml"), 100000);
+				readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER + File.separatorChar
+						+ "large-person-1000000.xml"), 1000000);
 			}
-
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
-	private void createXmlPortfolio(BenchmarkRunner main) throws Exception {
-		main.createXml(10000, OUTPUT_FOLDER + File.separatorChar
+	private void createXmlPortfolio() throws Exception {
+		createXml(10000, OUTPUT_FOLDER + File.separatorChar
 				+ "large-person-10000.xml");
 		System.out
 				.println("Completed generation of large XML with 10,000 entries...");
-		main.createXml(100000, OUTPUT_FOLDER + File.separatorChar
+		createXml(100000, OUTPUT_FOLDER + File.separatorChar
 				+ "large-person-100000.xml");
 		System.out
 				.println("Completed generation of large XML with 100,000 entries...");
-		main.createXml(1000000, OUTPUT_FOLDER + File.separatorChar
+		createXml(1000000, OUTPUT_FOLDER + File.separatorChar
 				+ "large-person-1000000.xml");
 		System.out
 				.println("Completed generation of large XML with 1,000,000 entries...");
 	}
 
 	private void createXml(int nbrElements, String fileName) throws Exception {
-		SchemaManager manager = new SchemaManagerImpl();
-
 		PersonsType persons = new PersonsType() {
 			private final List<PersonType> persons = new ArrayList<>();
 
@@ -157,7 +150,6 @@ public class BenchmarkRunner {
 		} finally {
 			fos.close();
 		}
-
 	}
 
 	private void readLargeFileWithJaxb(File file, int nbrRecords)
@@ -174,6 +166,7 @@ public class BenchmarkRunner {
 		long memend = 0L;
 
 		try {
+			@SuppressWarnings("unchecked")
 			JAXBElement<PersonsType> root = (JAXBElement<PersonsType>) unmarshaller
 					.unmarshal(bis);
 
@@ -217,9 +210,7 @@ public class BenchmarkRunner {
 
 			xmlr.nextTag();
 			while (xmlr.getEventType() == XMLStreamConstants.START_ELEMENT) {
-
-				JAXBElement<PersonType> pt = unmarshaller.unmarshal(xmlr,
-						PersonType.class);
+				unmarshaller.unmarshal(xmlr, PersonType.class);
 
 				if (xmlr.getEventType() == XMLStreamConstants.CHARACTERS) {
 					xmlr.next();
@@ -264,9 +255,7 @@ public class BenchmarkRunner {
 
 			xmlr.nextTag();
 			while (xmlr.getEventType() == XMLStreamConstants.START_ELEMENT) {
-
-				JAXBElement<PersonType> pt = unmarshaller.unmarshal(xmlr,
-						PersonType.class);
+				unmarshaller.unmarshal(xmlr, PersonType.class);
 
 				if (xmlr.getEventType() == XMLStreamConstants.CHARACTERS) {
 					xmlr.next();

@@ -37,6 +37,7 @@ public class XMLSource extends StructuredDataSourceDecorator {
 		private final Deque<Integer> currentLocation;
 
 		private QualifiedName nextChild;
+		private QualifiedName nextNextChild;
 		private final Set<String> comments;
 		private final Map<QualifiedName, DataSource> properties;
 		private String content;
@@ -47,6 +48,8 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 			comments = new HashSet<>();
 			properties = new HashMap<>();
+
+			pumpEvents();
 		}
 
 		public XMLSourceImpl(InputStream in) {
@@ -95,8 +98,14 @@ public class XMLSource extends StructuredDataSourceDecorator {
 		}
 
 		private QualifiedName pumpEvents() {
+			System.out.println("!!!!!!");
 			QualifiedName thisChild = nextChild;
-			nextChild = null;
+			nextChild = nextNextChild;
+			nextNextChild = null;
+
+			if (nextChild != null)
+				fillProperties();
+
 			comments.clear();
 			content = null;
 
@@ -109,27 +118,20 @@ public class XMLSource extends StructuredDataSourceDecorator {
 					throw new IOException(e);
 				}
 
-				System.out.println("{}{} " + code + " " + in.getName());
-
 				switch (code) {
 				case XMLStreamReader.START_ELEMENT:
 					QName name = in.getName();
-					nextChild = new QualifiedName(name.getLocalPart(),
+					QualifiedName qualifiedName = new QualifiedName(name.getLocalPart(),
 							Namespace.parseHttpString(name.getNamespaceURI()));
-
-					properties.clear();
-
 					System.out.println(" ???? " + name + " " + in.getAttributeCount());
-					for (int i = 0; i < in.getAttributeCount(); i++) {
-						QualifiedName propertyName = new QualifiedName(
-								in.getAttributeLocalName(i), Namespace.parseHttpString(in
-										.getAttributeNamespace(i)));
 
-						properties.put(propertyName,
-								DataSource.parseString(in.getAttributeValue(i)));
+					if (nextChild != null) {
+						nextNextChild = qualifiedName;
+						done = true;
+					} else {
+						nextChild = qualifiedName;
 
-						System.out.println(" ? " + i + " " + propertyName + " / "
-								+ in.getAttributeValue(i));
+						fillProperties();
 					}
 					break;
 				case XMLStreamReader.END_ELEMENT:
@@ -148,6 +150,39 @@ public class XMLSource extends StructuredDataSourceDecorator {
 			return thisChild;
 		}
 
+		private void fillProperties() {
+			properties.clear();
+
+			for (int i = 0; i < in.getAttributeCount(); i++) {
+				String namespaceString = in.getAttributeNamespace(i);
+				if (namespaceString == null)
+					namespaceString = in.getNamespaceContext().getNamespaceURI("");
+				Namespace namespace = Namespace.parseHttpString(namespaceString);
+
+				QualifiedName propertyName = new QualifiedName(
+						in.getAttributeLocalName(i), namespace);
+
+				properties.put(propertyName,
+						DataSource.parseString(in.getAttributeValue(i), this::parseName));
+
+				System.out.println(" ? " + i + " " + propertyName + " / "
+						+ in.getAttributeValue(i));
+			}
+		}
+
+		private QualifiedName parseName(String name) {
+			String[] splitName = name.split(":", 2);
+
+			String prefix;
+			if (splitName.length == 2)
+				prefix = in.getNamespaceContext().getNamespaceURI(splitName[0]);
+			else
+				prefix = "";
+
+			return new QualifiedName(splitName[splitName.length - 1],
+					Namespace.parseHttpString(prefix));
+		}
+
 		@Override
 		public Set<QualifiedName> getProperties() {
 			return new HashSet<>(properties.keySet());
@@ -160,7 +195,7 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		@Override
 		public DataSource readContent() {
-			return DataSource.parseString(content);
+			return DataSource.parseString(content, this::parseName);
 		}
 
 		@Override

@@ -270,7 +270,7 @@ class XMLTargetImpl implements StructuredDataTarget {
 	@Override
 	public DataTarget writeProperty(QualifiedName name) {
 		return DataTarget.composeString(s -> properties.put(name, s),
-				this::formatName);
+				this::composeName);
 	}
 
 	@Override
@@ -283,10 +283,10 @@ class XMLTargetImpl implements StructuredDataTarget {
 			} catch (XMLStreamException e) {
 				throw new IOException(e);
 			}
-		}, this::formatName);
+		}, this::composeName);
 	}
 
-	private String formatName(QualifiedName name) {
+	private String composeName(QualifiedName name) {
 		String prefix = namespaces.getNamespaceAlias(name.getNamespace());
 		if (prefix.length() > 0)
 			prefix += ":";

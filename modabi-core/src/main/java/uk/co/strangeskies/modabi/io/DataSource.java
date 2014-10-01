@@ -1,6 +1,13 @@
 package uk.co.strangeskies.modabi.io;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Copyable;
+import uk.co.strangeskies.utilities.Enumeration;
 
 public interface DataSource extends Copyable<DataSource> {
 	DataStreamState currentState();
@@ -27,12 +34,28 @@ public interface DataSource extends Copyable<DataSource> {
 		return pipe(target, size());
 	}
 
-	static DataSource parseString(String content) {
+	static DataSource parseString(String string,
+			Function<String, QualifiedName> qualifiedNameParser) {
+		List<DataItem<?>> dataItemList = new ArrayList<>();
+
+		String[] strings = string.split(",");
+		for (int i = 0; i < strings.length; i++) {
+			String item = strings[i];
+			if (item.charAt(item.length() - 1) == '\\')
+				item += strings[i++];
+
+			dataItemList.add(DataItem.forString(item, qualifiedNameParser));
+		}
+
+		return forDataItems(dataItemList);
+	}
+
+	static DataSource forDataItems(List<DataItem<?>> dataItemList) {
 		return null; // TODO
 	}
 
 	static <T> DataSource repeating(DataType<T> type, T data, int times) {
-		return repeating(new DataItem<>(type, data), times);
+		return repeating(DataItem.forDataOfType(type, data), times);
 	}
 
 	static <T> DataSource repeating(DataItem<?> item, int times) {
@@ -40,7 +63,7 @@ public interface DataSource extends Copyable<DataSource> {
 	}
 
 	static <T> DataSource single(DataType<T> type, T data) {
-		return single(new DataItem<>(type, data));
+		return single(DataItem.forDataOfType(type, data));
 	}
 
 	static DataSource single(DataItem<?> item) {
