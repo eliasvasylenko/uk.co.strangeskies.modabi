@@ -67,7 +67,8 @@ public class DataNodeBinder {
 		} else
 			results.addAll(bindList(context, node));
 
-		if (results.isEmpty() && !node.optional() && !node.occurrences().contains(0))
+		if (results.isEmpty() && !node.optional()
+				&& !node.occurrences().contains(0))
 			throw context.exception("Node '" + node.getName()
 					+ "' must be bound data.");
 
@@ -101,6 +102,7 @@ public class DataNodeBinder {
 					successfulIndex = dataSource.index();
 			}
 		} catch (SchemaException e) {
+			// TODO sometimes this exception is hidden
 			if (dataSource != null) {
 				dataSource.reset();
 				while (dataSource.index() < successfulIndex)

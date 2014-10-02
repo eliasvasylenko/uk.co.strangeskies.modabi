@@ -240,7 +240,7 @@ public class Methods {
 				}).collect(Collectors.toSet());
 
 		if (overloadCandidates.isEmpty())
-			throw new SchemaException("Cannot find output method of class '" + result
+			throw new SchemaException("Cannot find method of class '" + result
 					+ "', reveiver '" + receiver + "', and parameters '"
 					+ Arrays.toString(parameters) + "' with any name of '" + names + "'.");
 
@@ -249,8 +249,8 @@ public class Methods {
 		if (result != null
 				&& !ClassUtils.isAssignable(mostSpecific.getReturnType(), result)
 				&& !(ClassUtils.isAssignable(result, mostSpecific.getReturnType()) && allowCast))
-			throw new NoSuchMethodException(
-					"Resolved method does not have compatible return type.");
+			throw new NoSuchMethodException("Resolved method '" + mostSpecific
+					+ "' does not have compatible return type with '" + result + "'.");
 
 		return mostSpecific;
 	}

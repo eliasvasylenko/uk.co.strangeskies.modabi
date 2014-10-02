@@ -41,7 +41,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 			protected Effective(
-					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
@@ -238,13 +238,20 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				(o, n) -> n.isAssignableFrom(o));
 		Class<?> dataClass = overrideMerge.getValueWithOverride(this.dataClass,
 				BindingNode::getDataClass, (o, n) -> n.isAssignableFrom(o));
+		BindingStrategy bindingStrategy = overrideMerge.getValueWithOverride(
+				this.bindingStrategy, BindingNode::getBindingStrategy);
 
 		Class<?> inputTarget = bindingClass != null ? bindingClass : dataClass;
 		Class<?> outputTarget = unbindingClass != null ? unbindingClass : dataClass;
 
+		/*
+		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE
+		 */
 		return new SequentialChildrenConfigurator<>(getNamespace(),
-				getOverriddenNodes(), true, inputTarget, outputTarget, getDataLoader(),
-				isChildContextAbstract(), isDataContext());
+				getOverriddenNodes(),
+				bindingStrategy != BindingStrategy.IMPLEMENT_IN_PLACE, inputTarget,
+				outputTarget, getDataLoader(), isChildContextAbstract(),
+				isDataContext());
 	}
 
 	protected abstract boolean isDataContext();

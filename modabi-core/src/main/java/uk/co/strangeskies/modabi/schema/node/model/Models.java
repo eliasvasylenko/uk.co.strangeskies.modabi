@@ -1,23 +1,29 @@
 package uk.co.strangeskies.modabi.schema.node.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
 import uk.co.strangeskies.modabi.schema.node.AbstractModel;
+import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
+import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
 public class Models extends QualifiedNamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;
+	private final SetMultiMap<Class<?>, Model<?>> classModels;
 
 	public Models() {
 		super(t -> t.getName());
 		derivedModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
+		classModels = new HashSetMultiHashMap<>();
 	}
 
 	@Override
@@ -34,6 +40,9 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 		derivedModels.addToAll(
 				model.effective().baseModel().stream().map(Model::source)
 						.collect(Collectors.toSet()), model.source());
+
+		if (!model.effective().isAbstract())
+			classModels.add(model.getDataClass(), model);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -48,8 +57,11 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 						.map(m -> (Model<? extends T>) m).collect(Collectors.toList()));
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> List<Model<T>> getMatchingModels(Class<T> dataClass) {
-		return null;
+		Set<Model<?>> models = classModels.get(dataClass);
+		return models == null ? Collections.emptyList() : models.stream()
+				.map(m -> (Model<T>) m).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")

@@ -3,39 +3,56 @@ package uk.co.strangeskies.modabi.io;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
+import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class DataType<T> extends Enumeration<DataType<T>> {
 	public static final DataType<byte[]> BINARY = new DataType<>("binary",
-			byte[].class);
+			byte[].class, s -> null);
+
 	public static final DataType<String> STRING = new DataType<>("string",
-			String.class);
+			String.class, Function.identity());
 
 	public static final DataType<BigInteger> INTEGER = new DataType<>("integer",
-			BigInteger.class);
-	public static final DataType<BigDecimal> DECIMAL = new DataType<>("decimal",
-			BigDecimal.class);
+			BigInteger.class, s -> null);
 
-	public static final DataType<Integer> INT = new DataType<>("int", int.class);
-	public static final DataType<Long> LONG = new DataType<>("long", long.class);
+	public static final DataType<BigDecimal> DECIMAL = new DataType<>("decimal",
+			BigDecimal.class, s -> null);
+
+	public static final DataType<Integer> INT = new DataType<>("int", int.class,
+			s -> null);
+
+	public static final DataType<Long> LONG = new DataType<>("long", long.class,
+			s -> null);
+
 	public static final DataType<Float> FLOAT = new DataType<>("float",
-			float.class);
+			float.class, s -> null);
+
 	public static final DataType<Double> DOUBLE = new DataType<>("double",
-			double.class);
+			double.class, s -> null);
 
 	public static final DataType<Boolean> BOOLEAN = new DataType<>("boolean",
-			boolean.class);
+			boolean.class, s -> Boolean.parseBoolean(s));
 
 	public static final DataType<QualifiedName> QUALIFIED_NAME = new DataType<>(
-			"qualifiedName", QualifiedName.class);
+			"qualifiedName", QualifiedName.class, s -> null);
 
 	private final Class<T> dataClass;
+	private final Function<String, T> parse;
+	private final Function<String, T> strictParse;
 
-	private DataType(String name, Class<T> dataClass) {
+	private DataType(String name, Class<T> dataClass, Function<String, T> parse) {
+		this(name, dataClass, parse, parse);
+	}
+
+	private DataType(String name, Class<T> dataClass, Function<String, T> parse,
+			Function<String, T> strictParse) {
 		super(name);
 		this.dataClass = dataClass;
+		this.parse = parse;
+		this.strictParse = strictParse;
 	}
 
 	public Class<T> dataClass() {
@@ -87,10 +104,12 @@ public class DataType<T> extends Enumeration<DataType<T>> {
 	}
 
 	private T tryParse(String string) {
-		return null;
+		string = string.trim();
+		return parse.apply(string);
 	}
 
 	private T tryStrictParse(String string) {
-		return null;
+		string = string.trim();
+		return strictParse.apply(string);
 	}
 }

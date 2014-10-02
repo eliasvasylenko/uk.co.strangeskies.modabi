@@ -42,7 +42,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Class<?> postInputClass;
 
 			protected Effective(
-					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, ?, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				extensible = overrideMerge.getValue(BindingChildNode::isExtensible,
@@ -60,8 +60,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				ordered = overrideMerge.getValue(BindingChildNode::isOrdered, true);
 
-				occurrences = overrideMerge.getValue(BindingChildNode::occurrences,
-						(v, o) -> o.contains(v), Range.create(1, 1));
+				occurrences = overrideMerge.getValue(BindingChildNode::occurrences, (v,
+						o) -> o.contains(v), Range.create(1, 1));
 
 				iterable = overrideMerge.getValue(
 						BindingChildNode::isOutMethodIterable, false);

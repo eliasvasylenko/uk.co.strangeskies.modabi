@@ -13,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
@@ -56,7 +57,7 @@ public class SchemaBinder {
 		Function<BindingContext, DataLoader> loader = context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				// return new DataNodeBinder(context).bind(node); TODO
+				// return new DataNodeBinder(context).bind(node); TODO loadData
 				return null;
 			}
 		};
@@ -239,8 +240,11 @@ public class SchemaBinder {
 				continue;
 
 			boolean match = true;
-			for (int i = 0; i < candidateId.size() && match; i++)
-				match = bufferedIdSource.get().equals(candidateId.get());
+			for (int i = 0; i < candidateId.size() && match; i++) {
+				DataItem<?> candidateData = candidateId.get();
+				match = bufferedIdSource.get(candidateData.type()).equals(
+						candidateData.data());
+			}
 
 			if (match) {
 				for (int i = 0; i < candidateId.size(); i++)

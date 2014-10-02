@@ -171,7 +171,12 @@ public class SchemaManagerImpl implements SchemaManager {
 		new SchemaUnbinder(this).unbind(output, data);
 	}
 
-	// TODO disallow provider registrations overriding built-in providers
+	@Override
+	public <T> void unbind(StructuredDataTarget output,
+			Class<? extends T> dataClass, T data) {
+		new SchemaUnbinder(this).unbind(output, dataClass, data);
+	}
+
 	@Override
 	public <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
 		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);

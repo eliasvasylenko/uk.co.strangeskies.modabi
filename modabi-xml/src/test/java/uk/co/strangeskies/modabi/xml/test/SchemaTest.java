@@ -8,6 +8,7 @@ import uk.co.strangeskies.modabi.schema.node.model.impl.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.schema.node.type.impl.DataBindingTypeBuilderImpl;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.impl.SchemaManagerImpl;
+import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
 	private void run() {
@@ -21,6 +22,9 @@ public class SchemaTest {
 			schemaBinder.unbind(schemaBinder.getMetaSchema().getSchemaModel(), out,
 					schemaBinder.getMetaSchema());
 			BufferedStructuredDataSource buffered = out.buffer();
+
+			buffered.pipeNextChild(new XMLTarget(System.out));
+			buffered.reset();
 
 			System.out.println("Re-binding MetaSchema...");
 			Schema metaSchema = schemaBinder.bind(schemaBinder.getMetaSchema()

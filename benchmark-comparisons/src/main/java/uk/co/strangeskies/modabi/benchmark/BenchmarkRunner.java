@@ -27,29 +27,29 @@ import uk.co.strangeskies.modabi.schema.processing.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.xml.impl.XMLSource;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
-interface PersonType {
-	String getFirstName();
-
-	String getLastName();
-
-	String getAddress1();
-
-	String getAddress2();
-
-	String getPostCode();
-
-	String getCity();
-
-	String getCountry();
-
-	boolean isActive();
-}
-
-interface PersonsType {
-	List<PersonType> getPerson();
-}
-
 public class BenchmarkRunner {
+	public interface PersonType {
+		String getFirstName();
+
+		String getLastName();
+
+		String getAddress1();
+
+		String getAddress2();
+
+		String getPostCode();
+
+		String getCity();
+
+		String getCountry();
+
+		boolean isActive();
+	}
+
+	public interface PersonsType {
+		List<PersonType> getPerson();
+	}
+
 	private static final String OUTPUT_FOLDER = System.getProperty("user.home")
 			+ File.separatorChar + "xml-benchmark";
 
@@ -74,6 +74,8 @@ public class BenchmarkRunner {
 
 			manager.registerSchemaBinding(new XMLSource(getClass()
 					.getResourceAsStream("/BenchmarkSchema.xml")));
+
+			System.out.println(manager.registeredModels());
 
 			boolean createXml = true;
 			System.out.println("Will create XML files? " + createXml);
@@ -145,7 +147,7 @@ public class BenchmarkRunner {
 		OutputStream fos = new FileOutputStream(file);
 
 		try {
-			manager.unbind(new XMLTarget(fos), persons);
+			manager.unbind(new XMLTarget(fos), PersonsType.class, persons);
 			fos.flush();
 		} finally {
 			fos.close();

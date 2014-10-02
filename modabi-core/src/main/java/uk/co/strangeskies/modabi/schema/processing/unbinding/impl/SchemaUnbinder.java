@@ -189,26 +189,42 @@ public class SchemaUnbinder {
 		}
 	}
 
-	public <T> void unbind(StructuredDataTarget output, T data) {
+	public <T> void unbind(StructuredDataTarget output,
+			Class<? extends T> dataClass, T data) {
+		castingUnbind(output, dataClass, data);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T, U extends T> void castingUnbind(StructuredDataTarget output,
+			Class<U> dataClass, T data) {
 		UnbindingContext context = this.context.withOutput(output);
 
-		context.getMatchingModels(data.getClass());
+		List<? extends Model.Effective<U>> models = context
+				.getMatchingModels(dataClass);
 
-		/*-
-		new UnbindingAttempter(context).tryForEach(unbindingItems,
-				unbindingMethod, onFailure);
+		new UnbindingAttempter(context).tryForEach(
+				models,
+				(c, m) -> {
+					c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
-		output.registerDefaultNamespaceHint(model.getName().getNamespace());
+					try {
+						context.output().nextChild(m.getName());
 
-		try {
-			context.output().nextChild(model.getName());
-			new BindingNodeUnbinder(context).unbind(model, data);
-			context.output().endChild();
-		} catch (UnbindingException e) {
-			throw e;
-		} catch (Exception e) {
-			throw context.exception("Unexpected problem during uninding.", e);
-		}
-		 */
+						U castData = (U) data;
+
+						new BindingNodeUnbinder(context).unbind(m, castData);
+						context.output().endChild();
+					} catch (UnbindingException e) {
+						throw e;
+					} catch (Exception e) {
+						throw context.exception("Unexpected problem during uninding.", e);
+					}
+				},
+				e -> context.exception("Cannot unbind data '" + data + "' of class '"
+						+ dataClass + "' with models '" + models + "'.", e));
+	}
+
+	public <T> void unbind(StructuredDataTarget output, T data) {
+		unbind(output, data.getClass(), data);
 	}
 }

@@ -1,13 +1,12 @@
 package uk.co.strangeskies.modabi.io;
 
-import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Copyable;
-import uk.co.strangeskies.utilities.Enumeration;
 
 public interface DataSource extends Copyable<DataSource> {
 	DataStreamState currentState();
@@ -51,7 +50,8 @@ public interface DataSource extends Copyable<DataSource> {
 	}
 
 	static DataSource forDataItems(List<DataItem<?>> dataItemList) {
-		return null; // TODO
+		return new DataSourceDecorator(new RepeatingDataSource(dataItemList, 0,
+				dataItemList.size()));
 	}
 
 	static <T> DataSource repeating(DataType<T> type, T data, int times) {
@@ -71,7 +71,7 @@ public interface DataSource extends Copyable<DataSource> {
 	}
 
 	class RepeatingDataSource implements DataSource {
-		private final DataItem<?> item;
+		private final List<DataItem<?>> list;
 		private int index;
 		private final int size;
 
@@ -80,7 +80,11 @@ public interface DataSource extends Copyable<DataSource> {
 		}
 
 		private RepeatingDataSource(DataItem<?> item, int index, int size) {
-			this.item = item;
+			this(Arrays.asList(item), index, size);
+		}
+
+		private RepeatingDataSource(List<DataItem<?>> list, int index, int size) {
+			this.list = list;
 			this.index = index;
 			this.size = size;
 		}
@@ -93,7 +97,7 @@ public interface DataSource extends Copyable<DataSource> {
 			DataSource thatDataSource = ((DataSource) that).copy().reset();
 			DataItem<?> item;
 			while ((item = thatDataSource.get()) != null)
-				if (!item.equals(this.item))
+				if (!item.equals(this.list))
 					return false;
 
 			return thatDataSource.index() == index && thatDataSource.size() == size;
@@ -101,7 +105,7 @@ public interface DataSource extends Copyable<DataSource> {
 
 		@Override
 		public int hashCode() {
-			return item.hashCode() ^ index ^ size;
+			return list.hashCode() ^ index ^ size;
 		}
 
 		@Override
@@ -116,7 +120,7 @@ public interface DataSource extends Copyable<DataSource> {
 
 		@Override
 		public DataItem<?> get() {
-			return item;
+			return list.get(index++ % list.size());
 		}
 
 		@Override
@@ -128,7 +132,9 @@ public interface DataSource extends Copyable<DataSource> {
 				throw new ArrayIndexOutOfBoundsException(items);
 
 			for (int i = 0; i < items; i++)
-				target.put(item);
+				target.put(list.get((index + items) % list.size()));
+
+			index += items;
 
 			return target;
 		}
@@ -146,7 +152,7 @@ public interface DataSource extends Copyable<DataSource> {
 
 		@Override
 		public DataSource copy() {
-			return new RepeatingDataSource(item, index, size);
+			return new RepeatingDataSource(list, index, size);
 		}
 	}
 }

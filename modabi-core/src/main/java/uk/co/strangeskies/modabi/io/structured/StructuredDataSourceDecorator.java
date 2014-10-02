@@ -62,12 +62,14 @@ public class StructuredDataSourceDecorator extends
 
 	@Override
 	public DataSource readProperty(QualifiedName name) {
-		return new DataSourceDecorator(getComponent().readProperty(name));
+		DataSource property = getComponent().readProperty(name);
+		return property == null ? null : new DataSourceDecorator(property);
 	}
 
 	@Override
 	public DataSource readContent() {
-		return new DataSourceDecorator(getComponent().readContent());
+		DataSource content = getComponent().readContent();
+		return content == null ? null : new DataSourceDecorator(content);
 	}
 
 	@Override

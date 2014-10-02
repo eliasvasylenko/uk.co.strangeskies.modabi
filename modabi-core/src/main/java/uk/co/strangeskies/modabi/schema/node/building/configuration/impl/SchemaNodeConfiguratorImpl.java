@@ -45,11 +45,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private PropertySet<E> combinedPropertySet;
 
 			protected Effective(
-					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S, ?, ?>> overrideMerge) {
 				source = overrideMerge.node().source();
 
 				name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true,
-						defaultName());
+						defaultName(overrideMerge));
 
 				isAbstract = overrideMerge.node().isAbstract() == null ? false
 						: overrideMerge.node().isAbstract();
@@ -61,7 +61,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 					requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
 			}
 
-			protected QualifiedName defaultName() {
+			protected QualifiedName defaultName(
+					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S, ?, ?>> overrideMerge) {
 				return null;
 			}
 

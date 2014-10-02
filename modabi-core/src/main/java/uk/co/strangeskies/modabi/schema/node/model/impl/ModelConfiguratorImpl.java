@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
@@ -41,6 +43,19 @@ public class ModelConfiguratorImpl<T>
 			@Override
 			public final List<Model.Effective<? super T>> baseModel() {
 				return baseModel;
+			}
+
+			@Override
+			protected QualifiedName defaultName(
+					OverrideMerge<Model<T>, ? extends SchemaNodeConfiguratorImpl<?, Model<T>, ?, ?>> overrideMerge) {
+				List<Model.Effective<? super T>> baseModel = new ArrayList<>();
+				overrideMerge.configurator().getOverriddenNodes()
+						.forEach(n -> baseModel.addAll(n.effective().baseModel()));
+				baseModel.addAll(overrideMerge.node().baseModel().stream()
+						.map(SchemaNode::effective).collect(Collectors.toSet()));
+
+				return (baseModel == null || baseModel.size() != 1) ? null : baseModel
+						.get(0).getName();
 			}
 		}
 

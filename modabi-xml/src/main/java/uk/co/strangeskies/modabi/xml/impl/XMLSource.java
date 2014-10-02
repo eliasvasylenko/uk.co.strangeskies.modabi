@@ -15,6 +15,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.io.DataType;
 import uk.co.strangeskies.modabi.io.IOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceDecorator;
@@ -37,7 +38,6 @@ public class XMLSource extends StructuredDataSourceDecorator {
 		private final Deque<Integer> currentLocation;
 
 		private QualifiedName nextChild;
-		private QualifiedName nextNextChild;
 		private final Set<String> comments;
 		private final Map<QualifiedName, DataSource> properties;
 		private String content;
@@ -98,13 +98,11 @@ public class XMLSource extends StructuredDataSourceDecorator {
 		}
 
 		private QualifiedName pumpEvents() {
-			System.out.println("!!!!!!");
-			QualifiedName thisChild = nextChild;
-			nextChild = nextNextChild;
-			nextNextChild = null;
-
 			if (nextChild != null)
 				fillProperties();
+
+			QualifiedName thisChild = nextChild;
+			nextChild = null;
 
 			comments.clear();
 			content = null;
@@ -123,19 +121,14 @@ public class XMLSource extends StructuredDataSourceDecorator {
 					QName name = in.getName();
 					QualifiedName qualifiedName = new QualifiedName(name.getLocalPart(),
 							Namespace.parseHttpString(name.getNamespaceURI()));
-					System.out.println(" ???? " + name + " " + in.getAttributeCount());
 
-					if (nextChild != null) {
-						nextNextChild = qualifiedName;
-						done = true;
-					} else {
-						nextChild = qualifiedName;
+					nextChild = qualifiedName;
 
-						fillProperties();
-					}
+					done = true;
+
 					break;
-				case XMLStreamReader.END_ELEMENT:
 				case XMLStreamReader.END_DOCUMENT:
+				case XMLStreamReader.END_ELEMENT:
 					done = true;
 					break;
 				case XMLStreamReader.COMMENT:
@@ -164,9 +157,6 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 				properties.put(propertyName,
 						DataSource.parseString(in.getAttributeValue(i), this::parseName));
-
-				System.out.println(" ? " + i + " " + propertyName + " / "
-						+ in.getAttributeValue(i));
 			}
 		}
 
@@ -175,12 +165,13 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 			String prefix;
 			if (splitName.length == 2)
-				prefix = in.getNamespaceContext().getNamespaceURI(splitName[0]);
+				prefix = splitName[0];
 			else
 				prefix = "";
 
 			return new QualifiedName(splitName[splitName.length - 1],
-					Namespace.parseHttpString(prefix));
+					Namespace.parseHttpString(in.getNamespaceContext().getNamespaceURI(
+							prefix)));
 		}
 
 		@Override
@@ -200,10 +191,13 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		@Override
 		public void endChild() {
-			while (pumpEvents() != null)
-				;
+			if (nextChild != null)
+				while (pumpEvents() != null)
+					;
 			currentLocation.pop();
 			currentLocation.push(currentLocation.pop() + 1);
+
+			pumpEvents();
 		}
 
 		@Override

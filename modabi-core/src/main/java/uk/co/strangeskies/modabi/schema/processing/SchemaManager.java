@@ -73,6 +73,9 @@ public interface SchemaManager {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
+	<T> void unbind(StructuredDataTarget output, Class<? extends T> dataClass,
+			T data);
+
 	void unbind(StructuredDataTarget output, Object data);
 
 	/*-

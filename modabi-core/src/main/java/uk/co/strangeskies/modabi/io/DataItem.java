@@ -21,6 +21,11 @@ abstract class AbstractDataItem<T> implements DataItem<T> {
 	public int hashCode() {
 		return type().hashCode() + data().hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return type() + ": " + data();
+	}
 }
 
 class TypedDataItem<T> extends AbstractDataItem<T> {
@@ -81,7 +86,7 @@ class StringDataItem extends AbstractDataItem<String> {
 			return DataItem.forDataOfType(to, to.parse(data));
 		} catch (ParseException e) {
 			throw new IllegalArgumentException("Cannot convert type '" + type()
-					+ "' to type '" + to + "'.", e); // TODO only one place...
+					+ "' to type '" + to + "'.", e);
 		}
 	}
 }

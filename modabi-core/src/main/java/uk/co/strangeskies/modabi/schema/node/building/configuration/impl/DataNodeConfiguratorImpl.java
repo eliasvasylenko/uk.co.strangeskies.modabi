@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
+import uk.co.strangeskies.modabi.schema.node.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
@@ -87,8 +87,11 @@ public class DataNodeConfiguratorImpl<T>
 			}
 
 			@Override
-			protected QualifiedName defaultName() {
-				return type() == null ? null : type().getName();
+			protected QualifiedName defaultName(
+					OverrideMerge<DataNode<T>, ? extends SchemaNodeConfiguratorImpl<?, DataNode<T>, ?, ?>> overrideMerge) {
+				DataBindingType<T> type = overrideMerge.tryGetValue(DataNode::type, (o,
+						n) -> true);
+				return type == null ? null : type.getName();
 			}
 
 			@Override
