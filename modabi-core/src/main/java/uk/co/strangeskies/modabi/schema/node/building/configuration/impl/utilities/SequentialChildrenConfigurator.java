@@ -114,10 +114,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	private final boolean isAbstract;
 	private final boolean dataContext;
 
-	public SequentialChildrenConfigurator(Namespace namespace,
-			List<? extends SchemaNode<?, ?>> overriddenNodes, boolean hasInput,
-			Class<?> inputTarget, Class<?> outputTarget, DataLoader loader,
-			boolean isAbstract, boolean dataContext) {
+	public SequentialChildrenConfigurator(ChildNodeConfigurationContext context) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();

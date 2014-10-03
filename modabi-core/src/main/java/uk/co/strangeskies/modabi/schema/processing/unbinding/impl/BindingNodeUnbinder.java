@@ -90,6 +90,7 @@ public class BindingNodeUnbinder {
 
 		SchemaProcessingContext processingContext = getProcessingContext(context
 				.withUnbindingSource(supplier.apply(data)));
+
 		for (ChildNode.Effective<?, ?> child : node.children())
 			child.process(processingContext);
 	}

@@ -11,39 +11,32 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
+	@SuppressWarnings("rawtypes")
 	public interface DerivedTypes {
 		DataBindingType<Object[]> arrayType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Collection> collectionType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<List> listType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Set> setType();
 
 		DataBindingType<Object> referenceType();
 
 		DataBindingType<DataSource> bufferedDataType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Range> rangeType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Enum> enumType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Enumeration> enumerationType();
 
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Class> classType();
 
 		/*
 		 * during binding / unbinding magically adds items to bindings list (so can
 		 * be referenced)
 		 */
-		@SuppressWarnings("rawtypes")
 		DataBindingType<Collection> includeType();
 
 		/*

@@ -6,8 +6,10 @@
 	</dependencies>
 
 	<models>
-		<model name="person" dataClass="uk.co.strangeskies.modabi.benchmark.BenchmarkRunner$PersonType"
-			bindingStrategy="IMPLEMENT_IN_PLACE">
+		<model name="person" dataClass="uk.co.strangeskies.modabi.benchmark.PersonType"
+			bindingStrategy="CONSTRUCTOR">
+			<inputSequence name="constructor" />
+			<property name="active" type="boolean" />
 			<simpleElement name="firstName" type="string" />
 			<simpleElement name="lastName" type="string" />
 			<simpleElement name="address1" type="string" />
@@ -15,11 +17,10 @@
 			<simpleElement name="postCode" type="string" />
 			<simpleElement name="city" type="string" />
 			<simpleElement name="country" type="string" />
-			<property name="active" type="boolean" />
 		</model>
 
-		<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.BenchmarkRunner$PersonsType"
-			bindingStrategy="IMPLEMENT_IN_PLACE">
+		<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.PersonsType"
+			bindingStrategy="CONSTRUCTOR">
 			<element baseModel="person" occurrences="0.."
 				outMethodIterable="true" />
 		</model>

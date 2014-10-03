@@ -208,16 +208,16 @@ public class SchemaUnbinder {
 					c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
 					try {
-						context.output().nextChild(m.getName());
+						c.output().nextChild(m.getName());
 
 						U castData = (U) data;
 
-						new BindingNodeUnbinder(context).unbind(m, castData);
-						context.output().endChild();
+						new BindingNodeUnbinder(c).unbind(m, castData);
+						c.output().endChild();
 					} catch (UnbindingException e) {
 						throw e;
 					} catch (Exception e) {
-						throw context.exception("Unexpected problem during uninding.", e);
+						throw c.exception("Unexpected problem during uninding.", e);
 					}
 				},
 				e -> context.exception("Cannot unbind data '" + data + "' of class '"
