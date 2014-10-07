@@ -7,15 +7,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
@@ -238,8 +242,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				(o, n) -> n.isAssignableFrom(o));
 		Class<?> dataClass = overrideMerge.getValueWithOverride(this.dataClass,
 				BindingNode::getDataClass, (o, n) -> n.isAssignableFrom(o));
-		BindingStrategy bindingStrategy = overrideMerge.getValueWithOverride(
-				this.bindingStrategy, BindingNode::getBindingStrategy);
 
 		Class<?> inputTarget = bindingClass != null ? bindingClass : dataClass;
 		Class<?> outputTarget = unbindingClass != null ? unbindingClass : dataClass;
@@ -247,11 +249,63 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		/*
 		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE
 		 */
-		return new SequentialChildrenConfigurator<>(getNamespace(),
-				getOverriddenNodes(),
-				bindingStrategy != BindingStrategy.IMPLEMENT_IN_PLACE, inputTarget,
-				outputTarget, getDataLoader(), isChildContextAbstract(),
-				isDataContext());
+		return new SequentialChildrenConfigurator<>(
+				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public DataLoader dataLoader() {
+						return getDataLoader();
+					}
+
+					@Override
+					public boolean isAbstract() {
+						return isChildContextAbstract();
+					}
+
+					@Override
+					public boolean isInputExpected() {
+						return true;
+					}
+
+					@Override
+					public boolean isInputDataOnly() {
+						return isDataContext();
+					}
+
+					@Override
+					public boolean isConstructorExpected() {
+						return bindingStrategy == BindingStrategy.CONSTRUCTOR;
+					}
+
+					@Override
+					public Namespace namespace() {
+						return getNamespace();
+					}
+
+					@Override
+					public Class<?> inputTargetClass(QualifiedName node) {
+						return inputTarget;
+					}
+
+					@Override
+					public Class<?> outputSourceClass() {
+						return outputTarget;
+					}
+
+					@Override
+					public void addChild(ChildNode<?, ?> result) {
+					}
+
+					@Override
+					public <U extends ChildNode<?, ?>> List<U> overrideChild(
+							QualifiedName id, Class<U> nodeClass) {
+						return null;
+					}
+
+					@Override
+					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+						return getOverriddenNodes();
+					}
+				});
 	}
 
 	protected abstract boolean isDataContext();

@@ -16,6 +16,8 @@ import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 
 public class ChildrenConfiguratorTests {
@@ -74,8 +76,62 @@ public class ChildrenConfiguratorTests {
 	@Test(dataProvider = "mergeData")
 	public void childrenMergeTest(MergeTestData mergeTestData) {
 		SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>> configurator = new SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>>(
-				Namespace.getDefault(), mergeTestData.sequences(), true, Object.class,
-				Object.class, null, true, false);
+				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public DataLoader dataLoader() {
+						return null;
+					}
+
+					@Override
+					public boolean isAbstract() {
+						return false;
+					}
+
+					@Override
+					public boolean isInputDataOnly() {
+						return true;
+					}
+
+					@Override
+					public boolean isInputExpected() {
+						return true;
+					}
+
+					@Override
+					public boolean isConstructorExpected() {
+						return false;
+					}
+
+					@Override
+					public Namespace namespace() {
+						return Namespace.getDefault();
+					}
+
+					@Override
+					public Class<?> inputTargetClass(QualifiedName node) {
+						return Object.class;
+					}
+
+					@Override
+					public Class<?> outputSourceClass() {
+						return Object.class;
+					}
+
+					@Override
+					public void addChild(ChildNode<?, ?> result) {
+					}
+
+					@Override
+					public <U extends ChildNode<?, ?>> List<U> overrideChild(
+							QualifiedName id, Class<U> nodeClass) {
+						return null;
+					}
+
+					@Override
+					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+						return mergeTestData.sequences();
+					}
+				});
 
 		for (QualifiedName override : mergeTestData.overrides())
 			configurator.addChild().sequence().name(override).create();

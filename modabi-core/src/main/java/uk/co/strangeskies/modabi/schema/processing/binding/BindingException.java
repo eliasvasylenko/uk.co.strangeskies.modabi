@@ -12,13 +12,24 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 public class BindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
 
-	private final List<SchemaNode.Effective<?, ?>> bindingNodeStack;
+	private final BindingState state;
 
-	public BindingException(String message,
-			List<SchemaNode.Effective<?, ?>> stack, Exception cause) {
-		super(message + " @ " + getBindingNodeStackString(stack), cause);
+	public BindingException(String message, BindingState state, Exception cause) {
+		super(
+				message + " @ " + getBindingNodeStackString(state.bindingNodeStack()),
+				cause);
 
-		bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(stack));
+		this.state = state;
+	}
+
+	public BindingException(String message, BindingState state) {
+		super(message + " @ " + getBindingNodeStackString(state.bindingNodeStack()));
+
+		this.state = state;
+	}
+
+	public BindingState getState() {
+		return state;
 	}
 
 	private static String getBindingNodeStackString(
@@ -29,17 +40,5 @@ public class BindingException extends SchemaException {
 		return "[ "
 				+ stack.stream().map(SchemaNode::getName).map(Objects::toString)
 						.collect(Collectors.joining(" < ")) + " ]";
-	}
-
-	public BindingException(String message,
-			List<SchemaNode.Effective<?, ?>> bindingNodeStack) {
-		super(message + " @ " + getBindingNodeStackString(bindingNodeStack));
-
-		this.bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(
-				bindingNodeStack));
-	}
-
-	public List<SchemaNode.Effective<?, ?>> getBindingNodeStack() {
-		return bindingNodeStack;
 	}
 }

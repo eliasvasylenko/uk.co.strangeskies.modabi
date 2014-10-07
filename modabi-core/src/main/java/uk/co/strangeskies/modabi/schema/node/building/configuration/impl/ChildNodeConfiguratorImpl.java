@@ -37,18 +37,18 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	protected DataLoader getDataLoader() {
-		return getContext().getDataLoader();
+		return getContext().dataLoader();
 	}
 
 	@Override
 	protected Namespace getNamespace() {
 		return getName() != null ? getName().getNamespace() : getContext()
-				.getNamespace();
+				.namespace();
 	}
 
 	@Override
 	public S name(String name) {
-		return name(new QualifiedName(name, getContext().getNamespace()));
+		return name(new QualifiedName(name, getContext().namespace()));
 	}
 
 	@Override

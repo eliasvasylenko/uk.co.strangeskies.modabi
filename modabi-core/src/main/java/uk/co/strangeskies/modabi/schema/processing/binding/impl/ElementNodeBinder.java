@@ -12,7 +12,7 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.ElementNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.processing.impl.ElementNodeOverrider;
 
 public class ElementNodeBinder {
@@ -39,8 +39,8 @@ public class ElementNodeBinder {
 					Model.Effective<?> extension = context.getModel(nextElement);
 
 					if (!node.getDataClass().isAssignableFrom(extension.getDataClass()))
-						throw context.exception("Named input node '" + nextElement
-								+ "' does not match class of extention point.");
+						throw new BindingException("Named input node '" + nextElement
+								+ "' does not match class of extention point.", context);
 
 					inputNode = (Effective<U>) attemptedOverrideMap.get(nextElement);
 					if (inputNode == null) {

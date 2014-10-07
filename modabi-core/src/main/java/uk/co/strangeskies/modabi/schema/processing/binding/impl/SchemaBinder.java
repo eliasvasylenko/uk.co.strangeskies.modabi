@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -29,14 +30,14 @@ import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
-import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.BindingNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.DataNodeUnbinder;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.UnbindingContext;
 
 public class SchemaBinder {
 	private final BindingContext context;
@@ -157,8 +158,8 @@ public class SchemaBinder {
 
 		QualifiedName inputRoot = input.startNextChild();
 		if (!inputRoot.equals(model.getName()))
-			throw context.exception("Model '" + model.getName()
-					+ "' does not match root input node '" + inputRoot + "'.");
+			throw new BindingException("Model '" + model.getName()
+					+ "' does not match root input node '" + inputRoot + "'.", context);
 
 		FutureTask<T> future = new FutureTask<>(() -> {
 			try {
@@ -166,7 +167,8 @@ public class SchemaBinder {
 			} catch (SchemaException e) {
 				throw e;
 			} catch (Exception e) {
-				throw context.exception("Unexpected problem during binding.", e);
+				throw new BindingException("Unexpected problem during binding.",
+						context, e);
 			}
 		});
 		future.run();
@@ -228,8 +230,8 @@ public class SchemaBinder {
 								&& c instanceof DataNode.Effective<?>)
 				.findAny()
 				.orElseThrow(
-						() -> context.exception("Can't find child '" + idDomain
-								+ "' to target for model '" + model + "'."));
+						() -> new BindingException("Can't find child '" + idDomain
+								+ "' to target for model '" + model + "'.", context));
 
 		for (U bindingCandidate : bindingCandidates) {
 			DataSource candidateId = unbindDataNode(context, node, bindingCandidate);
@@ -254,16 +256,16 @@ public class SchemaBinder {
 			}
 		}
 
-		throw context.exception("Can't find any bindings matching '" + idSource
-				+ "' in domain '" + idDomain + "' for model '" + model + "'.");
+		throw new BindingException("Can't find any bindings matching '" + idSource
+				+ "' in domain '" + idDomain + "' for model '" + model + "'.", context);
 	}
 
 	private static <V> DataSource unbindDataNode(BindingContext context,
 			DataNode.Effective<V> node, Object source) {
 		UnbindingContext unbindingContext = new UnbindingContext() {
 			@Override
-			public Object unbindingSource() {
-				return source;
+			public List<Object> unbindingSourceStack() {
+				return Arrays.asList(source);
 			}
 
 			@Override

@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,7 +34,7 @@ public class Methods {
 	 * method.
 	 */
 	public static Method getInMethod(InputNode.Effective<?, ?> node,
-			Method inheritedInMethod, Class<?> receiverClass,
+			String inheritedInMethodName, Class<?> receiverClass,
 			List<Class<?>> parameters) {
 		try {
 			Class<?> result;
@@ -42,12 +45,27 @@ public class Methods {
 			} else
 				result = null;
 
-			return findMethod(generateInMethodNames(node), receiverClass, result,
-					node != null && node.isInMethodChained() && node.isInMethodCast(),
+			return findMethod(generateInMethodNames(node, inheritedInMethodName),
+					receiverClass, result, node != null && node.isInMethodChained()
+							&& node.isInMethodCast(),
 					parameters.toArray(new Class<?>[parameters.size()]));
 		} catch (NoSuchMethodException e) {
 			throw new SchemaException(e);
 		}
+	}
+
+	public static Constructor<?> getConstructor(InputNode.Effective<?, ?> node,
+			Class<?> receiverClass, List<Class<?>> parameters) {
+		Constructor<?> inMethod;
+		try {
+			inMethod = receiverClass.getConstructor(parameters
+					.toArray(new Class<?>[0]));
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new SchemaException("Cannot find constructor for class '"
+					+ receiverClass + "' with parameters '" + Arrays.asList(parameters)
+					+ "'.");
+		}
+		return inMethod;
 	}
 
 	public static Method getOutMethod(BindingChildNode.Effective<?, ?, ?> node,
@@ -89,11 +107,11 @@ public class Methods {
 	}
 
 	private static List<String> generateInMethodNames(
-			InputNode.Effective<?, ?> node) {
+			InputNode.Effective<?, ?> node, String inheritedInMethodName) {
 		List<String> names;
 
-		if (node.getInMethodName() != null)
-			names = Arrays.asList(node.getInMethodName());
+		if (inheritedInMethodName != null)
+			names = Arrays.asList(inheritedInMethodName);
 		else {
 			names = new ArrayList<>();
 
@@ -204,43 +222,26 @@ public class Methods {
 		}
 	}
 
+	public static Constructor<?> findConstructor(Class<?> receiver,
+			Class<?>... parameters) throws NoSuchMethodException {
+		Set<Constructor<?>> overloadCandidates = findOverloadCandidates(receiver,
+				Class::getConstructors, c -> true, parameters);
+
+		if (overloadCandidates.isEmpty())
+			throw new SchemaException("Cannot find constructor for class '"
+					+ receiver + "' with parameters '" + Arrays.toString(parameters));
+
+		return findMostSpecificOverload(overloadCandidates);
+	}
+
 	public static Method findMethod(List<String> names, Class<?> receiver,
 			Class<?> result, boolean allowCast, Class<?>... parameters)
 			throws NoSuchMethodException {
-		Method method = tryFindMethod(names, receiver, result, allowCast,
-				parameters);
-		if (method == null)
-			throw new SchemaException("Cannot find method of class '" + result
-					+ "', reveiver '" + receiver + "', and parameters '"
-					+ Arrays.asList(parameters) + "' with any name of '" + names + "'.");
-
-		return method;
-	}
-
-	public static Method tryFindMethod(List<String> names, Class<?> receiver,
-			Class<?> result, boolean allowCast, Class<?>... parameters)
-			throws NoSuchMethodException {
-		Set<Method> overloadCandidates = Stream
-				.concat(Arrays.stream(receiver.getMethods()),
-						Arrays.stream(Object.class.getMethods())).filter(m -> {
-					if (!names.contains(m.getName()))
-						return false;
-
-					Class<?>[] methodParameters = m.getParameterTypes();
-
-					if (methodParameters.length != parameters.length)
-						return false;
-
-					int i = 0;
-					for (Class<?> parameter : parameters)
-						if (!ClassUtils.isAssignable(parameter, methodParameters[i++]))
-							return false;
-
-					return true;
-				}).collect(Collectors.toSet());
+		Set<Method> overloadCandidates = findOverloadCandidates(receiver,
+				Class::getMethods, c -> names.contains(c.getName()), parameters);
 
 		if (overloadCandidates.isEmpty())
-			throw new SchemaException("Cannot find method of class '" + result
+			throw new NoSuchMethodException("Cannot find method of class '" + result
 					+ "', reveiver '" + receiver + "', and parameters '"
 					+ Arrays.toString(parameters) + "' with any name of '" + names + "'.");
 
@@ -255,8 +256,31 @@ public class Methods {
 		return mostSpecific;
 	}
 
-	private static Method findMostSpecificOverload(Set<Method> candidates)
-			throws NoSuchMethodException {
+	private static <I extends Executable> Set<I> findOverloadCandidates(
+			Class<?> receiver, Function<Class<?>, I[]> methods, Predicate<I> filter,
+			Class<?>... parameters) {
+		return Stream
+				.concat(Arrays.stream(methods.apply(receiver)),
+						Arrays.stream(methods.apply(Object.class))).filter(m -> {
+					if (!filter.test(m))
+						return false;
+
+					Class<?>[] methodParameters = m.getParameterTypes();
+
+					if (methodParameters.length != parameters.length)
+						return false;
+
+					int i = 0;
+					for (Class<?> parameter : parameters)
+						if (!ClassUtils.isAssignable(parameter, methodParameters[i++]))
+							return false;
+
+					return true;
+				}).collect(Collectors.toSet());
+	}
+
+	private static <I extends Executable> I findMostSpecificOverload(
+			Set<I> candidates) throws NoSuchMethodException {
 		if (candidates.size() == 1)
 			return candidates.iterator().next();
 
@@ -264,15 +288,15 @@ public class Methods {
 		 * Find which candidates have the joint most specific parameters, one
 		 * parameter at a time.
 		 */
-		Set<Method> mostSpecificSoFar = new HashSet<>(candidates);
+		Set<I> mostSpecificSoFar = new HashSet<>(candidates);
 		int parameters = candidates.iterator().next().getParameterCount();
 		for (int i = 0; i < parameters; i++) {
-			Set<Method> mostSpecificForParameter = new HashSet<>();
+			Set<I> mostSpecificForParameter = new HashSet<>();
 
 			Class<?> mostSpecificParameterClass = candidates.iterator().next()
 					.getDeclaringClass();
 
-			for (Method overloadCandidate : candidates) {
+			for (I overloadCandidate : candidates) {
 				Class<?> parameterClass = overloadCandidate.getDeclaringClass();
 
 				if (ClassUtils.isAssignable(parameterClass, mostSpecificParameterClass)) {
@@ -298,10 +322,10 @@ public class Methods {
 		 * Find which of the remaining candidates, which should all have identical
 		 * parameter types, is declared in the lowermost class.
 		 */
-		Iterator<Method> overrideCandidateIterator = mostSpecificSoFar.iterator();
-		Method mostSpecific = overrideCandidateIterator.next();
+		Iterator<I> overrideCandidateIterator = mostSpecificSoFar.iterator();
+		I mostSpecific = overrideCandidateIterator.next();
 		while (overrideCandidateIterator.hasNext()) {
-			Method candidate = overrideCandidateIterator.next();
+			I candidate = overrideCandidateIterator.next();
 			mostSpecific = ClassUtils.isAssignable(candidate.getDeclaringClass(),
 					mostSpecific.getDeclaringClass()) ? candidate : mostSpecific;
 		}

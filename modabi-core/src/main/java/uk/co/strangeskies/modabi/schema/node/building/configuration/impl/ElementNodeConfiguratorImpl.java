@@ -81,7 +81,7 @@ public class ElementNodeConfiguratorImpl<T>
 
 	@Override
 	public ElementNodeConfigurator<T> name(String name) {
-		return name(new QualifiedName(name, getContext().getNamespace()));
+		return name(new QualifiedName(name, getContext().namespace()));
 	}
 
 	@SuppressWarnings("unchecked")

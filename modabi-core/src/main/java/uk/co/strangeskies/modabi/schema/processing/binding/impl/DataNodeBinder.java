@@ -8,7 +8,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
-import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 
 public class DataNodeBinder {
 	private final BindingContext context;
@@ -69,13 +69,14 @@ public class DataNodeBinder {
 
 		if (results.isEmpty() && !node.optional()
 				&& !node.occurrences().contains(0))
-			throw context.exception("Node '" + node.getName()
-					+ "' must be bound data.");
+			throw new BindingException("Node '" + node.getName()
+					+ "' must be bound data.", context);
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size()))
-			throw context.exception("Node '" + node.getName() + "' binding results '"
-					+ results + "' must be bound data within range of '"
-					+ Range.compose(node.occurrences()) + "' occurrences.");
+			throw new BindingException("Node '" + node.getName()
+					+ "' binding results '" + results
+					+ "' must be bound data within range of '"
+					+ Range.compose(node.occurrences()) + "' occurrences.", context);
 
 		return results;
 	}

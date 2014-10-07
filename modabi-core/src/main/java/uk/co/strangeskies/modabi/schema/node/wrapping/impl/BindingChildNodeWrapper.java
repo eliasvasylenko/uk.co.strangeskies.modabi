@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 
 import uk.co.strangeskies.mathematics.Range;
@@ -58,7 +59,7 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
-	public final Method getInMethod() {
+	public final Executable getInMethod() {
 		return getBase() == null ? null : getBase().getInMethod();
 	}
 

@@ -1,22 +1,24 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.node.InputNode;
+import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
+import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ElementNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
@@ -32,8 +34,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 				extends
 				SchemaNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
 				implements InputSequenceNode.Effective {
-			private String inMethodName;
-			private final Method inMethod;
+			private final String inMethodName;
+			private final Executable inMethod;
 			private final Boolean inMethodChained;
 			private final Boolean allowInMethodResultCast;
 
@@ -44,12 +46,14 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl<?>> overrideMerge) {
 				super(overrideMerge);
 
-				inMethodChained = overrideMerge.getValue(
-						InputSequenceNode::isInMethodChained, false);
+				if (!overrideMerge.configurator().getContext().isInputExpected())
+					throw new SchemaException("InputSequenceNode '" + getName()
+							+ "' cannot occur in a context without input.");
 
-				allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-						: overrideMerge.getValue(InputSequenceNode::isInMethodCast, false);
-
+				InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
+						this, overrideMerge, overrideMerge.configurator().getContext());
+				inMethodChained = inputNodeHelper.isInMethodChained();
+				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 				List<Class<?>> parameterClasses = overrideMerge
 						.configurator()
 						.getChildrenContainer()
@@ -58,32 +62,10 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 						.map(
 								o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataClass())
 						.collect(Collectors.toList());
-
-				Class<?> inputTargetClass = overrideMerge.configurator().getContext()
-						.getInputTargetClass(getName());
-
-				inMethodName = overrideMerge
-						.tryGetValue(InputSequenceNode::getInMethodName);
-
-				if (!overrideMerge.configurator().getContext().hasInput())
-					throw new SchemaException(
-							"It doesn't make sense to have inputSequence node '" + getName()
-									+ "' occur in a context without input.");
-
-				Method overriddenMethod = overrideMerge
-						.tryGetValue(n -> n.effective() == null ? (Method) null : n
-								.effective().getInMethod());
-				inMethod = isAbstract() ? null : Methods.getInMethod(this,
-						overriddenMethod, inputTargetClass, parameterClasses);
-
-				if (inMethodName == null && !isAbstract())
-					inMethodName = inMethod.getName();
-
-				preInputClass = isAbstract() ? null : inMethod.getDeclaringClass();
-
-				postInputClass = effectivePostInputClass(isAbstract(),
-						inputTargetClass, inMethodName, inMethod, inMethodChained,
-						overrideMerge);
+				inMethod = inputNodeHelper.inMethod(parameterClasses);
+				inMethodName = inputNodeHelper.inMethodName();
+				preInputClass = inputNodeHelper.preInputClass();
+				postInputClass = inputNodeHelper.postInputClass();
 			}
 
 			@Override
@@ -92,7 +74,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			}
 
 			@Override
-			public Method getInMethod() {
+			public Executable getInMethod() {
 				return inMethod;
 			}
 
@@ -178,7 +160,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 	@Override
 	public InputSequenceNodeConfigurator<C> inMethod(String methodName) {
-		if (!getContext().hasInput() && !inMethodName.equals("null"))
+		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
 			throw new SchemaException(
 					"No input method should be specified on this node.");
 
@@ -212,11 +194,65 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 
 	@Override
 	public ChildrenConfigurator<C, C> createChildrenConfigurator() {
-		Class<?> outputTarget = getContext().getOutputSourceClass();
+		Class<?> outputTarget = getContext().outputSourceClass();
 
-		return new SequentialChildrenConfigurator<C, C>(getNamespace(),
-				getOverriddenNodes(), false, null, outputTarget, getDataLoader(),
-				isChildContextAbstract(), getContext().isDataContext()) {
+		return new SequentialChildrenConfigurator<C, C>(
+				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public DataLoader dataLoader() {
+						return getDataLoader();
+					}
+
+					@Override
+					public boolean isAbstract() {
+						return isChildContextAbstract();
+					}
+
+					@Override
+					public boolean isInputExpected() {
+						return false;
+					}
+
+					@Override
+					public boolean isInputDataOnly() {
+						return getContext().isInputDataOnly();
+					}
+
+					@Override
+					public boolean isConstructorExpected() {
+						return false;
+					}
+
+					@Override
+					public Namespace namespace() {
+						return getNamespace();
+					}
+
+					@Override
+					public Class<?> inputTargetClass(QualifiedName node) {
+						return null;
+					}
+
+					@Override
+					public Class<?> outputSourceClass() {
+						return outputTarget;
+					}
+
+					@Override
+					public void addChild(ChildNode<?, ?> result) {
+					}
+
+					@Override
+					public <U extends ChildNode<?, ?>> List<U> overrideChild(
+							QualifiedName id, Class<U> nodeClass) {
+						return null;
+					}
+
+					@Override
+					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+						return getOverriddenNodes();
+					}
+				}) {
 			@Override
 			public ChildBuilder<C, C> addChild() {
 				ChildBuilder<C, C> component = super.addChild();
@@ -253,36 +289,5 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	@Override
 	protected boolean isChildContextAbstract() {
 		return getContext().isAbstract() || super.isChildContextAbstract();
-	}
-
-	static final Class<?> effectivePostInputClass(
-			boolean isAbstract,
-			Class<?> inputTargetClass,
-			String inMethodName,
-			Method inMethod,
-			Boolean inMethodChained,
-			OverrideMerge<? extends InputNode<?, ?>, ? extends InputNodeConfigurator<?, ?, ?, ?>> overrideMerge) {
-		Class<?> postInputClass;
-
-		if ("null".equals(inMethodName)
-				|| (inMethodChained != null && !inMethodChained))
-			postInputClass = inputTargetClass;
-		else if (isAbstract)
-			postInputClass = overrideMerge.tryGetValue(InputNode::getPostInputClass,
-					(n, o) -> o.isAssignableFrom(n));
-		else {
-			Class<?> methodReturn = inMethod.getReturnType();
-
-			Class<?> localPostInputClass = overrideMerge.node().getPostInputClass();
-
-			if (localPostInputClass == null
-					|| localPostInputClass.isAssignableFrom(methodReturn))
-				localPostInputClass = methodReturn;
-
-			postInputClass = overrideMerge.getValueWithOverride(localPostInputClass,
-					InputNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
-		}
-
-		return postInputClass;
 	}
 }

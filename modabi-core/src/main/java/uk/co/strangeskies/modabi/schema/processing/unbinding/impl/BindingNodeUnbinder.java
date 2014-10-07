@@ -26,7 +26,7 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class BindingNodeUnbinder {
 	private final UnbindingContext context;
@@ -164,14 +164,13 @@ public class BindingNodeUnbinder {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | SecurityException | NullPointerException e) {
-			throw context.exception(
-					"Cannot invoke method '"
-							+ method
-							+ "' on '"
-							+ receiver
-							+ "' with arguments '["
-							+ Arrays.asList(parameters).stream().map(Objects::toString)
-									.collect(Collectors.joining(", ")) + "]'.", e);
+			throw new UnbindingException("Cannot invoke method '"
+					+ method
+					+ "' on '"
+					+ receiver
+					+ "' with arguments '["
+					+ Arrays.asList(parameters).stream().map(Objects::toString)
+							.collect(Collectors.joining(", ")) + "]'.", context, e);
 		}
 	}
 
@@ -183,8 +182,8 @@ public class BindingNodeUnbinder {
 		Object parent = context.unbindingSource();
 
 		if (node.getDataClass() == null)
-			throw context.exception("Cannot unbind node '" + node.getName()
-					+ "' with no data class.");
+			throw new UnbindingException("Cannot unbind node '" + node.getName()
+					+ "' with no data class.", context);
 
 		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
 			Iterable<U> iterable = null;
@@ -224,10 +223,10 @@ public class BindingNodeUnbinder {
 
 		if (itemList != null && node.occurrences() != null
 				&& !node.occurrences().contains(itemList.size()))
-			throw context.exception("Output list '" + itemList
+			throw new UnbindingException("Output list '" + itemList
 					+ "' must contain a number of items within range '"
 					+ Range.compose(node.occurrences()) + "' to be unbound by node '"
-					+ node + "'.");
+					+ node + "'.", context);
 
 		return itemList;
 	}

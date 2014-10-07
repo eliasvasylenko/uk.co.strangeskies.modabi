@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.processing.binding;
+package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,9 +12,10 @@ import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingState;
 import uk.co.strangeskies.utilities.factory.Factory;
 
-public interface BindingContext {
+public interface BindingContext extends BindingState {
 	default <U> U provide(Class<U> clazz) {
 		return provide(clazz, this);
 	}
@@ -22,26 +23,6 @@ public interface BindingContext {
 	<U> U provide(Class<U> clazz, BindingContext headContext);
 
 	boolean isProvided(Class<?> clazz);
-
-	List<SchemaNode.Effective<?, ?>> bindingNodeStack();
-
-	default SchemaNode.Effective<?, ?> bindingNode() {
-		return bindingNode(0);
-	}
-
-	default SchemaNode.Effective<?, ?> bindingNode(int parent) {
-		return bindingNodeStack().get(bindingNodeStack().size() - (1 + parent));
-	}
-
-	List<Object> bindingTargetStack();
-
-	default Object bindingTarget() {
-		return bindingTarget(0);
-	}
-
-	default Object bindingTarget(int parent) {
-		return bindingTargetStack().get(bindingTargetStack().size() - (1 + parent));
-	}
 
 	Model.Effective<?> getModel(QualifiedName nextElement);
 
@@ -51,14 +32,6 @@ public interface BindingContext {
 
 	<T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 			DataNode.Effective<T> node, Class<?> dataClass);
-
-	default BindingException exception(String message, Exception cause) {
-		return new BindingException(message, bindingNodeStack(), cause);
-	}
-
-	default BindingException exception(String message) {
-		return new BindingException(message, bindingNodeStack());
-	}
 
 	default <T> BindingContext withProvision(Class<T> providedClass,
 			Factory<T> provider) {

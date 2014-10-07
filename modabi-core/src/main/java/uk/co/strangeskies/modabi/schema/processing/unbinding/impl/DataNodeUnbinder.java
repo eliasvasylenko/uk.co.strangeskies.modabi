@@ -17,7 +17,7 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class DataNodeUnbinder {
 	private final UnbindingContext context;
@@ -42,8 +42,8 @@ public class DataNodeUnbinder {
 
 		UnbindingContext context = new UnbindingContext() {
 			@Override
-			public Object unbindingSource() {
-				return DataNodeUnbinder.this.context.unbindingSource();
+			public List<Object> unbindingSourceStack() {
+				return DataNodeUnbinder.this.context.unbindingSourceStack();
 			}
 
 			@Override
@@ -170,14 +170,12 @@ public class DataNodeUnbinder {
 					.tryForEach(
 							nodes,
 							(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
-							l -> context.exception(
-									"Unable to unbind data node '"
-											+ node.getName()
-											+ "' with type candidates '"
-											+ nodes.stream()
-													.map(m -> m.source().getName().toString())
-													.collect(Collectors.joining(", ")) + "' for object '"
-											+ data + "' to be unbound.", l));
+							l -> new UnbindingException("Unable to unbind data node '"
+									+ node.getName()
+									+ "' with type candidates '"
+									+ nodes.stream().map(m -> m.source().getName().toString())
+											.collect(Collectors.joining(", ")) + "' for object '"
+									+ data + "' to be unbound.", context, l));
 
 			nodes.remove(success);
 			((List<Object>) nodes).add(0, success);

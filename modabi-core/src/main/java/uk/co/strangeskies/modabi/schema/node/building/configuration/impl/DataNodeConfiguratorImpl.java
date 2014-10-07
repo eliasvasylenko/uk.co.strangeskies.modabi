@@ -60,7 +60,7 @@ public class DataNodeConfiguratorImpl<T>
 				if (format == null) {
 					if (!isAbstract()
 							&& valueResolution() != ValueResolution.REGISTRATION_TIME
-							&& !overrideMerge.configurator().getContext().isDataContext()) {
+							&& !overrideMerge.configurator().getContext().isInputDataOnly()) {
 						/*- TODO not all nodes actually request input!
 						 * Deal with nodes which don't need format...
 						 *
@@ -68,7 +68,7 @@ public class DataNodeConfiguratorImpl<T>
 								+ "' must provide a format.");
 						 */
 					}
-				} else if (overrideMerge.configurator().getContext().isDataContext()) {
+				} else if (overrideMerge.configurator().getContext().isInputDataOnly()) {
 					throw new SchemaException("Node '" + getName()
 							+ "' must not provide a format.");
 				}
@@ -81,7 +81,7 @@ public class DataNodeConfiguratorImpl<T>
 									+ getName() + "'.");
 
 				provided = (resolution == ValueResolution.REGISTRATION_TIME && providedBuffer != null) ? overrideMerge
-						.configurator().getContext().getDataLoader()
+						.configurator().getContext().dataLoader()
 						.loadData(DataNodeImpl.Effective.this, providedBuffer)
 						: null;
 			}
@@ -192,7 +192,7 @@ public class DataNodeConfiguratorImpl<T>
 
 	@Override
 	public DataNodeConfigurator<T> name(String name) {
-		return name(new QualifiedName(name, getContext().getNamespace()));
+		return name(new QualifiedName(name, getContext().namespace()));
 	}
 
 	@SuppressWarnings("unchecked")

@@ -12,7 +12,7 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.processing.impl.ElementNodeOverrider;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class ElementNodeUnbinder {
 	private final UnbindingContext context;
@@ -55,14 +55,14 @@ public class ElementNodeUnbinder {
 									}
 
 									castAndUnbind(c, overridden, item);
-								}, l -> context.exception(
-										"Unable to unbind element '"
-												+ node.getName()
-												+ "' with model candidates '"
-												+ finalNodes.stream()
-														.map(m -> m.source().getName().toString())
-														.collect(Collectors.joining(", "))
-												+ "' for object '" + item + "' to be unbound.", l));
+								},
+								l -> new UnbindingException("Unable to unbind element '"
+										+ node.getName()
+										+ "' with model candidates '"
+										+ finalNodes.stream()
+												.map(m -> m.source().getName().toString())
+												.collect(Collectors.joining(", ")) + "' for object '"
+										+ item + "' to be unbound.", context, l));
 
 				nodes.remove(success);
 				((List<Object>) nodes).add(0, success);
@@ -82,7 +82,8 @@ public class ElementNodeUnbinder {
 
 			context.bindings().add(element, data);
 		} catch (ClassCastException e) {
-			throw context.exception("Cannot unbind data at this node.", e);
+			throw new UnbindingException("Cannot unbind data at this node.", context,
+					e);
 		}
 	}
 }

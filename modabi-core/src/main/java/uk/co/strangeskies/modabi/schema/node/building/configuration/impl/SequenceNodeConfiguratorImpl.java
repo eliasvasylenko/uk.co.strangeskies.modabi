@@ -1,8 +1,14 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
+import java.util.List;
+
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
@@ -94,11 +100,65 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 
 	@Override
 	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
-		Class<?> inputTarget = getContext().getInputTargetClass(getName());
+		Class<?> inputTarget = getContext().inputTargetClass(getName());
 
-		return new SequentialChildrenConfigurator<>(getNamespace(),
-				getOverriddenNodes(), true, inputTarget, null, null,
-				isChildContextAbstract(), getContext().isDataContext());
+		return new SequentialChildrenConfigurator<>(
+				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public DataLoader dataLoader() {
+						return getDataLoader();
+					}
+
+					@Override
+					public boolean isAbstract() {
+						return isChildContextAbstract();
+					}
+
+					@Override
+					public boolean isInputExpected() {
+						return true;
+					}
+
+					@Override
+					public boolean isInputDataOnly() {
+						return getContext().isInputDataOnly();
+					}
+
+					@Override
+					public boolean isConstructorExpected() {
+						return false;
+					}
+
+					@Override
+					public Namespace namespace() {
+						return getNamespace();
+					}
+
+					@Override
+					public Class<?> inputTargetClass(QualifiedName node) {
+						return inputTarget;
+					}
+
+					@Override
+					public Class<?> outputSourceClass() {
+						return null;
+					}
+
+					@Override
+					public void addChild(ChildNode<?, ?> result) {
+					}
+
+					@Override
+					public <U extends ChildNode<?, ?>> List<U> overrideChild(
+							QualifiedName id, Class<U> nodeClass) {
+						return null;
+					}
+
+					@Override
+					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+						return getOverriddenNodes();
+					}
+				});
 	}
 
 	@Override

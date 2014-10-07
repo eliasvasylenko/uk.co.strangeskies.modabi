@@ -1,40 +1,54 @@
 package uk.co.strangeskies.modabi.schema.processing.unbinding;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.utilities.MultiException;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.UnbindingContext;
 
-public class UnbindingException extends MultiException {
+public class UnbindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
 
-	private final List<SchemaNode.Effective<?, ?>> bindingNodeStack;
+	private final UnbindingContext context;
 
-	public UnbindingException(String message,
-			List<SchemaNode.Effective<?, ?>> stack,
+	private final Collection<? extends Exception> multiCause;
+
+	public UnbindingException(String message, UnbindingContext context,
 			Collection<? extends Exception> cause) {
-		super(message + " @ " + getUnbindingNodeStackString(stack), cause);
+		super(message + " @ "
+				+ getUnbindingNodeStackString(context.unbindingNodeStack()), cause
+				.iterator().next());
 
-		bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(stack));
+		multiCause = cause;
+
+		this.context = context;
 	}
 
-	public UnbindingException(String message,
-			List<SchemaNode.Effective<?, ?>> stack, Exception cause) {
-		super(message + " @ " + getUnbindingNodeStackString(stack), cause);
+	public UnbindingException(String message, UnbindingContext context,
+			Exception cause) {
+		super(message + " @ "
+				+ getUnbindingNodeStackString(context.unbindingNodeStack()), cause);
 
-		bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(stack));
+		multiCause = Arrays.asList(cause);
+
+		this.context = context;
 	}
 
-	public UnbindingException(String message,
-			List<SchemaNode.Effective<?, ?>> stack) {
-		super(message + " @ " + getUnbindingNodeStackString(stack));
+	public UnbindingException(String message, UnbindingContext context) {
+		super(message + " @ "
+				+ getUnbindingNodeStackString(context.unbindingNodeStack()));
+		multiCause = null;
+		this.context = context;
+	}
 
-		bindingNodeStack = Collections.unmodifiableList(new ArrayList<>(stack));
+	public Collection<? extends Exception> getMultipleCauses() {
+		return multiCause;
 	}
 
 	private static String getUnbindingNodeStackString(
@@ -47,7 +61,7 @@ public class UnbindingException extends MultiException {
 						.collect(Collectors.joining(" < ")) + " ]";
 	}
 
-	public List<SchemaNode.Effective<?, ?>> getBindingNodeStack() {
-		return bindingNodeStack;
+	public UnbindingContext getContext() {
+		return context;
 	}
 }

@@ -1,7 +1,6 @@
-package uk.co.strangeskies.modabi.schema.processing.unbinding;
+package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -13,9 +12,10 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingState;
 import uk.co.strangeskies.utilities.factory.Factory;
 
-public interface UnbindingContext {
+public interface UnbindingContext extends UnbindingState {
 	default <U> U provide(Class<U> clazz) {
 		return provide(clazz, this);
 	}
@@ -24,14 +24,6 @@ public interface UnbindingContext {
 
 	boolean isProvided(Class<?> clazz);
 
-	List<SchemaNode.Effective<?, ?>> unbindingNodeStack();
-
-	Object unbindingSource();
-
-	StructuredDataTarget output();
-
-	Bindings bindings();
-
 	<T> List<Model.Effective<T>> getMatchingModels(Class<T> dataClass);
 
 	<T> List<Model.Effective<? extends T>> getMatchingModels(
@@ -39,19 +31,6 @@ public interface UnbindingContext {
 
 	<T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 			DataNode.Effective<T> node, Class<?> dataClass);
-
-	default UnbindingException exception(String message, Exception cause) {
-		return new UnbindingException(message, unbindingNodeStack(), cause);
-	}
-
-	default UnbindingException exception(String message,
-			Collection<? extends Exception> cause) {
-		return new UnbindingException(message, unbindingNodeStack(), cause);
-	}
-
-	default UnbindingException exception(String message) {
-		return new UnbindingException(message, unbindingNodeStack());
-	}
 
 	default <T> UnbindingContext withProvision(Class<T> providedClass,
 			Factory<T> provider) {
@@ -99,8 +78,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public Object unbindingSource() {
-				return base.unbindingSource();
+			public List<Object> unbindingSourceStack() {
+				return base.unbindingSourceStack();
 			}
 
 			@Override
@@ -117,6 +96,13 @@ public interface UnbindingContext {
 
 	default <T> UnbindingContext withUnbindingSource(Object target) {
 		UnbindingContext base = this;
+
+		List<Object> unbindingSourceStack = new ArrayList<>(
+				base.unbindingSourceStack());
+		unbindingSourceStack.add(target);
+		List<Object> finalUnbindingSourceStack = Collections
+				.unmodifiableList(unbindingSourceStack);
+
 		return new UnbindingContext() {
 			@Override
 			public <U> List<Model.Effective<U>> getMatchingModels(Class<U> dataClass) {
@@ -151,8 +137,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public Object unbindingSource() {
-				return target;
+			public List<Object> unbindingSourceStack() {
+				return finalUnbindingSourceStack;
 			}
 
 			@Override
@@ -210,8 +196,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public Object unbindingSource() {
-				return base.unbindingSource();
+			public List<Object> unbindingSourceStack() {
+				return base.unbindingSourceStack();
 			}
 
 			@Override
@@ -252,8 +238,8 @@ public interface UnbindingContext {
 			}
 
 			@Override
-			public Object unbindingSource() {
-				return base.unbindingSource();
+			public List<Object> unbindingSourceStack() {
+				return base.unbindingSourceStack();
 			}
 
 			@Override

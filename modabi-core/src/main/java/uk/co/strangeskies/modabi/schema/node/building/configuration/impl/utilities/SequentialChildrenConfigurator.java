@@ -100,27 +100,21 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	private boolean blocked;
 	private int childIndex;
 
-	private final Namespace namespace;
-
 	private final List<ChildNode<?, ?>> children;
 	private final List<MergeGroup> mergedChildren;
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
-	private final boolean hasInput;
+	private final SchemaNodeConfigurationContext<?> context;
 	private Class<?> inputTarget;
-	private final Class<?> outputTarget;
 
-	private final DataLoader loader;
-	private final boolean isAbstract;
-	private final boolean dataContext;
-
-	public SequentialChildrenConfigurator(ChildNodeConfigurationContext context) {
+	public SequentialChildrenConfigurator(
+			SchemaNodeConfigurationContext<?> context) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
 		List<? extends SchemaNode<?, ?>> reversedNodes = new ArrayList<>(
-				overriddenNodes);
+				context.overriddenNodes());
 		Collections.reverse(reversedNodes);
 		for (SchemaNode<?, ?> overriddenNode : reversedNodes) {
 			int index = 0;
@@ -129,15 +123,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 				index = merge(overriddenNode.getName(), child.effective(), index, false);
 		}
 
-		this.namespace = namespace;
-
-		this.hasInput = hasInput;
-		this.inputTarget = inputTarget;
-		this.outputTarget = outputTarget;
-
-		this.loader = loader;
-		this.isAbstract = isAbstract;
-		this.dataContext = dataContext;
+		this.context = context;
+		inputTarget = context.inputTargetClass(null);
 
 		childIndex = 0;
 	}
@@ -241,23 +228,23 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 
 		SchemaNodeConfigurationContext<ChildNode<?, ?>> context = new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 			@Override
-			public DataLoader getDataLoader() {
-				return loader;
+			public DataLoader dataLoader() {
+				return SequentialChildrenConfigurator.this.context.dataLoader();
 			}
 
 			@Override
-			public Namespace getNamespace() {
-				return namespace;
+			public Namespace namespace() {
+				return SequentialChildrenConfigurator.this.context.namespace();
 			}
 
 			@Override
 			public boolean isAbstract() {
-				return isAbstract;
+				return SequentialChildrenConfigurator.this.context.isAbstract();
 			}
 
 			@Override
-			public boolean isDataContext() {
-				return dataContext;
+			public boolean isInputDataOnly() {
+				return SequentialChildrenConfigurator.this.context.isInputDataOnly();
 			}
 
 			@Override
@@ -267,13 +254,24 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public boolean hasInput() {
-				return hasInput;
+			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+				return SequentialChildrenConfigurator.this.context.overriddenNodes();
 			}
 
 			@Override
-			public Class<?> getInputTargetClass(QualifiedName name) {
-				if (!hasInput())
+			public boolean isInputExpected() {
+				return SequentialChildrenConfigurator.this.context.isInputExpected();
+			}
+
+			@Override
+			public boolean isConstructorExpected() {
+				return SequentialChildrenConfigurator.this.context
+						.isConstructorExpected() && children.isEmpty();
+			}
+
+			@Override
+			public Class<?> inputTargetClass(QualifiedName name) {
+				if (!isInputExpected())
 					return null;
 
 				MergeGroup mergeGroup = namedMergeGroups.get(name);
@@ -288,8 +286,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public Class<?> getOutputSourceClass() {
-				return outputTarget;
+			public Class<?> outputSourceClass() {
+				return SequentialChildrenConfigurator.this.context.outputSourceClass();
 			}
 
 			@Override

@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -18,12 +20,11 @@ import uk.co.strangeskies.modabi.schema.node.ElementNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.processing.PartialSchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.processing.impl.PartialSchemaProcessingContext;
 import uk.co.strangeskies.utilities.IdentityProperty;
-import uk.co.strangeskies.utilities.ResultWrapper;
 
 public class BindingNodeBinder {
 	private final BindingContext context;
@@ -52,21 +53,21 @@ public class BindingNodeBinder {
 
 			break;
 		case CONSTRUCTOR:
-			binding = null;
-			/*-
+			ChildNode.Effective<?, ?> firstChild = children.get(0);
+			children = children.subList(1, children.size());
+
+			Executable inputMethod = getInputMethod(firstChild);
+			List<Object> parameters = getSingleBindingSequence(firstChild,
+					childContext);
 			try {
-				List<Binding<?>> input = getInput();
-				Class<?> a = null;
-				a.getc
-				Constructor<?> c = node.getBindingClass().getConstructor();
-				return c.newInstance(prepareUnbingingParameterList(node, u));
-			} catch (InstantiationException | IllegalAccessException
-					| IllegalArgumentException | InvocationTargetException
-					| NoSuchMethodException | SecurityException e) {
-				throw new SchemaException("Cannot invoke constructor " + c + " on "
-						+ node.getUnbindingClass(), e);
+				binding = ((Constructor<?>) inputMethod).newInstance(parameters
+						.toArray());
+			} catch (IllegalAccessException | InvocationTargetException
+					| InstantiationException e) {
+				throw new BindingException("Cannot invoke static factory method '"
+						+ inputMethod + "' on class '" + node.getUnbindingClass()
+						+ "' with parameters '" + parameters + "'.", context, e);
 			}
-			 */
 			break;
 		case IMPLEMENT_IN_PLACE:
 			// TODO some proxy magic with simple bean-like semantics
@@ -79,19 +80,18 @@ public class BindingNodeBinder {
 			children = children.subList(1, children.size());
 			break;
 		case STATIC_FACTORY:
-			ChildNode.Effective<?, ?> firstChild = children.get(0);
+			firstChild = children.get(0);
 			children = children.subList(1, children.size());
 
-			Method inputMethod = getInputMethod(firstChild);
-			List<Object> parameters = getSingleBindingSequence(firstChild,
-					childContext);
+			inputMethod = getInputMethod(firstChild);
+			parameters = getSingleBindingSequence(firstChild, childContext);
 			try {
-				binding = inputMethod.invoke(null, parameters.toArray());
+				binding = ((Method) inputMethod).invoke(null, parameters.toArray());
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
-				throw context.exception("Cannot invoke static factory method '"
+				throw new BindingException("Cannot invoke static factory method '"
 						+ inputMethod + "' on class '" + node.getUnbindingClass()
-						+ "' with parameters '" + parameters + "'.", e);
+						+ "' with parameters '" + parameters + "'.", context, e);
 			}
 			break;
 		case TARGET_ADAPTOR:
@@ -161,12 +161,13 @@ public class BindingNodeBinder {
 			Object object;
 
 			try {
-				object = node.getInMethod().invoke(target, parameters);
+				object = ((Method) node.getInMethod()).invoke(target, parameters);
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
-				throw context.exception("Unable to call method '" + node.getInMethod()
-						+ "' with parameters '" + Arrays.toString(parameters)
-						+ "' at node '" + node + "'.", e);
+				throw new BindingException("Unable to call method '"
+						+ node.getInMethod() + "' with parameters '"
+						+ Arrays.toString(parameters) + "' at node '" + node + "'.",
+						context, e);
 			}
 
 			if (node.isInMethodChained())
@@ -176,15 +177,15 @@ public class BindingNodeBinder {
 		return target;
 	}
 
-	private static Method getInputMethod(ChildNode.Effective<?, ?> node) {
-		ResultWrapper<Method> result = new ResultWrapper<>();
+	private static Executable getInputMethod(ChildNode.Effective<?, ?> node) {
+		IdentityProperty<Executable> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public void accept(InputNode.Effective<?, ?> node) {
-				result.setResult(node.getInMethod());
+				result.set(node.getInMethod());
 			}
 		});
-		return result.getResult();
+		return result.get();
 	}
 
 	private static List<Object> getSingleBindingSequence(
@@ -208,18 +209,18 @@ public class BindingNodeBinder {
 
 	private static Object getSingleBinding(ChildNode.Effective<?, ?> node,
 			BindingContext context) {
-		ResultWrapper<Object> result = new ResultWrapper<>();
+		IdentityProperty<Object> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ElementNode.Effective<U> node) {
-				result.setResult(new ElementNodeBinder(context).bind(node).get(0));
+				result.set(new ElementNodeBinder(context).bind(node).get(0));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.setResult(new DataNodeBinder(context).bind(node).get(0));
+				result.set(new DataNodeBinder(context).bind(node).get(0));
 			}
 		});
-		return result.getResult();
+		return result.get();
 	}
 }

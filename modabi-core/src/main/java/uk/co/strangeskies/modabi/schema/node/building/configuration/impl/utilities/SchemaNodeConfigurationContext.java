@@ -5,24 +5,29 @@ import java.util.List;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 
 public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
-	DataLoader getDataLoader();
+	DataLoader dataLoader();
 
 	boolean isAbstract();
 
-	boolean isDataContext();
+	boolean isInputExpected();
 
-	boolean hasInput();
+	boolean isInputDataOnly();
 
-	Class<?> getInputTargetClass(QualifiedName node);
+	boolean isConstructorExpected();
 
-	Class<?> getOutputSourceClass();
+	Namespace namespace();
+
+	Class<?> inputTargetClass(QualifiedName node);
+
+	Class<?> outputSourceClass();
 
 	void addChild(T result);
 
 	<U extends T> List<U> overrideChild(QualifiedName id, Class<U> nodeClass);
 
-	Namespace getNamespace();
+	List<? extends SchemaNode<?, ?>> overriddenNodes();
 }

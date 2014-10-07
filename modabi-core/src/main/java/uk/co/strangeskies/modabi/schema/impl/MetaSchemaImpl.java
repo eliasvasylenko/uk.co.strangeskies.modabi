@@ -342,17 +342,46 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name").optional(false)).create();
 		modelSet.add(modelModel);
 
-		Model<ElementNode> elementModel = model
+		Model<ElementNode> abstractElementModel = model
 				.configure(loader)
-				.name("element", namespace)
+				.name("abstractElement", namespace)
 				.dataClass(ElementNode.class)
 				.baseModel(abstractModelModel, bindingChildNodeModel)
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
 						c -> c.inputSequence().name("configure").inMethod("element")
-								.inMethodChained(true)).addChild(n -> n.data().name("name"))
-				.create();
+								.inMethodChained(true))
+				.addChild(n -> n.data().name("name"))
+				.addChild(
+						c -> c.data().name("inline")
+								.type(base.primitiveType(DataType.BOOLEAN))).create();
+		modelSet.add(abstractElementModel);
+
+		Model<ElementNode> elementModel = model
+				.configure(loader)
+				.name("element", namespace)
+				.baseModel(abstractElementModel)
+				.addChild(
+						c -> c
+								.data()
+								.name("inline")
+								.provideValue(
+										new BufferingDataTarget().put(DataType.BOOLEAN, false)
+												.buffer())).create();
 		modelSet.add(elementModel);
+
+		Model<ElementNode> inlineModel = model
+				.configure(loader)
+				.name("inline", namespace)
+				.baseModel(abstractElementModel)
+				.addChild(
+						c -> c
+								.data()
+								.name("inline")
+								.provideValue(
+										new BufferingDataTarget().put(DataType.BOOLEAN, true)
+												.buffer())).create();
+		modelSet.add(inlineModel);
 
 		Model<DataNode> typedDataModel = model
 				.configure(loader)

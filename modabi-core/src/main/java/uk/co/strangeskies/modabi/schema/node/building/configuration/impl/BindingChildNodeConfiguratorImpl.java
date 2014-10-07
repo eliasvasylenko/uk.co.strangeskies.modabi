@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +32,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Method outMethod;
 
 			private String inMethodName;
-			private final Method inMethod;
+			private final Executable inMethod;
 			private final Boolean inMethodChained;
 			private final Boolean allowInMethodResultCast;
 
@@ -45,9 +46,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?, ?, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				extensible = overrideMerge.getValue(BindingChildNode::isExtensible,
-						false);
-
 				if (isAbstract()
 						&& !overrideMerge.configurator().getContext().isAbstract())
 					throw new SchemaException(
@@ -55,8 +53,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 									+ getName()
 									+ "' has no abstract or extensible parents, so cannot be abstract.");
 
-				Class<?> inputTargetClass = overrideMerge.configurator().getContext()
-						.getInputTargetClass(getName());
+				extensible = overrideMerge.getValue(BindingChildNode::isExtensible,
+						false);
 
 				ordered = overrideMerge.getValue(BindingChildNode::isOrdered, true);
 
@@ -66,12 +64,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				iterable = overrideMerge.getValue(
 						BindingChildNode::isOutMethodIterable, false);
 
-				inMethodChained = overrideMerge.getValue(
-						BindingChildNode::isInMethodChained, false);
-
-				allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-						: overrideMerge.getValue(BindingChildNode::isInMethodCast, false);
-
 				outMethodName = overrideMerge
 						.tryGetValue(BindingChildNode::getOutMethodName);
 
@@ -79,36 +71,20 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						.effective() == null ? null : n.effective().getOutMethod());
 				outMethod = (isAbstract() || "null".equals(outMethodName)) ? null
 						: Methods.getOutMethod(this, overriddenOutMethod, overrideMerge
-								.configurator().getContext().getOutputSourceClass());
+								.configurator().getContext().outputSourceClass());
 
 				if (outMethodName == null && !isAbstract())
 					outMethodName = outMethod.getName();
 
-				inMethodName = overrideMerge
-						.tryGetValue(BindingChildNode::getInMethodName);
-
-				if (!overrideMerge.configurator().getContext().hasInput())
-					if (inMethodName == null)
-						inMethodName = "null";
-					else if (inMethodName != "null")
-						throw new SchemaException(
-								"In method name should not be provided for this node.");
-
-				Method overriddenInMethod = overrideMerge.tryGetValue(n -> n
-						.effective() == null ? null : n.effective().getInMethod());
-				inMethod = (isAbstract() || "null".equals(inMethodName)) ? null
-						: Methods.getInMethod(this, overriddenInMethod, inputTargetClass,
-								Arrays.asList(getDataClass()));
-
-				if (inMethodName == null && !isAbstract())
-					inMethodName = inMethod.getName();
-
-				preInputClass = (isAbstract() || "null".equals(inMethodName)) ? null
-						: inMethod.getDeclaringClass();
-
-				postInputClass = InputSequenceNodeConfiguratorImpl
-						.effectivePostInputClass(isAbstract(), inputTargetClass,
-								inMethodName, inMethod, inMethodChained, overrideMerge);
+				InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<S, E>(
+						effective(), overrideMerge, overrideMerge.configurator()
+								.getContext());
+				inMethodChained = inputNodeHelper.isInMethodChained();
+				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
+				inMethod = inputNodeHelper.inMethod(Arrays.asList(getDataClass()));
+				inMethodName = inputNodeHelper.inMethodName();
+				preInputClass = inputNodeHelper.preInputClass();
+				postInputClass = inputNodeHelper.postInputClass();
 			}
 
 			@Override
@@ -157,7 +133,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			public final Method getInMethod() {
+			public final Executable getInMethod() {
 				return inMethod;
 			}
 
@@ -275,12 +251,12 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	protected Namespace getNamespace() {
 		return getName() != null ? getName().getNamespace() : getContext()
-				.getNamespace();
+				.namespace();
 	}
 
 	@Override
 	protected DataLoader getDataLoader() {
-		return getContext().getDataLoader();
+		return getContext().dataLoader();
 	}
 
 	@Override
@@ -299,7 +275,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S inMethod(String inMethodName) {
-		if (!getContext().hasInput() && !inMethodName.equals("null"))
+		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
 			throw new SchemaException(
 					"No input method should be specified on this node.");
 

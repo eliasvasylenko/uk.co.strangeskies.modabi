@@ -22,7 +22,6 @@ import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class SchemaUnbinder {
@@ -85,8 +84,8 @@ public class SchemaUnbinder {
 			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
 
 			@Override
-			public Object unbindingSource() {
-				return null;
+			public List<Object> unbindingSourceStack() {
+				return Collections.emptyList();
 			}
 
 			@Override
@@ -185,7 +184,8 @@ public class SchemaUnbinder {
 		} catch (UnbindingException e) {
 			throw e;
 		} catch (Exception e) {
-			throw context.exception("Unexpected problem during uninding.", e);
+			throw new UnbindingException("Unexpected problem during uninding.",
+					context, e);
 		}
 	}
 
@@ -202,26 +202,25 @@ public class SchemaUnbinder {
 		List<? extends Model.Effective<U>> models = context
 				.getMatchingModels(dataClass);
 
-		new UnbindingAttempter(context).tryForEach(
-				models,
-				(c, m) -> {
-					c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
+		new UnbindingAttempter(context).tryForEach(models, (c, m) -> {
+			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
-					try {
-						c.output().nextChild(m.getName());
+			try {
+				c.output().nextChild(m.getName());
 
-						U castData = (U) data;
+				U castData = (U) data;
 
-						new BindingNodeUnbinder(c).unbind(m, castData);
-						c.output().endChild();
-					} catch (UnbindingException e) {
-						throw e;
-					} catch (Exception e) {
-						throw c.exception("Unexpected problem during uninding.", e);
-					}
-				},
-				e -> context.exception("Cannot unbind data '" + data + "' of class '"
-						+ dataClass + "' with models '" + models + "'.", e));
+				new BindingNodeUnbinder(c).unbind(m, castData);
+				c.output().endChild();
+			} catch (UnbindingException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new UnbindingException("Unexpected problem during uninding.", c,
+						e);
+			}
+		}, e -> new UnbindingException("Cannot unbind data '" + data
+				+ "' of class '" + dataClass + "' with models '" + models + "'.",
+				context, e));
 	}
 
 	public <T> void unbind(StructuredDataTarget output, T data) {
