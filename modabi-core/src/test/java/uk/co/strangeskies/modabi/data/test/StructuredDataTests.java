@@ -38,18 +38,6 @@ public class StructuredDataTests {
 		BufferedStructuredDataSource pipedBufferedData = bufferedData
 				.pipeNextChild(new BufferingStructuredDataTarget()).buffer();
 
-		pipedBufferedData.reset();
-		System.out.println("poop");
-		while (pipedBufferedData.peekNextChild() != null) {
-			System.out.println(pipedBufferedData.startNextChild());
-
-			try {
-				while (pipedBufferedData.peekNextChild() == null)
-					pipedBufferedData.endChild();
-			} catch (Exception e) {
-			}
-		}
-
 		bufferedData.reset();
 		pipedBufferedData.reset();
 

@@ -191,7 +191,6 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		@Override
 		public void endChild() {
-			System.out.println("    @@@@@@@@@@@@@@@@@@@@@@");
 			if (nextChild != null)
 				while (pumpEvents() != null)
 					;

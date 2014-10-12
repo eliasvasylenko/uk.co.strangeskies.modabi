@@ -262,7 +262,6 @@ class BufferedStructuredDataSourceImpl implements BufferedStructuredDataSource {
 
 	@Override
 	public QualifiedName peekNextChild() {
-		System.out.println(stack.size());
 		return stack.peek() == null ? null : stack.peek().peekNextChild();
 	}
 
