@@ -15,13 +15,13 @@ import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.modabi.schema.node.AbstractModel;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
@@ -121,7 +121,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().name("abstract"))
 				.addChild(
-						n -> n.element().name("child").outMethod("children")
+						n -> n.complex().name("child").outMethod("children")
 								.inMethod("null").extensible(true).baseModel(nodeModel)
 								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 								.bindingClass(SchemaNodeConfigurator.class)
@@ -281,12 +281,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		modelSet.add(inputSequenceModel);
 
-		Model<AbstractModel> abstractModelModel = model
+		Model<AbstractComplexNode> abstractModelModel = model
 				.configure(loader)
 				.name("abstractModel", namespace)
 				.baseModel(bindingNodeModel)
 				.isAbstract(true)
-				.dataClass(AbstractModel.class)
+				.dataClass(AbstractComplexNode.class)
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
 								.postInputClass(AbstractModelConfigurator.class))
@@ -342,25 +342,25 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name").optional(false)).create();
 		modelSet.add(modelModel);
 
-		Model<ElementNode> abstractElementModel = model
+		Model<ComplexNode> abstractComplexModel = model
 				.configure(loader)
-				.name("abstractElement", namespace)
-				.dataClass(ElementNode.class)
+				.name("abstractComplex", namespace)
+				.dataClass(ComplexNode.class)
 				.baseModel(abstractModelModel, bindingChildNodeModel)
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
-						c -> c.inputSequence().name("configure").inMethod("element")
+						c -> c.inputSequence().name("configure").inMethod("complex")
 								.inMethodChained(true))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						c -> c.data().name("inline")
 								.type(base.primitiveType(DataType.BOOLEAN))).create();
-		modelSet.add(abstractElementModel);
+		modelSet.add(abstractComplexModel);
 
-		Model<ElementNode> elementModel = model
+		Model<ComplexNode> complexModel = model
 				.configure(loader)
-				.name("element", namespace)
-				.baseModel(abstractElementModel)
+				.name("complex", namespace)
+				.baseModel(abstractComplexModel)
 				.addChild(
 						c -> c
 								.data()
@@ -368,12 +368,12 @@ public class MetaSchemaImpl implements MetaSchema {
 								.provideValue(
 										new BufferingDataTarget().put(DataType.BOOLEAN, false)
 												.buffer())).create();
-		modelSet.add(elementModel);
+		modelSet.add(complexModel);
 
-		Model<ElementNode> inlineModel = model
+		Model<ComplexNode> inlineModel = model
 				.configure(loader)
 				.name("inline", namespace)
-				.baseModel(abstractElementModel)
+				.baseModel(abstractComplexModel)
 				.addChild(
 						c -> c
 								.data()
@@ -471,18 +471,18 @@ public class MetaSchemaImpl implements MetaSchema {
 												.buffer())).create();
 		modelSet.add(propertyModel);
 
-		Model<DataNode> simpleElementModel = model
+		Model<DataNode> simpleModel = model
 				.configure(loader)
-				.name("simpleElement", namespace)
+				.name("simple", namespace)
 				.baseModel(typedDataModel)
 				.addChild(
 						n -> n
 								.data()
 								.name("format")
 								.provideValue(
-										new BufferingDataTarget().put(DataType.STRING,
-												"SIMPLE_ELEMENT").buffer())).create();
-		modelSet.add(simpleElementModel);
+										new BufferingDataTarget().put(DataType.STRING, "SIMPLE")
+												.buffer())).create();
+		modelSet.add(simpleModel);
 
 		Model<DataNode> dataModel = model.configure(loader).name("data", namespace)
 				.baseModel(typedDataModel).addChild(n -> n.data().name("format"))
@@ -552,26 +552,26 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)))
 				.addChild(
 						n -> n
-								.element()
+								.complex()
 								.name("requirements")
 								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.addChild(
-										o -> o.data().format(Format.SIMPLE_ELEMENT)
+										o -> o.data().format(Format.SIMPLE)
 												.type(base.derivedTypes().classType())
 												.outMethod("this").name("requirement")
 												.outMethodIterable(true)
 												.occurrences(Range.create(0, null))))
 				.addChild(
 						n -> n
-								.element()
+								.complex()
 								.name("dependencies")
 								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.addChild(
 										o -> o
 												.data()
-												.format(Format.SIMPLE_ELEMENT)
+												.format(Format.SIMPLE)
 												.inMethod("add")
 												.name("dependency")
 												.type(base.derivedTypes().importType())
@@ -641,26 +641,26 @@ public class MetaSchemaImpl implements MetaSchema {
 																										namespace)).buffer())))))
 				.addChild(
 						n -> n
-								.element()
+								.complex()
 								.name("types")
 								.outMethod("getDataTypes")
 								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.bindingClass(LinkedHashSet.class)
 								.addChild(
-										o -> o.element().baseModel(typeModel).outMethod("this")
+										o -> o.complex().baseModel(typeModel).outMethod("this")
 												.name("type").outMethodIterable(true)
 												.dataClass(DataBindingType.class)
 												.occurrences(Range.create(0, null))))
 				.addChild(
 						n -> n
-								.element()
+								.complex()
 								.name("models")
 								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
 								.bindingClass(LinkedHashSet.class)
 								.addChild(
-										o -> o.element().baseModel(modelModel)
+										o -> o.complex().baseModel(modelModel)
 												.outMethodIterable(true).outMethod("this")
 												.occurrences(Range.create(0, null))))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))

@@ -20,7 +20,7 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
@@ -98,8 +98,8 @@ public class BindingNodeUnbinder {
 	private SchemaProcessingContext getProcessingContext(UnbindingContext context) {
 		return new SchemaProcessingContext() {
 			@Override
-			public <U> void accept(ElementNode.Effective<U> node) {
-				new ElementNodeUnbinder(context).unbind(node, getData(node, context));
+			public <U> void accept(ComplexNode.Effective<U> node) {
+				new ComplexNodeUnbinder(context).unbind(node, getData(node, context));
 			}
 
 			@Override

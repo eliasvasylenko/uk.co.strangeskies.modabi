@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.schema.node.model;
 
-import uk.co.strangeskies.modabi.schema.node.AbstractModel;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 
 public interface Model<T> extends
-		AbstractModel<T, Model<T>, Model.Effective<T>> {
+		AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
 	interface Effective<T> extends Model<T>,
-			AbstractModel.Effective<T, Model<T>, Effective<T>> {
+			AbstractComplexNode.Effective<T, Model<T>, Effective<T>> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -47,7 +47,7 @@ public interface DataNode<T> extends
 	}
 
 	enum Format {
-		PROPERTY, CONTENT, SIMPLE_ELEMENT
+		PROPERTY, CONTENT, SIMPLE
 	}
 
 	Format format();

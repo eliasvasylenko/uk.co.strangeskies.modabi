@@ -65,9 +65,8 @@ public interface StructuredDataSource {
 		if (getDefaultNamespaceHint() != null)
 			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
 
-		if (!getNamespaceHints().isEmpty())
-			for (Namespace hint : getNamespaceHints())
-				output.registerNamespaceHint(hint);
+		for (Namespace hint : getNamespaceHints())
+			output.registerNamespaceHint(hint);
 
 		QualifiedName childElement;
 

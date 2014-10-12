@@ -3,12 +3,12 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.node.AbstractModel;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
-public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractModel<T, ?, ?>, T>
+public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractComplexNode<T, ?, ?>, T>
 		extends
 		BindingNodeConfigurator<S, N, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>>,
 		SchemaNodeConfigurator<S, N, ChildNode<?, ?>, BindingChildNode<?, ?, ?>> {

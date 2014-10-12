@@ -14,7 +14,7 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
@@ -23,8 +23,9 @@ import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
@@ -34,15 +35,15 @@ import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ModelWrapper;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public class ElementNodeOverrider {
+public class ComplexNodeOverrider {
 	private final ModelBuilder builder;
 
-	public ElementNodeOverrider(ModelBuilder builder) {
+	public ComplexNodeOverrider(ModelBuilder builder) {
 		this.builder = builder;
 	}
 
-	public <T> ElementNode.Effective<T> override(
-			ElementNode.Effective<? super T> element, Model.Effective<T> override) {
+	public <T> ComplexNode.Effective<T> override(
+			ComplexNode.Effective<? super T> element, Model.Effective<T> override) {
 		try {
 			return new OverridingProcessor().process(element, override);
 		} catch (SchemaException e) {
@@ -52,7 +53,7 @@ public class ElementNodeOverrider {
 		}
 	}
 
-	private <T> Model.Effective<T> wrapElement(ElementNode.Effective<T> element) {
+	private <T> Model.Effective<T> wrapElement(ComplexNode.Effective<T> element) {
 		return new ModelWrapper<>(element);
 	}
 
@@ -66,8 +67,8 @@ public class ElementNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> ElementNode.Effective<T> process(
-				ElementNode.Effective<? super T> element, Model.Effective<T> override) {
+		public <T> ComplexNode.Effective<T> process(
+				ComplexNode.Effective<? super T> element, Model.Effective<T> override) {
 			List<Model<? super T>> baseModel = new ArrayList<>(override.source()
 					.baseModel());
 			baseModel.add(wrapElement(element));
@@ -85,8 +86,8 @@ public class ElementNodeOverrider {
 					.unbindingClass(element.getOutMethod().getDeclaringClass())
 					.isAbstract(true);
 
-			ElementNodeConfigurator<T> elementConfigurator = configurator.addChild()
-					.element().name(override.getName())
+			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild()
+					.complex().name(override.getName())
 					.dataClass(override.getDataClass()).baseModel(baseModel);
 
 			elementConfigurator = processBindingNode(override, elementConfigurator);
@@ -95,7 +96,7 @@ public class ElementNodeOverrider {
 
 			doChildren(override.children(), elementConfigurator);
 
-			return (ElementNode.Effective<T>) configurator.create().children().get(0)
+			return (ComplexNode.Effective<T>) configurator.create().children().get(0)
 					.effective();
 		}
 
@@ -160,18 +161,17 @@ public class ElementNodeOverrider {
 		}
 
 		@Override
-		public <U> void accept(ElementNode.Effective<U> node) {
-			ElementNode<U> source = node.source();
+		public <U> void accept(ComplexNode.Effective<U> node) {
+			ComplexNode<U> source = node.source();
 
-			doChildren(
-					source,
-					processBindingNode(
-							source,
-							processBindingChildNode(
-									source,
-									next(ChildBuilder::element).dataClass(source.getDataClass())
-											.baseModel(source.baseModel())
-											.extensible(source.isExtensible()))));
+			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex)
+					.dataClass(source.getDataClass()).baseModel(source.baseModel())
+					.extensible(source.isExtensible());
+
+			c = tryProperty(source.isInline(), c::inline, c);
+
+			doChildren(source,
+					processBindingNode(source, processBindingChildNode(source, c)));
 		}
 
 		@SuppressWarnings("unchecked")
@@ -224,10 +224,13 @@ public class ElementNodeOverrider {
 		public void accept(ChoiceNode.Effective node) {
 			ChoiceNode source = node.source();
 
-			doChildren(source, next(ChildBuilder::choice));
+			ChoiceNodeConfigurator<?, ?> c = next(ChildBuilder::choice);
+
+			doChildren(source,
+					tryProperty(source.isMandatory(), p -> c.mandatory(p), c));
 		}
 
-		private <U, C extends SchemaNodeConfigurator<C, ?, ?, ?>> C tryProperty(
+		private <U, C extends SchemaNodeConfigurator<? extends C, ?, ?, ?>> C tryProperty(
 				U property, Function<U, C> consumer, C c) {
 			if (property != null)
 				return consumer.apply(property);

@@ -20,12 +20,12 @@ import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.ChoiceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.DataNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.ElementNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.ComplexNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SequenceNodeConfiguratorImpl;
 
@@ -318,8 +318,8 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public ElementNodeConfigurator<Object> element() {
-				return new ElementNodeConfiguratorImpl<>(context);
+			public ComplexNodeConfigurator<Object> complex() {
+				return new ComplexNodeConfiguratorImpl<>(context);
 			}
 		};
 	}

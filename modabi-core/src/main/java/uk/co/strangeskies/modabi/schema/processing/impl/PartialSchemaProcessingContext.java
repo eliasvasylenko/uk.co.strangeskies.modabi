@@ -4,7 +4,7 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
@@ -13,7 +13,7 @@ import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
 public interface PartialSchemaProcessingContext extends SchemaProcessingContext {
 	@Override
-	default <U> void accept(ElementNode.Effective<U> node) {
+	default <U> void accept(ComplexNode.Effective<U> node) {
 		accept((BindingChildNode.Effective<U, ?, ?>) node);
 	}
 

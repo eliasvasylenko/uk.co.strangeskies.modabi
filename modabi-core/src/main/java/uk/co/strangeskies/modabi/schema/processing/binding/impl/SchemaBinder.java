@@ -24,7 +24,7 @@ import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Effective;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
@@ -120,7 +120,8 @@ public class SchemaBinder {
 
 			@Override
 			public Model.Effective<?> getModel(QualifiedName nextElement) {
-				return manager.registeredModels().get(nextElement).effective();
+				Model<?> model = manager.registeredModels().get(nextElement);
+				return model == null ? null : model.effective();
 			}
 
 			@Override
@@ -295,7 +296,7 @@ public class SchemaBinder {
 
 			@Override
 			public <U> List<Model.Effective<? extends U>> getMatchingModels(
-					ElementNode.Effective<U> element, Class<? extends U> dataClass) {
+					ComplexNode.Effective<U> element, Class<? extends U> dataClass) {
 				return Collections.emptyList();
 			}
 

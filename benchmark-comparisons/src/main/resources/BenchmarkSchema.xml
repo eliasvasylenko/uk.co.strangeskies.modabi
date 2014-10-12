@@ -10,20 +10,20 @@
 			bindingStrategy="CONSTRUCTOR">
 			<inputSequence name="constructor" />
 			<property name="active" type="boolean" />
-			<simpleElement name="firstName" type="string" />
-			<simpleElement name="lastName" type="string" />
-			<simpleElement name="address1" type="string" />
-			<simpleElement name="address2" type="string" />
-			<simpleElement name="postCode" type="string" />
-			<simpleElement name="city" type="string" />
-			<simpleElement name="country" type="string" />
+			<simple name="firstName" type="string" />
+			<simple name="lastName" type="string" />
+			<simple name="address1" type="string" />
+			<simple name="address2" type="string" />
+			<simple name="postCode" type="string" />
+			<simple name="city" type="string" />
+			<simple name="country" type="string" />
 		</model>
 
 		<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.PersonsType"
 			bindingStrategy="CONSTRUCTOR">
-			<inline dataClass="java.util.Set">
-				<element baseModel="person" occurrences="0.." inMethod="add"
-					outMethodIterable="true" />
+			<inline name="personList" dataClass="java.util.List">
+				<complex baseModel="person" outMethod="this" occurrences="0.."
+					inMethod="add" outMethodIterable="true" />
 			</inline>
 		</model>
 	</models>

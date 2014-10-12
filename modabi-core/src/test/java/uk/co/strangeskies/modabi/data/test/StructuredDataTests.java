@@ -29,9 +29,29 @@ public class StructuredDataTests {
 	}
 
 	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })
+	public void equalityTest(BufferedStructuredDataSource bufferedData) {
+		Assert.assertEquals(bufferedData, bufferedData.copy());
+	}
+
+	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })
 	public void pipeNextChildTest(BufferedStructuredDataSource bufferedData) {
 		BufferedStructuredDataSource pipedBufferedData = bufferedData
 				.pipeNextChild(new BufferingStructuredDataTarget()).buffer();
+
+		pipedBufferedData.reset();
+		System.out.println("poop");
+		while (pipedBufferedData.peekNextChild() != null) {
+			System.out.println(pipedBufferedData.startNextChild());
+
+			try {
+				while (pipedBufferedData.peekNextChild() == null)
+					pipedBufferedData.endChild();
+			} catch (Exception e) {
+			}
+		}
+
+		bufferedData.reset();
+		pipedBufferedData.reset();
 
 		Assert.assertEquals(bufferedData, pipedBufferedData);
 	}

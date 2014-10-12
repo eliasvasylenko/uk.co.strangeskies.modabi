@@ -8,16 +8,17 @@ import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
-public class ModelWrapper<T>
+public class ComplexNodeWrapper<T>
 		extends
-		BindingNodeWrapper<T, AbstractComplexNode.Effective<? super T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
-		implements Model.Effective<T> {
-	public ModelWrapper(AbstractComplexNode.Effective<? super T, ?, ?> component) {
+		BindingChildNodeWrapper<T, AbstractComplexNode.Effective<? super T, ?, ?>, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
+		implements ComplexNode.Effective<T> {
+	public ComplexNodeWrapper(
+			AbstractComplexNode.Effective<? super T, ?, ?> component) {
 		super(component);
 	}
 
-	public ModelWrapper(ComplexNode.Effective<T> component,
-			Model.Effective<? super T> base) {
+	public ComplexNodeWrapper(Model.Effective<T> component,
+			ComplexNode.Effective<? super T> base) {
 		super(component, base);
 
 		String message = "Cannot override '" + base.getName() + "' with '"
@@ -30,5 +31,10 @@ public class ModelWrapper<T>
 	@Override
 	public List<Model.Effective<? super T>> baseModel() {
 		return Collections.unmodifiableList(getComponent().baseModel());
+	}
+
+	@Override
+	public Boolean isInline() {
+		return getBase() == null ? null : getBase().isInline();
 	}
 }

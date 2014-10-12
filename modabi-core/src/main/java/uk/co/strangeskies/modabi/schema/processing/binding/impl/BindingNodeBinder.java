@@ -16,7 +16,7 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
@@ -118,8 +118,8 @@ public class BindingNodeBinder {
 
 		next.process(new SchemaProcessingContext() {
 			@Override
-			public <U> void accept(ElementNode.Effective<U> node) {
-				process(node, new ElementNodeBinder(context).bind(node), context);
+			public <U> void accept(ComplexNode.Effective<U> node) {
+				process(node, new ComplexNodeBinder(context).bind(node), context);
 			}
 
 			@Override
@@ -212,8 +212,8 @@ public class BindingNodeBinder {
 		IdentityProperty<Object> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
-			public <U> void accept(ElementNode.Effective<U> node) {
-				result.set(new ElementNodeBinder(context).bind(node).get(0));
+			public <U> void accept(ComplexNode.Effective<U> node) {
+				result.set(new ComplexNodeBinder(context).bind(node).get(0));
 			}
 
 			@Override

@@ -162,10 +162,10 @@ public class BenchmarkRunner {
 
 				long end = System.currentTimeMillis();
 
-				System.out.println("STax - (" + file + "): - Total memory used: "
-						+ (memstart - memend));
+				// System.out.println("Modabi - (" + file + "): - Total memory used: "
+				// + (memstart - memend));
 
-				System.out.println("STax - (" + file + "): Time taken in ms: "
+				System.out.println("Modabi - (" + file + "): Time taken in ms: "
 						+ (end - start));
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -210,8 +210,8 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("STax - (" + file + "): - Total memory used: "
-					+ (memstart - memend));
+			// System.out.println("STax - (" + file + "): - Total memory used: "
+			// + (memstart - memend));
 
 			System.out.println("STax - (" + file + "): Time taken in ms: "
 					+ (end - start));
@@ -255,8 +255,8 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("Woodstox - (" + file + "): Total memory used: "
-					+ (memstart - memend));
+			// System.out.println("Woodstox - (" + file + "): Total memory used: "
+			// + (memstart - memend));
 
 			System.out.println("Woodstox - (" + file + "): Time taken in ms: "
 					+ (end - start));

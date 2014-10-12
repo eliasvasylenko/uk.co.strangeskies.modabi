@@ -78,6 +78,7 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		@Override
 		public QualifiedName startNextChild() {
+			new Exception(nextChild + " :(").printStackTrace();
 			if (nextChild == null)
 				throw new IOException();
 
@@ -190,6 +191,7 @@ public class XMLSource extends StructuredDataSourceDecorator {
 
 		@Override
 		public void endChild() {
+			System.out.println("    @@@@@@@@@@@@@@@@@@@@@@");
 			if (nextChild != null)
 				while (pumpEvents() != null)
 					;

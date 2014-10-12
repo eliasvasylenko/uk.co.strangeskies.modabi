@@ -12,7 +12,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
@@ -78,7 +78,7 @@ public class DataNodeUnbinder {
 
 			@Override
 			public <T> List<Model.Effective<? extends T>> getMatchingModels(
-					ElementNode.Effective<T> element, Class<? extends T> dataClass) {
+					ComplexNode.Effective<T> element, Class<? extends T> dataClass) {
 				return Collections.emptyList();
 			}
 
@@ -135,7 +135,7 @@ public class DataNodeUnbinder {
 							bufferedTarget.pipe(
 									context.output().writeProperty(node.getName())).terminate();
 							break;
-						case SIMPLE_ELEMENT:
+						case SIMPLE:
 							context.output().nextChild(node.getName());
 							bufferedTarget.pipe(context.output().writeContent()).terminate();
 							context.output().endChild();
@@ -150,7 +150,6 @@ public class DataNodeUnbinder {
 					+ "' cannot omit data for unbinding.");
 	}
 
-	@SuppressWarnings("unchecked")
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
 			UnbindingContext context) {
 		if (node.isExtensible() != null && node.isExtensible()) {
@@ -166,19 +165,22 @@ public class DataNodeUnbinder {
 								+ node.effective().type().getName() + "' for object '" + data
 								+ "' to be unbound.");
 
-			DataNode.Effective<? extends U> success = new UnbindingAttempter(context)
-					.tryForEach(
-							nodes,
-							(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
-							l -> new UnbindingException("Unable to unbind data node '"
-									+ node.getName()
-									+ "' with type candidates '"
-									+ nodes.stream().map(m -> m.source().getName().toString())
-											.collect(Collectors.joining(", ")) + "' for object '"
-									+ data + "' to be unbound.", context, l));
+			/* DataNode.Effective<? extends U> success = */new UnbindingAttempter(
+					context).attemptUntilSuccessful(
+					nodes,
+					(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
+					l -> new UnbindingException("Unable to unbind data node '"
+							+ node.getName()
+							+ "' with type candidates '"
+							+ nodes.stream().map(m -> m.source().getName().toString())
+									.collect(Collectors.joining(", ")) + "' for object '" + data
+							+ "' to be unbound.", context, l));
 
+			/*-
+			 * TODO allow optimisation in unambiguous cases? Currently breaks precedence.
 			nodes.remove(success);
 			((List<Object>) nodes).add(0, success);
+			 */
 		} else {
 			new BindingNodeUnbinder(context).unbind(node, data);
 		}

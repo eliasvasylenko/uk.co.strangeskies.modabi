@@ -14,7 +14,7 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
@@ -136,7 +136,7 @@ public class SchemaUnbinder {
 
 			@Override
 			public <T> List<Model.Effective<? extends T>> getMatchingModels(
-					ElementNode.Effective<T> element, Class<? extends T> dataClass) {
+					ComplexNode.Effective<T> element, Class<? extends T> dataClass) {
 				@SuppressWarnings("unchecked")
 				List<Model.Effective<? extends T>> cached = (List<Model.Effective<? extends T>>) attemptedMatchingModels
 						.get(dataClass);
@@ -202,7 +202,7 @@ public class SchemaUnbinder {
 		List<? extends Model.Effective<U>> models = context
 				.getMatchingModels(dataClass);
 
-		new UnbindingAttempter(context).tryForEach(models, (c, m) -> {
+		new UnbindingAttempter(context).attemptUntilSuccessful(models, (c, m) -> {
 			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
 			try {

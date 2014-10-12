@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
-import uk.co.strangeskies.modabi.schema.node.AbstractModel;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
@@ -66,7 +66,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<T>> getMatchingModels(
-			AbstractModel.Effective<T, ?, ?> element, Class<? extends T> dataClass) {
+			AbstractComplexNode.Effective<T, ?, ?> element, Class<? extends T> dataClass) {
 		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
 				.iterator();
 

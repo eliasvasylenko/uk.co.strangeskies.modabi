@@ -8,7 +8,7 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
@@ -27,7 +27,7 @@ public interface UnbindingContext extends UnbindingState {
 	<T> List<Model.Effective<T>> getMatchingModels(Class<T> dataClass);
 
 	<T> List<Model.Effective<? extends T>> getMatchingModels(
-			ElementNode.Effective<T> element, Class<? extends T> dataClass);
+			ComplexNode.Effective<T> element, Class<? extends T> dataClass);
 
 	<T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
 			DataNode.Effective<T> node, Class<?> dataClass);
@@ -62,7 +62,7 @@ public interface UnbindingContext extends UnbindingState {
 
 			@Override
 			public <U> List<Model.Effective<? extends U>> getMatchingModels(
-					ElementNode.Effective<U> element, Class<? extends U> dataClass) {
+					ComplexNode.Effective<U> element, Class<? extends U> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
@@ -111,7 +111,7 @@ public interface UnbindingContext extends UnbindingState {
 
 			@Override
 			public <U> List<Model.Effective<? extends U>> getMatchingModels(
-					ElementNode.Effective<U> element, Class<? extends U> dataClass) {
+					ComplexNode.Effective<U> element, Class<? extends U> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
@@ -170,7 +170,7 @@ public interface UnbindingContext extends UnbindingState {
 
 			@Override
 			public <U> List<Model.Effective<? extends U>> getMatchingModels(
-					ElementNode.Effective<U> element, Class<? extends U> dataClass) {
+					ComplexNode.Effective<U> element, Class<? extends U> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 
@@ -222,7 +222,7 @@ public interface UnbindingContext extends UnbindingState {
 
 			@Override
 			public <U> List<Model.Effective<? extends U>> getMatchingModels(
-					ElementNode.Effective<U> element, Class<? extends U> dataClass) {
+					ComplexNode.Effective<U> element, Class<? extends U> dataClass) {
 				return base.getMatchingModels(element, dataClass);
 			}
 

@@ -47,8 +47,7 @@ public class Methods {
 
 			return findMethod(generateInMethodNames(node, inheritedInMethodName),
 					receiverClass, result, node != null && node.isInMethodChained()
-							&& node.isInMethodCast(),
-					parameters.toArray(new Class<?>[parameters.size()]));
+							&& node.isInMethodCast(), parameters);
 		} catch (NoSuchMethodException e) {
 			throw new SchemaException(e);
 		}
@@ -58,12 +57,10 @@ public class Methods {
 			Class<?> receiverClass, List<Class<?>> parameters) {
 		Constructor<?> inMethod;
 		try {
-			inMethod = receiverClass.getConstructor(parameters
-					.toArray(new Class<?>[0]));
+			inMethod = findConstructor(receiverClass, parameters);
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new SchemaException("Cannot find constructor for class '"
-					+ receiverClass + "' with parameters '" + Arrays.asList(parameters)
-					+ "'.");
+					+ receiverClass + "' with parameters '" + parameters + "'.");
 		}
 		return inMethod;
 	}
@@ -212,8 +209,7 @@ public class Methods {
 			List<Class<?>> parameters) {
 		List<String> names = generateUnbindingMethodNames(node, result);
 		try {
-			return findMethod(names, receiver, result, false,
-					parameters.toArray(new Class<?>[] {}));
+			return findMethod(names, receiver, result, false, parameters);
 		} catch (NoSuchMethodException | SchemaException | SecurityException e) {
 			throw new SchemaException("Cannot find unbinding method for node '"
 					+ node + "' of class '" + result + "', reveiver '" + receiver
@@ -224,12 +220,17 @@ public class Methods {
 
 	public static Constructor<?> findConstructor(Class<?> receiver,
 			Class<?>... parameters) throws NoSuchMethodException {
+		return findConstructor(receiver, Arrays.asList(parameters));
+	}
+
+	public static Constructor<?> findConstructor(Class<?> receiver,
+			List<Class<?>> parameters) throws NoSuchMethodException {
 		Set<Constructor<?>> overloadCandidates = findOverloadCandidates(receiver,
 				Class::getConstructors, c -> true, parameters);
 
 		if (overloadCandidates.isEmpty())
 			throw new SchemaException("Cannot find constructor for class '"
-					+ receiver + "' with parameters '" + Arrays.toString(parameters));
+					+ receiver + "' with parameters '" + parameters);
 
 		return findMostSpecificOverload(overloadCandidates);
 	}
@@ -237,13 +238,20 @@ public class Methods {
 	public static Method findMethod(List<String> names, Class<?> receiver,
 			Class<?> result, boolean allowCast, Class<?>... parameters)
 			throws NoSuchMethodException {
+		return findMethod(names, receiver, result, allowCast,
+				Arrays.asList(parameters));
+	}
+
+	public static Method findMethod(List<String> names, Class<?> receiver,
+			Class<?> result, boolean allowCast, List<Class<?>> parameters)
+			throws NoSuchMethodException {
 		Set<Method> overloadCandidates = findOverloadCandidates(receiver,
 				Class::getMethods, c -> names.contains(c.getName()), parameters);
 
 		if (overloadCandidates.isEmpty())
 			throw new NoSuchMethodException("Cannot find method of class '" + result
-					+ "', reveiver '" + receiver + "', and parameters '"
-					+ Arrays.toString(parameters) + "' with any name of '" + names + "'.");
+					+ "', reveiver '" + receiver + "', and parameters '" + parameters
+					+ "' with any name of '" + names + "'.");
 
 		Method mostSpecific = findMostSpecificOverload(overloadCandidates);
 
@@ -258,7 +266,7 @@ public class Methods {
 
 	private static <I extends Executable> Set<I> findOverloadCandidates(
 			Class<?> receiver, Function<Class<?>, I[]> methods, Predicate<I> filter,
-			Class<?>... parameters) {
+			List<Class<?>> parameters) {
 		return Stream
 				.concat(Arrays.stream(methods.apply(receiver)),
 						Arrays.stream(methods.apply(Object.class))).filter(m -> {
@@ -267,7 +275,7 @@ public class Methods {
 
 					Class<?>[] methodParameters = m.getParameterTypes();
 
-					if (methodParameters.length != parameters.length)
+					if (methodParameters.length != parameters.size())
 						return false;
 
 					int i = 0;

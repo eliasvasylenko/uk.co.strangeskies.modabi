@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.schema.node.AbstractModel;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
@@ -15,14 +15,14 @@ import uk.co.strangeskies.utilities.collection.SetMultiMap;
 
 public class Bindings {
 	public final Models models;
-	public final SetMultiMap<AbstractModel<?, ?, ?>, Object> bindings;
+	public final SetMultiMap<AbstractComplexNode<?, ?, ?>, Object> bindings;
 
 	public Bindings() {
 		models = new Models();
 		bindings = new HashSetMultiHashMap<>();
 	}
 
-	public <T> void add(ElementNode<?> element, T data) {
+	public <T> void add(ComplexNode<?> element, T data) {
 		models.addAll(element.source().baseModel());
 		bindings.addToAll(element.source().baseModel(), data);
 	}

@@ -47,7 +47,7 @@ public class DataNodeBinder {
 					results.add(bindWithDataSource(dataSource, context, node));
 
 				break;
-			case SIMPLE_ELEMENT:
+			case SIMPLE:
 				BindingContext context = this.context;
 
 				while (node.getName().equals(context.input().peekNextChild())) {

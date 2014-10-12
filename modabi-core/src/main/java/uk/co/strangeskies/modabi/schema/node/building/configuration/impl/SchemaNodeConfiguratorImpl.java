@@ -15,7 +15,7 @@ import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ElementNode;
+import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
@@ -101,7 +101,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 						}
 
 						@Override
-						public <U> void accept(ElementNode.Effective<U> node) {
+						public <U> void accept(ComplexNode.Effective<U> node) {
 							if (!node.isExtensible())
 								requireNonAbstractDescendents(nodeStack);
 						}

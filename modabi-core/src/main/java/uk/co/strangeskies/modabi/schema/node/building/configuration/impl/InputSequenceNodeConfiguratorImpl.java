@@ -15,7 +15,7 @@ import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.ElementNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
@@ -258,8 +258,8 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 				ChildBuilder<C, C> component = super.addChild();
 				return new ChildBuilder<C, C>() {
 					@Override
-					public ElementNodeConfigurator<Object> element() {
-						return component.element();
+					public ComplexNodeConfigurator<Object> complex() {
+						return component.complex();
 					}
 
 					@Override
