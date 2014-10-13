@@ -21,7 +21,7 @@
 
 		<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.PersonsType"
 			bindingStrategy="CONSTRUCTOR">
-			<inline name="personList" dataClass="java.util.List">
+			<inline name="personList" outMethod="getPerson" dataClass="java.util.List">
 				<complex baseModel="person" outMethod="this" occurrences="0.."
 					inMethod="add" outMethodIterable="true" />
 			</inline>

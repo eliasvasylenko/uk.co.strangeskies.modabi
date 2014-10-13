@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.xml.bind.JAXBContext;
@@ -54,7 +55,7 @@ public class BenchmarkRunner {
 
 			System.out.println(manager.registeredModels());
 
-			boolean createXml = true;
+			boolean createXml = false;
 			System.out.println("Will create XML files? " + createXml);
 			if (createXml) {
 				createXmlPortfolio();
@@ -147,53 +148,36 @@ public class BenchmarkRunner {
 		}
 	}
 
-	private void readLargeXmlWithModabi(File file) {
+	private void readLargeXmlWithModabi(File file) throws FileNotFoundException,
+			IOException {
 		long start = System.currentTimeMillis();
-		long memstart = Runtime.getRuntime().freeMemory();
-		long memend = 0L;
 
-		FileInputStream fis;
+		try (FileInputStream fis = new FileInputStream(file)) {
+			manager.bind(new XMLSource(fis));
 
-		try {
-			fis = new FileInputStream(file);
-			try {
-				manager.bind(new XMLSource(fis));
-				memend = Runtime.getRuntime().freeMemory();
+			long end = System.currentTimeMillis();
 
-				long end = System.currentTimeMillis();
-
-				// System.out.println("Modabi - (" + file + "): - Total memory used: "
-				// + (memstart - memend));
-
-				System.out.println("Modabi - (" + file + "): Time taken in ms: "
-						+ (end - start));
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				fis.close();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Modabi - (" + file + "): Time taken in ms: "
+					+ (end - start));
 		}
 	}
 
 	private void readLargeXmlWithStax(File file)
-			throws FactoryConfigurationError, XMLStreamException,
-			FileNotFoundException, JAXBException {
+			throws FactoryConfigurationError, XMLStreamException, JAXBException,
+			IOException {
 
 		// set up a StAX reader
 		XMLInputFactory xmlif = XMLInputFactory.newInstance();
-		XMLStreamReader xmlr = xmlif.createXMLStreamReader(new FileReader(file));
 
 		JAXBContext ucontext = JAXBContext.newInstance(PersonType.class);
 
 		Unmarshaller unmarshaller = ucontext.createUnmarshaller();
 
 		long start = System.currentTimeMillis();
-		long memstart = Runtime.getRuntime().freeMemory();
-		long memend = 0L;
 
-		try {
+		try (FileReader fr = new FileReader(file)) {
+			XMLStreamReader xmlr = xmlif.createXMLStreamReader(fr);
+
 			xmlr.nextTag();
 			xmlr.require(XMLStreamConstants.START_ELEMENT, null, "persons");
 
@@ -206,39 +190,30 @@ public class BenchmarkRunner {
 				}
 			}
 
-			memend = Runtime.getRuntime().freeMemory();
-
 			long end = System.currentTimeMillis();
-
-			// System.out.println("STax - (" + file + "): - Total memory used: "
-			// + (memstart - memend));
 
 			System.out.println("STax - (" + file + "): Time taken in ms: "
 					+ (end - start));
 
-		} finally {
-			xmlr.close();
 		}
-
 	}
 
 	private void readLargeXmlWithFasterStax(File file)
-			throws FactoryConfigurationError, XMLStreamException,
-			FileNotFoundException, JAXBException {
+			throws FactoryConfigurationError, XMLStreamException, JAXBException,
+			FileNotFoundException, IOException {
 
 		// set up a StAX reader
 		XMLInputFactory xmlif = XMLInputFactory.newInstance();
-		XMLStreamReader xmlr = xmlif.createXMLStreamReader(new FileReader(file));
 
 		JAXBContext ucontext = JAXBContext.newInstance(PersonType.class);
 
 		Unmarshaller unmarshaller = ucontext.createUnmarshaller();
 
 		long start = System.currentTimeMillis();
-		long memstart = Runtime.getRuntime().freeMemory();
-		long memend = 0L;
 
-		try {
+		try (FileReader fr = new FileReader(file)) {
+			XMLStreamReader xmlr = xmlif.createXMLStreamReader(fr);
+
 			xmlr.nextTag();
 			xmlr.require(XMLStreamConstants.START_ELEMENT, null, "persons");
 
@@ -251,19 +226,10 @@ public class BenchmarkRunner {
 				}
 			}
 
-			memend = Runtime.getRuntime().freeMemory();
-
 			long end = System.currentTimeMillis();
-
-			// System.out.println("Woodstox - (" + file + "): Total memory used: "
-			// + (memstart - memend));
 
 			System.out.println("Woodstox - (" + file + "): Time taken in ms: "
 					+ (end - start));
-
-		} finally {
-			xmlr.close();
 		}
-
 	}
 }
