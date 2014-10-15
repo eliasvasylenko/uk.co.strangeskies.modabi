@@ -26,17 +26,18 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class BindingNodeUnbinder {
-	private final UnbindingContext context;
+	private final UnbindingContextImpl context;
 
-	public BindingNodeUnbinder(UnbindingContext context) {
+	public BindingNodeUnbinder(UnbindingContextImpl context) {
 		this.context = context;
 	}
 
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
-		UnbindingContext context = this.context.withUnbindingNode(node)
+		UnbindingContextImpl context = this.context.withUnbindingNode(node)
 				.withProvision(BindingNode.Effective.class, () -> node);
 
 		Function<Object, Object> supplier = Function.identity();
@@ -46,7 +47,7 @@ public class BindingNodeUnbinder {
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
-					Object o = context.provide(node.getUnbindingClass());
+					Object o = context.provisions().provide(node.getUnbindingClass());
 					invokeMethod(node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
@@ -54,7 +55,7 @@ public class BindingNodeUnbinder {
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
-					Object o = context.provide(node.getUnbindingClass());
+					Object o = context.provisions().provide(node.getUnbindingClass());
 					invokeMethod(node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
@@ -81,7 +82,7 @@ public class BindingNodeUnbinder {
 				break;
 			case PROVIDED_FACTORY:
 				supplier = u -> invokeMethod(node.getUnbindingMethod(), context,
-						context.provide(node.getUnbindingFactoryClass()),
+						context.provisions().provide(node.getUnbindingFactoryClass()),
 						prepareUnbingingParameterList(node, u));
 
 				break;
@@ -95,7 +96,8 @@ public class BindingNodeUnbinder {
 			child.process(processingContext);
 	}
 
-	private SchemaProcessingContext getProcessingContext(UnbindingContext context) {
+	private SchemaProcessingContext getProcessingContext(
+			UnbindingContextImpl context) {
 		return new SchemaProcessingContext() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {

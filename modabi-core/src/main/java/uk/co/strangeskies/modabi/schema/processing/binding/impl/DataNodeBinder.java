@@ -11,9 +11,9 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 
 public class DataNodeBinder {
-	private final BindingContext context;
+	private final BindingContextImpl context;
 
-	public DataNodeBinder(BindingContext context) {
+	public DataNodeBinder(BindingContextImpl context) {
 		this.context = context;
 	}
 
@@ -27,8 +27,8 @@ public class DataNodeBinder {
 				results.addAll(node.providedValues());
 			} else {
 				DataSource providedValueBuffer = node.providedValueBuffer();
-				BindingContext context = this.context.withProvision(DataSource.class,
-						() -> providedValueBuffer);
+				BindingContextImpl context = this.context.withProvision(
+						DataSource.class, () -> providedValueBuffer);
 				results.addAll(bindList(context, node));
 			}
 		} else if (node.format() != null) {
@@ -48,7 +48,7 @@ public class DataNodeBinder {
 
 				break;
 			case SIMPLE:
-				BindingContext context = this.context;
+				BindingContextImpl context = this.context;
 
 				while (node.getName().equals(context.input().peekNextChild())) {
 					context.input().startNextChild(node.getName());
@@ -81,7 +81,7 @@ public class DataNodeBinder {
 		return results;
 	}
 
-	private static <U> List<U> bindList(BindingContext context,
+	private static <U> List<U> bindList(BindingContextImpl context,
 			DataNode.Effective<U> node) {
 		context = context.withInput(null);
 
@@ -91,7 +91,7 @@ public class DataNodeBinder {
 		DataSource dataSource = null;
 		int successfulIndex = 0;
 		try {
-			if (context.isProvided(DataSource.class))
+			if (context.provisions().isProvided(DataSource.class))
 				dataSource = context.provide(DataSource.class);
 
 			if (dataSource != null)
@@ -118,7 +118,7 @@ public class DataNodeBinder {
 	}
 
 	private static <U> U bindWithDataSource(DataSource dataSource,
-			BindingContext context, DataNode.Effective<U> node) {
+			BindingContextImpl context, DataNode.Effective<U> node) {
 		context = context.withProvision(DataSource.class, () -> dataSource);
 
 		return new BindingNodeBinder(context).bind(node);

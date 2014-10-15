@@ -2,7 +2,6 @@ package uk.co.strangeskies.modabi.schema.processing.unbinding;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
@@ -27,8 +26,6 @@ public interface UnbindingState {
 		return unbindingSourceStack().get(
 				unbindingSourceStack().size() - (1 + parent));
 	}
-
-	StructuredDataTarget output();
 
 	Bindings bindings();
 }

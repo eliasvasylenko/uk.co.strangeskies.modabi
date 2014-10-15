@@ -89,9 +89,7 @@ public interface SchemaManager {
 
 	BaseSchema getBaseSchema();
 
-	<U> U provide(Class<U> clazz);
-
-	boolean isProvided(Class<?> clazz);
+	Provisions provisions();
 
 	Schemata registeredSchemata();
 

@@ -1,36 +1,26 @@
 package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class SchemaUnbinder {
-	private final UnbindingContext context;
+	private final UnbindingContextImpl context;
 
 	public SchemaUnbinder(SchemaManager manager) {
-		Bindings bindings = new Bindings();
-
-		Function<UnbindingContext, IncludeTarget> includeTarget = context -> new IncludeTarget() {
+		Function<UnbindingContextImpl, IncludeTarget> includeTarget = context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, U object) {
 				context.bindings().add(model, object);
@@ -39,7 +29,7 @@ public class SchemaUnbinder {
 			}
 		};
 
-		Function<UnbindingContext, ImportReferenceTarget> importTarget = context -> new ImportReferenceTarget() {
+		Function<UnbindingContextImpl, ImportReferenceTarget> importTarget = context -> new ImportReferenceTarget() {
 			@Override
 			public <U> DataSource dereferenceImport(Model<U> model,
 					QualifiedName idDomain, U object) {
@@ -60,17 +50,17 @@ public class SchemaUnbinder {
 
 			private <V> DataSource unbindDataNode(DataNode.Effective<V> node,
 					Object source) {
-				UnbindingContext finalContext = context.withUnbindingSource(source);
+				UnbindingContextImpl finalContext = context.withUnbindingSource(source);
 				return new DataNodeUnbinder(finalContext).unbindToDataBuffer(node,
 						BindingNodeUnbinder.getData(node, finalContext));
 			}
 		};
 
-		Function<UnbindingContext, ReferenceTarget> dereferenceTarget = context -> new ReferenceTarget() {
+		Function<UnbindingContextImpl, ReferenceTarget> referenceTarget = context -> new ReferenceTarget() {
 			@Override
 			public <U> DataSource dereference(Model<U> model, QualifiedName idDomain,
 					U object) {
-				if (!bindings.get(model).contains(object))
+				if (!context.bindings().get(model).contains(object))
 					throw new SchemaException("Cannot find any instance '" + object
 							+ "' bound to model '" + model.getName() + "'.");
 
@@ -79,101 +69,16 @@ public class SchemaUnbinder {
 			}
 		};
 
-		context = new UnbindingContext() {
-			private final Map<Class<?>, List<? extends Model.Effective<?>>> attemptedMatchingModels = new HashMap<>();
-			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
-
-			@Override
-			public List<Object> unbindingSourceStack() {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public List<SchemaNode.Effective<?, ?>> unbindingNodeStack() {
-				return Collections.emptyList();
-			}
-
-			@SuppressWarnings("unchecked")
-			@Override
-			public <U> U provide(Class<U> clazz, UnbindingContext context) {
-				if (clazz.equals(ReferenceTarget.class))
-					return (U) dereferenceTarget.apply(context);
-				if (clazz.equals(ImportReferenceTarget.class))
-					return (U) importTarget.apply(context);
-				if (clazz.equals(IncludeTarget.class))
-					return (U) includeTarget.apply(context);
-				if (clazz.equals(UnbindingContext.class))
-					return (U) context;
-
-				return manager.provide(clazz);
-			}
-
-			@Override
-			public boolean isProvided(Class<?> clazz) {
-				return clazz.equals(ReferenceTarget.class)
-						|| clazz.equals(ImportReferenceTarget.class)
-						|| clazz.equals(IncludeTarget.class)
-						|| clazz.equals(UnbindingContext.class)
-						|| manager.isProvided(clazz);
-			}
-
-			@Override
-			public StructuredDataTarget output() {
-				return null;
-			}
-
-			@Override
-			public Bindings bindings() {
-				return bindings;
-			}
-
-			@Override
-			public <U> List<Model.Effective<U>> getMatchingModels(Class<U> dataClass) {
-				return manager.registeredModels().getMatchingModels(dataClass).stream()
-						.map(n -> n.effective())
-						.collect(Collectors.toCollection(ArrayList::new));
-			}
-
-			@Override
-			public <T> List<Model.Effective<? extends T>> getMatchingModels(
-					ComplexNode.Effective<T> element, Class<? extends T> dataClass) {
-				@SuppressWarnings("unchecked")
-				List<Model.Effective<? extends T>> cached = (List<Model.Effective<? extends T>>) attemptedMatchingModels
-						.get(dataClass);
-
-				if (cached == null) {
-					cached = manager.registeredModels()
-							.getMatchingModels(element, dataClass).stream()
-							.map(n -> n.effective())
-							.collect(Collectors.toCollection(ArrayList::new));
-					attemptedMatchingModels.put(dataClass, cached);
-				}
-
-				return cached;
-			}
-
-			@Override
-			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
-					DataNode.Effective<T> node, Class<?> dataClass) {
-				@SuppressWarnings("unchecked")
-				List<DataBindingType.Effective<? extends T>> cached = (List<DataBindingType.Effective<? extends T>>) attemptedMatchingTypes
-						.get(dataClass);
-
-				if (cached == null) {
-					cached = manager.registeredTypes().getMatchingTypes(node, dataClass)
-							.stream().map(n -> n.effective())
-							.collect(Collectors.toCollection(ArrayList::new));
-					attemptedMatchingTypes.put(dataClass, cached);
-				}
-
-				return cached;
-			}
-		};
+		context = new UnbindingContextImpl(manager)
+				.withProvision(ReferenceTarget.class, referenceTarget)
+				.withProvision(ImportReferenceTarget.class, importTarget)
+				.withProvision(IncludeTarget.class, includeTarget)
+				.withProvision(UnbindingContext.class, c -> c);
 	}
 
 	public <T> void unbind(Model.Effective<T> model, StructuredDataTarget output,
 			T data) {
-		UnbindingContext context = this.context.withOutput(output);
+		UnbindingContextImpl context = this.context.withOutput(output);
 
 		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
@@ -197,12 +102,12 @@ public class SchemaUnbinder {
 	@SuppressWarnings("unchecked")
 	private <T, U extends T> void castingUnbind(StructuredDataTarget output,
 			Class<U> dataClass, T data) {
-		UnbindingContext context = this.context.withOutput(output);
+		UnbindingContextImpl context = this.context.withOutput(output);
 
 		List<? extends Model.Effective<U>> models = context
 				.getMatchingModels(dataClass);
 
-		new UnbindingAttempter(context).attemptUntilSuccessful(models, (c, m) -> {
+		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
 			try {

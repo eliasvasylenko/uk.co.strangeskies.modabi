@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.UnbindingContext;
 
 public class UnbindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;

@@ -1,28 +1,21 @@
 package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class DataNodeUnbinder {
-	private final UnbindingContext context;
+	private final UnbindingContextImpl context;
 
-	public DataNodeUnbinder(UnbindingContext context) {
+	public DataNodeUnbinder(UnbindingContextImpl context) {
 		this.context = context;
 	}
 
@@ -40,59 +33,8 @@ public class DataNodeUnbinder {
 			List<U> data) {
 		BufferingDataTarget target = new BufferingDataTarget();
 
-		UnbindingContext context = new UnbindingContext() {
-			@Override
-			public List<Object> unbindingSourceStack() {
-				return DataNodeUnbinder.this.context.unbindingSourceStack();
-			}
-
-			@Override
-			public List<SchemaNode.Effective<?, ?>> unbindingNodeStack() {
-				return Collections.emptyList();
-			}
-
-			@SuppressWarnings("unchecked")
-			@Override
-			public <T> T provide(Class<T> clazz, UnbindingContext context) {
-				if (clazz.equals(DataTarget.class))
-					return (T) target;
-
-				return DataNodeUnbinder.this.context.provide(clazz);
-			}
-
-			@Override
-			public boolean isProvided(Class<?> clazz) {
-				return clazz.equals(DataTarget.class)
-						|| DataNodeUnbinder.this.context.isProvided(clazz);
-			}
-
-			@Override
-			public StructuredDataTarget output() {
-				return null;
-			}
-
-			@Override
-			public <T> List<Model.Effective<T>> getMatchingModels(Class<T> dataClass) {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public <T> List<Model.Effective<? extends T>> getMatchingModels(
-					ComplexNode.Effective<T> element, Class<? extends T> dataClass) {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
-					DataNode.Effective<T> node, Class<?> dataClass) {
-				return DataNodeUnbinder.this.context.getMatchingTypes(node, dataClass);
-			}
-
-			@Override
-			public Bindings bindings() {
-				return DataNodeUnbinder.this.context.bindings();
-			}
-		};
+		UnbindingContextImpl context = this.context.withOutput(null).withProvision(
+				DataTarget.class, c -> target);
 
 		unbindWithFormat(node, data, null, context);
 
@@ -100,7 +42,7 @@ public class DataNodeUnbinder {
 	}
 
 	private <U> void unbindWithFormat(DataNode.Effective<U> node, List<U> data,
-			DataNode.Format format, UnbindingContext context) {
+			DataNode.Format format, UnbindingContextImpl context) {
 		BufferingDataTarget target = null;
 
 		if (node.isValueProvided())
@@ -151,7 +93,7 @@ public class DataNodeUnbinder {
 	}
 
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
-			UnbindingContext context) {
+			UnbindingContextImpl context) {
 		if (node.isExtensible() != null && node.isExtensible()) {
 			List<? extends DataNode.Effective<? extends U>> nodes = context
 					.getMatchingTypes(node, data.getClass()).stream()
@@ -165,8 +107,8 @@ public class DataNodeUnbinder {
 								+ node.effective().type().getName() + "' for object '" + data
 								+ "' to be unbound.");
 
-			/* DataNode.Effective<? extends U> success = */new UnbindingAttempter(
-					context).attemptUntilSuccessful(
+			/* DataNode.Effective<? extends U> success = */
+			context.attemptUnbindingUntilSuccessful(
 					nodes,
 					(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
 					l -> new UnbindingException("Unable to unbind data node '"

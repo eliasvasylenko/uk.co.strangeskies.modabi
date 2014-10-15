@@ -15,28 +15,29 @@ import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.impl.PartialSchemaProcessingContext;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeBinder {
-	private final BindingContext context;
+	private final BindingContextImpl context;
 
-	public BindingNodeBinder(BindingContext context) {
+	public BindingNodeBinder(BindingContextImpl context) {
 		this.context = context;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
-		BindingContext childContext = context.withBindingNode(node).withProvision(
-				BindingNode.Effective.class, () -> node);
+		BindingContextImpl childContext = context.withBindingNode(node)
+				.withProvision(BindingNode.Effective.class, () -> node);
 
 		Object binding;
 		List<ChildNode.Effective<?, ?>> children = node.children();
@@ -112,7 +113,7 @@ public class BindingNodeBinder {
 	}
 
 	private Object bindChild(ChildNode.Effective<?, ?> next,
-			BindingContext context) {
+			BindingContextImpl context) {
 		IdentityProperty<Object> result = new IdentityProperty<>(
 				context.bindingTarget());
 
@@ -189,7 +190,7 @@ public class BindingNodeBinder {
 	}
 
 	private static List<Object> getSingleBindingSequence(
-			ChildNode.Effective<?, ?> node, BindingContext context) {
+			ChildNode.Effective<?, ?> node, BindingContextImpl context) {
 		List<Object> parameters = new ArrayList<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
@@ -208,7 +209,7 @@ public class BindingNodeBinder {
 	}
 
 	private static Object getSingleBinding(ChildNode.Effective<?, ?> node,
-			BindingContext context) {
+			BindingContextImpl context) {
 		IdentityProperty<Object> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessingContext() {
 			@Override

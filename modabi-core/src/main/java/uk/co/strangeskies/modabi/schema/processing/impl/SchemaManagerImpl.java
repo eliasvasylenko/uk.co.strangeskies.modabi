@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 import uk.co.strangeskies.modabi.schema.node.type.impl.DataBindingTypeBuilderImpl;
+import uk.co.strangeskies.modabi.schema.processing.Provisions;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.binding.impl.SchemaBinder;
@@ -193,23 +194,27 @@ public class SchemaManagerImpl implements SchemaManager {
 		});
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T provide(Class<T> clazz) {
-		return (T) providers
-				.stream()
-				.map(p -> p.apply(clazz))
-				.filter(Objects::nonNull)
-				.findFirst()
-				.orElseThrow(
-						() -> new SchemaException("No provider exists for the class "
-								+ clazz));
-	}
+	public Provisions provisions() {
+		return new Provisions() {
+			@Override
+			@SuppressWarnings("unchecked")
+			public <T> T provide(Class<T> clazz) {
+				return (T) providers
+						.stream()
+						.map(p -> p.apply(clazz))
+						.filter(Objects::nonNull)
+						.findFirst()
+						.orElseThrow(
+								() -> new SchemaException("No provider exists for the class "
+										+ clazz));
+			}
 
-	@Override
-	public boolean isProvided(Class<?> clazz) {
-		return providers.stream().map(p -> p.apply(clazz))
-				.anyMatch(Objects::nonNull);
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return providers.stream().map(p -> p.apply(clazz))
+						.anyMatch(Objects::nonNull);
+			}
+		};
 	}
 
 	@Override

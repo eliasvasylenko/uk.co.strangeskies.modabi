@@ -15,9 +15,9 @@ import uk.co.strangeskies.modabi.schema.processing.impl.ComplexNodeOverrider;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class ComplexNodeUnbinder {
-	private final UnbindingContext context;
+	private final UnbindingContextImpl context;
 
-	public ComplexNodeUnbinder(UnbindingContext context) {
+	public ComplexNodeUnbinder(UnbindingContextImpl context) {
 		this.context = context;
 	}
 
@@ -40,16 +40,16 @@ public class ComplexNodeUnbinder {
 							+ "' to be unbound.");
 
 				List<? extends Model.Effective<? extends U>> finalNodes = nodes;
-				/* Model.Effective<? extends U> success = */new UnbindingAttempter(
-						context)
-						.attemptUntilSuccessful(
+				/* Model.Effective<? extends U> success = */
+				context
+						.attemptUnbindingUntilSuccessful(
 								nodes,
 								(c, n) -> {
 									ComplexNode.Effective<? extends U> overridden = (Effective<? extends U>) attemptedOverrideMap
 											.get(n.getName());
 
 									if (overridden == null) {
-										overridden = new ComplexNodeOverrider(context
+										overridden = new ComplexNodeOverrider(c.provisions()
 												.provide(ModelBuilder.class)).override(node,
 												n.effective());
 										attemptedOverrideMap.put(n.getName(), overridden);
@@ -76,7 +76,7 @@ public class ComplexNodeUnbinder {
 				castAndUnbind(context, node, item);
 	}
 
-	private <U extends V, V> void castAndUnbind(UnbindingContext context,
+	private <U extends V, V> void castAndUnbind(UnbindingContextImpl context,
 			ComplexNode.Effective<U> element, V data) {
 		try {
 			if (!element.isInline())

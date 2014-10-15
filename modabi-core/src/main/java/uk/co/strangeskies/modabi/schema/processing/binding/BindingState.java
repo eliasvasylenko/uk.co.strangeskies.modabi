@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.schema.processing.binding;
 
 import java.util.List;
 
+import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
 public interface BindingState {
@@ -24,4 +25,6 @@ public interface BindingState {
 	default Object bindingTarget(int parent) {
 		return bindingTargetStack().get(bindingTargetStack().size() - (1 + parent));
 	}
+
+	Bindings bindings();
 }

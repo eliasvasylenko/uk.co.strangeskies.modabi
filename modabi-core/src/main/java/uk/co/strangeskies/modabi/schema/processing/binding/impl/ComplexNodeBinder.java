@@ -15,16 +15,16 @@ import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.processing.impl.ComplexNodeOverrider;
 
 public class ComplexNodeBinder {
-	private final BindingContext context;
+	private final BindingContextImpl context;
 
-	public ComplexNodeBinder(BindingContext context) {
+	public ComplexNodeBinder(BindingContextImpl context) {
 		this.context = context;
 	}
 
 	public <U> List<U> bind(ComplexNode.Effective<U> node) {
 		Map<QualifiedName, ComplexNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
 
-		BindingContext context = this.context;
+		BindingContextImpl context = this.context;
 		List<U> result = new ArrayList<>();
 
 		int count = 0;
@@ -49,8 +49,8 @@ public class ComplexNodeBinder {
 			 */
 			if (node.isInline()) {
 				try {
-					binding = new BindingAttempter(context)
-							.attempt((Function<BindingContext, U>) c -> bindExactNode(c,
+					binding = context
+							.attempt((Function<BindingContextImpl, U>) c -> bindExactNode(c,
 									exactNode));
 				} catch (Exception e) {
 					/*
@@ -87,8 +87,8 @@ public class ComplexNodeBinder {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <U> ComplexNode.Effective<U> getExactNode(BindingContext context,
-			ComplexNode.Effective<U> node,
+	protected <U> ComplexNode.Effective<U> getExactNode(
+			BindingContextImpl context, ComplexNode.Effective<U> node,
 			Map<QualifiedName, ComplexNode.Effective<?>> attemptedOverrideMap) {
 		QualifiedName nextElement = context.input().peekNextChild();
 
@@ -122,7 +122,7 @@ public class ComplexNodeBinder {
 		return exactNode;
 	}
 
-	protected <U> U bindExactNode(BindingContext context,
+	protected <U> U bindExactNode(BindingContextImpl context,
 			ComplexNode.Effective<U> node) {
 		if (!node.isInline())
 			context.input().startNextChild();

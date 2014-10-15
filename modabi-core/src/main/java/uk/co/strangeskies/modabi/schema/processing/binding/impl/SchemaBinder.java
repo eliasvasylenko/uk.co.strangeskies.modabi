@@ -1,11 +1,6 @@
 package uk.co.strangeskies.modabi.schema.processing.binding.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -17,19 +12,14 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Binding;
-import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode.Effective;
-import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
@@ -37,25 +27,28 @@ import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.BindingNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.DataNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.UnbindingContext;
+import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.UnbindingContextImpl;
 
 public class SchemaBinder {
-	private final BindingContext context;
+	private final BindingContextImpl context;
 
 	public SchemaBinder(SchemaManager manager) {
-		Bindings bindings = new Bindings();
-
-		Function<BindingContext, ImportSource> importSource = context -> new ImportSource() {
+		Function<BindingContextImpl, ImportSource> importSource = context -> new ImportSource() {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(context, model, manager.bindingFutures(model)
-						.stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
-						.map(Binding::getData).collect(Collectors.toSet()), idDomain, id);
+				return matchBinding(
+						manager,
+						context,
+						model,
+						manager.bindingFutures(model).stream()
+								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
+								.map(Binding::getData).collect(Collectors.toSet()), idDomain,
+						id);
 			}
 		};
 
-		Function<BindingContext, DataLoader> loader = context -> new DataLoader() {
+		Function<BindingContextImpl, DataLoader> loader = context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				// return new DataNodeBinder(context).bind(node); TODO loadData
@@ -63,99 +56,33 @@ public class SchemaBinder {
 			}
 		};
 
-		Function<BindingContext, DereferenceSource> referenceSource = context -> new DereferenceSource() {
+		Function<BindingContextImpl, DereferenceSource> dereferenceSource = context -> new DereferenceSource() {
 			@Override
 			public <U> U reference(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(context, model, context.bindings().get(model),
-						idDomain, id);
+				return matchBinding(manager, context, model,
+						context.bindings().get(model), idDomain, id);
 			}
 		};
 
-		Function<BindingContext, IncludeTarget> includeTarget = context -> new IncludeTarget() {
+		Function<BindingContextImpl, IncludeTarget> includeTarget = context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, U object) {
 				context.bindings().add(model, object);
 			}
 		};
 
-		context = new BindingContext() {
-			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
-
-			@Override
-			@SuppressWarnings("unchecked")
-			public <U> U provide(Class<U> clazz, BindingContext context) {
-				if (clazz.equals(DereferenceSource.class))
-					return (U) referenceSource.apply(context);
-				if (clazz.equals(IncludeTarget.class))
-					return (U) includeTarget.apply(context);
-				if (clazz.equals(ImportSource.class))
-					return (U) importSource.apply(context);
-				if (clazz.equals(DataLoader.class))
-					return (U) loader.apply(context);
-				if (clazz.equals(BindingContext.class))
-					return (U) context;
-
-				return manager.provide(clazz);
-			}
-
-			@Override
-			public boolean isProvided(Class<?> clazz) {
-				return clazz.equals(DereferenceSource.class)
-						|| clazz.equals(IncludeTarget.class)
-						|| clazz.equals(ImportSource.class)
-						|| clazz.equals(DataLoader.class)
-						|| clazz.equals(BindingContext.class) || manager.isProvided(clazz);
-			}
-
-			@Override
-			public List<Object> bindingTargetStack() {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public List<SchemaNode.Effective<?, ?>> bindingNodeStack() {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public Model.Effective<?> getModel(QualifiedName nextElement) {
-				Model<?> model = manager.registeredModels().get(nextElement);
-				return model == null ? null : model.effective();
-			}
-
-			@Override
-			public StructuredDataSource input() {
-				return null;
-			}
-
-			@Override
-			public Bindings bindings() {
-				return bindings;
-			}
-
-			@Override
-			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
-					Effective<T> node, Class<?> dataClass) {
-				@SuppressWarnings("unchecked")
-				List<DataBindingType.Effective<? extends T>> cached = (List<DataBindingType.Effective<? extends T>>) attemptedMatchingTypes
-						.get(dataClass);
-
-				if (cached == null) {
-					cached = manager.registeredTypes().getMatchingTypes(node, dataClass)
-							.stream().map(n -> n.effective())
-							.collect(Collectors.toCollection(ArrayList::new));
-					attemptedMatchingTypes.put(dataClass, cached);
-				}
-
-				return cached;
-			}
-		};
+		context = new BindingContextImpl(manager)
+				.withProvision(DereferenceSource.class, dereferenceSource)
+				.withProvision(IncludeTarget.class, includeTarget)
+				.withProvision(ImportSource.class, importSource)
+				.withProvision(DataLoader.class, loader)
+				.withProvision(BindingContext.class, c -> c);
 	}
 
 	public <T> BindingFuture<T> bind(Model.Effective<T> model,
 			StructuredDataSource input) {
-		BindingContext context = this.context.withInput(input);
+		BindingContextImpl context = this.context.withInput(input);
 
 		QualifiedName inputRoot = input.startNextChild();
 		if (!inputRoot.equals(model.getName()))
@@ -220,8 +147,9 @@ public class SchemaBinder {
 		};
 	}
 
-	private static <U> U matchBinding(BindingContext context, Model<U> model,
-			Set<U> bindingCandidates, QualifiedName idDomain, DataSource idSource) {
+	private static <U> U matchBinding(SchemaManager manager,
+			BindingContext context, Model<U> model, Set<U> bindingCandidates,
+			QualifiedName idDomain, DataSource idSource) {
 		DataNode.Effective<?> node = (DataNode.Effective<?>) model
 				.effective()
 				.children()
@@ -235,7 +163,7 @@ public class SchemaBinder {
 								+ "' to target for model '" + model + "'.", context));
 
 		for (U bindingCandidate : bindingCandidates) {
-			DataSource candidateId = unbindDataNode(context, node, bindingCandidate);
+			DataSource candidateId = unbindDataNode(manager, node, bindingCandidate);
 			DataSource bufferedIdSource = idSource.copy();
 
 			if (bufferedIdSource.size() - bufferedIdSource.index() < candidateId
@@ -261,56 +189,10 @@ public class SchemaBinder {
 				+ "' in domain '" + idDomain + "' for model '" + model + "'.", context);
 	}
 
-	private static <V> DataSource unbindDataNode(BindingContext context,
+	private static <V> DataSource unbindDataNode(SchemaManager manager,
 			DataNode.Effective<V> node, Object source) {
-		UnbindingContext unbindingContext = new UnbindingContext() {
-			@Override
-			public List<Object> unbindingSourceStack() {
-				return Arrays.asList(source);
-			}
-
-			@Override
-			public List<SchemaNode.Effective<?, ?>> unbindingNodeStack() {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public <T> T provide(Class<T> clazz, UnbindingContext context) {
-				return context.provide(clazz);
-			}
-
-			@Override
-			public boolean isProvided(Class<?> clazz) {
-				return context.isProvided(clazz);
-			}
-
-			@Override
-			public StructuredDataTarget output() {
-				return null;
-			}
-
-			@Override
-			public <T> List<Model.Effective<T>> getMatchingModels(Class<T> dataClass) {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public <U> List<Model.Effective<? extends U>> getMatchingModels(
-					ComplexNode.Effective<U> element, Class<? extends U> dataClass) {
-				return Collections.emptyList();
-			}
-
-			@Override
-			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
-					DataNode.Effective<T> node, Class<?> dataClass) {
-				return context.getMatchingTypes(node, dataClass);
-			}
-
-			@Override
-			public Bindings bindings() {
-				return context.bindings();
-			}
-		};
+		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager)
+				.withUnbindingSource(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));
