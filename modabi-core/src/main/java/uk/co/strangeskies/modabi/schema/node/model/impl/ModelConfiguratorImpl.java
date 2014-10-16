@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
@@ -17,10 +15,9 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
 
-public class ModelConfiguratorImpl<T>
-		extends
-		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>>
-		implements ModelConfigurator<T> {
+public class ModelConfiguratorImpl<T> extends
+		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
+		ModelConfigurator<T> {
 	protected static class ModelImpl<T> extends
 			BindingNodeImpl<T, Model<T>, Model.Effective<T>> implements Model<T> {
 		private static class Effective<T> extends
@@ -47,7 +44,7 @@ public class ModelConfiguratorImpl<T>
 
 			@Override
 			protected QualifiedName defaultName(
-					OverrideMerge<Model<T>, ? extends SchemaNodeConfiguratorImpl<?, Model<T>, ?, ?>> overrideMerge) {
+					OverrideMerge<Model<T>, ? extends SchemaNodeConfiguratorImpl<?, Model<T>>> overrideMerge) {
 				List<Model.Effective<? super T>> baseModel = new ArrayList<>();
 				overrideMerge.configurator().getOverriddenNodes()
 						.forEach(n -> baseModel.addAll(n.effective().baseModel()));

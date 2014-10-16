@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
@@ -9,10 +8,9 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 
-public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends
-		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator<C, B>, ChoiceNode, C, B>
-		implements ChoiceNodeConfigurator<C, B> {
+public class ChoiceNodeConfiguratorImpl extends
+		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
+		ChoiceNodeConfigurator {
 	protected static class ChoiceNodeImpl extends
 			SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective> implements ChoiceNode {
 		private static class Effective extends
@@ -24,7 +22,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends Bin
 			private final Class<?> postInputClass;
 
 			public Effective(
-					OverrideMerge<ChoiceNode, ChoiceNodeConfiguratorImpl<?, ?>> overrideMerge) {
+					OverrideMerge<ChoiceNode, ChoiceNodeConfiguratorImpl> overrideMerge) {
 				super(overrideMerge);
 
 				Class<?> preInputClass = null;
@@ -81,7 +79,7 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends Bin
 		private final Class<?> postInputClass;
 		private final boolean mandatory;
 
-		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl<?, ?> configurator) {
+		public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
 			super(configurator);
 
 			postInputClass = configurator.getPostInputClass();
@@ -119,13 +117,13 @@ public class ChoiceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends Bin
 	}
 
 	@Override
-	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
+	public ChildrenConfigurator createChildrenConfigurator() {
 		return null; // TODO create hiding children configurator! options can be
 									// reduced, not increased, but overriding nodes.
 	}
 
 	@Override
-	public ChoiceNodeConfigurator<C, B> mandatory(boolean mandatory) {
+	public ChoiceNodeConfigurator mandatory(boolean mandatory) {
 		this.mandatory = mandatory;
 
 		return this;

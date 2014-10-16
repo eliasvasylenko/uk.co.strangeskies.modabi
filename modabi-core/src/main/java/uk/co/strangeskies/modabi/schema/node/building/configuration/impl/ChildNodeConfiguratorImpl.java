@@ -5,15 +5,14 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 
-public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N, C, B>, N extends ChildNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
-		ChildNodeConfigurator<S, N, C, B> {
+public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
+		extends SchemaNodeConfiguratorImpl<S, N> implements
+		ChildNodeConfigurator<S, N> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private Class<?> postInputClass;

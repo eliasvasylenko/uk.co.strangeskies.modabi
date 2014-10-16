@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
@@ -16,7 +14,7 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends
-		BindingNodeConfiguratorImpl<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, DataNodeChildNode<?, ?>, DataNode<?>>
+		BindingNodeConfiguratorImpl<DataBindingTypeConfigurator<T>, DataBindingType<T>, T>
 		implements DataBindingTypeConfigurator<T> {
 	public static class DataBindingTypeImpl<T> extends
 			BindingNodeImpl<T, DataBindingType<T>, DataBindingType.Effective<T>>

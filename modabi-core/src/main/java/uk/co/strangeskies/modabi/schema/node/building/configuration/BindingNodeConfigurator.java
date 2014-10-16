@@ -4,16 +4,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<? extends T, ?, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends SchemaNodeConfigurator<S, N, C, B> {
-	<V extends T> BindingNodeConfigurator<?, ?, V, C, B> dataClass(
-			Class<V> dataClass);
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<? extends T, ?, ?>, T>
+		extends SchemaNodeConfigurator<S, N> {
+	<V extends T> BindingNodeConfigurator<?, ?, V> dataClass(Class<V> dataClass);
 
 	S bindingStrategy(BindingStrategy strategy);
 

@@ -27,7 +27,6 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeCo
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
@@ -61,7 +60,7 @@ public class BindingNodeOverrider {
 	}
 
 	private class OverridingProcessor implements SchemaProcessingContext {
-		private final Deque<SchemaNodeConfigurator<?, ?, ?, ?>> configuratorStack;
+		private final Deque<SchemaNodeConfigurator<?, ?>> configuratorStack;
 		private List<?> currentProvidedValue;
 
 		public OverridingProcessor() {
@@ -134,14 +133,14 @@ public class BindingNodeOverrider {
 					.effective();
 		}
 
-		private <C extends SchemaNodeConfigurator<?, ?, ?, ?>> C next(
-				Function<ChildBuilder<?, ?>, C> next) {
+		private <C extends SchemaNodeConfigurator<?, ?>> C next(
+				Function<ChildBuilder, C> next) {
 			return next.apply(configuratorStack.peek().addChild());
 		}
 
 		private <N extends SchemaNode<N, ?>> N doChildren(
 				List<? extends ChildNode<?, ?>> children,
-				SchemaNodeConfigurator<?, ? extends N, ?, ?> configurator) {
+				SchemaNodeConfigurator<?, ? extends N> configurator) {
 			configuratorStack.push(configurator);
 
 			for (ChildNode<?, ?> child : children)
@@ -152,14 +151,14 @@ public class BindingNodeOverrider {
 		}
 
 		private <N extends SchemaNode<N, ?>> N doChildren(N node,
-				SchemaNodeConfigurator<?, N, ?, ?> c) {
+				SchemaNodeConfigurator<?, N> c) {
 			if (node.isAbstract() != null)
 				c = c.isAbstract(node.isAbstract());
 
 			return doChildren(node.children(), c.name(node.getName()));
 		}
 
-		public <U, C extends BindingNodeConfigurator<C, ?, U, ?, ?>> C processBindingNode(
+		public <U, C extends BindingNodeConfigurator<C, ?, U>> C processBindingNode(
 				BindingNode<U, ?, ?> node, C c) {
 			c = tryProperty(node.getBindingClass(), c::bindingClass, c);
 			c = tryProperty(node.getBindingStrategy(), c::bindingStrategy, c);
@@ -174,7 +173,7 @@ public class BindingNodeOverrider {
 			return c;
 		}
 
-		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U, ?, ?>> C processBindingChildNode(
+		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?, ?> node, C c) {
 			c = tryProperty(node.getOutMethodName(), c::outMethod, c);
 			c = tryProperty(node.isOutMethodIterable(), c::outMethodIterable, c);
@@ -184,7 +183,7 @@ public class BindingNodeOverrider {
 			return processInputNode(node, c);
 		}
 
-		public <U, C extends InputNodeConfigurator<C, ?, ?, ?>> C processInputNode(
+		public <U, C extends InputNodeConfigurator<C, ?>> C processInputNode(
 				InputNode<?, ?> node, C c) {
 			c = tryProperty(node.isInMethodCast(), c::isInMethodCast, c);
 			c = tryProperty(node.getInMethodName(), c::inMethod, c);
@@ -250,11 +249,8 @@ public class BindingNodeOverrider {
 		public void accept(InputSequenceNode.Effective node) {
 			InputSequenceNode source = node.source();
 
-			doChildren(
-					source,
-					processInputNode(
-							source,
-							(InputSequenceNodeConfigurator<?>) next(ChildBuilder::inputSequence)));
+			doChildren(source,
+					processInputNode(source, next(ChildBuilder::inputSequence)));
 		}
 
 		@Override
@@ -268,13 +264,13 @@ public class BindingNodeOverrider {
 		public void accept(ChoiceNode.Effective node) {
 			ChoiceNode source = node.source();
 
-			ChoiceNodeConfigurator<?, ?> c = next(ChildBuilder::choice);
+			ChoiceNodeConfigurator c = next(ChildBuilder::choice);
 
 			doChildren(source,
 					tryProperty(source.isMandatory(), p -> c.mandatory(p), c));
 		}
 
-		private <U, C extends SchemaNodeConfigurator<? extends C, ?, ?, ?>> C tryProperty(
+		private <U, C extends SchemaNodeConfigurator<? extends C, ?>> C tryProperty(
 				U property, Function<U, C> consumer, C c) {
 			if (property != null)
 				return consumer.apply(property);

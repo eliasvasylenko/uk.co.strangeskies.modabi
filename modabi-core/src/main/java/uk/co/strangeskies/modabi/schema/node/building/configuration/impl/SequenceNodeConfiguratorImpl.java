@@ -4,7 +4,6 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
@@ -15,10 +14,9 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 
-public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends
-		ChildNodeConfiguratorImpl<SequenceNodeConfigurator<C, B>, SequenceNode, C, B>
-		implements SequenceNodeConfigurator<C, B> {
+public class SequenceNodeConfiguratorImpl extends
+		ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode> implements
+		SequenceNodeConfigurator {
 	protected static class SequenceNodeImpl extends
 			SchemaNodeImpl<SequenceNode, SequenceNode.Effective> implements
 			SequenceNode {
@@ -29,7 +27,7 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 			private final Class<?> postInputClass;
 
 			public Effective(
-					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl<?, ?>> overrideMerge) {
+					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
 				super(overrideMerge);
 
 				preInputClass = isAbstract() ? null : children().get(0)
@@ -64,7 +62,7 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 
 		private final Class<?> postInputClass;
 
-		public SequenceNodeImpl(SequenceNodeConfiguratorImpl<?, ?> configurator) {
+		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
 
 			postInputClass = configurator.getPostInputClass();
@@ -99,10 +97,10 @@ public class SequenceNodeConfiguratorImpl<C extends ChildNode<?, ?>, B extends B
 	}
 
 	@Override
-	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
+	public ChildrenConfigurator createChildrenConfigurator() {
 		Class<?> inputTarget = getContext().inputTargetClass(getName());
 
-		return new SequentialChildrenConfigurator<>(
+		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
 					public DataLoader dataLoader() {

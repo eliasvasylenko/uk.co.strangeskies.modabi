@@ -13,19 +13,18 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.ChoiceNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.ComplexNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SequenceNodeConfiguratorImpl;
 
@@ -51,8 +50,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.Sequenc
  * @param <C>
  * @param <B>
  */
-public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		implements ChildrenConfigurator<C, B> {
+public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private class MergeGroup {
 		private final QualifiedName name;
 		private final Set<ChildNode.Effective<?, ?>> children;
@@ -222,7 +220,7 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 	}
 
 	@Override
-	public ChildBuilder<C, B> addChild() {
+	public ChildBuilder addChild() {
 		assertUnblocked();
 		blocked = true;
 
@@ -296,10 +294,10 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 		};
 
-		return new ChildBuilder<C, B>() {
+		return new ChildBuilder() {
 			@Override
-			public InputSequenceNodeConfigurator<B> inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl<>(context);
+			public InputSequenceNodeConfigurator inputSequence() {
+				return new InputSequenceNodeConfiguratorImpl(context);
 			}
 
 			@Override
@@ -308,13 +306,13 @@ public class SequentialChildrenConfigurator<C extends ChildNode<?, ?>, B extends
 			}
 
 			@Override
-			public ChoiceNodeConfigurator<C, B> choice() {
-				return new ChoiceNodeConfiguratorImpl<>(context);
+			public ChoiceNodeConfigurator choice() {
+				return new ChoiceNodeConfiguratorImpl(context);
 			}
 
 			@Override
-			public SequenceNodeConfigurator<C, B> sequence() {
-				return new SequenceNodeConfiguratorImpl<>(context);
+			public SequenceNodeConfigurator sequence() {
+				return new SequenceNodeConfiguratorImpl(context);
 			}
 
 			@Override

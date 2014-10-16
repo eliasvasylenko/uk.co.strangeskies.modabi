@@ -14,8 +14,8 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
@@ -23,10 +23,9 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 
-public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, ?>>
-		extends
-		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>
-		implements InputSequenceNodeConfigurator<C> {
+public class InputSequenceNodeConfiguratorImpl extends
+		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
+		implements InputSequenceNodeConfigurator {
 	protected static class InputSequenceNodeImpl extends
 			SchemaNodeImpl<InputSequenceNode, InputSequenceNode.Effective> implements
 			InputSequenceNode {
@@ -43,7 +42,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 			private final Class<?> postInputClass;
 
 			protected Effective(
-					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl<?>> overrideMerge) {
+					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl> overrideMerge) {
 				super(overrideMerge);
 
 				if (!overrideMerge.configurator().getContext().isInputExpected())
@@ -106,8 +105,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
 
-		public InputSequenceNodeImpl(
-				InputSequenceNodeConfiguratorImpl<?> configurator) {
+		public InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
 
 			postInputClass = configurator.getPostInputClass();
@@ -159,7 +157,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator<C> inMethod(String methodName) {
+	public InputSequenceNodeConfigurator inMethod(String methodName) {
 		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
 			throw new SchemaException(
 					"No input method should be specified on this node.");
@@ -171,7 +169,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator<C> inMethodChained(boolean chained) {
+	public InputSequenceNodeConfigurator inMethodChained(boolean chained) {
 		requireConfigurable(inMethodChained);
 		inMethodChained = chained;
 
@@ -179,7 +177,7 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator<C> isInMethodCast(
+	public InputSequenceNodeConfigurator isInMethodCast(
 			boolean allowInMethodResultCast) {
 		requireConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
@@ -193,10 +191,10 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 	}
 
 	@Override
-	public ChildrenConfigurator<C, C> createChildrenConfigurator() {
+	public ChildrenConfigurator createChildrenConfigurator() {
 		Class<?> outputTarget = getContext().outputSourceClass();
 
-		return new SequentialChildrenConfigurator<C, C>(
+		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
 					public DataLoader dataLoader() {
@@ -254,26 +252,26 @@ public class InputSequenceNodeConfiguratorImpl<C extends BindingChildNode<?, ?, 
 					}
 				}) {
 			@Override
-			public ChildBuilder<C, C> addChild() {
-				ChildBuilder<C, C> component = super.addChild();
-				return new ChildBuilder<C, C>() {
+			public ChildBuilder addChild() {
+				ChildBuilder component = super.addChild();
+				return new ChildBuilder() {
 					@Override
 					public ComplexNodeConfigurator<Object> complex() {
 						return component.complex();
 					}
 
 					@Override
-					public InputSequenceNodeConfigurator<C> inputSequence() {
+					public InputSequenceNodeConfigurator inputSequence() {
 						return null;
 					}
 
 					@Override
-					public SequenceNodeConfigurator<C, C> sequence() {
+					public SequenceNodeConfigurator sequence() {
 						return null;
 					}
 
 					@Override
-					public ChoiceNodeConfigurator<C, C> choice() {
+					public ChoiceNodeConfigurator choice() {
 						return null;
 					}
 

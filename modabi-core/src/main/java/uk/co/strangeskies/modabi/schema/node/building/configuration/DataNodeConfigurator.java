@@ -9,7 +9,7 @@ import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 public interface DataNodeConfigurator<T> extends
 		BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T>,
 		SchemaNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>> {
-	public <U extends T> DataNodeConfigurator<U> type(DataBindingType<U> type);
+	public <U extends T> DataNodeConfigurator<U> type(DataBindingType<? super U> type);
 
 	@Override
 	public <U extends T> DataNodeConfigurator<U> dataClass(Class<U> dataClass);

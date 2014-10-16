@@ -2,15 +2,13 @@ package uk.co.strangeskies.modabi.schema.node.type;
 
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
 
 public interface DataBindingTypeConfigurator<T>
 		extends
-		BindingNodeConfigurator<DataBindingTypeConfigurator<T>, DataBindingType<T>, T, DataNodeChildNode<?, ?>, DataNode<?>> {
+		BindingNodeConfigurator<DataBindingTypeConfigurator<T>, DataBindingType<T>, T> {
 	/**
 	 * @param name
 	 *          The value to be returned by {@link DataBindingType#getName()}.
@@ -39,11 +37,11 @@ public interface DataBindingTypeConfigurator<T>
 
 	@Override
 	default public DataBindingTypeConfigurator<T> addChild(
-			Function<ChildBuilder<DataNodeChildNode<?, ?>, DataNode<?>>, SchemaNodeConfigurator<?, ? extends DataNodeChildNode<?, ?>, ?, ?>> propertyConfiguration) {
+			Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> propertyConfiguration) {
 		propertyConfiguration.apply(addChild()).create();
 		return this;
 	}
 
 	@Override
-	ChildBuilder<DataNodeChildNode<?, ?>, DataNode<?>> addChild();
+	ChildBuilder addChild();
 }
