@@ -11,7 +11,8 @@ public interface DataNodeConfigurator<T>
 		extends
 		BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode<?, ?>, DataNode<?>>,
 		SchemaNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, DataNodeChildNode<?, ?>, DataNode<?>> {
-	public <U extends T> DataNodeConfigurator<U> type(DataBindingType<U> type);
+	public <U extends T> DataNodeConfigurator<U> type(
+			DataBindingType<? super U> type);
 
 	@Override
 	public <U extends T> DataNodeConfigurator<U> dataClass(Class<U> dataClass);

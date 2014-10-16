@@ -7,13 +7,6 @@ public interface DataBindingType<T> extends
 		BindingNode<T, DataBindingType<T>, DataBindingType.Effective<T>> {
 	interface Effective<T> extends DataBindingType<T>,
 			BindingNode.Effective<T, DataBindingType<T>, Effective<T>> {
-		@Override
-		DataBindingType<T> source();
-	}
-
-	@Override
-	default DataBindingType<T> source() {
-		return this;
 	}
 
 	Boolean isPrivate();

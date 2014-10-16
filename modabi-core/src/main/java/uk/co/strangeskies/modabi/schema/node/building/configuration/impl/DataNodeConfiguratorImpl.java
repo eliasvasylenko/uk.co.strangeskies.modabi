@@ -205,7 +205,7 @@ public class DataNodeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <U extends T> DataNodeConfigurator<U> type(
-			DataBindingType<U> type) {
+			DataBindingType<? super U> type) {
 		requireConfigurable(this.type);
 		this.type = (DataBindingType<T>) type;
 

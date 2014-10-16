@@ -12,7 +12,7 @@ import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
-import uk.co.strangeskies.modabi.schema.processing.impl.ComplexNodeOverrider;
+import uk.co.strangeskies.modabi.schema.processing.impl.BindingNodeOverrider;
 
 public class ComplexNodeBinder {
 	private final BindingContextImpl context;
@@ -110,8 +110,8 @@ public class ComplexNodeBinder {
 				exactNode = (ComplexNode.Effective<U>) attemptedOverrideMap
 						.get(nextElement);
 				if (exactNode == null) {
-					exactNode = new ComplexNodeOverrider(
-							context.provide(ModelBuilder.class)).override(node,
+					exactNode = new BindingNodeOverrider().override(
+							context.provide(ModelBuilder.class), node,
 							(Model.Effective<U>) extension.effective());
 					attemptedOverrideMap.put(nextElement, exactNode);
 				}

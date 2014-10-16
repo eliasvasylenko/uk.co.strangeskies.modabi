@@ -8,10 +8,9 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.ComplexNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.processing.impl.ComplexNodeOverrider;
+import uk.co.strangeskies.modabi.schema.processing.impl.BindingNodeOverrider;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class ComplexNodeUnbinder {
@@ -25,7 +24,7 @@ public class ComplexNodeUnbinder {
 	public <U> void unbind(ComplexNode.Effective<U> node, List<U> data) {
 		Map<QualifiedName, ComplexNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
 
-		if (node.isExtensible() != null && node.isExtensible()) {
+		if (node.isExtensible()) {
 			for (U item : data) {
 				List<? extends Model.Effective<? extends U>> nodes = context
 						.getMatchingModels(node, (Class<? extends U>) item.getClass());
@@ -45,17 +44,16 @@ public class ComplexNodeUnbinder {
 						.attemptUnbindingUntilSuccessful(
 								nodes,
 								(c, n) -> {
-									ComplexNode.Effective<? extends U> overridden = (Effective<? extends U>) attemptedOverrideMap
+									ComplexNode.Effective<? extends U> overridden = (ComplexNode.Effective<? extends U>) attemptedOverrideMap
 											.get(n.getName());
 
 									if (overridden == null) {
-										overridden = new ComplexNodeOverrider(c.provisions()
-												.provide(ModelBuilder.class)).override(node,
-												n.effective());
+										overridden = new BindingNodeOverrider().override(c
+												.provisions().provide(ModelBuilder.class), node, n);
 										attemptedOverrideMap.put(n.getName(), overridden);
 									}
 
-									castAndUnbind(c, overridden, item);
+									unbindExactNode(c, overridden, item);
 								},
 								l -> new UnbindingException("Unable to unbind element '"
 										+ node.getName()
@@ -73,10 +71,10 @@ public class ComplexNodeUnbinder {
 			}
 		} else
 			for (U item : data)
-				castAndUnbind(context, node, item);
+				unbindExactNode(context, node, item);
 	}
 
-	private <U extends V, V> void castAndUnbind(UnbindingContextImpl context,
+	private <U extends V, V> void unbindExactNode(UnbindingContextImpl context,
 			ComplexNode.Effective<U> element, V data) {
 		try {
 			if (!element.isInline())

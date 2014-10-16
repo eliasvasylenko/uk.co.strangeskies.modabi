@@ -1,15 +1,19 @@
 package uk.co.strangeskies.modabi.schema.processing.unbinding.impl;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.processing.impl.BindingNodeOverrider;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 
 public class DataNodeUnbinder {
@@ -92,13 +96,14 @@ public class DataNodeUnbinder {
 					+ "' cannot omit data for unbinding.");
 	}
 
+	@SuppressWarnings("unchecked")
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
 			UnbindingContextImpl context) {
+		Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
+
 		if (node.isExtensible() != null && node.isExtensible()) {
-			List<? extends DataNode.Effective<? extends U>> nodes = context
-					.getMatchingTypes(node, data.getClass()).stream()
-					.map(type -> new DataNodeWrapper<>(type.effective(), node))
-					.collect(Collectors.toCollection(ArrayList::new));
+			List<? extends DataBindingType.Effective<? extends U>> nodes = context
+					.getMatchingTypes(node, data.getClass());
 
 			if (nodes.isEmpty())
 				throw new SchemaException(
@@ -108,23 +113,45 @@ public class DataNodeUnbinder {
 								+ "' to be unbound.");
 
 			/* DataNode.Effective<? extends U> success = */
-			context.attemptUnbindingUntilSuccessful(
-					nodes,
-					(c, n) -> new BindingNodeUnbinder(context).unbind(node, data),
-					l -> new UnbindingException("Unable to unbind data node '"
-							+ node.getName()
-							+ "' with type candidates '"
-							+ nodes.stream().map(m -> m.source().getName().toString())
-									.collect(Collectors.joining(", ")) + "' for object '" + data
-							+ "' to be unbound.", context, l));
+			context
+					.attemptUnbindingUntilSuccessful(
+							nodes,
+							(c, n) -> {
+								DataNode.Effective<? extends U> overridden = (DataNode.Effective<? extends U>) attemptedOverrideMap
+										.get(n.getName());
+
+								if (overridden == null) {
+									overridden = new BindingNodeOverrider().override(c
+											.provisions().provide(DataBindingTypeBuilder.class),
+											node, n);
+									attemptedOverrideMap.put(n.getName(), overridden);
+								}
+
+								unbindExactNode(context, overridden, data);
+							}, l -> new UnbindingException("Unable to unbind data node '"
+									+ node.getName()
+									+ "' with type candidates '"
+									+ nodes.stream().map(m -> m.source().getName().toString())
+											.collect(Collectors.joining(", ")) + "' for object '"
+									+ data + "' to be unbound.", context, l));
 
 			/*-
 			 * TODO allow optimisation in unambiguous cases? Currently breaks precedence.
 			nodes.remove(success);
 			((List<Object>) nodes).add(0, success);
 			 */
-		} else {
+		} else
 			new BindingNodeUnbinder(context).unbind(node, data);
+	}
+
+	private <U extends V, V> void unbindExactNode(UnbindingContextImpl context,
+			DataNode.Effective<U> element, V data) {
+		try {
+			new BindingNodeUnbinder(context).unbind(element, element.getDataClass()
+					.cast(data));
+		} catch (ClassCastException e) {
+			throw new UnbindingException("Cannot unbind data at this node.", context,
+					e);
 		}
 	}
 }

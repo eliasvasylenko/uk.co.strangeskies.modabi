@@ -1,7 +1,6 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Function;
@@ -9,12 +8,13 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
@@ -24,28 +24,24 @@ import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ModelWrapper;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
 
-public class ComplexNodeOverrider {
-	private final ModelBuilder builder;
-
-	public ComplexNodeOverrider(ModelBuilder builder) {
-		this.builder = builder;
-	}
-
-	public <T> ComplexNode.Effective<T> override(
-			ComplexNode.Effective<? super T> element, Model.Effective<T> override) {
+public class BindingNodeOverrider {
+	public <T> ComplexNode.Effective<T> override(ModelBuilder builder,
+			ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
 		try {
-			return new OverridingProcessor().process(element, override);
+			return new OverridingProcessor().process(builder, node, override);
 		} catch (SchemaException e) {
 			throw e;
 		} catch (Exception e) {
@@ -53,8 +49,15 @@ public class ComplexNodeOverrider {
 		}
 	}
 
-	private <T> Model.Effective<T> wrapElement(ComplexNode.Effective<T> element) {
-		return new ModelWrapper<>(element);
+	public <T> DataNode.Effective<T> override(DataBindingTypeBuilder builder,
+			DataNode.Effective<? super T> node, DataBindingType.Effective<T> override) {
+		try {
+			return new OverridingProcessor().process(builder, node, override);
+		} catch (SchemaException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SchemaException(e);
+		}
 	}
 
 	private class OverridingProcessor implements SchemaProcessingContext {
@@ -67,12 +70,8 @@ public class ComplexNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> ComplexNode.Effective<T> process(
-				ComplexNode.Effective<? super T> element, Model.Effective<T> override) {
-			List<Model<? super T>> baseModel = new ArrayList<>(override.source()
-					.baseModel());
-			baseModel.add(wrapElement(element));
-
+		public <T> ComplexNode.Effective<T> process(ModelBuilder builder,
+				ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
 			DataLoader loader = new DataLoader() {
 				@Override
 				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
@@ -82,21 +81,56 @@ public class ComplexNodeOverrider {
 
 			ModelConfigurator<Object> configurator = builder.configure(loader)
 					.name(new QualifiedName("base"))
-					.bindingClass(element.getPreInputClass())
-					.unbindingClass(element.getOutMethod().getDeclaringClass())
+					.bindingClass(node.getPreInputClass())
+					.unbindingClass(node.getOutMethod().getDeclaringClass())
 					.isAbstract(true);
 
-			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild()
-					.complex().name(override.getName())
-					.dataClass(override.getDataClass()).baseModel(baseModel);
+			ComplexNodeConfigurator<T> elementConfigurator;
 
+			elementConfigurator = processAbstractComplexNode(override, configurator
+					.addChild().complex());
 			elementConfigurator = processBindingNode(override, elementConfigurator);
-			elementConfigurator = processBindingChildNode(element,
-					elementConfigurator);
+			elementConfigurator = processBindingChildNode(node, elementConfigurator);
 
-			doChildren(override.children(), elementConfigurator);
+			doChildren(override.children(),
+					elementConfigurator.name(override.getName()));
 
 			return (ComplexNode.Effective<T>) configurator.create().children().get(0)
+					.effective();
+		}
+
+		@SuppressWarnings("unchecked")
+		public <T> DataNode.Effective<T> process(DataBindingTypeBuilder builder,
+				DataNode.Effective<? super T> node,
+				DataBindingType.Effective<T> override) {
+			DataLoader loader = new DataLoader() {
+				@Override
+				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
+					return (List<V>) currentProvidedValue;
+				}
+			};
+
+			DataBindingTypeConfigurator<Object> configurator = builder
+					.configure(loader).name(new QualifiedName("base"))
+					.bindingClass(node.getPreInputClass())
+					.unbindingClass(node.getOutMethod().getDeclaringClass())
+					.isAbstract(true);
+
+			DataNodeConfigurator<T> dataNodeConfigurator = configurator.addChild()
+					.data().name(override.getName()).dataClass(override.getDataClass())
+					.type(override.baseType());
+
+			dataNodeConfigurator = tryProperty(node.optional(),
+					dataNodeConfigurator::optional, dataNodeConfigurator);
+			dataNodeConfigurator = tryProperty(node.format(),
+					dataNodeConfigurator::format, dataNodeConfigurator);
+
+			dataNodeConfigurator = processBindingNode(override, dataNodeConfigurator);
+			dataNodeConfigurator = processBindingChildNode(node, dataNodeConfigurator);
+
+			doChildren(override.children(), dataNodeConfigurator);
+
+			return (DataNode.Effective<T>) configurator.create().children().get(0)
 					.effective();
 		}
 
@@ -160,13 +194,20 @@ public class ComplexNodeOverrider {
 			return c;
 		}
 
+		public <U> ComplexNodeConfigurator<U> processAbstractComplexNode(
+				AbstractComplexNode<U, ?, ?> node, ComplexNodeConfigurator<Object> c) {
+			ComplexNodeConfigurator<U> cu = c.dataClass(node.getDataClass())
+					.baseModel(node.baseModel());
+
+			return cu;
+		}
+
 		@Override
 		public <U> void accept(ComplexNode.Effective<U> node) {
 			ComplexNode<U> source = node.source();
 
-			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex)
-					.dataClass(source.getDataClass()).baseModel(source.baseModel())
-					.extensible(source.isExtensible());
+			ComplexNodeConfigurator<U> c = processAbstractComplexNode(source,
+					next(ChildBuilder::complex).extensible(node.isExtensible()));
 
 			c = tryProperty(source.isInline(), c::inline, c);
 
@@ -209,8 +250,11 @@ public class ComplexNodeOverrider {
 		public void accept(InputSequenceNode.Effective node) {
 			InputSequenceNode source = node.source();
 
-			InputSequenceNodeConfigurator<?> configurator = next(ChildBuilder::inputSequence);
-			doChildren(source, processInputNode(source, configurator));
+			doChildren(
+					source,
+					processInputNode(
+							source,
+							(InputSequenceNodeConfigurator<?>) next(ChildBuilder::inputSequence)));
 		}
 
 		@Override
