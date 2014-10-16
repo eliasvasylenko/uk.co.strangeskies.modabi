@@ -1,11 +1,9 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 
-public interface InputSequenceNodeConfigurator<C extends BindingChildNode<?, ?, ?>>
-		extends
-		ChildNodeConfigurator<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>,
-		SchemaNodeConfigurator<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C>,
-		InputNodeConfigurator<InputSequenceNodeConfigurator<C>, InputSequenceNode, C, C> {
+public interface InputSequenceNodeConfigurator extends
+		ChildNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
+		SchemaNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
+		InputNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode> {
 }

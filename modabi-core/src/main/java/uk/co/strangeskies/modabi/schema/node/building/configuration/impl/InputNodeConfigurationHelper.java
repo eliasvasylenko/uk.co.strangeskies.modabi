@@ -13,12 +13,11 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final E effective;
-	private final OverrideMerge<N, ? extends ChildNodeConfigurator<?, N, ?, ?>> overrideMerge;
+	private final OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge;
 	private final SchemaNodeConfigurationContext<? super N> context;
 
-	public InputNodeConfigurationHelper(
-			E effective,
-			OverrideMerge<N, ? extends ChildNodeConfigurator<?, N, ?, ?>> overrideMerge,
+	public InputNodeConfigurationHelper(E effective,
+			OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge,
 			SchemaNodeConfigurationContext<? super N> context) {
 		this.effective = effective;
 		this.overrideMerge = overrideMerge;

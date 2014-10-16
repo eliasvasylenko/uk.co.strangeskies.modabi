@@ -10,16 +10,15 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 
-public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T, C, B>, N extends BindingChildNode<T, N, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends BindingNodeConfiguratorImpl<S, N, T, C, B> implements
-		BindingChildNodeConfigurator<S, N, T, C, B> {
+public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
+		extends BindingNodeConfiguratorImpl<S, N, T> implements
+		BindingChildNodeConfigurator<S, N, T> {
 	protected static abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 			extends BindingNodeImpl<T, S, E> implements BindingChildNode<T, S, E> {
 		protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
@@ -43,7 +42,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Class<?> postInputClass;
 
 			protected Effective(
-					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				if (isAbstract()
@@ -162,8 +161,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		private final Boolean extensible;
 		private final Boolean ordered;
 
-		BindingChildNodeImpl(
-				BindingChildNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
+		BindingChildNodeImpl(BindingChildNodeConfiguratorImpl<?, ?, T> configurator) {
 			super(configurator);
 
 			postInputClass = configurator.postInputClass;
@@ -260,10 +258,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public <V extends T> BindingChildNodeConfigurator<?, ?, V, C, B> dataClass(
+	public <V extends T> BindingChildNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {
-		return (BindingChildNodeConfigurator<?, ?, V, C, B>) super
-				.dataClass(dataClass);
+		return (BindingChildNodeConfigurator<?, ?, V>) super.dataClass(dataClass);
 	}
 
 	@Override

@@ -8,7 +8,6 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
-import uk.co.strangeskies.modabi.schema.node.DataNodeChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
@@ -16,9 +15,8 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 
-public class DataNodeConfiguratorImpl<T>
-		extends
-		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T, DataNodeChildNode<?, ?>, DataNode<?>>
+public class DataNodeConfiguratorImpl<T> extends
+		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
 		implements DataNodeConfigurator<T> {
 	protected static class DataNodeImpl<T> extends
 			BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>> implements
@@ -88,7 +86,7 @@ public class DataNodeConfiguratorImpl<T>
 
 			@Override
 			protected QualifiedName defaultName(
-					OverrideMerge<DataNode<T>, ? extends SchemaNodeConfiguratorImpl<?, DataNode<T>, ?, ?>> overrideMerge) {
+					OverrideMerge<DataNode<T>, ? extends SchemaNodeConfiguratorImpl<?, DataNode<T>>> overrideMerge) {
 				DataBindingType<T> type = overrideMerge.tryGetValue(DataNode::type, (o,
 						n) -> true);
 				return type == null ? null : type.getName();

@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
@@ -24,9 +23,9 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T, C, B>, N extends BindingNode<T, N, ?>, T, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends SchemaNodeConfiguratorImpl<S, N, C, B> implements
-		BindingNodeConfigurator<S, N, T, C, B> {
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
+		extends SchemaNodeConfiguratorImpl<S, N> implements
+		BindingNodeConfigurator<S, N, T> {
 	protected static abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 			extends SchemaNodeImpl<S, E> implements BindingNode<T, S, E> {
 		protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
@@ -45,7 +44,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 			protected Effective(
-					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
 				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
@@ -147,8 +146,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 		private final List<QualifiedName> unbindingParameterNames;
 
-		public BindingNodeImpl(
-				BindingNodeConfiguratorImpl<?, ?, T, ?, ?> configurator) {
+		public BindingNodeImpl(BindingNodeConfiguratorImpl<?, ?, T> configurator) {
 			super(configurator);
 
 			dataClass = configurator.dataClass;
@@ -221,17 +219,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> BindingNodeConfigurator<?, ?, V, C, B> dataClass(
+	public <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {
 		requireConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
-		return (BindingNodeConfigurator<?, ?, V, C, B>) this;
+		return (BindingNodeConfigurator<?, ?, V>) this;
 	}
 
 	@Override
-	public ChildrenConfigurator<C, B> createChildrenConfigurator() {
-		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?, ?, ?>> overrideMerge = overrideMerge(
+	public ChildrenConfigurator createChildrenConfigurator() {
+		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
 		Class<?> unbindingClass = overrideMerge.getValueWithOverride(
@@ -249,7 +247,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		/*
 		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE
 		 */
-		return new SequentialChildrenConfigurator<>(
+		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
 					public DataLoader dataLoader() {

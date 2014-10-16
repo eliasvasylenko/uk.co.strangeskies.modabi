@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 import uk.co.strangeskies.modabi.model.nodes.test.DummyNodes;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
@@ -75,7 +74,7 @@ public class ChildrenConfiguratorTests {
 
 	@Test(dataProvider = "mergeData")
 	public void childrenMergeTest(MergeTestData mergeTestData) {
-		SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>> configurator = new SequentialChildrenConfigurator<ChildNode<?, ?>, BindingChildNode<?, ?, ?>>(
+		SequentialChildrenConfigurator configurator = new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
 					public DataLoader dataLoader() {

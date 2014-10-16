@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
@@ -19,7 +17,7 @@ import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
 
 public class ComplexNodeConfiguratorImpl<T>
 		extends
-		BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T, ChildNode<?, ?>, BindingChildNode<?, ?, ?>>
+		BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T>
 		implements ComplexNodeConfigurator<T> {
 	protected static class ComplexNodeImpl<T> extends
 			BindingChildNodeImpl<T, ComplexNode<T>, ComplexNode.Effective<T>>

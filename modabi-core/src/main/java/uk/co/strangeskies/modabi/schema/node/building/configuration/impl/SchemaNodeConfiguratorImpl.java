@@ -11,11 +11,10 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
@@ -30,8 +29,8 @@ import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N, C, B>, N extends SchemaNode<?, ?>, C extends ChildNode<?, ?>, B extends BindingChildNode<?, ?, ?>>
-		extends Configurator<N> implements SchemaNodeConfigurator<S, N, C, B> {
+public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?, ?>>
+		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
 	public static abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
 			implements SchemaNode<S, E> {
 		protected static abstract class Effective<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
@@ -45,7 +44,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private PropertySet<E> combinedPropertySet;
 
 			protected Effective(
-					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
 				source = overrideMerge.node().source();
 
 				name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true,
@@ -62,7 +61,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			}
 
 			protected QualifiedName defaultName(
-					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S, ?, ?>> overrideMerge) {
+					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
 				return null;
 			}
 
@@ -160,7 +159,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		private PropertySet<S> propertySet;
 
-		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?, ?, ?> configurator) {
+		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
 			configurator.finaliseConfiguration();
 			configurator.finaliseChildren();
 
@@ -210,7 +209,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 	}
 
-	private ChildrenConfigurator<C, B> childrenConfigurator;
+	private ChildrenConfigurator childrenConfigurator;
 	private ChildrenContainer childrenContainer;
 
 	private boolean finalised;
@@ -249,7 +248,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return childrenContainer;
 	}
 
-	public ChildrenConfigurator<C, B> getChildrenConfigurator() {
+	public ChildrenConfigurator getChildrenConfigurator() {
 		return childrenConfigurator;
 	}
 
@@ -286,16 +285,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return name;
 	}
 
-	protected abstract ChildrenConfigurator<C, B> createChildrenConfigurator();
+	protected abstract ChildrenConfigurator createChildrenConfigurator();
 
 	@Override
-	public ChildBuilder<C, B> addChild() {
+	public ChildBuilder addChild() {
 		finaliseConfiguration();
 
 		return childrenConfigurator.addChild();
 	}
 
-	protected static <S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S, ?, ?>> OverrideMerge<S, C> overrideMerge(
+	protected static <S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S>> OverrideMerge<S, C> overrideMerge(
 			S node, C configurator) {
 		return new OverrideMerge<S, C>(node, configurator);
 	}
