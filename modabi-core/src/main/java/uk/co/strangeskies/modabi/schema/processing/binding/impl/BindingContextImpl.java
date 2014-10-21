@@ -23,10 +23,11 @@ import uk.co.strangeskies.modabi.schema.processing.Provisions;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingException;
+import uk.co.strangeskies.modabi.schema.processing.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 import uk.co.strangeskies.utilities.factory.Factory;
 
-public class BindingContextImpl implements BindingContext {
+public class BindingContextImpl extends ProcessingContextImpl implements BindingContext {
 	private interface BindingProvisions {
 		<U> U provide(Class<U> clazz, BindingContextImpl headContext);
 

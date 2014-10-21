@@ -25,11 +25,13 @@ import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.Provisions;
 import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.processing.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 import uk.co.strangeskies.utilities.factory.Factory;
 
-public class UnbindingContextImpl implements UnbindingContext {
+public class UnbindingContextImpl extends ProcessingContextImpl implements
+		UnbindingContext {
 	private interface UnbindingProvisions {
 		<U> U provide(Class<U> clazz, UnbindingContextImpl headContext);
 
