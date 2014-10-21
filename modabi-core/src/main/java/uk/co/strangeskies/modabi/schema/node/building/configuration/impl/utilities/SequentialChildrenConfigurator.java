@@ -268,6 +268,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
+			public boolean isStaticMethodExpected() {
+				return SequentialChildrenConfigurator.this.context
+						.isStaticMethodExpected() && children.isEmpty();
+			}
+
+			@Override
 			public Class<?> inputTargetClass(QualifiedName name) {
 				if (!isInputExpected())
 					return null;

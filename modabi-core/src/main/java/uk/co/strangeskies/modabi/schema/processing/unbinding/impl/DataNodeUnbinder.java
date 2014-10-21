@@ -47,6 +47,8 @@ public class DataNodeUnbinder {
 
 	private <U> void unbindWithFormat(DataNode.Effective<U> node, List<U> data,
 			DataNode.Format format, UnbindingContextImpl context) {
+		Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
+
 		BufferingDataTarget target = null;
 
 		if (node.isValueProvided())
@@ -70,7 +72,7 @@ public class DataNodeUnbinder {
 					context = context.withProvision(DataTarget.class, () -> finalTarget);
 				}
 
-				unbindToContext(node, item, context);
+				unbindToContext(node, item, context, attemptedOverrideMap);
 
 				if (format != null) {
 					DataSource bufferedTarget = target.buffer();
@@ -98,9 +100,8 @@ public class DataNodeUnbinder {
 
 	@SuppressWarnings("unchecked")
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
-			UnbindingContextImpl context) {
-		Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
-
+			UnbindingContextImpl context,
+			Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap) {
 		if (node.isExtensible() != null && node.isExtensible()) {
 			List<? extends DataBindingType.Effective<? extends U>> nodes = context
 					.getMatchingTypes(node, data.getClass());

@@ -102,6 +102,11 @@ public class ChildrenConfiguratorTests {
 					}
 
 					@Override
+					public boolean isStaticMethodExpected() {
+						return false;
+					}
+
+					@Override
 					public Namespace namespace() {
 						return Namespace.getDefault();
 					}

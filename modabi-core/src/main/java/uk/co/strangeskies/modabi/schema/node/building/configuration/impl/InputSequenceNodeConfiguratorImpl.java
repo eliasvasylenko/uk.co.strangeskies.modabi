@@ -222,6 +222,11 @@ public class InputSequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
+					public boolean isStaticMethodExpected() {
+						return false;
+					}
+
+					@Override
 					public Namespace namespace() {
 						return getNamespace();
 					}

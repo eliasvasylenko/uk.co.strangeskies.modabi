@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.ClassUtils;
+
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -69,7 +71,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				Method overriddenOutMethod = overrideMerge.tryGetValue(n -> n
 						.effective() == null ? null : n.effective().getOutMethod());
 				outMethod = (isAbstract() || "null".equals(outMethodName)) ? null
-						: Methods.getOutMethod(this, overriddenOutMethod, overrideMerge
+						: getOutMethod(this, overriddenOutMethod, overrideMerge
 								.configurator().getContext().outputSourceClass());
 
 				if (outMethodName == null && !isAbstract())
@@ -144,6 +146,63 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			@Override
 			public Boolean isInMethodCast() {
 				return allowInMethodResultCast;
+			}
+
+			public static Method getOutMethod(
+					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
+					Class<?> targetClass) {
+				try {
+					Class<?> resultClass = (node.isOutMethodIterable() != null && node
+							.isOutMethodIterable()) ? Iterable.class : node.getDataClass();
+
+					Method outMethod;
+					if (node.getOutMethodName() != null
+							&& node.getOutMethodName().equals("this")) {
+						if (!ClassUtils.isAssignable(targetClass, resultClass))
+							throw new SchemaException(
+									"Can't use out method 'this' for node '" + node.getName()
+											+ "', as result class '" + resultClass
+											+ "' cannot be assigned from target class'" + targetClass
+											+ "'.");
+						outMethod = null;
+					} else if (targetClass == null) {
+						if (!node.isAbstract())
+							throw new SchemaException("Can't find out method for node '"
+									+ node.getName() + "' as target class cannot be found.");
+						outMethod = null;
+					} else if (resultClass == null) {
+						if (!node.isAbstract())
+							throw new SchemaException("Can't find out method for node '"
+									+ node.getName() + "' as result class cannot be found.");
+						outMethod = null;
+					} else {
+						outMethod = Methods.findMethod(
+								generateOutMethodNames(node, resultClass), targetClass, false,
+								resultClass, false);
+
+						if (inheritedOutMethod != null
+								&& !outMethod.equals(inheritedOutMethod))
+							throw new SchemaException();
+					}
+
+					return outMethod;
+				} catch (NoSuchMethodException e) {
+					throw new SchemaException(e);
+				}
+			}
+
+			private static List<String> generateOutMethodNames(
+					BindingChildNode.Effective<?, ?, ?> node, Class<?> resultClass) {
+				List<String> names;
+
+				if (node.getOutMethodName() != null)
+					names = Arrays.asList(node.getOutMethodName());
+				else
+					names = generateUnbindingMethodNames(node.getName().getName(),
+							node.isOutMethodIterable() != null && node.isOutMethodIterable(),
+							resultClass);
+
+				return names;
 			}
 		}
 

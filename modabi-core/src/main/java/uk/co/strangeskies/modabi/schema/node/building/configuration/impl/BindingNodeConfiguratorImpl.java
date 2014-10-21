@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
@@ -76,8 +78,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				unbindingMethodName = overrideMerge
 						.tryGetValue(BindingNode::getUnbindingMethodName);
 
-				unbindingMethod = isAbstract() ? null : Methods
-						.findUnbindingMethod(this);
+				unbindingMethod = isAbstract() ? null : findUnbindingMethod();
 
 				if (unbindingMethodName == null && !isAbstract()
 						&& unbindingStrategy != UnbindingStrategy.SIMPLE
@@ -133,6 +134,123 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			@Override
 			public List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
 				return providedUnbindingParameterNames;
+			}
+
+			private Method findUnbindingMethod() {
+				UnbindingStrategy unbindingStrategy = getUnbindingStrategy();
+				if (unbindingStrategy == null)
+					unbindingStrategy = UnbindingStrategy.SIMPLE;
+
+				switch (unbindingStrategy) {
+				case SIMPLE:
+				case CONSTRUCTOR:
+					return null;
+
+				case STATIC_FACTORY:
+				case PROVIDED_FACTORY:
+					Class<?> receiverClass = getUnbindingFactoryClass() != null ? getUnbindingFactoryClass()
+							: getUnbindingClass();
+					return findUnbindingMethod(getUnbindingClass(), receiverClass,
+							findUnbindingMethodParameterClasses(BindingNode::getDataClass));
+
+				case PASS_TO_PROVIDED:
+					return findUnbindingMethod(null, getUnbindingClass(),
+							findUnbindingMethodParameterClasses(BindingNode::getDataClass));
+
+				case ACCEPT_PROVIDED:
+					return findUnbindingMethod(
+							null,
+							getDataClass(),
+							findUnbindingMethodParameterClasses(BindingNode::getUnbindingClass));
+				}
+				throw new AssertionError();
+			}
+
+			private List<Class<?>> findUnbindingMethodParameterClasses(
+					Function<BindingNode.Effective<?, ?, ?>, Class<?>> nodeClass) {
+				List<Class<?>> classList = new ArrayList<>();
+
+				boolean addedNodeClass = false;
+				List<DataNode.Effective<?>> parameters = getProvidedUnbindingMethodParameters();
+				if (parameters != null) {
+					for (DataNode.Effective<?> parameter : parameters) {
+						if (parameter == null)
+							if (addedNodeClass)
+								throw new SchemaException();
+							else {
+								addedNodeClass = true;
+								classList.add(nodeClass.apply(this));
+							}
+						else {
+							classList.add(parameter.getDataClass());
+						}
+					}
+				}
+				if (!addedNodeClass)
+					classList.add(0, nodeClass.apply(this));
+
+				return classList;
+			}
+
+			private Method findUnbindingMethod(Class<?> result, Class<?> receiver,
+					List<Class<?>> parameters) {
+				List<String> names = generateUnbindingMethodNames(result);
+				try {
+					return Methods.findMethod(names, receiver,
+							getBindingStrategy() == BindingStrategy.STATIC_FACTORY, result,
+							false, parameters);
+				} catch (NoSuchMethodException | SchemaException | SecurityException e) {
+					throw new SchemaException("Cannot find unbinding method for node '"
+							+ this + "' of class '" + result + "', reveiver '" + receiver
+							+ "', and parameters '" + parameters + "' with any name of '"
+							+ names + "'.", e);
+				}
+			}
+
+			private List<String> generateUnbindingMethodNames(Class<?> resultClass) {
+				List<String> names;
+
+				if (getUnbindingMethodName() != null)
+					names = Arrays.asList(getUnbindingMethodName());
+				else
+					names = generateUnbindingMethodNames(getName().getName(), false,
+							resultClass);
+
+				return names;
+			}
+
+			protected static List<String> generateUnbindingMethodNames(
+					String propertyName, boolean isIterable, Class<?> resultClass) {
+				List<String> names = new ArrayList<>();
+
+				names.add(propertyName);
+				names.add(propertyName + "Value");
+				if (isIterable) {
+					for (String name : new ArrayList<>(names)) {
+						names.add(name + "s");
+						names.add(name + "List");
+						names.add(name + "Set");
+						names.add(name + "Collection");
+						names.add(name + "Array");
+					}
+				}
+				if (resultClass != null
+						&& (resultClass.equals(Boolean.class) || resultClass
+								.equals(boolean.class)))
+					names.add("is"
+							+ InputNodeConfigurationHelper.capitalize(propertyName));
+
+				List<String> namesAndBlank = new ArrayList<>(names);
+				namesAndBlank.add("");
+
+				for (String name : namesAndBlank) {
+					names.add("get" + InputNodeConfigurationHelper.capitalize(name));
+					names.add("to" + InputNodeConfigurationHelper.capitalize(name));
+					names.add("compose" + InputNodeConfigurationHelper.capitalize(name));
+					names.add("create" + InputNodeConfigurationHelper.capitalize(name));
+				}
+
+				return names;
 			}
 		}
 
@@ -272,6 +390,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					@Override
 					public boolean isConstructorExpected() {
 						return bindingStrategy == BindingStrategy.CONSTRUCTOR;
+					}
+
+					public boolean isStaticMethodExpected() {
+						return bindingStrategy == BindingStrategy.STATIC_FACTORY;
 					}
 
 					@Override

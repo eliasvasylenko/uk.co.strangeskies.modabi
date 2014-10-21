@@ -2,6 +2,8 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -53,15 +55,66 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		if (effective.isAbstract() || "null".equals(overriddenInMethodName)) {
 			inMethod = null;
-		} else if (context.isConstructorExpected()) {
-			inMethod = Methods.getConstructor(effective, inputTargetClass(),
-					parameters);
 		} else {
-			inMethod = Methods.getInMethod(effective, overriddenInMethodName,
-					inputTargetClass(), parameters);
+			try {
+				Class<?> result;
+				if (effective.isInMethodChained()) {
+					result = effective.source().getPostInputClass();
+					if (result == null)
+						result = Object.class;
+				} else
+					result = null;
+
+				if (context.isConstructorExpected())
+					inMethod = Methods.findConstructor(inputTargetClass(), parameters);
+				else
+					inMethod = Methods.findMethod(
+							generateInMethodNames(effective, overriddenInMethodName),
+							inputTargetClass(),
+							context.isStaticMethodExpected(),
+							result,
+							effective != null && effective.isInMethodChained()
+									&& effective.isInMethodCast(), parameters);
+			} catch (NoSuchMethodException e) {
+				throw new SchemaException("Cannot find input method for node '"
+						+ effective + "' on class '" + inputTargetClass()
+						+ "' with parameters '" + parameters + "'.", e);
+			}
 		}
 
 		return inMethod;
+	}
+
+	private static List<String> generateInMethodNames(
+			InputNode.Effective<?, ?> node, String inheritedInMethodName) {
+		List<String> names;
+
+		if (inheritedInMethodName != null)
+			names = Arrays.asList(inheritedInMethodName);
+		else {
+			names = new ArrayList<>();
+
+			names.add(node.getName().getName());
+			names.add(node.getName().getName() + "Value");
+
+			List<String> namesAndBlank = new ArrayList<>(names);
+			namesAndBlank.add("");
+
+			for (String name : namesAndBlank) {
+				names.add("set" + capitalize(name));
+				names.add("from" + capitalize(name));
+				names.add("parse" + capitalize(name));
+				names.add("add" + capitalize(name));
+				names.add("put" + capitalize(name));
+			}
+		}
+
+		return names;
+	}
+
+	public static String capitalize(String string) {
+		return string == "" ? "" : Character.toUpperCase(string.charAt(0))
+				+ string.substring(1);
 	}
 
 	public String inMethodName() {

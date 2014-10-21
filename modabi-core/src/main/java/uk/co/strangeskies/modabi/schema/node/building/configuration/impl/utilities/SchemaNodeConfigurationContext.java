@@ -19,6 +19,8 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	boolean isConstructorExpected();
 
+	boolean isStaticMethodExpected();
+
 	Namespace namespace();
 
 	Class<?> inputTargetClass(QualifiedName node);
