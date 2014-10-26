@@ -2,22 +2,16 @@ package uk.co.strangeskies.modabi.schema.processing.impl;
 
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.schema.processing.impl.ProcessingContextImpl.BufferMap.Scope;
+import uk.co.strangeskies.utilities.collection.ComputingMap;
 
 public class ProcessingContextImpl {
-	public interface BufferMap<K, V> {
-		public enum Scope {
-			MANAGER_GLOBAL, SCHEMA_GLOBAL, PROCESS_GLOBAL, CHILD_NODES
-		}
-
-		V get(K key);
-
-		V put(K key);
+	public enum CacheScope {
+		MANAGER_GLOBAL, SCHEMA_GLOBAL, PROCESS_GLOBAL, CHILD_NODES
 	}
 
 	/**
-	 * Returns a unique buffer map for each key/value pair provided. The same
-	 * underlying data is accessed regardless of the computation function and
+	 * Returns a unique buffer map for each key/value pair class requested. The
+	 * same underlying data is accessed regardless of the computation function and
 	 * scope requested.
 	 * 
 	 * @param key
@@ -33,8 +27,8 @@ public class ProcessingContextImpl {
 	 *          map view should be retained within.
 	 * @return
 	 */
-	public final <K, V> BufferMap<K, V> getBufferMap(Class<K> key,
-			Class<V> value, Function<K, V> computation, Scope scope) {
+	public final <K, V> ComputingMap<K, V> getBufferMap(Class<K> key,
+			Class<V> value, Function<K, V> computation, CacheScope scope) {
 		return null;
 	}
 }
