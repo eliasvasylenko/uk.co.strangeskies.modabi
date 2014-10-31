@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:ex="http://example.modabi.strangeskies.co.uk"
+	xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/" name="ex:BasicExample">
+	<models>
+		<model name="ex:person" dataClass="uk.co.strangeskies.modabi.example.Person"
+			bindingStrategy="CONSTRUCTOR">
+			<inputSequence name="ex:constructor">
+				<simple name="ex:firstName" />
+				<simple name="ex:lastName" />
+			</inputSequence>
+		</model>
+	</models>
+</schema>

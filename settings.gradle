@@ -2,4 +2,5 @@ rootProject.name = 'modabi'
 include ':modabi-core',
 		':modabi-xml',
 		':modabi-yaml',
+		':modabi-examples',
 		':benchmark-comparisons'
