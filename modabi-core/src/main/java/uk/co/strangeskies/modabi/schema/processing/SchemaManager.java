@@ -36,12 +36,19 @@ public interface SchemaManager {
 		return bindFuture(model, input).resolveNow().getData();
 	}
 
+	default <T> T bind(Class<T> dataClass, StructuredDataSource input) {
+		return bindFuture(dataClass, input).resolveNow().getData();
+	}
+
 	default Binding<?> bind(StructuredDataSource input) {
 		return bindFuture(input).resolveNow();
 	}
 
 	// Blocks until all possible processing is done other than waiting imports:
 	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input);
+
+	// Blocks until all possible processing is done other than waiting imports:
+	<T> BindingFuture<T> bindFuture(Class<T> dataClass, StructuredDataSource input);
 
 	BindingFuture<?> bindFuture(StructuredDataSource input);
 
@@ -73,8 +80,7 @@ public interface SchemaManager {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
-	<T> void unbind(StructuredDataTarget output, Class<? extends T> dataClass,
-			T data);
+	<T> void unbind(Class<T> dataClass, StructuredDataTarget output, T data);
 
 	void unbind(StructuredDataTarget output, Object data);
 

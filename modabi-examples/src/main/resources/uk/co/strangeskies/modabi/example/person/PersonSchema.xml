@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns:ex="http://example.modabi.strangeskies.co.uk"
+<schema xmlns:ex="http://example.modabi.strangeskies.co.uk/2014-01-01/"
 	xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/" name="ex:BasicExample">
 	<models>
 		<model name="ex:person" dataClass="uk.co.strangeskies.modabi.example.Person"
