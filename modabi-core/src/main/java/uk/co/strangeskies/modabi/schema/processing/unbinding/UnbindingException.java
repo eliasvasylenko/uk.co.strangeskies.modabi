@@ -21,7 +21,7 @@ public class UnbindingException extends SchemaException {
 	public UnbindingException(String message, UnbindingContext context,
 			Collection<? extends Exception> cause) {
 		super(message + " @ "
-				+ getUnbindingNodeStackString(context.unbindingNodeStack()), cause
+				+ getUnbindingNodeStackString(context.bindingNodeStack()), cause
 				.iterator().next());
 
 		multiCause = cause;
@@ -32,7 +32,7 @@ public class UnbindingException extends SchemaException {
 	public UnbindingException(String message, UnbindingContext context,
 			Exception cause) {
 		super(message + " @ "
-				+ getUnbindingNodeStackString(context.unbindingNodeStack()), cause);
+				+ getUnbindingNodeStackString(context.bindingNodeStack()), cause);
 
 		multiCause = Arrays.asList(cause);
 
@@ -41,7 +41,7 @@ public class UnbindingException extends SchemaException {
 
 	public UnbindingException(String message, UnbindingContext context) {
 		super(message + " @ "
-				+ getUnbindingNodeStackString(context.unbindingNodeStack()));
+				+ getUnbindingNodeStackString(context.bindingNodeStack()));
 		multiCause = null;
 		this.context = context;
 	}

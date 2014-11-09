@@ -324,7 +324,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S occurrences(Range<Integer> range) {
-		requireConfigurable(occurrences);
+		assertConfigurable(occurrences);
 		occurrences = range;
 		return getThis();
 	}
@@ -335,7 +335,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			throw new SchemaException(
 					"No input method should be specified on this node.");
 
-		requireConfigurable(this.inMethodName);
+		assertConfigurable(this.inMethodName);
 		this.inMethodName = inMethodName;
 
 		return getThis();
@@ -343,14 +343,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S inMethodChained(boolean chained) {
-		requireConfigurable(this.inMethodChained);
+		assertConfigurable(this.inMethodChained);
 		this.inMethodChained = chained;
 		return getThis();
 	}
 
 	@Override
 	public final S isInMethodCast(boolean allowInMethodResultCast) {
-		requireConfigurable(this.allowInMethodResultCast);
+		assertConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
 
 		return getThis();
@@ -358,21 +358,21 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S outMethod(String outMethodName) {
-		requireConfigurable(this.outMethodName);
+		assertConfigurable(this.outMethodName);
 		this.outMethodName = outMethodName;
 		return getThis();
 	}
 
 	@Override
 	public final S outMethodIterable(boolean iterable) {
-		requireConfigurable(this.iterable);
+		assertConfigurable(this.iterable);
 		this.iterable = iterable;
 		return getThis();
 	}
 
 	@Override
 	public final S extensible(boolean extensible) {
-		requireConfigurable(this.extensible);
+		assertConfigurable(this.extensible);
 		this.extensible = extensible;
 
 		return getThis();
@@ -380,7 +380,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S ordered(boolean ordered) {
-		requireConfigurable(this.ordered);
+		assertConfigurable(this.ordered);
 		this.ordered = ordered;
 
 		return getThis();
@@ -400,7 +400,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public S postInputClass(Class<?> postInputClass) {
-		requireConfigurable(this.postInputClass);
+		assertConfigurable(this.postInputClass);
 		this.postInputClass = postInputClass;
 
 		return getThis();

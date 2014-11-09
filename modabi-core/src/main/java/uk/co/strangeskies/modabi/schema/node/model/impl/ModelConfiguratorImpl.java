@@ -108,7 +108,7 @@ public class ModelConfiguratorImpl<T> extends
 	@Override
 	public <V extends T> ModelConfigurator<V> baseModel(
 			List<? extends Model<? super V>> base) {
-		requireConfigurable(this.baseModel);
+		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
 		return (ModelConfigurator<V>) this;

@@ -52,7 +52,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	public S postInputClass(Class<?> postInputClass) {
-		requireConfigurable(this.postInputClass);
+		assertConfigurable(this.postInputClass);
 		this.postInputClass = postInputClass;
 
 		return getThis();

@@ -10,16 +10,16 @@ import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.Models;
-import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.utilities.collection.SetMultiMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class Bindings {
 	public final Models models;
-	public final SetMultiMap<AbstractComplexNode<?, ?, ?>, Object> bindings;
+	public final MultiMap<AbstractComplexNode<?, ?, ?>, Object, Set<Object>> bindings;
 
 	public Bindings() {
 		models = new Models();
-		bindings = new HashSetMultiHashMap<>();
+		bindings = new MultiHashMap<>(HashSet::new);
 	}
 
 	public <T> void add(ComplexNode<?> element, T data) {

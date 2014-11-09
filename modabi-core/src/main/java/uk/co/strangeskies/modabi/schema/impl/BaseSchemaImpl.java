@@ -33,11 +33,11 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.reference.ImportSource;
 import uk.co.strangeskies.modabi.schema.processing.reference.IncludeTarget;
-import uk.co.strangeskies.modabi.schema.processing.reference.DereferenceSource;
+import uk.co.strangeskies.modabi.schema.processing.reference.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.utilities.Enumeration;
 

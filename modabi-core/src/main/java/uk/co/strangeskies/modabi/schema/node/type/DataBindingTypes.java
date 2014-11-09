@@ -8,8 +8,8 @@ import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.utilities.collection.MultiHashMap;
-import uk.co.strangeskies.utilities.collection.MultiMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
 	private final MultiMap<DataBindingType<?>, DataBindingType<?>, ListOrderedSet<DataBindingType<?>>> derivedTypes;

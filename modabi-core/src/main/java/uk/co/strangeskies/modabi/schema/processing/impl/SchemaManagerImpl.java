@@ -38,12 +38,12 @@ import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
 import uk.co.strangeskies.modabi.schema.processing.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.processing.binding.impl.SchemaBinder;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.impl.SchemaUnbinder;
-import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.utilities.collection.SetMultiMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class SchemaManagerImpl implements SchemaManager {
 	private final List<Function<Class<?>, Object>> providers;
-	private final SetMultiMap<Model<?>, BindingFuture<?>> bindingFutures;
+	private final MultiMap<Model<?>, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
 
 	private final CoreSchemata coreSchemata;
 
@@ -59,7 +59,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
 		providers = new ArrayList<>();
-		bindingFutures = new HashSetMultiHashMap<>(); // TODO make synchronous
+		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
 
 		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
 				dataTypeBuilder);

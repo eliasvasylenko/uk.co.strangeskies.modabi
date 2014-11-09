@@ -162,7 +162,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 			throw new SchemaException(
 					"No input method should be specified on this node.");
 
-		requireConfigurable(inMethodName);
+		assertConfigurable(inMethodName);
 		inMethodName = methodName;
 
 		return this;
@@ -170,7 +170,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 	@Override
 	public InputSequenceNodeConfigurator inMethodChained(boolean chained) {
-		requireConfigurable(inMethodChained);
+		assertConfigurable(inMethodChained);
 		inMethodChained = chained;
 
 		return this;
@@ -179,7 +179,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	@Override
 	public InputSequenceNodeConfigurator isInMethodCast(
 			boolean allowInMethodResultCast) {
-		requireConfigurable(this.allowInMethodResultCast);
+		assertConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
 
 		return this;

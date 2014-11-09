@@ -339,7 +339,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	@Override
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {
-		requireConfigurable(this.dataClass);
+		assertConfigurable(this.dataClass);
 		this.dataClass = (Class<T>) dataClass;
 
 		return (BindingNodeConfigurator<?, ?, V>) this;
@@ -432,7 +432,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public final S bindingClass(Class<?> bindingClass) {
-		requireConfigurable(this.bindingClass);
+		assertConfigurable(this.bindingClass);
 		this.bindingClass = bindingClass;
 
 		return getThis();
@@ -440,7 +440,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S unbindingClass(Class<?> unbindingClass) {
-		requireConfigurable(this.unbindingClass);
+		assertConfigurable(this.unbindingClass);
 		this.unbindingClass = unbindingClass;
 
 		return getThis();
@@ -448,7 +448,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S unbindingMethod(String unbindingMethod) {
-		requireConfigurable(this.unbindingMethod);
+		assertConfigurable(this.unbindingMethod);
 		this.unbindingMethod = unbindingMethod;
 
 		return getThis();
@@ -456,7 +456,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public final S bindingStrategy(BindingStrategy strategy) {
-		requireConfigurable(bindingStrategy);
+		assertConfigurable(bindingStrategy);
 		bindingStrategy = strategy;
 
 		return getThis();
@@ -464,7 +464,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public final S unbindingStrategy(UnbindingStrategy strategy) {
-		requireConfigurable(unbindingStrategy);
+		assertConfigurable(unbindingStrategy);
 		unbindingStrategy = strategy;
 
 		return getThis();
@@ -472,7 +472,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S unbindingFactoryClass(Class<?> factoryClass) {
-		requireConfigurable(unbindingFactoryClass);
+		assertConfigurable(unbindingFactoryClass);
 		unbindingFactoryClass = factoryClass;
 
 		return getThis();
@@ -481,7 +481,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	@Override
 	public final S providedUnbindingMethodParameters(
 			List<QualifiedName> parameterNames) {
-		requireConfigurable(unbindingParameterNames);
+		assertConfigurable(unbindingParameterNames);
 		unbindingParameterNames = new ArrayList<>(parameterNames);
 
 		return getThis();

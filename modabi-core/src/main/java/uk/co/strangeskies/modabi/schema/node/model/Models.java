@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.schema.node.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -11,19 +12,17 @@ import org.apache.commons.collections4.set.ListOrderedSet;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
 import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
-import uk.co.strangeskies.utilities.collection.HashSetMultiHashMap;
-import uk.co.strangeskies.utilities.collection.MultiHashMap;
-import uk.co.strangeskies.utilities.collection.MultiMap;
-import uk.co.strangeskies.utilities.collection.SetMultiMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
+import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class Models extends QualifiedNamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, ListOrderedSet<Model<?>>> derivedModels;
-	private final SetMultiMap<Class<?>, Model<?>> classModels;
+	private final MultiMap<Class<?>, Model<?>, Set<Model<?>>> classModels;
 
 	public Models() {
-		super(t -> t.getName());
+		super(Model::getName);
 		derivedModels = new MultiHashMap<>(() -> new ListOrderedSet<>());
-		classModels = new HashSetMultiHashMap<>();
+		classModels = new MultiHashMap<>(HashSet::new);
 	}
 
 	@Override
@@ -66,7 +65,8 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<T>> getMatchingModels(
-			AbstractComplexNode.Effective<T, ?, ?> element, Class<? extends T> dataClass) {
+			AbstractComplexNode.Effective<T, ?, ?> element,
+			Class<? extends T> dataClass) {
 		Iterator<? extends Model<?>> baseModelIterator = element.baseModel()
 				.iterator();
 

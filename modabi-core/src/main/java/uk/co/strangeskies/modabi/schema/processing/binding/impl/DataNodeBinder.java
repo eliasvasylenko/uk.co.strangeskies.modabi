@@ -59,7 +59,7 @@ public class DataNodeBinder {
 					results.add(result);
 
 					if (node.isInMethodChained())
-						context = context.withReplacedBindingTarget(result);
+						context = this.context.withBindingTarget(result);
 
 					context.input().endChild();
 				}

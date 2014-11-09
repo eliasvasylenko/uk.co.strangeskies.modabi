@@ -221,13 +221,13 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		finalised = false;
 	}
 
-	protected final void requireConfigurable(Object object) {
-		requireConfigurable();
+	protected final void assertConfigurable(Object object) {
+		assertConfigurable();
 		if (object != null)
 			throw new InvalidBuildStateException(this);
 	}
 
-	protected final void requireConfigurable() {
+	protected final void assertConfigurable() {
 		if (finalised)
 			throw new InvalidBuildStateException(this);
 	}
@@ -259,7 +259,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	@Override
 	public final S name(QualifiedName name) {
-		requireConfigurable(this.name);
+		assertConfigurable(this.name);
 		this.name = name;
 
 		return getThis();
@@ -267,7 +267,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	@Override
 	public final S isAbstract(boolean isAbstract) {
-		requireConfigurable(this.isAbstract);
+		assertConfigurable(this.isAbstract);
 		this.isAbstract = isAbstract;
 
 		return getThis();

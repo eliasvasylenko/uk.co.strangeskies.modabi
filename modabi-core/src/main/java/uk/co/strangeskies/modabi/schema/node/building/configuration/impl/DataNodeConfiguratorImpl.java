@@ -204,7 +204,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	@Override
 	public final <U extends T> DataNodeConfigurator<U> type(
 			DataBindingType<? super U> type) {
-		requireConfigurable(this.type);
+		assertConfigurable(this.type);
 		this.type = (DataBindingType<T>) type;
 
 		return (DataNodeConfigurator<U>) getThis();
@@ -229,7 +229,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource) {
-		requireConfigurable(providedBufferedValue);
+		assertConfigurable(providedBufferedValue);
 		providedBufferedValue = dataSource;
 
 		return getThis();
@@ -237,7 +237,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution) {
-		requireConfigurable(this.resolution);
+		assertConfigurable(this.resolution);
 		this.resolution = valueResolution;
 
 		return getThis();
@@ -245,7 +245,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public final DataNodeConfigurator<T> optional(boolean optional) {
-		requireConfigurable(this.optional);
+		assertConfigurable(this.optional);
 		this.optional = optional;
 
 		return this;
@@ -253,7 +253,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public final DataNodeConfigurator<T> format(Format format) {
-		requireConfigurable(this.format);
+		assertConfigurable(this.format);
 		this.format = format;
 
 		return this;

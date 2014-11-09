@@ -102,11 +102,12 @@ public class BindingNodeBinder {
 			throw new AssertionError();
 		}
 
-		childContext = childContext.withBindingTarget(binding);
+		BindingContextImpl rootContext = childContext;
+		childContext = rootContext.withBindingTarget(binding);
 
 		for (ChildNode.Effective<?, ?> child : children) {
 			binding = bindChild(child, childContext);
-			childContext = childContext.withReplacedBindingTarget(binding);
+			childContext = rootContext.withBindingTarget(binding);
 		}
 
 		return (U) binding;

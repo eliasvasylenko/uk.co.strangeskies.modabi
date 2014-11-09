@@ -98,7 +98,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@Override
 	public DataBindingTypeConfigurator<T> isPrivate(boolean isPrivate) {
-		requireConfigurable(this.isPrivate);
+		assertConfigurable(this.isPrivate);
 		this.isPrivate = isPrivate;
 
 		return this;
@@ -108,7 +108,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 	@Override
 	public final <U extends T> DataBindingTypeConfigurator<U> baseType(
 			DataBindingType<? super U> baseType) {
-		requireConfigurable(this.baseType);
+		assertConfigurable(this.baseType);
 		this.baseType = (DataBindingType<? super T>) baseType;
 
 		return (DataBindingTypeConfigurator<U>) this;

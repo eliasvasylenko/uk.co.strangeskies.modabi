@@ -111,7 +111,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	@Override
 	public <V extends T> ComplexNodeConfigurator<V> baseModel(
 			List<? extends Model<? super V>> base) {
-		requireConfigurable(this.baseModel);
+		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
 		return (ComplexNodeConfigurator<V>) this;
@@ -154,7 +154,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 	@Override
 	public ComplexNodeConfigurator<T> inline(boolean inline) {
-		requireConfigurable(this.inline);
+		assertConfigurable(this.inline);
 		this.inline = inline;
 
 		return this;

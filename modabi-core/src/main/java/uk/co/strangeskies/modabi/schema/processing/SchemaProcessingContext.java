@@ -1,8 +1,8 @@
 package uk.co.strangeskies.modabi.schema.processing;
 
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 

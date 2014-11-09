@@ -1,12 +1,20 @@
 package uk.co.strangeskies.modabi.schema.processing.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.schema.Bindings;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.utilities.collection.ComputingMap;
+import uk.co.strangeskies.utilities.collection.LRUCacheComputingMap;
 
 public class ProcessingContextImpl {
 	public enum CacheScope {
-		MANAGER, PROCESS, STACK
+		MANAGER_GLOBAL, PROCESS_LOCAL
 	}
 
 	private static class MetaKey<K, V> {
@@ -36,10 +44,47 @@ public class ProcessingContextImpl {
 		}
 	}
 
-	private final ComputingMap<MetaKey<?, ?>, ComputingMap<?, ?>> metaMap;
+	private final List<SchemaNode.Effective<?, ?>> bindingNodeStack;
+	private final Bindings bindings;// TODO erase bindings in failed sections
+
+	private final Map<MetaKey<?, ?>, ComputingMap<?, ?>> metaMap;
 
 	public ProcessingContextImpl() {
-		metaMap = null;
+		bindingNodeStack = Collections.emptyList();
+		this.bindings = new Bindings();
+		metaMap = new HashMap<>();
+	}
+
+	public ProcessingContextImpl(ProcessingContextImpl parentContext) {
+		bindingNodeStack = parentContext.bindingNodeStack;
+		bindings = parentContext.bindings;
+	}
+
+	public ProcessingContextImpl(ProcessingContextImpl parentContext,
+			SchemaNode.Effective<?, ?> bindingNode) {
+		List<SchemaNode.Effective<?, ?>> bindingNodeStack = new ArrayList<>(
+				parentContext.bindingNodeStack);
+		bindingNodeStack.add(bindingNode);
+		this.bindingNodeStack = Collections.unmodifiableList(bindingNodeStack);
+		bindings = parentContext.bindings;
+	}
+
+	public List<SchemaNode.Effective<?, ?>> bindingNodeStack() {
+		return bindingNodeStack;
+	}
+
+	public Bindings bindings() {
+		return bindings;
+	}
+
+	public final <K, V> ComputingMap<K, V> getBufferMap(Class<K> key,
+			Class<V> value) {
+		return getBufferMap(new MetaKey<>(key, value));
+	}
+
+	@SuppressWarnings("unchecked")
+	private final <K, V> ComputingMap<K, V> getBufferMap(MetaKey<K, V> metaKey) {
+		return (ComputingMap<K, V>) metaMap.get(metaKey);
 	}
 
 	/**
@@ -60,9 +105,14 @@ public class ProcessingContextImpl {
 	 *          map view should be retained within.
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public final <K, V> ComputingMap<K, V> getBufferMap(Class<K> key,
 			Class<V> value, Function<K, V> computation, CacheScope scope) {
-		return (ComputingMap<K, V>) metaMap.get(new MetaKey<>(key, value));
+		MetaKey<K, V> metaKey = new MetaKey<>(key, value);
+		ComputingMap<K, V> cache = getBufferMap(metaKey);
+
+		if (cache == null)
+			metaMap.put(metaKey, cache = new LRUCacheComputingMap<>(computation, 50));
+
+		return cache;
 	}
 }

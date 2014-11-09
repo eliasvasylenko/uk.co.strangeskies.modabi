@@ -20,7 +20,6 @@ import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.Provisions;
@@ -48,7 +47,6 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 				DataNode.Effective<T> node, Class<?> dataClass);
 	}
 
-	private final List<Effective<?, ?>> unbindingNodeStack;
 	private final List<Object> unbindingSourceStack;
 	private final StructuredDataTarget output;
 	private final Bindings bindings;
@@ -56,8 +54,8 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 	private final UnbindingSchemaAccess schemaAccess;
 
 	public UnbindingContextImpl(SchemaManager manager) {
-		this(Collections.emptyList(), Collections.emptyList(), null,
-				new Bindings(), new UnbindingProvisions() {
+		this(Collections.emptyList(), null, new Bindings(),
+				new UnbindingProvisions() {
 					@Override
 					public <U> U provide(Class<U> clazz, UnbindingContextImpl headContext) {
 						return manager.provisions().provide(clazz);
@@ -117,12 +115,9 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 				});
 	}
 
-	private UnbindingContextImpl(
-			List<SchemaNode.Effective<?, ?>> unbindingNodeStack,
-			List<Object> unbindingSourceStack, StructuredDataTarget output,
-			Bindings bindings, UnbindingProvisions provider,
-			UnbindingSchemaAccess schemaAccess) {
-		this.unbindingNodeStack = unbindingNodeStack;
+	private UnbindingContextImpl(List<Object> unbindingSourceStack,
+			StructuredDataTarget output, Bindings bindings,
+			UnbindingProvisions provider, UnbindingSchemaAccess schemaAccess) {
 		this.unbindingSourceStack = unbindingSourceStack;
 		this.output = output;
 		this.bindings = bindings;
@@ -130,9 +125,26 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		this.schemaAccess = schemaAccess;
 	}
 
-	@Override
-	public List<Effective<?, ?>> unbindingNodeStack() {
-		return unbindingNodeStack;
+	private UnbindingContextImpl(UnbindingContextImpl parent,
+			List<Object> unbindingSourceStack, StructuredDataTarget output,
+			Bindings bindings, UnbindingProvisions provider,
+			UnbindingSchemaAccess schemaAccess) {
+		super(parent);
+		this.unbindingSourceStack = unbindingSourceStack;
+		this.output = output;
+		this.bindings = bindings;
+		this.provider = provider;
+		this.schemaAccess = schemaAccess;
+	}
+
+	private UnbindingContextImpl(UnbindingContextImpl parent,
+			SchemaNode.Effective<?, ?> unbindingNode) {
+		super(parent, unbindingNode);
+		this.unbindingSourceStack = parent.unbindingSourceStack;
+		this.output = parent.output;
+		this.bindings = parent.bindings;
+		this.provider = parent.provider;
+		this.schemaAccess = parent.schemaAccess;
 	}
 
 	@Override
@@ -196,8 +208,8 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 			Function<UnbindingContextImpl, T> provider) {
 		UnbindingContextImpl base = this;
 
-		return new UnbindingContextImpl(unbindingNodeStack, unbindingSourceStack,
-				output, bindings, new UnbindingProvisions() {
+		return new UnbindingContextImpl(this, unbindingSourceStack, output,
+				bindings, new UnbindingProvisions() {
 					@SuppressWarnings("unchecked")
 					@Override
 					public <U> U provide(Class<U> clazz, UnbindingContextImpl headContext) {
@@ -219,25 +231,19 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		List<Object> unbindingSourceStack = new ArrayList<>(unbindingSourceStack());
 		unbindingSourceStack.add(target);
 
-		return new UnbindingContextImpl(unbindingNodeStack,
+		return new UnbindingContextImpl(this,
 				Collections.unmodifiableList(unbindingSourceStack), output, bindings,
 				provider, schemaAccess);
 	}
 
 	public <T> UnbindingContextImpl withUnbindingNode(
 			SchemaNode.Effective<?, ?> node) {
-		List<SchemaNode.Effective<?, ?>> unbindingNodeStack = new ArrayList<>(
-				unbindingNodeStack());
-		unbindingNodeStack.add(node);
-
-		return new UnbindingContextImpl(
-				Collections.unmodifiableList(unbindingNodeStack), unbindingSourceStack,
-				output, bindings, provider, schemaAccess);
+		return new UnbindingContextImpl(this, node);
 	}
 
 	public UnbindingContextImpl withOutput(StructuredDataTarget output) {
-		return new UnbindingContextImpl(unbindingNodeStack, unbindingSourceStack,
-				output, bindings, provider, schemaAccess);
+		return new UnbindingContextImpl(this, unbindingSourceStack, output,
+				bindings, provider, schemaAccess);
 	}
 
 	public void attemptUnbinding(Consumer<UnbindingContextImpl> unbindingMethod) {

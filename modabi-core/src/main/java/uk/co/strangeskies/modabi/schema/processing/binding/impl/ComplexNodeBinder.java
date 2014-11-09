@@ -70,7 +70,7 @@ public class ComplexNodeBinder {
 				binding = bindExactNode(context, exactNode);
 
 			if (node.isInMethodChained())
-				context = context.withReplacedBindingTarget(binding);
+				context = this.context.withBindingTarget(binding);
 
 			result.add(binding);
 			context.bindings().add(node, binding);

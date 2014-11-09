@@ -16,7 +16,6 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.processing.Provisions;
@@ -27,7 +26,8 @@ import uk.co.strangeskies.modabi.schema.processing.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingException;
 import uk.co.strangeskies.utilities.factory.Factory;
 
-public class BindingContextImpl extends ProcessingContextImpl implements BindingContext {
+public class BindingContextImpl extends ProcessingContextImpl implements
+		BindingContext {
 	private interface BindingProvisions {
 		<U> U provide(Class<U> clazz, BindingContextImpl headContext);
 
@@ -41,64 +41,72 @@ public class BindingContextImpl extends ProcessingContextImpl implements Binding
 				DataNode.Effective<T> node, Class<?> dataClass);
 	}
 
-	private final List<Effective<?, ?>> bindingNodeStack;
 	private final List<Object> bindingTargetStack;
 	private final StructuredDataSource input;
-	private final Bindings bindings;
 	private final BindingProvisions provider;
 	private final BindingSchemaAccess schemaAccess;
 
 	public BindingContextImpl(SchemaManager manager) {
-		this(Collections.emptyList(), Collections.emptyList(), null,
-				new Bindings(), new BindingProvisions() {
-					@Override
-					public <U> U provide(Class<U> clazz, BindingContextImpl headContext) {
-						return manager.provisions().provide(clazz);
-					}
+		super();
 
-					@Override
-					public boolean isProvided(Class<?> clazz) {
-						return manager.provisions().isProvided(clazz);
-					}
-				}, new BindingSchemaAccess() {
-					private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
+		this.bindingTargetStack = Collections.emptyList();
+		this.input = null;
+		this.provider = new BindingProvisions() {
+			@Override
+			public <U> U provide(Class<U> clazz, BindingContextImpl headContext) {
+				return manager.provisions().provide(clazz);
+			}
 
-					@Override
-					public Model.Effective<?> getModel(QualifiedName nextElement) {
-						Model<?> model = manager.registeredModels().get(nextElement);
-						return model == null ? null : model.effective();
-					}
+			@Override
+			public boolean isProvided(Class<?> clazz) {
+				return manager.provisions().isProvided(clazz);
+			}
+		};
+		this.schemaAccess = new BindingSchemaAccess() {
+			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
 
-					@Override
-					public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
-							DataNode.Effective<T> node, Class<?> dataClass) {
-						@SuppressWarnings("unchecked")
-						List<DataBindingType.Effective<? extends T>> cached = (List<DataBindingType.Effective<? extends T>>) attemptedMatchingTypes
-								.get(dataClass);
+			@Override
+			public Model.Effective<?> getModel(QualifiedName nextElement) {
+				Model<?> model = manager.registeredModels().get(nextElement);
+				return model == null ? null : model.effective();
+			}
 
-						if (cached == null) {
-							cached = manager.registeredTypes()
-									.getMatchingTypes(node, dataClass).stream()
-									.map(n -> n.effective())
-									.collect(Collectors.toCollection(ArrayList::new));
-							attemptedMatchingTypes.put(dataClass, cached);
-						}
+			@Override
+			public <T> List<DataBindingType.Effective<? extends T>> getMatchingTypes(
+					DataNode.Effective<T> node, Class<?> dataClass) {
+				@SuppressWarnings("unchecked")
+				List<DataBindingType.Effective<? extends T>> cached = (List<DataBindingType.Effective<? extends T>>) attemptedMatchingTypes
+						.get(dataClass);
 
-						return cached;
-					}
-				});
+				if (cached == null) {
+					cached = manager.registeredTypes().getMatchingTypes(node, dataClass)
+							.stream().map(n -> n.effective())
+							.collect(Collectors.toCollection(ArrayList::new));
+					attemptedMatchingTypes.put(dataClass, cached);
+				}
+
+				return cached;
+			}
+		};
 	}
 
-	private BindingContextImpl(List<Effective<?, ?>> bindingNodeStack,
+	private BindingContextImpl(BindingContextImpl parent,
 			List<Object> bindingTargetStack, StructuredDataSource input,
-			Bindings bindings, BindingProvisions provider,
-			BindingSchemaAccess schemaAccess) {
-		this.bindingNodeStack = bindingNodeStack;
+			BindingProvisions provider) {
+		super(parent);
 		this.bindingTargetStack = bindingTargetStack;
 		this.input = input;
-		this.bindings = bindings;
 		this.provider = provider;
-		this.schemaAccess = schemaAccess;
+		this.schemaAccess = parent.schemaAccess;
+	}
+
+	private BindingContextImpl(BindingContextImpl parent,
+			SchemaNode.Effective<?, ?> node) {
+		super(parent, node);
+		this.bindingTargetStack = parent.bindingTargetStack;
+		this.input = parent.input;
+		this.provider = parent.provider;
+		this.schemaAccess = parent.schemaAccess;
 	}
 
 	public <U> U provide(Class<U> clazz) {
@@ -107,10 +115,6 @@ public class BindingContextImpl extends ProcessingContextImpl implements Binding
 
 	public StructuredDataSource input() {
 		return input;
-	}
-
-	public Bindings bindings() {
-		return bindings;
 	}
 
 	private <U> U provide(Class<U> clazz, BindingContextImpl headContext) {
@@ -130,11 +134,6 @@ public class BindingContextImpl extends ProcessingContextImpl implements Binding
 				return provider.isProvided(clazz);
 			}
 		};
-	}
-
-	@Override
-	public List<Effective<?, ?>> bindingNodeStack() {
-		return bindingNodeStack;
 	}
 
 	@Override
@@ -162,8 +161,8 @@ public class BindingContextImpl extends ProcessingContextImpl implements Binding
 			Function<BindingContextImpl, T> provider) {
 		BindingContextImpl base = this;
 
-		return new BindingContextImpl(bindingNodeStack, bindingTargetStack, input,
-				bindings, new BindingProvisions() {
+		return new BindingContextImpl(this, bindingTargetStack, input,
+				new BindingProvisions() {
 					@SuppressWarnings("unchecked")
 					@Override
 					public <U> U provide(Class<U> clazz, BindingContextImpl headContext) {
@@ -178,40 +177,23 @@ public class BindingContextImpl extends ProcessingContextImpl implements Binding
 						return clazz.equals(providedClass)
 								|| base.provisions().isProvided(clazz);
 					}
-				}, schemaAccess);
+				});
 	}
 
 	public <T> BindingContextImpl withBindingTarget(Object target) {
 		List<Object> bindingTargetStack = new ArrayList<>(bindingTargetStack());
 		bindingTargetStack.add(target);
 
-		return new BindingContextImpl(bindingNodeStack,
-				Collections.unmodifiableList(bindingTargetStack), input, bindings,
-				provider, schemaAccess);
-	}
-
-	public <T> BindingContextImpl withReplacedBindingTarget(Object target) {
-		List<Object> bindingTargetStack = new ArrayList<>(bindingTargetStack());
-		bindingTargetStack.set(bindingTargetStack.size() - 1, target);
-
-		return new BindingContextImpl(bindingNodeStack,
-				Collections.unmodifiableList(bindingTargetStack), input, bindings,
-				provider, schemaAccess);
+		return new BindingContextImpl(this,
+				Collections.unmodifiableList(bindingTargetStack), input, provider);
 	}
 
 	public <T> BindingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
-		List<SchemaNode.Effective<?, ?>> bindingNodeStack = new ArrayList<>(
-				bindingNodeStack());
-		bindingNodeStack.add(node);
-
-		return new BindingContextImpl(
-				Collections.unmodifiableList(bindingNodeStack), bindingTargetStack,
-				input, bindings, provider, schemaAccess);
+		return new BindingContextImpl(this, node);
 	}
 
 	public BindingContextImpl withInput(StructuredDataSource input) {
-		return new BindingContextImpl(bindingNodeStack, bindingTargetStack, input,
-				bindings, provider, schemaAccess);
+		return new BindingContextImpl(this, bindingTargetStack, input, provider);
 	}
 
 	public void attempt(Consumer<BindingContextImpl> bindingMethod) {

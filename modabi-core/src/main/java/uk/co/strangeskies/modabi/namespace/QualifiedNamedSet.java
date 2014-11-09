@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import uk.co.strangeskies.utilities.IdentityProperty;
-import uk.co.strangeskies.utilities.collection.SetDecorator;
+import uk.co.strangeskies.utilities.collection.decorator.SetDecorator;
 import uk.co.strangeskies.utilities.function.collection.SetTransformationView;
 
 public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
