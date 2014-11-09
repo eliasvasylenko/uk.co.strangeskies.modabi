@@ -130,6 +130,20 @@ public class SchemaManagerImpl implements SchemaManager {
 				input));
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> BindingFuture<T> bindFuture(Class<T> dataClass,
+			StructuredDataSource input) {
+		Model<?> model = registeredModels.get(input.peekNextChild());
+		List<Model<T>> models = registeredModels.getMatchingModels(dataClass);
+		if (models.contains(model))
+			throw new IllegalArgumentException("None of the models '" + model
+					+ "' compatible with the class '" + dataClass
+					+ "' match the root element '" + input.peekNextChild() + "'.");
+		return (BindingFuture<T>) addBindingFuture(new SchemaBinder(this).bind(
+				model.effective(), input));
+	}
+
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
 		return addBindingFuture(new SchemaBinder(this).bind(
@@ -173,8 +187,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public <T> void unbind(StructuredDataTarget output,
-			Class<? extends T> dataClass, T data) {
+	public <T> void unbind(Class<T> dataClass, StructuredDataTarget output, T data) {
 		new SchemaUnbinder(this).unbind(output, dataClass, data);
 	}
 

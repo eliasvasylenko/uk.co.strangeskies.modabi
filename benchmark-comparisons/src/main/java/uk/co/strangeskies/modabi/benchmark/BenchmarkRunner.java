@@ -141,7 +141,7 @@ public class BenchmarkRunner {
 		OutputStream fos = new FileOutputStream(file);
 
 		try {
-			manager.unbind(new XMLTarget(fos), PersonsType.class, persons);
+			manager.unbind(PersonsType.class, new XMLTarget(fos), persons);
 			fos.flush();
 		} finally {
 			fos.close();
