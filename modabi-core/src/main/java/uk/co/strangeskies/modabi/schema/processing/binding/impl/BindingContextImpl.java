@@ -63,7 +63,14 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 			}
 		};
 		this.schemaAccess = new BindingSchemaAccess() {
-			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = new HashMap<>();
+			private final Map<Class<?>, List<? extends DataBindingType.Effective<?>>> attemptedMatchingTypes = getCacheMap(
+					Class.class,
+					List.class,
+					dataClass -> manager.registeredTypes()
+							.getMatchingTypes(node, dataClass).stream()
+							.map(n -> n.effective())
+							.collect(Collectors.toCollection(ArrayList::new)),
+					CacheScope.PROCESSING_CONTEXT);
 
 			@Override
 			public Model.Effective<?> getModel(QualifiedName nextElement) {
