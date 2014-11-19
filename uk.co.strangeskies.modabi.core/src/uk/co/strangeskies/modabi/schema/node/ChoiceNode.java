@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.schema.node;
 
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 
 public interface ChoiceNode extends
 		ChildNode<ChoiceNode, ChoiceNode.Effective>,

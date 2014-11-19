@@ -29,9 +29,9 @@ Private-Package: \
 	uk.co.strangeskies.modabi.schema.node.model.impl,\
 	uk.co.strangeskies.modabi.schema.node.type.impl,\
 	uk.co.strangeskies.modabi.schema.node.wrapping.impl,\
-	uk.co.strangeskies.modabi.schema.processing.impl,\
-	uk.co.strangeskies.modabi.schema.processing.binding.impl,\
-	uk.co.strangeskies.modabi.schema.processing.unbinding.impl
+	uk.co.strangeskies.modabi.schema.management.impl,\
+	uk.co.strangeskies.modabi.schema.management.binding.impl,\
+	uk.co.strangeskies.modabi.schema.management.unbinding.impl
 Export-Package: \
 	uk.co.strangeskies.modabi.declarative,\
 	uk.co.strangeskies.modabi.io,\
@@ -43,7 +43,9 @@ Export-Package: \
 	uk.co.strangeskies.modabi.schema.node.building.configuration,\
 	uk.co.strangeskies.modabi.schema.node.model,\
 	uk.co.strangeskies.modabi.schema.node.type,\
-	uk.co.strangeskies.modabi.schema.processing,\
-	uk.co.strangeskies.modabi.schema.processing.binding,\
-	uk.co.strangeskies.modabi.schema.processing.reference,\
-	uk.co.strangeskies.modabi.schema.processing.unbinding
+	uk.co.strangeskies.modabi.schema.management,\
+	uk.co.strangeskies.modabi.schema.management.binding,\
+	uk.co.strangeskies.modabi.schema.management.reference,\
+	uk.co.strangeskies.modabi.schema.management.unbinding
+-runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
+-runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'

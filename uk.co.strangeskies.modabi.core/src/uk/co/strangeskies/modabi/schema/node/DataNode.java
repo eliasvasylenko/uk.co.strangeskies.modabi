@@ -5,9 +5,9 @@ import java.util.List;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.processing.SchemaProcessingContext;
-import uk.co.strangeskies.modabi.schema.processing.ValueResolution;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface DataNode<T> extends

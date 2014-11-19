@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<? extends T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {

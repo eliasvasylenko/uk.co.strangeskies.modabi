@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.osgi.service.component.annotations.Component;
+
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
@@ -14,6 +16,7 @@ import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 
+@Component
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
 		private final Set<DataBindingType<?>> typeSet;

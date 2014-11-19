@@ -4,8 +4,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.processing.binding.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.processing.unbinding.UnbindingStrategy;
+import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>

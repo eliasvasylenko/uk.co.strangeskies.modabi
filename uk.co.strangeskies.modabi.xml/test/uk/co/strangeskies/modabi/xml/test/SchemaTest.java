@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.xml.test;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.processing.SchemaManager;
+import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
