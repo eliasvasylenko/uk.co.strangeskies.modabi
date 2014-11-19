@@ -1,66 +1,35 @@
+/*
+ * Master Gradle build script
+ *
+ * Depends on bndPlugin property set by settings.gradle.
+ * and bnd_* values from gradle.properties.
+ */
+
+import aQute.bnd.build.Workspace
+
+/* Add bnd gradle plugin as a script dependency */
+buildscript {
+  dependencies {
+    classpath bndPlugin
+  }
+}
+
+/* Initialize the bnd workspace */
+ext.bndWorkspace = Workspace.getWorkspace(rootDir, bnd_cnf)
+if (bndWorkspace == null) {
+  throw new GradleException("Unable to load workspace ${rootDir}/${bnd_cnf}")
+}
+
+ext.cnf = rootProject.project(bnd_cnf)
+
+/* Configure the subprojects */
+subprojects {
+  def bndProject = bndWorkspace.getProject(name)
+  if (bndProject != null) {
+    plugins.apply 'biz.aQute.bnd'
+  }
+}
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.1'
-}
-
-allprojects  {
-	//plugins {
-	//	id 'maven'
-	//}
-	apply plugin: 'maven'
-
-	group = 'uk.co.strangeskies'
-	version = '0.0.1-SNAPSHOT'
-}
-
-def javaProjects() {
-	return subprojects.findAll { new File(it.projectDir, "src/main/java").exists() }
-}
-
-configure(javaProjects()) {
-//	plugins {
-//		id 'java'
-//		id 'osgi'
-//		id 'maven-publish'
-//		id "com.github.hierynomus.license" version "0.11.0"
-//	}
-	apply plugin: 'java'
-	apply plugin: 'osgi'
-	apply plugin: 'maven-publish'
-
-//	license {
-//		include "**/*.java"
-//
-//		ext.project = 'Modabi'
-//		ext.year = Calendar.getInstance().get(Calendar.YEAR)
-//		ext.owner = 'Elias Nikolai Vasylenko'
-//	}
-
-	sourceCompatibility = 1.8
-	targetCompatibility = 1.8
-
-	repositories {
-		mavenCentral()
-		mavenLocal()
-	}
-
-	dependencies {
-		testCompile group: 'org.testng', name: 'testng', version: '6.+'
-		compile group: 'org.osgi', name: 'org.osgi.core', version:'5.+'
-		compile group: 'org.osgi', name: 'org.osgi.enterprise', version:'5.+'
-		compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.+'
-		compile group: 'org.apache.commons', name: 'commons-collections4', version:'4.+'
-		compile group: 'org.apache.commons', name: 'commons-proxy', version:'1.+'
-	}
-
-	publishing {
-		publications {
-			maven(MavenPublication) {
-				from components.java
-			}
-		}
-	}
-
-	test {
-		useTestNG()
-	}
+  jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
 }

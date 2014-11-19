@@ -1,7 +1,0 @@
-description = 'Modabi - Examples'
-
-dependencies {
-	compile project(':modabi-core')
-	compile project(':modabi-xml')
-	compile project(':modabi-yaml')
-}

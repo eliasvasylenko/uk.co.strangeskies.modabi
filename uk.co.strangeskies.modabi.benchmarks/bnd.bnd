@@ -1,0 +1,18 @@
+-dsannotations:  \
+	*
+Bundle-Name: Modabi - Benchmarks
+-runee: JavaSE-1.8
+-buildpath:  \
+	osgi.enroute.base.api;  \
+		version = latest,  \
+	uk.co.strangeskies.utilities;  \
+		version = latest,  \
+	uk.co.strangeskies.modabi.core;  \
+		version = latest,  \
+	uk.co.strangeskies.modabi.xml;  \
+		version = latest,  \
+	org.apache.commons:commons-lang3;  \
+		version = latest,  \
+	org.testng:testng;  \
+		version = latest
+Private-Package: uk.co.strangeskies.modabi.benchmark

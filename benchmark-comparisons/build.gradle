@@ -1,7 +1,0 @@
-description = 'Modabi - Benchmark comparisons'
-
-dependencies {
-	compile group: 'org.jibx', name: 'jibx-run', version: '1.2.5'
-	compile project(':modabi-core')
-	compile project(':modabi-xml')
-}

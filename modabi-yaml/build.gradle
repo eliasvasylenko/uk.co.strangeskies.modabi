@@ -1,5 +1,0 @@
-description = 'Modabi - YAML Components'
-
-dependencies {
-	compile project(':modabi-core')
-}

@@ -1,6 +1,0 @@
-description = 'Modabi Core'
-
-dependencies {
-	compile group: 'uk.co.strangeskies', name: 'strangeskies-utilities', version: '0.+'
-	compile group: 'uk.co.strangeskies', name: 'strangeskies-mathematics', version: '0.+'
-}

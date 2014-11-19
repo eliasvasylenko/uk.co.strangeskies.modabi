@@ -1,0 +1,49 @@
+commons-collections4.version: 4.0
+commons-proxy.version: 1.0
+
+-dsannotations:  \
+	*
+Bundle-Name: Modabi - Core
+-runee: JavaSE-1.8
+-buildpath:  \
+	osgi.enroute.base.api;  \
+		version = latest,  \
+	uk.co.strangeskies.utilities;  \
+		version = latest,  \
+	uk.co.strangeskies.mathematics;  \
+		version = latest,  \
+	org.apache.commons:commons-collections4;  \
+		version = ${commons-collections4.version};  \
+		strategy = exact,  \
+	org.apache.commons:commons-proxy;  \
+		version = ${commons-proxy.version};  \
+		strategy = exact,  \
+	org.apache.commons:commons-lang3;  \
+		version = latest,  \
+	org.testng:testng;  \
+		version = latest
+Private-Package: \
+	uk.co.strangeskies.modabi.schema.impl,\
+	uk.co.strangeskies.modabi.schema.node.building.configuration.impl,\
+	uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities,\
+	uk.co.strangeskies.modabi.schema.node.model.impl,\
+	uk.co.strangeskies.modabi.schema.node.type.impl,\
+	uk.co.strangeskies.modabi.schema.node.wrapping.impl,\
+	uk.co.strangeskies.modabi.schema.processing.impl,\
+	uk.co.strangeskies.modabi.schema.processing.binding.impl,\
+	uk.co.strangeskies.modabi.schema.processing.unbinding.impl
+Export-Package: \
+	uk.co.strangeskies.modabi.declarative,\
+	uk.co.strangeskies.modabi.io,\
+	uk.co.strangeskies.modabi.io.structured,\
+	uk.co.strangeskies.modabi.namespace,\
+	uk.co.strangeskies.modabi.schema,\
+	uk.co.strangeskies.modabi.schema.node,\
+	uk.co.strangeskies.modabi.schema.node.building,\
+	uk.co.strangeskies.modabi.schema.node.building.configuration,\
+	uk.co.strangeskies.modabi.schema.node.model,\
+	uk.co.strangeskies.modabi.schema.node.type,\
+	uk.co.strangeskies.modabi.schema.processing,\
+	uk.co.strangeskies.modabi.schema.processing.binding,\
+	uk.co.strangeskies.modabi.schema.processing.reference,\
+	uk.co.strangeskies.modabi.schema.processing.unbinding
