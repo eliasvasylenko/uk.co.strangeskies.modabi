@@ -59,7 +59,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 						.getChildren()
 						.stream()
 						.map(
-								o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataClass())
+								o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType())
 						.collect(Collectors.toList());
 				inMethod = inputNodeHelper.inMethod(parameterClasses);
 				inMethodName = inputNodeHelper.inMethodName();

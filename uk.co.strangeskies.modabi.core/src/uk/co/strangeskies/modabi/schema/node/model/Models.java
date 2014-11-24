@@ -43,7 +43,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 						.collect(Collectors.toSet()), model.source());
 
 		if (!model.effective().isAbstract())
-			classModels.add(model.getDataClass(), model);
+			classModels.add(model.getDataType(), model);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -76,9 +76,9 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	public <T> List<Model<? extends T>> getCompatibleModels(
 			AbstractComplexNode.Effective<T, ?, ?> element) {
 		if (element.baseModel() != null)
-			return getModelsWithBase(element.baseModel(), element.getDataClass());
+			return getModelsWithBase(element.baseModel(), element.getDataType());
 		else
-			return getModelsWithSuperclass(element.getDataClass());
+			return getModelsWithSuperclass(element.getDataType());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -96,7 +96,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 				.stream()
 				.filter(
 						m -> !m.effective().isAbstract()
-								&& dataClass.isAssignableFrom(m.effective().getDataClass()))
+								&& dataClass.isAssignableFrom(m.effective().getDataType()))
 				.collect(Collectors.toList());
 
 		return (List<Model<? extends T>>) subModels;

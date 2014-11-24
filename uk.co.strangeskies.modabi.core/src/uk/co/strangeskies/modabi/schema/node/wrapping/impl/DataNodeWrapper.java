@@ -24,7 +24,7 @@ public final class DataNodeWrapper<T>
 				+ component.getName() + "'.";
 
 		if (base.providedValues() != null
-				&& !component.getDataClass().isAssignableFrom(
+				&& !component.getDataType().isAssignableFrom(
 						base.providedValues().getClass()))
 			throw new SchemaException(message);
 

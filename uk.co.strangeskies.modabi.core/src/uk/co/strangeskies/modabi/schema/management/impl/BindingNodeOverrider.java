@@ -116,7 +116,7 @@ public class BindingNodeOverrider {
 					.isAbstract(true);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = configurator.addChild()
-					.data().name(override.getName()).dataClass(override.getDataClass())
+					.data().name(override.getName()).dataClass(override.getDataType())
 					.type(override.baseType());
 
 			dataNodeConfigurator = tryProperty(node.optional(),
@@ -160,10 +160,10 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingNodeConfigurator<C, ?, U>> C processBindingNode(
 				BindingNode<U, ?, ?> node, C c) {
-			c = tryProperty(node.getBindingClass(), c::bindingClass, c);
+			c = tryProperty(node.getBindingType(), c::bindingClass, c);
 			c = tryProperty(node.getBindingStrategy(), c::bindingStrategy, c);
-			c = tryProperty(node.getUnbindingClass(), c::unbindingClass, c);
-			c = tryProperty(node.getUnbindingFactoryClass(),
+			c = tryProperty(node.getUnbindingType(), c::unbindingClass, c);
+			c = tryProperty(node.getUnbindingFactoryType(),
 					c::unbindingFactoryClass, c);
 			c = tryProperty(node.getUnbindingMethodName(), c::unbindingMethod, c);
 			c = tryProperty(node.getUnbindingStrategy(), c::unbindingStrategy, c);
@@ -195,7 +195,7 @@ public class BindingNodeOverrider {
 
 		public <U> ComplexNodeConfigurator<U> processAbstractComplexNode(
 				AbstractComplexNode<U, ?, ?> node, ComplexNodeConfigurator<Object> c) {
-			ComplexNodeConfigurator<U> cu = c.dataClass(node.getDataClass())
+			ComplexNodeConfigurator<U> cu = c.dataClass(node.getDataType())
 					.baseModel(node.baseModel());
 
 			return cu;
@@ -231,14 +231,14 @@ public class BindingNodeOverrider {
 
 			DataNodeConfigurator<U> cu;
 			if (source.type() == null) {
-				if (source.getDataClass() == null) {
+				if (source.getDataType() == null) {
 					cu = (DataNodeConfigurator<U>) c;
 				} else {
-					cu = c.dataClass(source.getDataClass());
+					cu = c.dataClass(source.getDataType());
 				}
 			} else {
 				cu = c.type(source.type());
-				cu = tryProperty(source.getDataClass(), cu::dataClass, cu);
+				cu = tryProperty(source.getDataType(), cu::dataClass, cu);
 			}
 
 			doChildren(source,

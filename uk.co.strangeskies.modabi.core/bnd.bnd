@@ -21,7 +21,10 @@ Bundle-Name: Modabi - Core
 	org.apache.commons:commons-lang3;  \
 		version = latest,  \
 	org.testng:testng;  \
-		version = latest
+		version = latest,  \
+	com.google.guava:guava;  \
+		version = 18.0;  \
+		strategy = exact
 Private-Package: \
 	uk.co.strangeskies.modabi.schema.impl,\
 	uk.co.strangeskies.modabi.schema.node.building.configuration.impl,\
@@ -45,7 +48,7 @@ Export-Package: \
 	uk.co.strangeskies.modabi.schema.node.type,\
 	uk.co.strangeskies.modabi.schema.management,\
 	uk.co.strangeskies.modabi.schema.management.binding,\
-	uk.co.strangeskies.modabi.schema.management.reference,\
+	uk.co.strangeskies.modabi.schema.management.providers,\
 	uk.co.strangeskies.modabi.schema.management.unbinding
 -runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
 -runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'

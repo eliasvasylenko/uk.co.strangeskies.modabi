@@ -104,7 +104,7 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 	}
 
 	public <T> UnbindingContextImpl withProvision(Class<T> providedClass,
-			Function<UnbindingContextImpl, T> provider) {
+			Function<UnbindingContext, T> provider) {
 		UnbindingContextImpl base = this;
 
 		return new UnbindingContextImpl(this, unbindingSourceStack, output,

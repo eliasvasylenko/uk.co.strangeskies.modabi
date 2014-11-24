@@ -1,16 +1,11 @@
 package uk.co.strangeskies.modabi.schema.management.binding.impl;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.io.DataItem;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Binding;
@@ -19,13 +14,11 @@ import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingFuture;
-import uk.co.strangeskies.modabi.schema.management.reference.DereferenceSource;
-import uk.co.strangeskies.modabi.schema.management.reference.ImportSource;
-import uk.co.strangeskies.modabi.schema.management.reference.IncludeTarget;
-import uk.co.strangeskies.modabi.schema.management.unbinding.impl.BindingNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.management.unbinding.impl.DataNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.management.unbinding.impl.UnbindingContextImpl;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.management.providers.DereferenceSource;
+import uk.co.strangeskies.modabi.schema.management.providers.ImportSource;
+import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
+import uk.co.strangeskies.modabi.schema.management.providers.TypeParser;
+import uk.co.strangeskies.modabi.schema.management.providers.impl.BindingProviders;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
@@ -33,50 +26,14 @@ public class SchemaBinder {
 	private final BindingContextImpl context;
 
 	public SchemaBinder(SchemaManager manager) {
-		Function<BindingContext, ImportSource> importSource = context -> new ImportSource() {
-			@Override
-			public <U> U importObject(Model<U> model, QualifiedName idDomain,
-					DataSource id) {
-				return matchBinding(
-						manager,
-						context,
-						model,
-						manager.bindingFutures(model).stream()
-								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
-								.map(Binding::getData).collect(Collectors.toSet()), idDomain,
-						id);
-			}
-		};
-
-		Function<BindingContext, DataLoader> loader = context -> new DataLoader() {
-			@Override
-			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				// return new DataNodeBinder(context).bind(node); TODO loadData
-				return null;
-			}
-		};
-
-		Function<BindingContext, DereferenceSource> dereferenceSource = context -> new DereferenceSource() {
-			@Override
-			public <U> U reference(Model<U> model, QualifiedName idDomain,
-					DataSource id) {
-				return matchBinding(manager, context, model,
-						context.bindings().get(model), idDomain, id);
-			}
-		};
-
-		Function<BindingContext, IncludeTarget> includeTarget = context -> new IncludeTarget() {
-			@Override
-			public <U> void include(Model<U> model, U object) {
-				context.bindings().add(model, object);
-			}
-		};
+		BindingProviders providers = new BindingProviders(manager);
 
 		context = new BindingContextImpl(manager)
-				.withProvision(DereferenceSource.class, dereferenceSource)
-				.withProvision(IncludeTarget.class, includeTarget)
-				.withProvision(ImportSource.class, importSource)
-				.withProvision(DataLoader.class, loader)
+				.withProvision(DereferenceSource.class, providers.dereferenceSource())
+				.withProvision(IncludeTarget.class, providers.includeTarget())
+				.withProvision(ImportSource.class, providers.importSource())
+				.withProvision(DataLoader.class, providers.dataLoader())
+				.withProvision(TypeParser.class, providers.typeParser())
 				.withProvision(BindingContext.class, c -> c);
 	}
 
@@ -145,56 +102,5 @@ public class SchemaBinder {
 				return null;
 			}
 		};
-	}
-
-	private static <U> U matchBinding(SchemaManager manager,
-			BindingContext context, Model<U> model, Set<U> bindingCandidates,
-			QualifiedName idDomain, DataSource idSource) {
-		DataNode.Effective<?> node = (DataNode.Effective<?>) model
-				.effective()
-				.children()
-				.stream()
-				.filter(
-						c -> c.getName().equals(idDomain)
-								&& c instanceof DataNode.Effective<?>)
-				.findAny()
-				.orElseThrow(
-						() -> new BindingException("Can't find child '" + idDomain
-								+ "' to target for model '" + model + "'.", context));
-
-		for (U bindingCandidate : bindingCandidates) {
-			DataSource candidateId = unbindDataNode(manager, node, bindingCandidate);
-			DataSource bufferedIdSource = idSource.copy();
-
-			if (bufferedIdSource.size() - bufferedIdSource.index() < candidateId
-					.size())
-				continue;
-
-			boolean match = true;
-			for (int i = 0; i < candidateId.size() && match; i++) {
-				DataItem<?> candidateData = candidateId.get();
-				match = bufferedIdSource.get(candidateData.type()).equals(
-						candidateData.data());
-			}
-
-			if (match) {
-				for (int i = 0; i < candidateId.size(); i++)
-					idSource.get();
-
-				return bindingCandidate;
-			}
-		}
-
-		throw new BindingException("Can't find any bindings matching '" + idSource
-				+ "' in domain '" + idDomain + "' for model '" + model + "'.", context);
-	}
-
-	private static <V> DataSource unbindDataNode(SchemaManager manager,
-			DataNode.Effective<V> node, Object source) {
-		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager)
-				.withUnbindingSource(source);
-
-		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
-				BindingNodeUnbinder.getData(node, unbindingContext));
 	}
 }

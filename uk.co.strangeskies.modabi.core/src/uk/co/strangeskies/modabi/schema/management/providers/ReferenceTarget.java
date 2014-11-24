@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.schema.management.reference;
+package uk.co.strangeskies.modabi.schema.management.providers;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;

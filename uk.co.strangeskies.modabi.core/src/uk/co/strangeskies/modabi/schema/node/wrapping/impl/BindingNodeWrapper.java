@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -28,8 +29,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		String message = "Cannot override '" + base.getName() + "' with '"
 				+ component.getName() + "'.";
 
-		if (base.getDataClass() != null
-				&& !base.getDataClass().isAssignableFrom(component.getDataClass()))
+		if (base.getDataType() != null
+				&& !base.getDataType().isAssignableFrom(component.getDataType()))
 			throw new SchemaException(message);
 
 		if (base.getBindingStrategy() != null
@@ -40,14 +41,13 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				&& base.getUnbindingStrategy() != component.getUnbindingStrategy())
 			throw new SchemaException(message);
 
-		if (base.getBindingClass() != null
-				&& !base.getBindingClass()
-						.isAssignableFrom(component.getBindingClass()))
+		if (base.getBindingType() != null
+				&& !base.getBindingType().isAssignableFrom(component.getBindingType()))
 			throw new SchemaException(message);
 
-		if (base.getUnbindingClass() != null
-				&& !base.getUnbindingClass().isAssignableFrom(
-						component.getUnbindingClass()))
+		if (base.getUnbindingType() != null
+				&& !base.getUnbindingType().isAssignableFrom(
+						component.getUnbindingType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingMethodName() != null
@@ -78,8 +78,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final Class<T> getDataClass() {
-		return (Class<T>) component.getDataClass();
+	public final ParameterizedType getDataType() {
+		return component.getDataType();
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Class<?> getBindingClass() {
-		return component.getBindingClass();
+	public final ParameterizedType getBindingType() {
+		return component.getBindingType();
 	}
 
 	@Override
@@ -98,8 +98,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Class<?> getUnbindingClass() {
-		return component.getUnbindingClass();
+	public final ParameterizedType getUnbindingType() {
+		return component.getUnbindingType();
 	}
 
 	@Override
@@ -113,8 +113,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Class<?> getUnbindingFactoryClass() {
-		return component.getUnbindingFactoryClass();
+	public final ParameterizedType getUnbindingFactoryType() {
+		return component.getUnbindingFactoryType();
 	}
 
 	@Override
