@@ -49,17 +49,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				dataClass = overrideMerge.getValue(BindingNode::getDataClass,
+				dataClass = overrideMerge.getValue(BindingNode::getDataType,
 						(v, o) -> o.isAssignableFrom(v), null);
 
-				bindingClass = overrideMerge.getValue(BindingNode::getBindingClass, (v,
+				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
 						o) -> o.isAssignableFrom(v), dataClass);
 
-				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingClass,
+				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingType,
 						(v, o) -> o.isAssignableFrom(v), dataClass);
 
 				unbindingFactoryClass = overrideMerge.getValue(
-						BindingNode::getUnbindingFactoryClass,
+						BindingNode::getUnbindingFactoryType,
 						(v, o) -> o.isAssignableFrom(v), unbindingClass);
 
 				bindingStrategy = overrideMerge.getValue(
@@ -87,7 +87,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
-			public Class<T> getDataClass() {
+			public Class<T> getDataType() {
 				return dataClass;
 			}
 
@@ -102,17 +102,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
-			public Class<?> getBindingClass() {
+			public Class<?> getBindingType() {
 				return bindingClass;
 			}
 
 			@Override
-			public Class<?> getUnbindingClass() {
+			public Class<?> getUnbindingType() {
 				return unbindingClass;
 			}
 
 			@Override
-			public Class<?> getUnbindingFactoryClass() {
+			public Class<?> getUnbindingFactoryType() {
 				return unbindingFactoryClass;
 			}
 
@@ -148,20 +148,20 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 				case STATIC_FACTORY:
 				case PROVIDED_FACTORY:
-					Class<?> receiverClass = getUnbindingFactoryClass() != null ? getUnbindingFactoryClass()
-							: getUnbindingClass();
-					return findUnbindingMethod(getUnbindingClass(), receiverClass,
-							findUnbindingMethodParameterClasses(BindingNode::getDataClass));
+					Class<?> receiverClass = getUnbindingFactoryType() != null ? getUnbindingFactoryType()
+							: getUnbindingType();
+					return findUnbindingMethod(getUnbindingType(), receiverClass,
+							findUnbindingMethodParameterClasses(BindingNode::getDataType));
 
 				case PASS_TO_PROVIDED:
-					return findUnbindingMethod(null, getUnbindingClass(),
-							findUnbindingMethodParameterClasses(BindingNode::getDataClass));
+					return findUnbindingMethod(null, getUnbindingType(),
+							findUnbindingMethodParameterClasses(BindingNode::getDataType));
 
 				case ACCEPT_PROVIDED:
 					return findUnbindingMethod(
 							null,
-							getDataClass(),
-							findUnbindingMethodParameterClasses(BindingNode::getUnbindingClass));
+							getDataType(),
+							findUnbindingMethodParameterClasses(BindingNode::getUnbindingType));
 				}
 				throw new AssertionError();
 			}
@@ -182,7 +182,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 								classList.add(nodeClass.apply(this));
 							}
 						else {
-							classList.add(parameter.getDataClass());
+							classList.add(parameter.getDataType());
 						}
 					}
 				}
@@ -282,7 +282,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
-		public Class<T> getDataClass() {
+		public Class<T> getDataType() {
 			return dataClass;
 		}
 
@@ -297,17 +297,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
-		public Class<?> getBindingClass() {
+		public Class<?> getBindingType() {
 			return bindingClass;
 		}
 
 		@Override
-		public Class<?> getUnbindingClass() {
+		public Class<?> getUnbindingType() {
 			return unbindingClass;
 		}
 
 		@Override
-		public Class<?> getUnbindingFactoryClass() {
+		public Class<?> getUnbindingFactoryType() {
 			return unbindingFactoryClass;
 		}
 
@@ -351,13 +351,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				null, this);
 
 		Class<?> unbindingClass = overrideMerge.getValueWithOverride(
-				this.unbindingClass, BindingNode::getUnbindingClass,
+				this.unbindingClass, BindingNode::getUnbindingType,
 				(o, n) -> n.isAssignableFrom(o));
 		Class<?> bindingClass = overrideMerge.getValueWithOverride(
-				this.bindingClass, BindingNode::getBindingClass,
+				this.bindingClass, BindingNode::getBindingType,
 				(o, n) -> n.isAssignableFrom(o));
 		Class<?> dataClass = overrideMerge.getValueWithOverride(this.dataClass,
-				BindingNode::getDataClass, (o, n) -> n.isAssignableFrom(o));
+				BindingNode::getDataType, (o, n) -> n.isAssignableFrom(o));
 
 		Class<?> inputTarget = bindingClass != null ? bindingClass : dataClass;
 		Class<?> outputTarget = unbindingClass != null ? unbindingClass : dataClass;

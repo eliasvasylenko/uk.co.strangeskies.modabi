@@ -1,78 +1,29 @@
 package uk.co.strangeskies.modabi.schema.management.unbinding.impl;
 
 import java.util.List;
-import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
-import uk.co.strangeskies.modabi.schema.management.reference.ImportReferenceTarget;
-import uk.co.strangeskies.modabi.schema.management.reference.IncludeTarget;
-import uk.co.strangeskies.modabi.schema.management.reference.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.management.providers.ImportReferenceTarget;
+import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
+import uk.co.strangeskies.modabi.schema.management.providers.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.management.providers.TypeComposer;
+import uk.co.strangeskies.modabi.schema.management.providers.impl.UnbindingProviders;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public class SchemaUnbinder {
 	private final UnbindingContextImpl context;
 
 	public SchemaUnbinder(SchemaManager manager) {
-		Function<UnbindingContextImpl, IncludeTarget> includeTarget = context -> new IncludeTarget() {
-			@Override
-			public <U> void include(Model<U> model, U object) {
-				context.bindings().add(model, object);
-
-				context.output().registerNamespaceHint(model.getName().getNamespace());
-			}
-		};
-
-		Function<UnbindingContextImpl, ImportReferenceTarget> importTarget = context -> new ImportReferenceTarget() {
-			@Override
-			public <U> DataSource dereferenceImport(Model<U> model,
-					QualifiedName idDomain, U object) {
-				DataNode.Effective<?> node = (DataNode.Effective<?>) model
-						.effective()
-						.children()
-						.stream()
-						.filter(
-								c -> c.getName().equals(idDomain)
-										&& c instanceof DataNode.Effective<?>)
-						.findAny()
-						.orElseThrow(
-								() -> new SchemaException("Can't fine child '" + idDomain
-										+ "' to target for model '" + model + "'."));
-
-				return unbindDataNode(node, object);
-			}
-
-			private <V> DataSource unbindDataNode(DataNode.Effective<V> node,
-					Object source) {
-				UnbindingContextImpl finalContext = context.withUnbindingSource(source);
-				return new DataNodeUnbinder(finalContext).unbindToDataBuffer(node,
-						BindingNodeUnbinder.getData(node, finalContext));
-			}
-		};
-
-		Function<UnbindingContextImpl, ReferenceTarget> referenceTarget = context -> new ReferenceTarget() {
-			@Override
-			public <U> DataSource dereference(Model<U> model, QualifiedName idDomain,
-					U object) {
-				if (!context.bindings().get(model).contains(object))
-					throw new SchemaException("Cannot find any instance '" + object
-							+ "' bound to model '" + model.getName() + "'.");
-
-				return importTarget.apply(context).dereferenceImport(model, idDomain,
-						object);
-			}
-		};
+		UnbindingProviders providers = new UnbindingProviders();
 
 		context = new UnbindingContextImpl(manager)
-				.withProvision(ReferenceTarget.class, referenceTarget)
-				.withProvision(ImportReferenceTarget.class, importTarget)
-				.withProvision(IncludeTarget.class, includeTarget)
+				.withProvision(ReferenceTarget.class, providers.referenceTarget())
+				.withProvision(ImportReferenceTarget.class, providers.importTarget())
+				.withProvision(IncludeTarget.class, providers.includeTarget())
+				.withProvision(TypeComposer.class, providers.typeComposer())
 				.withProvision(UnbindingContext.class, c -> c);
 	}
 

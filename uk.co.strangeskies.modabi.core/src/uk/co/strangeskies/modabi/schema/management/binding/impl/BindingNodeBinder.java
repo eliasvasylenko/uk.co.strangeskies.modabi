@@ -48,8 +48,8 @@ public class BindingNodeBinder {
 
 		switch (strategy) {
 		case PROVIDED:
-			Class<?> providedClass = node.getBindingClass() != null ? node
-					.getBindingClass() : node.getDataClass();
+			Class<?> providedClass = node.getBindingType() != null ? node
+					.getBindingType() : node.getDataType();
 			binding = context.provide(providedClass);
 
 			break;
@@ -66,14 +66,14 @@ public class BindingNodeBinder {
 			} catch (IllegalAccessException | InvocationTargetException
 					| InstantiationException e) {
 				throw new BindingException("Cannot invoke static factory method '"
-						+ inputMethod + "' on class '" + node.getUnbindingClass()
+						+ inputMethod + "' on class '" + node.getUnbindingType()
 						+ "' with parameters '" + parameters + "'.", context, e);
 			}
 			break;
 		case IMPLEMENT_IN_PLACE:
 			// TODO some proxy magic with simple bean-like semantics
 			binding = new ProxyFactory().createInvokerProxy(new NullInvoker(),
-					new Class[] { node.getDataClass() });
+					new Class[] { node.getDataType() });
 
 			break;
 		case SOURCE_ADAPTOR:
@@ -91,7 +91,7 @@ public class BindingNodeBinder {
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
 				throw new BindingException("Cannot invoke static factory method '"
-						+ inputMethod + "' on class '" + node.getUnbindingClass()
+						+ inputMethod + "' on class '" + node.getUnbindingType()
 						+ "' with parameters '" + parameters + "'.", context, e);
 			}
 			break;
