@@ -6,12 +6,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,50 +22,55 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 
-public class Methods {
-	private Methods() {
-	}
+import com.google.common.reflect.Invokable;
+import com.google.common.reflect.TypeToken;
 
-	public static Constructor<?> findConstructor(Class<?> receiver,
-			Class<?>... parameters) throws NoSuchMethodException {
+public class Methods {
+	public static Constructor<?> findConstructor(TypeToken<?> receiver,
+			TypeToken<?>... parameters) throws NoSuchMethodException {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
-	public static Constructor<?> findConstructor(Class<?> receiver,
-			List<Class<?>> parameters) throws NoSuchMethodException {
+	public static Constructor<?> findConstructor(TypeToken<?> receiver,
+			List<TypeToken<?>> parameters) throws NoSuchMethodException {
 		Set<Constructor<?>> overloadCandidates = findOverloadCandidates(receiver,
-				Class::getConstructors, c -> true, parameters);
+				c -> Arrays.asList(c.getRawType().getConstructors()), parameters);
 
 		if (overloadCandidates.isEmpty())
 			throw new SchemaException("Cannot find constructor for class '"
 					+ receiver + "' with parameters '" + parameters);
 
-		return findMostSpecificOverload(overloadCandidates);
+		return findMostSpecificOverload(receiver, overloadCandidates,
+				receiver::constructor);
 	}
 
-	public static Method findMethod(List<String> names, Class<?> receiver,
-			boolean isStatic, Class<?> result, boolean allowCast,
-			Class<?>... parameters) throws NoSuchMethodException {
+	public static Method findMethod(List<String> names, TypeToken<?> receiver,
+			boolean isStatic, TypeToken<?> result, boolean allowCast,
+			TypeToken<?>... parameters) throws NoSuchMethodException {
 		return findMethod(names, receiver, isStatic, result, allowCast,
 				Arrays.asList(parameters));
 	}
 
-	public static Method findMethod(List<String> names, Class<?> receiver,
-			boolean isStatic, Class<?> result, boolean allowCast,
-			List<Class<?>> parameters) throws NoSuchMethodException {
-		Set<Method> overloadCandidates = findOverloadCandidates(receiver,
-				Class::getMethods, c -> names.contains(c.getName()), parameters);
+	public static Method findMethod(List<String> names, TypeToken<?> receiver,
+			boolean isStatic, TypeToken<?> result, boolean allowCast,
+			List<TypeToken<?>> parameters) throws NoSuchMethodException {
+		Set<Method> overloadCandidates = findOverloadCandidates(
+				receiver,
+				c -> Arrays.stream(c.getRawType().getMethods())
+						.filter(m -> names.contains(m.getName()))
+						.collect(Collectors.toList()), parameters);
 
 		if (overloadCandidates.isEmpty())
 			throw new NoSuchMethodException("Cannot find method of class '" + result
 					+ "', receiver '" + receiver + "', and parameters '" + parameters
 					+ "' with any name of '" + names + "'.");
 
-		Method mostSpecific = findMostSpecificOverload(overloadCandidates);
+		Method mostSpecific = findMostSpecificOverload(receiver,
+				overloadCandidates, receiver::method);
 
 		if (result != null
-				&& !ClassUtils.isAssignable(mostSpecific.getReturnType(), result)
-				&& !(ClassUtils.isAssignable(result, mostSpecific.getReturnType()) && allowCast))
+				&& !isAssignable(receiver.method(mostSpecific).getReturnType(), result)
+				&& !(isAssignable(result, receiver.method(mostSpecific).getReturnType()) && allowCast))
 			throw new NoSuchMethodException("Resolved method '" + mostSpecific
 					+ "' does not have compatible return type with '" + result + "'.");
 
@@ -76,31 +81,36 @@ public class Methods {
 		return mostSpecific;
 	}
 
+	@SuppressWarnings("serial")
 	private static <I extends Executable> Set<I> findOverloadCandidates(
-			Class<?> receiver, Function<Class<?>, I[]> methods, Predicate<I> filter,
-			List<Class<?>> parameters) {
+			TypeToken<?> receiver,
+			Function<TypeToken<?>, Collection<? extends I>> methods,
+			List<TypeToken<?>> parameters) {
 		return Stream
-				.concat(Arrays.stream(methods.apply(receiver)),
-						Arrays.stream(methods.apply(Object.class))).filter(m -> {
-					if (!filter.test(m))
-						return false;
+				.concat(methods.apply(receiver).stream(),
+						methods.apply(new TypeToken<Object>() {
+						}).stream())
+				.filter(
+						m -> {
+							List<TypeToken<?>> methodParameters = Arrays
+									.asList(m.getGenericParameterTypes()).stream()
+									.map(TypeToken::of).collect(Collectors.toList());
 
-					Class<?>[] methodParameters = m.getParameterTypes();
+							if (methodParameters.size() != parameters.size())
+								return false;
 
-					if (methodParameters.length != parameters.size())
-						return false;
+							int i = 0;
+							for (TypeToken<?> parameter : parameters)
+								if (!isAssignable(parameter, methodParameters.get(i++)))
+									return false;
 
-					int i = 0;
-					for (Class<?> parameter : parameters)
-						if (!ClassUtils.isAssignable(parameter, methodParameters[i++]))
-							return false;
-
-					return true;
-				}).collect(Collectors.toSet());
+							return true;
+						}).collect(Collectors.toSet());
 	}
 
 	private static <I extends Executable> I findMostSpecificOverload(
-			Set<I> candidates) throws NoSuchMethodException {
+			TypeToken<?> receiver, Set<I> candidates,
+			Function<I, Invokable<?, ?>> invokable) throws NoSuchMethodException {
 		if (candidates.size() == 1)
 			return candidates.iterator().next();
 
@@ -196,5 +206,9 @@ public class Methods {
 										return dataNode;
 									}
 								}).collect(Collectors.toList());
+	}
+
+	private static boolean isAssignable(TypeToken<?> target, TypeToken<?> value) {
+		return target.wrap().isAssignableFrom(value.wrap());
 	}
 }
