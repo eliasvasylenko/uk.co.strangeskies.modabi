@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,13 +54,12 @@ public class InputSequenceNodeConfiguratorImpl extends
 						this, overrideMerge, overrideMerge.configurator().getContext());
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-				List<Class<?>> parameterClasses = overrideMerge
+				List<Type> parameterClasses = overrideMerge
 						.configurator()
 						.getChildrenContainer()
 						.getChildren()
 						.stream()
-						.map(
-								o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType())
+						.map(o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType())
 						.collect(Collectors.toList());
 				inMethod = inputNodeHelper.inMethod(parameterClasses);
 				inMethodName = inputNodeHelper.inMethodName();

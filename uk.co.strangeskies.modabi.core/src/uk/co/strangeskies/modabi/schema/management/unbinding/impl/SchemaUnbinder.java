@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.schema.management.unbinding.impl;
 
 import java.util.List;
 
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.providers.ImportReferenceTarget;
@@ -11,13 +12,15 @@ import uk.co.strangeskies.modabi.schema.management.providers.TypeComposer;
 import uk.co.strangeskies.modabi.schema.management.providers.impl.UnbindingProviders;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
+import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public class SchemaUnbinder {
 	private final UnbindingContextImpl context;
 
 	public SchemaUnbinder(SchemaManager manager) {
-		UnbindingProviders providers = new UnbindingProviders();
+		UnbindingProviders providers = new UnbindingProviders((n, s) -> unbindData(
+				n, s));
 
 		context = new UnbindingContextImpl(manager)
 				.withProvision(ReferenceTarget.class, providers.referenceTarget())
@@ -25,6 +28,12 @@ public class SchemaUnbinder {
 				.withProvision(IncludeTarget.class, providers.includeTarget())
 				.withProvision(TypeComposer.class, providers.typeComposer())
 				.withProvision(UnbindingContext.class, c -> c);
+	}
+
+	public <U> DataSource unbindData(DataNode.Effective<U> node, Object source) {
+		UnbindingContextImpl finalContext = context.withUnbindingSource(source);
+		return new DataNodeUnbinder(finalContext).unbindToDataBuffer(node,
+				BindingNodeUnbinder.getData(node, finalContext));
 	}
 
 	public <T> void unbind(Model.Effective<T> model, StructuredDataTarget output,

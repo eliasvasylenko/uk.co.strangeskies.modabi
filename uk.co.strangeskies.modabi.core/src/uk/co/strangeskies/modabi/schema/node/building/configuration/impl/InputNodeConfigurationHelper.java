@@ -2,9 +2,13 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.reflect.TypeUtils;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
@@ -40,7 +44,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return context.inputTargetClass(effective.getName());
 	}
 
-	public Executable inMethod(List<Class<?>> parameters) {
+	public Executable inMethod(List<Type> parameters) {
 		String overriddenInMethodName = overrideMerge
 				.tryGetValue(InputNode::getInMethodName);
 
@@ -66,7 +70,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 					result = null;
 
 				if (context.isConstructorExpected())
-					inMethod = Methods.findConstructor(inputTargetClass(), parameters);
+					inMethod = Methods.findConstructor(inputTargetClass(),
+							rawParameters(parameters));
 				else
 					inMethod = Methods.findMethod(
 							generateInMethodNames(effective, overriddenInMethodName),
@@ -74,7 +79,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							context.isStaticMethodExpected(),
 							result,
 							effective != null && effective.isInMethodChained()
-									&& effective.isInMethodCast(), parameters);
+									&& effective.isInMethodCast(), rawParameters(parameters));
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException("Cannot find input method for node '"
 						+ effective + "' on class '" + inputTargetClass()
@@ -83,6 +88,11 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		}
 
 		return inMethod;
+	}
+
+	private List<Class<?>> rawParameters(List<Type> parameters) {
+		return parameters.stream().map(p -> TypeUtils.getRawType(p, null))
+				.collect(Collectors.toList());
 	}
 
 	private static List<String> generateInMethodNames(

@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.schema.management.providers.impl;
 
-import java.lang.reflect.ParameterizedType;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.io.DataSource;
@@ -11,13 +11,17 @@ import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.TypeComposer;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
-import uk.co.strangeskies.modabi.schema.management.unbinding.impl.BindingNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.management.unbinding.impl.DataNodeUnbinder;
-import uk.co.strangeskies.modabi.schema.management.unbinding.impl.UnbindingContextImpl;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public class UnbindingProviders {
+	private final BiFunction<DataNode.Effective<?>, Object, DataSource> unbindDataNode;
+
+	public UnbindingProviders(
+			BiFunction<DataNode.Effective<?>, Object, DataSource> unbindDataNode) {
+		this.unbindDataNode = unbindDataNode;
+	}
+
 	public Function<UnbindingContext, IncludeTarget> includeTarget() {
 		return context -> new IncludeTarget() {
 			@Override
@@ -46,14 +50,7 @@ public class UnbindingProviders {
 								() -> new SchemaException("Can't fine child '" + idDomain
 										+ "' to target for model '" + model + "'."));
 
-				return unbindDataNode(node, object);
-			}
-
-			private <V> DataSource unbindDataNode(DataNode.Effective<V> node,
-					Object source) {
-				UnbindingContextImpl finalContext = context.withUnbindingSource(source);
-				return new DataNodeUnbinder(finalContext).unbindToDataBuffer(node,
-						BindingNodeUnbinder.getData(node, finalContext));
+				return unbindDataNode.apply(node, object);
 			}
 		};
 	}

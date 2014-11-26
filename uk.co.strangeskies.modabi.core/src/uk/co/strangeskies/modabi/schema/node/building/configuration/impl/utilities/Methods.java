@@ -1,47 +1,46 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.ClassUtils;
-
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
-import uk.co.strangeskies.modabi.schema.node.DataNode;
 
 import com.google.common.reflect.Invokable;
+import com.google.common.reflect.Parameter;
 import com.google.common.reflect.TypeToken;
 
 public class Methods {
-	public static Constructor<?> findConstructor(TypeToken<?> receiver,
+	public static <T> Constructor<T> findConstructor(TypeToken<T> receiver,
 			TypeToken<?>... parameters) throws NoSuchMethodException {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
-	public static Constructor<?> findConstructor(TypeToken<?> receiver,
+	public static <T> Constructor<T> findConstructor(TypeToken<T> receiver,
 			List<TypeToken<?>> parameters) throws NoSuchMethodException {
-		Set<Constructor<?>> overloadCandidates = findOverloadCandidates(receiver,
-				c -> Arrays.asList(c.getRawType().getConstructors()), parameters);
+		@SuppressWarnings("unchecked")
+		Map<Invokable<T, ?>, Constructor<T>> constructors = Arrays.stream(
+				receiver.getRawType().getConstructors()).collect(
+				Collectors.toMap(receiver::constructor, c -> (Constructor<T>) c));
+
+		Set<Invokable<T, ?>> overloadCandidates = findOverloadCandidates(
+				constructors.keySet(), parameters);
 
 		if (overloadCandidates.isEmpty())
 			throw new SchemaException("Cannot find constructor for class '"
-					+ receiver + "' with parameters '" + parameters);
+					+ receiver + "' with parameters '" + parameters + "'.");
 
-		return findMostSpecificOverload(receiver, overloadCandidates,
-				receiver::constructor);
+		return constructors.get(findMostSpecificOverload(overloadCandidates));
 	}
 
 	public static Method findMethod(List<String> names, TypeToken<?> receiver,
@@ -51,26 +50,30 @@ public class Methods {
 				Arrays.asList(parameters));
 	}
 
-	public static Method findMethod(List<String> names, TypeToken<?> receiver,
-			boolean isStatic, TypeToken<?> result, boolean allowCast,
-			List<TypeToken<?>> parameters) throws NoSuchMethodException {
-		Set<Method> overloadCandidates = findOverloadCandidates(
-				receiver,
-				c -> Arrays.stream(c.getRawType().getMethods())
-						.filter(m -> names.contains(m.getName()))
-						.collect(Collectors.toList()), parameters);
+	public static <T> Method findMethod(List<String> names,
+			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
+			boolean allowCast, List<TypeToken<?>> parameters)
+			throws NoSuchMethodException {
+		@SuppressWarnings("serial")
+		Map<Invokable<T, ?>, Method> methods = Stream
+				.concat(Arrays.stream(new TypeToken<Object>() {
+				}.getRawType().getMethods()),
+						Arrays.stream(receiver.getRawType().getMethods()))
+				.filter(m -> names.contains(m.getName()))
+				.collect(Collectors.toMap(receiver::method, Function.identity()));
+
+		Set<Invokable<T, ?>> overloadCandidates = findOverloadCandidates(
+				methods.keySet(), parameters);
 
 		if (overloadCandidates.isEmpty())
 			throw new NoSuchMethodException("Cannot find method of class '" + result
 					+ "', receiver '" + receiver + "', and parameters '" + parameters
 					+ "' with any name of '" + names + "'.");
 
-		Method mostSpecific = findMostSpecificOverload(receiver,
-				overloadCandidates, receiver::method);
+		Invokable<T, ?> mostSpecific = findMostSpecificOverload(overloadCandidates);
 
-		if (result != null
-				&& !isAssignable(receiver.method(mostSpecific).getReturnType(), result)
-				&& !(isAssignable(result, receiver.method(mostSpecific).getReturnType()) && allowCast))
+		if (result != null && !isAssignable(mostSpecific.getReturnType(), result)
+				&& !(isAssignable(result, mostSpecific.getReturnType()) && allowCast))
 			throw new NoSuchMethodException("Resolved method '" + mostSpecific
 					+ "' does not have compatible return type with '" + result + "'.");
 
@@ -78,26 +81,19 @@ public class Methods {
 			throw new NoSuchMethodException("Resolved method '" + mostSpecific
 					+ "' should not be static.");
 
-		return mostSpecific;
+		return methods.get(mostSpecific);
 	}
 
-	@SuppressWarnings("serial")
-	private static <I extends Executable> Set<I> findOverloadCandidates(
-			TypeToken<?> receiver,
-			Function<TypeToken<?>, Collection<? extends I>> methods,
+	private static <T> Set<Invokable<T, ?>> findOverloadCandidates(
+			Collection<? extends Invokable<T, ?>> methods,
 			List<TypeToken<?>> parameters) {
-		return Stream
-				.concat(methods.apply(receiver).stream(),
-						methods.apply(new TypeToken<Object>() {
-						}).stream())
+		return methods
+				.stream()
+				.filter(m -> m.getParameters().size() == parameters.size())
 				.filter(
 						m -> {
-							List<TypeToken<?>> methodParameters = Arrays
-									.asList(m.getGenericParameterTypes()).stream()
-									.map(TypeToken::of).collect(Collectors.toList());
-
-							if (methodParameters.size() != parameters.size())
-								return false;
+							List<TypeToken<?>> methodParameters = m.getParameters().stream()
+									.map(Parameter::getType).collect(Collectors.toList());
 
 							int i = 0;
 							for (TypeToken<?> parameter : parameters)
@@ -108,9 +104,10 @@ public class Methods {
 						}).collect(Collectors.toSet());
 	}
 
-	private static <I extends Executable> I findMostSpecificOverload(
-			TypeToken<?> receiver, Set<I> candidates,
-			Function<I, Invokable<?, ?>> invokable) throws NoSuchMethodException {
+	// TODO prefer no boxing/unboxing to with boxing/unboxing.
+	private static <T> Invokable<T, ?> findMostSpecificOverload(
+			Collection<? extends Invokable<T, ?>> candidates)
+			throws NoSuchMethodException {
 		if (candidates.size() == 1)
 			return candidates.iterator().next();
 
@@ -118,26 +115,25 @@ public class Methods {
 		 * Find which candidates have the joint most specific parameters, one
 		 * parameter at a time.
 		 */
-		Set<I> mostSpecificSoFar = new HashSet<>(candidates);
-		int parameters = candidates.iterator().next().getParameterCount();
+		Set<Invokable<T, ?>> mostSpecificSoFar = new HashSet<>(candidates);
+		int parameters = candidates.iterator().next().getParameters().size();
 		for (int i = 0; i < parameters; i++) {
-			Set<I> mostSpecificForParameter = new HashSet<>();
+			Set<Invokable<T, ?>> mostSpecificForParameter = new HashSet<>();
 
-			Class<?> mostSpecificParameterClass = candidates.iterator().next()
-					.getDeclaringClass();
+			TypeToken<?> mostSpecificParameterType = candidates.iterator().next()
+					.getParameters().get(i).getType();
 
-			for (I overloadCandidate : candidates) {
-				Class<?> parameterClass = overloadCandidate.getDeclaringClass();
+			for (Invokable<T, ?> overloadCandidate : candidates) {
+				TypeToken<?> parameterClass = overloadCandidate.getParameters().get(i)
+						.getType();
 
-				if (ClassUtils.isAssignable(parameterClass, mostSpecificParameterClass)) {
-					mostSpecificParameterClass = parameterClass;
+				if (isAssignable(parameterClass, mostSpecificParameterType)) {
+					mostSpecificParameterType = parameterClass;
 
-					if (!ClassUtils.isAssignable(mostSpecificParameterClass,
-							parameterClass))
+					if (!isAssignable(mostSpecificParameterType, parameterClass))
 						mostSpecificForParameter.clear();
 					mostSpecificForParameter.add(overloadCandidate);
-				} else if (!ClassUtils.isAssignable(mostSpecificParameterClass,
-						parameterClass)) {
+				} else if (!isAssignable(mostSpecificParameterType, parameterClass)) {
 					throw new NoSuchMethodException("Cannot resolve method ambiguity.");
 				}
 			}
@@ -152,60 +148,16 @@ public class Methods {
 		 * Find which of the remaining candidates, which should all have identical
 		 * parameter types, is declared in the lowermost class.
 		 */
-		Iterator<I> overrideCandidateIterator = mostSpecificSoFar.iterator();
-		I mostSpecific = overrideCandidateIterator.next();
+		Iterator<Invokable<T, ?>> overrideCandidateIterator = mostSpecificSoFar
+				.iterator();
+		Invokable<T, ?> mostSpecific = overrideCandidateIterator.next();
 		while (overrideCandidateIterator.hasNext()) {
-			I candidate = overrideCandidateIterator.next();
-			mostSpecific = ClassUtils.isAssignable(candidate.getDeclaringClass(),
+			Invokable<T, ?> candidate = overrideCandidateIterator.next();
+			mostSpecific = candidate.getDeclaringClass().isAssignableFrom(
 					mostSpecific.getDeclaringClass()) ? candidate : mostSpecific;
 		}
 
 		return mostSpecific;
-	}
-
-	public static List<DataNode.Effective<?>> findProvidedUnbindingParameters(
-			BindingNode.Effective<?, ?, ?> node) {
-		return node.getProvidedUnbindingMethodParameterNames() == null ? node
-				.getUnbindingMethodName() == null ? null : new ArrayList<>()
-				: node
-						.getProvidedUnbindingMethodParameterNames()
-						.stream()
-						.map(
-								p -> {
-									if (p.getName().equals("this"))
-										return null;
-									else {
-										ChildNode.Effective<?, ?> effective = node
-												.children()
-												.stream()
-												.filter(c -> c.getName().equals(p))
-												.findAny()
-												.orElseThrow(
-														() -> new SchemaException(
-																"Cannot find node for unbinding parameter: '"
-																		+ p + "'"));
-
-										if (!(effective instanceof DataNode.Effective))
-											throw new SchemaException("Unbinding parameter node '"
-													+ effective + "' for '" + p + "' is not a data node.");
-
-										DataNode.Effective<?> dataNode = (DataNode.Effective<?>) effective;
-
-										if (dataNode.occurrences() != null
-												&& (dataNode.occurrences().getTo() != 1 || dataNode
-														.occurrences().getFrom() != 1))
-											throw new SchemaException("Unbinding parameter node '"
-													+ effective + "' for '" + p
-													+ "' must occur exactly once.");
-
-										if (!node.isAbstract() && !dataNode.isValueProvided())
-											throw new SchemaException("Unbinding parameter node '"
-													+ dataNode + "' for '" + p
-													+ "' must provide a value.");
-
-										return dataNode;
-									}
-								}).collect(Collectors.toList());
 	}
 
 	private static boolean isAssignable(TypeToken<?> target, TypeToken<?> value) {

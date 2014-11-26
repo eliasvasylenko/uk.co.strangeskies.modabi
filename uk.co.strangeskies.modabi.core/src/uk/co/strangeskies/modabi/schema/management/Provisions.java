@@ -1,7 +1,18 @@
 package uk.co.strangeskies.modabi.schema.management;
 
-public interface Provisions {
-	public <T> T provide(Class<T> clazz);
+import java.lang.reflect.Type;
 
-	public boolean isProvided(Class<?> clazz);
+public interface Provisions {
+	Object provide(Type type);
+
+	@SuppressWarnings("unchecked")
+	default <T> T provide(Class<T> clazz) {
+		return (T) provide((Type) clazz);
+	}
+
+	boolean isProvided(Type type);
+
+	default boolean isProvided(Class<?> clazz) {
+		return isProvided((Type) clazz);
+	}
 }

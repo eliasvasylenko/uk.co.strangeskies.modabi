@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.schema.node;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -13,7 +13,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 		extends SchemaNode<S, E> {
 	interface Effective<T, S extends BindingNode<T, S, E>, E extends Effective<T, S, E>>
 			extends BindingNode<T, S, E>, SchemaNode.Effective<S, E> {
-		Method getUnbindingMethod();
+		Executable getUnbindingMethod();
 
 		List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters();
 
@@ -37,21 +37,21 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 				.add(BindingNode::getProvidedUnbindingMethodParameterNames);
 	}
 
-	Class<T> getDataClass();
+	Class<? super T> getDataClass();
 
-	ParameterizedType getDataType();
+	Type getDataType();
 
 	BindingStrategy getBindingStrategy();
 
-	ParameterizedType getBindingType();
+	Type getBindingType();
 
 	UnbindingStrategy getUnbindingStrategy();
 
-	ParameterizedType getUnbindingType();
+	Type getUnbindingType();
 
 	String getUnbindingMethodName();
 
-	ParameterizedType getUnbindingFactoryType();
+	Type getUnbindingFactoryType();
 
 	List<QualifiedName> getProvidedUnbindingMethodParameterNames();
 }
