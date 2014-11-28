@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -103,7 +105,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
 	private final SchemaNodeConfigurationContext<?> context;
-	private Class<?> inputTarget;
+	private TypeToken<?> inputTarget;
 
 	public SequentialChildrenConfigurator(
 			SchemaNodeConfigurationContext<?> context) {
@@ -122,7 +124,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		}
 
 		this.context = context;
-		inputTarget = context.inputTargetClass(null);
+		inputTarget = context.inputTargetType(null);
 
 		childIndex = 0;
 	}
@@ -191,15 +193,22 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 	@SuppressWarnings("unchecked")
 	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
-			Class<U> nodeClass) {
+			TypeToken<U> nodeClass) {
 		List<ChildNode.Effective<?, ?>> overriddenNodes = new ArrayList<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
-			if (mergeGroup.getChildren().stream()
-					.anyMatch(n -> !nodeClass.isAssignableFrom(n.getClass())))
-				throw new SchemaException(
-						"Cannot override with node of a different class");
+			mergeGroup
+					.getChildren()
+					.stream()
+					.filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass()))
+					.findAny()
+					.ifPresent(
+							n -> {
+								throw new SchemaException(
+										"Cannot override with node of class '" + n.getClass()
+												+ "' with a node of class '" + nodeClass + "'.");
+							});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
 		}
@@ -216,7 +225,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = merge(new QualifiedName("?", Namespace.getDefault()),
 				effective, childIndex, true);
 
-		inputTarget = effective.getPostInputClass();
+		inputTarget = effective.getPostInputType() == null ? null : TypeToken
+				.of(effective.getPostInputType());
 	}
 
 	@Override
@@ -247,7 +257,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public <U extends ChildNode<?, ?>> List<U> overrideChild(
-					QualifiedName id, Class<U> nodeClass) {
+					QualifiedName id, TypeToken<U> nodeClass) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 
@@ -274,7 +284,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public Class<?> inputTargetClass(QualifiedName name) {
+			public TypeToken<?> inputTargetType(QualifiedName name) {
 				if (!isInputExpected())
 					return null;
 
@@ -282,16 +292,16 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 				if (mergeGroup != null) {
 					int index = mergedChildren.indexOf(mergeGroup);
 					if (index > 0)
-						inputTarget = mergedChildren.get(index - 1).getChild()
-								.getPostInputClass();
+						inputTarget = TypeToken.of(mergedChildren.get(index - 1).getChild()
+								.getPostInputType());
 				}
 
 				return inputTarget;
 			}
 
 			@Override
-			public Class<?> outputSourceClass() {
-				return SequentialChildrenConfigurator.this.context.outputSourceClass();
+			public TypeToken<?> outputSourceType() {
+				return SequentialChildrenConfigurator.this.context.outputSourceType();
 			}
 
 			@Override

@@ -32,36 +32,37 @@ public class ComplexNodeUnbinder {
 											.collect(Collectors.joining(", ")) + "' for object '"
 									+ item + "' to be unbound.");
 
-				context
-						.attemptUnbindingUntilSuccessful(
-								overrides
-										.keySet()
-										.stream()
-										.filter(
-												m -> m.getDataType().isAssignableFrom(item.getClass()))
-										.collect(Collectors.toList()),
-								(c, n) -> unbindExactNode(c, overrides.putGet(n), item),
-								l -> new UnbindingException("Unable to unbind complex node '"
-										+ node.getName()
-										+ "' with model candidates '"
-										+ overrides.keySet().stream()
-												.map(m -> m.source().getName().toString())
-												.collect(Collectors.joining(", ")) + "' for object '"
-										+ item + "' to be unbound.", context, l));
+				context.attemptUnbindingUntilSuccessful(
+						overrides
+								.keySet()
+								.stream()
+								.filter(
+										m -> m.getDataType().rawClass()
+												.isAssignableFrom(item.getClass()))
+								.collect(Collectors.toList()),
+						(c, n) -> unbindExactNode(c, overrides.putGet(n), item),
+						l -> new UnbindingException("Unable to unbind complex node '"
+								+ node.getName()
+								+ "' with model candidates '"
+								+ overrides.keySet().stream()
+										.map(m -> m.source().getName().toString())
+										.collect(Collectors.joining(", ")) + "' for object '"
+								+ item + "' to be unbound.", context, l));
 			}
 		} else
 			for (U item : data)
 				unbindExactNode(context, node, item);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <U extends V, V> void unbindExactNode(UnbindingContextImpl context,
 			ComplexNode.Effective<U> element, V data) {
 		try {
 			if (!element.isInline())
 				context.output().nextChild(element.getName());
 
-			new BindingNodeUnbinder(context).unbind(element, element.getDataType()
-					.cast(data));
+			new BindingNodeUnbinder(context).unbind(element, (U) element
+					.getDataType().rawClass().cast(data));
 
 			if (!element.isInline())
 				context.output().endChild();

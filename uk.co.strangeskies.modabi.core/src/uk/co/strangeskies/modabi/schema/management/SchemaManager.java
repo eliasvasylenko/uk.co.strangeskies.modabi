@@ -13,15 +13,20 @@ import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.Schemata;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 
 public interface SchemaManager {
-	<T> void registerProvider(Class<T> providedClass, Supplier<T> provider);
+	<T> void registerProvider(TypeLiteral<T> providedClass, Supplier<T> provider);
 
-	void registerProvider(Function<Class<?>, ?> provider);
+	void registerProvider(Function<TypeLiteral<?>, ?> provider);
+
+	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
+		registerProvider(new TypeLiteral<>(providedClass), provider);
+	}
 
 	void registerSchema(Schema schema);
 
@@ -36,6 +41,10 @@ public interface SchemaManager {
 		return bindFuture(model, input).resolveNow().getData();
 	}
 
+	default <T> T bind(TypeLiteral<T> dataClass, StructuredDataSource input) {
+		return bindFuture(dataClass, input).resolveNow().getData();
+	}
+
 	default <T> T bind(Class<T> dataClass, StructuredDataSource input) {
 		return bindFuture(dataClass, input).resolveNow().getData();
 	}
@@ -48,7 +57,13 @@ public interface SchemaManager {
 	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input);
 
 	// Blocks until all possible processing is done other than waiting imports:
-	<T> BindingFuture<T> bindFuture(Class<T> dataClass, StructuredDataSource input);
+	<T> BindingFuture<T> bindFuture(TypeLiteral<T> dataClass,
+			StructuredDataSource input);
+
+	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
+			StructuredDataSource input) {
+		return bindFuture(new TypeLiteral<>(dataClass), input);
+	}
 
 	BindingFuture<?> bindFuture(StructuredDataSource input);
 
@@ -80,7 +95,12 @@ public interface SchemaManager {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
-	<T> void unbind(Class<T> dataClass, StructuredDataTarget output, T data);
+	<T> void unbind(TypeLiteral<T> dataClass, StructuredDataTarget output, T data);
+
+	default <T> void unbind(Class<T> dataClass, StructuredDataTarget output,
+			T data) {
+		unbind(new TypeLiteral<>(dataClass), output, data);
+	}
 
 	void unbind(StructuredDataTarget output, Object data);
 

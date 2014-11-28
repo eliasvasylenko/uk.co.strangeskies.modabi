@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
@@ -14,6 +15,8 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SchemaN
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
+
+import com.google.common.reflect.TypeToken;
 
 public class ModelConfiguratorImpl<T> extends
 		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -124,8 +127,8 @@ public class ModelConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> dataClass(Class<V> dataClass) {
-		return (ModelConfigurator<V>) super.dataClass(dataClass);
+	public <V extends T> ModelConfigurator<V> dataType(TypeLiteral<V> dataClass) {
+		return (ModelConfigurator<V>) super.dataType(dataClass);
 	}
 
 	@Override
@@ -133,9 +136,10 @@ public class ModelConfiguratorImpl<T> extends
 		return new ModelImpl<>(this);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("serial")
 	@Override
-	protected Class<Model<T>> getNodeClass() {
-		return (Class<Model<T>>) (Object) Model.class;
+	protected TypeToken<Model<T>> getNodeClass() {
+		return new TypeToken<Model<T>>() {
+		};
 	}
 }

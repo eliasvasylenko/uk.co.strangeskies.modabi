@@ -5,9 +5,9 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 
 public class DataBindingTypeWrapper<T>
 		extends
-		BindingNodeWrapper<T, DataNode.Effective<? super T>, DataBindingType.Effective<? super T>, DataBindingType<T>, DataBindingType.Effective<T>>
+		BindingNodeWrapper<T, DataNode.Effective<T>, DataBindingType.Effective<? super T>, DataBindingType<T>, DataBindingType.Effective<T>>
 		implements DataBindingType.Effective<T> {
-	public DataBindingTypeWrapper(DataNode.Effective<? super T> component) {
+	public DataBindingTypeWrapper(DataNode.Effective<T> component) {
 		super(component);
 	}
 

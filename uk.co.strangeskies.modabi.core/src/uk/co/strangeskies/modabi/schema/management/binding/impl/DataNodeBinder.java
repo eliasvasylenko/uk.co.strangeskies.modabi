@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
@@ -101,7 +102,7 @@ public class DataNodeBinder {
 		int successfulIndex = 0;
 		try {
 			if (context.provisions().isProvided(DataSource.class))
-				dataSource = context.provide(DataSource.class);
+				dataSource = context.provide(new TypeLiteral<>(DataSource.class));
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();

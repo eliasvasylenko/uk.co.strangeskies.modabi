@@ -5,7 +5,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
@@ -116,9 +119,9 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> DataBindingTypeConfigurator<V> dataClass(
-			Class<V> dataClass) {
-		return (DataBindingTypeConfigurator<V>) super.dataClass(dataClass);
+	public <V extends T> DataBindingTypeConfigurator<V> dataType(
+			TypeLiteral<V> dataClass) {
+		return (DataBindingTypeConfigurator<V>) super.dataType(dataClass);
 	}
 
 	@Override
@@ -131,10 +134,11 @@ public class DataBindingTypeConfiguratorImpl<T>
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("serial")
 	@Override
-	protected Class<DataBindingType<T>> getNodeClass() {
-		return (Class<DataBindingType<T>>) (Object) DataBindingType.class;
+	protected TypeToken<DataBindingType<T>> getNodeClass() {
+		return new TypeToken<DataBindingType<T>>() {
+		};
 	}
 
 	@Override

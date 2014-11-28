@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
@@ -12,8 +13,16 @@ public interface DataNodeConfigurator<T> extends
 	public <U extends T> DataNodeConfigurator<U> type(
 			DataBindingType<? super U> type);
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <U extends T> DataNodeConfigurator<U> dataClass(Class<U> dataClass);
+	default public <U extends T> DataNodeConfigurator<U> dataClass(
+			Class<U> dataClass) {
+		return (DataNodeConfigurator<U>) BindingChildNodeConfigurator.super
+				.dataClass(dataClass);
+	}
+
+	@Override
+	public <U extends T> DataNodeConfigurator<U> dataType(TypeLiteral<U> dataClass);
 
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
 

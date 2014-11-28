@@ -5,6 +5,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -39,8 +41,8 @@ public class InputSequenceNodeConfiguratorImpl extends
 			private final Boolean inMethodChained;
 			private final Boolean allowInMethodResultCast;
 
-			private final Class<?> preInputClass;
-			private final Class<?> postInputClass;
+			private final Type preInputClass;
+			private final Type postInputClass;
 
 			protected Effective(
 					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl> overrideMerge) {
@@ -59,12 +61,13 @@ public class InputSequenceNodeConfiguratorImpl extends
 						.getChildrenContainer()
 						.getChildren()
 						.stream()
-						.map(o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType())
-						.collect(Collectors.toList());
+						.map(
+								o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType()
+										.type()).collect(Collectors.toList());
 				inMethod = inputNodeHelper.inMethod(parameterClasses);
 				inMethodName = inputNodeHelper.inMethodName();
-				preInputClass = inputNodeHelper.preInputClass();
-				postInputClass = inputNodeHelper.postInputClass();
+				preInputClass = inputNodeHelper.preInputType().getType();
+				postInputClass = inputNodeHelper.postInputType().getType();
 			}
 
 			@Override
@@ -88,19 +91,19 @@ public class InputSequenceNodeConfiguratorImpl extends
 			}
 
 			@Override
-			public Class<?> getPostInputClass() {
+			public Type getPostInputType() {
 				return postInputClass;
 			}
 
 			@Override
-			public Class<?> getPreInputClass() {
+			public Type getPreInputType() {
 				return preInputClass;
 			}
 		}
 
 		private final Effective effective;
 
-		private final Class<?> postInputClass;
+		private final Type postInputClass;
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
@@ -137,7 +140,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public Class<?> getPostInputClass() {
+		public Type getPostInputType() {
 			return postInputClass;
 		}
 	}
@@ -186,13 +189,13 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected Class<InputSequenceNode> getNodeClass() {
-		return InputSequenceNode.class;
+	protected TypeToken<InputSequenceNode> getNodeClass() {
+		return TypeToken.of(InputSequenceNode.class);
 	}
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		Class<?> outputTarget = getContext().outputSourceClass();
+		TypeToken<?> outputTarget = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -232,12 +235,12 @@ public class InputSequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public Class<?> inputTargetClass(QualifiedName node) {
+					public TypeToken<?> inputTargetType(QualifiedName node) {
 						return null;
 					}
 
 					@Override
-					public Class<?> outputSourceClass() {
+					public TypeToken<?> outputSourceType() {
 						return outputTarget;
 					}
 
@@ -247,7 +250,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, Class<U> nodeClass) {
+							QualifiedName id, TypeToken<U> nodeClass) {
 						return null;
 					}
 

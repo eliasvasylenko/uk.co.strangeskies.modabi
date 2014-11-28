@@ -4,6 +4,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.providers.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
@@ -55,13 +56,13 @@ public class SchemaUnbinder {
 	}
 
 	public <T> void unbind(StructuredDataTarget output,
-			Class<? extends T> dataClass, T data) {
+			TypeLiteral<? extends T> dataClass, T data) {
 		castingUnbind(output, dataClass, data);
 	}
 
 	@SuppressWarnings("unchecked")
 	private <T, U extends T> void castingUnbind(StructuredDataTarget output,
-			Class<U> dataClass, T data) {
+			TypeLiteral<U> dataClass, T data) {
 		UnbindingContextImpl context = this.context.withOutput(output);
 
 		List<? extends Model.Effective<U>> models = context
@@ -89,6 +90,6 @@ public class SchemaUnbinder {
 	}
 
 	public <T> void unbind(StructuredDataTarget output, T data) {
-		unbind(output, data.getClass(), data);
+		unbind(output, new TypeLiteral<>(data.getClass()), data);
 	}
 }

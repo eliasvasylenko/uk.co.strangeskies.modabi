@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
@@ -35,7 +37,7 @@ public class ComplexNodeBinder {
 			 * input element matches by reading the name, so we must attempt to bind
 			 * in a protected context, and revert on failure, then continue on to the
 			 * next node if possible.
-			 * 
+			 *
 			 * If the current node is not inline, we first determine whether the next
 			 * input element is a match. If it is not, we break, then continue on to
 			 * the next node if possible. If it is, then we must bind the next input
@@ -96,7 +98,8 @@ public class ComplexNodeBinder {
 							+ "' to bind to.", context);
 				}
 
-				if (!node.getDataType().isAssignableFrom(extension.getDataType()))
+				if (!TypeToken.of(node.getDataType().type()).isAssignableFrom(
+						extension.getDataType().type()))
 					throw new BindingException("Named input node '" + nextElement
 							+ "' does not match class of extention point.", context);
 

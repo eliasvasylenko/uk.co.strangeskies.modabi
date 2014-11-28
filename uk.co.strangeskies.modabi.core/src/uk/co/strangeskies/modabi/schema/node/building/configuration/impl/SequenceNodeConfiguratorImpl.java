@@ -1,6 +1,9 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
+import java.lang.reflect.Type;
 import java.util.List;
+
+import com.google.common.reflect.TypeToken;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -23,44 +26,46 @@ public class SequenceNodeConfiguratorImpl extends
 		private class Effective extends
 				SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
 				implements SequenceNode.Effective {
-			private final Class<?> preInputClass;
-			private final Class<?> postInputClass;
+			private final Type preInputClass;
+			private final Type postInputClass;
 
 			public Effective(
 					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
 				super(overrideMerge);
 
 				preInputClass = isAbstract() ? null : children().get(0)
-						.getPreInputClass();
+						.getPreInputType();
 
-				Class<?> postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
+				Type postInputClass = overrideMerge.tryGetValue(
+						ChildNode::getPostInputType, (n, o) -> TypeToken.of(o)
+								.isAssignableFrom(n));
 				if (postInputClass == null && !isAbstract()) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						if (postInputClass != null
-								&& !child.getPreInputClass().isAssignableFrom(postInputClass)) {
+								&& !TypeToken.of(child.getPreInputType()).isAssignableFrom(
+										postInputClass)) {
 							throw new IllegalArgumentException();
 						}
-						postInputClass = child.getPostInputClass();
+						postInputClass = child.getPostInputType();
 					}
 				}
 				this.postInputClass = postInputClass;
 			}
 
 			@Override
-			public Class<?> getPreInputClass() {
+			public Type getPreInputType() {
 				return preInputClass;
 			}
 
 			@Override
-			public Class<?> getPostInputClass() {
+			public Type getPostInputType() {
 				return postInputClass;
 			}
 		}
 
 		private final Effective effective;
 
-		private final Class<?> postInputClass;
+		private final Type postInputClass;
 
 		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
@@ -76,7 +81,7 @@ public class SequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public Class<?> getPostInputClass() {
+		public Type getPostInputType() {
 			return postInputClass;
 		}
 	}
@@ -92,13 +97,13 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected Class<SequenceNode> getNodeClass() {
-		return SequenceNode.class;
+	protected TypeToken<SequenceNode> getNodeClass() {
+		return TypeToken.of(SequenceNode.class);
 	}
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		Class<?> inputTarget = getContext().inputTargetClass(getName());
+		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -138,12 +143,12 @@ public class SequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public Class<?> inputTargetClass(QualifiedName node) {
+					public TypeToken<?> inputTargetType(QualifiedName node) {
 						return inputTarget;
 					}
 
 					@Override
-					public Class<?> outputSourceClass() {
+					public TypeToken<?> outputSourceType() {
 						return null;
 					}
 
@@ -153,7 +158,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, Class<U> nodeClass) {
+							QualifiedName id, TypeToken<U> nodeClass) {
 						return null;
 					}
 

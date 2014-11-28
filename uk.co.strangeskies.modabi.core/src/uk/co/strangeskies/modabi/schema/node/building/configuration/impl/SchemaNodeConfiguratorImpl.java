@@ -8,6 +8,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -273,7 +275,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return getThis();
 	}
 
-	protected abstract Class<N> getNodeClass();
+	protected abstract TypeToken<N> getNodeClass();
 
 	protected abstract DataLoader getDataLoader();
 
@@ -305,6 +307,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	@Override
 	public String toString() {
-		return getNodeClass().getSimpleName() + " configurator: " + getName();
+		return getNodeClass().getRawType().getSimpleName() + " configurator: "
+				+ getName();
 	}
 }

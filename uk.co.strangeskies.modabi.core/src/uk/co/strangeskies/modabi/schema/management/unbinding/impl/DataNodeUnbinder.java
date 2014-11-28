@@ -117,8 +117,12 @@ public class DataNodeUnbinder {
 								+ "' to be unbound.");
 
 			context.attemptUnbindingUntilSuccessful(
-					overrides.keySet().stream()
-							.filter(m -> m.getDataType().isAssignableFrom(data.getClass()))
+					overrides
+							.keySet()
+							.stream()
+							.filter(
+									m -> m.getDataType().rawClass()
+											.isAssignableFrom(data.getClass()))
 							.collect(Collectors.toList()),
 					(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
 					l -> new UnbindingException("Unable to unbind data node '"
@@ -132,11 +136,12 @@ public class DataNodeUnbinder {
 			new BindingNodeUnbinder(context).unbind(node, data);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <U extends V, V> void unbindExactNode(UnbindingContextImpl context,
 			DataNode.Effective<U> element, V data) {
 		try {
-			new BindingNodeUnbinder(context).unbind(element, element.getDataType()
-					.cast(data));
+			new BindingNodeUnbinder(context).unbind(element, (U) element
+					.getDataType().rawClass().cast(data));
 		} catch (ClassCastException e) {
 			throw new UnbindingException("Cannot unbind data at this node.", context,
 					e);

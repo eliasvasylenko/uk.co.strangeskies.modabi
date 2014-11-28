@@ -79,9 +79,8 @@ public class BindingNodeOverrider {
 			};
 
 			ModelConfigurator<Object> configurator = builder.configure(loader)
-					.name(new QualifiedName("base"))
-					.bindingClass(node.getPreInputClass())
-					.unbindingClass(node.getOutMethod().getDeclaringClass())
+					.name(new QualifiedName("base")).bindingType(node.getPreInputType())
+					.unbindingType(node.getOutMethod().getDeclaringClass())
 					.isAbstract(true);
 
 			ComplexNodeConfigurator<T> elementConfigurator;
@@ -111,12 +110,12 @@ public class BindingNodeOverrider {
 
 			DataBindingTypeConfigurator<Object> configurator = builder
 					.configure(loader).name(new QualifiedName("base"))
-					.bindingClass(node.getPreInputClass())
-					.unbindingClass(node.getOutMethod().getDeclaringClass())
+					.bindingType(node.getPreInputType())
+					.unbindingType(node.getOutMethod().getDeclaringClass())
 					.isAbstract(true);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = configurator.addChild()
-					.data().name(override.getName()).dataClass(override.getDataType())
+					.data().name(override.getName()).dataType(override.getDataType())
 					.type(override.baseType());
 
 			dataNodeConfigurator = tryProperty(node.optional(),
@@ -160,11 +159,11 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingNodeConfigurator<C, ?, U>> C processBindingNode(
 				BindingNode<U, ?, ?> node, C c) {
-			c = tryProperty(node.getBindingType(), c::bindingClass, c);
+			c = tryProperty(node.getBindingType(), c::bindingType, c);
 			c = tryProperty(node.getBindingStrategy(), c::bindingStrategy, c);
-			c = tryProperty(node.getUnbindingType(), c::unbindingClass, c);
-			c = tryProperty(node.getUnbindingFactoryType(),
-					c::unbindingFactoryClass, c);
+			c = tryProperty(node.getUnbindingType(), c::unbindingType, c);
+			c = tryProperty(node.getUnbindingFactoryType(), c::unbindingFactoryType,
+					c);
 			c = tryProperty(node.getUnbindingMethodName(), c::unbindingMethod, c);
 			c = tryProperty(node.getUnbindingStrategy(), c::unbindingStrategy, c);
 			c = tryProperty(node.getProvidedUnbindingMethodParameterNames(),
@@ -188,15 +187,15 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.isInMethodCast(), c::isInMethodCast, c);
 			c = tryProperty(node.getInMethodName(), c::inMethod, c);
 			c = tryProperty(node.isInMethodChained(), c::inMethodChained, c);
-			c = tryProperty(node.getPostInputClass(), c::postInputClass, c);
+			c = tryProperty(node.getPostInputType(), c::postInputType, c);
 
 			return c;
 		}
 
 		public <U> ComplexNodeConfigurator<U> processAbstractComplexNode(
 				AbstractComplexNode<U, ?, ?> node, ComplexNodeConfigurator<Object> c) {
-			ComplexNodeConfigurator<U> cu = c.dataClass(node.getDataType())
-					.baseModel(node.baseModel());
+			ComplexNodeConfigurator<U> cu = c.dataType(node.getDataType()).baseModel(
+					node.baseModel());
 
 			return cu;
 		}
@@ -234,11 +233,11 @@ public class BindingNodeOverrider {
 				if (source.getDataType() == null) {
 					cu = (DataNodeConfigurator<U>) c;
 				} else {
-					cu = c.dataClass(source.getDataType());
+					cu = c.dataType(source.getDataType());
 				}
 			} else {
 				cu = c.type(source.type());
-				cu = tryProperty(source.getDataType(), cu::dataClass, cu);
+				cu = tryProperty(source.getDataType(), cu::dataType, cu);
 			}
 
 			doChildren(source,

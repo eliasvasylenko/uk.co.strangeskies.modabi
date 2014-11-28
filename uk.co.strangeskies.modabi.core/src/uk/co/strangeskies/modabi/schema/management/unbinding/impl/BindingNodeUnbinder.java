@@ -14,7 +14,7 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
@@ -47,44 +47,38 @@ public class BindingNodeUnbinder {
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
-					Object o = context.provisions().provide(node.getUnbindingType());
-					invokeMethod(node.getUnbindingMethod(), context, o,
+					Object o = context.provisions().provide(
+							TypeLiteral.of(node.getUnbindingType()));
+					invokeMethod((Method) node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
 				};
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
-					Object o = context.provisions().provide(node.getUnbindingType());
-					invokeMethod(node.getUnbindingMethod(), context, u,
+					Object o = context.provisions().provide(
+							TypeLiteral.of(node.getUnbindingType()));
+					invokeMethod((Method) node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
 				};
 				break;
 			case CONSTRUCTOR:
-				supplier = u -> {
-					Constructor<?> c = null;
-					try {
-						c = node.getUnbindingType().getConstructor(u.getClass());
-						return c.newInstance(prepareUnbingingParameterList(node, u));
-					} catch (InstantiationException | IllegalAccessException
-							| IllegalArgumentException | InvocationTargetException
-							| NoSuchMethodException | SecurityException e) {
-						throw new SchemaException("Cannot invoke constructor " + c + " on "
-								+ node.getUnbindingType(), e);
-					}
-				};
+				supplier = u -> invokeConstructor(
+						(Constructor<?>) node.getUnbindingMethod(), context,
+						prepareUnbingingParameterList(node, u));
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> invokeMethod(node.getUnbindingMethod(), context, null,
-						prepareUnbingingParameterList(node, u));
-
+				supplier = u -> invokeMethod((Method) node.getUnbindingMethod(),
+						context, null, prepareUnbingingParameterList(node, u));
 				break;
 			case PROVIDED_FACTORY:
-				supplier = u -> invokeMethod(node.getUnbindingMethod(), context,
-						context.provisions().provide(node.getUnbindingFactoryType()),
+				supplier = u -> invokeMethod(
+						(Method) node.getUnbindingMethod(),
+						context,
+						context.provisions().provide(
+								TypeLiteral.of(node.getUnbindingFactoryType())),
 						prepareUnbingingParameterList(node, u));
-
 				break;
 			}
 		}
@@ -176,6 +170,21 @@ public class BindingNodeUnbinder {
 		}
 	}
 
+	private static Object invokeConstructor(Constructor<?> method,
+			UnbindingContext context, Object... parameters) {
+		try {
+			return method.newInstance(parameters);
+		} catch (NullPointerException | InstantiationException
+				| IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw new UnbindingException("Cannot invoke method '"
+					+ method
+					+ "' with arguments '["
+					+ Arrays.asList(parameters).stream().map(Objects::toString)
+							.collect(Collectors.joining(", ")) + "]'.", context, e);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node,
 			UnbindingContext context) {
@@ -201,8 +210,8 @@ public class BindingNodeUnbinder {
 			U failedCast = itemList
 					.stream()
 					.filter(
-							o -> !ClassUtils.isAssignable(o.getClass(), node.getDataType()))
-					.findAny().orElse(null);
+							o -> !ClassUtils.isAssignable(o.getClass(), node.getDataType()
+									.rawClass())).findAny().orElse(null);
 			if (failedCast != null)
 				throw new ClassCastException("Cannot cast " + failedCast.getClass()
 						+ " to " + node.getDataType());
@@ -216,7 +225,8 @@ public class BindingNodeUnbinder {
 			if (item == null)
 				itemList = null;
 			else {
-				if (!ClassUtils.isAssignable(item.getClass(), node.getDataType()))
+				if (!ClassUtils.isAssignable(item.getClass(), node.getDataType()
+						.rawClass()))
 					throw new ClassCastException("Cannot cast " + item.getClass()
 							+ " to " + node.getDataType());
 				itemList = Arrays.asList(item);

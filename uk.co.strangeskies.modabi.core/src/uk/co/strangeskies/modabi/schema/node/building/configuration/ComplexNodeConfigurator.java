@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 
@@ -19,8 +20,15 @@ public interface ComplexNodeConfigurator<T> extends
 	<V extends T> ComplexNodeConfigurator<V> baseModel(
 			List<? extends Model<? super V>> baseModel);
 
+	@SuppressWarnings("unchecked")
 	@Override
-	<V extends T> ComplexNodeConfigurator<V> dataClass(Class<V> dataClass);
+	default <V extends T> ComplexNodeConfigurator<V> dataClass(Class<V> dataClass) {
+		return (ComplexNodeConfigurator<V>) AbstractModelConfigurator.super
+				.dataClass(dataClass);
+	}
+
+	@Override
+	<V extends T> ComplexNodeConfigurator<V> dataType(TypeLiteral<V> dataClass);
 
 	ComplexNodeConfigurator<T> inline(boolean inline);
 }

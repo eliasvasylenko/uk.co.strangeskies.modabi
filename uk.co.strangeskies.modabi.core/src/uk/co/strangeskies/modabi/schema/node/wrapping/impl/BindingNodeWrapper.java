@@ -1,16 +1,19 @@
 package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+
+import com.google.common.reflect.TypeToken;
 
 public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		implements BindingNode.Effective<T, S, E> {
@@ -30,7 +33,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				+ component.getName() + "'.";
 
 		if (base.getDataType() != null
-				&& !base.getDataType().isAssignableFrom(component.getDataType()))
+				&& !TypeToken.of(base.getDataType().type()).isAssignableFrom(
+						component.getDataType().type()))
 			throw new SchemaException(message);
 
 		if (base.getBindingStrategy() != null
@@ -42,11 +46,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !base.getBindingType().isAssignableFrom(component.getBindingType()))
+				&& !TypeToken.of(base.getBindingType()).isAssignableFrom(
+						component.getBindingType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !base.getUnbindingType().isAssignableFrom(
+				&& !TypeToken.of(base.getUnbindingType()).isAssignableFrom(
 						component.getUnbindingType()))
 			throw new SchemaException(message);
 
@@ -78,8 +83,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final ParameterizedType getDataType() {
-		return component.getDataType();
+	public final TypeLiteral<T> getDataType() {
+		return (TypeLiteral<T>) component.getDataType();
 	}
 
 	@Override
@@ -88,7 +93,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final ParameterizedType getBindingType() {
+	public final Type getBindingType() {
 		return component.getBindingType();
 	}
 
@@ -98,7 +103,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final ParameterizedType getUnbindingType() {
+	public final Type getUnbindingType() {
 		return component.getUnbindingType();
 	}
 
@@ -108,12 +113,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Method getUnbindingMethod() {
+	public final Executable getUnbindingMethod() {
 		return component.getUnbindingMethod();
 	}
 
 	@Override
-	public final ParameterizedType getUnbindingFactoryType() {
+	public final Type getUnbindingFactoryType() {
 		return component.getUnbindingFactoryType();
 	}
 

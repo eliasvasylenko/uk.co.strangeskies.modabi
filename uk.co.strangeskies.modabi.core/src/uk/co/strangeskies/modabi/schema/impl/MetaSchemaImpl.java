@@ -76,7 +76,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(SchemaNode.class)
 				.addChild(
 						n -> n.inputSequence().name("configure").isAbstract(true)
-								.postInputClass(SchemaNodeConfigurator.class))
+								.postInputType(SchemaNodeConfigurator.class))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
@@ -98,7 +98,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.complex().name("child").outMethod("children")
 								.inMethod("null").extensible(true).baseModel(nodeModel)
 								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-								.bindingClass(SchemaNodeConfigurator.class)
+								.bindingType(SchemaNodeConfigurator.class)
 								.dataClass(ChildNode.class).outMethodIterable(true)
 								.occurrences(Range.create(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
@@ -112,12 +112,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataClass(ChildNode.class)
 				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-				.bindingClass(SchemaNodeConfigurator.class)
+				.bindingType(SchemaNodeConfigurator.class)
 				.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
 								.inMethodChained(true)
-								.postInputClass(ChildNodeConfigurator.class))
+								.postInputType(ChildNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
@@ -133,7 +133,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(InputNode.class)
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputClass(InputNodeConfigurator.class))
+								.postInputType(InputNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("inMethod")
@@ -156,7 +156,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(BindingNode.class)
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputClass(BindingNodeConfigurator.class))
+								.postInputType(BindingNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("dataClass")
@@ -203,7 +203,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(inputModel, bindingNodeModel)
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputClass(BindingChildNodeConfigurator.class))
+								.postInputType(BindingChildNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("extensible")
@@ -263,7 +263,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(AbstractComplexNode.class)
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputClass(AbstractModelConfigurator.class))
+								.postInputType(AbstractModelConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n
@@ -303,7 +303,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("model", namespace)
 				.baseModel(abstractModelModel)
 				.dataClass(Model.class)
-				.bindingClass(ModelBuilder.class)
+				.bindingType(ModelBuilder.class)
 				.addChild(
 						c -> c
 								.inputSequence()
@@ -406,7 +406,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.isAbstract(true).type(base.derivedTypes().enumType())
 								.dataClass(Format.class)
-								.postInputClass(DataNodeConfigurator.class))
+								.postInputType(DataNodeConfigurator.class))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("valueResolution")
 								.optional(true).type(base.derivedTypes().enumType())
@@ -477,7 +477,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(bindingNodeModel)
 				.name("type", namespace)
 				.dataClass(DataBindingType.class)
-				.bindingClass(DataBindingTypeBuilder.class)
+				.bindingType(DataBindingTypeBuilder.class)
 				.addChild(
 						c -> c
 								.inputSequence()
@@ -524,7 +524,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("schema", namespace)
 				.dataClass(Schema.class)
-				.bindingClass(SchemaBuilder.class)
+				.bindingType(SchemaBuilder.class)
 				.addChild(
 						c -> c.inputSequence().name("configure").inMethodChained(true))
 				.addChild(
@@ -576,7 +576,7 @@ public class MetaSchemaImpl implements MetaSchema {
 																.name("dataTypes")
 																.inMethod("null")
 																.type(base.derivedTypes().includeType())
-																.bindingClass(Schema.class)
+																.bindingType(Schema.class)
 																.addChild(
 																		q -> q.inputSequence().name("getDataTypes")
 																				.inMethodChained(true))
@@ -595,7 +595,7 @@ public class MetaSchemaImpl implements MetaSchema {
 																.name("models")
 																.inMethod("null")
 																.type(base.derivedTypes().includeType())
-																.bindingClass(Schema.class)
+																.bindingType(Schema.class)
 																.addChild(
 																		q -> q.inputSequence().name("getModels")
 																				.inMethodChained(true))
@@ -615,7 +615,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.outMethod("getDataTypes")
 								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
-								.bindingClass(LinkedHashSet.class)
+								.bindingType(LinkedHashSet.class)
 								.addChild(
 										o -> o.complex().baseModel(typeModel).outMethod("this")
 												.name("type").outMethodIterable(true)
@@ -627,7 +627,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("models")
 								.occurrences(Range.create(0, 1))
 								.dataClass(Set.class)
-								.bindingClass(LinkedHashSet.class)
+								.bindingType(LinkedHashSet.class)
 								.addChild(
 										o -> o.complex().baseModel(modelModel)
 												.outMethodIterable(true).outMethod("this")

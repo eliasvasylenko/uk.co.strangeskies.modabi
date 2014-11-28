@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.invoker.NullInvoker;
 
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
@@ -48,9 +50,9 @@ public class BindingNodeBinder {
 
 		switch (strategy) {
 		case PROVIDED:
-			Class<?> providedClass = node.getBindingType() != null ? node
-					.getBindingType() : node.getDataType();
-			binding = context.provide(providedClass);
+			Type providedType = node.getBindingType() != null ? node.getBindingType()
+					: node.getDataType().type();
+			binding = context.provide(TypeLiteral.of(providedType));
 
 			break;
 		case CONSTRUCTOR:
@@ -71,9 +73,12 @@ public class BindingNodeBinder {
 			}
 			break;
 		case IMPLEMENT_IN_PLACE:
-			// TODO some proxy magic with simple bean-like semantics
+			/*
+			 * TODO some proxy magic with simple bean-like semantics. Remember, this
+			 * may be more complex if we want proper *generic* type safety!
+			 */
 			binding = new ProxyFactory().createInvokerProxy(new NullInvoker(),
-					new Class[] { node.getDataType() });
+					new Class[] { node.getDataType().rawClass() });
 
 			break;
 		case SOURCE_ADAPTOR:

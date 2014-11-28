@@ -8,14 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.reflect.TypeUtils;
-
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
+
+import com.google.common.reflect.TypeToken;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final E effective;
@@ -40,8 +40,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				InputNode::isInMethodCast, false);
 	}
 
-	private Class<?> inputTargetClass() {
-		return context.inputTargetClass(effective.getName());
+	private TypeToken<?> inputTargetClass() {
+		return context.inputTargetType(effective.getName());
 	}
 
 	public Executable inMethod(List<Type> parameters) {
@@ -61,17 +61,18 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			inMethod = null;
 		} else {
 			try {
-				Class<?> result;
+				TypeToken<?> result;
 				if (effective.isInMethodChained()) {
-					result = effective.source().getPostInputClass();
+					result = effective.source().getPostInputType() == null ? null
+							: TypeToken.of(effective.source().getPostInputType());
 					if (result == null)
-						result = Object.class;
+						result = TypeToken.of(Object.class);
 				} else
 					result = null;
 
 				if (context.isConstructorExpected())
 					inMethod = Methods.findConstructor(inputTargetClass(),
-							rawParameters(parameters));
+							parameterTokens(parameters));
 				else
 					inMethod = Methods.findMethod(
 							generateInMethodNames(effective, overriddenInMethodName),
@@ -79,7 +80,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							context.isStaticMethodExpected(),
 							result,
 							effective != null && effective.isInMethodChained()
-									&& effective.isInMethodCast(), rawParameters(parameters));
+									&& effective.isInMethodCast(), parameterTokens(parameters));
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException("Cannot find input method for node '"
 						+ effective + "' on class '" + inputTargetClass()
@@ -90,8 +91,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethod;
 	}
 
-	private List<Class<?>> rawParameters(List<Type> parameters) {
-		return parameters.stream().map(p -> TypeUtils.getRawType(p, null))
+	private List<TypeToken<?>> parameterTokens(List<Type> parameters) {
+		return parameters.stream().map(p -> TypeToken.of(p))
 				.collect(Collectors.toList());
 	}
 
@@ -140,22 +141,23 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethodName;
 	}
 
-	public Class<?> preInputClass() {
+	public TypeToken<?> preInputType() {
 		return (effective.isAbstract() || "null"
-				.equals(effective.getInMethodName())) ? null : effective.getInMethod()
-				.getDeclaringClass();
+				.equals(effective.getInMethodName())) ? null : TypeToken.of(effective
+				.getInMethod().getDeclaringClass());
 	}
 
-	public Class<?> postInputClass() {
-		Class<?> postInputClass;
+	public TypeToken<?> postInputType() {
+		TypeToken<?> postInputClass;
 
 		if ("null".equals(effective.getInMethodName())
 				|| (effective.isInMethodChained() != null && !effective
 						.isInMethodChained())) {
 			postInputClass = inputTargetClass();
 		} else if (effective.isAbstract()) {
-			postInputClass = overrideMerge.tryGetValue(InputNode::getPostInputClass,
-					(n, o) -> o.isAssignableFrom(n));
+			postInputClass = overrideMerge.tryGetValue(
+					n -> n.getPostInputType() == null ? null : TypeToken.of(n
+							.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
 		} else {
 			Class<?> methodReturn;
 
@@ -164,14 +166,17 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			else
 				methodReturn = ((Method) effective.getInMethod()).getReturnType();
 
-			Class<?> localPostInputClass = overrideMerge.node().getPostInputClass();
+			Type localPostInputClass = overrideMerge.node().getPostInputType();
 
 			if (localPostInputClass == null
-					|| localPostInputClass.isAssignableFrom(methodReturn))
+					|| TypeToken.of(localPostInputClass).isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge.getValueWithOverride(localPostInputClass,
-					InputNode::getPostInputClass, (n, o) -> o.isAssignableFrom(n));
+			postInputClass = overrideMerge
+					.getValueWithOverride(
+							TypeToken.of(localPostInputClass),
+							n -> n.getPostInputType() == null ? null : TypeToken.of(n
+									.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
 		}
 
 		return postInputClass;

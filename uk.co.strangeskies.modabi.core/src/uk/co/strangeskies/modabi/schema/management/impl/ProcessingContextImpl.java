@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
@@ -127,7 +128,7 @@ public abstract class ProcessingContextImpl {
 		return model == null ? null : model.effective();
 	}
 
-	public <U> List<Model.Effective<U>> getMatchingModels(Class<U> dataClass) {
+	public <U> List<Model.Effective<U>> getMatchingModels(TypeLiteral<U> dataClass) {
 		return manager.registeredModels().getModelsWithClass(dataClass).stream()
 				.map(n -> n.effective()).collect(Collectors.toList());
 	}

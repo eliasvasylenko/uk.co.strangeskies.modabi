@@ -8,9 +8,9 @@ import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public class ModelWrapper<T>
 		extends
-		BindingNodeWrapper<T, AbstractComplexNode.Effective<? super T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
+		BindingNodeWrapper<T, AbstractComplexNode.Effective<T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
 		implements Model.Effective<T> {
-	public ModelWrapper(AbstractComplexNode.Effective<? super T, ?, ?> component) {
+	public ModelWrapper(AbstractComplexNode.Effective<T, ?, ?> component) {
 		super(component);
 	}
 

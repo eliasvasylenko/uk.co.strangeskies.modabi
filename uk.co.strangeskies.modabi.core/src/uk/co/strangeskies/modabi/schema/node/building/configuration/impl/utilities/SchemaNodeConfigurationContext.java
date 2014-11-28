@@ -8,6 +8,8 @@ import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 
+import com.google.common.reflect.TypeToken;
+
 public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 	DataLoader dataLoader();
 
@@ -23,13 +25,13 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	Namespace namespace();
 
-	Class<?> inputTargetClass(QualifiedName node);
+	TypeToken<?> inputTargetType(QualifiedName node);
 
-	Class<?> outputSourceClass();
+	TypeToken<?> outputSourceType();
 
 	void addChild(T result);
 
-	<U extends T> List<U> overrideChild(QualifiedName id, Class<U> nodeClass);
+	<U extends T> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass);
 
 	List<? extends SchemaNode<?, ?>> overriddenNodes();
 }

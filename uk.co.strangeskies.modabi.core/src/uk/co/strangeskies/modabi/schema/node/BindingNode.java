@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.utilities.PropertySet;
@@ -37,9 +38,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 				.add(BindingNode::getProvidedUnbindingMethodParameterNames);
 	}
 
-	Class<? super T> getDataClass();
-
-	Type getDataType();
+	TypeLiteral<T> getDataType();
 
 	BindingStrategy getBindingStrategy();
 

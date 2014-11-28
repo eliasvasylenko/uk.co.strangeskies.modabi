@@ -3,9 +3,12 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
@@ -209,9 +212,9 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <V extends T> DataNodeConfigurator<V> dataClass(
-			Class<V> dataClass) {
-		return (DataNodeConfigurator<V>) super.dataClass(dataClass);
+	public final <V extends T> DataNodeConfigurator<V> dataType(
+			TypeLiteral<V> dataClass) {
+		return (DataNodeConfigurator<V>) super.dataType(dataClass);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -281,10 +284,11 @@ public class DataNodeConfiguratorImpl<T> extends
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("serial")
 	@Override
-	protected final Class<DataNode<T>> getNodeClass() {
-		return (Class<DataNode<T>>) (Object) DataNode.class;
+	protected final TypeToken<DataNode<T>> getNodeClass() {
+		return new TypeToken<DataNode<T>>() {
+		};
 	}
 
 	@Override

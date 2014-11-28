@@ -8,6 +8,8 @@ import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 
+import com.google.common.reflect.TypeToken;
+
 public final class DataNodeWrapper<T>
 		extends
 		BindingChildNodeWrapper<T, DataBindingType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
@@ -23,10 +25,11 @@ public final class DataNodeWrapper<T>
 		String message = "Cannot override '" + base.getName() + "' with '"
 				+ component.getName() + "'.";
 
-		if (base.providedValues() != null
-				&& !component.getDataType().isAssignableFrom(
-						base.providedValues().getClass()))
-			throw new SchemaException(message);
+		for (Object providedValue : base.providedValues())
+			if (base.providedValues() != null
+					&& !TypeToken.of(component.getDataType().type()).isAssignableFrom(
+							providedValue.getClass()))
+				throw new SchemaException(message);
 
 		DataBindingType.Effective<? super T> check = component;
 		while (!check.equals(base.type())) {

@@ -1,18 +1,17 @@
 package uk.co.strangeskies.modabi.schema.management;
 
-import java.lang.reflect.Type;
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 
 public interface Provisions {
-	Object provide(Type type);
+	<T> T provide(TypeLiteral<T> type);
 
-	@SuppressWarnings("unchecked")
 	default <T> T provide(Class<T> clazz) {
-		return (T) provide((Type) clazz);
+		return (T) provide(new TypeLiteral<>(clazz));
 	}
 
-	boolean isProvided(Type type);
+	boolean isProvided(TypeLiteral<?> type);
 
 	default boolean isProvided(Class<?> clazz) {
-		return isProvided((Type) clazz);
+		return isProvided(new TypeLiteral<>(clazz));
 	}
 }

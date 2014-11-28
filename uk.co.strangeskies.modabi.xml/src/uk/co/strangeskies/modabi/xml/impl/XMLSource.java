@@ -23,7 +23,8 @@ import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 
-public class XMLSource extends StructuredDataSourceDecorator {
+public class XMLSource extends StructuredDataSourceDecorator implements
+		StructuredDataSource {
 	public XMLSource(XMLStreamReader in) {
 		super(new XMLSourceImpl(in));
 	}

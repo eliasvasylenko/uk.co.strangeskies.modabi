@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.Type;
+
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
 public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N extends SchemaNode<?, ?>>
@@ -13,5 +15,5 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	 */
 	public S name(String name);
 
-	public S postInputClass(Class<?> postInputClass);
+	public S postInputType(Type postInputType);
 }

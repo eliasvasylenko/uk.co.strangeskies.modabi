@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.node.model;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.schema.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.AbstractModelConfigurator;
 
 public interface ModelConfigurator<T> extends
@@ -17,6 +18,13 @@ public interface ModelConfigurator<T> extends
 	<V extends T> ModelConfigurator<V> baseModel(
 			List<? extends Model<? super V>> baseModel);
 
+	@SuppressWarnings("unchecked")
 	@Override
-	<V extends T> ModelConfigurator<V> dataClass(Class<V> bindingClass);
+	default <V extends T> ModelConfigurator<V> dataClass(Class<V> dataClass) {
+		return (ModelConfigurator<V>) AbstractModelConfigurator.super
+				.dataClass(dataClass);
+	}
+
+	@Override
+	<V extends T> ModelConfigurator<V> dataType(TypeLiteral<V> bindingClass);
 }

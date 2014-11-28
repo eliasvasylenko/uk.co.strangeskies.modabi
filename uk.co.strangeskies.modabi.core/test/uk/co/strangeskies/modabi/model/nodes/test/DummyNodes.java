@@ -67,7 +67,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Class<?> getPostInputClass() {
+			public Class<?> getPostInputType() {
 				return Object.class;
 			}
 
@@ -116,12 +116,12 @@ public class DummyNodes {
 					}
 
 					@Override
-					public Class<?> getPreInputClass() {
+					public Class<?> getPreInputType() {
 						return Object.class;
 					}
 
 					@Override
-					public Class<?> getPostInputClass() {
+					public Class<?> getPostInputType() {
 						return Object.class;
 					}
 				};
@@ -168,12 +168,12 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Class<?> getPreInputClass() {
+			public Class<?> getPreInputType() {
 				return Object.class;
 			}
 
 			@Override
-			public Class<?> getPostInputClass() {
+			public Class<?> getPostInputType() {
 				return Object.class;
 			}
 		};

@@ -3,6 +3,7 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilit
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -160,7 +161,20 @@ public class Methods {
 		return mostSpecific;
 	}
 
+	private static List<TypeToken<?>> getBounds(TypeToken<?> type) {
+		if (type.getType() instanceof TypeVariable)
+			return Arrays.asList(((TypeVariable<?>) type.getType()).getBounds())
+					.stream().map(TypeToken::of).collect(Collectors.toList());
+		else
+			return Arrays.asList(type);
+	}
+
 	private static boolean isAssignable(TypeToken<?> target, TypeToken<?> value) {
-		return target.wrap().isAssignableFrom(value.wrap());
+		List<TypeToken<?>> values = getBounds(value);
+		List<TypeToken<?>> targets = getBounds(target);
+
+		return values.stream().allMatch(
+				v -> targets.stream()
+						.anyMatch(t -> t.wrap().isAssignableFrom(v.wrap())));
 	}
 }

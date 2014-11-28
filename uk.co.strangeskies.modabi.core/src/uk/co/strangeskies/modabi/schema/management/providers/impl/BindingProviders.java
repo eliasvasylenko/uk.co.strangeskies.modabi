@@ -1,12 +1,9 @@
 package uk.co.strangeskies.modabi.schema.management.providers.impl;
 
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.reflect.TypeUtils;
 
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
@@ -82,13 +79,15 @@ public class BindingProviders {
 	}
 
 	public Function<BindingContext, TypeParser> typeParser() {
-		return context -> string -> {
+		return context -> string -> null;
+		/*-{
 			Class<?> raw = null;
 			List<Class<?>> parameters = null;
 
 			return TypeUtils.parameterize(raw,
 					parameters.toArray(new Type[parameters.size()]));
 		};
+		 */
 	}
 
 	private static <U> U matchBinding(SchemaManager manager,

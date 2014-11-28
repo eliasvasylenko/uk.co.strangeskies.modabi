@@ -4,9 +4,14 @@ import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
+import uk.co.strangeskies.modabi.schema.management.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
+	public static void main(String... args) {
+		new SchemaTest().run(new SchemaManagerImpl());
+	}
+
 	public void run(SchemaManager schemaManager) {
 		System.out.println("Creating SchemaManager...");
 

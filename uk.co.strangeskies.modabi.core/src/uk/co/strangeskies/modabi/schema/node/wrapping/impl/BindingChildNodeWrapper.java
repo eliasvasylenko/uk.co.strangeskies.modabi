@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
@@ -69,12 +70,12 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
-	public final Class<?> getPreInputClass() {
-		return getBase() == null ? null : getBase().getPreInputClass();
+	public final Type getPreInputType() {
+		return getBase() == null ? null : getBase().getPreInputType();
 	}
 
 	@Override
-	public final Class<?> getPostInputClass() {
-		return getBase() == null ? null : getBase().getPostInputClass();
+	public final Type getPostInputType() {
+		return getBase() == null ? null : getBase().getPostInputType();
 	}
 }

@@ -9,6 +9,8 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.google.common.reflect.TypeToken;
+
 import uk.co.strangeskies.modabi.model.nodes.test.DummyNodes;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -112,13 +114,13 @@ public class ChildrenConfiguratorTests {
 					}
 
 					@Override
-					public Class<?> inputTargetClass(QualifiedName node) {
-						return Object.class;
+					public TypeToken<?> inputTargetType(QualifiedName node) {
+						return TypeToken.of(Object.class);
 					}
 
 					@Override
-					public Class<?> outputSourceClass() {
-						return Object.class;
+					public TypeToken<?> outputSourceType() {
+						return TypeToken.of(Object.class);
 					}
 
 					@Override
@@ -127,7 +129,7 @@ public class ChildrenConfiguratorTests {
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, Class<U> nodeClass) {
+							QualifiedName id, TypeToken<U> nodeClass) {
 						return null;
 					}
 
