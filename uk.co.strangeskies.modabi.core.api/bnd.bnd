@@ -1,0 +1,34 @@
+-dsannotations:  \
+	*
+Bundle-Name: Modabi - Core
+-runee: JavaSE-1.8
+-buildpath:  \
+	osgi.enroute.base.api;  \
+		version = latest,  \
+	uk.co.strangeskies.utilities;  \
+		version = latest,  \
+	uk.co.strangeskies.mathematics;  \
+		version = latest,  \
+	org.testng:testng;  \
+		version = latest
+Export-Package: \
+	uk.co.strangeskies.modabi,\
+	uk.co.strangeskies.modabi.data.test,\
+	uk.co.strangeskies.modabi.declarative,\
+	uk.co.strangeskies.modabi.io,\
+	uk.co.strangeskies.modabi.io.structured,\
+	uk.co.strangeskies.modabi.model.building.test,\
+	uk.co.strangeskies.modabi.model.nodes.test,\
+	uk.co.strangeskies.modabi.namespace,\
+	uk.co.strangeskies.modabi.schema,\
+	uk.co.strangeskies.modabi.schema.management,\
+	uk.co.strangeskies.modabi.schema.management.binding,\
+	uk.co.strangeskies.modabi.schema.management.providers,\
+	uk.co.strangeskies.modabi.schema.management.unbinding,\
+	uk.co.strangeskies.modabi.schema.node,\
+	uk.co.strangeskies.modabi.schema.node.building,\
+	uk.co.strangeskies.modabi.schema.node.building.configuration,\
+	uk.co.strangeskies.modabi.schema.node.model,\
+	uk.co.strangeskies.modabi.schema.node.type
+-runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
+-runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'
