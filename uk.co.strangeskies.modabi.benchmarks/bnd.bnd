@@ -7,9 +7,11 @@ Bundle-Name: Modabi - Benchmarks
 		version = latest,  \
 	uk.co.strangeskies.utilities;  \
 		version = latest,  \
-	uk.co.strangeskies.modabi.core;  \
+	uk.co.strangeskies.modabi.core.api;  \
 		version = latest,  \
-	uk.co.strangeskies.modabi.xml;  \
+	uk.co.strangeskies.modabi.core.provider;  \
+		version = latest,  \
+	uk.co.strangeskies.modabi.xml.provider;  \
 		version = latest,  \
 	org.apache.commons:commons-lang3;  \
 		version = latest,  \
