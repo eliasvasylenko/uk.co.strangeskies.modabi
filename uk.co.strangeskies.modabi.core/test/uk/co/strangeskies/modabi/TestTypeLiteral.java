@@ -23,8 +23,6 @@ public class TestTypeLiteral {
 		System.out.println(boundedLiteral.isAssignableFrom(TypeToken
 				.of(String.class)));
 
-		Consumer<? super Comparable<String>> consumer = null;
-
 		System.out.println(" " + new TypeToken<Number>() {
 		}.isAssignableFrom(new TypeToken<Integer>() {
 		}));
