@@ -1,14 +1,21 @@
 package uk.co.strangeskies.modabi.types;
 
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
 public class BoundSet {
 	private final Set<Bound> bounds;
 
+	private final Map<InferenceVariable, Type> instantiations;
+
 	public BoundSet() {
 		bounds = new HashSet<>();
+
+		instantiations = new HashMap<>();
 	}
 
 	public BoundSet(Bound bound) {
@@ -30,5 +37,10 @@ public class BoundSet {
 
 	public void add(Bound bound) {
 		bounds.add(bound);
+	}
+
+	public BoundSet addAll(BoundSet other) {
+		other.stream().forEach(this::add);
+		return this;
 	}
 }
