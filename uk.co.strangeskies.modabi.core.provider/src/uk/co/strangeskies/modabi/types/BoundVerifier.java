@@ -7,10 +7,10 @@ import java.util.Map;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 
-public class BoundVerifyer implements BoundVisitor<Boolean> {
+public class BoundVerifier implements BoundVisitor<Boolean> {
 	private final Map<InferenceVariable, Type> substitutions;
 
-	public BoundVerifyer() {
+	public BoundVerifier() {
 		substitutions = new HashMap<>();
 	}
 
