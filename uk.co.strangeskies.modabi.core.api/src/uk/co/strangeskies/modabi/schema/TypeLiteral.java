@@ -7,20 +7,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 
-/**
- * TODO (?) This is hopefully a placeholder class. I'd prefer to not make
- * dependencies on an external TypeToken or TypeReference from Apache commons or
- * Guice, but there is currently no generic & typesafe representation of Types
- * in standard Java reflection tools. Hopefully there will be one day...
- *
- * This isn't a terribly important class, though, in the sense that the Modabi
- * API would benefit from lots of extra functionality. Its only purpose is as a
- * type marker for type safe building and retrieval of models, and for loading
- * of xml by type. If we are registering schema declaratively and loading xml by
- * injection we don't even need to look at this class.
- *
- * @param <T>
- */
 public class TypeLiteral<T> {
 	private final Type type;
 	private final Class<? super T> rawClass;

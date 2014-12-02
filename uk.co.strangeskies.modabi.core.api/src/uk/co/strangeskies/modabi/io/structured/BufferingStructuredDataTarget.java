@@ -33,8 +33,6 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
  * non-global hints will be piped before any children of the child they occur
  * in.
  *
- * TODO more exceptions when things are done illegally out of order.
- *
  * @author eli
  *
  */
