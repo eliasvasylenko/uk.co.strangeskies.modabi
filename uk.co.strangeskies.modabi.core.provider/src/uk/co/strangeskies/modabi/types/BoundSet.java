@@ -38,9 +38,4 @@ public class BoundSet {
 	public void add(Bound bound) {
 		bounds.add(bound);
 	}
-
-	public BoundSet addAll(BoundSet other) {
-		other.stream().forEach(this::add);
-		return this;
-	}
 }

@@ -15,41 +15,51 @@ public class ConstraintFormula {
 		LOOSE_COMPATIBILILTY, SUBTYPE, CONTAINMENT, EQUALITY
 	}
 
+	private final BoundSet boundSet;
 	private final Kind kind;
-
 	private final TypeToken<?> from, to;
 
-	public ConstraintFormula(Kind kind, Type from, Type to) {
-		this(kind, TypeToken.of(from), TypeToken.of(to));
-	}
-
-	public ConstraintFormula(Kind kind, TypeToken<?> from, TypeToken<?> to) {
+	public ConstraintFormula(BoundSet boundSet, Kind kind, TypeToken<?> from,
+			TypeToken<?> to) {
+		this.boundSet = boundSet;
 		this.kind = kind;
 		this.from = from;
 		this.to = to;
 	}
 
-	public BoundSet reduce() {
-		switch (kind) {
-		case LOOSE_COMPATIBILILTY:
-			return reduceLooseCompatibilityConstraint();
-		case SUBTYPE:
-			return reduceSubtypeConstraint();
-		case CONTAINMENT:
-			return reduceContainmentConstraint();
-		case EQUALITY:
-			return reduceEqualityConstraint();
-		}
-		throw new AssertionError();
+	private ConstraintFormula reduceTo(Kind kind, Type from, Type to) {
+		return reduceTo(kind, TypeToken.of(from), TypeToken.of(to));
 	}
 
-	private BoundSet reduceLooseCompatibilityConstraint() {
+	private ConstraintFormula reduceTo(Kind kind, TypeToken<?> from,
+			TypeToken<?> to) {
+		return new ConstraintFormula(boundSet, kind, from, to);
+	}
+
+	public void reduce() {
+		switch (kind) {
+		case LOOSE_COMPATIBILILTY:
+			reduceLooseCompatibilityConstraint();
+			break;
+		case SUBTYPE:
+			reduceSubtypeConstraint();
+			break;
+		case CONTAINMENT:
+			reduceContainmentConstraint();
+			break;
+		case EQUALITY:
+			reduceEqualityConstraint();
+			break;
+		}
+	}
+
+	private void reduceLooseCompatibilityConstraint() {
 		if (isProper(from) && isProper(to))
-			return new BoundSet(isLooselyAssignable(from, to));
+			new BoundSet(isLooselyAssignable(from, to));
 		else if (isPrimitive(from))
-			return new ConstraintFormula(kind, from.wrap(), to).reduce();
+			reduceTo(kind, from.wrap(), to).reduce();
 		else if (isPrimitive(to))
-			return new ConstraintFormula(Kind.EQUALITY, from, to.wrap()).reduce();
+			reduceTo(Kind.EQUALITY, from, to.wrap()).reduce();
 		else if (to.getType() instanceof ParameterizedType)
 			/*
 			 * Otherwise, if T is a parameterized type of the form G<T1, ..., Tn>, and
@@ -57,7 +67,7 @@ public class ConstraintFormula {
 			 * the raw type G is a supertype of S, then the constraint reduces to
 			 * true.
 			 */
-			return new BoundSet(true); // TODO
+			return; // TODO
 		else if (to.isArray() && to.getComponentType() instanceof ParameterizedType)
 			/*
 			 * Otherwise, if T is an array type of the form G<T1, ..., Tn>[]k, and
@@ -65,24 +75,23 @@ public class ConstraintFormula {
 			 * but the raw type G[]k is a supertype of S, then the constraint reduces
 			 * to true. (The notation []k indicates an array type of k dimensions.)
 			 */
-			return new BoundSet(true); // TODO
+			return; // TODO
 		else
-			return new ConstraintFormula(Kind.SUBTYPE, from, to).reduce();
+			reduceTo(Kind.SUBTYPE, from, to).reduce();
 	}
 
-	private BoundSet reduceSubtypeConstraint() {
-		if (isProper(from) && isProper(to))
-			return new BoundSet(to.isAssignableFrom(from));
-		else if (isNullType(from))
-			return new BoundSet(true);
+	private void reduceSubtypeConstraint() {
+		if (isProper(from) && isProper(to)) {
+			if (!to.isAssignableFrom(from))
+				boundSet.add(Bound.falsehood());
+		} else if (isNullType(from))
+			return;
 		else if (isNullType(to))
-			return new BoundSet(false);
+			boundSet.add(Bound.falsehood());
 		else if (isInferenceVariable(from))
-			return new BoundSet(Bound.subtype(getInferenceVariable(from),
-					to.getType()));
+			boundSet.add(Bound.subtype(getInferenceVariable(from), to.getType()));
 		else if (isInferenceVariable(to))
-			return new BoundSet(Bound.subtype(from.getType(),
-					getInferenceVariable(to)));
+			boundSet.add(Bound.subtype(from.getType(), getInferenceVariable(to)));
 		else if (to.getType() instanceof ParameterizedType) {
 			/*
 			 * If T is a parameterized class or interface type, or an inner class type
@@ -106,7 +115,7 @@ public class ConstraintFormula {
 					parameterizedType = null;
 			} while (parameterizedType != null);
 
-			return null; // TODO
+			return; // TODO
 		} else if (to.isArray()) {
 			/*
 			 * If T is an array type, T'[], then among the supertypes of S that are
@@ -120,7 +129,7 @@ public class ConstraintFormula {
 			 * - Otherwise, the constraint reduces to true if S' and T' are the same
 			 * primitive type, and false otherwise.
 			 */
-			return null; // TODO
+			return; // TODO
 		} else if (to.getType() instanceof TypeVariable) {
 			/*
 			 * If T is a type variable, there are three cases:
@@ -133,13 +142,13 @@ public class ConstraintFormula {
 			 * 
 			 * - Otherwise, the constraint reduces to false.
 			 */
-			return null; // TODO
+			return; // TODO
 		} else {
 			/*
 			 * If T is any other class or interface type, then the constraint reduces
 			 * to true if T is among the supertypes of S, and false otherwise.
 			 */
-			return null; // TODO
+			return; // TODO
 		}
 		/*
 		 * If T is an intersection type, I1 & ... & In, the constraint reduces to
@@ -147,7 +156,7 @@ public class ConstraintFormula {
 		 */
 	}
 
-	private BoundSet reduceContainmentConstraint() {
+	private void reduceContainmentConstraint() {
 		if (!(to.getType() instanceof WildcardType)) {
 			if (!(from.getType() instanceof WildcardType)) {
 				/*
@@ -155,14 +164,14 @@ public class ConstraintFormula {
 				 * 
 				 * <S = T>
 				 */
-				return new ConstraintFormula(Kind.EQUALITY, from, to).reduce();
+				reduceTo(Kind.EQUALITY, from, to).reduce();
 			} else {
 				/*
 				 * T is a type and S is a wildcard:
 				 * 
 				 * false
 				 */
-				return new BoundSet(false);
+				boundSet.add(Bound.falsehood());
 			}
 		} else {
 			WildcardType to = (WildcardType) this.to.getType();
@@ -174,7 +183,7 @@ public class ConstraintFormula {
 					 * 
 					 * true
 					 */
-					return new BoundSet(true);
+					return;
 				} else {
 					if (!(from.getType() instanceof WildcardType)) {
 						/*
@@ -182,7 +191,7 @@ public class ConstraintFormula {
 						 * 
 						 * <S <: T'>
 						 */
-						return null; // TODO
+						return; // TODO
 					} else {
 						WildcardType from = (WildcardType) this.from.getType();
 
@@ -202,11 +211,8 @@ public class ConstraintFormula {
 								 * 
 								 * <S <: Ii>
 								 */
-								return Arrays
-										.stream(to.getUpperBounds())
-										.map(
-												t -> new ConstraintFormula(Kind.SUBTYPE, Object.class,
-														t).reduce()).reduce(BoundSet::addAll).get();
+								Arrays.stream(to.getUpperBounds()).forEach(
+										t -> reduceTo(Kind.SUBTYPE, Object.class, t).reduce());
 							} else {
 								/*
 								 * T is ? extends T' and S is ? extends S':
@@ -216,7 +222,7 @@ public class ConstraintFormula {
 								 * Here we know that S and T are not the null type or inference
 								 * variables, as they are both intersection types.
 								 */
-								return null; // TODO
+								return; // TODO
 							}
 						} else {
 							/*
@@ -224,11 +230,8 @@ public class ConstraintFormula {
 							 * 
 							 * <Object = T'>
 							 */
-							return Arrays
-									.stream(to.getUpperBounds())
-									.map(
-											t -> new ConstraintFormula(Kind.EQUALITY, Object.class, t)
-													.reduce()).reduce(BoundSet::addAll).get();
+							Arrays.stream(to.getUpperBounds()).forEach(
+									t -> reduceTo(Kind.EQUALITY, Object.class, t).reduce());
 						}
 					}
 				}
@@ -238,7 +241,7 @@ public class ConstraintFormula {
 				 * 
 				 * <T' <: S>
 				 */
-				return null; // TODO
+				return; // TODO
 			} else {
 				WildcardType from = (WildcardType) this.from.getType();
 
@@ -248,14 +251,14 @@ public class ConstraintFormula {
 					 * 
 					 * <T' <: S'>
 					 */
-					return null; // TODO
+					return; // TODO
 				} else {
 					/*
 					 * T is ? super T' and S is ? or ? extends S':
 					 * 
 					 * false
 					 */
-					return new BoundSet(false);
+					boundSet.add(Bound.falsehood());
 				}
 			}
 		}
