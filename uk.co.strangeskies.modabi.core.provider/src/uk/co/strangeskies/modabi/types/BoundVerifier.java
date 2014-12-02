@@ -4,6 +4,8 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import uk.co.strangeskies.modabi.types.Bound.BoundVisitor;
+
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 
