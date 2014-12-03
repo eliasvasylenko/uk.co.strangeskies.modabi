@@ -72,8 +72,8 @@ public class ConstraintFormula {
 		} else if (from != null && from.isPrimitive())
 			/*
 			 * Otherwise, if S is a primitive type, let S' be the result of applying
-			 * boxing conversion (§5.1.7) to S. Then the constraint reduces to ‹S'
-			 * → T›.
+			 * boxing conversion (§5.1.7) to S. Then the constraint reduces to ‹S' →
+			 * T›.
 			 */
 			reduceTo(kind, from.wrap(), to);
 		else if (to != null && to.isPrimitive())
@@ -97,6 +97,9 @@ public class ConstraintFormula {
 			 */
 			return;
 		else
+			/*
+			 * Otherwise, the constraint reduces to ‹S <: T›.
+			 */
 			reduceTo(Kind.SUBTYPE, from, to);
 	}
 
@@ -149,8 +152,7 @@ public class ConstraintFormula {
 				 * supertypes of S, a corresponding class or interface type is
 				 * identified, with type arguments B1, ..., Bn. If no such type exists,
 				 * the constraint reduces to false. Otherwise, the constraint reduces to
-				 * the following new constraints: for all i (1 ≤ i ≤ n), ‹Bi <=
-				 * Ai›.
+				 * the following new constraints: for all i (1 ≤ i ≤ n), ‹Bi <= Ai›.
 				 *
 				 * TODO must we explicitly disallow if S only extends the raw type of T?
 				 */
@@ -183,8 +185,8 @@ public class ConstraintFormula {
 				 * - If S is an intersection type of which T is an element, the
 				 * constraint reduces to true.
 				 *
-				 * - Otherwise, if T has a lower bound, B, the constraint reduces to
-				 * ‹S <: B›.
+				 * - Otherwise, if T has a lower bound, B, the constraint reduces to ‹S
+				 * <: B›.
 				 *
 				 * - Otherwise, the constraint reduces to false.
 				 */
@@ -199,26 +201,28 @@ public class ConstraintFormula {
 			}
 			/*
 			 * If T is an intersection type, I1 & ... & In, the constraint reduces to
-			 * the following new constraints: for all i (1 ≤ i ≤ n), ‹S <:
-			 * Ii›.
+			 * the following new constraints: for all i (1 ≤ i ≤ n), ‹S <: Ii›.
 			 */
 		}
 	}
 
+	/*
+	 * A constraint formula of the form ‹S <= T›, where S and T are type arguments
+	 * (§4.5.1), is reduced as follows:
+	 */
 	private void reduceContainmentConstraint() {
 		if (!(to.getType() instanceof WildcardType)) {
+			/*
+			 * If T is a type:
+			 */
 			if (!(from.getType() instanceof WildcardType)) {
 				/*
-				 * T is a type and S is a type:
-				 *
-				 * <S = T>
+				 * If S is a type, the constraint reduces to ‹S = T›.
 				 */
 				reduceTo(Kind.EQUALITY, from, to);
 			} else {
 				/*
-				 * T is a type and S is a wildcard:
-				 *
-				 * false
+				 * If S is a wildcard, the constraint reduces to false.
 				 */
 				boundSet.add(Bound.falsehood());
 			}
@@ -228,17 +232,16 @@ public class ConstraintFormula {
 			if (to.getLowerBounds().length == 0) {
 				if (to.getUpperBounds().length == 0) {
 					/*
-					 * T is ?:
-					 *
-					 * true
+					 * If T is a wildcard of the form ?, the constraint reduces to true.
 					 */
 					return;
 				} else {
+					/*
+					 * If T is a wildcard of the form ? extends T':
+					 */
 					if (!(from.getType() instanceof WildcardType)) {
 						/*
-						 * T is ? extends T' and S is a type:
-						 *
-						 * <S <: T'>
+						 * If S is a type, the constraint reduces to ‹S <: T'›.
 						 */
 						throw new NotImplementedException(); // TODO
 					} else {
@@ -247,16 +250,15 @@ public class ConstraintFormula {
 						if (from.getLowerBounds().length == 0) {
 							if (from.getUpperBounds().length == 0) {
 								/*
-								 * T is ? extends T' and S is ?:
-								 *
-								 * <Object <: T'>
+								 * If S is a wildcard of the form ?, the constraint reduces to
+								 * ‹Object <: T'›.
 								 *
 								 * This is a tricky bit. With S = Object we obviously can skip
 								 * most of the conditions depending on S, and the rules for
 								 * whether or not T' is proper are equivalent.
 								 *
-								 * T' is intersection type, I1 & ... & In. For all i (1 ≤ i
-								 * ≤ n):
+								 * T' is intersection type, I1 & ... & In. For all i (1 â‰¤ i
+								 * â‰¤ n):
 								 *
 								 * <S <: Ii>
 								 */
@@ -264,7 +266,8 @@ public class ConstraintFormula {
 										t -> reduceTo(Kind.SUBTYPE, Object.class, t));
 							} else {
 								/*
-								 * T is ? extends T' and S is ? extends S':
+								 * If S is a wildcard of the form ? extends S', the constraint
+								 * reduces to ‹S' <: T'›.
 								 *
 								 * <S' <: T'>
 								 *
@@ -275,7 +278,8 @@ public class ConstraintFormula {
 							}
 						} else {
 							/*
-							 * T is ? extends T' and S is ? super S':
+							 * If S is a wildcard of the form ? super S', the constraint
+							 * reduces to ‹Object = T'›.
 							 *
 							 * <Object = T'>
 							 */
@@ -284,30 +288,30 @@ public class ConstraintFormula {
 						}
 					}
 				}
-			} else if (!(from.getType() instanceof WildcardType)) {
-				/*
-				 * T is ? super T' and S is a type:
-				 *
-				 * <T' <: S>
-				 */
-				throw new NotImplementedException(); // TODO
 			} else {
-				WildcardType from = (WildcardType) this.from.getType();
-
-				if (from.getLowerBounds().length > 0) {
+				/*
+				 * If T is a wildcard of the form ? super T':
+				 */
+				if (!(from.getType() instanceof WildcardType)) {
 					/*
-					 * T is ? super T' and S is ? super S':
-					 *
-					 * <T' <: S'>
+					 * If S is a type, the constraint reduces to ‹T' <: S›.
 					 */
 					throw new NotImplementedException(); // TODO
 				} else {
-					/*
-					 * T is ? super T' and S is ? or ? extends S':
-					 *
-					 * false
-					 */
-					boundSet.add(Bound.falsehood());
+					WildcardType from = (WildcardType) this.from.getType();
+
+					if (from.getLowerBounds().length > 0) {
+						/*
+						 * If S is a wildcard of the form ? super S', the constraint reduces
+						 * to ‹T' <: S'›.
+						 */
+						throw new NotImplementedException(); // TODO
+					} else {
+						/*
+						 * Otherwise, the constraint reduces to false.
+						 */
+						boundSet.add(Bound.falsehood());
+					}
 				}
 			}
 		}
@@ -316,8 +320,8 @@ public class ConstraintFormula {
 	private void reduceEqualityConstraint() {
 		if (from instanceof WildcardType && to instanceof WildcardType) {
 			/*
-			 * A constraint formula of the form �S = T�, where S and T are type
-			 * arguments (�4.5.1), is reduced as follows:
+			 * A constraint formula of the form ‹S = T›, where S and T are type
+			 * arguments (§4.5.1), is reduced as follows:
 			 */
 			WildcardType from = (WildcardType) this.from;
 			WildcardType to = (WildcardType) this.to;
@@ -334,7 +338,7 @@ public class ConstraintFormula {
 						} else {
 							/*
 							 * If S has the form ? and T has the form ? extends T', the
-							 * constraint reduces to �Object = T'�.
+							 * constraint reduces to ‹Object = T'›.
 							 */
 							for (Type t : to.getUpperBounds())
 								reduceTo(Kind.EQUALITY, Object.class, t);
@@ -344,14 +348,14 @@ public class ConstraintFormula {
 					if (to.getUpperBounds().length == 0) {
 						/*
 						 * If S has the form ? extends S' and T has the form ?, the
-						 * constraint reduces to �S' = Object�.
+						 * constraint reduces to ‹S' = Object›.
 						 */
 						for (Type s : from.getUpperBounds())
 							reduceTo(Kind.EQUALITY, s, Object.class);
 					} else {
 						/*
 						 * If S has the form ? extends S' and T has the form ? extends T',
-						 * the constraint reduces to �S' = T'�.
+						 * the constraint reduces to ‹S' = T'›.
 						 */
 						if (!new HashSet<>(Arrays.asList(from.getUpperBounds()))
 								.equals(new HashSet<>(Arrays.asList(to.getUpperBounds()))))
@@ -361,7 +365,7 @@ public class ConstraintFormula {
 			} else if (to.getLowerBounds().length > 0) {
 				/*
 				 * If S has the form ? super S' and T has the form ? super T', the
-				 * constraint reduces to �S' = T'�.
+				 * constraint reduces to ‹S' = T'›.
 				 */
 				if (!new HashSet<>(Arrays.asList(from.getLowerBounds()))
 						.equals(new HashSet<>(Arrays.asList(to.getLowerBounds()))))
