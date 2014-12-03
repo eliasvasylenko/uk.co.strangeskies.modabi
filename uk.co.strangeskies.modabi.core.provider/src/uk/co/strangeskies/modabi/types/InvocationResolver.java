@@ -32,7 +32,7 @@ public class InvocationResolver<T> {
 		boolean fullyResolved = true; // TODO verify we reference no TypeVariables
 		if (!fullyResolved)
 			throw new IllegalArgumentException(
-					"Cannot resolve invocation over partially resolved type '"
+					"Cannot resolve invocations over partially resolved type '"
 							+ receiverType + "'.");
 
 		return new InvocationResolver<>(receiverTypeToken);

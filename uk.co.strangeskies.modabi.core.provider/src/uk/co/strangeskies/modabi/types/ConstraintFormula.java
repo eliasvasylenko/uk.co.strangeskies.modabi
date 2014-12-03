@@ -18,10 +18,9 @@ public class ConstraintFormula {
 
 	private final BoundSet boundSet;
 	private final Kind kind;
-	private final TypeToken<?> from, to;
+	private final Type from, to;
 
-	public ConstraintFormula(BoundSet boundSet, Kind kind, TypeToken<?> from,
-			TypeToken<?> to) {
+	public ConstraintFormula(BoundSet boundSet, Kind kind, Type from, Type to) {
 		this.boundSet = boundSet;
 		this.kind = kind;
 		this.from = from;
@@ -33,11 +32,7 @@ public class ConstraintFormula {
 	}
 
 	private void reduceTo(Kind kind, Type from, Type to) {
-		reduceTo(kind, TypeToken.of(from), TypeToken.of(to));
-	}
-
-	private void reduceTo(Kind kind, TypeToken<?> from, TypeToken<?> to) {
-		new ConstraintFormula(boundSet, kind, from, to).reduce();
+		reduceTo(kind, from, to);
 	}
 
 	public void reduce() {
@@ -61,6 +56,9 @@ public class ConstraintFormula {
 	 * A constraint formula of the form ‹S → T› is reduced as follows:
 	 */
 	private void reduceLooseCompatibilityConstraint() {
+		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
+		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
+
 		if (getContext().isProper(from) && getContext().isProper(to)) {
 			/*
 			 * If S and T are proper types, the constraint reduces to true if S is
@@ -68,21 +66,21 @@ public class ConstraintFormula {
 			 * otherwise.
 			 */
 			if (!isLooselyAssignable(from, to))
-				boundSet.add(Bound.falsehood());
-		} else if (from != null && from.isPrimitive())
+				boundSet.addFalsehood();
+		} else if (from != null && fromToken.isPrimitive())
 			/*
 			 * Otherwise, if S is a primitive type, let S' be the result of applying
 			 * boxing conversion (§5.1.7) to S. Then the constraint reduces to ‹S' →
 			 * T›.
 			 */
-			reduceTo(kind, from.wrap(), to);
-		else if (to != null && to.isPrimitive())
+			reduceTo(kind, fromToken.wrap().getType(), to);
+		else if (to != null && toToken.isPrimitive())
 			/*
 			 * Otherwise, if T is a primitive type, let T' be the result of applying
 			 * boxing conversion (§5.1.7) to T. Then the constraint reduces to ‹S =
 			 * T'›.
 			 */
-			reduceTo(Kind.EQUALITY, from, to.wrap());
+			reduceTo(Kind.EQUALITY, from, toToken.wrap().getType());
 		else if (isUnsafeCastCompatible(from, to))
 			/*
 			 * Otherwise, if T is a parameterized type of the form G<T1, ..., Tn>, and
@@ -107,13 +105,16 @@ public class ConstraintFormula {
 	 * A constraint formula of the form ‹S <: T› is reduced as follows:
 	 */
 	private void reduceSubtypeConstraint() {
+		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
+		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
+
 		if (getContext().isProper(from) && getContext().isProper(to)) {
 			/*
 			 * If S and T are proper types, the constraint reduces to true if S is a
 			 * subtype of T (§4.10), and false otherwise.
 			 */
-			if (!to.isAssignableFrom(from))
-				boundSet.add(Bound.falsehood());
+			if (!toToken.isAssignableFrom(from))
+				boundSet.addFalsehood();
 			else
 				return;
 		} else if (from == null)
@@ -125,26 +126,24 @@ public class ConstraintFormula {
 			/*
 			 * Otherwise, if T is the null type, the constraint reduces to false.
 			 */
-			boundSet.add(Bound.falsehood());
-		else if (getContext().isInferenceVariable(from.getType()))
+			boundSet.addFalsehood();
+		else if (getContext().isInferenceVariable(from))
 			/*
 			 * Otherwise, if S is an inference variable, α, the constraint reduces to
 			 * the bound α <: T.
 			 */
-			boundSet.add(Bound.subtype(
-					getContext().getInferenceVariable(from.getType()), to.getType()));
-		else if (getContext().isInferenceVariable(to.getType()))
+			boundSet.addSubtype(getContext().getInferenceVariable(from), to);
+		else if (getContext().isInferenceVariable(to))
 			/*
 			 * Otherwise, if T is an inference variable, α, the constraint reduces to
 			 * the bound S <: α.
 			 */
-			boundSet.add(Bound.subtype(from.getType(), getContext()
-					.getInferenceVariable(to.getType())));
+			boundSet.addSubtype(from, getContext().getInferenceVariable(to));
 		else {
 			/*
 			 * Otherwise, the constraint is reduced according to the form of T:
 			 */
-			if (to.getType() instanceof ParameterizedType) {
+			if (to instanceof ParameterizedType) {
 				/*
 				 * If T is a parameterized class or interface type, or an inner class
 				 * type of a parameterized class or interface type (directly or
@@ -156,13 +155,13 @@ public class ConstraintFormula {
 				 *
 				 * TODO must we explicitly disallow if S only extends the raw type of T?
 				 */
-				Class<?> rawType = to.getRawType();
+				Class<?> rawType = toToken.getRawType();
 				do {
 					for (TypeVariable<?> parameter : rawType.getTypeParameters())
-						reduceTo(Kind.CONTAINMENT, from.resolveType(parameter),
-								to.resolveType(parameter));
+						reduceTo(Kind.CONTAINMENT, fromToken.resolveType(parameter)
+								.getType(), toToken.resolveType(parameter).getType());
 				} while ((rawType = rawType.getEnclosingClass()) != null);
-			} else if (to.isArray()) {
+			} else if (toToken.isArray()) {
 				/*
 				 * If T is an array type, T'[], then among the supertypes of S that are
 				 * array types, a most specific type is identified, S'[] (this may be S
@@ -178,7 +177,7 @@ public class ConstraintFormula {
 				 * TODO must we explicitly disallow if S only extends the raw type of T?
 				 */
 				throw new NotImplementedException(); // TODO
-			} else if (to.getType() instanceof TypeVariable) {
+			} else if (to instanceof TypeVariable) {
 				/*
 				 * If T is a type variable, there are three cases:
 				 *
@@ -211,11 +210,11 @@ public class ConstraintFormula {
 	 * (§4.5.1), is reduced as follows:
 	 */
 	private void reduceContainmentConstraint() {
-		if (!(to.getType() instanceof WildcardType)) {
+		if (!(to instanceof WildcardType)) {
 			/*
 			 * If T is a type:
 			 */
-			if (!(from.getType() instanceof WildcardType)) {
+			if (!(from instanceof WildcardType)) {
 				/*
 				 * If S is a type, the constraint reduces to ‹S = T›.
 				 */
@@ -224,10 +223,10 @@ public class ConstraintFormula {
 				/*
 				 * If S is a wildcard, the constraint reduces to false.
 				 */
-				boundSet.add(Bound.falsehood());
+				boundSet.addFalsehood();
 			}
 		} else {
-			WildcardType to = (WildcardType) this.to.getType();
+			WildcardType to = (WildcardType) this.to;
 
 			if (to.getLowerBounds().length == 0) {
 				if (to.getUpperBounds().length == 0) {
@@ -239,13 +238,13 @@ public class ConstraintFormula {
 					/*
 					 * If T is a wildcard of the form ? extends T':
 					 */
-					if (!(from.getType() instanceof WildcardType)) {
+					if (!(from instanceof WildcardType)) {
 						/*
 						 * If S is a type, the constraint reduces to ‹S <: T'›.
 						 */
 						throw new NotImplementedException(); // TODO
 					} else {
-						WildcardType from = (WildcardType) this.from.getType();
+						WildcardType from = (WildcardType) this.from;
 
 						if (from.getLowerBounds().length == 0) {
 							if (from.getUpperBounds().length == 0) {
@@ -292,13 +291,13 @@ public class ConstraintFormula {
 				/*
 				 * If T is a wildcard of the form ? super T':
 				 */
-				if (!(from.getType() instanceof WildcardType)) {
+				if (!(from instanceof WildcardType)) {
 					/*
 					 * If S is a type, the constraint reduces to ‹T' <: S›.
 					 */
 					throw new NotImplementedException(); // TODO
 				} else {
-					WildcardType from = (WildcardType) this.from.getType();
+					WildcardType from = (WildcardType) this.from;
 
 					if (from.getLowerBounds().length > 0) {
 						/*
@@ -310,7 +309,7 @@ public class ConstraintFormula {
 						/*
 						 * Otherwise, the constraint reduces to false.
 						 */
-						boundSet.add(Bound.falsehood());
+						boundSet.addFalsehood();
 					}
 				}
 			}
@@ -318,6 +317,9 @@ public class ConstraintFormula {
 	}
 
 	private void reduceEqualityConstraint() {
+		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
+		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
+
 		if (from instanceof WildcardType && to instanceof WildcardType) {
 			/*
 			 * A constraint formula of the form ‹S = T›, where S and T are type
@@ -359,7 +361,7 @@ public class ConstraintFormula {
 						 */
 						if (!new HashSet<>(Arrays.asList(from.getUpperBounds()))
 								.equals(new HashSet<>(Arrays.asList(to.getUpperBounds()))))
-							boundSet.add(Bound.falsehood());
+							boundSet.addFalsehood();
 					}
 				}
 			} else if (to.getLowerBounds().length > 0) {
@@ -369,50 +371,101 @@ public class ConstraintFormula {
 				 */
 				if (!new HashSet<>(Arrays.asList(from.getLowerBounds()))
 						.equals(new HashSet<>(Arrays.asList(to.getLowerBounds()))))
-					boundSet.add(Bound.falsehood());
+					boundSet.addFalsehood();
 			} else {
 				/*
 				 * Otherwise, the constraint reduces to false.
 				 */
-				boundSet.add(Bound.falsehood());
+				boundSet.addFalsehood();
+			}
+		} else {
+			/*
+			 * A constraint formula of the form ‹S = T›, where S and T are types, is
+			 * reduced as follows:
+			 */
+			if (getContext().isProper(from) && getContext().isProper(to)) {
+				/*
+				 * If S and T are proper types, the constraint reduces to true if S is
+				 * the same as T (§4.3.4), and false otherwise.
+				 */
+				if (!from.equals(to))
+					boundSet.addFalsehood();
+			} else if (getContext().isInferenceVariable(from)) {
+				/*
+				 * Otherwise, if S is an inference variable, α, the constraint reduces
+				 * to the bound α = T.
+				 */
+				boundSet.addEquality(getContext().getInferenceVariable(from), to);
+			} else if (getContext().isInferenceVariable(to)) {
+				/*
+				 * Otherwise, if T is an inference variable, α, the constraint reduces
+				 * to the bound S = α.
+				 */
+				boundSet.addEquality(from, getContext().getInferenceVariable(to));
+			} else if (fromToken.isArray() && toToken.isArray()) {
+				/*
+				 * Otherwise, if S and T are array types, S'[] and T'[], the constraint
+				 * reduces to ‹S' = T'›.
+				 */
+				reduceTo(Kind.EQUALITY, fromToken.getComponentType().getType(), toToken
+						.getComponentType().getType());
+			} else if (fromToken.getRawType().equals(toToken.getRawType())) {
+				/*
+				 * Otherwise, if S and T are class or interface types with the same
+				 * erasure, where S has type arguments B1, ..., Bn and T has type
+				 * arguments A1, ..., An, the constraint reduces to the following new
+				 * constraints: for all i (1 ≤ i ≤ n), ‹Bi = Ai›.
+				 */
+				for (TypeVariable<?> type : fromToken.getRawType().getTypeParameters())
+					reduceTo(Kind.EQUALITY, fromToken.resolveType(type).getType(),
+							toToken.resolveType(type).getType());
 			}
 		}
 	}
 
-	public static boolean isUnsafeCastCompatible(TypeToken<?> from,
-			TypeToken<?> to) {
-		if (to.getRawType().getTypeParameters().length < 0
-				&& to.getRawType().isAssignableFrom(from.getRawType())) {
+	public static boolean isUnsafeCastCompatible(Type from, Type to) {
+		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
+		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
+
+		if (toToken.getRawType().getTypeParameters().length < 0
+				&& toToken.getRawType().isAssignableFrom(fromToken.getRawType())) {
 			@SuppressWarnings("unchecked")
-			Type fromSuperTypeArgument = ((ParameterizedType) from.getSupertype(
-					(Class<Object>) to.getRawType()).getType()).getActualTypeArguments()[0];
+			Type fromSuperTypeArgument = ((ParameterizedType) fromToken.getSupertype(
+					(Class<Object>) toToken.getRawType()).getType())
+					.getActualTypeArguments()[0];
 
 			return fromSuperTypeArgument instanceof TypeVariable
 					&& ((TypeVariable<?>) fromSuperTypeArgument).getGenericDeclaration() instanceof Class;
 		} else
-			return to.isArray()
-					&& from.isArray()
-					&& isUnsafeCastCompatible(from.getComponentType(),
-							to.getComponentType());
+			return toToken.isArray()
+					&& fromToken.isArray()
+					&& isUnsafeCastCompatible(fromToken.getComponentType().getType(),
+							toToken.getComponentType().getType());
 	}
 
-	public static boolean isStrictlyAssignable(TypeToken<?> from, TypeToken<?> to) {
-		if (from.isPrimitive())
-			if (to.isPrimitive())
-				return to.wrap().isAssignableFrom(to.wrap());
+	public static boolean isStrictlyAssignable(Type from, Type to) {
+		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
+		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
+
+		if (fromToken.isPrimitive())
+			if (toToken.isPrimitive())
+				return toToken.wrap().isAssignableFrom(toToken.wrap());
 			else
 				return false;
-		else if (to.isPrimitive())
+		else if (toToken.isPrimitive())
 			return false;
 		else
-			return to.isAssignableFrom(from.wrap());
+			return toToken.isAssignableFrom(fromToken.wrap());
 	}
 
-	public static boolean isLooselyAssignable(TypeToken<?> from, TypeToken<?> to) {
-		if (from.isPrimitive() && !to.isPrimitive())
-			from = from.wrap();
-		else if (!from.isPrimitive() && to.isPrimitive())
-			from = from.unwrap();
+	public static boolean isLooselyAssignable(Type from, Type to) {
+		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
+		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
+
+		if (fromToken.isPrimitive() && !toToken.isPrimitive())
+			fromToken = fromToken.wrap();
+		else if (!fromToken.isPrimitive() && toToken.isPrimitive())
+			fromToken = fromToken.unwrap();
 
 		return isStrictlyAssignable(from, to);
 	}

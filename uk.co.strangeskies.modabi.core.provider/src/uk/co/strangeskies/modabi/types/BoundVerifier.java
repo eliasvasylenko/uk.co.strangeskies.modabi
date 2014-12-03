@@ -38,6 +38,12 @@ public class BoundVerifier implements BoundVisitor<Boolean> {
 	}
 
 	@Override
+	public Boolean acceptEqual(InferenceVariable a, Type b) {
+		return TypeToken.of(substitutions.get(a)).equals(
+				TypeToken.of(getResolver().resolveType(b)));
+	}
+
+	@Override
 	public Boolean acceptSubtype(InferenceVariable a, InferenceVariable b) {
 		return TypeToken.of(substitutions.get(b)).isAssignableFrom(
 				TypeToken.of(substitutions.get(a)));

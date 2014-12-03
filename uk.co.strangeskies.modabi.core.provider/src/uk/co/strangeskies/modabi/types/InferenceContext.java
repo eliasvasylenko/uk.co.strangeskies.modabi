@@ -38,7 +38,7 @@ class InferenceContext {
 		return instantiations.get(variable);
 	}
 
-	public boolean isProper(TypeToken<?> type) {
+	public boolean isProper(Type type) {
 		if (type == null)
 			return false;
 
@@ -49,6 +49,6 @@ class InferenceContext {
 		for (InferenceVariable variable : getInferenceVariables())
 			resolver = resolver.where(variable.getTypeVariable(), Unique.class);
 
-		return TypeToken.of(resolver.resolveType(type.getType())).equals(type);
+		return TypeToken.of(resolver.resolveType(type)).equals(TypeToken.of(type));
 	}
 }
