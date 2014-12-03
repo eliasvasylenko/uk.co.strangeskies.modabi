@@ -8,7 +8,7 @@ import java.util.List;
 import com.google.common.reflect.Invokable;
 import com.google.common.reflect.TypeToken;
 
-public class InvokationResolver {
+public class InvocationResolver {
 	public Type[] inferTypes(Executable executable, Type result,
 			Type... parameters) {
 		return null;
