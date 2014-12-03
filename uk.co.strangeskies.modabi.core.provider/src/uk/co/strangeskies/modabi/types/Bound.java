@@ -58,5 +58,5 @@ public interface Bound {
 
 	}
 
-	void accept(BoundVisitor<?> visitor);
+	<T> T accept(BoundVisitor<T> visitor);
 }

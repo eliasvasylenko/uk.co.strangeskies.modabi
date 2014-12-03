@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.types.Bound.BoundVisitor;
 import uk.co.strangeskies.modabi.types.Bound.PartialBoundVisitor;
@@ -13,7 +14,6 @@ import com.google.common.reflect.TypeResolver;
 
 public class BoundSet {
 	private final InferenceContext context;
-
 	private final Set<Bound> bounds;
 
 	public BoundSet(InferenceContext context) {
@@ -25,6 +25,14 @@ public class BoundSet {
 		return context;
 	}
 
+	public Stream<Bound> stream() {
+		return bounds.stream();
+	}
+
+	public BoundVisitor<Void> incorporate() {
+		return new BoundIncorporator();
+	}
+
 	public void incorporate(ConstraintFormula constraintFormula) {
 		constraintFormula.reduce(context, new BoundIncorporator(constraintFormula));
 	}
@@ -34,6 +42,10 @@ public class BoundSet {
 
 		public BoundIncorporator(ConstraintFormula constraintFormula) {
 			this.constraintFormula = constraintFormula;
+		}
+
+		public BoundIncorporator() {
+			this.constraintFormula = null;
 		}
 
 		public Void acceptEquality(InferenceVariable a, InferenceVariable b) {
@@ -105,39 +117,74 @@ public class BoundSet {
 				}
 			}));
 
-			bounds.add(v -> v.acceptEquality(a, b));
+			bounds.add(new Bound() {
+				@Override
+				public <T> T accept(BoundVisitor<T> visitor) {
+					return visitor.acceptEquality(a, b);
+				}
+			});
 			constraintFormulae.forEach(BoundSet.this::incorporate);
 
 			return null;
 		}
 
 		public Void acceptEquality(InferenceVariable a, Type b) {
-			bounds.add(v -> v.acceptEquality(a, b));
+			bounds.add(new Bound() {
+				@Override
+				public <T> T accept(BoundVisitor<T> visitor) {
+					return visitor.acceptEquality(a, b);
+				}
+			});
 			return null;
 		}
 
 		public Void acceptSubtype(InferenceVariable a, InferenceVariable b) {
-			bounds.add(v -> v.acceptSubtype(a, b));
+			bounds.add(new Bound() {
+				@Override
+				public <T> T accept(BoundVisitor<T> visitor) {
+					return visitor.acceptSubtype(a, b);
+				}
+			});
 			return null;
 		}
 
 		public Void acceptSubtype(InferenceVariable a, Type b) {
-			bounds.add(v -> v.acceptSubtype(a, b));
+			bounds.add(new Bound() {
+				@Override
+				public <T> T accept(BoundVisitor<T> visitor) {
+					return visitor.acceptSubtype(a, b);
+				}
+			});
 			return null;
 		}
 
 		public Void acceptSubtype(Type a, InferenceVariable b) {
-			bounds.add(v -> v.acceptSubtype(a, b));
+			bounds.add(new Bound() {
+				@Override
+				public <T> T accept(BoundVisitor<T> visitor) {
+					return visitor.acceptSubtype(a, b);
+				}
+			});
 			return null;
 		}
 
 		public Void acceptFalsehood() {
-			throw new TypeInferenceException("Cannot reduce constraint ["
-					+ constraintFormula + "] into bounds set [" + BoundSet.this + "].");
+			if (constraintFormula != null)
+				throw new TypeInferenceException("Cannot reduce constraint ["
+						+ constraintFormula + "] into bounds set [" + BoundSet.this + "].");
+			else
+				throw new TypeInferenceException(
+						"Addition of falsehood into bounds set [" + BoundSet.this + "].");
+
 		}
 
 		public Void acceptCaptureConversion(Map<Type, InferenceVariable> c) {
-			bounds.add(v -> v.acceptCaptureConversion(c));
+			bounds.add(new Bound() {
+				@Override
+				public <T> T accept(BoundVisitor<T> visitor) {
+					return visitor.acceptCaptureConversion(c);
+				}
+			});
 			return null;
 		}
 	}
