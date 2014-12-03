@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import uk.co.strangeskies.modabi.types.Bound.BoundVisitor;
 
 import com.google.common.reflect.TypeToken;
 
@@ -16,71 +17,71 @@ public class ConstraintFormula {
 		LOOSE_COMPATIBILILTY, SUBTYPE, CONTAINMENT, EQUALITY
 	}
 
-	private final BoundSet boundSet;
 	private final Kind kind;
 	private final Type from, to;
 
-	public ConstraintFormula(BoundSet boundSet, Kind kind, Type from, Type to) {
-		this.boundSet = boundSet;
+	public ConstraintFormula(Kind kind, Type from, Type to) {
 		this.kind = kind;
 		this.from = from;
 		this.to = to;
 	}
 
-	private InferenceContext getContext() {
-		return boundSet.getContext();
+	@Override
+	public String toString() {
+		return "Constraint '" + kind + "' between '" + from + "' and '" + to + "'.";
 	}
 
-	private void reduceTo(Kind kind, Type from, Type to) {
-		reduceTo(kind, from, to);
-	}
-
-	public void reduce() {
+	public void reduce(InferenceContext context, BoundVisitor<?> boundConsumer) {
 		switch (kind) {
 		case LOOSE_COMPATIBILILTY:
-			reduceLooseCompatibilityConstraint();
+			reduceLooseCompatibilityConstraint(context, boundConsumer);
 			break;
 		case SUBTYPE:
-			reduceSubtypeConstraint();
+			reduceSubtypeConstraint(context, boundConsumer);
 			break;
 		case CONTAINMENT:
-			reduceContainmentConstraint();
+			reduceContainmentConstraint(context, boundConsumer);
 			break;
 		case EQUALITY:
-			reduceEqualityConstraint();
+			reduceEqualityConstraint(context, boundConsumer);
 			break;
+		default:
+			throw new AssertionError();
 		}
 	}
 
 	/*
 	 * A constraint formula of the form ‹S → T› is reduced as follows:
 	 */
-	private void reduceLooseCompatibilityConstraint() {
+	private void reduceLooseCompatibilityConstraint(InferenceContext context,
+			BoundVisitor<?> boundConsumer) {
 		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
 		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
 
-		if (getContext().isProper(from) && getContext().isProper(to)) {
+		if (context.isProper(from) && context.isProper(to)) {
 			/*
 			 * If S and T are proper types, the constraint reduces to true if S is
 			 * compatible in a loose invocation context with T (§5.3), and false
 			 * otherwise.
 			 */
 			if (!isLooselyAssignable(from, to))
-				boundSet.addFalsehood();
+				boundConsumer.acceptFalsehood();
 		} else if (from != null && fromToken.isPrimitive())
 			/*
 			 * Otherwise, if S is a primitive type, let S' be the result of applying
 			 * boxing conversion (§5.1.7) to S. Then the constraint reduces to ‹S' →
 			 * T›.
 			 */
-			reduceTo(kind, fromToken.wrap().getType(), to);
+			new ConstraintFormula(Kind.LOOSE_COMPATIBILILTY, fromToken.wrap()
+					.getType(), to).reduce(context, boundConsumer);
 		else if (to != null && toToken.isPrimitive())
 			/*
 			 * Otherwise, if T is a primitive type, let T' be the result of applying
 			 * boxing conversion (§5.1.7) to T. Then the constraint reduces to ‹S =
 			 * T'›.
 			 */
-			reduceTo(Kind.EQUALITY, from, toToken.wrap().getType());
+			new ConstraintFormula(Kind.EQUALITY, from, toToken.wrap().getType())
+					.reduce(context, boundConsumer);
 		else if (isUnsafeCastCompatible(from, to))
 			/*
 			 * Otherwise, if T is a parameterized type of the form G<T1, ..., Tn>, and
@@ -98,23 +99,25 @@ public class ConstraintFormula {
 			/*
 			 * Otherwise, the constraint reduces to ‹S <: T›.
 			 */
-			reduceTo(Kind.SUBTYPE, from, to);
+			new ConstraintFormula(Kind.SUBTYPE, from, to).reduce(context,
+					boundConsumer);
 	}
 
 	/*
 	 * A constraint formula of the form ‹S <: T› is reduced as follows:
 	 */
-	private void reduceSubtypeConstraint() {
+	private void reduceSubtypeConstraint(InferenceContext context,
+			BoundVisitor<?> boundConsumer) {
 		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
 		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
 
-		if (getContext().isProper(from) && getContext().isProper(to)) {
+		if (context.isProper(from) && context.isProper(to)) {
 			/*
 			 * If S and T are proper types, the constraint reduces to true if S is a
 			 * subtype of T (§4.10), and false otherwise.
 			 */
 			if (!toToken.isAssignableFrom(from))
-				boundSet.addFalsehood();
+				boundConsumer.acceptFalsehood();
 			else
 				return;
 		} else if (from == null)
@@ -126,19 +129,23 @@ public class ConstraintFormula {
 			/*
 			 * Otherwise, if T is the null type, the constraint reduces to false.
 			 */
-			boundSet.addFalsehood();
-		else if (getContext().isInferenceVariable(from))
+			boundConsumer.acceptFalsehood();
+		else if (context.isInferenceVariable(from))
 			/*
 			 * Otherwise, if S is an inference variable, α, the constraint reduces to
 			 * the bound α <: T.
 			 */
-			boundSet.addSubtype(getContext().getInferenceVariable(from), to);
-		else if (getContext().isInferenceVariable(to))
+			if (context.isInferenceVariable(to))
+				boundConsumer.acceptSubtype(context.getInferenceVariable(from),
+						context.getInferenceVariable(to));
+			else
+				boundConsumer.acceptSubtype(context.getInferenceVariable(from), to);
+		else if (context.isInferenceVariable(to))
 			/*
 			 * Otherwise, if T is an inference variable, α, the constraint reduces to
 			 * the bound S <: α.
 			 */
-			boundSet.addSubtype(from, getContext().getInferenceVariable(to));
+			boundConsumer.acceptSubtype(from, context.getInferenceVariable(to));
 		else {
 			/*
 			 * Otherwise, the constraint is reduced according to the form of T:
@@ -158,8 +165,9 @@ public class ConstraintFormula {
 				Class<?> rawType = toToken.getRawType();
 				do {
 					for (TypeVariable<?> parameter : rawType.getTypeParameters())
-						reduceTo(Kind.CONTAINMENT, fromToken.resolveType(parameter)
-								.getType(), toToken.resolveType(parameter).getType());
+						new ConstraintFormula(Kind.CONTAINMENT, fromToken.resolveType(
+								parameter).getType(), toToken.resolveType(parameter).getType())
+								.reduce(context, boundConsumer);
 				} while ((rawType = rawType.getEnclosingClass()) != null);
 			} else if (toToken.isArray()) {
 				/*
@@ -209,7 +217,8 @@ public class ConstraintFormula {
 	 * A constraint formula of the form ‹S <= T›, where S and T are type arguments
 	 * (§4.5.1), is reduced as follows:
 	 */
-	private void reduceContainmentConstraint() {
+	private void reduceContainmentConstraint(InferenceContext context,
+			BoundVisitor<?> boundConsumer) {
 		if (!(to instanceof WildcardType)) {
 			/*
 			 * If T is a type:
@@ -218,12 +227,13 @@ public class ConstraintFormula {
 				/*
 				 * If S is a type, the constraint reduces to ‹S = T›.
 				 */
-				reduceTo(Kind.EQUALITY, from, to);
+				new ConstraintFormula(Kind.EQUALITY, from, to).reduce(context,
+						boundConsumer);
 			} else {
 				/*
 				 * If S is a wildcard, the constraint reduces to false.
 				 */
-				boundSet.addFalsehood();
+				boundConsumer.acceptFalsehood();
 			}
 		} else {
 			WildcardType to = (WildcardType) this.to;
@@ -262,7 +272,8 @@ public class ConstraintFormula {
 								 * <S <: Ii>
 								 */
 								Arrays.stream(to.getUpperBounds()).forEach(
-										t -> reduceTo(Kind.SUBTYPE, Object.class, t));
+										t -> new ConstraintFormula(Kind.SUBTYPE, Object.class, t)
+												.reduce(context, boundConsumer));
 							} else {
 								/*
 								 * If S is a wildcard of the form ? extends S', the constraint
@@ -283,7 +294,8 @@ public class ConstraintFormula {
 							 * <Object = T'>
 							 */
 							Arrays.stream(to.getUpperBounds()).forEach(
-									t -> reduceTo(Kind.EQUALITY, Object.class, t));
+									t -> new ConstraintFormula(Kind.EQUALITY, Object.class, t)
+											.reduce(context, boundConsumer));
 						}
 					}
 				}
@@ -309,14 +321,15 @@ public class ConstraintFormula {
 						/*
 						 * Otherwise, the constraint reduces to false.
 						 */
-						boundSet.addFalsehood();
+						boundConsumer.acceptFalsehood();
 					}
 				}
 			}
 		}
 	}
 
-	private void reduceEqualityConstraint() {
+	private void reduceEqualityConstraint(InferenceContext context,
+			BoundVisitor<?> boundConsumer) {
 		TypeToken<?> toToken = to == null ? null : TypeToken.of(to);
 		TypeToken<?> fromToken = from == null ? null : TypeToken.of(from);
 
@@ -343,7 +356,8 @@ public class ConstraintFormula {
 							 * constraint reduces to ‹Object = T'›.
 							 */
 							for (Type t : to.getUpperBounds())
-								reduceTo(Kind.EQUALITY, Object.class, t);
+								new ConstraintFormula(Kind.EQUALITY, Object.class, t).reduce(
+										context, boundConsumer);
 						}
 					}
 				} else if (to.getLowerBounds().length == 0) {
@@ -353,7 +367,8 @@ public class ConstraintFormula {
 						 * constraint reduces to ‹S' = Object›.
 						 */
 						for (Type s : from.getUpperBounds())
-							reduceTo(Kind.EQUALITY, s, Object.class);
+							new ConstraintFormula(Kind.EQUALITY, s, Object.class).reduce(
+									context, boundConsumer);
 					} else {
 						/*
 						 * If S has the form ? extends S' and T has the form ? extends T',
@@ -361,7 +376,7 @@ public class ConstraintFormula {
 						 */
 						if (!new HashSet<>(Arrays.asList(from.getUpperBounds()))
 								.equals(new HashSet<>(Arrays.asList(to.getUpperBounds()))))
-							boundSet.addFalsehood();
+							boundConsumer.acceptFalsehood();
 					}
 				}
 			} else if (to.getLowerBounds().length > 0) {
@@ -371,44 +386,49 @@ public class ConstraintFormula {
 				 */
 				if (!new HashSet<>(Arrays.asList(from.getLowerBounds()))
 						.equals(new HashSet<>(Arrays.asList(to.getLowerBounds()))))
-					boundSet.addFalsehood();
+					boundConsumer.acceptFalsehood();
 			} else {
 				/*
 				 * Otherwise, the constraint reduces to false.
 				 */
-				boundSet.addFalsehood();
+				boundConsumer.acceptFalsehood();
 			}
 		} else {
 			/*
 			 * A constraint formula of the form ‹S = T›, where S and T are types, is
 			 * reduced as follows:
 			 */
-			if (getContext().isProper(from) && getContext().isProper(to)) {
+			if (context.isProper(from) && context.isProper(to)) {
 				/*
 				 * If S and T are proper types, the constraint reduces to true if S is
 				 * the same as T (§4.3.4), and false otherwise.
 				 */
 				if (!from.equals(to))
-					boundSet.addFalsehood();
-			} else if (getContext().isInferenceVariable(from)) {
+					boundConsumer.acceptFalsehood();
+			} else if (context.isInferenceVariable(from)) {
 				/*
 				 * Otherwise, if S is an inference variable, α, the constraint reduces
 				 * to the bound α = T.
 				 */
-				boundSet.addEquality(getContext().getInferenceVariable(from), to);
-			} else if (getContext().isInferenceVariable(to)) {
+				if (context.isInferenceVariable(to))
+					boundConsumer.acceptEquality(context.getInferenceVariable(from),
+							context.getInferenceVariable(to));
+				else
+					boundConsumer.acceptEquality(context.getInferenceVariable(from), to);
+			} else if (context.isInferenceVariable(to)) {
 				/*
 				 * Otherwise, if T is an inference variable, α, the constraint reduces
 				 * to the bound S = α.
 				 */
-				boundSet.addEquality(from, getContext().getInferenceVariable(to));
+				boundConsumer.acceptEquality(context.getInferenceVariable(to), from);
 			} else if (fromToken.isArray() && toToken.isArray()) {
 				/*
 				 * Otherwise, if S and T are array types, S'[] and T'[], the constraint
 				 * reduces to ‹S' = T'›.
 				 */
-				reduceTo(Kind.EQUALITY, fromToken.getComponentType().getType(), toToken
-						.getComponentType().getType());
+				new ConstraintFormula(Kind.EQUALITY, fromToken.getComponentType()
+						.getType(), toToken.getComponentType().getType()).reduce(context,
+						boundConsumer);
 			} else if (fromToken.getRawType().equals(toToken.getRawType())) {
 				/*
 				 * Otherwise, if S and T are class or interface types with the same
@@ -417,8 +437,9 @@ public class ConstraintFormula {
 				 * constraints: for all i (1 ≤ i ≤ n), ‹Bi = Ai›.
 				 */
 				for (TypeVariable<?> type : fromToken.getRawType().getTypeParameters())
-					reduceTo(Kind.EQUALITY, fromToken.resolveType(type).getType(),
-							toToken.resolveType(type).getType());
+					new ConstraintFormula(Kind.EQUALITY, fromToken.resolveType(type)
+							.getType(), toToken.resolveType(type).getType()).reduce(context,
+							boundConsumer);
 			}
 		}
 	}
