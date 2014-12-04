@@ -13,31 +13,25 @@ import uk.co.strangeskies.modabi.types.ConstraintFormula.Kind;
 import com.google.common.reflect.TypeResolver;
 
 public class BoundSet {
-	private final InferenceContext context;
 	private final Set<Bound> bounds;
 
-	public BoundSet(InferenceContext context) {
-		this.context = context;
+	public BoundSet() {
 		bounds = new HashSet<>();
-	}
-
-	public InferenceContext getContext() {
-		return context;
 	}
 
 	public Stream<Bound> stream() {
 		return bounds.stream();
 	}
 
-	public BoundVisitor<Void> incorporate() {
+	public BoundVisitor incorporate() {
 		return new BoundIncorporator();
 	}
 
 	public void incorporate(ConstraintFormula constraintFormula) {
-		constraintFormula.reduce(context, new BoundIncorporator(constraintFormula));
+		constraintFormula.reduce(new BoundIncorporator(constraintFormula));
 	}
 
-	private class BoundIncorporator implements BoundVisitor<Void> {
+	private class BoundIncorporator implements BoundVisitor {
 		private final ConstraintFormula constraintFormula;
 
 		public BoundIncorporator(ConstraintFormula constraintFormula) {
@@ -48,144 +42,94 @@ public class BoundSet {
 			this.constraintFormula = null;
 		}
 
-		public Void acceptEquality(InferenceVariable a, InferenceVariable b) {
+		public void acceptEquality(InferenceVariable a, InferenceVariable b) {
 			Set<ConstraintFormula> constraintFormulae = new HashSet<>();
 
-			bounds.forEach(o -> o.accept(new PartialBoundVisitor<Void>() {
+			bounds.forEach(o -> o.accept(new PartialBoundVisitor() {
 				@Override
-				public Void acceptEquality(InferenceVariable a2, InferenceVariable b2) {
-					acceptEquality(a2, b2.getTypeVariable());
-					acceptEquality(b2, a2.getTypeVariable());
-					return null;
+				public void acceptEquality(InferenceVariable a2, InferenceVariable b2) {
+					acceptEquality(a2, b2);
+					acceptEquality(b2, a2);
 				}
 
 				@Override
-				public Void acceptEquality(InferenceVariable a2, Type b2) {
+				public void acceptEquality(InferenceVariable a2, Type b2) {
 					if (a.equals(a2))
-						constraintFormulae.add(new ConstraintFormula(Kind.EQUALITY, b
-								.getTypeVariable(), b2));
+						constraintFormulae.add(new ConstraintFormula(Kind.EQUALITY, b, b2));
 					else {
-						TypeResolver resolver = new TypeResolver().where(
-								a.getTypeVariable(), b.getTypeVariable());
+						TypeResolver resolver = new TypeResolver().where(a, b);
 
-						constraintFormulae.add(new ConstraintFormula(Kind.EQUALITY, a2
-								.getTypeVariable(), resolver.resolveType(b2)));
+						constraintFormulae.add(new ConstraintFormula(Kind.EQUALITY, a2,
+								resolver.resolveType(b2)));
 					}
-					return null;
 				}
 
 				@Override
-				public Void acceptSubtype(InferenceVariable a2, InferenceVariable b2) {
-					acceptSubtype(a2, b2.getTypeVariable());
-					acceptSubtype(b2, a2.getTypeVariable());
-					return null;
+				public void acceptSubtype(InferenceVariable a2, InferenceVariable b2) {
+					acceptSubtype(a2, b2);
+					acceptSubtype(b2, a2);
 				}
 
 				@Override
-				public Void acceptSubtype(InferenceVariable a2, Type b2) {
+				public void acceptSubtype(InferenceVariable a2, Type b2) {
 					if (a.equals(a2))
-						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, b
-								.getTypeVariable(), b2));
+						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, b, b2));
 					else {
-						TypeResolver resolver = new TypeResolver().where(
-								a.getTypeVariable(), b.getTypeVariable());
+						TypeResolver resolver = new TypeResolver().where(a, b);
 
-						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, a2
-								.getTypeVariable(), resolver.resolveType(b2)));
+						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, a2,
+								resolver.resolveType(b2)));
 					}
-					return null;
 				}
 
-				public Void acceptSubtype(Type a2, InferenceVariable b2) {
+				public void acceptSubtype(Type a2, InferenceVariable b2) {
 					if (a.equals(a2))
-						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, a2, b
-								.getTypeVariable()));
+						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, a2, b));
 					else {
-						TypeResolver resolver = new TypeResolver().where(
-								a.getTypeVariable(), b.getTypeVariable());
+						TypeResolver resolver = new TypeResolver().where(a, b);
 
 						constraintFormulae.add(new ConstraintFormula(Kind.SUBTYPE, resolver
-								.resolveType(a2), b2.getTypeVariable()));
+								.resolveType(a2), b2));
 					}
-					return null;
 				}
 
 				@Override
-				public Void acceptCaptureConversion(Map<Type, InferenceVariable> c2) {
+				public void acceptCaptureConversion(Map<Type, InferenceVariable> c2) {
 					// TODO Auto-generated method stub
-					return null;
 				}
 			}));
 
-			bounds.add(new Bound() {
-				@Override
-				public <T> T accept(BoundVisitor<T> visitor) {
-					return visitor.acceptEquality(a, b);
-				}
-			});
-			constraintFormulae.forEach(BoundSet.this::incorporate);
-
-			return null;
+			bounds.add(visitor -> visitor.acceptEquality(a, b));
+			constraintFormulae.forEach(c -> incorporate(c));
 		}
 
-		public Void acceptEquality(InferenceVariable a, Type b) {
-			bounds.add(new Bound() {
-				@Override
-				public <T> T accept(BoundVisitor<T> visitor) {
-					return visitor.acceptEquality(a, b);
-				}
-			});
-			return null;
+		public void acceptEquality(InferenceVariable a, Type b) {
+			bounds.add(visitor -> visitor.acceptEquality(a, b));
 		}
 
-		public Void acceptSubtype(InferenceVariable a, InferenceVariable b) {
-			bounds.add(new Bound() {
-				@Override
-				public <T> T accept(BoundVisitor<T> visitor) {
-					return visitor.acceptSubtype(a, b);
-				}
-			});
-			return null;
+		public void acceptSubtype(InferenceVariable a, InferenceVariable b) {
+			bounds.add(visitor -> visitor.acceptSubtype(a, b));
 		}
 
-		public Void acceptSubtype(InferenceVariable a, Type b) {
-			bounds.add(new Bound() {
-				@Override
-				public <T> T accept(BoundVisitor<T> visitor) {
-					return visitor.acceptSubtype(a, b);
-				}
-			});
-			return null;
+		public void acceptSubtype(InferenceVariable a, Type b) {
+			bounds.add(visitor -> visitor.acceptSubtype(a, b));
 		}
 
-		public Void acceptSubtype(Type a, InferenceVariable b) {
-			bounds.add(new Bound() {
-				@Override
-				public <T> T accept(BoundVisitor<T> visitor) {
-					return visitor.acceptSubtype(a, b);
-				}
-			});
-			return null;
+		public void acceptSubtype(Type a, InferenceVariable b) {
+			bounds.add(visitor -> visitor.acceptSubtype(a, b));
 		}
 
-		public Void acceptFalsehood() {
+		public void acceptFalsehood() {
 			if (constraintFormula != null)
 				throw new TypeInferenceException("Cannot reduce constraint ["
 						+ constraintFormula + "] into bounds set [" + BoundSet.this + "].");
 			else
 				throw new TypeInferenceException(
 						"Addition of falsehood into bounds set [" + BoundSet.this + "].");
-
 		}
 
-		public Void acceptCaptureConversion(Map<Type, InferenceVariable> c) {
-			bounds.add(new Bound() {
-				@Override
-				public <T> T accept(BoundVisitor<T> visitor) {
-					return visitor.acceptCaptureConversion(c);
-				}
-			});
-			return null;
+		public void acceptCaptureConversion(Map<Type, InferenceVariable> c) {
+			bounds.add(visitor -> visitor.acceptCaptureConversion(c));
 		}
 	}
 }

@@ -4,59 +4,44 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 public interface Bound {
-	public interface BoundVisitor<T> {
-		public T acceptEquality(InferenceVariable a, InferenceVariable b);
+	interface BoundVisitor {
+		void acceptEquality(InferenceVariable a, InferenceVariable b);
 
-		public T acceptEquality(InferenceVariable a, Type b);
+		void acceptEquality(InferenceVariable a, Type b);
 
-		public T acceptSubtype(InferenceVariable a, InferenceVariable b);
+		void acceptSubtype(InferenceVariable a, InferenceVariable b);
 
-		public T acceptSubtype(InferenceVariable a, Type b);
+		void acceptSubtype(InferenceVariable a, Type b);
 
-		public T acceptSubtype(Type a, InferenceVariable b);
+		void acceptSubtype(Type a, InferenceVariable b);
 
-		public T acceptFalsehood();
+		void acceptFalsehood();
 
-		public T acceptCaptureConversion(Map<Type, InferenceVariable> c);
+		void acceptCaptureConversion(Map<Type, InferenceVariable> c);
 	}
 
-	public class PartialBoundVisitor<T> implements BoundVisitor<T> {
+	class PartialBoundVisitor implements BoundVisitor {
 		@Override
-		public T acceptEquality(InferenceVariable a, InferenceVariable b) {
-			return null;
-		}
+		public void acceptEquality(InferenceVariable a, InferenceVariable b) {}
 
 		@Override
-		public T acceptEquality(InferenceVariable a, Type b) {
-			return null;
-		}
+		public void acceptEquality(InferenceVariable a, Type b) {}
 
 		@Override
-		public T acceptSubtype(InferenceVariable a, InferenceVariable b) {
-			return null;
-		}
+		public void acceptSubtype(InferenceVariable a, InferenceVariable b) {}
 
 		@Override
-		public T acceptSubtype(InferenceVariable a, Type b) {
-			return null;
-		}
+		public void acceptSubtype(InferenceVariable a, Type b) {}
 
 		@Override
-		public T acceptSubtype(Type a, InferenceVariable b) {
-			return null;
-		}
+		public void acceptSubtype(Type a, InferenceVariable b) {}
 
 		@Override
-		public T acceptFalsehood() {
-			return null;
-		}
+		public void acceptFalsehood() {}
 
 		@Override
-		public T acceptCaptureConversion(Map<Type, InferenceVariable> c) {
-			return null;
-		}
-
+		public void acceptCaptureConversion(Map<Type, InferenceVariable> c) {}
 	}
 
-	<T> T accept(BoundVisitor<T> visitor);
+	void accept(BoundVisitor visitor);
 }
