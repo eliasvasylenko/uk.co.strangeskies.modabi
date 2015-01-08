@@ -6,7 +6,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
@@ -33,8 +33,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				+ component.getName() + "'.";
 
 		if (base.getDataType() != null
-				&& !TypeToken.of(base.getDataType().type()).isAssignableFrom(
-						component.getDataType().type()))
+				&& !TypeToken.of(base.getDataType().getType()).isAssignableFrom(
+						component.getDataType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getBindingStrategy() != null

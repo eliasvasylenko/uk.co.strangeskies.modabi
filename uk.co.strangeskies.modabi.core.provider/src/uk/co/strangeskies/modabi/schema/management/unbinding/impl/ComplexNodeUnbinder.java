@@ -37,7 +37,7 @@ public class ComplexNodeUnbinder {
 								.keySet()
 								.stream()
 								.filter(
-										m -> m.getDataType().rawClass()
+										m -> m.getDataType().getRawType()
 												.isAssignableFrom(item.getClass()))
 								.collect(Collectors.toList()),
 						(c, n) -> unbindExactNode(c, overrides.putGet(n), item),
@@ -62,7 +62,7 @@ public class ComplexNodeUnbinder {
 				context.output().nextChild(element.getName());
 
 			new BindingNodeUnbinder(context).unbind(element, (U) element
-					.getDataType().rawClass().cast(data));
+					.getDataType().getRawType().cast(data));
 
 			if (!element.isInline())
 				context.output().endChild();

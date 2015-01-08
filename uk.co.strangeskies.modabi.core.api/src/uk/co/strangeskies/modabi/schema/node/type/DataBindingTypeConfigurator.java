@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.schema.node.type;
 
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;

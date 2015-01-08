@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
@@ -66,26 +66,8 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<? extends T>> getModelsWithSuperclass(
-			TypeLiteral<T> dataClass) {
-		return classModels.keySet().stream()
-				.filter(c -> dataClass.rawClass().isAssignableFrom(c.rawClass()))
-				.map(classModels::get)
-				.flatMap(c -> (Stream<? extends Model<? extends T>>) c.stream())
-				.collect(Collectors.toList());
-	}
-
-	public <T> List<Model<? extends T>> getCompatibleModels(
-			AbstractComplexNode.Effective<T, ?, ?> element) {
-		if (element.baseModel() != null)
-			return getModelsWithBase(element.baseModel(), element.getDataType());
-		else
-			return getModelsWithSuperclass(element.getDataType());
-	}
-
-	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getModelsWithBase(
-			Collection<? extends Model<? super T>> baseModel, TypeLiteral<T> dataClass) {
+			Collection<? extends Model<? super T>> baseModel) {
 		Iterator<? extends Model<? super T>> baseModelIterator = baseModel
 				.iterator();
 
@@ -94,12 +76,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 		while (baseModelIterator.hasNext())
 			subModels.retainAll(getDerivedModels(baseModelIterator.next()));
 
-		subModels = subModels
-				.stream()
-				.filter(
-						m -> !m.effective().isAbstract()
-								&& dataClass.rawClass().isAssignableFrom(
-										m.effective().getDataType().rawClass()))
+		subModels = subModels.stream().filter(m -> !m.effective().isAbstract())
 				.collect(Collectors.toList());
 
 		return (List<Model<? extends T>>) subModels;

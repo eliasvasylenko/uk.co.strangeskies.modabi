@@ -14,7 +14,7 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
@@ -211,7 +211,7 @@ public class BindingNodeUnbinder {
 					.stream()
 					.filter(
 							o -> !ClassUtils.isAssignable(o.getClass(), node.getDataType()
-									.rawClass())).findAny().orElse(null);
+									.getRawType())).findAny().orElse(null);
 			if (failedCast != null)
 				throw new ClassCastException("Cannot cast " + failedCast.getClass()
 						+ " to " + node.getDataType());
@@ -226,7 +226,7 @@ public class BindingNodeUnbinder {
 				itemList = null;
 			else {
 				if (!ClassUtils.isAssignable(item.getClass(), node.getDataType()
-						.rawClass()))
+						.getRawType()))
 					throw new ClassCastException("Cannot cast " + item.getClass()
 							+ " to " + node.getDataType());
 				itemList = Arrays.asList(item);

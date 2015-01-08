@@ -121,7 +121,7 @@ public class DataNodeUnbinder {
 							.keySet()
 							.stream()
 							.filter(
-									m -> m.getDataType().rawClass()
+									m -> m.getDataType().getRawType()
 											.isAssignableFrom(data.getClass()))
 							.collect(Collectors.toList()),
 					(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
@@ -141,7 +141,7 @@ public class DataNodeUnbinder {
 			DataNode.Effective<U> element, V data) {
 		try {
 			new BindingNodeUnbinder(context).unbind(element, (U) element
-					.getDataType().rawClass().cast(data));
+					.getDataType().getRawType().cast(data));
 		} catch (ClassCastException e) {
 			throw new UnbindingException("Cannot unbind data at this node.", context,
 					e);

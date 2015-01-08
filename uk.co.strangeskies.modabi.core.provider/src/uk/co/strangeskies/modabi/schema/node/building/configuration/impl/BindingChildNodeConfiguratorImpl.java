@@ -10,7 +10,7 @@ import java.util.List;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
@@ -85,7 +85,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 				inMethod = inputNodeHelper
-						.inMethod(Arrays.asList(getDataType().type()));
+						.inMethod(Arrays.asList(getDataType().getType()));
 				inMethodName = inputNodeHelper.inMethodName();
 				preInputClass = inputNodeHelper.preInputType() == null ? null
 						: inputNodeHelper.preInputType().getType();
@@ -160,7 +160,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					TypeToken<?> resultClass = TypeToken
 							.of((Type) ((node.isOutMethodIterable() != null && node
 									.isOutMethodIterable()) ? Iterable.class : node.getDataType()
-									.type()));
+									.getType()));
 
 					Method outMethod;
 					if (node.getOutMethodName() != null

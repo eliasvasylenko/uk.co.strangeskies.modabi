@@ -9,8 +9,12 @@ Bundle-Name: Modabi - Core
 		version = latest,  \
 	uk.co.strangeskies.mathematics;  \
 		version = latest,  \
+	uk.co.strangeskies.reflection.api;  \
+		version = latest,  \
 	org.testng:testng;  \
-		version = latest
+		version = latest,  \
+	org.checkerframework:checker-qual;  \
+		version=latest
 Export-Package: \
 	uk.co.strangeskies.modabi,\
 	uk.co.strangeskies.modabi.data.test,\

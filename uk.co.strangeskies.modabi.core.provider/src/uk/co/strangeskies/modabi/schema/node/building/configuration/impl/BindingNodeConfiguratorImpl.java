@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
@@ -54,15 +54,15 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				super(overrideMerge);
 
 				dataType = overrideMerge.getValue(BindingNode::getDataType,
-						(v, o) -> TypeToken.of(o.type()).isAssignableFrom(v.type()), null);
+						(v, o) -> TypeToken.of(o.getType()).isAssignableFrom(v.getType()), null);
 
 				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
 						o) -> TypeToken.of(o).isAssignableFrom(v), dataType == null ? null
-						: dataType.type());
+						: dataType.getType());
 
 				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingType,
 						(v, o) -> TypeToken.of(o).isAssignableFrom(v),
-						dataType == null ? null : dataType.type());
+						dataType == null ? null : dataType.getType());
 
 				unbindingFactoryClass = overrideMerge.getValue(
 						BindingNode::getUnbindingFactoryType, (v, o) -> TypeToken.of(o)
@@ -161,15 +161,15 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					return findUnbindingMethod(TypeToken.of(getUnbindingType()),
 							TypeToken.of(receiverClass),
 							findUnbindingMethodParameterClasses(n -> TypeToken.of(n
-									.getDataType().type())));
+									.getDataType().getType())));
 
 				case PASS_TO_PROVIDED:
 					return findUnbindingMethod(null, TypeToken.of(getUnbindingType()),
 							findUnbindingMethodParameterClasses(n -> TypeToken.of(n
-									.getDataType().type())));
+									.getDataType().getType())));
 
 				case ACCEPT_PROVIDED:
-					return findUnbindingMethod(null, TypeToken.of(getDataType().type()),
+					return findUnbindingMethod(null, TypeToken.of(getDataType().getType()),
 							findUnbindingMethodParameterClasses(n -> TypeToken.of(n
 									.getUnbindingType())));
 				}
@@ -239,7 +239,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 								classList.add(nodeClass.apply(this));
 							}
 						else {
-							classList.add(TypeToken.of(parameter.getDataType().type()));
+							classList.add(TypeToken.of(parameter.getDataType().getType()));
 						}
 					}
 				}
@@ -405,12 +405,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						.isAssignableFrom(o));
 		TypeLiteral<?> dataClass = overrideMerge.getValueWithOverride(
 				this.dataType, BindingNode::getDataType,
-				(o, n) -> TypeToken.of(n.type()).isAssignableFrom(o.type()));
+				(o, n) -> TypeToken.of(n.getType()).isAssignableFrom(o.getType()));
 
 		TypeToken<?> inputTarget = TypeToken.of(bindingClass != null ? bindingClass
-				: dataClass.type());
+				: dataClass.getType());
 		TypeToken<?> outputTarget = TypeToken
-				.of(unbindingClass != null ? unbindingClass : dataClass.type());
+				.of(unbindingClass != null ? unbindingClass : dataClass.getType());
 
 		/*
 		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE

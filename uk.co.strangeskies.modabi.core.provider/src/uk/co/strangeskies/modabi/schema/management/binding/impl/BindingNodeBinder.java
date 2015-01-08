@@ -12,7 +12,7 @@ import java.util.List;
 import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.invoker.NullInvoker;
 
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
@@ -51,7 +51,7 @@ public class BindingNodeBinder {
 		switch (strategy) {
 		case PROVIDED:
 			Type providedType = node.getBindingType() != null ? node.getBindingType()
-					: node.getDataType().type();
+					: node.getDataType().getType();
 			binding = context.provide(TypeLiteral.of(providedType));
 
 			break;
@@ -78,7 +78,7 @@ public class BindingNodeBinder {
 			 * may be more complex if we want proper *generic* type safety!
 			 */
 			binding = new ProxyFactory().createInvokerProxy(new NullInvoker(),
-					new Class[] { node.getDataType().rawClass() });
+					new Class[] { node.getDataType().getRawType() });
 
 			break;
 		case SOURCE_ADAPTOR:

@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 

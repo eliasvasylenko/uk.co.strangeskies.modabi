@@ -25,7 +25,7 @@ import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.impl.CoreSchemata;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
@@ -209,7 +209,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null
-					&& !TypeToken.of(c.type()).isAssignableFrom(provided.getClass()))
+					&& !TypeToken.of(c.getType()).isAssignableFrom(provided.getClass()))
 				throw new SchemaException("Invalid object provided for the class [" + c
 						+ "] by provider [" + provider + "]");
 			return provided;

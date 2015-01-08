@@ -3,11 +3,15 @@ package uk.co.strangeskies.modabi.schema.management.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.reflect.TypeToken;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
@@ -98,11 +102,31 @@ public abstract class ProcessingContextImpl {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> ComputingMap<Model.Effective<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrideMap(
 			ComplexNode.Effective<T> node) {
-		List<Model.Effective<? extends T>> models = manager.registeredModels()
-				.getCompatibleModels(node).stream().map(n -> n.effective())
-				.collect(Collectors.toList());
+		List<Model.Effective<? extends T>> models;
+
+		if (node.baseModel() != null && !node.baseModel().isEmpty())
+			models = manager
+					.registeredModels()
+					.getModelsWithBase(node.baseModel())
+					.stream()
+					.map(SchemaNode::effective)
+					.filter(
+							n -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+									TypeToken.of(n.getDataType().getType())))
+					.collect(Collectors.toList());
+		else
+			models = manager
+					.registeredModels()
+					.stream()
+					.map(SchemaNode::effective)
+					.filter(
+							c -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+									c.getDataType().getType()))
+					.map(m -> (Model.Effective<? extends T>) m)
+					.collect(Collectors.toList());
 
 		ComputingMap<Model.Effective<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
 				model -> getComplexNodeOverride(node, model));

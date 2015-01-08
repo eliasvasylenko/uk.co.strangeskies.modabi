@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.schema.management;
 
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public interface Provisions {
 	<T> T provide(TypeLiteral<T> type);

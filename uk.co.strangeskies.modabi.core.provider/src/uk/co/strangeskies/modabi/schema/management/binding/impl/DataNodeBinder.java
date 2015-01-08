@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
@@ -144,7 +144,7 @@ public class DataNodeBinder {
 				throw new SchemaException("Unable to find type to satisfy data node '"
 						+ node.getName() + "' with type '" + node.effective().type() + "'.");
 
-			Property<U, U> result = new IdentityProperty<>();
+			Property<U, U> result = new IdentityProperty<U>();
 
 			context.attemptUntilSuccessful(
 					overrides.keySet(),

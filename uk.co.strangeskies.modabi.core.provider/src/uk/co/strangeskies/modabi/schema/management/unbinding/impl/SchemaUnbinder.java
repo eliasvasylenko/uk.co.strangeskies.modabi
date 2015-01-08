@@ -4,7 +4,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.schema.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.providers.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
