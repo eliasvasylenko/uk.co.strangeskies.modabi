@@ -3,12 +3,9 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
@@ -17,6 +14,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class DataNodeConfiguratorImpl<T> extends
 		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
@@ -284,11 +282,9 @@ public class DataNodeConfiguratorImpl<T> extends
 		return this;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
-	protected final TypeToken<DataNode<T>> getNodeClass() {
-		return new TypeToken<DataNode<T>>() {
-		};
+	protected final TypeLiteral<DataNode<T>> getNodeClass() {
+		return new TypeLiteral<DataNode<T>>() {};
 	}
 
 	@Override

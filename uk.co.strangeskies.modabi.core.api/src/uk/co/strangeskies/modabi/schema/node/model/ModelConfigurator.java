@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.schema.node.model;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.AbstractModelConfigurator;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public interface ModelConfigurator<T> extends
 		AbstractModelConfigurator<ModelConfigurator<T>, Model<T>, T> {

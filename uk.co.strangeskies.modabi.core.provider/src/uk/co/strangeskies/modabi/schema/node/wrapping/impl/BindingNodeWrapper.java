@@ -6,14 +6,12 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-
-import com.google.common.reflect.TypeToken;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		implements BindingNode.Effective<T, S, E> {
@@ -33,7 +31,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				+ component.getName() + "'.";
 
 		if (base.getDataType() != null
-				&& !TypeToken.of(base.getDataType().getType()).isAssignableFrom(
+				&& !TypeLiteral.from(base.getDataType().getType()).isAssignableFrom(
 						component.getDataType().getType()))
 			throw new SchemaException(message);
 
@@ -46,12 +44,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !TypeToken.of(base.getBindingType()).isAssignableFrom(
+				&& !TypeLiteral.from(base.getBindingType()).isAssignableFrom(
 						component.getBindingType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !TypeToken.of(base.getUnbindingType()).isAssignableFrom(
+				&& !TypeLiteral.from(base.getUnbindingType()).isAssignableFrom(
 						component.getUnbindingType()))
 			throw new SchemaException(message);
 

@@ -2,8 +2,6 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Type;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
@@ -11,6 +9,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeCo
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class ChoiceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
@@ -34,32 +33,32 @@ public class ChoiceNodeConfiguratorImpl extends
 					for (ChildNode.Effective<?, ?> child : children()) {
 						Type nextInputClass = child.getPreInputType();
 						if (preInputClass != null)
-							if (TypeToken.of(preInputClass).isAssignableFrom(nextInputClass))
+							if (TypeLiteral.from(preInputClass).isAssignableFrom(nextInputClass))
 								preInputClass = nextInputClass;
-							else if (!TypeToken.of(nextInputClass).isAssignableFrom(
+							else if (!TypeLiteral.from(nextInputClass).isAssignableFrom(
 									preInputClass))
 								throw new IllegalArgumentException();
 					}
 				this.preInputClass = preInputClass;
 
 				Type postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputType, (n, o) -> TypeToken.of(o)
+						ChildNode::getPostInputType, (n, o) -> TypeLiteral.from(o)
 								.isAssignableFrom(n));
 				if (!isAbstract())
 					if (postInputClass == null)
 						for (ChildNode.Effective<?, ?> child : children()) {
 							Type nextOutputClass = child.getPostInputType();
 							if (postInputClass != null)
-								if (TypeToken.of(nextOutputClass).isAssignableFrom(
+								if (TypeLiteral.from(nextOutputClass).isAssignableFrom(
 										postInputClass))
 									postInputClass = nextOutputClass;
-								else if (!TypeToken.of(postInputClass).isAssignableFrom(
+								else if (!TypeLiteral.from(postInputClass).isAssignableFrom(
 										nextOutputClass))
 									postInputClass = Object.class;
 						}
 					else
 						for (ChildNode.Effective<?, ?> child : children())
-							if (!TypeToken.of(postInputClass).isAssignableFrom(
+							if (!TypeLiteral.from(postInputClass).isAssignableFrom(
 									child.getPostInputType()))
 								throw new SchemaException();
 				this.postInputClass = postInputClass;
@@ -139,7 +138,7 @@ public class ChoiceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected TypeToken<ChoiceNode> getNodeClass() {
-		return TypeToken.of(ChoiceNode.class);
+	protected TypeLiteral<ChoiceNode> getNodeClass() {
+		return TypeLiteral.from(ChoiceNode.class);
 	}
 }

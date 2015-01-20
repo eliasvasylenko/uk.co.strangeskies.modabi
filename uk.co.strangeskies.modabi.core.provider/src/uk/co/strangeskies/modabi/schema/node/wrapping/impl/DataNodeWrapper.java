@@ -7,8 +7,7 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-
-import com.google.common.reflect.TypeToken;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public final class DataNodeWrapper<T>
 		extends
@@ -27,8 +26,8 @@ public final class DataNodeWrapper<T>
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
-					&& !TypeToken.of(component.getDataType().getType()).isAssignableFrom(
-							providedValue.getClass()))
+					&& !TypeLiteral.from(component.getDataType().getType())
+							.isAssignableFrom(providedValue.getClass()))
 				throw new SchemaException(message);
 
 		DataBindingType.Effective<? super T> check = component;

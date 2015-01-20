@@ -4,7 +4,6 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.providers.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
@@ -15,6 +14,7 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class SchemaUnbinder {
 	private final UnbindingContextImpl context;

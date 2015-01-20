@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
@@ -15,8 +14,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SchemaN
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
-
-import com.google.common.reflect.TypeToken;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class ModelConfiguratorImpl<T> extends
 		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -138,8 +136,8 @@ public class ModelConfiguratorImpl<T> extends
 
 	@SuppressWarnings("serial")
 	@Override
-	protected TypeToken<Model<T>> getNodeClass() {
-		return new TypeToken<Model<T>>() {
+	protected TypeLiteral<Model<T>> getNodeClass() {
+		return new TypeLiteral<Model<T>>() {
 		};
 	}
 }

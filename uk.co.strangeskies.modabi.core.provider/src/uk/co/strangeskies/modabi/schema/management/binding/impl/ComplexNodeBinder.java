@@ -5,13 +5,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.Model.Effective;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class ComplexNodeBinder {
 	private final BindingContextImpl context;
@@ -98,7 +97,7 @@ public class ComplexNodeBinder {
 							+ "' to bind to.", context);
 				}
 
-				if (!TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+				if (!TypeLiteral.from(node.getDataType().getType()).isAssignableFrom(
 						extension.getDataType().getType()))
 					throw new BindingException("Named input node '" + nextElement
 							+ "' does not match class of extention point.", context);

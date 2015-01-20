@@ -5,8 +5,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -25,6 +23,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class InputSequenceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
@@ -189,13 +188,13 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected TypeToken<InputSequenceNode> getNodeClass() {
-		return TypeToken.of(InputSequenceNode.class);
+	protected TypeLiteral<InputSequenceNode> getNodeClass() {
+		return TypeLiteral.from(InputSequenceNode.class);
 	}
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		TypeToken<?> outputTarget = getContext().outputSourceType();
+		TypeLiteral<?> outputTarget = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -235,22 +234,21 @@ public class InputSequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
+					public TypeLiteral<?> inputTargetType(QualifiedName node) {
 						return null;
 					}
 
 					@Override
-					public TypeToken<?> outputSourceType() {
+					public TypeLiteral<?> outputSourceType() {
 						return outputTarget;
 					}
 
 					@Override
-					public void addChild(ChildNode<?, ?> result) {
-					}
+					public void addChild(ChildNode<?, ?> result) {}
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeToken<U> nodeClass) {
+							QualifiedName id, TypeLiteral<U> nodeClass) {
 						return null;
 					}
 

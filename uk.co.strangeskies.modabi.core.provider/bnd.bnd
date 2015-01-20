@@ -14,18 +14,14 @@ Bundle-Version:					1.0.0.${tstamp}
 	org.apache.commons:commons-proxy;version=${commons-proxy.version};strategy=exact,\
 	org.apache.commons:commons-lang3;version=latest,\
 	org.testng:testng;version=latest,\
-	com.google.guava:guava;  \
-		version=18.0;  \
-		strategy=exact,  \
 	uk.co.strangeskies.utilities;  \
 		version=latest,  \
-	uk.co.strangeskies.reflection.api;  \
+	uk.co.strangeskies.reflection;  \
 		version=latest,  \
 	uk.co.strangeskies.mathematics;  \
 		version=latest
 
 -includeresource: {readme.md}
-
 
 -runrequires:  \
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)'

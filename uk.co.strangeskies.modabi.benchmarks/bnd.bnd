@@ -7,9 +7,7 @@ Bundle-Name: Modabi - Benchmarks
 		version = latest,  \
 	uk.co.strangeskies.utilities;  \
 		version = latest,  \
-	uk.co.strangeskies.reflection.api;  \
-		version = latest,  \
-	uk.co.strangeskies.reflection.provider;  \
+	uk.co.strangeskies.reflection;  \
 		version = latest,  \
 	uk.co.strangeskies.modabi.core.api;  \
 		version = latest,  \

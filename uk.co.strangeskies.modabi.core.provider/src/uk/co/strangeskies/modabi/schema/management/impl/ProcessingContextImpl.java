@@ -3,15 +3,10 @@ package uk.co.strangeskies.modabi.schema.management.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.google.common.reflect.TypeToken;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Bindings;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
@@ -24,6 +19,7 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.DeferredComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.LRUCacheComputingMap;
@@ -114,8 +110,8 @@ public abstract class ProcessingContextImpl {
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							n -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
-									TypeToken.of(n.getDataType().getType())))
+							n -> TypeLiteral.from(node.getDataType().getType()).isAssignableFrom(
+									TypeLiteral.from(n.getDataType().getType())))
 					.collect(Collectors.toList());
 		else
 			models = manager
@@ -123,7 +119,7 @@ public abstract class ProcessingContextImpl {
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							c -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+							c -> TypeLiteral.from(node.getDataType().getType()).isAssignableFrom(
 									c.getDataType().getType()))
 					.map(m -> (Model.Effective<? extends T>) m)
 					.collect(Collectors.toList());

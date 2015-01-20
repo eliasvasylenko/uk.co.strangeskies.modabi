@@ -9,8 +9,6 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.model.nodes.test.DummyNodes;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -20,6 +18,7 @@ import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class ChildrenConfiguratorTests {
 	private class MergeTestData {
@@ -114,13 +113,13 @@ public class ChildrenConfiguratorTests {
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
-						return TypeToken.of(Object.class);
+					public TypeLiteral<?> inputTargetType(QualifiedName node) {
+						return TypeLiteral.from(Object.class);
 					}
 
 					@Override
-					public TypeToken<?> outputSourceType() {
-						return TypeToken.of(Object.class);
+					public TypeLiteral<?> outputSourceType() {
+						return TypeLiteral.from(Object.class);
 					}
 
 					@Override
@@ -128,7 +127,7 @@ public class ChildrenConfiguratorTests {
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeToken<U> nodeClass) {
+							QualifiedName id, TypeLiteral<U> nodeClass) {
 						return null;
 					}
 

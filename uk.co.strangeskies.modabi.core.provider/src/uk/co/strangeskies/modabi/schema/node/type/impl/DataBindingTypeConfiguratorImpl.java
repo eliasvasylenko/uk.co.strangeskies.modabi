@@ -5,15 +5,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends
@@ -136,8 +134,8 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("serial")
 	@Override
-	protected TypeToken<DataBindingType<T>> getNodeClass() {
-		return new TypeToken<DataBindingType<T>>() {
+	protected TypeLiteral<DataBindingType<T>> getNodeClass() {
+		return new TypeLiteral<DataBindingType<T>>() {
 		};
 	}
 

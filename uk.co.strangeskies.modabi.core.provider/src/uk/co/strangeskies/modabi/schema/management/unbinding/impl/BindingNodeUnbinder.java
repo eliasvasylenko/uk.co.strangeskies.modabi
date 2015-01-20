@@ -14,7 +14,6 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.ClassUtils;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
@@ -28,6 +27,7 @@ import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class BindingNodeUnbinder {
 	private final UnbindingContextImpl context;
@@ -48,7 +48,7 @@ public class BindingNodeUnbinder {
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					Object o = context.provisions().provide(
-							TypeLiteral.of(node.getUnbindingType()));
+							TypeLiteral.from(node.getUnbindingType()));
 					invokeMethod((Method) node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
@@ -57,7 +57,7 @@ public class BindingNodeUnbinder {
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					Object o = context.provisions().provide(
-							TypeLiteral.of(node.getUnbindingType()));
+							TypeLiteral.from(node.getUnbindingType()));
 					invokeMethod((Method) node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
@@ -77,7 +77,7 @@ public class BindingNodeUnbinder {
 						(Method) node.getUnbindingMethod(),
 						context,
 						context.provisions().provide(
-								TypeLiteral.of(node.getUnbindingFactoryType())),
+								TypeLiteral.from(node.getUnbindingFactoryType())),
 						prepareUnbingingParameterList(node, u));
 				break;
 			}

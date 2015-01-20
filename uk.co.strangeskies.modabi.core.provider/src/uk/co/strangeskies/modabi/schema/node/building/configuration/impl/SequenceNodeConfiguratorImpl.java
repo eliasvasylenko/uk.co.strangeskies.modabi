@@ -3,8 +3,6 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
@@ -16,6 +14,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class SequenceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode> implements
@@ -37,12 +36,12 @@ public class SequenceNodeConfiguratorImpl extends
 						.getPreInputType();
 
 				Type postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputType, (n, o) -> TypeToken.of(o)
+						ChildNode::getPostInputType, (n, o) -> TypeLiteral.from(o)
 								.isAssignableFrom(n));
 				if (postInputClass == null && !isAbstract()) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						if (postInputClass != null
-								&& !TypeToken.of(child.getPreInputType()).isAssignableFrom(
+								&& !TypeLiteral.from(child.getPreInputType()).isAssignableFrom(
 										postInputClass)) {
 							throw new IllegalArgumentException();
 						}
@@ -97,13 +96,13 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected TypeToken<SequenceNode> getNodeClass() {
-		return TypeToken.of(SequenceNode.class);
+	protected TypeLiteral<SequenceNode> getNodeClass() {
+		return TypeLiteral.from(SequenceNode.class);
 	}
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
+		TypeLiteral<?> inputTarget = getContext().inputTargetType(getName());
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -143,22 +142,21 @@ public class SequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
+					public TypeLiteral<?> inputTargetType(QualifiedName node) {
 						return inputTarget;
 					}
 
 					@Override
-					public TypeToken<?> outputSourceType() {
+					public TypeLiteral<?> outputSourceType() {
 						return null;
 					}
 
 					@Override
-					public void addChild(ChildNode<?, ?> result) {
-					}
+					public void addChild(ChildNode<?, ?> result) {}
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeToken<U> nodeClass) {
+							QualifiedName id, TypeLiteral<U> nodeClass) {
 						return null;
 					}
 

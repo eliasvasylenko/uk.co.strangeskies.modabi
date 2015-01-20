@@ -5,11 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.common.reflect.TypeToken;
-
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
@@ -17,6 +14,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public class ComplexNodeConfiguratorImpl<T>
 		extends
@@ -145,11 +143,9 @@ public class ComplexNodeConfiguratorImpl<T>
 		return false;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
-	protected TypeToken<ComplexNode<T>> getNodeClass() {
-		return new TypeToken<ComplexNode<T>>() {
-		};
+	protected TypeLiteral<ComplexNode<T>> getNodeClass() {
+		return new TypeLiteral<ComplexNode<T>>() {};
 	}
 
 	@Override

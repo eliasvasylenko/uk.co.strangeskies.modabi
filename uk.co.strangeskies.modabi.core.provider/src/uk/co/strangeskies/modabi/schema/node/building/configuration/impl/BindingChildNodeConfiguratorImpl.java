@@ -10,15 +10,13 @@ import java.util.List;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
-
-import com.google.common.reflect.TypeToken;
+import uk.co.strangeskies.reflection.TypeLiteral;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -84,8 +82,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 								.getContext());
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-				inMethod = inputNodeHelper
-						.inMethod(Arrays.asList(getDataType().getType()));
+				inMethod = inputNodeHelper.inMethod(Arrays.asList(getDataType()
+						.getType()));
 				inMethodName = inputNodeHelper.inMethodName();
 				preInputClass = inputNodeHelper.preInputType() == null ? null
 						: inputNodeHelper.preInputType().getType();
@@ -155,10 +153,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			protected static Method getOutMethod(
 					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
-					TypeToken<?> targetClass) {
+					TypeLiteral<?> targetClass) {
 				try {
-					TypeToken<?> resultClass = TypeToken
-							.of((Type) ((node.isOutMethodIterable() != null && node
+					TypeLiteral<?> resultClass = TypeLiteral
+							.from((Type) ((node.isOutMethodIterable() != null && node
 									.isOutMethodIterable()) ? Iterable.class : node.getDataType()
 									.getType()));
 
@@ -183,9 +181,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 									+ node.getName() + "' as result class cannot be found.");
 						outMethod = null;
 					} else {
-						outMethod = Methods.findMethod(
+						outMethod = (Method) Methods.findMethod(
 								generateOutMethodNames(node, resultClass.getRawType()),
-								targetClass, false, resultClass, false);
+								targetClass, false, resultClass, false).getGenericDeclaration();
 
 						if (inheritedOutMethod != null
 								&& !outMethod.equals(inheritedOutMethod))

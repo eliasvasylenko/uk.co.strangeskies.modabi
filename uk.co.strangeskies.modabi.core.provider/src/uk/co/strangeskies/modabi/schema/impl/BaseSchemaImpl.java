@@ -23,7 +23,6 @@ import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
@@ -41,10 +40,9 @@ import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
+import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.utilities.Enumeration;
-
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
 
 public class BaseSchemaImpl implements BaseSchema {
 	private class DerivedTypesImpl implements DerivedTypes {
@@ -800,12 +798,10 @@ public class BaseSchemaImpl implements BaseSchema {
 				.models(modelSet).create();
 	}
 
-	@SuppressWarnings({ "serial", "unchecked" })
 	private <T> TypeLiteral<DataType<T>> resolvePrimitiveDataType(
 			DataType<T> dataType) {
-		return (TypeLiteral<DataType<T>>) TypeLiteral
-				.of(new TypeToken<DataType<T>>() {}.where(new TypeParameter<T>() {},
-						dataType.dataClass()).getType());
+		return new TypeLiteral<DataType<T>>() {}.withTypeArgument(
+				new TypeParameter<T>() {}, dataType.dataClass());
 	}
 
 	@SuppressWarnings("unchecked")

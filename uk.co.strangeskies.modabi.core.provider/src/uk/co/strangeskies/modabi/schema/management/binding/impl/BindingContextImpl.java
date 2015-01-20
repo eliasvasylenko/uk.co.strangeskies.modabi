@@ -9,13 +9,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public class BindingContextImpl extends ProcessingContextImpl implements

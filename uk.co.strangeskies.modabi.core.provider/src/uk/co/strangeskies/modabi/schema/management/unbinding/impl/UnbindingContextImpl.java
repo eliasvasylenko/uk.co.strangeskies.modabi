@@ -13,13 +13,13 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public class UnbindingContextImpl extends ProcessingContextImpl implements

@@ -12,7 +12,6 @@ import java.util.List;
 import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.invoker.NullInvoker;
 
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
@@ -27,6 +26,7 @@ import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeBinder {
@@ -52,7 +52,7 @@ public class BindingNodeBinder {
 		case PROVIDED:
 			Type providedType = node.getBindingType() != null ? node.getBindingType()
 					: node.getDataType().getType();
-			binding = context.provide(TypeLiteral.of(providedType));
+			binding = context.provide(TypeLiteral.from(providedType));
 
 			break;
 		case CONSTRUCTOR:

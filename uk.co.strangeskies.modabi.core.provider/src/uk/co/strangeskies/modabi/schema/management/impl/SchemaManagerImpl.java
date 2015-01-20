@@ -25,7 +25,6 @@ import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.modabi.schema.impl.CoreSchemata;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.schema.management.Provisions;
@@ -41,10 +40,9 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 import uk.co.strangeskies.modabi.schema.node.type.impl.DataBindingTypeBuilderImpl;
+import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
-
-import com.google.common.reflect.TypeToken;
 
 @Component
 public class SchemaManagerImpl implements SchemaManager {
@@ -209,7 +207,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null
-					&& !TypeToken.of(c.getType()).isAssignableFrom(provided.getClass()))
+					&& !TypeLiteral.from(c.getType()).isAssignableFrom(provided.getClass()))
 				throw new SchemaException("Invalid object provided for the class [" + c
 						+ "] by provider [" + provider + "]");
 			return provided;
