@@ -82,8 +82,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 								.getContext());
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-				inMethod = inputNodeHelper.inMethod(Arrays.asList(getDataType()
-						.getType()));
+				inMethod = inputNodeHelper.inMethod(Arrays
+						.asList(getDataType() == null ? null : getDataType().getType()));
 				inMethodName = inputNodeHelper.inMethodName();
 				preInputClass = inputNodeHelper.preInputType() == null ? null
 						: inputNodeHelper.preInputType().getType();
