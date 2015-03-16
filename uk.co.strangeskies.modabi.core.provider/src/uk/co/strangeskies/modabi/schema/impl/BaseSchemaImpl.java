@@ -158,7 +158,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputType(
-																					DataBindingType.Effective.class)
+																					new TypeLiteral<DataBindingType.Effective<?>>() {}
+																							.getType())
 																			.isInMethodCast(true)
 																			.outMethod("null")
 																			.type(primitives.get(DataType.INT))

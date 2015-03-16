@@ -256,7 +256,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				try {
 					return (Method) Methods.findMethod(names, receiver,
 							getBindingStrategy() == BindingStrategy.STATIC_FACTORY, result,
-							false, parameters).getGenericDeclaration();
+							false, parameters).getExecutable();
 				} catch (NoSuchMethodException | SchemaException | SecurityException e) {
 					throw new SchemaException("Cannot find unbinding method for node '"
 							+ this + "' of class '" + result + "', reveiver '" + receiver
@@ -406,8 +406,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				BindingNode::getBindingType, (o, n) -> TypeLiteral.from(n)
 						.isAssignableFrom(o));
 		TypeLiteral<?> dataClass = overrideMerge.getValueWithOverride(
-				this.dataType, BindingNode::getDataType,
-				(o, n) -> {System.out.println(o + " isassfrom " + n);return n.isAssignableFrom(o);});
+				this.dataType, BindingNode::getDataType, (o, n) -> {
+					System.out.println(o + " isassfrom " + n);
+					return n.isAssignableFrom(o);
+				});
 
 		TypeLiteral<?> inputTarget = bindingClass != null ? TypeLiteral
 				.from(bindingClass) : dataClass;

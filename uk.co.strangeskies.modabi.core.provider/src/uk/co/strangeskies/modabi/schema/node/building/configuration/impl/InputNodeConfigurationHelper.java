@@ -71,7 +71,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 				if (context.isConstructorExpected())
 					inMethod = Methods.findConstructor(inputTargetClass(),
-							parameterTokens(parameters)).getGenericDeclaration();
+							parameterTokens(parameters)).getExecutable();
 				else
 					inMethod = Methods.findMethod(
 							generateInMethodNames(effective, overriddenInMethodName),
@@ -80,7 +80,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							result,
 							effective != null && effective.isInMethodChained()
 									&& effective.isInMethodCast(), parameterTokens(parameters))
-							.getGenericDeclaration();
+							.getExecutable();
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException("Cannot find input method for node '"
 						+ effective + "' on class '" + inputTargetClass()

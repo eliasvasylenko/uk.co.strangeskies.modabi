@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeLiteral;
 
@@ -45,6 +46,13 @@ public class Methods {
 
 		for (String name : names) {
 			try {
+				new TypeLiteral<SchemaNode.Effective<?, ?>>() {}
+						.resolveSupertypeParameters(SchemaNode.class);
+
+				System.out.println("RESOLVE:");
+				System.out.println("   " + receiver);
+				System.out.println("   " + name);
+				System.out.println("   " + parameters);
 				method = receiver.resolveMethodOverload(
 						name,
 						parameters.stream().map(TypeLiteral::getType)

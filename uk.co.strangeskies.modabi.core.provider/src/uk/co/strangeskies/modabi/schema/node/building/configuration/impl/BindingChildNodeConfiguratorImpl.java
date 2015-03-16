@@ -183,7 +183,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					} else {
 						outMethod = (Method) Methods.findMethod(
 								generateOutMethodNames(node, resultClass.getRawType()),
-								targetClass, false, resultClass, false).getGenericDeclaration();
+								targetClass, false, resultClass, false).getExecutable();
 
 						if (inheritedOutMethod != null
 								&& !outMethod.equals(inheritedOutMethod))
