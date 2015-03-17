@@ -54,7 +54,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataBindingType<Type> typeType;
 		private final DataBindingType<Enum<?>> enumType;
 		private final DataBindingType<Enumeration<?>> enumerationType;
-		private final DataBindingType<Range<?>> rangeType;
+		private final DataBindingType<Range<Integer>> rangeType;
 		private final DataBindingType<Object[]> arrayType;
 		private final DataBindingType<Collection<?>> collectionType;
 		private final DataBindingType<List<?>> listType;
@@ -249,7 +249,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.name("targetModel")
 													.type(referenceBaseType)
 													.extensible(true)
-													.dataType(new TypeLiteral<Model<?>>() {})
+													.dataType(new TypeLiteral<Model<Model<?>>>() {})
 													.provideValue(
 															new BufferingDataTarget().put(
 																	DataType.QUALIFIED_NAME,
@@ -262,7 +262,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.type(referenceBaseType)
 																	.extensible(true)
 																	.isAbstract(true)
-																	.dataType(new TypeLiteral<Model<?>>() {})
+																	.dataType(
+																			new TypeLiteral<Model<Model<?>>>() {})
 																	.provideValue(
 																			new BufferingDataTarget()
 																					.put(
@@ -298,6 +299,8 @@ public class BaseSchemaImpl implements BaseSchema {
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
 									.inMethod("getClass")).create());
 
+			typeType = null;
+			/*-
 			typeSet.add(typeType = builder
 					.configure(loader)
 					.name("type", namespace)
@@ -307,79 +310,85 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
 									.inMethod("getClass")).create());
+			 */
 
-			typeSet.add(enumType = builder
-					.configure(loader)
-					.name("enum", namespace)
-					.dataType(new TypeLiteral<Enum<?>>() {})
-					.isAbstract(true)
-					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.addChild(
-							n -> n
-									.inputSequence()
-									.name("valueOf")
-									.addChild(
-											o -> o
-													.data()
-													.dataType(new TypeLiteral<Class<?>>() {})
-													.name("enumType")
-													.outMethod("null")
-													.provideValue(new BufferingDataTarget().buffer())
-													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingType(BindingContext.class)
-													.addChild(
-															e -> e
-																	.inputSequence()
-																	.name("bindingNode")
-																	.inMethodChained(true)
-																	.postInputType(
-																			DataBindingType.Effective.class)
-																	.isInMethodCast(true))
-													.addChild(
-															p -> p.inputSequence().name("getDataClass")
-																	.inMethodChained(true)))
-									.addChild(
-											o -> o.data().name("name")
-													.type(primitives.get(DataType.STRING)))).create());
+			typeSet
+					.add(enumType = builder
+							.configure(loader)
+							.name("enum", namespace)
+							.dataType(new TypeLiteral<Enum<?>>() {})
+							.bindingType(Enumeration.class)
+							.isAbstract(true)
+							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.addChild(
+									n -> n
+											.inputSequence()
+											.name("valueOfEnum")
+											.addChild(
+													o -> o
+															.data()
+															.dataType(
+																	new TypeLiteral<Class<? extends Enum<?>>>() {})
+															.name("enumType")
+															.outMethod("null")
+															.provideValue(new BufferingDataTarget().buffer())
+															.bindingStrategy(BindingStrategy.PROVIDED)
+															.bindingType(BindingContext.class)
+															.addChild(
+																	e -> e
+																			.inputSequence()
+																			.name("bindingNode")
+																			.inMethodChained(true)
+																			.postInputType(
+																					new TypeLiteral<DataBindingType.Effective<?>>() {}
+																							.getType()).isInMethodCast(true))
+															.addChild(
+																	p -> p.inputSequence().name("getDataType")
+																			.inMethodChained(true)))
+											.addChild(
+													o -> o.data().name("name")
+															.type(primitives.get(DataType.STRING)))).create());
 
-			typeSet.add(enumerationType = builder
-					.configure(loader)
-					.name("enumeration", namespace)
-					.baseType(enumerationBaseType)
-					.isAbstract(true)
-					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.addChild(
-							n -> n
-									.inputSequence()
-									.name("valueOf")
-									.addChild(
-											o -> o
-													.data()
-													.dataType(new TypeLiteral<Class<?>>() {})
-													.name("enumerationType")
-													.outMethod("null")
-													.provideValue(new BufferingDataTarget().buffer())
-													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingType(BindingContext.class)
-													.addChild(
-															e -> e
-																	.inputSequence()
-																	.name("bindingNode")
-																	.inMethodChained(true)
-																	.postInputType(
-																			DataBindingType.Effective.class)
-																	.isInMethodCast(true))
-													.addChild(
-															p -> p.inputSequence().name("getDataClass")
-																	.inMethodChained(true)))
-									.addChild(
-											o -> o.data().name("name")
-													.type(primitives.get(DataType.STRING)))).create());
+			typeSet
+					.add(enumerationType = builder
+							.configure(loader)
+							.name("enumeration", namespace)
+							.baseType(enumerationBaseType)
+							.isAbstract(true)
+							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.addChild(
+									n -> n
+											.inputSequence()
+											.name("valueOf")
+											.addChild(
+													o -> o
+															.data()
+															.dataType(
+																	new TypeLiteral<Class<? extends Enumeration<?>>>() {})
+															.name("enumerationType")
+															.outMethod("null")
+															.provideValue(new BufferingDataTarget().buffer())
+															.bindingStrategy(BindingStrategy.PROVIDED)
+															.bindingType(BindingContext.class)
+															.addChild(
+																	e -> e
+																			.inputSequence()
+																			.name("bindingNode")
+																			.inMethodChained(true)
+																			.postInputType(
+																					DataBindingType.Effective.class)
+																			.isInMethodCast(true))
+															.addChild(
+																	p -> p.inputSequence().name("getDataType")
+																			.inMethodChained(true)))
+											.addChild(
+													o -> o.data().name("name")
+															.type(primitives.get(DataType.STRING)))).create());
 
 			typeSet.add(rangeType = builder
 					.configure(loader)
 					.name("range", namespace)
-					.dataType(new TypeLiteral<Range<?>>() {})
+					.dataType(new TypeLiteral<Range<Integer>>() {})
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
 					.unbindingType(String.class)
@@ -416,6 +425,8 @@ public class BaseSchemaImpl implements BaseSchema {
 													d -> d
 															.inputSequence()
 															.name("include")
+															.isAbstract(true)
+															// TODO is abstract?
 															.addChild(
 																	e -> e
 																			.data()
@@ -669,7 +680,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public DataBindingType<Range<?>> rangeType() {
+		public DataBindingType<Range<Integer>> rangeType() {
 			return rangeType;
 		}
 

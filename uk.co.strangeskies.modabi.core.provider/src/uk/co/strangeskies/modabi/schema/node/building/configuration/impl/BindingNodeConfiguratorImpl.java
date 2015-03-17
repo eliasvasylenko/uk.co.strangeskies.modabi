@@ -84,8 +84,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				unbindingMethodName = overrideMerge
 						.tryGetValue(BindingNode::getUnbindingMethodName);
 
-				System.out.println("    " + getName());
-
 				unbindingMethod = isAbstract() ? null : findUnbindingMethod();
 
 				if (unbindingMethodName == null && !isAbstract()
@@ -407,7 +405,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						.isAssignableFrom(o));
 		TypeLiteral<?> dataClass = overrideMerge.getValueWithOverride(
 				this.dataType, BindingNode::getDataType, (o, n) -> {
-					System.out.println(o + " isassfrom " + n);
 					return n.isAssignableFrom(o);
 				});
 

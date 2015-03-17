@@ -25,7 +25,7 @@ public interface BaseSchema extends Schema {
 
 		DataBindingType<DataSource> bufferedDataType();
 
-		DataBindingType<Range<?>> rangeType();
+		DataBindingType<Range<Integer>> rangeType();
 
 		DataBindingType<Enum<?>> enumType();
 

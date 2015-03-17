@@ -44,26 +44,26 @@ public class Methods {
 			throws NoSuchMethodException {
 		Invokable<T, ?> method = null;
 
+		Exception exception = null;
 		for (String name : names) {
 			try {
 				new TypeLiteral<SchemaNode.Effective<?, ?>>() {}
 						.resolveSupertypeParameters(SchemaNode.class);
 
-				System.out.println("RESOLVE:");
-				System.out.println("   " + receiver);
-				System.out.println("   " + name);
-				System.out.println("   " + parameters);
 				method = receiver.resolveMethodOverload(
 						name,
 						parameters.stream().map(TypeLiteral::getType)
 								.collect(Collectors.toList()));
 				break;
 			} catch (Exception e) {
-				throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
-						+ "method for class '" + receiver + "' with parameters '"
-						+ parameters + "' and any name of '" + names + "'.", e);
+				exception = e;
 			}
 		}
+
+		if (method == null)
+			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
+					+ "method for class '" + receiver + "' with parameters '"
+					+ parameters + "' and any name of '" + names + "'.", exception);
 
 		return method;
 	}

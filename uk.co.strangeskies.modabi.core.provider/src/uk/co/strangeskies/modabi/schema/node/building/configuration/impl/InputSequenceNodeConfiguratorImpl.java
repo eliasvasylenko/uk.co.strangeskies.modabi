@@ -65,8 +65,10 @@ public class InputSequenceNodeConfiguratorImpl extends
 										.getType()).collect(Collectors.toList());
 				inMethod = inputNodeHelper.inMethod(parameterClasses);
 				inMethodName = inputNodeHelper.inMethodName();
-				preInputClass = inputNodeHelper.preInputType().getType();
-				postInputClass = inputNodeHelper.postInputType().getType();
+				preInputClass = inputNodeHelper.preInputType() == null ? null
+						: inputNodeHelper.preInputType().getType();
+				postInputClass = inputNodeHelper.postInputType() == null ? null
+						: inputNodeHelper.postInputType().getType();
 			}
 
 			@Override

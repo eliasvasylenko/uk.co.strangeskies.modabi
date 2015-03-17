@@ -76,12 +76,17 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataType(new TypeLiteral<SchemaNode<?, ?>>() {})
 				.addChild(
-						n -> n.inputSequence().name("configure").isAbstract(true)
-								.postInputType(SchemaNodeConfigurator.class))
+						n -> n
+								.inputSequence()
+								.name("configure")
+								.isAbstract(true)
+								.postInputType(
+										new TypeLiteral<SchemaNodeConfigurator<?, ?>>() {}
+												.getType()))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
-								.optional(true))
+								.inMethod("name").optional(true))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.primitiveType(DataType.BOOLEAN)).name("abstract")
@@ -96,10 +101,17 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().name("abstract"))
 				.addChild(
-						n -> n.complex().name("child").outMethod("children")
-								.inMethod("null").extensible(true).baseModel(nodeModel)
+						n -> n
+								.complex()
+								.name("child")
+								.outMethod("children")
+								.inMethod("null")
+								.extensible(true)
+								.baseModel(nodeModel)
 								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-								.bindingType(SchemaNodeConfigurator.class)
+								.bindingType(
+										new TypeLiteral<SchemaNodeConfigurator<?, ?>>() {}
+												.getType())
 								.dataType(new TypeLiteral<ChildNode<?, ?>>() {})
 								.outMethodIterable(true).occurrences(Range.create(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
@@ -113,16 +125,21 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataType(new TypeLiteral<ChildNode<?, ?>>() {})
 				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-				.bindingType(SchemaNodeConfigurator.class)
+				.bindingType(
+						new TypeLiteral<SchemaNodeConfigurator<?, ?>>() {}.getType())
 				.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
 				.addChild(
-						c -> c.inputSequence().name("configure").isAbstract(true)
+						c -> c
+								.inputSequence()
+								.name("configure")
+								.isAbstract(true)
 								.inMethodChained(true)
-								.postInputType(ChildNodeConfigurator.class))
+								.postInputType(
+										new TypeLiteral<ChildNodeConfigurator<?, ?>>() {}.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
-								.type(base.derivedTypes().classType()).name("postInputClass")
+								.type(base.derivedTypes().typeType()).name("postInputType")
 								.optional(true)).create();
 		modelSet.add(childModel);
 

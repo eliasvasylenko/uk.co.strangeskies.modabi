@@ -92,9 +92,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private List<TypeLiteral<?>> parameterTokens(List<Type> parameters) {
-		System.out.println("====="
-				+ parameters.stream().map(p -> TypeLiteral.from(p))
-						.collect(Collectors.toList()));
 		return parameters.stream().map(TypeLiteral::from)
 				.collect(Collectors.toList());
 	}
