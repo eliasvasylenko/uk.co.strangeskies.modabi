@@ -93,6 +93,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("isAbstract").optional(true)).create();
 		modelSet.add(nodeModel);
 
+		System.out.println(0.5);
+
 		Model<SchemaNode<?, ?>> branchModel = model
 				.configure(loader)
 				.name("branch", namespace)
@@ -117,6 +119,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(branchModel);
+
+		System.out.println(0.7);
 
 		Model<ChildNode<?, ?>> childModel = model
 				.configure(loader)
@@ -143,28 +147,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true)).create();
 		modelSet.add(childModel);
 
-		Model<InputNode<?, ?>> inputModel = model
-				.configure(loader)
-				.name("input", namespace)
-				.isAbstract(true)
-				.baseModel(childModel)
-				.dataType(new TypeLiteral<InputNode<?, ?>>() {})
-				.addChild(
-						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputType(InputNodeConfigurator.class))
-				.addChild(n -> n.data().name("name"))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("inMethod")
-								.outMethod("getInMethodName").optional(true)
-								.type(base.primitiveType(DataType.STRING)))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("inMethodChained")
-								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("isInMethodCast")
-								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
-				.create();
-		modelSet.add(inputModel);
+		System.out.println(1);
 
 		Model<BindingNode<?, ?, ?>> bindingNodeModel = model
 				.configure(loader)
@@ -173,19 +156,24 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataType(new TypeLiteral<BindingNode<?, ?, ?>>() {})
 				.addChild(
-						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputType(BindingNodeConfigurator.class))
+						c -> c
+								.inputSequence()
+								.name("configure")
+								.isAbstract(true)
+								.postInputType(
+										new TypeLiteral<BindingNodeConfigurator<?, ?, ?>>() {}
+												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
-						o -> o.data().format(Format.PROPERTY).name("dataClass")
-								.type(base.derivedTypes().classType()).optional(true))
+						o -> o.data().format(Format.PROPERTY).name("dataType")
+								.type(base.derivedTypes().typeType()).optional(true))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("bindingStrategy")
 								.type(base.derivedTypes().enumType())
 								.dataClass(BindingStrategy.class).optional(true))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("bindingClass")
-								.optional(true).type(base.derivedTypes().classType()))
+						n -> n.data().format(Format.PROPERTY).name("bindingType")
+								.optional(true).type(base.derivedTypes().typeType()))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("unbindingStrategy")
 								.type(base.derivedTypes().enumType())
@@ -195,8 +183,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.outMethod("getUnbindingMethodName")
 								.type(base.primitiveType(DataType.STRING)).optional(true))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("unbindingClass")
-								.optional(true).type(base.derivedTypes().classType()))
+						n -> n.data().format(Format.PROPERTY).name("unbindingType")
+								.optional(true).type(base.derivedTypes().typeType()))
 				.addChild(
 						n -> n
 								.data()
@@ -212,6 +200,37 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("unbindingFactoryClass")
 								.optional(true).type(base.derivedTypes().classType())).create();
 		modelSet.add(bindingNodeModel);
+
+		System.out.println(1.5);
+
+		Model<InputNode<?, ?>> inputModel = model
+				.configure(loader)
+				.name("input", namespace)
+				.isAbstract(true)
+				.baseModel(childModel)
+				.dataType(new TypeLiteral<InputNode<?, ?>>() {})
+				.addChild(
+						c -> c
+								.inputSequence()
+								.name("configure")
+								.isAbstract(true)
+								.postInputType(
+										new TypeLiteral<InputNodeConfigurator<?, ?>>() {}.getType()))
+				.addChild(n -> n.data().name("name"))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("inMethod")
+								.outMethod("getInMethodName").optional(true)
+								.type(base.primitiveType(DataType.STRING)))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("inMethodChained")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("isInMethodCast")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.create();
+		modelSet.add(inputModel);
+
+		System.out.println(2);
 
 		Model<BindingChildNode<?, ?, ?>> bindingChildNodeModel = model
 				.configure(loader)
@@ -242,6 +261,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		modelSet.add(bindingChildNodeModel);
 
+		System.out.println(3);
+
 		Model<ChoiceNode> choiceModel = model
 				.configure(loader)
 				.name("choice", namespace)
@@ -253,6 +274,8 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("mandatory")
 								.type(base.primitiveType(DataType.BOOLEAN))).create();
 		modelSet.add(choiceModel);
+
+		System.out.println(4);
 
 		Model<SequenceNode> sequenceModel = model
 				.configure(loader)

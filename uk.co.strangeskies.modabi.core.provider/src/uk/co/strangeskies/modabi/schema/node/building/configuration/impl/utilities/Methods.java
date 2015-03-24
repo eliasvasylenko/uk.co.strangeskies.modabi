@@ -30,7 +30,7 @@ public class Methods {
 		return constructor;
 	}
 
-	public static <T> Invokable<T, ?> findMethod(List<String> names,
+	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
 			TypeLiteral<T> receiver, boolean isStatic, TypeLiteral<?> result,
 			boolean allowCast, TypeLiteral<?>... parameters)
 			throws NoSuchMethodException {
@@ -38,11 +38,11 @@ public class Methods {
 				Arrays.asList(parameters));
 	}
 
-	public static <T> Invokable<T, ?> findMethod(List<String> names,
+	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
 			TypeLiteral<T> receiver, boolean isStatic, TypeLiteral<?> result,
 			boolean allowCast, List<TypeLiteral<?>> parameters)
 			throws NoSuchMethodException {
-		Invokable<T, ?> method = null;
+		Invokable<? super T, ?> method = null;
 
 		Exception exception = null;
 		for (String name : names) {

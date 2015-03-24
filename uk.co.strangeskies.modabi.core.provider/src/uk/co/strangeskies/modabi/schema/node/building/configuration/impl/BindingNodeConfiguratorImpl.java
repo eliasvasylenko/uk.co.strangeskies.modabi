@@ -35,7 +35,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 				extends SchemaNodeImpl.Effective<S, E> implements
 				BindingNode.Effective<T, S, E> {
-			private final TypeLiteral<T> dataType;
+			private final TypeLiteral<? extends T> dataType;
 			private final Type bindingClass;
 			private final Type unbindingClass;
 			private final Type unbindingFactoryClass;
@@ -51,10 +51,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				dataType = overrideMerge.getValue(
-						BindingNode::getDataType,
-						(v, o) -> TypeLiteral.from(o.getType()).isAssignableFrom(
-								v.getType()), null);
+				TypeLiteral<? extends T> dataType = overrideMerge.getValue(
+						BindingNode::getDataType, (v, o) -> TypeLiteral.from(o.getType())
+								.isAssignableFrom(v.getType()), null);
+
+				this.dataType = dataType;
 
 				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
 						o) -> TypeLiteral.from(o).isAssignableFrom(v),
@@ -93,7 +94,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
-			public TypeLiteral<T> getDataType() {
+			public TypeLiteral<? extends T> getDataType() {
 				return dataType;
 			}
 
@@ -483,6 +484,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
 			TypeLiteral<V> dataType) {
 		assertConfigurable(this.dataType);
+
+		if (this.dataType != null && !this.dataType.isAssignableFrom(dataType))
+			throw new IllegalArgumentException();
+
 		this.dataType = (TypeLiteral<T>) dataType;
 
 		return (BindingNodeConfigurator<?, ?, V>) this;

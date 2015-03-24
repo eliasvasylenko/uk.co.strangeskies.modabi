@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
@@ -17,6 +18,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeParameter;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -151,19 +153,28 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				return allowInMethodResultCast;
 			}
 
+			private static <U> TypeLiteral<Iterable<U>> getIteratorType(
+					TypeLiteral<U> type) {
+				return new TypeLiteral<Iterable<U>>() {}.withTypeArgument(
+						new TypeParameter<U>() {}, type);
+			}
+
 			protected static Method getOutMethod(
 					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
 					TypeLiteral<?> targetClass) {
 				try {
-					TypeLiteral<?> resultClass = TypeLiteral
-							.from((Type) ((node.isOutMethodIterable() != null && node
-									.isOutMethodIterable()) ? Iterable.class : node.getDataType()
-									.getType()));
+					TypeLiteral<?> resultClass = ((node.isOutMethodIterable() != null && node
+							.isOutMethodIterable()) ? getIteratorType(node.getDataType())
+							: node.getDataType());
 
 					Method outMethod;
 					if (node.getOutMethodName() != null
 							&& node.getOutMethodName().equals("this")) {
-						if (!targetClass.isAssignableFrom(resultClass))
+						if (!resultClass.isAssignableFrom(targetClass)
+								&& !resultClass.getRawType().isAssignableFrom(
+										targetClass.getRawType())
+								&& !resultClass.isContainedBy(targetClass
+										.resolveSupertypeParameters(resultClass.getRawType())))
 							throw new SchemaException(
 									"Can't use out method 'this' for node '" + node.getName()
 											+ "', as result class '" + resultClass

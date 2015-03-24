@@ -180,8 +180,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetModel",
 																									namespace)).buffer())
-																			.postInputType(DataNode.Effective.class)
-																			.isInMethodCast(true))
+																			.postInputType(
+																					new TypeLiteral<DataNode.Effective<?>>() {}
+																							.getType()).isInMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -299,18 +300,15 @@ public class BaseSchemaImpl implements BaseSchema {
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
 									.inMethod("getClass")).create());
 
-			typeType = null;
-			/*-
 			typeSet.add(typeType = builder
 					.configure(loader)
 					.name("type", namespace)
 					.dataClass(Type.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.bindingType(ClassUtils.class)
+					.bindingType(Types.class)
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
-									.inMethod("getClass")).create());
-			 */
+									.inMethod("fromString").outMethod("toString")).create());
 
 			typeSet
 					.add(enumType = builder
@@ -425,12 +423,11 @@ public class BaseSchemaImpl implements BaseSchema {
 													d -> d
 															.inputSequence()
 															.name("include")
-															.isAbstract(true)
-															// TODO is abstract?
+															.inMethod("include")
 															.addChild(
 																	e -> e
 																			.data()
-																			.dataType(new TypeLiteral<Model<?>>() {})
+																			.dataType(new TypeLiteral<Model>() {})
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
@@ -476,7 +473,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.data()
 																			.name("object")
 																			.dataType(
-																					new TypeLiteral<Collection<?>>() {})
+																					new TypeLiteral<Collection>() {})
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
 																			.bindingType(BindingContext.class)

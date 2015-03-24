@@ -21,6 +21,11 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(
 			TypeLiteral<V> dataType);
 
+	@SuppressWarnings("unchecked")
+	default BindingNodeConfigurator<?, ?, ?> dataType(Type dataType) {
+		return dataType((TypeLiteral<? extends T>) TypeLiteral.from(dataType));
+	}
+
 	S bindingStrategy(BindingStrategy strategy);
 
 	S bindingType(Type bindingType);
