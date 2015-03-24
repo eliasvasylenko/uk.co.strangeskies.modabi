@@ -44,6 +44,8 @@ public class Methods {
 			throws NoSuchMethodException {
 		Invokable<? super T, ?> method = null;
 
+		System.out.println("finding method...");
+
 		Exception exception = null;
 		for (String name : names) {
 			try {
@@ -59,6 +61,8 @@ public class Methods {
 				exception = e;
 			}
 		}
+
+		System.out.println("   found method: " + method);
 
 		if (method == null)
 			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
