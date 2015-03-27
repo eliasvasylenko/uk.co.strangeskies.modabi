@@ -92,8 +92,14 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 		while (baseModelIterator.hasNext())
 			subModels.retainAll(getDerivedModels(baseModelIterator.next()));
 
-		subModels = subModels.stream().filter(m -> !m.effective().isAbstract())
-				.collect(Collectors.toList());
+		/*
+		 * Javac failure strikes again with the following:
+		 * 
+		 * subModels = subModels.stream().filter(m -> !m.effective().isAbstract())
+		 * .collect(Collectors.toList());
+		 */
+		for (int i = 0; i < subModels.size(); i++)
+			subModels.remove(i--);
 
 		return (List<Model<? extends T>>) subModels;
 	}

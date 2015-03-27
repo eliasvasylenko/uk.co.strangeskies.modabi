@@ -255,9 +255,9 @@ public class BindingNodeOverrider {
 					cu = (DataNodeConfigurator<U>) c.dataType(source.getDataType());
 				}
 			} else {
-				cu = c.type(source.type());
+				DataNodeConfigurator<U> finalCu = c.type(source.type());
 				cu = (DataNodeConfigurator<U>) tryProperty(source.getDataType(),
-						cu::dataType, cu);
+						p -> finalCu.dataType(p), finalCu);
 			}
 
 			doChildren(source,
