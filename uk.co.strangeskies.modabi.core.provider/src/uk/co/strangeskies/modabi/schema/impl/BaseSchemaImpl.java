@@ -445,7 +445,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.addChild(
 																	e -> e
 																			.data()
-																			.dataType(new TypeLiteral<Model>() {})
+																			.dataType(new TypeLiteral<Model<?>>() {})
 																			.name("targetModel")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
@@ -490,8 +490,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	e -> e
 																			.data()
 																			.name("object")
-																			.dataType(
-																					new TypeLiteral<Collection>() {})
+																			.dataClass(Collection.class)
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
 																			.bindingType(BindingContext.class)

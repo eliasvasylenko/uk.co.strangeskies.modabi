@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeLiteral;
 
@@ -62,14 +61,9 @@ public class Methods {
 			throws NoSuchMethodException {
 		Invokable<? super T, ?> method = null;
 
-		System.out.println("finding method...");
-
 		Exception exception = null;
 		for (String name : names) {
 			try {
-				new TypeLiteral<SchemaNode.Effective<?, ?>>() {}
-						.resolveSupertypeParameters(SchemaNode.class);
-
 				method = receiver.resolveMethodOverload(
 						name,
 						parameters.stream().map(TypeLiteral::getType)
@@ -79,8 +73,6 @@ public class Methods {
 				exception = e;
 			}
 		}
-
-		System.out.println("   found method: " + method);
 
 		if (method == null)
 			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")

@@ -56,7 +56,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 				.add(BindingNode::getProvidedUnbindingMethodParameterNames);
 	}
 
-	TypeLiteral<? extends T> getDataType();
+	TypeLiteral<T> getDataType();
 
 	BindingStrategy getBindingStrategy();
 

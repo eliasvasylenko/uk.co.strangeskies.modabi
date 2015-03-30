@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
@@ -109,6 +108,20 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						: inputNodeHelper.preInputType().getType();
 				postInputClass = inputNodeHelper.postInputType() == null ? null
 						: inputNodeHelper.postInputType().getType();
+			}
+
+			@Override
+			protected TypeLiteral<T> inferDataType(
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+				@SuppressWarnings("unchecked")
+				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> childOverrideMerge = (OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>>) overrideMerge;
+
+				TypeLiteral<?> outputType = childOverrideMerge.configurator()
+						.getContext().outputSourceType();
+				TypeLiteral<?> inputType = childOverrideMerge.configurator()
+						.getContext().inputTargetType(getName());
+
+				return super.inferDataType(overrideMerge);
 			}
 
 			@Override

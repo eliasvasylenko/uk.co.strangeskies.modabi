@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.reflection.TypeLiteral;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<? extends T, ?, ?>, T>
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {
 	default <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {

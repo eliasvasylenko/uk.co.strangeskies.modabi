@@ -132,9 +132,9 @@ public class BindingNodeOverrider {
 					.unbindingType(node.getOutMethod().getDeclaringClass())
 					.isAbstract(true);
 
-			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator
-					.addChild().data().name(override.getName())
-					.dataType(override.getDataType()).type(override.baseType());
+			DataNodeConfigurator<T> dataNodeConfigurator = configurator.addChild()
+					.data().name(override.getName()).dataType(override.getDataType())
+					.type(override.baseType());
 
 			dataNodeConfigurator = tryProperty(node.optional(),
 					dataNodeConfigurator::optional, dataNodeConfigurator);
@@ -212,9 +212,8 @@ public class BindingNodeOverrider {
 
 		public <U> ComplexNodeConfigurator<U> processAbstractComplexNode(
 				AbstractComplexNode<U, ?, ?> node, ComplexNodeConfigurator<Object> c) {
-			@SuppressWarnings("unchecked")
-			ComplexNodeConfigurator<U> cu = (ComplexNodeConfigurator<U>) c.dataType(
-					node.getDataType()).baseModel(node.baseModel());
+			ComplexNodeConfigurator<U> cu = c.dataType(node.getDataType()).baseModel(
+					node.baseModel());
 
 			return cu;
 		}
@@ -252,12 +251,12 @@ public class BindingNodeOverrider {
 				if (source.getDataType() == null) {
 					cu = (DataNodeConfigurator<U>) c;
 				} else {
-					cu = (DataNodeConfigurator<U>) c.dataType(source.getDataType());
+					cu = c.dataType(source.getDataType());
 				}
 			} else {
 				DataNodeConfigurator<U> finalCu = c.type(source.type());
-				cu = (DataNodeConfigurator<U>) tryProperty(source.getDataType(),
-						p -> finalCu.dataType(p), finalCu);
+				cu = tryProperty(source.getDataType(), p -> finalCu.dataType(p),
+						finalCu);
 			}
 
 			doChildren(source,

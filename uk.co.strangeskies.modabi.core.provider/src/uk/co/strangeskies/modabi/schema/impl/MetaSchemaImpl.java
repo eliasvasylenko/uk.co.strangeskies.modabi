@@ -111,8 +111,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("isAbstract").optional(true)).create();
 		modelSet.add(nodeModel);
 
-		System.out.println(0.5);
-
 		Model<SchemaNode<?, ?>> branchModel = model
 				.configure(loader)
 				.name("branch", namespace)
@@ -138,8 +136,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		modelSet.add(branchModel);
 
-		System.out.println(0.7);
-
 		Model<ChildNode<?, ?>> childModel = model
 				.configure(loader)
 				.name("child", namespace)
@@ -164,8 +160,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.derivedTypes().typeType()).name("postInputType")
 								.optional(true)).create();
 		modelSet.add(childModel);
-
-		System.out.println(1);
 
 		Model<BindingNode<?, ?, ?>> bindingNodeModel = model
 				.configure(loader)
@@ -219,8 +213,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true).type(base.derivedTypes().classType())).create();
 		modelSet.add(bindingNodeModel);
 
-		System.out.println(1.5);
-
 		Model<InputNode<?, ?>> inputModel = model
 				.configure(loader)
 				.name("input", namespace)
@@ -247,8 +239,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.create();
 		modelSet.add(inputModel);
-
-		System.out.println(2);
 
 		Model<BindingChildNode<?, ?, ?>> bindingChildNodeModel = model
 				.configure(loader)
@@ -279,8 +269,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.create();
 		modelSet.add(bindingChildNodeModel);
 
-		System.out.println(3);
-
 		Model<ChoiceNode> choiceModel = model
 				.configure(loader)
 				.name("choice", namespace)
@@ -292,8 +280,6 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("mandatory")
 								.type(base.primitiveType(DataType.BOOLEAN))).create();
 		modelSet.add(choiceModel);
-
-		System.out.println(4);
 
 		Model<SequenceNode> sequenceModel = model
 				.configure(loader)

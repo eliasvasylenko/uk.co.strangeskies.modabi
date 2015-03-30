@@ -53,7 +53,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 				extends SchemaNodeImpl.Effective<S, E> implements
 				BindingNode.Effective<T, S, E> {
-			private final TypeLiteral<? extends T> dataType;
+			private final TypeLiteral<T> dataType;
 			private final Type bindingClass;
 			private final Type unbindingClass;
 			private final Type unbindingFactoryClass;
@@ -69,11 +69,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				TypeLiteral<? extends T> dataType = overrideMerge.getValue(
-						BindingNode::getDataType, (v, o) -> TypeLiteral.from(o.getType())
-								.isAssignableFrom(v.getType()), null);
-
-				this.dataType = dataType;
+				dataType = inferDataType(overrideMerge);
 
 				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
 						o) -> TypeLiteral.from(o).isAssignableFrom(v),
@@ -111,8 +107,16 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					unbindingMethodName = unbindingMethod.getName();
 			}
 
+			protected TypeLiteral<T> inferDataType(
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+				return overrideMerge.getValue(
+						BindingNode::getDataType,
+						(v, o) -> TypeLiteral.from(o.getType()).isAssignableFrom(
+								v.getType()), null);
+			}
+
 			@Override
-			public TypeLiteral<? extends T> getDataType() {
+			public TypeLiteral<T> getDataType() {
 				return dataType;
 			}
 
@@ -412,7 +416,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	private List<QualifiedName> unbindingParameterNames;
 
 	@Override
-	public ChildrenConfigurator createChildrenConfigurator() {
+	protected ChildrenConfigurator createChildrenConfigurator() {
 		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
