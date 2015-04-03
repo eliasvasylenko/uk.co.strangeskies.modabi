@@ -44,7 +44,7 @@ import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeBinder {
@@ -70,7 +70,7 @@ public class BindingNodeBinder {
 		case PROVIDED:
 			Type providedType = node.getBindingType() != null ? node.getBindingType()
 					: node.getDataType().getType();
-			binding = context.provide(TypeLiteral.from(providedType));
+			binding = context.provide(TypeToken.of(providedType));
 
 			break;
 		case CONSTRUCTOR:

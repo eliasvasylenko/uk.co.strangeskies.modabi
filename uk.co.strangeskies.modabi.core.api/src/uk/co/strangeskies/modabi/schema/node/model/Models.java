@@ -29,13 +29,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class Models extends QualifiedNamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, LinkedHashSet<Model<?>>> derivedModels;
-	private final MultiMap<TypeLiteral<?>, Model<?>, Set<Model<?>>> classModels;
+	private final MultiMap<TypeToken<?>, Model<?>, Set<Model<?>>> classModels;
 
 	public Models() {
 		super(Model::getName);
@@ -75,7 +75,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<T>> getModelsWithClass(TypeLiteral<T> dataClass) {
+	public <T> List<Model<T>> getModelsWithClass(TypeToken<T> dataClass) {
 		Set<Model<?>> models = classModels.get(dataClass);
 		return models == null ? Collections.emptyList() : models.stream()
 				.map(m -> (Model<T>) m).collect(Collectors.toList());

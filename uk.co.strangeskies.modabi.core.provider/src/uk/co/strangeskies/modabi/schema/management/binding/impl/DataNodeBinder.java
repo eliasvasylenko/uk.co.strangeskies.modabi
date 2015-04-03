@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -120,7 +120,7 @@ public class DataNodeBinder {
 		int successfulIndex = 0;
 		try {
 			if (context.provisions().isProvided(DataSource.class))
-				dataSource = context.provide(new TypeLiteral<>(DataSource.class));
+				dataSource = context.provide(TypeToken.of(DataSource.class));
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();

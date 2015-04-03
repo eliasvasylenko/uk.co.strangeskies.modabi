@@ -43,7 +43,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeCo
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenContainer;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
@@ -151,19 +151,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			@Override
 			public final boolean equals(Object object) {
-				return combinedPropertySet().testEquality(object);
+				return effectivePropertySet().testEquality(effective(), object);
 			}
 
 			@Override
 			public final int hashCode() {
-				return combinedPropertySet().generateHashCode();
-			}
-
-			private final PropertySet<E> combinedPropertySet() {
-				if (combinedPropertySet == null)
-					combinedPropertySet = new PropertySet<>(getEffectiveClass(),
-							propertySet(), true).add(effectivePropertySet());
-				return combinedPropertySet;
+				return effectivePropertySet().generateHashCode(effective());
 			}
 
 			@Override
@@ -175,8 +168,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		private final QualifiedName name;
 		private final Boolean isAbstract;
 		private final List<ChildNode<?, ?>> children;
-
-		private PropertySet<S> propertySet;
 
 		protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
 			configurator.finaliseConfiguration();
@@ -207,19 +198,13 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		@Override
 		public final boolean equals(Object object) {
-			if (propertySet == null)
-				propertySet = propertySet();
-
-			return propertySet.testEquality(object)
+			return propertySet().testEquality(source(), object)
 					&& effective().equals(((SchemaNode<?, ?>) object).effective());
 		}
 
 		@Override
 		public final int hashCode() {
-			if (propertySet == null)
-				propertySet = propertySet();
-
-			return propertySet.generateHashCode();
+			return propertySet().generateHashCode(source());
 		}
 
 		@Override
@@ -292,7 +277,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return getThis();
 	}
 
-	protected abstract TypeLiteral<N> getNodeClass();
+	protected abstract TypeToken<N> getNodeClass();
 
 	protected abstract DataLoader getDataLoader();
 

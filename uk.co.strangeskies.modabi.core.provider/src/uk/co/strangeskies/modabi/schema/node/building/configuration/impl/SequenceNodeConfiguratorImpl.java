@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class SequenceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode> implements
@@ -54,12 +54,12 @@ public class SequenceNodeConfiguratorImpl extends
 						.getPreInputType();
 
 				Type postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputType, (n, o) -> TypeLiteral.from(o)
+						ChildNode::getPostInputType, (n, o) -> TypeToken.of(o)
 								.isAssignableFrom(n));
 				if (postInputClass == null && !isAbstract()) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						if (postInputClass != null
-								&& !TypeLiteral.from(child.getPreInputType()).isAssignableFrom(
+								&& !TypeToken.of(child.getPreInputType()).isAssignableFrom(
 										postInputClass)) {
 							throw new IllegalArgumentException();
 						}
@@ -114,13 +114,13 @@ public class SequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected TypeLiteral<SequenceNode> getNodeClass() {
-		return TypeLiteral.from(SequenceNode.class);
+	protected TypeToken<SequenceNode> getNodeClass() {
+		return TypeToken.of(SequenceNode.class);
 	}
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		TypeLiteral<?> inputTarget = getContext().inputTargetType(getName());
+		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -160,12 +160,12 @@ public class SequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeLiteral<?> inputTargetType(QualifiedName node) {
+					public TypeToken<?> inputTargetType(QualifiedName node) {
 						return inputTarget;
 					}
 
 					@Override
-					public TypeLiteral<?> outputSourceType() {
+					public TypeToken<?> outputSourceType() {
 						return null;
 					}
 
@@ -174,7 +174,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeLiteral<U> nodeClass) {
+							QualifiedName id, TypeToken<U> nodeClass) {
 						return null;
 					}
 

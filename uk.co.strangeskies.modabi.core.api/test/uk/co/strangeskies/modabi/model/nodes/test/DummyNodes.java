@@ -29,8 +29,7 @@ import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 
 public class DummyNodes {
-	private DummyNodes() {
-	}
+	private DummyNodes() {}
 
 	public static SequenceNode sequenceNode(String name, String... children) {
 		return sequenceNode(new QualifiedName(name), Arrays.asList(children)
@@ -75,13 +74,13 @@ public class DummyNodes {
 
 			@Override
 			public boolean equals(Object object) {
-				return propertySet().testEquality(object)
+				return propertySet().testEquality(this, object)
 						&& effective().equals(((SchemaNode<?, ?>) object).effective());
 			}
 
 			@Override
 			public int hashCode() {
-				return propertySet().generateHashCode();
+				return propertySet().generateHashCode(this);
 			}
 
 			@Override
@@ -101,8 +100,8 @@ public class DummyNodes {
 
 					@Override
 					public boolean equals(Object object) {
-						return propertySet().testEquality(object)
-								&& effectivePropertySet().testEquality(object);
+						return propertySet().testEquality(this, object)
+								&& effectivePropertySet().testEquality(effective(), object);
 					}
 
 					@Override
@@ -112,8 +111,8 @@ public class DummyNodes {
 
 					@Override
 					public int hashCode() {
-						return propertySet().generateHashCode()
-								^ effectivePropertySet().generateHashCode();
+						return propertySet().generateHashCode(this)
+								^ effectivePropertySet().generateHashCode(effective());
 					}
 
 					@Override
@@ -175,14 +174,14 @@ public class DummyNodes {
 
 			@Override
 			public boolean equals(Object object) {
-				return propertySet().testEquality(object)
-						&& effectivePropertySet().testEquality(object);
+				return propertySet().testEquality(this, object)
+						&& effectivePropertySet().testEquality(effective(), object);
 			}
 
 			@Override
 			public int hashCode() {
-				return propertySet().generateHashCode()
-						^ effectivePropertySet().generateHashCode();
+				return propertySet().generateHashCode(this)
+						^ effectivePropertySet().generateHashCode(effective());
 			}
 
 			@Override

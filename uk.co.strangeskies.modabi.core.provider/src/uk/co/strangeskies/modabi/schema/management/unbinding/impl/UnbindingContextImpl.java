@@ -37,15 +37,15 @@ import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public class UnbindingContextImpl extends ProcessingContextImpl implements
 		UnbindingContext {
 	private interface UnbindingProvisions {
-		<U> U provide(TypeLiteral<U> clazz, UnbindingContextImpl headContext);
+		<U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext);
 
-		boolean isProvided(TypeLiteral<?> clazz);
+		boolean isProvided(TypeToken<?> clazz);
 	}
 
 	private final List<Object> unbindingSourceStack;
@@ -59,13 +59,13 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		output = null;
 		provider = new UnbindingProvisions() {
 			@Override
-			public <U> U provide(TypeLiteral<U> clazz,
+			public <U> U provide(TypeToken<U> clazz,
 					UnbindingContextImpl headContext) {
 				return manager.provisions().provide(clazz);
 			}
 
 			@Override
-			public boolean isProvided(TypeLiteral<?> clazz) {
+			public boolean isProvided(TypeToken<?> clazz) {
 				return manager.provisions().isProvided(clazz);
 			}
 		};
@@ -98,7 +98,7 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		return output;
 	}
 
-	private <U> U provide(TypeLiteral<U> clazz, UnbindingContextImpl headContext) {
+	private <U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext) {
 		return provider.provide(clazz, headContext);
 	}
 
@@ -106,13 +106,13 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 	public Provisions provisions() {
 		return new Provisions() {
 			@Override
-			public <U> U provide(TypeLiteral<U> clazz) {
+			public <U> U provide(TypeToken<U> clazz) {
 				return UnbindingContextImpl.this.provide(clazz,
 						UnbindingContextImpl.this);
 			}
 
 			@Override
-			public boolean isProvided(TypeLiteral<?> clazz) {
+			public boolean isProvided(TypeToken<?> clazz) {
 				return provider.isProvided(clazz);
 			}
 		};
@@ -131,7 +131,7 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 				new UnbindingProvisions() {
 					@SuppressWarnings("unchecked")
 					@Override
-					public <U> U provide(TypeLiteral<U> clazz,
+					public <U> U provide(TypeToken<U> clazz,
 							UnbindingContextImpl headContext) {
 						if (clazz.equals(providedClass))
 							return (U) provider.apply(headContext);
@@ -140,7 +140,7 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 					}
 
 					@Override
-					public boolean isProvided(TypeLiteral<?> clazz) {
+					public boolean isProvided(TypeToken<?> clazz) {
 						return clazz.equals(providedClass)
 								|| base.provisions().isProvided(clazz);
 					}

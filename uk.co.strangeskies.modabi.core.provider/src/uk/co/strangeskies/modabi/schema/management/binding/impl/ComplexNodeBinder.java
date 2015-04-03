@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.Model.Effective;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeBinder {
 	private final BindingContextImpl context;
@@ -115,7 +115,7 @@ public class ComplexNodeBinder {
 							+ "' to bind to.", context);
 				}
 
-				if (!TypeLiteral.from(node.getDataType().getType()).isAssignableFrom(
+				if (!TypeToken.of(node.getDataType().getType()).isAssignableFrom(
 						extension.getDataType().getType()))
 					throw new BindingException("Named input node '" + nextElement
 							+ "' does not match class of extention point.", context);

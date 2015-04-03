@@ -60,6 +60,7 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeParameter;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.utilities.Enumeration;
 
@@ -825,7 +826,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				.models(modelSet).create();
 	}
 
-	private <T> TypeLiteral<DataType<T>> resolvePrimitiveDataType(
+	private <T> TypeToken<DataType<T>> resolvePrimitiveDataType(
 			DataType<T> dataType) {
 		return new TypeLiteral<DataType<T>>() {}.withTypeArgument(
 				new TypeParameter<T>() {}, Types.wrap(dataType.dataClass()));

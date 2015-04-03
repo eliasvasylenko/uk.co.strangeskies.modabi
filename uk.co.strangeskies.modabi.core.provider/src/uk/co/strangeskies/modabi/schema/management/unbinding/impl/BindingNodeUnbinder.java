@@ -45,7 +45,7 @@ import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class BindingNodeUnbinder {
 	private final UnbindingContextImpl context;
@@ -66,7 +66,7 @@ public class BindingNodeUnbinder {
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					Object o = context.provisions().provide(
-							TypeLiteral.from(node.getUnbindingType()));
+							TypeToken.of(node.getUnbindingType()));
 					invokeMethod((Method) node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
@@ -75,7 +75,7 @@ public class BindingNodeUnbinder {
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					Object o = context.provisions().provide(
-							TypeLiteral.from(node.getUnbindingType()));
+							TypeToken.of(node.getUnbindingType()));
 					invokeMethod((Method) node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
@@ -95,7 +95,7 @@ public class BindingNodeUnbinder {
 						(Method) node.getUnbindingMethod(),
 						context,
 						context.provisions().provide(
-								TypeLiteral.from(node.getUnbindingFactoryType())),
+								TypeToken.of(node.getUnbindingFactoryType())),
 						prepareUnbingingParameterList(node, u));
 				break;
 			}

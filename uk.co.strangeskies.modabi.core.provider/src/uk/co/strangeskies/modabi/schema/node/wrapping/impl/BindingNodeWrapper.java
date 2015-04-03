@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		implements BindingNode.Effective<T, S, E> {
@@ -49,7 +49,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				+ component.getName() + "'.";
 
 		if (base.getDataType() != null
-				&& !TypeLiteral.from(base.getDataType().getType()).isAssignableFrom(
+				&& !TypeToken.of(base.getDataType().getType()).isAssignableFrom(
 						component.getDataType().getType()))
 			throw new SchemaException(message);
 
@@ -62,12 +62,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !TypeLiteral.from(base.getBindingType()).isAssignableFrom(
+				&& !TypeToken.of(base.getBindingType()).isAssignableFrom(
 						component.getBindingType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !TypeLiteral.from(base.getUnbindingType()).isAssignableFrom(
+				&& !TypeToken.of(base.getUnbindingType()).isAssignableFrom(
 						component.getUnbindingType()))
 			throw new SchemaException(message);
 
@@ -99,8 +99,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final TypeLiteral<T> getDataType() {
-		return (TypeLiteral<T>) component.getDataType();
+	public final TypeToken<T> getDataType() {
+		return (TypeToken<T>) component.getDataType();
 	}
 
 	@Override

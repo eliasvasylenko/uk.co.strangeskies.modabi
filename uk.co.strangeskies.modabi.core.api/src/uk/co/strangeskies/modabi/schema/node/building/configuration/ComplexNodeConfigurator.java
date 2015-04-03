@@ -23,7 +23,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface ComplexNodeConfigurator<T> extends
 		AbstractModelConfigurator<ComplexNodeConfigurator<T>, ComplexNode<T>, T>,
@@ -46,7 +46,7 @@ public interface ComplexNodeConfigurator<T> extends
 	}
 
 	@Override
-	<V extends T> ComplexNodeConfigurator<V> dataType(TypeLiteral<V> dataClass);
+	<V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<V> dataClass);
 
 	ComplexNodeConfigurator<T> inline(boolean inline);
 }

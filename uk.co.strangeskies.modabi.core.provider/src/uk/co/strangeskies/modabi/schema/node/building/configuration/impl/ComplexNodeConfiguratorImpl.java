@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
 import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeConfiguratorImpl<T>
 		extends
@@ -152,7 +153,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> ComplexNodeConfigurator<V> dataType(
-			TypeLiteral<V> dataClass) {
+			TypeToken<V> dataClass) {
 		return (ComplexNodeConfigurator<V>) super.dataType(dataClass);
 	}
 
@@ -162,7 +163,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected TypeLiteral<ComplexNode<T>> getNodeClass() {
+	protected TypeToken<ComplexNode<T>> getNodeClass() {
 		return new TypeLiteral<ComplexNode<T>>() {};
 	}
 

@@ -18,18 +18,18 @@
  */
 package uk.co.strangeskies.modabi.schema.management;
 
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface Provisions {
-	<T> T provide(TypeLiteral<T> type);
+	<T> T provide(TypeToken<T> type);
 
 	default <T> T provide(Class<T> clazz) {
-		return (T) provide(new TypeLiteral<>(clazz));
+		return (T) provide(TypeToken.of(clazz));
 	}
 
-	boolean isProvided(TypeLiteral<?> type);
+	boolean isProvided(TypeToken<?> type);
 
 	default boolean isProvided(Class<?> clazz) {
-		return isProvided(new TypeLiteral<>(clazz));
+		return isProvided(TypeToken.of(clazz));
 	}
 }

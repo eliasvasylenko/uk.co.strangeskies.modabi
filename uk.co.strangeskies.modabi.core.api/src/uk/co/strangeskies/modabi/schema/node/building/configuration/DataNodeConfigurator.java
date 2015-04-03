@@ -23,7 +23,7 @@ import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataNodeConfigurator<T> extends
 		BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T>,
@@ -40,7 +40,7 @@ public interface DataNodeConfigurator<T> extends
 	}
 
 	@Override
-	public <U extends T> DataNodeConfigurator<U> dataType(TypeLiteral<U> dataClass);
+	public <U extends T> DataNodeConfigurator<U> dataType(TypeToken<U> dataClass);
 
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
 

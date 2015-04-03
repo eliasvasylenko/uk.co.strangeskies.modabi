@@ -25,16 +25,33 @@ public interface DataBindingType<T> extends
 		BindingNode<T, DataBindingType<T>, DataBindingType.Effective<T>> {
 	interface Effective<T> extends DataBindingType<T>,
 			BindingNode.Effective<T, DataBindingType<T>, Effective<T>> {
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<DataBindingType.Effective> PROPERTY_SET = new PropertySet<>(
+				DataBindingType.Effective.class)
+				.add(BindingNode.Effective.PROPERTY_SET)
+				.add(DataBindingType.PROPERTY_SET).add(DataBindingType::isPrivate)
+				.add(DataBindingType::baseType);
+
+		@SuppressWarnings("unchecked")
+		@Override
+		default PropertySet<DataBindingType.Effective<T>> effectivePropertySet() {
+			return (PropertySet<DataBindingType.Effective<T>>) (Object) PROPERTY_SET;
+		}
 	}
 
 	Boolean isPrivate();
 
 	DataBindingType<? super T> baseType();
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<DataBindingType> PROPERTY_SET = new PropertySet<>(
+			DataBindingType.class).add(BindingNode.PROPERTY_SET)
+			.add(DataBindingType::isPrivate).add(DataBindingType::baseType);
+
+	@SuppressWarnings("unchecked")
 	@Override
 	default PropertySet<DataBindingType<T>> propertySet() {
-		return BindingNode.super.propertySet().add(DataBindingType::isPrivate)
-				.add(DataBindingType::baseType);
+		return (PropertySet<DataBindingType<T>>) (Object) PROPERTY_SET;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -37,7 +37,7 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.DeferredComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.LRUCacheComputingMap;
@@ -128,8 +128,8 @@ public abstract class ProcessingContextImpl {
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							n -> TypeLiteral.from(node.getDataType().getType()).isAssignableFrom(
-									TypeLiteral.from(n.getDataType().getType())))
+							n -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+									TypeToken.of(n.getDataType().getType())))
 					.collect(Collectors.toList());
 		else
 			models = manager
@@ -137,7 +137,7 @@ public abstract class ProcessingContextImpl {
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							c -> TypeLiteral.from(node.getDataType().getType()).isAssignableFrom(
+							c -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
 									c.getDataType().getType()))
 					.map(m -> (Model.Effective<? extends T>) m)
 					.collect(Collectors.toList());
@@ -173,7 +173,7 @@ public abstract class ProcessingContextImpl {
 		return model == null ? null : model.effective();
 	}
 
-	public <U> List<Model.Effective<U>> getMatchingModels(TypeLiteral<U> dataClass) {
+	public <U> List<Model.Effective<U>> getMatchingModels(TypeToken<U> dataClass) {
 		return manager.registeredModels().getModelsWithClass(dataClass).stream()
 				.map(n -> n.effective()).collect(Collectors.toList());
 	}

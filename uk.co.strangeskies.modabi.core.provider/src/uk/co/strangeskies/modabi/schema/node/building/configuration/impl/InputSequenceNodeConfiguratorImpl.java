@@ -41,7 +41,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class InputSequenceNodeConfiguratorImpl extends
 		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
@@ -208,13 +208,13 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	protected TypeLiteral<InputSequenceNode> getNodeClass() {
-		return TypeLiteral.from(InputSequenceNode.class);
+	protected TypeToken<InputSequenceNode> getNodeClass() {
+		return TypeToken.of(InputSequenceNode.class);
 	}
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		TypeLiteral<?> outputTarget = getContext().outputSourceType();
+		TypeToken<?> outputTarget = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -254,12 +254,12 @@ public class InputSequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeLiteral<?> inputTargetType(QualifiedName node) {
+					public TypeToken<?> inputTargetType(QualifiedName node) {
 						return null;
 					}
 
 					@Override
-					public TypeLiteral<?> outputSourceType() {
+					public TypeToken<?> outputSourceType() {
 						return outputTarget;
 					}
 
@@ -268,7 +268,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeLiteral<U> nodeClass) {
+							QualifiedName id, TypeToken<U> nodeClass) {
 						return null;
 					}
 

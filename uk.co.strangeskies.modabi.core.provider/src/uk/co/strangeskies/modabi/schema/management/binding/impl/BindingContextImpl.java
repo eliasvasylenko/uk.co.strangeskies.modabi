@@ -33,15 +33,15 @@ import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public class BindingContextImpl extends ProcessingContextImpl implements
 		BindingContext {
 	private interface BindingProvisions {
-		<U> U provide(TypeLiteral<U> clazz, BindingContext headContext);
+		<U> U provide(TypeToken<U> clazz, BindingContext headContext);
 
-		boolean isProvided(TypeLiteral<?> clazz);
+		boolean isProvided(TypeToken<?> clazz);
 	}
 
 	private final List<Object> bindingTargetStack;
@@ -55,12 +55,12 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 		this.input = null;
 		this.provider = new BindingProvisions() {
 			@Override
-			public <U> U provide(TypeLiteral<U> clazz, BindingContext headContext) {
+			public <U> U provide(TypeToken<U> clazz, BindingContext headContext) {
 				return manager.provisions().provide(clazz);
 			}
 
 			@Override
-			public boolean isProvided(TypeLiteral<?> clazz) {
+			public boolean isProvided(TypeToken<?> clazz) {
 				return manager.provisions().isProvided(clazz);
 			}
 		};
@@ -83,7 +83,7 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 		this.provider = parent.provider;
 	}
 
-	public <U> U provide(TypeLiteral<U> clazz) {
+	public <U> U provide(TypeToken<U> clazz) {
 		return provide(clazz, this);
 	}
 
@@ -91,7 +91,7 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 		return input;
 	}
 
-	private <U> U provide(TypeLiteral<U> clazz, BindingContext headContext) {
+	private <U> U provide(TypeToken<U> clazz, BindingContext headContext) {
 		return provider.provide(clazz, headContext);
 	}
 
@@ -99,12 +99,12 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 	public Provisions provisions() {
 		return new Provisions() {
 			@Override
-			public <U> U provide(TypeLiteral<U> clazz) {
+			public <U> U provide(TypeToken<U> clazz) {
 				return provider.provide(clazz, BindingContextImpl.this);
 			}
 
 			@Override
-			public boolean isProvided(TypeLiteral<?> clazz) {
+			public boolean isProvided(TypeToken<?> clazz) {
 				return provider.isProvided(clazz);
 			}
 		};
@@ -128,7 +128,7 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 				new BindingProvisions() {
 					@SuppressWarnings("unchecked")
 					@Override
-					public <U> U provide(TypeLiteral<U> clazz, BindingContext headContext) {
+					public <U> U provide(TypeToken<U> clazz, BindingContext headContext) {
 						if (clazz.equals(providedClass))
 							return (U) provider.apply(headContext);
 
@@ -136,7 +136,7 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 					}
 
 					@Override
-					public boolean isProvided(TypeLiteral<?> clazz) {
+					public boolean isProvided(TypeToken<?> clazz) {
 						return clazz.equals(providedClass)
 								|| base.provisions().isProvided(clazz);
 					}

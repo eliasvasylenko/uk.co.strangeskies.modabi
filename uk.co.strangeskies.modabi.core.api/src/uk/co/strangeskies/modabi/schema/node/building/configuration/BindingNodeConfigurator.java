@@ -26,22 +26,20 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {
 	default <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {
-		return (BindingNodeConfigurator<?, ?, V>) dataType(new TypeLiteral<>(
-				dataClass));
+		return (BindingNodeConfigurator<?, ?, V>) dataType(TypeToken.of(dataClass));
 	}
 
-	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(
-			TypeLiteral<V> dataType);
+	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<V> dataType);
 
 	@SuppressWarnings("unchecked")
 	default BindingNodeConfigurator<?, ?, ?> dataType(Type dataType) {
-		return dataType((TypeLiteral<? extends T>) TypeLiteral.from(dataType));
+		return dataType((TypeToken<? extends T>) TypeToken.of(dataType));
 	}
 
 	S bindingStrategy(BindingStrategy strategy);

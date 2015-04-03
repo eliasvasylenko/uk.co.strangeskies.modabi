@@ -45,7 +45,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.Complex
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SequenceNodeConfiguratorImpl;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 /**
  * Children, both inherited and then subsequently added, are merged with
@@ -122,7 +122,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
 	private final SchemaNodeConfigurationContext<?> context;
-	private TypeLiteral<?> inputTarget;
+	private TypeToken<?> inputTarget;
 
 	public SequentialChildrenConfigurator(
 			SchemaNodeConfigurationContext<?> context) {
@@ -210,7 +210,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 	@SuppressWarnings("unchecked")
 	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
-			TypeLiteral<U> nodeClass) {
+			TypeToken<U> nodeClass) {
 		List<ChildNode.Effective<?, ?>> overriddenNodes = new ArrayList<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
@@ -242,8 +242,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = merge(new QualifiedName("?", Namespace.getDefault()),
 				effective, childIndex, true);
 
-		inputTarget = effective.getPostInputType() == null ? null : TypeLiteral
-				.from(effective.getPostInputType());
+		inputTarget = effective.getPostInputType() == null ? null : TypeToken
+				.of(effective.getPostInputType());
 	}
 
 	@Override
@@ -274,7 +274,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public <U extends ChildNode<?, ?>> List<U> overrideChild(
-					QualifiedName id, TypeLiteral<U> nodeClass) {
+					QualifiedName id, TypeToken<U> nodeClass) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 
@@ -301,7 +301,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public TypeLiteral<?> inputTargetType(QualifiedName name) {
+			public TypeToken<?> inputTargetType(QualifiedName name) {
 				if (!isInputExpected())
 					return null;
 
@@ -309,15 +309,15 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 				if (mergeGroup != null) {
 					int index = mergedChildren.indexOf(mergeGroup);
 					if (index > 0)
-						inputTarget = TypeLiteral.from(mergedChildren.get(index - 1)
-								.getChild().getPostInputType());
+						inputTarget = TypeToken.of(mergedChildren.get(index - 1).getChild()
+								.getPostInputType());
 				}
 
 				return inputTarget;
 			}
 
 			@Override
-			public TypeLiteral<?> outputSourceType() {
+			public TypeToken<?> outputSourceType() {
 				return SequentialChildrenConfigurator.this.context.outputSourceType();
 			}
 

@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeParameter;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -111,14 +112,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			protected TypeLiteral<T> inferDataType(
+			protected TypeToken<T> inferDataType(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				@SuppressWarnings("unchecked")
 				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> childOverrideMerge = (OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>>) overrideMerge;
 
-				TypeLiteral<?> outputType = childOverrideMerge.configurator()
+				TypeToken<?> outputType = childOverrideMerge.configurator()
 						.getContext().outputSourceType();
-				TypeLiteral<?> inputType = childOverrideMerge.configurator()
+				TypeToken<?> inputType = childOverrideMerge.configurator()
 						.getContext().inputTargetType(getName());
 
 				return super.inferDataType(overrideMerge);
@@ -184,17 +185,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				return allowInMethodResultCast;
 			}
 
-			private static <U> TypeLiteral<Iterable<U>> getIteratorType(
-					TypeLiteral<U> type) {
+			private static <U> TypeToken<Iterable<U>> getIteratorType(
+					TypeToken<U> type) {
 				return new TypeLiteral<Iterable<U>>() {}.withTypeArgument(
 						new TypeParameter<U>() {}, type);
 			}
 
 			protected static Method getOutMethod(
 					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
-					TypeLiteral<?> targetClass) {
+					TypeToken<?> targetClass) {
 				try {
-					TypeLiteral<?> resultClass = ((node.isOutMethodIterable() != null && node
+					TypeToken<?> resultClass = ((node.isOutMethodIterable() != null && node
 							.isOutMethodIterable()) ? getIteratorType(node.getDataType())
 							: node.getDataType());
 
@@ -365,7 +366,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public <V extends T> BindingChildNodeConfigurator<?, ?, V> dataType(
-			TypeLiteral<V> dataClass) {
+			TypeToken<V> dataClass) {
 		return (BindingChildNodeConfigurator<?, ?, V>) super.dataType(dataClass);
 	}
 

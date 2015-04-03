@@ -25,7 +25,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
@@ -36,27 +36,36 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 		List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters();
 
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<BindingNode.Effective> PROPERTY_SET = new PropertySet<>(
+				BindingNode.Effective.class).add(BindingNode.PROPERTY_SET)
+				.add(SchemaNode.Effective.PROPERTY_SET)
+				.add(BindingNode.Effective::getUnbindingMethod)
+				.add(BindingNode.Effective::getProvidedUnbindingMethodParameters);
+
 		@Override
-		default PropertySet<E> effectivePropertySet() {
-			return SchemaNode.Effective.super.effectivePropertySet()
-					.add(BindingNode.Effective::getUnbindingMethod)
-					.add(BindingNode.Effective::getProvidedUnbindingMethodParameters);
+		default PropertySet<? super E> effectivePropertySet() {
+			return PROPERTY_SET;
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<BindingNode> PROPERTY_SET = new PropertySet<>(
+			BindingNode.class).add(SchemaNode.PROPERTY_SET)
+			.add(BindingNode::getDataType).add(BindingNode::isAbstract)
+			.add(BindingNode::getBindingStrategy).add(BindingNode::getBindingType)
+			.add(BindingNode::getUnbindingStrategy)
+			.add(BindingNode::getUnbindingType)
+			.add(BindingNode::getUnbindingMethodName)
+			.add(BindingNode::getUnbindingFactoryType)
+			.add(BindingNode::getProvidedUnbindingMethodParameterNames);
+
 	@Override
-	default PropertySet<S> propertySet() {
-		return SchemaNode.super.propertySet().add(BindingNode::getDataType)
-				.add(BindingNode::isAbstract).add(BindingNode::getBindingStrategy)
-				.add(BindingNode::getBindingType)
-				.add(BindingNode::getUnbindingStrategy)
-				.add(BindingNode::getUnbindingType)
-				.add(BindingNode::getUnbindingMethodName)
-				.add(BindingNode::getUnbindingFactoryType)
-				.add(BindingNode::getProvidedUnbindingMethodParameterNames);
+	default PropertySet<? super S> propertySet() {
+		return PROPERTY_SET;
 	}
 
-	TypeLiteral<T> getDataType();
+	TypeToken<T> getDataType();
 
 	BindingStrategy getBindingStrategy();
 

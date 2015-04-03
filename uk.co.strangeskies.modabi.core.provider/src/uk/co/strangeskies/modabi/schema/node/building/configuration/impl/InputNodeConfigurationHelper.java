@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeCon
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final E effective;
@@ -57,7 +57,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				InputNode::isInMethodCast, false);
 	}
 
-	private TypeLiteral<?> inputTargetClass() {
+	private TypeToken<?> inputTargetClass() {
 		return context.inputTargetType(effective.getName());
 	}
 
@@ -78,12 +78,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			inMethod = null;
 		} else {
 			try {
-				TypeLiteral<?> result;
+				TypeToken<?> result;
 				if (effective.isInMethodChained()) {
 					result = effective.source().getPostInputType() == null ? null
-							: TypeLiteral.from(effective.source().getPostInputType());
+							: TypeToken.of(effective.source().getPostInputType());
 					if (result == null)
-						result = TypeLiteral.from(Object.class);
+						result = TypeToken.of(Object.class);
 				} else
 					result = null;
 
@@ -109,9 +109,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethod;
 	}
 
-	private List<TypeLiteral<?>> parameterTokens(List<Type> parameters) {
-		return parameters.stream().map(TypeLiteral::from)
-				.collect(Collectors.toList());
+	private List<TypeToken<?>> parameterTokens(List<Type> parameters) {
+		return parameters.stream().map(TypeToken::of).collect(Collectors.toList());
 	}
 
 	private static List<String> generateInMethodNames(
@@ -159,14 +158,14 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethodName;
 	}
 
-	public TypeLiteral<?> preInputType() {
+	public TypeToken<?> preInputType() {
 		return (effective.isAbstract() || "null"
-				.equals(effective.getInMethodName())) ? null : TypeLiteral
-				.from(effective.getInMethod().getDeclaringClass());
+				.equals(effective.getInMethodName())) ? null : TypeToken.of(effective
+				.getInMethod().getDeclaringClass());
 	}
 
-	public TypeLiteral<?> postInputType() {
-		TypeLiteral<?> postInputClass;
+	public TypeToken<?> postInputType() {
+		TypeToken<?> postInputClass;
 
 		if ("null".equals(effective.getInMethodName())
 				|| (effective.isInMethodChained() != null && !effective
@@ -174,7 +173,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			postInputClass = inputTargetClass();
 		} else if (effective.isAbstract()) {
 			postInputClass = overrideMerge.tryGetValue(
-					n -> n.getPostInputType() == null ? null : TypeLiteral.from(n
+					n -> n.getPostInputType() == null ? null : TypeToken.of(n
 							.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
 		} else {
 			Class<?> methodReturn;
@@ -187,14 +186,14 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			Type localPostInputClass = overrideMerge.node().getPostInputType();
 
 			if (localPostInputClass == null
-					|| TypeLiteral.from(localPostInputClass).isAssignableFrom(
-							methodReturn))
+					|| TypeToken.of(localPostInputClass).isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge.getValueWithOverride(TypeLiteral
-					.from(localPostInputClass), n -> n.getPostInputType() == null ? null
-					: TypeLiteral.from(n.getPostInputType()), (n, o) -> o
-					.isAssignableFrom(n));
+			postInputClass = overrideMerge
+					.getValueWithOverride(
+							TypeToken.of(localPostInputClass),
+							n -> n.getPostInputType() == null ? null : TypeToken.of(n
+									.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
 		}
 
 		return postInputClass;

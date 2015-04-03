@@ -58,13 +58,13 @@ import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
 import uk.co.strangeskies.modabi.schema.node.type.impl.DataBindingTypeBuilderImpl;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 @Component
 public class SchemaManagerImpl implements SchemaManager {
-	private final List<Function<TypeLiteral<?>, Object>> providers;
+	private final List<Function<TypeToken<?>, Object>> providers;
 	private final MultiMap<Model<?>, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
 
 	private final CoreSchemata coreSchemata;
@@ -154,7 +154,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> BindingFuture<T> bindFuture(TypeLiteral<T> dataClass,
+	public <T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
 			StructuredDataSource input) {
 		Model<?> model = registeredModels.get(input.peekNextChild());
 		List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
@@ -209,23 +209,23 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public <T> void unbind(TypeLiteral<T> dataClass, StructuredDataTarget output,
+	public <T> void unbind(TypeToken<T> dataClass, StructuredDataTarget output,
 			T data) {
 		new SchemaUnbinder(this).unbind(output, dataClass, data);
 	}
 
 	@Override
-	public <T> void registerProvider(TypeLiteral<T> providedClass,
+	public <T> void registerProvider(TypeToken<T> providedClass,
 			Supplier<T> provider) {
 		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);
 	}
 
 	@Override
-	public void registerProvider(Function<TypeLiteral<?>, ?> provider) {
+	public void registerProvider(Function<TypeToken<?>, ?> provider) {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null
-					&& !TypeLiteral.from(c.getType()).isAssignableFrom(provided.getClass()))
+					&& !TypeToken.of(c.getType()).isAssignableFrom(provided.getClass()))
 				throw new SchemaException("Invalid object provided for the class [" + c
 						+ "] by provider [" + provider + "]");
 			return provided;
@@ -236,7 +236,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new Provisions() {
 			@Override
 			@SuppressWarnings("unchecked")
-			public <T> T provide(TypeLiteral<T> clazz) {
+			public <T> T provide(TypeToken<T> clazz) {
 				return (T) providers
 						.stream()
 						.map(p -> p.apply(clazz))
@@ -248,7 +248,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			}
 
 			@Override
-			public boolean isProvided(TypeLiteral<?> clazz) {
+			public boolean isProvided(TypeToken<?> clazz) {
 				return providers.stream().map(p -> p.apply(clazz))
 						.anyMatch(Objects::nonNull);
 			}

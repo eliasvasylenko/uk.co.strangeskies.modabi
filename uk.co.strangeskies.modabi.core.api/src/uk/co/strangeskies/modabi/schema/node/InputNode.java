@@ -28,17 +28,27 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 			extends InputNode<S, E>, ChildNode.Effective<S, E> {
 		Executable getInMethod();
 
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<InputNode.Effective> PROPERTY_SET = new PropertySet<>(
+				InputNode.Effective.class).add(InputNode.PROPERTY_SET)
+				.add(ChildNode.Effective.PROPERTY_SET)
+				.add(InputNode.Effective::getInMethod);
+
 		@Override
-		default PropertySet<E> effectivePropertySet() {
-			return ChildNode.Effective.super.effectivePropertySet().add(
-					InputNode.Effective::getInMethod);
+		default PropertySet<? super E> effectivePropertySet() {
+			return PROPERTY_SET;
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<InputNode> PROPERTY_SET = new PropertySet<>(
+			InputNode.class).add(ChildNode.PROPERTY_SET)
+			.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
+			.add(InputNode::isInMethodCast);
+
 	@Override
-	default PropertySet<S> propertySet() {
-		return ChildNode.super.propertySet().add(InputNode::getInMethodName)
-				.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
+	default PropertySet<? super S> propertySet() {
+		return PROPERTY_SET;
 	}
 
 	String getInMethodName();

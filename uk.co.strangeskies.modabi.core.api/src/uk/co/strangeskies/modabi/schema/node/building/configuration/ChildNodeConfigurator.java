@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration;
 import java.lang.reflect.Type;
 
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
 public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
 		extends SchemaNodeConfigurator<S, N> {

@@ -29,11 +29,28 @@ public interface AbstractComplexNode<T, S extends AbstractComplexNode<T, S, E>, 
 			extends AbstractComplexNode<T, S, E>, BindingNode.Effective<T, S, E> {
 		@Override
 		List<Model.Effective<? super T>> baseModel();
+
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<AbstractComplexNode.Effective> PROPERTY_SET = new PropertySet<>(
+				AbstractComplexNode.Effective.class)
+				.add(BindingNode.Effective.PROPERTY_SET)
+				.add(AbstractComplexNode.PROPERTY_SET)
+				.add(AbstractComplexNode::baseModel);
+
+		@Override
+		public default PropertySet<? super E> effectivePropertySet() {
+			return PROPERTY_SET;
+		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<AbstractComplexNode> PROPERTY_SET = new PropertySet<>(
+			AbstractComplexNode.class).add(BindingNode.PROPERTY_SET).add(
+			AbstractComplexNode::baseModel);
+
 	@Override
-	default PropertySet<S> propertySet() {
-		return BindingNode.super.propertySet().add(AbstractComplexNode::baseModel);
+	public default PropertySet<? super S> propertySet() {
+		return PROPERTY_SET;
 	}
 
 	List<? extends Model<? super T>> baseModel();

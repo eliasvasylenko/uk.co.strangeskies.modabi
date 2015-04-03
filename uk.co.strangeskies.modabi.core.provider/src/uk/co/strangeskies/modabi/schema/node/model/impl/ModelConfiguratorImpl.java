@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class ModelConfiguratorImpl<T> extends
 		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
@@ -143,7 +144,7 @@ public class ModelConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> dataType(TypeLiteral<V> dataClass) {
+	public <V extends T> ModelConfigurator<V> dataType(TypeToken<V> dataClass) {
 		return (ModelConfigurator<V>) super.dataType(dataClass);
 	}
 
@@ -152,9 +153,8 @@ public class ModelConfiguratorImpl<T> extends
 		return new ModelImpl<>(this);
 	}
 
-	@SuppressWarnings("serial")
 	@Override
-	protected TypeLiteral<Model<T>> getNodeClass() {
+	protected TypeToken<Model<T>> getNodeClass() {
 		return new TypeLiteral<Model<T>>() {
 		};
 	}

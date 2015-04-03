@@ -42,16 +42,22 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 		@Override
 		S source();
 
-		default PropertySet<E> effectivePropertySet() {
-			return new PropertySet<>(getEffectiveClass(), effective(), true);
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<SchemaNode.Effective> PROPERTY_SET = new PropertySet<SchemaNode.Effective>(
+				SchemaNode.Effective.class).add(SchemaNode.PROPERTY_SET);
+
+		default PropertySet<? super E> effectivePropertySet() {
+			return PROPERTY_SET;
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	default PropertySet<S> propertySet() {
-		return new PropertySet<>(getNodeClass(), (S) this, true)
-				.add(SchemaNode::children).add(SchemaNode::getName)
-				.add(SchemaNode::isAbstract);
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<SchemaNode> PROPERTY_SET = new PropertySet<>(
+			SchemaNode.class).add(SchemaNode::children).add(SchemaNode::getName)
+			.add(SchemaNode::isAbstract);
+
+	default PropertySet<? super S> propertySet() {
+		return PROPERTY_SET;
 	}
 
 	Boolean isAbstract();

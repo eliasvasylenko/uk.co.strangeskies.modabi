@@ -36,7 +36,7 @@ import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class ChildrenConfiguratorTests {
 	private class MergeTestData {
@@ -131,13 +131,13 @@ public class ChildrenConfiguratorTests {
 					}
 
 					@Override
-					public TypeLiteral<?> inputTargetType(QualifiedName node) {
-						return TypeLiteral.from(Object.class);
+					public TypeToken<?> inputTargetType(QualifiedName node) {
+						return TypeToken.of(Object.class);
 					}
 
 					@Override
-					public TypeLiteral<?> outputSourceType() {
-						return TypeLiteral.from(Object.class);
+					public TypeToken<?> outputSourceType() {
+						return TypeToken.of(Object.class);
 					}
 
 					@Override
@@ -145,7 +145,7 @@ public class ChildrenConfiguratorTests {
 
 					@Override
 					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeLiteral<U> nodeClass) {
+							QualifiedName id, TypeToken<U> nodeClass) {
 						return null;
 					}
 

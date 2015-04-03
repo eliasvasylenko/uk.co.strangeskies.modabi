@@ -30,22 +30,31 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 			InputNode.Effective<S, E> {
 		Method getOutMethod();
 
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<BindingChildNode.Effective> PROPERTY_SET = new PropertySet<>(
+				BindingChildNode.Effective.class).add(BindingChildNode.PROPERTY_SET)
+				.add(BindingNode.Effective.PROPERTY_SET)
+				.add(BindingChildNode.Effective::getOutMethod)
+				.add(InputNode.Effective::getInMethod);
+
 		@Override
-		default PropertySet<E> effectivePropertySet() {
-			return BindingNode.Effective.super.effectivePropertySet()
-					.add(BindingChildNode.Effective::getOutMethod)
-					.add(InputNode.Effective::getInMethod);
+		default PropertySet<? super E> effectivePropertySet() {
+			return PROPERTY_SET;
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<BindingChildNode> PROPERTY_SET = new PropertySet<>(
+			BindingChildNode.class).add(BindingNode.PROPERTY_SET)
+			.add(BindingChildNode::getOutMethodName)
+			.add(BindingChildNode::isOutMethodIterable)
+			.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
+			.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
+			.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
+
 	@Override
-	default PropertySet<S> propertySet() {
-		return BindingNode.super.propertySet()
-				.add(BindingChildNode::getOutMethodName)
-				.add(BindingChildNode::isOutMethodIterable)
-				.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
-				.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
-				.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
+	public default PropertySet<? super S> propertySet() {
+		return PROPERTY_SET;
 	}
 
 	String getOutMethodName();

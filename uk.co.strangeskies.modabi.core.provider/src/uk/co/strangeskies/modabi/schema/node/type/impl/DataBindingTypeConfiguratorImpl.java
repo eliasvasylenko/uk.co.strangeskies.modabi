@@ -30,6 +30,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
 import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends
@@ -136,7 +137,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> DataBindingTypeConfigurator<V> dataType(
-			TypeLiteral<V> dataClass) {
+			TypeToken<V> dataClass) {
 		return (DataBindingTypeConfigurator<V>) super.dataType(dataClass);
 	}
 
@@ -150,11 +151,9 @@ public class DataBindingTypeConfiguratorImpl<T>
 		return true;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
-	protected TypeLiteral<DataBindingType<T>> getNodeClass() {
-		return new TypeLiteral<DataBindingType<T>>() {
-		};
+	protected TypeToken<DataBindingType<T>> getNodeClass() {
+		return new TypeLiteral<DataBindingType<T>>() {};
 	}
 
 	@Override

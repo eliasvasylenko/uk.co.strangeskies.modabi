@@ -56,12 +56,16 @@ public interface DataNode<T> extends
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<DataNode> PROPERTY_SET = new PropertySet<>(
+			DataNode.class).add(BindingChildNode.PROPERTY_SET).add(DataNode::format)
+			.add(DataNode::providedValueBuffer).add(DataNode::valueResolution)
+			.add(DataNode::type).add(DataNode::optional).add(DataNode::isExtensible);
+
+	@SuppressWarnings("unchecked")
 	@Override
-	default PropertySet<DataNode<T>> propertySet() {
-		return BindingChildNode.super.propertySet().add(DataNode::format)
-				.add(DataNode::providedValueBuffer).add(DataNode::valueResolution)
-				.add(DataNode::type).add(DataNode::optional)
-				.add(DataNode::isExtensible);
+	public default PropertySet<DataNode<T>> propertySet() {
+		return (PropertySet<DataNode<T>>) (Object) PROPERTY_SET;
 	}
 
 	enum Format {

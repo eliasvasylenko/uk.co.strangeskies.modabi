@@ -24,21 +24,21 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.reflection.Invokable;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class Methods {
-	public static <T> Invokable<T, ?> findConstructor(TypeLiteral<T> receiver,
-			TypeLiteral<?>... parameters) throws NoSuchMethodException {
+	public static <T> Invokable<T, ?> findConstructor(TypeToken<T> receiver,
+			TypeToken<?>... parameters) throws NoSuchMethodException {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
 	public static <T> Invokable<T, ? extends T> findConstructor(
-			TypeLiteral<T> receiver, List<TypeLiteral<?>> parameters)
+			TypeToken<T> receiver, List<TypeToken<?>> parameters)
 			throws NoSuchMethodException {
 		Invokable<T, ? extends T> constructor;
 		try {
 			constructor = receiver.resolveConstructorOverload(parameters.stream()
-					.map(TypeLiteral::getType).collect(Collectors.toList()));
+					.map(TypeToken::getType).collect(Collectors.toList()));
 		} catch (Exception e) {
 			throw new SchemaException("Cannot find constructor for class '"
 					+ receiver + "' with parameters '" + parameters + "'.", e);
@@ -48,16 +48,16 @@ public class Methods {
 	}
 
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
-			TypeLiteral<T> receiver, boolean isStatic, TypeLiteral<?> result,
-			boolean allowCast, TypeLiteral<?>... parameters)
+			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
+			boolean allowCast, TypeToken<?>... parameters)
 			throws NoSuchMethodException {
 		return findMethod(names, receiver, isStatic, result, allowCast,
 				Arrays.asList(parameters));
 	}
 
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
-			TypeLiteral<T> receiver, boolean isStatic, TypeLiteral<?> result,
-			boolean allowCast, List<TypeLiteral<?>> parameters)
+			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
+			boolean allowCast, List<TypeToken<?>> parameters)
 			throws NoSuchMethodException {
 		Invokable<? super T, ?> method = null;
 
@@ -66,7 +66,7 @@ public class Methods {
 			try {
 				method = receiver.resolveMethodOverload(
 						name,
-						parameters.stream().map(TypeLiteral::getType)
+						parameters.stream().map(TypeToken::getType)
 								.collect(Collectors.toList()));
 				break;
 			} catch (Exception e) {

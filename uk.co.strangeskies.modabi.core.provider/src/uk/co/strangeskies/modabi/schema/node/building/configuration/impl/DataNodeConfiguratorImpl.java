@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
 import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataNodeConfiguratorImpl<T> extends
 		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
@@ -229,7 +230,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <V extends T> DataNodeConfigurator<V> dataType(
-			TypeLiteral<V> dataClass) {
+			TypeToken<V> dataClass) {
 		return (DataNodeConfigurator<V>) super.dataType(dataClass);
 	}
 
@@ -301,7 +302,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	protected final TypeLiteral<DataNode<T>> getNodeClass() {
+	protected final TypeToken<DataNode<T>> getNodeClass() {
 		return new TypeLiteral<DataNode<T>>() {};
 	}
 

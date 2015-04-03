@@ -31,14 +31,30 @@ public interface ComplexNode<T> extends
 		default void process(SchemaProcessingContext context) {
 			context.accept(this);
 		}
+
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<ComplexNode.Effective> PROPERTY_SET = new PropertySet<>(
+				ComplexNode.Effective.class).add(ComplexNode.PROPERTY_SET).add(
+				BindingChildNode.Effective.PROPERTY_SET);
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public default PropertySet<ComplexNode.Effective<T>> effectivePropertySet() {
+			return (PropertySet<ComplexNode.Effective<T>>) (Object) PROPERTY_SET;
+		}
 	}
 
 	Boolean isInline();
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<ComplexNode> PROPERTY_SET = new PropertySet<>(
+			ComplexNode.class).add(BindingChildNode.PROPERTY_SET).add(
+			AbstractComplexNode::baseModel);
+
+	@SuppressWarnings("unchecked")
 	@Override
-	default PropertySet<ComplexNode<T>> propertySet() {
-		return BindingChildNode.super.propertySet().add(
-				AbstractComplexNode::baseModel);
+	public default PropertySet<ComplexNode<T>> propertySet() {
+		return (PropertySet<ComplexNode<T>>) (Object) PROPERTY_SET;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

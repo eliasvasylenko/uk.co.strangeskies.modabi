@@ -31,16 +31,26 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 
 		void process(SchemaProcessingContext context);
 
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<ChildNode.Effective> PROPERTY_SET = new PropertySet<>(
+				ChildNode.Effective.class).add(ChildNode.PROPERTY_SET)
+				.add(SchemaNode.Effective.PROPERTY_SET)
+				.add(ChildNode.Effective::getPreInputType);
+
 		@Override
-		default PropertySet<E> effectivePropertySet() {
-			return SchemaNode.Effective.super.effectivePropertySet().add(
-					ChildNode.Effective::getPreInputType);
+		default PropertySet<? super E> effectivePropertySet() {
+			return PROPERTY_SET;
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<ChildNode> PROPERTY_SET = new PropertySet<>(
+			ChildNode.class).add(SchemaNode.PROPERTY_SET).add(
+			ChildNode::getPostInputType);
+
 	@Override
-	public default PropertySet<S> propertySet() {
-		return SchemaNode.super.propertySet().add(ChildNode::getPostInputType);
+	public default PropertySet<? super S> propertySet() {
+		return PROPERTY_SET;
 	}
 
 	Type getPostInputType();

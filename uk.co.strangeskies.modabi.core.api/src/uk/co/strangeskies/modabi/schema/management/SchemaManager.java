@@ -35,15 +35,15 @@ import uk.co.strangeskies.modabi.schema.management.binding.BindingFuture;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.model.Models;
 import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaManager {
-	<T> void registerProvider(TypeLiteral<T> providedClass, Supplier<T> provider);
+	<T> void registerProvider(TypeToken<T> providedClass, Supplier<T> provider);
 
-	void registerProvider(Function<TypeLiteral<?>, ?> provider);
+	void registerProvider(Function<TypeToken<?>, ?> provider);
 
 	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
-		registerProvider(new TypeLiteral<>(providedClass), provider);
+		registerProvider(TypeToken.of(providedClass), provider);
 	}
 
 	void registerSchema(Schema schema);
@@ -59,7 +59,7 @@ public interface SchemaManager {
 		return bindFuture(model, input).resolveNow().getData();
 	}
 
-	default <T> T bind(TypeLiteral<T> dataClass, StructuredDataSource input) {
+	default <T> T bind(TypeToken<T> dataClass, StructuredDataSource input) {
 		return bindFuture(dataClass, input).resolveNow().getData();
 	}
 
@@ -75,12 +75,12 @@ public interface SchemaManager {
 	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input);
 
 	// Blocks until all possible processing is done other than waiting imports:
-	<T> BindingFuture<T> bindFuture(TypeLiteral<T> dataClass,
+	<T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
 			StructuredDataSource input);
 
 	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
 			StructuredDataSource input) {
-		return bindFuture(new TypeLiteral<>(dataClass), input);
+		return bindFuture(TypeToken.of(dataClass), input);
 	}
 
 	BindingFuture<?> bindFuture(StructuredDataSource input);
@@ -104,8 +104,7 @@ public interface SchemaManager {
 			try {
 				registerSchema(schema.get().getData());
 			} catch (InterruptedException | ExecutionException
-					| CancellationException e) {
-			}
+					| CancellationException e) {}
 		});
 
 		return schema;
@@ -113,11 +112,11 @@ public interface SchemaManager {
 
 	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
 
-	<T> void unbind(TypeLiteral<T> dataClass, StructuredDataTarget output, T data);
+	<T> void unbind(TypeToken<T> dataClass, StructuredDataTarget output, T data);
 
 	default <T> void unbind(Class<T> dataClass, StructuredDataTarget output,
 			T data) {
-		unbind(new TypeLiteral<>(dataClass), output, data);
+		unbind(TypeToken.of(dataClass), output, data);
 	}
 
 	void unbind(StructuredDataTarget output, Object data);

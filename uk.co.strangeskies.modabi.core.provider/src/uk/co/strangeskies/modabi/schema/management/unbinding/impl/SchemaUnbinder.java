@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class SchemaUnbinder {
 	private final UnbindingContextImpl context;
@@ -74,13 +74,13 @@ public class SchemaUnbinder {
 	}
 
 	public <T> void unbind(StructuredDataTarget output,
-			TypeLiteral<? extends T> dataClass, T data) {
+			TypeToken<? extends T> dataClass, T data) {
 		castingUnbind(output, dataClass, data);
 	}
 
 	@SuppressWarnings("unchecked")
 	private <T, U extends T> void castingUnbind(StructuredDataTarget output,
-			TypeLiteral<U> dataClass, T data) {
+			TypeToken<U> dataClass, T data) {
 		UnbindingContextImpl context = this.context.withOutput(output);
 
 		List<? extends Model.Effective<U>> models = context
@@ -108,6 +108,6 @@ public class SchemaUnbinder {
 	}
 
 	public <T> void unbind(StructuredDataTarget output, T data) {
-		unbind(output, new TypeLiteral<>(data.getClass()), data);
+		unbind(output, TypeToken.of(data.getClass()), data);
 	}
 }

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.node.building.configuration.AbstractModelConfigurator;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface ModelConfigurator<T> extends
 		AbstractModelConfigurator<ModelConfigurator<T>, Model<T>, T> {
@@ -44,5 +44,5 @@ public interface ModelConfigurator<T> extends
 	}
 
 	@Override
-	<V extends T> ModelConfigurator<V> dataType(TypeLiteral<V> bindingClass);
+	<V extends T> ModelConfigurator<V> dataType(TypeToken<V> bindingClass);
 }
