@@ -16,7 +16,8 @@ Bundle-Name: Modabi - Benchmarks
 	uk.co.strangeskies.modabi.xml.provider;  \
 		version = latest,  \
 	org.apache.commons:commons-lang3;  \
-		version = latest,  \
+		version = 3.4;  \
+		strategy = exact,  \
 	org.testng:testng;  \
 		version = latest
 Private-Package: uk.co.strangeskies.modabi.benchmark

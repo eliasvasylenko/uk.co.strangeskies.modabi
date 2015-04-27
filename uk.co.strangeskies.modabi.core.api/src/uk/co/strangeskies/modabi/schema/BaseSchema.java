@@ -26,7 +26,7 @@ import java.util.Set;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataType;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {

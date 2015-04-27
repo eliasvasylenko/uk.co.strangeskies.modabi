@@ -26,13 +26,12 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeConfiguratorImpl<T>
@@ -164,7 +163,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 	@Override
 	protected TypeToken<ComplexNode<T>> getNodeClass() {
-		return new TypeLiteral<ComplexNode<T>>() {};
+		return new TypeToken<ComplexNode<T>>() {};
 	}
 
 	@Override

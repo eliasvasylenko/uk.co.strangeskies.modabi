@@ -39,8 +39,8 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.impl.BindingNodeUnb
 import uk.co.strangeskies.modabi.schema.management.unbinding.impl.DataNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.management.unbinding.impl.UnbindingContextImpl;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public class BindingProviders {
 	private final SchemaManager manager;

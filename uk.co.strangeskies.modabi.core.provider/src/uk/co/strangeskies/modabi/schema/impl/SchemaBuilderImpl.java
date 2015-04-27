@@ -29,10 +29,10 @@ import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaConfigurator;
 import uk.co.strangeskies.modabi.schema.Schemata;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.Models;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
+import uk.co.strangeskies.modabi.schema.management.DataBindingTypes;
+import uk.co.strangeskies.modabi.schema.management.Models;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.Model;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {

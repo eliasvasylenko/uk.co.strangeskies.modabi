@@ -25,7 +25,6 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface DataNode<T> extends

@@ -16,13 +16,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.type;
+package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataBindingTypeConfigurator<T>

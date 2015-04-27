@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 
 public class ModelWrapper<T>
 		extends

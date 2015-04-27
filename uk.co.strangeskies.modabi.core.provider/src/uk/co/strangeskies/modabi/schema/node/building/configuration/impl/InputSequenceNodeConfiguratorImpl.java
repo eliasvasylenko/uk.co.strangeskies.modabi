@@ -41,6 +41,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class InputSequenceNodeConfiguratorImpl extends
@@ -69,24 +70,25 @@ public class InputSequenceNodeConfiguratorImpl extends
 					throw new SchemaException("InputSequenceNode '" + getName()
 							+ "' cannot occur in a context without input.");
 
-				InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
-						this, overrideMerge, overrideMerge.configurator().getContext());
-				inMethodChained = inputNodeHelper.isInMethodChained();
-				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-				List<Type> parameterClasses = overrideMerge
+				List<TypeToken<?>> parameterClasses = overrideMerge
 						.configurator()
 						.getChildrenContainer()
 						.getChildren()
 						.stream()
-						.map(
-								o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType()
-										.getType()).collect(Collectors.toList());
-				inMethod = inputNodeHelper.inMethod(parameterClasses);
-				inMethodName = inputNodeHelper.inMethodName();
-				preInputClass = inputNodeHelper.preInputType() == null ? null
-						: inputNodeHelper.preInputType().getType();
-				postInputClass = inputNodeHelper.postInputType() == null ? null
-						: inputNodeHelper.postInputType().getType();
+						.map(o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType())
+						.collect(Collectors.toList());
+
+				InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
+						isAbstract(), getName(), overrideMerge, overrideMerge
+								.configurator().getContext(), parameterClasses);
+
+				inMethodChained = inputNodeHelper.isInMethodChained();
+				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
+				inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper
+						.getInMethod().getExecutable() : null;
+				inMethodName = inputNodeHelper.getInMethodName();
+				preInputClass = inputNodeHelper.getPreInputType();
+				postInputClass = inputNodeHelper.getPostInputType();
 			}
 
 			@Override
@@ -218,6 +220,11 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public BoundSet boundSet() {
+						return getContext().boundSet();
+					}
+
 					@Override
 					public DataLoader dataLoader() {
 						return getDataLoader();

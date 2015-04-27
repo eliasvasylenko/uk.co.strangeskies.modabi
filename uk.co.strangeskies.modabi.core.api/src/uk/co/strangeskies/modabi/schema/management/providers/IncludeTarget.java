@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.schema.management.providers;
 
 import java.util.Collection;
 
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 
 public interface IncludeTarget {
 	<T> void include(Model<T> model, T object);

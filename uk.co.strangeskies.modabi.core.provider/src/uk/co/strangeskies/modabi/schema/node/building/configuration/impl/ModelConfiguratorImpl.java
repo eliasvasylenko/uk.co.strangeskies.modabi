@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.model.impl;
+package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,14 +25,11 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SchemaNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ModelConfiguratorImpl<T> extends
@@ -155,7 +152,6 @@ public class ModelConfiguratorImpl<T> extends
 
 	@Override
 	protected TypeToken<Model<T>> getNodeClass() {
-		return new TypeLiteral<Model<T>>() {
-		};
+		return new TypeToken<Model<T>>() {};
 	}
 }

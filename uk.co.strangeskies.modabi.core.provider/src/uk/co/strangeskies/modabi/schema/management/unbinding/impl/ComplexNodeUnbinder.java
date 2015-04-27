@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class ComplexNodeUnbinder {

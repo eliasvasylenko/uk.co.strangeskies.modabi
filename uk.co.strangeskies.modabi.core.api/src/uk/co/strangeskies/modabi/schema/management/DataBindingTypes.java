@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.type;
+package uk.co.strangeskies.modabi.schema.management;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;

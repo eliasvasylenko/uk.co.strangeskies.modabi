@@ -21,8 +21,8 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.Collection;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public interface SchemaConfigurator extends Factory<Schema> {

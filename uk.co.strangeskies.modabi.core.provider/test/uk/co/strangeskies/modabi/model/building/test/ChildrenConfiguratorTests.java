@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ChildrenConfiguratorTests {
@@ -93,8 +94,14 @@ public class ChildrenConfiguratorTests {
 
 	@Test(dataProvider = "mergeData")
 	public void childrenMergeTest(MergeTestData mergeTestData) {
+		BoundSet boundSet = new BoundSet();
 		SequentialChildrenConfigurator configurator = new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public BoundSet boundSet() {
+						return boundSet;
+					}
+
 					@Override
 					public DataLoader dataLoader() {
 						return null;

@@ -34,7 +34,6 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChild
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -98,31 +97,27 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					outMethodName = outMethod.getName();
 
 				InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<S, E>(
-						effective(), overrideMerge, overrideMerge.configurator()
-								.getContext());
+						isAbstract(), getName(), overrideMerge, overrideMerge
+								.configurator().getContext(), Arrays.asList(getDataType()));
+
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-				inMethod = inputNodeHelper.inMethod(Arrays
-						.asList(getDataType() == null ? null : getDataType().getType()));
-				inMethodName = inputNodeHelper.inMethodName();
-				preInputClass = inputNodeHelper.preInputType() == null ? null
-						: inputNodeHelper.preInputType().getType();
-				postInputClass = inputNodeHelper.postInputType() == null ? null
-						: inputNodeHelper.postInputType().getType();
+				inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper
+						.getInMethod().getExecutable() : null;
+				inMethodName = inputNodeHelper.getInMethodName();
+				preInputClass = inputNodeHelper.getPreInputType();
+				postInputClass = inputNodeHelper.getPostInputType();
 			}
 
 			@Override
-			protected TypeToken<T> inferDataType(
+			protected boolean isInferred(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				@SuppressWarnings("unchecked")
 				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> childOverrideMerge = (OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>>) overrideMerge;
 
-				TypeToken<?> outputType = childOverrideMerge.configurator()
-						.getContext().outputSourceType();
-				TypeToken<?> inputType = childOverrideMerge.configurator()
-						.getContext().inputTargetType(getName());
-
-				return super.inferDataType(overrideMerge);
+				return super.isInferred(overrideMerge)
+						&& !childOverrideMerge.configurator().getContext().isAbstract()
+						&& !overrideMerge.getValue(BindingChildNode::isExtensible, false);
 			}
 
 			@Override
@@ -187,7 +182,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			private static <U> TypeToken<Iterable<U>> getIteratorType(
 					TypeToken<U> type) {
-				return new TypeLiteral<Iterable<U>>() {}.withTypeArgument(
+				return new TypeToken<Iterable<U>>() {}.withTypeArgument(
 						new TypeParameter<U>() {}, type);
 			}
 

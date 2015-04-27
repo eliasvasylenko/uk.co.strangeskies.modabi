@@ -25,14 +25,13 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataNodeConfiguratorImpl<T> extends
@@ -303,7 +302,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	protected final TypeToken<DataNode<T>> getNodeClass() {
-		return new TypeLiteral<DataNode<T>>() {};
+		return new TypeToken<DataNode<T>>() {};
 	}
 
 	@Override

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S, N, T>, N extends AbstractComplexNode<T, ?, ?>, T>

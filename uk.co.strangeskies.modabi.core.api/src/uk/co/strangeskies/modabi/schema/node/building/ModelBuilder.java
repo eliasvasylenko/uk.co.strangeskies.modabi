@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.model;
+package uk.co.strangeskies.modabi.schema.node.building;
 
-import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ModelConfigurator;
 
 public interface ModelBuilder {
 	public ModelConfigurator<Object> configure(DataLoader loader);

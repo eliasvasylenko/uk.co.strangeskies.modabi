@@ -12,7 +12,6 @@ Bundle-Version:					1.0.0.${tstamp}
 	uk.co.strangeskies.modabi.core.api;version=latest,\
 	org.apache.commons:commons-collections4;version=${commons-collections4.version};strategy=exact,\
 	org.apache.commons:commons-proxy;version=${commons-proxy.version};strategy=exact,\
-	org.apache.commons:commons-lang3;version=latest,\
 	org.testng:testng;version=latest,\
 	uk.co.strangeskies.utilities;  \
 		version=latest,  \
@@ -36,7 +35,7 @@ Export-Package: \
 	uk.co.strangeskies.modabi.schema.management.unbinding.impl,\
 	uk.co.strangeskies.modabi.schema.node.building.configuration.impl,\
 	uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities,\
-	uk.co.strangeskies.modabi.schema.node.model.impl,\
+	uk.co.strangeskies.modabi.schema.node.building.impl,\
 	uk.co.strangeskies.modabi.schema.node.type.impl,\
 	uk.co.strangeskies.modabi.schema.node.wrapping.impl
 Bundle-Name: Modabi - Core Provider

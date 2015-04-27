@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface ComplexNodeConfigurator<T> extends

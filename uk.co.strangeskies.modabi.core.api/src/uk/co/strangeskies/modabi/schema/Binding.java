@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 
 public class Binding<T> {
 	private final Model<T> model;

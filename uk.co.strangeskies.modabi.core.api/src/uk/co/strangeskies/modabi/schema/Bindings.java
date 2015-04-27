@@ -24,10 +24,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.co.strangeskies.modabi.schema.management.Models;
 import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.Models;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 

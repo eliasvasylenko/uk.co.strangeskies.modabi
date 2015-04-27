@@ -16,9 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.type;
+package uk.co.strangeskies.modabi.schema.node;
 
-import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface DataBindingType<T> extends

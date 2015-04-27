@@ -19,8 +19,8 @@
 package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.model.Models;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
+import uk.co.strangeskies.modabi.schema.management.DataBindingTypes;
+import uk.co.strangeskies.modabi.schema.management.Models;
 
 public interface Schema {
 	public QualifiedName getQualifiedName();

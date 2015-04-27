@@ -20,9 +20,9 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataNodeConfigurator<T> extends

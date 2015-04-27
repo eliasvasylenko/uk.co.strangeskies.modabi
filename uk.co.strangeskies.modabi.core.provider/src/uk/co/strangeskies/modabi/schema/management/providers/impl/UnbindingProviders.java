@@ -30,7 +30,7 @@ import uk.co.strangeskies.modabi.schema.management.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.TypeComposer;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 
 public class UnbindingProviders {
 	private final BiFunction<DataNode.Effective<?>, Object, DataSource> unbindDataNode;

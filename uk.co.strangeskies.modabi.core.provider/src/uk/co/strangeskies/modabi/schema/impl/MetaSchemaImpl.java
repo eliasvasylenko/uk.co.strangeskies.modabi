@@ -33,6 +33,8 @@ import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Schemata;
+import uk.co.strangeskies.modabi.schema.management.DataBindingTypes;
+import uk.co.strangeskies.modabi.schema.management.Models;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
@@ -42,27 +44,26 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.modabi.schema.node.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.node.building.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.AbstractModelConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.node.model.Models;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypes;
-import uk.co.strangeskies.reflection.TypeLiteral;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private final Schema metaSchema;
@@ -92,15 +93,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("node", namespace)
 				.isAbstract(true)
-				.dataType(new TypeLiteral<SchemaNode<?, ?>>() {})
+				.dataType(new TypeToken<SchemaNode<?, ?>>() {})
 				.addChild(
 						n -> n
 								.inputSequence()
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeLiteral<SchemaNodeConfigurator<?, ?>>() {}
-												.getType()))
+										new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType()))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
 								.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
@@ -128,9 +128,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.baseModel(nodeModel)
 								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 								.bindingType(
-										new TypeLiteral<SchemaNodeConfigurator<?, ?>>() {}
-												.getType())
-								.dataType(new TypeLiteral<ChildNode<?, ?>>() {})
+										new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
+								.dataType(new TypeToken<ChildNode<?, ?>>() {})
 								.outMethodIterable(true).occurrences(Range.create(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
@@ -141,10 +140,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("child", namespace)
 				.baseModel(branchModel)
 				.isAbstract(true)
-				.dataType(new TypeLiteral<ChildNode<?, ?>>() {})
+				.dataType(new TypeToken<ChildNode<?, ?>>() {})
 				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-				.bindingType(
-						new TypeLiteral<SchemaNodeConfigurator<?, ?>>() {}.getType())
+				.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
 				.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
 				.addChild(
 						c -> c
@@ -153,7 +151,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.isAbstract(true)
 								.inMethodChained(true)
 								.postInputType(
-										new TypeLiteral<ChildNodeConfigurator<?, ?>>() {}.getType()))
+										new TypeToken<ChildNodeConfigurator<?, ?>>() {}.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY)
@@ -166,14 +164,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("binding", namespace)
 				.baseModel(branchModel)
 				.isAbstract(true)
-				.dataType(new TypeLiteral<BindingNode<?, ?, ?>>() {})
+				.dataType(new TypeToken<BindingNode<?, ?, ?>>() {})
 				.addChild(
 						c -> c
 								.inputSequence()
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeLiteral<BindingNodeConfigurator<?, ?, ?>>() {}
+										new TypeToken<BindingNodeConfigurator<?, ?, ?>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -209,7 +207,7 @@ public class MetaSchemaImpl implements MetaSchema {
 										o -> o.data().name("element")
 												.type(base.primitiveType(DataType.QUALIFIED_NAME))))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("unbindingFactoryClass")
+						n -> n.data().format(Format.PROPERTY).name("unbindingFactoryType")
 								.optional(true).type(base.derivedTypes().classType())).create();
 		modelSet.add(bindingNodeModel);
 
@@ -218,14 +216,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("input", namespace)
 				.isAbstract(true)
 				.baseModel(childModel)
-				.dataType(new TypeLiteral<InputNode<?, ?>>() {})
+				.dataType(new TypeToken<InputNode<?, ?>>() {})
 				.addChild(
 						c -> c
 								.inputSequence()
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeLiteral<InputNodeConfigurator<?, ?>>() {}.getType()))
+										new TypeToken<InputNodeConfigurator<?, ?>>() {}.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("inMethod")
@@ -244,12 +242,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("bindingChild", namespace)
 				.isAbstract(true)
-				.dataType(new TypeLiteral<BindingChildNode<?, ?, ?>>() {})
+				.dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {})
 				.baseModel(inputModel, bindingNodeModel)
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
 								.postInputType(BindingChildNodeConfigurator.class))
-				.addChild(n -> n.data().name("name"))
+				.addChild(n -> n.data().name("name").dataType(QualifiedName.class))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("extensible")
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
@@ -296,7 +294,9 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataClass(InputSequenceNode.class)
 				.baseModel(inputModel, childModel)
 				.addChild(
-						c -> c.inputSequence().name("configure").inMethod("inputSequence"))
+						c -> c.inputSequence().name("configure").inMethod("inputSequence")
+								.postInputType(InputSequenceNodeConfigurator.class))
+				.addChild(n -> n.data().name("name").dataType(QualifiedName.class))
 				.create();
 		modelSet.add(inputSequenceModel);
 
@@ -305,7 +305,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("abstractModel", namespace)
 				.baseModel(bindingNodeModel)
 				.isAbstract(true)
-				.dataType(new TypeLiteral<AbstractComplexNode<?, ?, ?>>() {})
+				.dataType(new TypeToken<AbstractComplexNode<?, ?, ?>>() {})
 				.addChild(
 						c -> c.inputSequence().name("configure").isAbstract(true)
 								.postInputType(AbstractModelConfigurator.class))
@@ -322,11 +322,12 @@ public class MetaSchemaImpl implements MetaSchema {
 												.data()
 												.name("element")
 												.type(base.derivedTypes().referenceType())
-												.dataType(new TypeLiteral<Model<?>>() {})
+												.dataType(new TypeToken<Model<?>>() {})
 												.addChild(
 														p -> p
 																.data()
 																.name("targetModel")
+																.dataType(new TypeToken<Model<Model<?>>>() {})
 																.provideValue(
 																		new BufferingDataTarget().put(
 																				DataType.QUALIFIED_NAME,
@@ -347,7 +348,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("model", namespace)
 				.baseModel(abstractModelModel)
-				.dataType(new TypeLiteral<Model<?>>() {})
+				.dataType(new TypeToken<Model<?>>() {})
 				.bindingType(ModelBuilder.class)
 				.addChild(
 						c -> c
@@ -365,7 +366,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.name("abstractComplex", namespace)
 				.isAbstract(true)
-				.dataType(new TypeLiteral<ComplexNode<?>>() {})
+				.dataType(new TypeToken<ComplexNode<?>>() {})
 				.baseModel(abstractModelModel, bindingChildNodeModel)
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
@@ -410,7 +411,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.baseModel(bindingChildNodeModel)
 				.name("typedData", namespace)
-				.dataType(new TypeLiteral<DataNode<?>>() {})
+				.dataType(new TypeToken<DataNode<?>>() {})
 				.isAbstract(true)
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
@@ -424,7 +425,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("type")
 								.optional(true)
 								.type(base.derivedTypes().referenceType())
-								.dataType(new TypeLiteral<DataBindingType<?>>() {})
+								.dataType(new TypeToken<DataBindingType<?>>() {})
 								.addChild(
 										p -> p
 												.data()
@@ -521,7 +522,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.configure(loader)
 				.baseModel(bindingNodeModel)
 				.name("type", namespace)
-				.dataType(new TypeLiteral<DataBindingType<?>>() {})
+				.dataType(new TypeToken<DataBindingType<?>>() {})
 				.bindingType(DataBindingTypeBuilder.class)
 				.addChild(
 						c -> c
@@ -543,7 +544,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("baseType")
 								.optional(true)
 								.type(base.derivedTypes().referenceType())
-								.dataType(new TypeLiteral<DataBindingType<?>>() {})
+								.dataType(new TypeToken<DataBindingType<?>>() {})
 								.addChild(
 										p -> p
 												.data()
@@ -581,7 +582,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.complex()
 								.name("dependencies")
 								.occurrences(Range.create(0, 1))
-								.dataType(new TypeLiteral<Set<Schema>>() {})
+								.dataType(new TypeToken<Set<Schema>>() {})
 								.addChild(
 										o -> o
 												.data()
@@ -659,7 +660,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("types")
 								.outMethod("getDataTypes")
 								.occurrences(Range.create(0, 1))
-								.dataType(new TypeLiteral<Set<DataBindingType<?>>>() {})
+								.dataType(new TypeToken<Set<DataBindingType<?>>>() {})
 								.bindingType(LinkedHashSet.class)
 								.addChild(
 										o -> o.complex().baseModel(typeModel).outMethod("this")
@@ -671,7 +672,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.complex()
 								.name("models")
 								.occurrences(Range.create(0, 1))
-								.dataType(new TypeLiteral<Set<Model<?>>>() {})
+								.dataType(new TypeToken<Set<Model<?>>>() {})
 								.bindingType(LinkedHashSet.class)
 								.addChild(
 										o -> o.complex().baseModel(modelModel)

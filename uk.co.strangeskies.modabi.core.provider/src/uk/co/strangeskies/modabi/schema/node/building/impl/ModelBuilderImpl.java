@@ -16,18 +16,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.type.impl;
+package uk.co.strangeskies.modabi.schema.node.building.impl;
 
 import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.ModelConfiguratorImpl;
 
 @Component
-public class DataBindingTypeBuilderImpl implements DataBindingTypeBuilder {
+public class ModelBuilderImpl implements ModelBuilder {
 	@Override
-	public DataBindingTypeConfigurator<Object> configure(DataLoader loader) {
-		return new DataBindingTypeConfiguratorImpl<Object>(loader);
+	public ModelConfigurator<Object> configure(DataLoader loader) {
+		return new ModelConfiguratorImpl<>(loader);
 	}
 }

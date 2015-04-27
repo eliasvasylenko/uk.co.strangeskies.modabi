@@ -32,6 +32,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class SequenceNodeConfiguratorImpl extends
@@ -124,6 +125,11 @@ public class SequenceNodeConfiguratorImpl extends
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public BoundSet boundSet() {
+						return getContext().boundSet();
+					}
+
 					@Override
 					public DataLoader dataLoader() {
 						return getDataLoader();

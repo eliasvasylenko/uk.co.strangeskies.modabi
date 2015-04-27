@@ -25,6 +25,7 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
@@ -41,6 +42,8 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 	boolean isStaticMethodExpected();
 
 	Namespace namespace();
+
+	BoundSet boundSet();
 
 	TypeToken<?> inputTargetType(QualifiedName node);
 

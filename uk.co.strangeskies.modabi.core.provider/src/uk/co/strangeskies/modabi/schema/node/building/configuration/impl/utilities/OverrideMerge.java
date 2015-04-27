@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities;
 
-import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -95,7 +95,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 			Function<S, T> valueFunction,
 			BiPredicate<? super T, ? super T> validateOverride) {
 		@SuppressWarnings("unchecked")
-		Collection<T> values = configurator.getOverriddenNodes().stream()
+		Set<T> values = configurator.getOverriddenNodes().stream()
 				.map(n -> valueFunction.apply((S) n.effective()))
 				.filter(Objects::nonNull).collect(Collectors.toSet());
 

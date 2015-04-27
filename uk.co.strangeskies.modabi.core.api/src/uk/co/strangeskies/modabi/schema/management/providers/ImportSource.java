@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.schema.management.providers;
 
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 
 public interface ImportSource {
 	<T> T importObject(Model<T> model, QualifiedName idDomain, DataSource id);

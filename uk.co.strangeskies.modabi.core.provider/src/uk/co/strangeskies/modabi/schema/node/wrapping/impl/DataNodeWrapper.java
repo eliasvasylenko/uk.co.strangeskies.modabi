@@ -23,8 +23,8 @@ import java.util.List;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public final class DataNodeWrapper<T>

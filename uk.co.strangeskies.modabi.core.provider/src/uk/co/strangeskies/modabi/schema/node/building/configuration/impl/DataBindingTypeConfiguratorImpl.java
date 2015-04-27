@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.type.impl;
+package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,12 +24,10 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
-import uk.co.strangeskies.reflection.TypeLiteral;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataBindingTypeConfiguratorImpl<T>
@@ -153,7 +151,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@Override
 	protected TypeToken<DataBindingType<T>> getNodeClass() {
-		return new TypeLiteral<DataBindingType<T>>() {};
+		return new TypeToken<DataBindingType<T>>() {};
 	}
 
 	@Override

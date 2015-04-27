@@ -20,25 +20,24 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilit
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class Methods {
-	public static <T> Invokable<T, ?> findConstructor(TypeToken<T> receiver,
-			TypeToken<?>... parameters) throws NoSuchMethodException {
+	public static <T> Invokable<? super T, ? extends T> findConstructor(
+			TypeToken<T> receiver, TypeToken<?>... parameters)
+			throws NoSuchMethodException {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
-	public static <T> Invokable<T, ? extends T> findConstructor(
+	public static <T> Invokable<? super T, ? extends T> findConstructor(
 			TypeToken<T> receiver, List<TypeToken<?>> parameters)
 			throws NoSuchMethodException {
-		Invokable<T, ? extends T> constructor;
+		Invokable<? super T, ? extends T> constructor;
 		try {
-			constructor = receiver.resolveConstructorOverload(parameters.stream()
-					.map(TypeToken::getType).collect(Collectors.toList()));
+			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot find constructor for class '"
 					+ receiver + "' with parameters '" + parameters + "'.", e);
@@ -64,10 +63,7 @@ public class Methods {
 		Exception exception = null;
 		for (String name : names) {
 			try {
-				method = receiver.resolveMethodOverload(
-						name,
-						parameters.stream().map(TypeToken::getType)
-								.collect(Collectors.toList()));
+				method = receiver.resolveMethodOverload(name, parameters);
 				break;
 			} catch (Exception e) {
 				exception = e;

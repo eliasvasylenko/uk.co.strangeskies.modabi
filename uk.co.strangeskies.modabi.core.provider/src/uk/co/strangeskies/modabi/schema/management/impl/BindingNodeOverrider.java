@@ -33,26 +33,26 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.modabi.schema.node.building.ChildBuilder;
+import uk.co.strangeskies.modabi.schema.node.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.node.building.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.node.model.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeConfigurator;
 
 public class BindingNodeOverrider {
 	public <T> ComplexNode.Effective<T> override(ModelBuilder builder,

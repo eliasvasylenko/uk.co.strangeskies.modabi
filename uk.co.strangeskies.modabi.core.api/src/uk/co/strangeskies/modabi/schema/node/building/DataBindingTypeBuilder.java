@@ -16,25 +16,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.node.model;
+package uk.co.strangeskies.modabi.schema.node.building;
 
-import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.DataBindingTypeConfigurator;
 
-public interface Model<T> extends
-		AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
-	interface Effective<T> extends Model<T>,
-			AbstractComplexNode.Effective<T, Model<T>, Effective<T>> {
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<Effective<T>> getEffectiveClass() {
-		return (Class) Effective.class;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<Model<T>> getNodeClass() {
-		return (Class) Model.class;
-	}
+public interface DataBindingTypeBuilder {
+	public DataBindingTypeConfigurator<Object> configure(DataLoader loader);
 }

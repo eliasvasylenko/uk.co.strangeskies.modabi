@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 
 public class DataBindingTypeWrapper<T>
 		extends

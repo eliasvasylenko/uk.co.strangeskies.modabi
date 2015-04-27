@@ -38,10 +38,10 @@ import uk.co.strangeskies.modabi.schema.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode.Format;
+import uk.co.strangeskies.modabi.schema.node.Model;
+import uk.co.strangeskies.modabi.schema.node.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.node.building.ModelBuilder;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class CoreSchemata {

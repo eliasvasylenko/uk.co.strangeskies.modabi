@@ -21,10 +21,8 @@ package uk.co.strangeskies.modabi.namespace;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
-import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.collection.decorator.SetDecorator;
 import uk.co.strangeskies.utilities.function.collection.SetTransformationView;
 
@@ -33,15 +31,16 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 	private final LinkedHashMap<QualifiedName, T> elements;
 
 	public QualifiedNamedSet(Function<T, QualifiedName> namingFunction) {
-		super(new IdentityProperty<Set<T>>());
+		this(namingFunction, new LinkedHashMap<>());
+	}
+
+	private QualifiedNamedSet(Function<T, QualifiedName> namingFunction,
+			LinkedHashMap<QualifiedName, T> elements) {
+		super(new SetTransformationView<T, T>(elements.values(),
+				Function.identity()));
 
 		qualifiedNamingFunction = namingFunction;
-		elements = new LinkedHashMap<>();
-
-		getComponentProperty()
-				.set(
-						new SetTransformationView<T, T>(elements.values(), Function
-								.identity()));
+		this.elements = elements;
 	}
 
 	protected Map<QualifiedName, T> getElements() {

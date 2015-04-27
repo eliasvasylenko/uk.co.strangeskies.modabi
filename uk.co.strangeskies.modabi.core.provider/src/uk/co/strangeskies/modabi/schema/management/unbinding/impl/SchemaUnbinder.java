@@ -31,7 +31,7 @@ import uk.co.strangeskies.modabi.schema.management.providers.impl.UnbindingProvi
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class SchemaUnbinder {

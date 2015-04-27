@@ -29,8 +29,8 @@ import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
+import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.type.DataBindingType;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class DataNodeUnbinder {

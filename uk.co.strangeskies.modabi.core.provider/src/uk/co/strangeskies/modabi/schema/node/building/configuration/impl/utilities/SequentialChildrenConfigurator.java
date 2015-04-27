@@ -45,6 +45,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.Complex
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.SequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 /**
@@ -252,6 +253,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		blocked = true;
 
 		SchemaNodeConfigurationContext<ChildNode<?, ?>> context = new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+			@Override
+			public BoundSet boundSet() {
+				return SequentialChildrenConfigurator.this.context.boundSet();
+			}
+
 			@Override
 			public DataLoader dataLoader() {
 				return SequentialChildrenConfigurator.this.context.dataLoader();

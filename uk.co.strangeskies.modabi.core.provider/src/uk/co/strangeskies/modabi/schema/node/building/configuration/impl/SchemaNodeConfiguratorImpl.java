@@ -44,7 +44,6 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenContainer;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
 
@@ -59,8 +58,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			private final QualifiedName name;
 			private final boolean isAbstract;
 			private final List<ChildNode.Effective<?, ?>> children;
-
-			private PropertySet<E> combinedPropertySet;
 
 			protected Effective(
 					OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {

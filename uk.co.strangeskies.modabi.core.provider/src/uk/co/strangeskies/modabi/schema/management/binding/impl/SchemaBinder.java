@@ -37,8 +37,8 @@ import uk.co.strangeskies.modabi.schema.management.providers.ImportSource;
 import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.management.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.management.providers.impl.BindingProviders;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
 
 public class SchemaBinder {
 	private final BindingContextImpl context;

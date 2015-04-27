@@ -43,7 +43,11 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.Types;
+import uk.co.strangeskies.reflection.TypeToken.Wildcards;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
@@ -69,7 +73,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				dataType = inferDataType(overrideMerge);
+				this.dataType = inferDataType(overrideMerge);
 
 				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
 						o) -> TypeToken.of(o).isAssignableFrom(v), dataType == null ? null
@@ -107,11 +111,32 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					unbindingMethodName = unbindingMethod.getName();
 			}
 
-			protected TypeToken<T> inferDataType(
+			@SuppressWarnings("unchecked")
+			private TypeToken<T> inferDataType(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				return overrideMerge.getValue(BindingNode::getDataType,
-						(v, o) -> TypeToken.of(o.getType()).isAssignableFrom(v.getType()),
-						null);
+				TypeToken<T> dataType;
+
+				if (isInferred(overrideMerge)) {
+					dataType = (TypeToken<T>) overrideMerge.configurator()
+							.getInferenceDataType();
+
+					if (dataType != null)
+						dataType = (TypeToken<T>) TypeToken
+								.of(new Resolver(overrideMerge.configurator()
+										.getInferenceBounds()), dataType.getType()).infer();
+				} else {
+					dataType = overrideMerge.getValue(BindingNode::getDataType,
+							TypeToken::isAssignableTo, null);
+				}
+
+				System.out.println("    ####   " + dataType + " @ " + getName());
+
+				return dataType;
+			}
+
+			protected boolean isInferred(
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+				return !isAbstract();
 			}
 
 			@Override
@@ -258,7 +283,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 								classList.add(nodeClass.apply(this));
 							}
 						else {
-							classList.add(TypeToken.of(parameter.getDataType().getType()));
+							classList.add(parameter.getDataType());
 						}
 					}
 				}
@@ -399,6 +424,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	private TypeToken<T> dataType;
+	private TypeToken<T> inferenceDataType;
+	private BoundSet inferenceBounds = new BoundSet();
 
 	private BindingStrategy bindingStrategy;
 	private Type bindingClass;
@@ -411,32 +438,54 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	private List<QualifiedName> unbindingParameterNames;
 
+	protected final BoundSet getInferenceBounds() {
+		return inferenceBounds;
+	}
+
+	public TypeToken<T> getInferenceDataType() {
+		return inferenceDataType;
+	}
+
+	@SuppressWarnings("unchecked")
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
 		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
-		Type unbindingClass = overrideMerge.getValueWithOverride(
-				this.unbindingClass, BindingNode::getUnbindingType, (o, n) -> TypeToken
-						.of(n).isAssignableFrom(o));
+		Type unbindingClass = overrideMerge
+				.getValueWithOverride(this.unbindingClass,
+						BindingNode::getUnbindingType, Types::isAssignable);
 		Type bindingClass = overrideMerge.getValueWithOverride(this.bindingClass,
-				BindingNode::getBindingType, (o, n) -> TypeToken.of(n)
-						.isAssignableFrom(o));
-		TypeToken<?> dataClass = overrideMerge.getValueWithOverride(
-				this.dataType, BindingNode::getDataType, (o, n) -> {
-					return n.isAssignableFrom(o);
-				});
+				BindingNode::getBindingType, Types::isAssignable);
 
-		TypeToken<?> inputTarget = bindingClass != null ? TypeToken
-				.of(bindingClass) : dataClass;
-		TypeToken<?> outputTarget = unbindingClass != null ? TypeToken
-				.of(unbindingClass) : dataClass;
+		TypeToken<?> dataType = overrideMerge.getValueWithOverride(this.dataType,
+				BindingNode::getDataType, TypeToken::isAssignableTo);
+		if (dataType != null)
+			dataType = TypeToken.of(dataType.getType(), Wildcards.INFERENCE);
+
+		TypeToken<?> inputTarget = bindingClass != null ? TypeToken.of(
+				bindingClass, Wildcards.INFERENCE) : dataType;
+		TypeToken<?> outputTarget = unbindingClass != null ? TypeToken.of(
+				unbindingClass, Wildcards.INFERENCE) : dataType;
+
+		if (dataType != null)
+			inferenceBounds.incorporate(dataType.getResolver().getBounds());
+		if (inputTarget != null && inputTarget != dataType)
+			inferenceBounds.incorporate(inputTarget.getResolver().getBounds());
+		if (outputTarget != null && outputTarget != dataType)
+			inferenceBounds.incorporate(outputTarget.getResolver().getBounds());
+
+		inferenceDataType = (TypeToken<T>) dataType;
 
 		/*
 		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE
 		 */
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					public BoundSet boundSet() {
+						return inferenceBounds;
+					}
+
 					@Override
 					public DataLoader dataLoader() {
 						return getDataLoader();

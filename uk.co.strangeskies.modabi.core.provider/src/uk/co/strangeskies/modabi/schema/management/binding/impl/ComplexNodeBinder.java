@@ -26,8 +26,8 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
-import uk.co.strangeskies.modabi.schema.node.model.Model;
-import uk.co.strangeskies.modabi.schema.node.model.Model.Effective;
+import uk.co.strangeskies.modabi.schema.node.Model;
+import uk.co.strangeskies.modabi.schema.node.Model.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeBinder {
