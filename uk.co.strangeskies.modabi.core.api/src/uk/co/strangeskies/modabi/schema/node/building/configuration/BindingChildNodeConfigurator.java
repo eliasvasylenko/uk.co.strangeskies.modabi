@@ -26,6 +26,8 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 		ChildNodeConfigurator<S, N> {
 	public S outMethod(String methodName);
 
+	public S outMethodUnchecked(boolean unchecked);
+
 	public S outMethodIterable(boolean iterable);
 
 	public S occurrences(Range<Integer> occuranceRange);

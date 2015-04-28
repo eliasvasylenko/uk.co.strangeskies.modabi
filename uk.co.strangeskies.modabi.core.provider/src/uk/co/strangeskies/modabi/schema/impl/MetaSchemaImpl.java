@@ -234,7 +234,10 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("inMethodChained")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("isInMethodCast")
+						n -> n.data().format(Format.PROPERTY).name("inMethodCast")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("inMethodUnchecked")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.create();
 		modelSet.add(inputModel);
@@ -269,6 +272,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.primitiveType(DataType.STRING)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethodIterable")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("outMethodUnchecked")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.create();
 		modelSet.add(bindingChildNodeModel);
@@ -386,7 +392,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("complex")
 								.inMethodChained(true)
 								.postInputType(
-										new TypeToken<ComplexNodeConfigurator<Object>>() {}.getType()))
+										new TypeToken<ComplexNodeConfigurator<Object>>() {}
+												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						c -> c.data().name("inline").isAbstract(true).optional(true)

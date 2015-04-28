@@ -129,6 +129,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
+	public Boolean isUnbindingMethodUnchecked() {
+		return component.isUnbindingMethodUnchecked();
+	}
+
+	@Override
 	public final Executable getUnbindingMethod() {
 		return component.getUnbindingMethod();
 	}

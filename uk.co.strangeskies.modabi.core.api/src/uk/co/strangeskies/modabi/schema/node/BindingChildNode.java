@@ -48,6 +48,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 			BindingChildNode.class).add(BindingNode.PROPERTY_SET)
 			.add(BindingChildNode::getOutMethodName)
 			.add(BindingChildNode::isOutMethodIterable)
+			.add(BindingChildNode::isOutMethodUnchecked)
 			.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
 			.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
 			.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
@@ -56,6 +57,8 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	public default PropertySet<? super S> propertySet() {
 		return PROPERTY_SET;
 	}
+
+	Boolean isOutMethodUnchecked();
 
 	String getOutMethodName();
 

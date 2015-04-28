@@ -100,7 +100,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.inMethodChained(false).outMethodIterable(true))
 					.addChild(
 							c -> c.inputSequence().name("toArray").inMethodChained(true)
-									.isInMethodCast(true)).create());
+									.inMethodCast(true)).create());
 
 			typeSet.add(collectionType = builder
 					.configure(loader)
@@ -206,6 +206,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingFactoryType(ReferenceTarget.class)
 							.unbindingType(DataSource.class)
 							.unbindingMethod("dereference")
+							.unbindingMethodUnchecked(true)
 							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 							.providedUnbindingMethodParameters("targetModel", "targetId",
 									"this")
@@ -224,6 +225,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.inputSequence()
 											.name("reference")
 											.inMethodChained(true)
+											.inMethodUnchecked(true)
 											.addChild(
 													d -> d
 															.data()
@@ -241,7 +243,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.postInputType(
 																					new TypeToken<DataBindingType.Effective<?>>() {}
 																							.getType())
-																			.isInMethodCast(true)
+																			.inMethodCast(true)
 																			.outMethod("null")
 																			.type(primitives.get(DataType.INT))
 																			.provideValue(
@@ -263,7 +265,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																									namespace)).buffer())
 																			.postInputType(
 																					new TypeToken<DataNode.Effective<?>>() {}
-																							.getType()).isInMethodCast(true))
+																							.getType()).inMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -284,7 +286,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.postInputType(
 																					DataBindingType.Effective.class)
 																			.type(primitives.get(DataType.INT))
-																			.isInMethodCast(true)
+																			.inMethodCast(true)
 																			.outMethod("null")
 																			.provideValue(
 																					new BufferingDataTarget().put(
@@ -304,7 +306,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							new QualifiedName("targetId",
 																									namespace)).buffer())
 																			.postInputType(DataNode.Effective.class)
-																			.isInMethodCast(true))
+																			.inMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
@@ -379,7 +381,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.bindingType(Types.class)
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
-									.inMethod("fromString").isInMethodCast(true)).create());
+									.inMethod("fromString").inMethodCast(true)).create());
 
 			typeSet.add(typeType = builder
 					.configure(loader)
@@ -420,7 +422,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.inMethodChained(true)
 																			.postInputType(
 																					new TypeToken<DataBindingType.Effective<?>>() {}
-																							.getType()).isInMethodCast(true))
+																							.getType()).inMethodCast(true))
 															.addChild(
 																	p -> p.inputSequence().name("getDataType")
 																			.inMethodChained(true)))
@@ -457,7 +459,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.inMethodChained(true)
 																			.postInputType(
 																					DataBindingType.Effective.class)
-																			.isInMethodCast(true))
+																			.inMethodCast(true))
 															.addChild(
 																	p -> p.inputSequence().name("getDataType")
 																			.inMethodChained(true)))
@@ -487,6 +489,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 							.unbindingMethod("include")
 							.providedUnbindingMethodParameters("targetModel", "this")
+							.unbindingMethodUnchecked(true)
 							.isAbstract(true)
 							.addChild(
 									c -> c.data().name("targetModel").isAbstract(true)
@@ -506,6 +509,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.inputSequence()
 															.name("include")
 															.inMethod("include")
+															.inMethodUnchecked(true)
 															.addChild(
 																	e -> e
 																			.data()
@@ -545,7 +549,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																											.buffer())
 																							.postInputType(
 																									DataNode.Effective.class)
-																							.isInMethodCast(true))
+																							.inMethodCast(true))
 																			.addChild(
 																					f -> f.inputSequence()
 																							.name("providedValue")
@@ -594,6 +598,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.unbindingType(DataSource.class)
 											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 											.unbindingMethod("dereferenceImport")
+											.unbindingMethodUnchecked(true)
 											.providedUnbindingMethodParameters("targetModel",
 													"targetId", "this")
 											.addChild(
@@ -639,6 +644,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.inputSequence()
 															.name("importObject")
 															.inMethodChained(true)
+															.inMethodUnchecked(true)
 															.addChild(
 																	d -> d
 																			.data()
@@ -680,7 +686,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																											.buffer())
 																							.postInputType(
 																									DataNode.Effective.class)
-																							.isInMethodCast(true))
+																							.inMethodCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
 																							.name("providedValue")
@@ -726,7 +732,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																											.buffer())
 																							.postInputType(
 																									DataNode.Effective.class)
-																							.isInMethodCast(true))
+																							.inMethodCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
 																							.name("providedValue")

@@ -44,12 +44,14 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 	static final PropertySet<InputNode> PROPERTY_SET = new PropertySet<>(
 			InputNode.class).add(ChildNode.PROPERTY_SET)
 			.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
-			.add(InputNode::isInMethodCast);
+			.add(InputNode::isInMethodUnchecked).add(InputNode::isInMethodCast);
 
 	@Override
 	default PropertySet<? super S> propertySet() {
 		return PROPERTY_SET;
 	}
+
+	Boolean isInMethodUnchecked();
 
 	String getInMethodName();
 

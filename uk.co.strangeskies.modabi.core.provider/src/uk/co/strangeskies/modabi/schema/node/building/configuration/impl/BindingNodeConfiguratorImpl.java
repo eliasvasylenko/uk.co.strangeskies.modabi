@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -65,6 +66,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final BindingStrategy bindingStrategy;
 			private final UnbindingStrategy unbindingStrategy;
 			private String unbindingMethodName;
+			private final Boolean unbindingMethodUnchecked;
 			private final Method unbindingMethod;
 
 			private final List<QualifiedName> providedUnbindingParameterNames;
@@ -104,7 +106,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				unbindingMethodName = overrideMerge
 						.tryGetValue(BindingNode::getUnbindingMethodName);
 
-				unbindingMethod = isAbstract() ? null : findUnbindingMethod();
+				unbindingMethodUnchecked = overrideMerge
+						.tryGetValue(BindingNode::isUnbindingMethodUnchecked);
+
+				unbindingMethod = isAbstract() ? null
+						: findUnbindingMethod(overrideMerge);
 
 				if (unbindingMethodName == null && !isAbstract()
 						&& unbindingStrategy != UnbindingStrategy.SIMPLE
@@ -184,6 +190,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
+			public Boolean isUnbindingMethodUnchecked() {
+				return unbindingMethodUnchecked;
+			}
+
+			@Override
 			public String getUnbindingMethodName() {
 				return unbindingMethodName;
 			}
@@ -198,7 +209,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				return providedUnbindingParameterNames;
 			}
 
-			private Method findUnbindingMethod() {
+			private Method findUnbindingMethod(
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				UnbindingStrategy unbindingStrategy = getUnbindingStrategy();
 				if (unbindingStrategy == null)
 					unbindingStrategy = UnbindingStrategy.SIMPLE;
@@ -214,17 +226,19 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 							: getUnbindingType();
 					return findUnbindingMethod(TypeToken.of(getUnbindingType()),
 							TypeToken.of(receiverClass),
-							findUnbindingMethodParameterClasses(BindingNode::getDataType));
+							findUnbindingMethodParameterClasses(BindingNode::getDataType),
+							overrideMerge);
 
 				case PASS_TO_PROVIDED:
 					return findUnbindingMethod(null, TypeToken.of(getUnbindingType()),
-							findUnbindingMethodParameterClasses(BindingNode::getDataType));
+							findUnbindingMethodParameterClasses(BindingNode::getDataType),
+							overrideMerge);
 
 				case ACCEPT_PROVIDED:
 					return findUnbindingMethod(null,
 							TypeToken.of(getDataType().getType()),
 							findUnbindingMethodParameterClasses(t -> TypeToken.of(t
-									.getUnbindingType())));
+									.getUnbindingType())), overrideMerge);
 				}
 				throw new AssertionError();
 			}
@@ -302,8 +316,29 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				return classList;
 			}
 
-			private Method findUnbindingMethod(TypeToken<?> result,
-					TypeToken<?> receiver, List<TypeToken<?>> parameters) {
+			private Method findUnbindingMethod(
+					TypeToken<?> result,
+					TypeToken<?> receiver,
+					List<TypeToken<?>> parameters,
+					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+				Executable overridden = overrideMerge.tryGetValue(b -> b.effective()
+						.getUnbindingMethod());
+				if (overridden != null)
+					; // TODO
+
+				if (isUnbindingMethodUnchecked() != null
+						&& isUnbindingMethodUnchecked()) {
+					if (result != null)
+						result = TypeToken.of(result.getRawType());
+					if (receiver != null)
+						receiver = TypeToken.of(receiver.getRawType());
+					parameters = parameters
+							.stream()
+							.map(
+									t -> t == null ? null : (TypeToken<?>) TypeToken.of(t
+											.getRawType())).collect(Collectors.toList());
+				}
+
 				List<String> names = generateUnbindingMethodNames(result);
 				try {
 					return (Method) Methods.findMethod(names, receiver,
@@ -371,6 +406,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		private final BindingStrategy bindingStrategy;
 		private final UnbindingStrategy unbindingStrategy;
 		private final String unbindingMethodName;
+		private final Boolean unbindingMethodUnchecked;
 
 		private final List<QualifiedName> unbindingParameterNames;
 
@@ -385,6 +421,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingStrategy = configurator.unbindingStrategy;
 			unbindingClass = configurator.unbindingClass;
 			unbindingMethodName = configurator.unbindingMethod;
+			unbindingMethodUnchecked = configurator.unbindingMethodUnchecked;
 			unbindingFactoryClass = configurator.unbindingFactoryClass;
 			unbindingParameterNames = configurator.unbindingParameterNames == null ? null
 					: Collections.unmodifiableList(new ArrayList<>(
@@ -427,6 +464,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
+		public Boolean isUnbindingMethodUnchecked() {
+			return unbindingMethodUnchecked;
+		}
+
+		@Override
 		public List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
 			return unbindingParameterNames;
 		}
@@ -442,6 +484,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	private UnbindingStrategy unbindingStrategy;
 	private Type unbindingClass;
 	private String unbindingMethod;
+	private Boolean unbindingMethodUnchecked;
 
 	private Type unbindingFactoryClass;
 
@@ -591,6 +634,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	public S unbindingMethod(String unbindingMethod) {
 		assertConfigurable(this.unbindingMethod);
 		this.unbindingMethod = unbindingMethod;
+
+		return getThis();
+	}
+
+	@Override
+	public S unbindingMethodUnchecked(boolean unchecked) {
+		assertConfigurable(this.unbindingMethodUnchecked);
+		this.unbindingMethodUnchecked = unchecked;
 
 		return getThis();
 	}

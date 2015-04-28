@@ -183,6 +183,8 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.getUnbindingFactoryType(), c::unbindingFactoryType,
 					c);
 			c = tryProperty(node.getUnbindingMethodName(), c::unbindingMethod, c);
+			c = tryProperty(node.isUnbindingMethodUnchecked(),
+					c::unbindingMethodUnchecked, c);
 			c = tryProperty(node.getUnbindingStrategy(), c::unbindingStrategy, c);
 			c = tryProperty(node.getProvidedUnbindingMethodParameterNames(),
 					c::providedUnbindingMethodParameters, c);
@@ -194,6 +196,7 @@ public class BindingNodeOverrider {
 				BindingChildNode<U, ?, ?> node, C c) {
 			c = tryProperty(node.getOutMethodName(), c::outMethod, c);
 			c = tryProperty(node.isOutMethodIterable(), c::outMethodIterable, c);
+			c = tryProperty(node.isOutMethodUnchecked(), c::outMethodUnchecked, c);
 			c = tryProperty(node.occurrences(), c::occurrences, c);
 			c = tryProperty(node.isOrdered(), c::ordered, c);
 
@@ -202,7 +205,8 @@ public class BindingNodeOverrider {
 
 		public <U, C extends InputNodeConfigurator<C, ?>> C processInputNode(
 				InputNode<?, ?> node, C c) {
-			c = tryProperty(node.isInMethodCast(), c::isInMethodCast, c);
+			c = tryProperty(node.isInMethodCast(), c::inMethodCast, c);
+			c = tryProperty(node.isInMethodUnchecked(), c::inMethodUnchecked, c);
 			c = tryProperty(node.getInMethodName(), c::inMethod, c);
 			c = tryProperty(node.isInMethodChained(), c::inMethodChained, c);
 			c = tryProperty(node.getPostInputType(), c::postInputType, c);

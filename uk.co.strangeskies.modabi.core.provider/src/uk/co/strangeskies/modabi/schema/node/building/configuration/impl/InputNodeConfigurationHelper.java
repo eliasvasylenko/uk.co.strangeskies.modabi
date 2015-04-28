@@ -42,6 +42,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	private final Invokable<?, ?> inMethod;
 	private final Boolean inMethodChained;
 	private final Boolean allowInMethodResultCast;
+	private final Boolean inMethodUnchecked;
 
 	private final Type preInputType;
 	private final Type postInputType;
@@ -58,8 +59,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		this.overrideMerge = overrideMerge;
 		this.context = context;
 
-		inMethodChained = determineInMethodChained();
-		allowInMethodResultCast = determineInMethodCast();
+		inMethodChained = overrideMerge.getValue(InputNode::isInMethodChained,
+				false);
+		inMethodUnchecked = overrideMerge.getValue(InputNode::isInMethodUnchecked,
+				false);
+		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
+				: overrideMerge.getValue(InputNode::isInMethodCast, false);
+
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
 		preInputType = preInputType() == null ? null : preInputType().getType();
@@ -72,6 +78,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	public Boolean isInMethodCast() {
 		return allowInMethodResultCast;
+	}
+
+	public Boolean isInMethodUnchecked() {
+		return inMethodUnchecked;
 	}
 
 	public Invokable<?, ?> getInMethod() {
@@ -90,20 +100,23 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethodName;
 	}
 
-	private Boolean determineInMethodChained() {
-		return overrideMerge.getValue(InputNode::isInMethodChained, false);
-	}
-
-	private Boolean determineInMethodCast() {
-		return inMethodChained != null && !inMethodChained ? null : overrideMerge
-				.getValue(InputNode::isInMethodCast, false);
-	}
-
 	private TypeToken<?> inputTargetClass() {
 		return context.inputTargetType(name);
 	}
 
 	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
+		/*
+		 * TODO
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 * 
+		 * TODO When overriding nodes with an existing inMethod, don't bother trying
+		 * to resolve the overload again!!!!!! Just use it and check for
+		 * applicability.
+		 */
 		String overriddenInMethodName = overrideMerge
 				.tryGetValue(InputNode::getInMethodName);
 
@@ -139,7 +152,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
 
-				//inMethod = inMethod.inferParameterTypes().infer();
+				// inMethod = inMethod.inferParameterTypes().infer();
 
 				System.out.println(inMethod);
 

@@ -54,6 +54,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	S unbindingMethod(String unbindingMethod);
 
+	S unbindingMethodUnchecked(boolean unchecked);
+
 	S providedUnbindingMethodParameters(List<QualifiedName> parameterNames);
 
 	default S providedUnbindingMethodParameters(QualifiedName... parameterNames) {

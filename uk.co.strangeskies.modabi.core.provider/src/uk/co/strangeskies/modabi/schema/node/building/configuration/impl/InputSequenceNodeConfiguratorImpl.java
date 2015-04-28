@@ -58,6 +58,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 			private final Executable inMethod;
 			private final Boolean inMethodChained;
 			private final Boolean allowInMethodResultCast;
+			private final Boolean inMethodUnchecked;
 
 			private final Type preInputClass;
 			private final Type postInputClass;
@@ -84,6 +85,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
+				inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
 				inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper
 						.getInMethod().getExecutable() : null;
 				inMethodName = inputNodeHelper.getInMethodName();
@@ -112,6 +114,11 @@ public class InputSequenceNodeConfiguratorImpl extends
 			}
 
 			@Override
+			public Boolean isInMethodUnchecked() {
+				return inMethodUnchecked;
+			}
+
+			@Override
 			public Type getPostInputType() {
 				return postInputClass;
 			}
@@ -128,6 +135,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
+		private final Boolean inMethodUnchecked;
 
 		public InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
@@ -136,6 +144,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
 			allowInMethodResultCast = configurator.allowInMethodResultCast;
+			inMethodUnchecked = configurator.inMethodUnchecked;
 
 			effective = new Effective(overrideMerge(this, configurator));
 		}
@@ -156,6 +165,11 @@ public class InputSequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
+		public Boolean isInMethodUnchecked() {
+			return inMethodUnchecked;
+		}
+
+		@Override
 		public Effective effective() {
 			return effective;
 		}
@@ -169,6 +183,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	private String inMethodName;
 	private Boolean inMethodChained;
 	private Boolean allowInMethodResultCast;
+	private Boolean inMethodUnchecked;
 
 	public InputSequenceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super InputSequenceNode> parent) {
@@ -201,12 +216,20 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator isInMethodCast(
+	public InputSequenceNodeConfigurator inMethodCast(
 			boolean allowInMethodResultCast) {
 		assertConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
 
 		return this;
+	}
+
+	@Override
+	public final InputSequenceNodeConfigurator inMethodUnchecked(boolean unchecked) {
+		assertConfigurable(inMethodUnchecked);
+		inMethodUnchecked = unchecked;
+
+		return getThis();
 	}
 
 	@Override

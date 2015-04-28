@@ -54,11 +54,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Boolean iterable;
 			private String outMethodName;
 			private final Method outMethod;
+			private final Boolean outMethodUnchecked;
 
 			private String inMethodName;
 			private final Executable inMethod;
 			private final Boolean inMethodChained;
 			private final Boolean allowInMethodResultCast;
+			private final Boolean inMethodUnchecked;
 
 			private final Boolean extensible;
 			private final Boolean ordered;
@@ -88,6 +90,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				iterable = overrideMerge.getValue(
 						BindingChildNode::isOutMethodIterable, false);
 
+				outMethodUnchecked = overrideMerge.getValue(
+						BindingChildNode::isOutMethodUnchecked, false);
+
 				outMethodName = overrideMerge
 						.tryGetValue(BindingChildNode::getOutMethodName);
 
@@ -112,6 +117,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
+				inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
 				inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper
 						.getInMethod().getExecutable() : null;
 				inMethodName = inputNodeHelper.getInMethodName();
@@ -173,6 +179,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
+			public Boolean isOutMethodUnchecked() {
+				return outMethodUnchecked;
+			}
+
+			@Override
 			public final String getInMethodName() {
 				return inMethodName;
 			}
@@ -192,6 +203,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				return allowInMethodResultCast;
 			}
 
+			@Override
+			public Boolean isInMethodUnchecked() {
+				return inMethodUnchecked;
+			}
+
 			private static <U> TypeToken<Iterable<U>> getIteratorType(
 					TypeToken<U> type) {
 				return new TypeToken<Iterable<U>>() {}.withTypeArgument(
@@ -201,6 +217,19 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			protected static Invokable<?, ?> getOutMethod(
 					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
 					TypeToken<?> targetClass, BoundSet bounds) {
+				/*
+				 * TODO
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * TODO When overriding nodes with an existing outMethod, don't bother
+				 * trying to resolve the overload again!!!!!! Just use it and check for
+				 * applicability.
+				 */
+
 				try {
 					TypeToken<?> resultClass = ((node.isOutMethodIterable() != null && node
 							.isOutMethodIterable()) ? getIteratorType(node.getDataType())
@@ -273,11 +302,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		private final Range<Integer> occurrences;
 
 		private final Boolean iterable;
+		private final Boolean outMethodUnchecked;
 		private final String outMethodName;
 
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
+		private final Boolean inMethodUnchecked;
 
 		private final Boolean extensible;
 		private final Boolean ordered;
@@ -291,11 +322,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			ordered = configurator.ordered;
 			occurrences = configurator.occurrences;
 			iterable = configurator.iterable;
+			outMethodUnchecked = configurator.outMethodUnchecked;
 			outMethodName = configurator.outMethodName;
 
 			inMethodName = configurator.inMethodName;
 			inMethodChained = configurator.inMethodChained;
 			allowInMethodResultCast = configurator.allowInMethodResultCast;
+			inMethodUnchecked = configurator.inMethodUnchecked;
 		}
 
 		@Override
@@ -324,6 +357,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
+		public Boolean isOutMethodUnchecked() {
+			return outMethodUnchecked;
+		}
+
+		@Override
 		public final String getInMethodName() {
 			return inMethodName;
 		}
@@ -339,6 +377,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
+		public Boolean isInMethodUnchecked() {
+			return inMethodUnchecked;
+		}
+
+		@Override
 		public Type getPostInputType() {
 			return postInputClass;
 		}
@@ -349,10 +392,12 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Type postInputClass;
 	private Range<Integer> occurrences;
 	private Boolean iterable;
+	private Boolean outMethodUnchecked;
 	private String outMethodName;
 	private String inMethodName;
 	private Boolean inMethodChained;
 	private Boolean allowInMethodResultCast;
+	private Boolean inMethodUnchecked;
 	private Boolean extensible;
 	private Boolean ordered;
 
@@ -411,9 +456,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public final S isInMethodCast(boolean allowInMethodResultCast) {
+	public final S inMethodCast(boolean allowInMethodResultCast) {
 		assertConfigurable(this.allowInMethodResultCast);
 		this.allowInMethodResultCast = allowInMethodResultCast;
+
+		return getThis();
+	}
+
+	@Override
+	public final S inMethodUnchecked(boolean unchecked) {
+		assertConfigurable(inMethodUnchecked);
+		inMethodUnchecked = unchecked;
 
 		return getThis();
 	}
@@ -429,6 +482,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	public final S outMethodIterable(boolean iterable) {
 		assertConfigurable(this.iterable);
 		this.iterable = iterable;
+		return getThis();
+	}
+
+	@Override
+	public S outMethodUnchecked(boolean unchecked) {
+		assertConfigurable(this.outMethodUnchecked);
+		this.outMethodUnchecked = unchecked;
 		return getThis();
 	}
 

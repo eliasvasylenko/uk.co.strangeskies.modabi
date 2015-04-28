@@ -56,6 +56,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 			.add(BindingNode::getBindingStrategy).add(BindingNode::getBindingType)
 			.add(BindingNode::getUnbindingStrategy)
 			.add(BindingNode::getUnbindingType)
+			.add(BindingNode::isUnbindingMethodUnchecked)
 			.add(BindingNode::getUnbindingMethodName)
 			.add(BindingNode::getUnbindingFactoryType)
 			.add(BindingNode::getProvidedUnbindingMethodParameterNames);
@@ -76,6 +77,8 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 	Type getUnbindingType();
 
 	String getUnbindingMethodName();
+
+	Boolean isUnbindingMethodUnchecked();
 
 	Type getUnbindingFactoryType();
 

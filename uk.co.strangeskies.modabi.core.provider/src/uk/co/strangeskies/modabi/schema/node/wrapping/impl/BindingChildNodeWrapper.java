@@ -63,6 +63,11 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
+	public final Boolean isOutMethodUnchecked() {
+		return getBase() == null ? null : getBase().isOutMethodUnchecked();
+	}
+
+	@Override
 	public final Range<Integer> occurrences() {
 		return getBase() == null ? null : getBase().occurrences();
 	}
@@ -85,6 +90,11 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	@Override
 	public final Boolean isInMethodChained() {
 		return getBase() == null ? null : getBase().isInMethodChained();
+	}
+
+	@Override
+	public final Boolean isInMethodUnchecked() {
+		return getBase() == null ? null : getBase().isInMethodUnchecked();
 	}
 
 	@Override
