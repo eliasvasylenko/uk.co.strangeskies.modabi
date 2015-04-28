@@ -46,6 +46,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeVariableCapture;
 import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.reflection.TypeToken.Wildcards;
 
@@ -120,10 +121,18 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					dataType = (TypeToken<T>) overrideMerge.configurator()
 							.getInferenceDataType();
 
-					if (dataType != null)
+					if (dataType != null) {
+						Resolver resolver = new Resolver(overrideMerge.configurator()
+								.getInferenceBounds());
+
+						TypeVariableCapture.captureInferenceVariables(
+								resolver.getBounds().getInferenceVariablesMentionedBy(
+										resolver.resolveType(dataType.getType())),
+								resolver.getBounds());
+
 						dataType = (TypeToken<T>) TypeToken
-								.of(new Resolver(overrideMerge.configurator()
-										.getInferenceBounds()), dataType.getType()).infer();
+								.of(resolver, dataType.getType());
+					}
 				} else {
 					dataType = overrideMerge.getValue(BindingNode::getDataType,
 							TypeToken::isAssignableTo, null);

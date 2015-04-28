@@ -121,6 +121,70 @@ public class BaseSchemaImpl implements BaseSchema {
 					.isAbstract(true).dataType(new TypeToken<Set<?>>() {})
 					.baseType(collectionType).create());
 
+			System.out.println();
+			System.out.println();
+			System.out.println("next1:");
+			System.out.println();
+			System.out.println();
+			System.out.println();
+
+			builder
+					.configure(loader)
+					.name("whateva", namespace)
+					.dataType(new TypeToken<Set<?>>() {})
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.addChild(
+							c -> c.data().name("ok1")
+									.dataType(new TypeToken<List<String>>() {}).outMethod("null")
+									.inMethod("addAll")).create();
+
+			System.out.println();
+			System.out.println();
+			System.out.println("next2:");
+			System.out.println();
+			System.out.println();
+			System.out.println();
+
+			builder
+					.configure(loader)
+					.name("whatevselse", namespace)
+					.dataType(new TypeToken<Set<?>>() {})
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.addChild(
+							c -> c
+									.data()
+									.name("ok2")
+									.type(listType)
+									.outMethod("null")
+									.inMethod("addAll")
+									.addChild(
+											e -> e.data().name("element")
+													.type(primitives.get(DataType.STRING)))).create();
+			/*-
+			System.out.println();
+			System.out.println();
+			System.out.println("next3:");
+			System.out.println();
+			System.out.println();
+			System.out.println();
+
+			builder
+					.configure(loader)
+					.name("whatevs", namespace)
+					.dataType(new TypeToken<Set<String>>() {})
+					.bindingStrategy(BindingStrategy.PROVIDED)
+					.addChild(
+							c -> c.data().name("ok1").dataType(new TypeToken<List<?>>() {})
+									.outMethod("null").inMethod("addAll")).create();
+			 */
+
+			System.out.println();
+			System.out.println();
+			System.out.println("next4:");
+			System.out.println();
+			System.out.println();
+			System.out.println();
+
 			typeSet.add(bufferedDataType = builder.configure(loader)
 					.name("bufferedData", namespace).dataClass(DataSource.class)
 					.bindingType(DataSource.class)
@@ -268,8 +332,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.name("targetModel")
 															.type(referenceBaseType)
 															.extensible(true)
-															.dataType(new TypeToken<Model<?>>() {})
-															// TODO ABOVE WAS: Model<Model<?>>
+															.dataType(new TypeToken<Model<Model<?>>>() {})
 															.provideValue(
 																	new BufferingDataTarget().put(
 																			DataType.QUALIFIED_NAME,

@@ -139,7 +139,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
 
-				inMethod = inMethod.inferParameterTypes().infer();
+				//inMethod = inMethod.inferParameterTypes().infer();
 
 				System.out.println(inMethod);
 

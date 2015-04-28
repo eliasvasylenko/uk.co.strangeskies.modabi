@@ -34,8 +34,12 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChild
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.ConstraintFormula;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -89,9 +93,15 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				Method overriddenOutMethod = overrideMerge.tryGetValue(n -> n
 						.effective() == null ? null : n.effective().getOutMethod());
-				outMethod = (isAbstract() || "null".equals(outMethodName)) ? null
-						: getOutMethod(this, overriddenOutMethod, overrideMerge
-								.configurator().getContext().outputSourceType());
+
+				Invokable<?, ?> outInvokable = (isAbstract() || "null"
+						.equals(outMethodName)) ? null : getOutMethod(this,
+						overriddenOutMethod, overrideMerge.configurator().getContext()
+								.outputSourceType(), overrideMerge.configurator().getContext()
+								.boundSet());
+
+				outMethod = outInvokable == null ? null : (Method) outInvokable
+						.getExecutable();
 
 				if (outMethodName == null && !isAbstract())
 					outMethodName = outMethod.getName();
@@ -112,12 +122,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			@Override
 			protected boolean isInferred(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+				/*-
 				@SuppressWarnings("unchecked")
 				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> childOverrideMerge = (OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>>) overrideMerge;
-
+				 */
 				return super.isInferred(overrideMerge)
-						&& !childOverrideMerge.configurator().getContext().isAbstract()
-						&& !overrideMerge.getValue(BindingChildNode::isExtensible, false);
+				// && !childOverrideMerge.configurator().getContext().isAbstract()
+				// && !overrideMerge.getValue(BindingChildNode::isExtensible, false)
+				;
 			}
 
 			@Override
@@ -186,15 +198,15 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						new TypeParameter<U>() {}, type);
 			}
 
-			protected static Method getOutMethod(
+			protected static Invokable<?, ?> getOutMethod(
 					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
-					TypeToken<?> targetClass) {
+					TypeToken<?> targetClass, BoundSet bounds) {
 				try {
 					TypeToken<?> resultClass = ((node.isOutMethodIterable() != null && node
 							.isOutMethodIterable()) ? getIteratorType(node.getDataType())
 							: node.getDataType());
 
-					Method outMethod;
+					Invokable<?, ?> outMethod;
 					if (node.getOutMethodName() != null
 							&& node.getOutMethodName().equals("this")) {
 						if (!resultClass.isAssignableFrom(targetClass)
@@ -208,6 +220,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 											+ "' cannot be assigned from target class'" + targetClass
 											+ "'.");
 						outMethod = null;
+
+						bounds.incorporate(targetClass.getResolver().getBounds());
+						ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
+								targetClass.getType(), resultClass.getType(), bounds);
 					} else if (targetClass == null) {
 						if (!node.isAbstract())
 							throw new SchemaException("Can't find out method for node '"
@@ -219,14 +235,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 									+ node.getName() + "' as result class cannot be found.");
 						outMethod = null;
 					} else {
-						outMethod = (Method) Methods.findMethod(
+						outMethod = Methods.findMethod(
 								generateOutMethodNames(node, resultClass.getRawType()),
-								targetClass, false, resultClass, false).getExecutable();
+								targetClass, false, resultClass, false);
 
 						if (inheritedOutMethod != null
-								&& !outMethod.equals(inheritedOutMethod))
+								&& !outMethod.getExecutable().equals(inheritedOutMethod))
 							throw new SchemaException();
 					}
+
+					if (outMethod != null)
+						bounds.incorporate(outMethod.getResolver().getBounds());
 
 					return outMethod;
 				} catch (NoSuchMethodException e) {

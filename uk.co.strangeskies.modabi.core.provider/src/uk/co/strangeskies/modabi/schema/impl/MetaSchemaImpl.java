@@ -59,6 +59,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.AbstractMode
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
@@ -245,9 +246,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {})
 				.baseModel(inputModel, bindingNodeModel)
 				.addChild(
-						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputType(BindingChildNodeConfigurator.class))
-				.addChild(n -> n.data().name("name").dataType(QualifiedName.class))
+						c -> c
+								.inputSequence()
+								.name("configure")
+								.isAbstract(true)
+								.postInputType(
+										new TypeToken<BindingChildNodeConfigurator<?, ?, ?>>() {}
+												.getType()))
+				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("extensible")
 								.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
@@ -296,8 +302,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						c -> c.inputSequence().name("configure").inMethod("inputSequence")
 								.postInputType(InputSequenceNodeConfigurator.class))
-				.addChild(n -> n.data().name("name").dataType(QualifiedName.class))
-				.create();
+				.addChild(n -> n.data().name("name")).create();
 		modelSet.add(inputSequenceModel);
 
 		Model<AbstractComplexNode<?, ?, ?>> abstractModelModel = model
@@ -307,8 +312,13 @@ public class MetaSchemaImpl implements MetaSchema {
 				.isAbstract(true)
 				.dataType(new TypeToken<AbstractComplexNode<?, ?, ?>>() {})
 				.addChild(
-						c -> c.inputSequence().name("configure").isAbstract(true)
-								.postInputType(AbstractModelConfigurator.class))
+						c -> c
+								.inputSequence()
+								.name("configure")
+								.isAbstract(true)
+								.postInputType(
+										new TypeToken<AbstractModelConfigurator<?, ?, Object>>() {}
+												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n
@@ -370,8 +380,13 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(abstractModelModel, bindingChildNodeModel)
 				.addChild(c -> c.inputSequence().name("addChild"))
 				.addChild(
-						c -> c.inputSequence().name("configure").inMethod("complex")
-								.inMethodChained(true))
+						c -> c
+								.inputSequence()
+								.name("configure")
+								.inMethod("complex")
+								.inMethodChained(true)
+								.postInputType(
+										new TypeToken<ComplexNodeConfigurator<Object>>() {}.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						c -> c.data().name("inline").isAbstract(true).optional(true)
