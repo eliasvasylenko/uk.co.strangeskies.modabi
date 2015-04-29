@@ -32,14 +32,14 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		extends SchemaNodeConfigurator<S, N> {
 	default <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
 			Class<V> dataClass) {
-		return (BindingNodeConfigurator<?, ?, V>) dataType(TypeToken.of(dataClass));
+		return (BindingNodeConfigurator<?, ?, V>) dataType(TypeToken.over(dataClass));
 	}
 
 	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<V> dataType);
 
 	@SuppressWarnings("unchecked")
 	default BindingNodeConfigurator<?, ?, ?> dataType(Type dataType) {
-		return dataType((TypeToken<? extends T>) TypeToken.of(dataType));
+		return dataType((TypeToken<? extends T>) TypeToken.over(dataType));
 	}
 
 	S bindingStrategy(BindingStrategy strategy);

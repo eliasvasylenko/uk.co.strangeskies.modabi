@@ -41,7 +41,7 @@ public interface SchemaManager {
 	void registerProvider(Function<TypeToken<?>, ?> provider);
 
 	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
-		registerProvider(TypeToken.of(providedClass), provider);
+		registerProvider(TypeToken.over(providedClass), provider);
 	}
 
 	void registerSchema(Schema schema);
@@ -78,7 +78,7 @@ public interface SchemaManager {
 
 	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
 			StructuredDataSource input) {
-		return bindFuture(TypeToken.of(dataClass), input);
+		return bindFuture(TypeToken.over(dataClass), input);
 	}
 
 	BindingFuture<?> bindFuture(StructuredDataSource input);
@@ -114,7 +114,7 @@ public interface SchemaManager {
 
 	default <T> void unbind(Class<T> dataClass, StructuredDataTarget output,
 			T data) {
-		unbind(TypeToken.of(dataClass), output, data);
+		unbind(TypeToken.over(dataClass), output, data);
 	}
 
 	void unbind(StructuredDataTarget output, Object data);

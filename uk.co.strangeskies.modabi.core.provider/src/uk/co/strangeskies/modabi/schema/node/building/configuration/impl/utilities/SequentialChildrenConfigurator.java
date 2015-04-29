@@ -244,7 +244,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 				effective, childIndex, true);
 
 		inputTarget = effective.getPostInputType() == null ? null : TypeToken
-				.of(effective.getPostInputType());
+				.over(effective.getPostInputType());
 	}
 
 	@Override
@@ -315,8 +315,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 				if (mergeGroup != null) {
 					int index = mergedChildren.indexOf(mergeGroup);
 					if (index > 0)
-						inputTarget = TypeToken.of(mergedChildren.get(index - 1).getChild()
-								.getPostInputType());
+						inputTarget = TypeToken.over(mergedChildren.get(index - 1)
+								.getChild().getPostInputType());
 				}
 
 				return inputTarget;

@@ -138,9 +138,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				if (inMethodChained) {
 					Type resultType = overrideMerge.tryGetValue(
 							InputNode::getPostInputType, Types::isAssignable);
-					result = resultType == null ? null : TypeToken.of(resultType);
+					result = resultType == null ? null : TypeToken.over(resultType);
 					if (result == null)
-						result = TypeToken.of(Object.class);
+						result = TypeToken.over(Object.class);
 				} else
 					result = null;
 
@@ -213,7 +213,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> preInputType() {
 		return (isAbstract || "null".equals(inMethodName)) ? null : TypeToken
-				.of(inMethod.getExecutable().getDeclaringClass());
+				.over(inMethod.getExecutable().getDeclaringClass());
 	}
 
 	private TypeToken<?> postInputType() {
@@ -224,7 +224,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			postInputClass = inputTargetClass();
 		} else if (isAbstract) {
 			postInputClass = overrideMerge.tryGetValue(
-					n -> n.getPostInputType() == null ? null : TypeToken.of(n
+					n -> n.getPostInputType() == null ? null : TypeToken.over(n
 							.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
 		} else {
 			TypeToken<?> methodReturn;
@@ -237,14 +237,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			Type localPostInputClass = overrideMerge.node().getPostInputType();
 
 			if (localPostInputClass == null
-					|| TypeToken.of(localPostInputClass).isAssignableFrom(methodReturn))
+					|| TypeToken.over(localPostInputClass).isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn.getType();
 
-			postInputClass = overrideMerge
-					.getValueWithOverride(
-							TypeToken.of(localPostInputClass),
-							n -> n.getPostInputType() == null ? null : TypeToken.of(n
-									.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
+			postInputClass = overrideMerge.getValueWithOverride(TypeToken
+					.over(localPostInputClass), n -> n.getPostInputType() == null ? null
+					: TypeToken.over(n.getPostInputType()), (n, o) -> o
+					.isAssignableFrom(n));
 		}
 
 		return postInputClass;

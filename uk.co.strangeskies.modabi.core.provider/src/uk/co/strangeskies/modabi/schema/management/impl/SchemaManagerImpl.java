@@ -225,7 +225,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null
-					&& !TypeToken.of(c.getType()).isAssignableFrom(provided.getClass()))
+					&& !TypeToken.over(c.getType()).isAssignableFrom(provided.getClass()))
 				throw new SchemaException("Invalid object provided for the class [" + c
 						+ "] by provider [" + provider + "]");
 			return provided;

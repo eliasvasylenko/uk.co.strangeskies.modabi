@@ -55,12 +55,12 @@ public class SequenceNodeConfiguratorImpl extends
 						.getPreInputType();
 
 				Type postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputType, (n, o) -> TypeToken.of(o)
+						ChildNode::getPostInputType, (n, o) -> TypeToken.over(o)
 								.isAssignableFrom(n));
 				if (postInputClass == null && !isAbstract()) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						if (postInputClass != null
-								&& !TypeToken.of(child.getPreInputType()).isAssignableFrom(
+								&& !TypeToken.over(child.getPreInputType()).isAssignableFrom(
 										postInputClass)) {
 							throw new IllegalArgumentException();
 						}
@@ -116,7 +116,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 	@Override
 	protected TypeToken<SequenceNode> getNodeClass() {
-		return TypeToken.of(SequenceNode.class);
+		return TypeToken.over(SequenceNode.class);
 	}
 
 	@Override

@@ -108,6 +108,6 @@ public class SchemaUnbinder {
 	}
 
 	public <T> void unbind(StructuredDataTarget output, T data) {
-		unbind(output, TypeToken.of(data.getClass()), data);
+		unbind(output, TypeToken.over(data.getClass()), data);
 	}
 }

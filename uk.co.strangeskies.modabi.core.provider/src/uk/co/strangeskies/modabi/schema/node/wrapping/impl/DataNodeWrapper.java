@@ -44,7 +44,7 @@ public final class DataNodeWrapper<T>
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
-					&& !TypeToken.of(component.getDataType().getType()).isAssignableFrom(
+					&& !TypeToken.over(component.getDataType().getType()).isAssignableFrom(
 							providedValue.getClass()))
 				throw new SchemaException(message);
 

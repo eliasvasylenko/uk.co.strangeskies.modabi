@@ -51,32 +51,32 @@ public class ChoiceNodeConfiguratorImpl extends
 					for (ChildNode.Effective<?, ?> child : children()) {
 						Type nextInputClass = child.getPreInputType();
 						if (preInputClass != null)
-							if (TypeToken.of(preInputClass).isAssignableFrom(nextInputClass))
+							if (TypeToken.over(preInputClass).isAssignableFrom(nextInputClass))
 								preInputClass = nextInputClass;
-							else if (!TypeToken.of(nextInputClass).isAssignableFrom(
+							else if (!TypeToken.over(nextInputClass).isAssignableFrom(
 									preInputClass))
 								throw new IllegalArgumentException();
 					}
 				this.preInputClass = preInputClass;
 
 				Type postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputType, (n, o) -> TypeToken.of(o)
+						ChildNode::getPostInputType, (n, o) -> TypeToken.over(o)
 								.isAssignableFrom(n));
 				if (!isAbstract())
 					if (postInputClass == null)
 						for (ChildNode.Effective<?, ?> child : children()) {
 							Type nextOutputClass = child.getPostInputType();
 							if (postInputClass != null)
-								if (TypeToken.of(nextOutputClass).isAssignableFrom(
+								if (TypeToken.over(nextOutputClass).isAssignableFrom(
 										postInputClass))
 									postInputClass = nextOutputClass;
-								else if (!TypeToken.of(postInputClass).isAssignableFrom(
+								else if (!TypeToken.over(postInputClass).isAssignableFrom(
 										nextOutputClass))
 									postInputClass = Object.class;
 						}
 					else
 						for (ChildNode.Effective<?, ?> child : children())
-							if (!TypeToken.of(postInputClass).isAssignableFrom(
+							if (!TypeToken.over(postInputClass).isAssignableFrom(
 									child.getPostInputType()))
 								throw new SchemaException();
 				this.postInputClass = postInputClass;
@@ -157,6 +157,6 @@ public class ChoiceNodeConfiguratorImpl extends
 
 	@Override
 	protected TypeToken<ChoiceNode> getNodeClass() {
-		return TypeToken.of(ChoiceNode.class);
+		return TypeToken.over(ChoiceNode.class);
 	}
 }

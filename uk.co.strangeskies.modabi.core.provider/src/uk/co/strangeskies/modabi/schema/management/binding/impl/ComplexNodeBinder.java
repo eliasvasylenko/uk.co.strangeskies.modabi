@@ -115,7 +115,7 @@ public class ComplexNodeBinder {
 							+ "' to bind to.", context);
 				}
 
-				if (!TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+				if (!TypeToken.over(node.getDataType().getType()).isAssignableFrom(
 						extension.getDataType().getType()))
 					throw new BindingException("Named input node '" + nextElement
 							+ "' does not match class of extention point.", context);

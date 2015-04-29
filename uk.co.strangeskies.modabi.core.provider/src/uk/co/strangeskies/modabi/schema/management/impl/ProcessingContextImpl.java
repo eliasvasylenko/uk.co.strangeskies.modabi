@@ -128,8 +128,8 @@ public abstract class ProcessingContextImpl {
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							n -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
-									TypeToken.of(n.getDataType().getType())))
+							n -> TypeToken.over(node.getDataType().getType()).isAssignableFrom(
+									TypeToken.over(n.getDataType().getType())))
 					.collect(Collectors.toList());
 		else
 			models = manager
@@ -137,7 +137,7 @@ public abstract class ProcessingContextImpl {
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							c -> TypeToken.of(node.getDataType().getType()).isAssignableFrom(
+							c -> TypeToken.over(node.getDataType().getType()).isAssignableFrom(
 									c.getDataType().getType()))
 					.map(m -> (Model.Effective<? extends T>) m)
 					.collect(Collectors.toList());

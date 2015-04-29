@@ -65,7 +65,7 @@ public class BindingNodeUnbinder {
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					Object o = context.provisions().provide(
-							TypeToken.of(node.getUnbindingType()));
+							TypeToken.over(node.getUnbindingType()));
 					invokeMethod((Method) node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
@@ -74,7 +74,7 @@ public class BindingNodeUnbinder {
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					Object o = context.provisions().provide(
-							TypeToken.of(node.getUnbindingType()));
+							TypeToken.over(node.getUnbindingType()));
 					invokeMethod((Method) node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
@@ -94,7 +94,7 @@ public class BindingNodeUnbinder {
 						(Method) node.getUnbindingMethod(),
 						context,
 						context.provisions().provide(
-								TypeToken.of(node.getUnbindingFactoryType())),
+								TypeToken.over(node.getUnbindingFactoryType())),
 						prepareUnbingingParameterList(node, u));
 				break;
 			}

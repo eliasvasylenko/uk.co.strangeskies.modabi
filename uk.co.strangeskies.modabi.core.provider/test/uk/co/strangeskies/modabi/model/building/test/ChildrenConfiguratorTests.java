@@ -139,12 +139,12 @@ public class ChildrenConfiguratorTests {
 
 					@Override
 					public TypeToken<?> inputTargetType(QualifiedName node) {
-						return TypeToken.of(Object.class);
+						return TypeToken.over(Object.class);
 					}
 
 					@Override
 					public TypeToken<?> outputSourceType() {
-						return TypeToken.of(Object.class);
+						return TypeToken.over(Object.class);
 					}
 
 					@Override

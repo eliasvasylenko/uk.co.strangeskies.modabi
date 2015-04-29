@@ -24,12 +24,12 @@ public interface Provisions {
 	<T> T provide(TypeToken<T> type);
 
 	default <T> T provide(Class<T> clazz) {
-		return (T) provide(TypeToken.of(clazz));
+		return (T) provide(TypeToken.over(clazz));
 	}
 
 	boolean isProvided(TypeToken<?> type);
 
 	default boolean isProvided(Class<?> clazz) {
-		return isProvided(TypeToken.of(clazz));
+		return isProvided(TypeToken.over(clazz));
 	}
 }

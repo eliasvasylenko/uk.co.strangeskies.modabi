@@ -234,7 +234,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 	@Override
 	protected TypeToken<InputSequenceNode> getNodeClass() {
-		return TypeToken.of(InputSequenceNode.class);
+		return TypeToken.over(InputSequenceNode.class);
 	}
 
 	@Override

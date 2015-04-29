@@ -70,7 +70,7 @@ public class BindingNodeBinder {
 		case PROVIDED:
 			Type providedType = node.getBindingType() != null ? node.getBindingType()
 					: node.getDataType().getType();
-			binding = context.provide(TypeToken.of(providedType));
+			binding = context.provide(TypeToken.over(providedType));
 
 			break;
 		case CONSTRUCTOR:

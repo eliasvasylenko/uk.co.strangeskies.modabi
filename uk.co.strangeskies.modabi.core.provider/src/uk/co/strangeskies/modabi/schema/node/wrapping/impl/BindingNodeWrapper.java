@@ -49,7 +49,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				+ component.getName() + "'.";
 
 		if (base.getDataType() != null
-				&& !TypeToken.of(base.getDataType().getType()).isAssignableFrom(
+				&& !TypeToken.over(base.getDataType().getType()).isAssignableFrom(
 						component.getDataType().getType()))
 			throw new SchemaException(message);
 
@@ -62,12 +62,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !TypeToken.of(base.getBindingType()).isAssignableFrom(
+				&& !TypeToken.over(base.getBindingType()).isAssignableFrom(
 						component.getBindingType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !TypeToken.of(base.getUnbindingType()).isAssignableFrom(
+				&& !TypeToken.over(base.getUnbindingType()).isAssignableFrom(
 						component.getUnbindingType()))
 			throw new SchemaException(message);
 

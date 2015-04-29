@@ -120,7 +120,7 @@ public class DataNodeBinder {
 		int successfulIndex = 0;
 		try {
 			if (context.provisions().isProvided(DataSource.class))
-				dataSource = context.provide(TypeToken.of(DataSource.class));
+				dataSource = context.provide(TypeToken.over(DataSource.class));
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();
