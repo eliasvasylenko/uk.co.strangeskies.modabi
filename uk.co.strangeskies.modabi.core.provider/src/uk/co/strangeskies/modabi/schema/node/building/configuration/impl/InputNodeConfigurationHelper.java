@@ -154,8 +154,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 				// inMethod = inMethod.inferParameterTypes().infer();
 
-				System.out.println(inMethod);
-
 				context.boundSet().incorporate(inMethod.getResolver().getBounds());
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException("Cannot find input method for node '" + name

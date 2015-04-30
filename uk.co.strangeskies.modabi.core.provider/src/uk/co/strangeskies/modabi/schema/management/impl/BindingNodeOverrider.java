@@ -187,7 +187,7 @@ public class BindingNodeOverrider {
 					c::unbindingMethodUnchecked, c);
 			c = tryProperty(node.getUnbindingStrategy(), c::unbindingStrategy, c);
 			c = tryProperty(node.getProvidedUnbindingMethodParameterNames(),
-					c::providedUnbindingMethodParameters, c);
+					c::providedUnbindingMethodParameters2, c);
 
 			return c;
 		}

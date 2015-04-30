@@ -203,6 +203,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("providedUnbindingMethodParameters")
 								.optional(true)
 								.outMethod("getProvidedUnbindingMethodParameterNames")
+								.inMethod("providedUnbindingMethodParameters2")
 								.type(base.derivedTypes().listType())
 								.addChild(
 										o -> o.data().name("element")
