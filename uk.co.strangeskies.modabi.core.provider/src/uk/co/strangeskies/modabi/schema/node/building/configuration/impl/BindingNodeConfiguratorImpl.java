@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Wildcards;
@@ -136,6 +138,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 								resolver.getBounds());
 
 						dataType = (TypeToken<T>) dataType.withBounds(resolver.getBounds());
+
+						System.out.println();
+						System.out.println(dataType);
+						System.out.println(resolver.getBounds());
 					}
 				} else {
 					dataType = overrideMerge.getValue(BindingNode::getDataType,
@@ -318,7 +324,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					TypeToken<U> receiver,
 					List<TypeToken<?>> parameters,
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				/*-
 				Executable overridden = overrideMerge.tryGetValue(b -> {
 					if (b.effective() != null)
 						return b.effective().getUnbindingMethod();
@@ -335,34 +340,33 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						invokable = invokable.withTargetType(result);
 
 					return (Method) overridden;
-				} else {*/
-				if (isUnbindingMethodUnchecked() != null
-						&& isUnbindingMethodUnchecked()) {
-					if (result != null)
-						result = TypeToken.over(result.getRawType());
-					if (receiver != null)
-						receiver = (TypeToken<U>) TypeToken.over(receiver.getRawType());
-					parameters = parameters
-							.stream()
-							.map(
-									t -> t == null ? null : (TypeToken<?>) TypeToken.over(t
-											.getRawType())).collect(Collectors.toList());
-				}
+				} else {
+					if (isUnbindingMethodUnchecked() != null
+							&& isUnbindingMethodUnchecked()) {
+						if (result != null)
+							result = TypeToken.over(result.getRawType());
+						if (receiver != null)
+							receiver = (TypeToken<U>) TypeToken.over(receiver.getRawType());
+						parameters = parameters
+								.stream()
+								.map(
+										t -> t == null ? null : (TypeToken<?>) TypeToken.over(t
+												.getRawType())).collect(Collectors.toList());
+					}
 
-				List<String> names = generateUnbindingMethodNames(result);
-				try {
-					return (Method) Methods.findMethod(names, receiver,
-							getBindingStrategy() == BindingStrategy.STATIC_FACTORY, result,
-							false, parameters).getExecutable();
-				} catch (NoSuchMethodException | SchemaException | SecurityException e) {
-					throw new SchemaException("Cannot find unbinding method for node '"
-							+ this + "' of class '" + result + "', reveiver '" + receiver
-							+ "', and parameters '" + parameters + "' with any name of '"
-							+ names + "'.", e);
+					List<String> names = generateUnbindingMethodNames(result);
+					try {
+						return (Method) Methods.findMethod(names, receiver,
+								getBindingStrategy() == BindingStrategy.STATIC_FACTORY, result,
+								false, parameters).getExecutable();
+					} catch (NoSuchMethodException | SchemaException | SecurityException e) {
+						throw new SchemaException("Cannot find unbinding method for node '"
+								+ this + "' of class '" + result + "', reveiver '" + receiver
+								+ "', and parameters '" + parameters + "' with any name of '"
+								+ names + "'.", e);
+					}
 				}
 			}
-
-			// }
 
 			private List<String> generateUnbindingMethodNames(TypeToken<?> resultClass) {
 				List<String> names;
@@ -683,7 +687,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public final S providedUnbindingMethodParameters2(
+	public final S providedUnbindingMethodParameters(
 			List<QualifiedName> parameterNames) {
 		assertConfigurable(unbindingParameterNames);
 		unbindingParameterNames = new ArrayList<>(parameterNames);
@@ -693,7 +697,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S providedUnbindingMethodParameters(String... parameterNames) {
-		return providedUnbindingMethodParameters2(Arrays.asList(parameterNames)
+		return providedUnbindingMethodParameters(Arrays.asList(parameterNames)
 				.stream().map(n -> new QualifiedName(n, getName().getNamespace()))
 				.collect(Collectors.toList()));
 	}

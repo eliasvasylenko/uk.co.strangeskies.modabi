@@ -56,10 +56,10 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	S unbindingMethodUnchecked(boolean unchecked);
 
-	S providedUnbindingMethodParameters2(List<QualifiedName> parameterNames);
+	S providedUnbindingMethodParameters(List<QualifiedName> parameterNames);
 
 	default S providedUnbindingMethodParameters(QualifiedName... parameterNames) {
-		return providedUnbindingMethodParameters2(Arrays.asList(parameterNames));
+		return providedUnbindingMethodParameters(Arrays.asList(parameterNames));
 	}
 
 	S providedUnbindingMethodParameters(String... parameterNames);

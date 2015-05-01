@@ -250,7 +250,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 											+ "'.");
 						outMethod = null;
 
-						bounds.incorporate(targetClass.getResolver().getBounds());
 						ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
 								targetClass.getType(), resultClass.getType(), bounds);
 					} else if (targetClass == null) {

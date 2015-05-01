@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,18 +106,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
-		/*
-		 * TODO
-		 * 
-		 * 
-		 * 
-		 * 
-		 * 
-		 * 
-		 * TODO When overriding nodes with an existing inMethod, don't bother trying
-		 * to resolve the overload again!!!!!! Just use it and check for
-		 * applicability.
-		 */
+		Invokable<?, ?> inInvokable;
+
 		String overriddenInMethodName = overrideMerge
 				.tryGetValue(InputNode::getInMethodName);
 
@@ -129,10 +120,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		TypeToken<?> inputTargetType = inputTargetClass();
 
-		Invokable<?, ?> inMethod;
 		if (isAbstract || "null".equals(overriddenInMethodName)) {
-			inMethod = null;
+			inInvokable = null;
 		} else {
+
 			try {
 				TypeToken<?> result;
 				if (inMethodChained) {
@@ -144,17 +135,20 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				} else
 					result = null;
 
-				if (context.isConstructorExpected())
-					inMethod = Methods.findConstructor(inputTargetType, parameters);
+				Executable inMethod = overrideMerge
+						.tryGetValue(n -> n.effective() == null ? null : n.effective()
+								.getInMethod());
+				if (inMethod != null)
+					inInvokable = Invokable.over(inMethod, inputTargetType);
+				else if (context.isConstructorExpected())
+					inInvokable = Methods.findConstructor(inputTargetType, parameters);
 				else
-					inMethod = Methods.findMethod(
+					inInvokable = Methods.findMethod(
 							generateInMethodNames(name, overriddenInMethodName),
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
 
-				// inMethod = inMethod.inferParameterTypes().infer();
-
-				context.boundSet().incorporate(inMethod.getResolver().getBounds());
+				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException("Cannot find input method for node '" + name
 						+ "' on class '" + inputTargetType + "' with parameters '"
@@ -162,7 +156,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			}
 		}
 
-		return inMethod;
+		return inInvokable;
 	}
 
 	private static List<String> generateInMethodNames(QualifiedName nodeName,
