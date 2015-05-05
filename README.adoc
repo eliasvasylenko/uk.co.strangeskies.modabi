@@ -7,7 +7,7 @@ Modabi is a Modular Data Binding library for Java, which aims to provide users w
 
 Modabi can be used to provide mappings between Java objects in memory and a number of external formats, including Yaml and XML, without any modification to existing business objects.
 
-== Features:
+== Features
 
 * Format agnostic; support for XML, YAML, binary blob, etc.
 * Binds to interface, not implementation, perfect for e.g. OSGi environments.
@@ -16,7 +16,7 @@ Modabi can be used to provide mappings between Java objects in memory and a numb
 * Simple use cases only require simple schemata, intelligent automatic default matching of data elements to methods.
 * Schemata are themselves defined and bound by a provided meta-schema, and so can be designed in any supported format.
 
-== Where to begin:
+== Where to begin
 
 * https://github.com/StrangeSkies/uk.co.strangeskies.modabi/wiki[Wiki]
 * https://strangeskies.github.io/uk.co.strangeskies.modabi/[Javadoc]
