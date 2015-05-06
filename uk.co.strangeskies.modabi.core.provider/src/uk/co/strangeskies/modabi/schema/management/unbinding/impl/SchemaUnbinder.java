@@ -42,11 +42,15 @@ public class SchemaUnbinder {
 				n, s));
 
 		context = new UnbindingContextImpl(manager)
-				.withProvision(ReferenceTarget.class, providers.referenceTarget())
-				.withProvision(ImportReferenceTarget.class, providers.importTarget())
-				.withProvision(IncludeTarget.class, providers.includeTarget())
-				.withProvision(TypeComposer.class, providers.typeComposer())
-				.withProvision(UnbindingContext.class, c -> c);
+				.withProvision(new TypeToken<ReferenceTarget>() {},
+						providers.referenceTarget())
+				.withProvision(new TypeToken<ImportReferenceTarget>() {},
+						providers.importTarget())
+				.withProvision(new TypeToken<IncludeTarget>() {},
+						providers.includeTarget())
+				.withProvision(new TypeToken<TypeComposer>() {},
+						providers.typeComposer())
+				.withProvision(new TypeToken<UnbindingContext>() {}, c -> c);
 	}
 
 	public <U> DataSource unbindData(DataNode.Effective<U> node, Object source) {
@@ -68,8 +72,8 @@ public class SchemaUnbinder {
 		} catch (UnbindingException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new UnbindingException("Unexpected problem during uninding.",
-					context, e);
+			throw new UnbindingException("Unexpected problem during uninding of '"
+					+ data + "' according to '" + model + "'.", context, e);
 		}
 	}
 

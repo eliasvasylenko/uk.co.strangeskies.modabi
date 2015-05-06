@@ -31,6 +31,7 @@ import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class DataNodeUnbinder {
@@ -55,7 +56,7 @@ public class DataNodeUnbinder {
 		BufferingDataTarget target = new BufferingDataTarget();
 
 		UnbindingContextImpl context = this.context.withOutput(null).withProvision(
-				DataTarget.class, c -> target);
+				new TypeToken<DataTarget>() {}, c -> target);
 
 		unbindWithFormat(node, data, null, context);
 
@@ -87,8 +88,8 @@ public class DataNodeUnbinder {
 					if (format != null) {
 						target = new BufferingDataTarget();
 						BufferingDataTarget finalTarget = target;
-						context = context
-								.withProvision(DataTarget.class, () -> finalTarget);
+						context = context.withProvision(new TypeToken<DataTarget>() {},
+								() -> finalTarget);
 					}
 
 					unbindToContext(node, item, context, attemptedOverrideMap);

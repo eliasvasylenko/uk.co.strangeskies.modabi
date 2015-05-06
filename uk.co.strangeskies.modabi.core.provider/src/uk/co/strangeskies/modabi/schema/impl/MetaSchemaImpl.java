@@ -176,8 +176,16 @@ public class MetaSchemaImpl implements MetaSchema {
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
-						o -> o.data().format(Format.PROPERTY).name("dataType")
-								.type(base.derivedTypes().typeType()).optional(true))
+						o -> o
+								.data()
+								.format(Format.PROPERTY)
+								.name("dataType")
+								.optional(true)
+								.dataType(new TypeToken<TypeToken<?>>() {})
+								.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+								.addChild(
+										t -> t.data().name("type").inMethod("over")
+												.type(base.derivedTypes().typeType())))
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("bindingStrategy")
 								.type(base.derivedTypes().enumType())
@@ -210,7 +218,7 @@ public class MetaSchemaImpl implements MetaSchema {
 												.type(base.primitiveType(DataType.QUALIFIED_NAME))))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("unbindingFactoryType")
-								.optional(true).type(base.derivedTypes().classType())).create();
+								.optional(true).type(base.derivedTypes().typeType())).create();
 		modelSet.add(bindingNodeModel);
 
 		Model<InputNode<?, ?>> inputModel = model
@@ -255,7 +263,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeToken<BindingChildNodeConfigurator<?, ?, ?>>() {}
+										new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -683,19 +691,19 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("types")
 								.outMethod("getDataTypes")
 								.occurrences(Range.create(0, 1))
-								.dataType(new TypeToken<Set<DataBindingType<?>>>() {})
+								.dataType(new TypeToken<Set<?>>() {})
 								.bindingType(LinkedHashSet.class)
 								.addChild(
 										o -> o.complex().baseModel(typeModel).outMethod("this")
 												.name("type").outMethodIterable(true)
-												.dataClass(DataBindingType.class)
+												.dataType(new TypeToken<DataBindingType<?>>() {})
 												.occurrences(Range.create(0, null))))
 				.addChild(
 						n -> n
 								.complex()
 								.name("models")
 								.occurrences(Range.create(0, 1))
-								.dataType(new TypeToken<Set<Model<?>>>() {})
+								.dataType(new TypeToken<Set<?>>() {})
 								.bindingType(LinkedHashSet.class)
 								.addChild(
 										o -> o.complex().baseModel(modelModel)

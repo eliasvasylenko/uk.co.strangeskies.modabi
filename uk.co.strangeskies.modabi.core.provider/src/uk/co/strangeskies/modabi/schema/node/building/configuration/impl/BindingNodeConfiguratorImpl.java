@@ -101,11 +101,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						BindingNode::getProvidedUnbindingMethodParameterNames,
 						Collections.emptyList());
 
-				providedUnbindingParameters = isAbstract() ? null
-						: findProvidedUnbindingParameters(this);
-
 				unbindingMethodName = overrideMerge
 						.tryGetValue(BindingNode::getUnbindingMethodName);
+
+				providedUnbindingParameters = isAbstract() ? null
+						: findProvidedUnbindingParameters(this);
 
 				unbindingMethodUnchecked = overrideMerge
 						.tryGetValue(BindingNode::isUnbindingMethodUnchecked);
@@ -124,7 +124,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				TypeToken<T> dataType;
 
-				if (isInferred(overrideMerge)) {
+				if (!isAbstract()) {
 					dataType = (TypeToken<T>) overrideMerge.configurator()
 							.getInferenceDataType();
 
@@ -132,16 +132,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						Resolver resolver = new Resolver(overrideMerge.configurator()
 								.getInferenceBounds());
 
-						TypeVariableCapture.captureInferenceVariables(
-								resolver.getBounds().getInferenceVariablesMentionedBy(
-										resolver.resolveType(dataType.getType())),
-								resolver.getBounds());
+						// TypeVariableCapture.captureInferenceVariables(
+						// resolver.getBounds().getInferenceVariablesMentionedBy(
+						// resolver.resolveType(dataType.getType())),
+						// resolver.getBounds());
 
-						dataType = (TypeToken<T>) dataType.withBounds(resolver.getBounds());
-
-						System.out.println();
-						System.out.println(dataType);
-						System.out.println(resolver.getBounds());
+						dataType = (TypeToken<T>) dataType.withBounds(resolver.getBounds())
+								.resolve();
 					}
 				} else {
 					dataType = overrideMerge.getValue(BindingNode::getDataType,
@@ -149,11 +146,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				}
 
 				return dataType;
-			}
-
-			protected boolean isInferred(
-					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				return !isAbstract();
 			}
 
 			@Override

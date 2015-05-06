@@ -23,10 +23,5 @@ import java.util.Collection;
 import uk.co.strangeskies.modabi.schema.node.Model;
 
 public interface IncludeTarget {
-	<T> void include(Model<T> model, T object);
-
-	default <T> void include(Model<T> model, Collection<? extends T> objects) {
-		for (T object : objects)
-			include(model, object);
-	}
+	<T> void include(Model<T> model, Collection<? extends T> objects);
 }

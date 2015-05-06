@@ -36,10 +36,10 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.ConstraintFormula;
+import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -126,19 +126,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
-			protected boolean isInferred(
-					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				/*-
-				@SuppressWarnings("unchecked")
-				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> childOverrideMerge = (OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>>) overrideMerge;
-				 */
-				return super.isInferred(overrideMerge)
-				// && !childOverrideMerge.configurator().getContext().isAbstract()
-				// && !overrideMerge.getValue(BindingChildNode::isExtensible, false)
-				;
-			}
-
-			@Override
 			public Type getPreInputType() {
 				return preInputClass;
 			}
@@ -208,9 +195,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				return inMethodUnchecked;
 			}
 
-			private static <U> TypeToken<Iterable<U>> getIteratorType(
+			private static <U> TypeToken<Iterable<? extends U>> getIteratorType(
 					TypeToken<U> type) {
-				return new TypeToken<Iterable<U>>() {}.withTypeArgument(
+				return new TypeToken<Iterable<? extends U>>() {}.withTypeArgument(
 						new TypeParameter<U>() {}, type);
 			}
 
@@ -229,7 +216,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				 * trying to resolve the overload again!!!!!! Just use it and check for
 				 * applicability.
 				 */
-
 				try {
 					TypeToken<?> resultClass = ((node.isOutMethodIterable() != null && node
 							.isOutMethodIterable()) ? getIteratorType(node.getDataType())

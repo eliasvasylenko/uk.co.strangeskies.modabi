@@ -24,6 +24,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Wildcards;
 
 public class Methods {
 	public static <T> Invokable<? super T, ? extends T> findConstructor(
@@ -74,6 +75,10 @@ public class Methods {
 			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
 					+ "method for class '" + receiver + "' with parameters '"
 					+ parameters + "' and any name of '" + names + "'.", exception);
+
+		if (!allowCast && result != null)
+			method = method.withTargetType(TypeToken.over(result.getType(),
+					Wildcards.INFERENCE).withBounds(result.getResolver().getBounds()));
 
 		return method;
 	}

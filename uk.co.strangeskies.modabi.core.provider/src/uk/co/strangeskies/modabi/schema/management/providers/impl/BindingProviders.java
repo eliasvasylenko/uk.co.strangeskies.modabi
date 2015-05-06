@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema.management.providers.impl;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -90,8 +91,9 @@ public class BindingProviders {
 	public Function<BindingContext, IncludeTarget> includeTarget() {
 		return context -> new IncludeTarget() {
 			@Override
-			public <U> void include(Model<U> model, U object) {
-				context.bindings().add(model, object);
+			public <U> void include(Model<U> model, Collection<? extends U> objects) {
+				for (U object : objects)
+					context.bindings().add(model, object);
 			}
 		};
 	}

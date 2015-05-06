@@ -59,8 +59,7 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		output = null;
 		provider = new UnbindingProvisions() {
 			@Override
-			public <U> U provide(TypeToken<U> clazz,
-					UnbindingContextImpl headContext) {
+			public <U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext) {
 				return manager.provisions().provide(clazz);
 			}
 
@@ -99,6 +98,9 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 	}
 
 	private <U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext) {
+		if (!provider.isProvided(clazz))
+			throw new UnbindingException("Requested type '" + clazz
+					+ "' is not provided by the unbinding context.", headContext);
 		return provider.provide(clazz, headContext);
 	}
 
@@ -118,12 +120,12 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		};
 	}
 
-	public <T> UnbindingContextImpl withProvision(Class<T> providedClass,
+	public <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
 			Factory<T> provider) {
 		return withProvision(providedClass, c -> provider.create());
 	}
 
-	public <T> UnbindingContextImpl withProvision(Class<T> providedClass,
+	public <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
 			Function<UnbindingContext, T> provider) {
 		UnbindingContextImpl base = this;
 
@@ -177,7 +179,8 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		if (context.provisions().isProvided(DataTarget.class)) {
 			dataTarget = new BufferingDataTarget();
 			DataTarget finalTarget = dataTarget;
-			context = context.withProvision(DataTarget.class, () -> finalTarget);
+			context = context.withProvision(new TypeToken<DataTarget>() {},
+					() -> finalTarget);
 		}
 		context = context.withOutput(output);
 

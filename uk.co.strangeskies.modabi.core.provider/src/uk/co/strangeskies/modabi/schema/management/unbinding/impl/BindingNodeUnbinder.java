@@ -55,7 +55,8 @@ public class BindingNodeUnbinder {
 
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
 		UnbindingContextImpl context = this.context.withUnbindingNode(node)
-				.withProvision(BindingNode.Effective.class, () -> node);
+				.withProvision(new TypeToken<BindingNode.Effective<?, ?, ?>>() {},
+						() -> node);
 
 		Function<Object, Object> supplier = Function.identity();
 		if (node.getUnbindingStrategy() != null) {
@@ -243,8 +244,9 @@ public class BindingNodeUnbinder {
 			else {
 				if (!Types.isAssignable(item.getClass(), node.getDataType()
 						.getRawType()))
-					throw new ClassCastException("Cannot cast " + item.getClass()
-							+ " to " + node.getDataType());
+					throw new UnbindingException("Cannot unbind node '" + node + "'.",
+							context, new ClassCastException("Cannot cast " + item.getClass()
+									+ " to " + node.getDataType()));
 				itemList = Arrays.asList(item);
 			}
 		}
