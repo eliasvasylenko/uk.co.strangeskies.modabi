@@ -77,8 +77,7 @@ public class Methods {
 					+ parameters + "' and any name of '" + names + "'.", exception);
 
 		if (!allowCast && result != null)
-			method = method.withTargetType(TypeToken.over(result.getType(),
-					Wildcards.INFERENCE).withBounds(result.getResolver().getBounds()));
+			method = method.withTargetType(result);
 
 		return method;
 	}
