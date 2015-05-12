@@ -97,10 +97,10 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
-		registerProvider(Set.class, HashSet::new);
-		registerProvider(LinkedHashSet.class, LinkedHashSet::new);
-		registerProvider(List.class, ArrayList::new);
-		registerProvider(Map.class, HashMap::new);
+		registerProvider(new TypeToken<Set<?>>() {}, HashSet::new);
+		registerProvider(new TypeToken<LinkedHashSet<?>>() {}, LinkedHashSet::new);
+		registerProvider(new TypeToken<List<?>>() {}, ArrayList::new);
+		registerProvider(new TypeToken<Map<?, ?>>() {}, HashMap::new);
 	}
 
 	@Override
@@ -177,8 +177,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		new Thread(() -> {
 			try {
 				binding.get();
-			} catch (CancellationException e) {
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (CancellationException e) {} catch (InterruptedException
+					| ExecutionException e) {
 				e.printStackTrace();
 			}
 			bindingFutures.remove(binding);
@@ -222,14 +222,16 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public void registerProvider(Function<TypeToken<?>, ?> provider) {
-		providers.add(c -> {
-			Object provided = provider.apply(c);
-			if (provided != null
-					&& !TypeToken.over(c.getType()).isAssignableFrom(provided.getClass()))
-				throw new SchemaException("Invalid object provided for the class [" + c
-						+ "] by provider [" + provider + "]");
-			return provided;
-		});
+		providers
+				.add(c -> {
+					Object provided = provider.apply(c);
+					if (provided != null
+							&& !TypeToken.over(c.getType()).isAssignableFrom(
+									provided.getClass()))
+						throw new SchemaException("Invalid object provided for the class ["
+								+ c + "] by provider [" + provider + "]");
+					return provided;
+				});
 	}
 
 	public Provisions provisions() {

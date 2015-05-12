@@ -85,22 +85,17 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getModelsWithBase(
 			Collection<? extends Model<? super T>> baseModel) {
-		Iterator<? extends Model<? super T>> baseModelIterator = baseModel
-				.iterator();
+		Iterator<? extends Model<?>> modelIterator = baseModel.iterator();
 
 		List<? extends Model<?>> subModels = new ArrayList<>(
-				getDerivedModels(baseModelIterator.next()));
-		while (baseModelIterator.hasNext())
-			subModels.retainAll(getDerivedModels(baseModelIterator.next()));
+				getDerivedModels(modelIterator.next()));
+		while (modelIterator.hasNext())
+			subModels.retainAll(getDerivedModels(modelIterator.next()));
 
-		/*
-		 * Javac failure strikes again with the following:
-		 * 
-		 * subModels = subModels.stream().filter(m -> !m.effective().isAbstract())
-		 * .collect(Collectors.toList());
-		 */
-		for (int i = 0; i < subModels.size(); i++)
-			subModels.remove(i--);
+		modelIterator = subModels.iterator();
+		while (modelIterator.hasNext())
+			if (modelIterator.next().effective().isAbstract())
+				modelIterator.remove();
 
 		return (List<Model<? extends T>>) subModels;
 	}

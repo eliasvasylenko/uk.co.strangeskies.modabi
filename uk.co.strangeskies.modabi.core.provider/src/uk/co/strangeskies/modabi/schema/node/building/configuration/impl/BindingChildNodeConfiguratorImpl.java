@@ -203,7 +203,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 			protected static Invokable<?, ?> getOutMethod(
 					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
-					TypeToken<?> targetClass, BoundSet bounds) {
+					TypeToken<?> receiverType, BoundSet bounds) {
 				/*
 				 * TODO
 				 * 
@@ -221,24 +221,27 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 							.isOutMethodIterable()) ? getIteratorType(node.getDataType())
 							: node.getDataType());
 
+					if (node.isOutMethodUnchecked())
+						resultClass = TypeToken.over(resultClass.getRawType());
+
 					Invokable<?, ?> outMethod;
 					if (node.getOutMethodName() != null
 							&& node.getOutMethodName().equals("this")) {
-						if (!resultClass.isAssignableFrom(targetClass)
+						if (!resultClass.isAssignableFrom(receiverType)
 								&& !resultClass.getRawType().isAssignableFrom(
-										targetClass.getRawType())
-								&& !resultClass.isContainedBy(targetClass
+										receiverType.getRawType())
+								&& !resultClass.isContainedBy(receiverType
 										.resolveSupertypeParameters(resultClass.getRawType())))
 							throw new SchemaException(
 									"Can't use out method 'this' for node '" + node.getName()
 											+ "', as result class '" + resultClass
-											+ "' cannot be assigned from target class'" + targetClass
-											+ "'.");
+											+ "' cannot be assigned from target class'"
+											+ receiverType + "'.");
 						outMethod = null;
 
 						ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
-								targetClass.getType(), resultClass.getType(), bounds);
-					} else if (targetClass == null) {
+								receiverType.getType(), resultClass.getType(), bounds);
+					} else if (receiverType == null) {
 						if (!node.isAbstract())
 							throw new SchemaException("Can't find out method for node '"
 									+ node.getName() + "' as target class cannot be found.");
@@ -251,7 +254,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 					} else {
 						outMethod = Methods.findMethod(
 								generateOutMethodNames(node, resultClass.getRawType()),
-								targetClass, false, resultClass, false);
+								receiverType, false, resultClass, false);
 
 						if (inheritedOutMethod != null
 								&& !outMethod.getExecutable().equals(inheritedOutMethod))

@@ -123,7 +123,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		if (isAbstract || "null".equals(overriddenInMethodName)) {
 			inInvokable = null;
 		} else {
-
 			try {
 				TypeToken<?> result;
 				if (inMethodChained) {
@@ -138,15 +137,18 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				Executable inMethod = overrideMerge
 						.tryGetValue(n -> n.effective() == null ? null : n.effective()
 								.getInMethod());
-				if (inMethod != null)
-					inInvokable = Invokable.over(inMethod, inputTargetType);
-				else if (context.isConstructorExpected())
-					inInvokable = Methods.findConstructor(inputTargetType, parameters);
-				else
+				if (inMethod != null) {
+					inInvokable = Invokable.over(inMethod, inputTargetType)
+							.withTargetType(result);
+				} else if (context.isConstructorExpected()) {
+					inInvokable = Methods.findConstructor(inputTargetType, parameters)
+							.withTargetType(result);
+				} else {
 					inInvokable = Methods.findMethod(
 							generateInMethodNames(name, overriddenInMethodName),
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
+				}
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
 			} catch (NoSuchMethodException e) {

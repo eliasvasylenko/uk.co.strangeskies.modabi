@@ -227,8 +227,8 @@ public class BindingNodeUnbinder {
 			U failedCast = itemList
 					.stream()
 					.filter(
-							o -> !Types.isAssignable(o.getClass(), node.getDataType()
-									.getRawType())).findAny().orElse(null);
+							o -> !Types.isLooseInvocationContextCompatible(o.getClass(), node
+									.getDataType().getRawType())).findAny().orElse(null);
 			if (failedCast != null)
 				throw new ClassCastException("Cannot cast " + failedCast.getClass()
 						+ " to " + node.getDataType());
@@ -242,8 +242,8 @@ public class BindingNodeUnbinder {
 			if (item == null)
 				itemList = null;
 			else {
-				if (!Types.isAssignable(item.getClass(), node.getDataType()
-						.getRawType()))
+				if (!Types.isLooseInvocationContextCompatible(item.getClass(), node
+						.getDataType().getRawType()))
 					throw new UnbindingException("Cannot unbind node '" + node + "'.",
 							context, new ClassCastException("Cannot cast " + item.getClass()
 									+ " to " + node.getDataType()));

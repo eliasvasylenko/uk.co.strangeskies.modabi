@@ -49,7 +49,6 @@ import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Wildcards;
-import uk.co.strangeskies.reflection.TypeVariableCapture;
 import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
@@ -306,6 +305,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				}
 				if (!addedNodeClass)
 					classList.add(0, nodeClass.apply(this));
+
+				if (isUnbindingMethodUnchecked() != null
+						&& isUnbindingMethodUnchecked())
+					classList = classList
+							.stream()
+							.map(
+									t -> t == null ? null : (TypeToken<?>) TypeToken.over(t
+											.getRawType())).collect(Collectors.toList());
 
 				return classList;
 			}

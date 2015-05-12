@@ -121,26 +121,27 @@ public abstract class ProcessingContextImpl {
 			ComplexNode.Effective<T> node) {
 		List<Model.Effective<? extends T>> models;
 
-		if (node.baseModel() != null && !node.baseModel().isEmpty())
+		if (node.baseModel() != null && !node.baseModel().isEmpty()) {
 			models = manager
 					.registeredModels()
 					.getModelsWithBase(node.baseModel())
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							n -> TypeToken.over(node.getDataType().getType()).isAssignableFrom(
-									TypeToken.over(n.getDataType().getType())))
+							n -> TypeToken.over(node.getDataType().getType())
+									.isAssignableFrom(TypeToken.over(n.getDataType().getType())))
 					.collect(Collectors.toList());
-		else
+		} else {
 			models = manager
 					.registeredModels()
 					.stream()
 					.map(SchemaNode::effective)
 					.filter(
-							c -> TypeToken.over(node.getDataType().getType()).isAssignableFrom(
-									c.getDataType().getType()))
+							c -> TypeToken.over(node.getDataType().getType())
+									.isAssignableFrom(c.getDataType().getType()))
 					.map(m -> (Model.Effective<? extends T>) m)
 					.collect(Collectors.toList());
+		}
 
 		ComputingMap<Model.Effective<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
 				model -> getComplexNodeOverride(node, model));

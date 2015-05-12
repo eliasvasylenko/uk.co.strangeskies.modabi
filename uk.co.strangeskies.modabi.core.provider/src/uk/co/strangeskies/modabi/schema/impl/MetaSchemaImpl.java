@@ -342,6 +342,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("baseModel")
 								.optional(true)
 								.type(base.derivedTypes().listType())
+								.outMethodUnchecked(true)
 								.addChild(
 										o -> o
 												.data()
@@ -692,10 +693,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.outMethod("getDataTypes")
 								.occurrences(Range.create(0, 1))
 								.dataType(new TypeToken<Set<?>>() {})
-								.bindingType(LinkedHashSet.class)
+								.bindingType(new TypeToken<LinkedHashSet<?>>() {}.getType())
 								.addChild(
 										o -> o.complex().baseModel(typeModel).outMethod("this")
-												.name("type").outMethodIterable(true)
+												.inMethod("add").name("type").outMethodIterable(true)
 												.dataType(new TypeToken<DataBindingType<?>>() {})
 												.occurrences(Range.create(0, null))))
 				.addChild(

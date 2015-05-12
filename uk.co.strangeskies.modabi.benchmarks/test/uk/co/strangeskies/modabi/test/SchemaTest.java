@@ -27,12 +27,11 @@ import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
 	public static void main(String... args) {
+		System.out.println("Creating SchemaManager...");
 		new SchemaTest().run(new SchemaManagerImpl());
 	}
 
 	public void run(SchemaManager schemaManager) {
-		System.out.println("Creating SchemaManager...");
-
 		System.out.println("Unbinding MetaSchema...");
 		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
