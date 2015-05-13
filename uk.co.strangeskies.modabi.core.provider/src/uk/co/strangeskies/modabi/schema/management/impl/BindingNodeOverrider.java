@@ -211,17 +211,13 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.isInMethodChained(), c::inMethodChained, c);
 			c = tryProperty(node.getPostInputType(), c::postInputType, c);
 
-			System.out.println();
-			System.out.println(node.getName());
-			System.out.println(node.getPostInputType());
-
 			return c;
 		}
 
 		public <U> ComplexNodeConfigurator<U> processAbstractComplexNode(
 				AbstractComplexNode<U, ?, ?> node, ComplexNodeConfigurator<Object> c) {
 			ComplexNodeConfigurator<U> cu = c.dataType(node.getDataType()).baseModel(
-					node.baseModel());
+					node.source().baseModel());
 
 			return cu;
 		}
