@@ -211,6 +211,10 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.isInMethodChained(), c::inMethodChained, c);
 			c = tryProperty(node.getPostInputType(), c::postInputType, c);
 
+			System.out.println();
+			System.out.println(node.getName());
+			System.out.println(node.getPostInputType());
+
 			return c;
 		}
 

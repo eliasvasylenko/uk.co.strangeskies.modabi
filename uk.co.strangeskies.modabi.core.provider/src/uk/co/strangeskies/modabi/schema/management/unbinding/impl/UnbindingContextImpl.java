@@ -203,8 +203,8 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 			BiConsumer<UnbindingContextImpl, I> unbindingMethod,
 			Function<Set<Exception>, UnbindingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new IllegalArgumentException(
-					"Must supply items for unbinding attempt.");
+			throw new UnbindingException("Must supply items for unbinding attempt.",
+					this);
 
 		Set<Exception> failures = new HashSet<>();
 

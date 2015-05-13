@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.schema.management.unbinding.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.Model;
@@ -40,29 +39,37 @@ public class ComplexNodeUnbinder {
 				ComputingMap<Model.Effective<? extends U>, ComplexNode.Effective<? extends U>> overrides = context
 						.getComplexNodeOverrides(node);
 
-				if (overrides.isEmpty())
-					throw new SchemaException(
+				List<Model.Effective<? extends U>> validOverrides = overrides
+						.keySet()
+						.stream()
+						.filter(
+								m -> m.getDataType().getRawType()
+										.isAssignableFrom(item.getClass()))
+						.collect(Collectors.toList());
+
+				System.out.println("# " + node + " item: " + item + " of: "
+						+ item.getClass());
+				System.out.println(node.baseModel());
+				System.out.println(overrides.keySet());
+				System.out.println(" : " + validOverrides);
+
+				if (validOverrides.isEmpty())
+					throw new UnbindingException(
 							"Unable to find model to satisfy complex node '"
 									+ node.getName()
-									+ "' with model '"
+									+ "' with base model '"
 									+ node.baseModel().stream()
 											.map(m -> m.source().getName().toString())
 											.collect(Collectors.joining(", ")) + "' for object '"
-									+ item + "' to be unbound.");
+									+ item + "' to be unbound.", context);
 
 				context.attemptUnbindingUntilSuccessful(
-						overrides
-								.keySet()
-								.stream()
-								.filter(
-										m -> m.getDataType().getRawType()
-												.isAssignableFrom(item.getClass()))
-								.collect(Collectors.toList()),
+						validOverrides,
 						(c, n) -> unbindExactNode(c, overrides.putGet(n), item),
 						l -> new UnbindingException("Unable to unbind complex node '"
 								+ node.getName()
 								+ "' with model candidates '"
-								+ overrides.keySet().stream()
+								+ validOverrides.stream()
 										.map(m -> m.source().getName().toString())
 										.collect(Collectors.joining(", ")) + "' for object '"
 								+ item + "' to be unbound.", context, l));

@@ -122,14 +122,9 @@ public abstract class ProcessingContextImpl {
 		List<Model.Effective<? extends T>> models;
 
 		if (node.baseModel() != null && !node.baseModel().isEmpty()) {
-			models = manager
-					.registeredModels()
-					.getModelsWithBase(node.baseModel())
-					.stream()
-					.map(SchemaNode::effective)
-					.filter(
-							n -> TypeToken.over(node.getDataType().getType())
-									.isAssignableFrom(TypeToken.over(n.getDataType().getType())))
+			models = manager.registeredModels().getModelsWithBase(node.baseModel())
+					.stream().map(SchemaNode::effective)
+					.filter(n -> node.getDataType().isAssignableFrom(n.getDataType()))
 					.collect(Collectors.toList());
 		} else {
 			models = manager

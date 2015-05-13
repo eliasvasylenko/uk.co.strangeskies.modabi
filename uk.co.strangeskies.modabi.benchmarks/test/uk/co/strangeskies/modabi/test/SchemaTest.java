@@ -32,8 +32,14 @@ public class SchemaTest {
 	}
 
 	public void run(SchemaManager schemaManager) {
-		System.out.println("Unbinding MetaSchema...");
+		System.out.println("Unbinding BaseSchema...");
 		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
+		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
+				schemaManager.getBaseSchema());
+		out.buffer().pipeNextChild(new XMLTarget(System.out));
+
+		System.out.println("Unbinding MetaSchema...");
+		out = new BufferingStructuredDataTarget();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getMetaSchema());
 		BufferedStructuredDataSource buffered = out.buffer();
