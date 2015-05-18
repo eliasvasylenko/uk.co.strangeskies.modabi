@@ -47,6 +47,8 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 		default PropertySet<? super E> effectivePropertySet() {
 			return PROPERTY_SET;
 		}
+
+		TypeToken<T> inferExactDataType();
 	}
 
 	@SuppressWarnings("rawtypes")

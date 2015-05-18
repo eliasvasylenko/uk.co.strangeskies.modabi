@@ -59,10 +59,9 @@ public class BindingNodeOverrider {
 			ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
 		try {
 			return new OverridingProcessor().process(builder, node, override);
-		} catch (SchemaException e) {
-			throw e;
 		} catch (Exception e) {
-			throw new SchemaException(e);
+			throw new SchemaException("Cannot override complex node '" + node
+					+ "' with model '" + override + "'.", e);
 		}
 	}
 
@@ -70,10 +69,9 @@ public class BindingNodeOverrider {
 			DataNode.Effective<? super T> node, DataBindingType.Effective<T> override) {
 		try {
 			return new OverridingProcessor().process(builder, node, override);
-		} catch (SchemaException e) {
-			throw e;
 		} catch (Exception e) {
-			throw new SchemaException(e);
+			throw new SchemaException("Cannot override data node '" + node
+					+ "' with data binding type '" + override + "'.", e);
 		}
 	}
 
@@ -134,7 +132,7 @@ public class BindingNodeOverrider {
 
 			DataNodeConfigurator<T> dataNodeConfigurator = configurator.addChild()
 					.data().name(override.getName()).dataType(override.getDataType())
-					.type(override.baseType());
+					.type(override.source().baseType());
 
 			dataNodeConfigurator = tryProperty(node.optional(),
 					dataNodeConfigurator::optional, dataNodeConfigurator);
@@ -161,7 +159,11 @@ public class BindingNodeOverrider {
 			configuratorStack.push(configurator);
 
 			for (ChildNode<?, ?> child : children)
-				child.effective().process(this);
+				try {
+					child.effective().process(this);
+				} catch (Exception e) {
+					throw new SchemaException("Cannot override child '" + child + "'.", e);
+				}
 
 			configuratorStack.pop();
 			return configurator.create();

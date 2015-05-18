@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
@@ -60,6 +61,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				extends SchemaNodeImpl.Effective<S, E> implements
 				BindingNode.Effective<T, S, E> {
 			private final TypeToken<T> dataType;
+			private final TypeToken<T> exactDataType;
 			private final Type bindingClass;
 			private final Type unbindingClass;
 			private final Type unbindingFactoryClass;
@@ -76,15 +78,18 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				this.dataType = inferDataType(overrideMerge);
+				dataType = overrideMerge.getValue(BindingNode::getDataType,
+						TypeToken::isAssignableTo, null);
+
+				exactDataType = inferDataType(overrideMerge);
 
 				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
 						o) -> TypeToken.over(o).isAssignableFrom(v),
-						dataType == null ? null : dataType.getType());
+						exactDataType == null ? null : exactDataType.getType());
 
 				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingType,
 						(v, o) -> TypeToken.over(o).isAssignableFrom(v),
-						dataType == null ? null : dataType.getType());
+						exactDataType == null ? null : exactDataType.getType());
 
 				unbindingFactoryClass = overrideMerge.getValue(
 						BindingNode::getUnbindingFactoryType, (v, o) -> TypeToken.over(o)
@@ -121,30 +126,36 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			@SuppressWarnings("unchecked")
 			private TypeToken<T> inferDataType(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				TypeToken<T> dataType;
+				TypeToken<T> exactDataType;
 
 				if (!isAbstract()) {
-					dataType = (TypeToken<T>) overrideMerge.configurator()
+					exactDataType = (TypeToken<T>) overrideMerge.configurator()
 							.getInferenceDataType();
 
-					if (dataType != null) {
+					if (exactDataType != null) {
 						Resolver resolver = new Resolver(overrideMerge.configurator()
 								.getInferenceBounds());
 
-						// TypeVariableCapture.captureInferenceVariables(
-						// resolver.getBounds().getInferenceVariablesMentionedBy(
-						// resolver.resolveType(dataType.getType())),
-						// resolver.getBounds());
-
-						dataType = (TypeToken<T>) dataType.withBounds(resolver.getBounds())
-								.resolve();
+						exactDataType = (TypeToken<T>) exactDataType.withBounds(
+								resolver.getBounds()).resolve();
 					}
 				} else {
-					dataType = overrideMerge.getValue(BindingNode::getDataType,
-							TypeToken::isAssignableTo, null);
+					exactDataType = dataType;
 				}
 
-				return dataType;
+				return exactDataType;
+			}
+
+			protected TypeToken<T> getExactDataType() {
+				return exactDataType;
+			}
+
+			@Override
+			public TypeToken<T> inferExactDataType() {
+				/*
+				 * TODO decoupling copy
+				 */
+				return exactDataType;
 			}
 
 			@Override
@@ -217,19 +228,21 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				case PROVIDED_FACTORY:
 					Type receiverClass = getUnbindingFactoryType() != null ? getUnbindingFactoryType()
 							: getUnbindingType();
-					return findUnbindingMethod(TypeToken.over(getUnbindingType()),
+					return findUnbindingMethod(
+							TypeToken.over(getUnbindingType()),
 							TypeToken.over(receiverClass),
-							findUnbindingMethodParameterClasses(BindingNode::getDataType),
+							findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getExactDataType),
 							overrideMerge);
 
 				case PASS_TO_PROVIDED:
-					return findUnbindingMethod(null, TypeToken.over(getUnbindingType()),
-							findUnbindingMethodParameterClasses(BindingNode::getDataType),
+					return findUnbindingMethod(
+							null,
+							TypeToken.over(getUnbindingType()),
+							findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getExactDataType),
 							overrideMerge);
 
 				case ACCEPT_PROVIDED:
-					return findUnbindingMethod(null, TypeToken.over(getDataType()
-							.getType()),
+					return findUnbindingMethod(null, getExactDataType(),
 							findUnbindingMethodParameterClasses(t -> TypeToken.over(t
 									.getUnbindingType())), overrideMerge);
 				}
@@ -284,7 +297,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			private List<TypeToken<?>> findUnbindingMethodParameterClasses(
-					Function<BindingNode.Effective<?, ?, ?>, TypeToken<?>> nodeClass) {
+					Function<BindingNodeImpl.Effective<?, ?, ?>, TypeToken<?>> nodeClass) {
 				List<TypeToken<?>> classList = new ArrayList<>();
 
 				boolean addedNodeClass = false;

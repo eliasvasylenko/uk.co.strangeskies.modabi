@@ -103,6 +103,12 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		return (TypeToken<T>) component.getDataType();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public final TypeToken<T> inferExactDataType() {
+		return (TypeToken<T>) component.inferExactDataType();
+	}
+
 	@Override
 	public final BindingStrategy getBindingStrategy() {
 		return component.getBindingStrategy();

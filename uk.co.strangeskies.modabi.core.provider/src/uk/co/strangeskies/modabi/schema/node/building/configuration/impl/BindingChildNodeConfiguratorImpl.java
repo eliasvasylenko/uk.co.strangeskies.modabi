@@ -113,7 +113,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<S, E>(
 						isAbstract(), getName(), overrideMerge, overrideMerge
-								.configurator().getContext(), Arrays.asList(getDataType()));
+								.configurator().getContext(), Arrays.asList(getExactDataType()));
 
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
@@ -202,8 +202,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			protected static Invokable<?, ?> getOutMethod(
-					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
-					TypeToken<?> receiverType, BoundSet bounds) {
+					BindingChildNodeImpl.Effective<?, ?, ?> node,
+					Method inheritedOutMethod, TypeToken<?> receiverType, BoundSet bounds) {
 				/*
 				 * TODO
 				 * 
@@ -218,8 +218,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				 */
 				try {
 					TypeToken<?> resultClass = ((node.isOutMethodIterable() != null && node
-							.isOutMethodIterable()) ? getIteratorType(node.getDataType())
-							: node.getDataType());
+							.isOutMethodIterable()) ? getIteratorType(node.getExactDataType())
+							: node.getExactDataType());
 
 					if (node.isOutMethodUnchecked())
 						resultClass = TypeToken.over(resultClass.getRawType());

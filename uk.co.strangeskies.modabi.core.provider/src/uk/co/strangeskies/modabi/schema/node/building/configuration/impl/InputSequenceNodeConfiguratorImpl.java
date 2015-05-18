@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
@@ -37,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.ComplexNodeC
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.BindingChildNodeConfiguratorImpl.BindingChildNodeImpl;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
@@ -76,8 +76,9 @@ public class InputSequenceNodeConfiguratorImpl extends
 						.getChildrenContainer()
 						.getChildren()
 						.stream()
-						.map(o -> ((BindingChildNode<?, ?, ?>) o).effective().getDataType())
-						.collect(Collectors.toList());
+						.map(
+								o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective())
+										.getExactDataType()).collect(Collectors.toList());
 
 				InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
 						isAbstract(), getName(), overrideMerge, overrideMerge

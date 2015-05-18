@@ -263,7 +263,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}
+										new TypeToken<BindingChildNodeConfigurator<?, ?, ?>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -332,7 +332,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeToken<AbstractModelConfigurator<?, ?, Object>>() {}
+										new TypeToken<AbstractModelConfigurator<?, ?, ?>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -402,7 +402,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("complex")
 								.inMethodChained(true)
 								.postInputType(
-										new TypeToken<ComplexNodeConfigurator<Object>>() {}
+										new TypeToken<ComplexNodeConfigurator<?>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(

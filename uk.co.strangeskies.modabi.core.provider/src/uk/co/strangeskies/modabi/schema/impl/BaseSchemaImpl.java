@@ -147,8 +147,8 @@ public class BaseSchemaImpl implements BaseSchema {
 							.providedUnbindingMethodParameters("targetModel", "targetId",
 									"this")
 							.addChild(
-									d -> d.data().dataType(new TypeToken<Model<?>>() {})
-											.name("targetModel").isAbstract(true)
+									d -> d.data().dataClass(Model.class).name("targetModel")
+											.isAbstract(true)
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.inMethod("null").outMethod("null"))
 							.addChild(
@@ -165,7 +165,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.addChild(
 													d -> d
 															.data()
-															.dataType(new TypeToken<Model<?>>() {})
+															.dataClass(Model.class)
 															.name("targetModel")
 															.provideValue(new BufferingDataTarget().buffer())
 															.outMethod("null")
@@ -263,14 +263,14 @@ public class BaseSchemaImpl implements BaseSchema {
 											.name("targetModel")
 											.type(referenceBaseType)
 											.isAbstract(true)
-											.dataType(new TypeToken<Model<?>>() {})
+											.dataClass(Model.class)
 											.addChild(
 													d -> d
 															.data()
 															.name("targetModel")
 															.type(referenceBaseType)
 															.extensible(true)
-															.dataType(new TypeToken<Model<Model<?>>>() {})
+															.dataClass(Model.class)
 															.provideValue(
 																	new BufferingDataTarget().put(
 																			DataType.QUALIFIED_NAME,
@@ -283,8 +283,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.type(referenceBaseType)
 																			.extensible(true)
 																			.isAbstract(true)
-																			.dataType(
-																					new TypeToken<Model<Model<?>>>() {})
+																			.dataClass(Model.class)
 																			.provideValue(
 																					new BufferingDataTarget().put(
 																							DataType.QUALIFIED_NAME,
