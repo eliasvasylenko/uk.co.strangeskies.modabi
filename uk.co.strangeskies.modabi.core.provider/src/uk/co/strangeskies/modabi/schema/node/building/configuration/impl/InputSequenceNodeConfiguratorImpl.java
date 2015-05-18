@@ -80,6 +80,10 @@ public class InputSequenceNodeConfiguratorImpl extends
 								o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective())
 										.getExactDataType()).collect(Collectors.toList());
 
+				System.out.println(parameterClasses);
+				for (TypeToken<?> p : parameterClasses)
+					System.out.println(p.getResolver().getBounds());
+
 				InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
 						isAbstract(), getName(), overrideMerge, overrideMerge
 								.configurator().getContext(), parameterClasses);

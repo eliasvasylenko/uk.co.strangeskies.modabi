@@ -36,7 +36,6 @@ import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
-import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingNodeConfigurator;
@@ -128,19 +127,23 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				TypeToken<T> exactDataType;
 
-				if (!isAbstract()) {
-					exactDataType = (TypeToken<T>) overrideMerge.configurator()
-							.getInferenceDataType();
+				/*
+				 * Data type which may include inference variables.
+				 */
+				exactDataType = (TypeToken<T>) overrideMerge.configurator()
+						.getInferenceDataType();
 
-					if (exactDataType != null) {
-						Resolver resolver = new Resolver(overrideMerge.configurator()
-								.getInferenceBounds());
+				/*
+				 * Incorporate bounds derived from child nodes through their input and
+				 * output methods.
+				 */
+				if (exactDataType != null) {
+					Resolver resolver = new Resolver(overrideMerge.configurator()
+							.getInferenceBounds());
 
+					if (!exactDataType.isProper())
 						exactDataType = (TypeToken<T>) exactDataType.withBounds(
 								resolver.getBounds()).resolve();
-					}
-				} else {
-					exactDataType = dataType;
 				}
 
 				return exactDataType;
@@ -538,10 +541,22 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		Type bindingClass = overrideMerge.getValueWithOverride(this.bindingClass,
 				BindingNode::getBindingType, Types::isAssignable);
 
+		/*
+		 * Get given data type and substitute inference variables for wildcards.
+		 */
 		TypeToken<?> dataType = overrideMerge.getValueWithOverride(this.dataType,
 				BindingNode::getDataType, TypeToken::isAssignableTo);
-		if (dataType != null)
+		if (dataType != null) {
 			dataType = TypeToken.over(dataType.getType(), Wildcards.INFERENCE);
+
+			/*
+			 * Incorporate bounds from each inherited type.
+			 */
+			for (TypeToken<?> overriddenType : overrideMerge
+					.getOverridenValues(n -> n.effective().inferExactDataType())) {
+				dataType = dataType.withUpperBound(overriddenType);
+			}
+		}
 
 		TypeToken<?> inputTarget = bindingClass != null ? TypeToken.over(
 				bindingClass, Wildcards.INFERENCE) : dataType;

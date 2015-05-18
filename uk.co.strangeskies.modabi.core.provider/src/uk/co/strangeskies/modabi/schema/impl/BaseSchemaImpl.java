@@ -251,62 +251,62 @@ public class BaseSchemaImpl implements BaseSchema {
 															.outMethod("this"))).create());
 			typeSet.add(referenceBaseType);
 
-			typeSet
-					.add(referenceType = builder
-							.configure(loader)
-							.name("reference", namespace)
-							.baseType(referenceBaseType)
-							.isAbstract(true)
-							.addChild(
-									c -> c
-											.data()
-											.name("targetModel")
-											.type(referenceBaseType)
-											.isAbstract(true)
-											.dataClass(Model.class)
-											.addChild(
-													d -> d
-															.data()
-															.name("targetModel")
-															.type(referenceBaseType)
-															.extensible(true)
-															.dataClass(Model.class)
-															.provideValue(
-																	new BufferingDataTarget().put(
-																			DataType.QUALIFIED_NAME,
-																			new QualifiedName("model", namespace))
-																			.buffer())
-															.addChild(
-																	e -> e
-																			.data()
-																			.name("targetModel")
-																			.type(referenceBaseType)
-																			.extensible(true)
-																			.isAbstract(true)
-																			.dataClass(Model.class)
-																			.provideValue(
-																					new BufferingDataTarget().put(
+			typeSet.add(referenceType = builder
+					.configure(loader)
+					.name("reference", namespace)
+					.baseType(referenceBaseType)
+					.isAbstract(true)
+					.addChild(
+							c -> c
+									.data()
+									.name("targetModel")
+									.type(referenceBaseType)
+									.isAbstract(true)
+									.dataClass(Model.class)
+									.addChild(
+											d -> d
+													.data()
+													.name("targetModel")
+													.type(referenceBaseType)
+													.extensible(true)
+													.dataClass(Model.class)
+													.provideValue(
+															new BufferingDataTarget().put(
+																	DataType.QUALIFIED_NAME,
+																	new QualifiedName("model", namespace))
+																	.buffer())
+													.addChild(
+															e -> e
+																	.data()
+																	.name("targetModel")
+																	.type(referenceBaseType)
+																	.extensible(true)
+																	.isAbstract(true)
+																	.dataClass(Model.class)
+																	.provideValue(
+																			new BufferingDataTarget()
+																					.put(
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("model",
 																									namespace)).buffer()))
-															.addChild(
-																	e -> e
-																			.data()
-																			.name("targetId")
-																			.provideValue(
-																					new BufferingDataTarget().put(
-																							DataType.QUALIFIED_NAME,
-																							new QualifiedName("name",
-																									namespace)).buffer())))
-											.addChild(
-													d -> d
-															.data()
-															.name("targetId")
-															.provideValue(
-																	new BufferingDataTarget().put(
-																			DataType.QUALIFIED_NAME,
-																			new QualifiedName("name", namespace))
-																			.buffer()))).create());
+													.addChild(
+															e -> e
+																	.data()
+																	.name("targetId")
+																	.provideValue(
+																			new BufferingDataTarget().put(
+																					DataType.QUALIFIED_NAME,
+																					new QualifiedName("name", namespace))
+																					.buffer())))
+									.addChild(
+											d -> d
+													.data()
+													.name("targetId")
+													.provideValue(
+															new BufferingDataTarget().put(
+																	DataType.QUALIFIED_NAME,
+																	new QualifiedName("name", namespace))
+																	.buffer()))).create());
 
 			typeSet.add(classType = builder
 					.configure(loader)
@@ -393,10 +393,13 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputType(
-																					DataBindingType.Effective.class)
-																			.inMethodCast(true))
+																					new TypeToken<DataBindingType.Effective<?>>() {}
+																							.getType()).inMethodCast(true))
 															.addChild(
 																	p -> p.inputSequence().name("getDataType")
+																			.inMethodChained(true))
+															.addChild(
+																	p -> p.inputSequence().name("getType")
 																			.inMethodChained(true)))
 											.addChild(
 													o -> o.data().name("name")

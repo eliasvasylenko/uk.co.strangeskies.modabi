@@ -94,10 +94,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 	private <T> T getValueWithOverride(T valueOverride, T defaultValue,
 			Function<S, T> valueFunction,
 			BiPredicate<? super T, ? super T> validateOverride) {
-		@SuppressWarnings("unchecked")
-		Set<T> values = configurator.getOverriddenNodes().stream()
-				.map(n -> valueFunction.apply((S) n.effective()))
-				.filter(Objects::nonNull).collect(Collectors.toSet());
+		Set<T> values = getOverridenValues(valueFunction);
 
 		T value = valueOverride;
 
@@ -122,5 +119,12 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 			value = defaultValue;
 
 		return value;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> Set<T> getOverridenValues(Function<S, T> valueFunction) {
+		return configurator.getOverriddenNodes().stream()
+				.map(n -> valueFunction.apply((S) n.effective()))
+				.filter(Objects::nonNull).collect(Collectors.toSet());
 	}
 }
