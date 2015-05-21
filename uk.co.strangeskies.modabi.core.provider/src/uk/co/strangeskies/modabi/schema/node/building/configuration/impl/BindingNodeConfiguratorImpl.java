@@ -155,10 +155,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			@Override
 			public TypeToken<T> inferExactDataType() {
-				/*
-				 * TODO decoupling copy
-				 */
-				return exactDataType;
+				return exactDataType == null ? null : exactDataType.deepCopy();
 			}
 
 			@Override
