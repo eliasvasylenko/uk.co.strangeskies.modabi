@@ -46,7 +46,7 @@ public interface ComplexNodeConfigurator<T> extends
 	}
 
 	@Override
-	<V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<V> dataClass);
+	<V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<? extends V> dataClass);
 
 	ComplexNodeConfigurator<T> inline(boolean inline);
 }

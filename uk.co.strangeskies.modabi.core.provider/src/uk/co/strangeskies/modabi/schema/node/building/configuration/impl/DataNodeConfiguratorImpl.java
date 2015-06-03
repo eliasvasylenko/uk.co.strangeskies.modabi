@@ -228,9 +228,8 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <V extends T> DataNodeConfigurator<V> dataType(
-			TypeToken<V> dataClass) {
-		return (DataNodeConfigurator<V>) super.dataType(dataClass);
+	public final <U extends T> DataNodeConfigurator<U> dataType(TypeToken<? extends U> dataClass) {
+		return (DataNodeConfigurator<U>) super.dataType(dataClass);
 	}
 
 	@SuppressWarnings("unchecked")

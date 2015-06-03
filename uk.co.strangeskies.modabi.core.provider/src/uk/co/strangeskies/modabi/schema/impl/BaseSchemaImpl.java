@@ -63,6 +63,10 @@ import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
+	private interface PrimitiveMapping {
+		<T> DataBindingType<T> get(DataType<T> dataType);
+	}
+
 	private class DerivedTypesImpl implements DerivedTypes {
 		private final DataBindingType<Object> referenceType;
 		private final DataBindingType<DataSource> bufferedDataType;
@@ -81,7 +85,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		public DerivedTypesImpl(DataLoader loader, Namespace namespace,
 				DataBindingTypeBuilder builder, Set<DataBindingType<?>> typeSet,
-				Map<DataType<?>, DataBindingType<?>> primitives,
+				PrimitiveMapping primitives,
 				DataBindingType<Enumeration<?>> enumerationBaseType) {
 			typeSet.add(arrayType = builder
 					.configure(loader)
@@ -817,7 +821,13 @@ public class BaseSchemaImpl implements BaseSchema {
 		primitives.values().stream().forEach(typeSet::add);
 
 		derivedTypes = new DerivedTypesImpl(loader, namespace, dataTypeBuilder,
-				typeSet, primitives, enumerationBaseType);
+				typeSet, new PrimitiveMapping() {
+					@SuppressWarnings("unchecked")
+					@Override
+					public <T> DataBindingType<T> get(DataType<T> dataType) {
+						return (DataBindingType<T>) primitives.get(dataType);
+					}
+				}, enumerationBaseType);
 
 		/*
 		 * Models

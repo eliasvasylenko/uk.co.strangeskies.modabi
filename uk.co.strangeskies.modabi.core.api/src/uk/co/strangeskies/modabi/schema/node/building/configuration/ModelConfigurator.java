@@ -44,5 +44,5 @@ public interface ModelConfigurator<T> extends
 	}
 
 	@Override
-	<V extends T> ModelConfigurator<V> dataType(TypeToken<V> bindingClass);
+	<V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> bindingClass);
 }

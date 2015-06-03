@@ -40,7 +40,7 @@ public interface DataNodeConfigurator<T> extends
 	}
 
 	@Override
-	public <U extends T> DataNodeConfigurator<U> dataType(TypeToken<U> dataClass);
+	public <U extends T> DataNodeConfigurator<U> dataType(TypeToken<? extends U> dataClass);
 
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
 

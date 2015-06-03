@@ -30,27 +30,40 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {
-	default <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
-			Class<V> dataClass) {
-		return (BindingNodeConfigurator<?, ?, V>) dataType(TypeToken.over(dataClass));
-	}
-
-	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<V> dataType);
+	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataType);
 
 	@SuppressWarnings("unchecked")
 	default BindingNodeConfigurator<?, ?, ?> dataType(Type dataType) {
 		return dataType((TypeToken<? extends T>) TypeToken.over(dataType));
 	}
 
+	default <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
+			Class<V> dataClass) {
+		return (BindingNodeConfigurator<?, ?, V>) dataType(TypeToken
+				.over(dataClass));
+	}
+
 	S bindingStrategy(BindingStrategy strategy);
 
-	S bindingType(Type bindingType);
+	S bindingType(TypeToken<?> bindingType);
+
+	default S bindingType(Type bindingType) {
+		return bindingType(TypeToken.over(bindingType));
+	}
 
 	S unbindingStrategy(UnbindingStrategy strategy);
 
-	S unbindingFactoryType(Type factoryType);
+	S unbindingFactoryType(TypeToken<?> factoryType);
 
-	S unbindingType(Type unbindingType);
+	default S unbindingFactoryType(Type factoryType) {
+		return unbindingFactoryType(TypeToken.over(factoryType));
+	}
+
+	S unbindingType(TypeToken<?> unbindingType);
+
+	default S unbindingType(Type unbindingType) {
+		return unbindingType(TypeToken.over(unbindingType));
+	}
 
 	S unbindingMethod(String unbindingMethod);
 

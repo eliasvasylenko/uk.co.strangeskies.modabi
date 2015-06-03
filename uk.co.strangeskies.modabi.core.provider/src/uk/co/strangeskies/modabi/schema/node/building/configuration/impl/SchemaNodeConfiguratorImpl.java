@@ -87,43 +87,47 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				for (ChildNode.Effective<?, ?> child : nodeStack.peek().children()) {
 					nodeStack.push(child);
 
-					if (child.isAbstract())
-						throw new SchemaException("Inherited descendent '"
-								+ nodeStack.stream().map(n -> n.getName().toString())
-										.collect(Collectors.joining(" < "))
-								+ "' cannot be abstract.");
-
 					child.process(new SchemaProcessingContext() {
 						@Override
 						public void accept(ChoiceNode.Effective node) {
-							requireNonAbstractDescendents(nodeStack);
+							requireNonAbstract(nodeStack);
 						}
 
 						@Override
 						public void accept(SequenceNode.Effective node) {
-							requireNonAbstractDescendents(nodeStack);
+							requireNonAbstract(nodeStack);
 						}
 
 						@Override
 						public void accept(InputSequenceNode.Effective node) {
-							requireNonAbstractDescendents(nodeStack);
+							requireNonAbstract(nodeStack);
 						}
 
 						@Override
 						public <U> void accept(DataNode.Effective<U> node) {
 							if (!node.isExtensible())
-								requireNonAbstractDescendents(nodeStack);
+								requireNonAbstract(nodeStack);
 						}
 
 						@Override
 						public <U> void accept(ComplexNode.Effective<U> node) {
 							if (!node.isExtensible())
-								requireNonAbstractDescendents(nodeStack);
+								requireNonAbstract(nodeStack);
 						}
 					});
 
 					nodeStack.pop();
 				}
+			}
+
+			protected void requireNonAbstract(
+					Deque<SchemaNode.Effective<?, ?>> nodeStack) {
+				if (nodeStack.peek().isAbstract())
+					throw new SchemaException("Inherited descendent '"
+							+ nodeStack.stream().map(n -> n.getName().toString())
+									.collect(Collectors.joining(" < ")) + "' cannot be abstract.");
+
+				requireNonAbstractDescendents(nodeStack);
 			}
 
 			@Override

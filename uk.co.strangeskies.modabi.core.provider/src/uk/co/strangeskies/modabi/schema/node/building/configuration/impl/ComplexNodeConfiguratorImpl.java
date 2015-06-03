@@ -152,7 +152,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> ComplexNodeConfigurator<V> dataType(
-			TypeToken<V> dataClass) {
+			TypeToken<? extends V> dataClass) {
 		return (ComplexNodeConfigurator<V>) super.dataType(dataClass);
 	}
 

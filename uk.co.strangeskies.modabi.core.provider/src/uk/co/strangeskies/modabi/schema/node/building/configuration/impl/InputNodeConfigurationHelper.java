@@ -106,11 +106,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
-
 		Invokable<?, ?> inInvokable;
 
 		String overriddenInMethodName = overrideMerge
@@ -134,13 +129,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 					Type resultType = overrideMerge.tryGetValue(
 							InputNode::getPostInputType, Types::isAssignable);
 					result = resultType == null ? null : TypeToken.over(resultType);
-					if (result == null)
+					if (result == null) {
 						result = TypeToken.over(Object.class);
-
-					System.out.println(" r: " + result);
-					System.out.println(" r: " + result.getResolver().getBounds());
-				} else
+					}
+				} else {
 					result = null;
+				}
 
 				Executable inMethod = overrideMerge
 						.tryGetValue(n -> n.effective() == null ? null : n.effective()
@@ -152,17 +146,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 					inInvokable = Methods.findConstructor(inputTargetType, parameters)
 							.withTargetType(result);
 				} else {
-					System.out.println(inputTargetType);
-					System.out.println(inputTargetType.getResolver().getBounds());
-					if (result != null) {
-						System.out.println(" r: " + result);
-						System.out.println(" r: " + result.getResolver().getBounds());
-					}
-					if (parameters.size() > 0) {
-						System.out.println("  p: " + parameters.get(0));
-						System.out.println("  p: "
-								+ parameters.get(0).getResolver().getBounds());
-					}
 					inInvokable = Methods.findMethod(
 							generateInMethodNames(name, overriddenInMethodName),
 							inputTargetType, context.isStaticMethodExpected(), result,

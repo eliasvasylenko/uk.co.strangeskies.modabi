@@ -104,8 +104,12 @@ public class BindingNodeUnbinder {
 		SchemaProcessingContext processingContext = getProcessingContext(context
 				.withUnbindingSource(supplier.apply(data)));
 
-		for (ChildNode.Effective<?, ?> child : node.children())
+		System.out.println(node.getName().getName());
+		for (ChildNode.Effective<?, ?> child : node.children()) {
+			System.out.println("  " + node.getName().getName() + ": "
+					+ child.getName().getName());
 			child.process(processingContext);
+		}
 	}
 
 	private SchemaProcessingContext getProcessingContext(

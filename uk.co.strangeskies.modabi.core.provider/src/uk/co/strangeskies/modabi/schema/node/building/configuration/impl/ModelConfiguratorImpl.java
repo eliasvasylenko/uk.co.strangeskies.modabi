@@ -141,7 +141,7 @@ public class ModelConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> dataType(TypeToken<V> dataClass) {
+	public <V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> dataClass) {
 		return (ModelConfigurator<V>) super.dataType(dataClass);
 	}
 

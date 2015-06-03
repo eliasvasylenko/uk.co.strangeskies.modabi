@@ -99,17 +99,20 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				Method overriddenOutMethod = overrideMerge.tryGetValue(n -> n
 						.effective() == null ? null : n.effective().getOutMethod());
 
-				Invokable<?, ?> outInvokable = (isAbstract() || "null"
-						.equals(outMethodName)) ? null : getOutMethod(this,
-						overriddenOutMethod, overrideMerge.configurator().getContext()
-								.outputSourceType(), overrideMerge.configurator().getContext()
-								.boundSet());
+				Invokable<?, ?> outInvokable = hasOutMethod(overrideMerge) ? getOutMethod(
+						this, overriddenOutMethod, overrideMerge.configurator()
+								.getContext().outputSourceType(), overrideMerge.configurator()
+								.getContext().boundSet()) : null;
 
 				outMethod = outInvokable == null ? null : (Method) outInvokable
 						.getExecutable();
 
-				if (outMethodName == null && !isAbstract())
+				if (outMethodName == null && hasOutMethod(overrideMerge))
 					outMethodName = outMethod.getName();
+
+				System.out.println(getName() + " : "
+						+ overrideMerge.configurator().getContext().isAbstract());
+				System.out.println("    " + outInvokable + " ? " + outMethodName);
 
 				InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<S, E>(
 						isAbstract(), getName(), overrideMerge, overrideMerge
@@ -123,6 +126,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethodName = inputNodeHelper.getInMethodName();
 				preInputClass = inputNodeHelper.getPreInputType();
 				postInputClass = inputNodeHelper.getPostInputType();
+			}
+
+			private boolean hasOutMethod(
+					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+				return !("null".equals(outMethodName) || (
+				// null == outMethodName &&
+				overrideMerge.configurator().getContext().isAbstract() && isAbstract()));
 			}
 
 			@Override
@@ -231,26 +241,24 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 								&& !resultClass.getRawType().isAssignableFrom(
 										receiverType.getRawType())
 								&& !resultClass.isContainedBy(receiverType
-										.resolveSupertypeParameters(resultClass.getRawType())))
+										.resolveSupertypeParameters(resultClass.getRawType()))) {
 							throw new SchemaException(
 									"Can't use out method 'this' for node '" + node.getName()
 											+ "', as result class '" + resultClass
 											+ "' cannot be assigned from target class'"
 											+ receiverType + "'.");
+						}
+
 						outMethod = null;
 
 						ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
 								receiverType.getType(), resultClass.getType(), bounds);
 					} else if (receiverType == null) {
-						if (!node.isAbstract())
-							throw new SchemaException("Can't find out method for node '"
-									+ node.getName() + "' as target class cannot be found.");
-						outMethod = null;
+						throw new SchemaException("Can't find out method for node '"
+								+ node.getName() + "' as target class cannot be found.");
 					} else if (resultClass == null) {
-						if (!node.isAbstract())
-							throw new SchemaException("Can't find out method for node '"
-									+ node.getName() + "' as result class cannot be found.");
-						outMethod = null;
+						throw new SchemaException("Can't find out method for node '"
+								+ node.getName() + "' as result class cannot be found.");
 					} else {
 						outMethod = Methods.findMethod(
 								generateOutMethodNames(node, resultClass.getRawType()),
@@ -411,9 +419,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getContext().dataLoader();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> BindingChildNodeConfigurator<?, ?, V> dataType(
-			TypeToken<V> dataClass) {
+			TypeToken<? extends V> dataClass) {
 		return (BindingChildNodeConfigurator<?, ?, V>) super.dataType(dataClass);
 	}
 

@@ -135,7 +135,7 @@ public class DataBindingTypeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> DataBindingTypeConfigurator<V> dataType(
-			TypeToken<V> dataClass) {
+			TypeToken<? extends V> dataClass) {
 		return (DataBindingTypeConfigurator<V>) super.dataType(dataClass);
 	}
 

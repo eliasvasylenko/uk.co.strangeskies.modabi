@@ -125,6 +125,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("child")
 								.outMethod("children")
 								.inMethod("null")
+								.isAbstract(true)
 								.extensible(true)
 								.baseModel(nodeModel)
 								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -172,7 +173,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeToken<BindingNodeConfigurator<?, ?, ?>>() {}
+										new TypeToken<BindingNodeConfigurator<?, ?, Object>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -263,7 +264,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeToken<BindingChildNodeConfigurator<?, ?, ?>>() {}
+										new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -332,7 +333,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("configure")
 								.isAbstract(true)
 								.postInputType(
-										new TypeToken<AbstractModelConfigurator<?, ?, ?>>() {}
+										new TypeToken<AbstractModelConfigurator<?, ?, Object>>() {}
 												.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
@@ -402,8 +403,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("complex")
 								.inMethodChained(true)
 								.postInputType(
-										new TypeToken<ComplexNodeConfigurator<?>>() {}
-												.getType()))
+										new TypeToken<ComplexNodeConfigurator<Object>>() {}.getType()))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						c -> c.data().name("inline").isAbstract(true).optional(true)
@@ -705,7 +705,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("models")
 								.occurrences(Range.create(0, 1))
 								.dataType(new TypeToken<Set<?>>() {})
-								.bindingType(LinkedHashSet.class)
+								.bindingType(new TypeToken<LinkedHashSet<?>>() {}.getType())
 								.addChild(
 										o -> o.complex().baseModel(modelModel)
 												.outMethodIterable(true).outMethod("this")

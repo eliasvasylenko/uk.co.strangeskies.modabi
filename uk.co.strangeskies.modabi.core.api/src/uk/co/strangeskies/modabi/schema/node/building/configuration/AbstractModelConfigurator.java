@@ -44,5 +44,5 @@ public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S
 
 	@Override
 	<V extends T> AbstractModelConfigurator<?, ?, V> dataType(
-			TypeToken<V> dataClass);
+			TypeToken<? extends V> dataClass);
 }

@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +47,6 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Invokable;
-import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Wildcards;
 import uk.co.strangeskies.reflection.Types;
@@ -102,7 +102,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 				providedUnbindingParameterNames = overrideMerge.getValue(
 						BindingNode::getProvidedUnbindingMethodParameterNames,
-						Collections.emptyList());
+						Collections.<QualifiedName> emptyList());
 
 				unbindingMethodName = overrideMerge
 						.tryGetValue(BindingNode::getUnbindingMethodName);
@@ -137,13 +137,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				 * Incorporate bounds derived from child nodes through their input and
 				 * output methods.
 				 */
-				if (exactDataType != null) {
-					Resolver resolver = new Resolver(overrideMerge.configurator()
-							.getInferenceBounds());
+				if (exactDataType != null && !exactDataType.isProper()) {
+					exactDataType = (TypeToken<T>) exactDataType.withBounds(
+							overrideMerge.configurator().getInferenceBounds()).resolve();
 
-					if (!exactDataType.isProper())
-						exactDataType = (TypeToken<T>) exactDataType.withBounds(
-								resolver.getBounds()).resolve();
+					if (!isAbstract()
+							&& overrideMerge.configurator().isDataTypeExtensible())
+						exactDataType = exactDataType.infer();
 				}
 
 				return exactDataType;
@@ -427,7 +427,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 		}
 
-		private final TypeToken<T> dataClass;
+		private final TypeToken<T> dataType;
 		private final Type bindingClass;
 		private final Type unbindingClass;
 		private final Type unbindingFactoryClass;
@@ -438,10 +438,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 		private final List<QualifiedName> unbindingParameterNames;
 
+		@SuppressWarnings("unchecked")
 		public BindingNodeImpl(BindingNodeConfiguratorImpl<?, ?, T> configurator) {
 			super(configurator);
 
-			dataClass = configurator.dataType;
+			if (configurator.isDataTypeExtensible)
+				dataType = (TypeToken<T>) configurator.dataType.getWildcardExtending();
+			else
+				dataType = configurator.dataType;
 
 			bindingStrategy = configurator.bindingStrategy;
 			bindingClass = configurator.bindingClass;
@@ -458,7 +462,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 		@Override
 		public TypeToken<T> getDataType() {
-			return dataClass;
+			return dataType;
 		}
 
 		@Override
@@ -503,6 +507,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	private TypeToken<T> dataType;
+	private boolean isDataTypeExtensible;
 	private TypeToken<T> inferenceDataType;
 	private BoundSet inferenceBounds = new BoundSet();
 
@@ -526,6 +531,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return inferenceDataType;
 	}
 
+	protected boolean isDataTypeExtensible() {
+		return isDataTypeExtensible;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
@@ -544,7 +553,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		TypeToken<?> dataType = overrideMerge.getValueWithOverride(this.dataType,
 				BindingNode::getDataType, TypeToken::isAssignableTo);
 		if (dataType != null) {
-			dataType = TypeToken.over(dataType.getType(), Wildcards.INFERENCE);
+			dataType = TypeToken.over(dataType.getType(), Wildcards.INFER);
 
 			/*
 			 * Incorporate bounds from each inherited type.
@@ -556,9 +565,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		TypeToken<?> inputTarget = bindingClass != null ? TypeToken.over(
-				bindingClass, Wildcards.INFERENCE) : dataType;
+				bindingClass, Wildcards.INFER) : dataType;
 		TypeToken<?> outputTarget = unbindingClass != null ? TypeToken.over(
-				unbindingClass, Wildcards.INFERENCE) : dataType;
+				unbindingClass, Wildcards.INFER) : dataType;
 
 		if (dataType != null)
 			inferenceBounds.incorporate(dataType.getResolver().getBounds());
@@ -641,11 +650,37 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
-			TypeToken<V> dataType) {
+			TypeToken<? extends V> dataType) {
 		assertConfigurable(this.dataType);
 
-		if (this.dataType != null && !this.dataType.isAssignableFrom(dataType))
-			throw new IllegalArgumentException();
+		if (dataType == null)
+			throw new IllegalArgumentException("Data type must not be null.");
+
+		if (!dataType.isProper())
+			throw new IllegalArgumentException("Data type must be proper.");
+
+		isDataTypeExtensible = dataType.getType() instanceof WildcardType;
+		if (isDataTypeExtensible) {
+			Type[] lowerBounds = ((WildcardType) dataType.getType()).getLowerBounds();
+			Type[] upperBounds = ((WildcardType) dataType.getType()).getUpperBounds();
+
+			if (lowerBounds != null && lowerBounds.length > 0)
+				throw new IllegalArgumentException(
+						"Data type must not specify a lower bound.");
+
+			Type upperBound;
+
+			if (upperBounds == null || upperBounds.length == 0) {
+				upperBound = Object.class;
+			} else if (upperBounds.length > 1) {
+				throw new IllegalArgumentException(
+						"Data type must not specify multiple upper bounds.");
+			} else {
+				upperBound = upperBounds[0];
+			}
+
+			dataType = (TypeToken<? extends V>) TypeToken.over(upperBound);
+		}
 
 		this.dataType = (TypeToken<T>) dataType;
 
@@ -655,17 +690,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	protected abstract boolean isDataContext();
 
 	@Override
-	public final S bindingType(Type bindingClass) {
+	public final S bindingType(TypeToken<?> bindingClass) {
 		assertConfigurable(this.bindingClass);
-		this.bindingClass = bindingClass;
+		this.bindingClass = bindingClass.getType();
 
 		return getThis();
 	}
 
 	@Override
-	public S unbindingType(Type unbindingClass) {
+	public S unbindingType(TypeToken<?> unbindingClass) {
 		assertConfigurable(this.unbindingClass);
-		this.unbindingClass = unbindingClass;
+		this.unbindingClass = unbindingClass.getType();
 
 		return getThis();
 	}
@@ -703,9 +738,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public S unbindingFactoryType(Type factoryClass) {
+	public S unbindingFactoryType(TypeToken<?> factoryClass) {
 		assertConfigurable(unbindingFactoryClass);
-		unbindingFactoryClass = factoryClass;
+		unbindingFactoryClass = factoryClass.getType();
 
 		return getThis();
 	}

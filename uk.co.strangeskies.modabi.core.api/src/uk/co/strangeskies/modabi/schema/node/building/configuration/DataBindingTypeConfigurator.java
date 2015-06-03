@@ -56,7 +56,8 @@ public interface DataBindingTypeConfigurator<T>
 	}
 
 	@Override
-	<U extends T> DataBindingTypeConfigurator<U> dataType(TypeToken<U> dataClass);
+	<U extends T> DataBindingTypeConfigurator<U> dataType(
+			TypeToken<? extends U> dataClass);
 
 	<U extends T> DataBindingTypeConfigurator<U> baseType(
 			DataBindingType<? super U> baseType);
