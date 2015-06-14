@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,13 +27,14 @@ import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		ChildNodeConfigurator<S, N> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
-	private Type postInputClass;
+	private TypeToken<?> postInputClass;
 
 	public ChildNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super N> parent) {
@@ -70,14 +70,14 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	}
 
 	@Override
-	public S postInputType(Type postInputClass) {
+	public S postInputType(TypeToken<?> postInputClass) {
 		assertConfigurable(this.postInputClass);
 		this.postInputClass = postInputClass;
 
 		return getThis();
 	}
 
-	protected Type getPostInputClass() {
+	protected TypeToken<?> getPostInputClass() {
 		return postInputClass;
 	}
 }

@@ -19,10 +19,10 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
@@ -31,22 +31,23 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeCon
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.Types;
+import uk.co.strangeskies.reflection.TypeVariableCapture;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final QualifiedName name;
 	private final boolean isAbstract;
 
-	private String inMethodName;
+	private final String inMethodName;
 	private final Invokable<?, ?> inMethod;
 	private final Boolean inMethodChained;
 	private final Boolean allowInMethodResultCast;
 	private final Boolean inMethodUnchecked;
 
-	private final Type preInputType;
-	private final Type postInputType;
+	private final TypeToken<?> preInputType;
+	private final TypeToken<?> postInputType;
 
 	private final OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge;
 	private final SchemaNodeConfigurationContext<? super N> context;
@@ -69,8 +70,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
-		preInputType = preInputType() == null ? null : preInputType().getType();
-		postInputType = postInputType() == null ? null : postInputType().getType();
+		preInputType = preInputType();
+		postInputType = postInputType();
 	}
 
 	public Boolean isInMethodChained() {
@@ -89,11 +90,11 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethod;
 	}
 
-	public Type getPreInputType() {
+	public TypeToken<?> getPreInputType() {
 		return preInputType;
 	}
 
-	public Type getPostInputType() {
+	public TypeToken<?> getPostInputType() {
 		return postInputType;
 	}
 
@@ -101,7 +102,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		return inMethodName;
 	}
 
-	private TypeToken<?> inputTargetClass() {
+	private TypeToken<?> inputTargetType() {
 		return context.inputTargetType(name);
 	}
 
@@ -118,7 +119,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				throw new SchemaException(
 						"In method name should not be provided for this node.");
 
-		TypeToken<?> inputTargetType = inputTargetClass();
+		TypeToken<?> inputTargetType = inputTargetType();
 
 		if (isAbstract || "null".equals(overriddenInMethodName)) {
 			inInvokable = null;
@@ -126,15 +127,21 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			try {
 				TypeToken<?> result;
 				if (inMethodChained) {
-					Type resultType = overrideMerge.tryGetValue(
-							InputNode::getPostInputType, Types::isAssignable);
-					result = resultType == null ? null : TypeToken.over(resultType);
+					TypeToken<?> resultType = overrideMerge.tryGetValue(
+							InputNode::getPostInputType, TypeToken::isAssignableTo);
+
+					result = resultType == null ? null : resultType;
 					if (result == null) {
 						result = TypeToken.over(Object.class);
 					}
 				} else {
 					result = null;
 				}
+
+				if (inMethodUnchecked)
+					parameters = parameters.stream()
+							.map(t -> (TypeToken<?>) TypeToken.over(t.getRawType()))
+							.collect(Collectors.toList());
 
 				Executable inMethod = overrideMerge
 						.tryGetValue(n -> n.effective() == null ? null : n.effective()
@@ -217,29 +224,33 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		if ("null".equals(inMethodName)
 				|| (inMethodChained != null && !inMethodChained)) {
-			postInputClass = inputTargetClass();
-		} else if (isAbstract) {
+			postInputClass = inputTargetType();
+		} else if (isAbstract || inMethodChained == null) {
 			postInputClass = overrideMerge.tryGetValue(
-					n -> n.getPostInputType() == null ? null : TypeToken.over(n
-							.getPostInputType()), (n, o) -> o.isAssignableFrom(n));
+					n -> n.getPostInputType() == null ? null : n.getPostInputType(),
+					TypeToken::isAssignableTo);
 		} else {
 			TypeToken<?> methodReturn;
 
-			if (context.isConstructorExpected())
-				methodReturn = inMethod.getReceiverType();
-			else
-				methodReturn = inMethod.getReturnType();
+			methodReturn = inMethod.getReturnType();
 
-			Type localPostInputClass = overrideMerge.node().getPostInputType();
+			if (methodReturn.getType() instanceof TypeVariableCapture)
+				methodReturn = TypeToken
+						.over(
+								IntersectionType.from(Arrays
+										.asList(((TypeVariableCapture) methodReturn.getType())
+												.getUpperBounds()), methodReturn.getResolver()
+										.getBounds())).withBoundsFrom(methodReturn.getResolver());
+
+			TypeToken<?> localPostInputClass = overrideMerge.node()
+					.getPostInputType();
 
 			if (localPostInputClass == null
-					|| TypeToken.over(localPostInputClass).isAssignableFrom(methodReturn))
-				localPostInputClass = methodReturn.getType();
+					|| localPostInputClass.isAssignableFrom(methodReturn))
+				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge.getValueWithOverride(TypeToken
-					.over(localPostInputClass), n -> n.getPostInputType() == null ? null
-					: TypeToken.over(n.getPostInputType()), (n, o) -> o
-					.isAssignableFrom(n));
+			postInputClass = overrideMerge.getValueWithOverride(localPostInputClass,
+					n -> n.getPostInputType(), TypeToken::isAssignableTo);
 		}
 
 		return postInputClass;

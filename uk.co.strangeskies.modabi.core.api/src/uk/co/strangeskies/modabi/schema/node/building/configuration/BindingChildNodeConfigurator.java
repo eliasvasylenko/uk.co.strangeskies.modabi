@@ -30,6 +30,8 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	public S outMethodIterable(boolean iterable);
 
+	public S outMethodCast(boolean cast);
+
 	public S occurrences(Range<Integer> occuranceRange);
 
 	public S extensible(boolean extensible);

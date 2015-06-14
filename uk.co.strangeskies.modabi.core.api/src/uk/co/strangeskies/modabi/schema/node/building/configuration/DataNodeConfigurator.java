@@ -18,6 +18,9 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
+
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
 import uk.co.strangeskies.modabi.schema.node.DataBindingType;
@@ -33,14 +36,30 @@ public interface DataNodeConfigurator<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default public <U extends T> DataNodeConfigurator<U> dataClass(
+	default public <U extends T> DataNodeConfigurator<U> dataType(
 			Class<U> dataClass) {
 		return (DataNodeConfigurator<U>) BindingChildNodeConfigurator.super
-				.dataClass(dataClass);
+				.dataType(dataClass);
 	}
 
 	@Override
-	public <U extends T> DataNodeConfigurator<U> dataType(TypeToken<? extends U> dataClass);
+	public <V extends T> DataNodeConfigurator<V> dataType(
+			TypeToken<? extends V> dataType);
+
+	@SuppressWarnings("unchecked")
+	@Override
+	default public DataNodeConfigurator<? extends T> dataType(
+			AnnotatedType dataType) {
+		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super
+				.dataType(dataType);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public default DataNodeConfigurator<? extends T> dataType(Type dataType) {
+		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super
+				.dataType(dataType);
+	}
 
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
 

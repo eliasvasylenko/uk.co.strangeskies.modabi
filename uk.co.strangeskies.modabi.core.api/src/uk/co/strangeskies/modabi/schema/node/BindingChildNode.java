@@ -70,6 +70,8 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	 */
 	Boolean isOutMethodIterable();
 
+	Boolean isOutMethodCast();
+
 	/**
 	 * Default behaviour is as if 1..1.
 	 *

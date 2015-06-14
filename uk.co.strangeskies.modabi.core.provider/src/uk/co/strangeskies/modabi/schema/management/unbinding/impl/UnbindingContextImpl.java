@@ -31,52 +31,31 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.factory.Factory;
 
-public class UnbindingContextImpl extends ProcessingContextImpl implements
-		UnbindingContext {
-	private interface UnbindingProvisions {
-		<U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext);
-
-		boolean isProvided(TypeToken<?> clazz);
-	}
-
+public class UnbindingContextImpl extends
+		ProcessingContextImpl<UnbindingContextImpl> implements UnbindingContext {
 	private final List<Object> unbindingSourceStack;
 	private final StructuredDataTarget output;
-	private final UnbindingProvisions provider;
 
 	public UnbindingContextImpl(SchemaManager manager) {
 		super(manager);
 
 		unbindingSourceStack = Collections.emptyList();
 		output = null;
-		provider = new UnbindingProvisions() {
-			@Override
-			public <U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext) {
-				return manager.provisions().provide(clazz);
-			}
-
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return manager.provisions().isProvided(clazz);
-			}
-		};
 	}
 
 	private UnbindingContextImpl(UnbindingContextImpl parent,
 			List<Object> unbindingSourceStack, StructuredDataTarget output,
-			UnbindingProvisions provider) {
-		super(parent);
+			ProcessingProvisions provider) {
+		super(parent, provider);
 		this.unbindingSourceStack = unbindingSourceStack;
 		this.output = output;
-		this.provider = provider;
 	}
 
 	private UnbindingContextImpl(UnbindingContextImpl parent,
@@ -84,7 +63,6 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		super(parent, unbindingNode);
 		this.unbindingSourceStack = parent.unbindingSourceStack;
 		this.output = parent.output;
-		this.provider = parent.provider;
 	}
 
 	@Override
@@ -97,56 +75,18 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		return output;
 	}
 
-	private <U> U provide(TypeToken<U> clazz, UnbindingContextImpl headContext) {
-		if (!provider.isProvided(clazz))
-			throw new UnbindingException("Requested type '" + clazz
-					+ "' is not provided by the unbinding context.", headContext);
-		return provider.provide(clazz, headContext);
+	@Override
+	protected RuntimeException processingException(String message,
+			UnbindingContextImpl state) {
+		throw new UnbindingException(message, state);
 	}
 
 	@Override
-	public Provisions provisions() {
-		return new Provisions() {
-			@Override
-			public <U> U provide(TypeToken<U> clazz) {
-				return UnbindingContextImpl.this.provide(clazz,
-						UnbindingContextImpl.this);
-			}
-
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return provider.isProvided(clazz);
-			}
-		};
-	}
-
 	public <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
-			Factory<T> provider) {
-		return withProvision(providedClass, c -> provider.create());
-	}
-
-	public <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
-			Function<UnbindingContext, T> provider) {
-		UnbindingContextImpl base = this;
-
+			Function<? super UnbindingContextImpl, T> provider,
+			ProcessingProvisions provisions) {
 		return new UnbindingContextImpl(this, unbindingSourceStack, output,
-				new UnbindingProvisions() {
-					@SuppressWarnings("unchecked")
-					@Override
-					public <U> U provide(TypeToken<U> clazz,
-							UnbindingContextImpl headContext) {
-						if (clazz.equals(providedClass))
-							return (U) provider.apply(headContext);
-
-						return base.provide(clazz, headContext);
-					}
-
-					@Override
-					public boolean isProvided(TypeToken<?> clazz) {
-						return clazz.equals(providedClass)
-								|| base.provisions().isProvided(clazz);
-					}
-				});
+				provisions);
 	}
 
 	public <T> UnbindingContextImpl withUnbindingSource(Object target) {
@@ -154,7 +94,8 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 		unbindingSourceStack.add(target);
 
 		return new UnbindingContextImpl(this,
-				Collections.unmodifiableList(unbindingSourceStack), output, provider);
+				Collections.unmodifiableList(unbindingSourceStack), output,
+				getProvider());
 	}
 
 	public <T> UnbindingContextImpl withUnbindingNode(
@@ -164,7 +105,7 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 
 	public UnbindingContextImpl withOutput(StructuredDataTarget output) {
 		return new UnbindingContextImpl(this, unbindingSourceStack, output,
-				provider);
+				getProvider());
 	}
 
 	public void attemptUnbinding(Consumer<UnbindingContextImpl> unbindingMethod) {
@@ -219,10 +160,6 @@ public class UnbindingContextImpl extends ProcessingContextImpl implements
 
 		for (Exception failure : failures) {
 			failure.printStackTrace();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
 			System.out.println();
 		}
 

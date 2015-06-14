@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
@@ -44,8 +43,8 @@ public class SequenceNodeConfiguratorImpl extends
 		private class Effective extends
 				SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
 				implements SequenceNode.Effective {
-			private final Type preInputClass;
-			private final Type postInputClass;
+			private final TypeToken<?> preInputClass;
+			private final TypeToken<?> postInputClass;
 
 			public Effective(
 					OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
@@ -54,14 +53,12 @@ public class SequenceNodeConfiguratorImpl extends
 				preInputClass = isAbstract() ? null : children().get(0)
 						.getPreInputType();
 
-				Type postInputClass = overrideMerge.tryGetValue(
-						ChildNode::getPostInputType, (n, o) -> TypeToken.over(o)
-								.isAssignableFrom(n));
+				TypeToken<?> postInputClass = overrideMerge.tryGetValue(
+						ChildNode::getPostInputType, TypeToken::isAssignableTo);
 				if (postInputClass == null && !isAbstract()) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						if (postInputClass != null
-								&& !TypeToken.over(child.getPreInputType()).isAssignableFrom(
-										postInputClass)) {
+								&& !child.getPreInputType().isAssignableFrom(postInputClass)) {
 							throw new IllegalArgumentException();
 						}
 						postInputClass = child.getPostInputType();
@@ -71,19 +68,19 @@ public class SequenceNodeConfiguratorImpl extends
 			}
 
 			@Override
-			public Type getPreInputType() {
+			public TypeToken<?> getPreInputType() {
 				return preInputClass;
 			}
 
 			@Override
-			public Type getPostInputType() {
+			public TypeToken<?> getPostInputType() {
 				return postInputClass;
 			}
 		}
 
 		private final Effective effective;
 
-		private final Type postInputClass;
+		private final TypeToken<?> postInputClass;
 
 		public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
 			super(configurator);
@@ -99,7 +96,7 @@ public class SequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public Type getPostInputType() {
+		public TypeToken<?> getPostInputType() {
 			return postInputClass;
 		}
 	}

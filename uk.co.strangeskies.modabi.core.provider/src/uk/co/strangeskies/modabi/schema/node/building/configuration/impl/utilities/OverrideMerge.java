@@ -110,9 +110,10 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 				value = overriddenValue;
 		} else if (!values.isEmpty()
 				&& (valueOverride == null || !values.stream().allMatch(
-						v -> validateOverride.test(valueOverride, v))))
-			throw new SchemaException("Cannot override properties [" + values
-					+ "] with [" + valueOverride + "]");
+						v -> validateOverride.test(valueOverride, v)))) {
+			throw new SchemaException("Cannot override incompatible properties '"
+					+ values + "' with '" + valueOverride + "'");
+		}
 
 		if (value == null
 				&& (node == null || (node.isAbstract() == null || !node.isAbstract())))

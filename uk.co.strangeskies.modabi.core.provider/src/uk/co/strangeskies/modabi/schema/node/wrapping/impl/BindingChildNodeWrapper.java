@@ -20,11 +20,11 @@ package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingChildNode.Effective<? super T, ?, ?>, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNodeWrapper<T, C, B, S, E> implements
@@ -68,6 +68,11 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
+	public final Boolean isOutMethodCast() {
+		return getBase() == null ? null : getBase().isOutMethodCast();
+	}
+
+	@Override
 	public final Range<Integer> occurrences() {
 		return getBase() == null ? null : getBase().occurrences();
 	}
@@ -98,12 +103,12 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
-	public final Type getPreInputType() {
+	public final TypeToken<?> getPreInputType() {
 		return getBase() == null ? null : getBase().getPreInputType();
 	}
 
 	@Override
-	public final Type getPostInputType() {
+	public final TypeToken<?> getPostInputType() {
 		return getBase() == null ? null : getBase().getPostInputType();
 	}
 }

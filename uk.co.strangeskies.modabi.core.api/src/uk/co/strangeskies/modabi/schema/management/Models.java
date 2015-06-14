@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi.schema.management;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,12 +36,12 @@ import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class Models extends QualifiedNamedSet<Model<?>> {
 	private final MultiMap<Model<?>, Model<?>, LinkedHashSet<Model<?>>> derivedModels;
-	private final MultiMap<TypeToken<?>, Model<?>, Set<Model<?>>> classModels;
+	private final MultiMap<Type, Model<?>, LinkedHashSet<Model<?>>> classModels;
 
 	public Models() {
 		super(Model::getName);
-		derivedModels = new MultiHashMap<>(() -> new LinkedHashSet<>());
-		classModels = new MultiHashMap<>(HashSet::new);
+		derivedModels = new MultiHashMap<>(LinkedHashSet::new);
+		classModels = new MultiHashMap<>(LinkedHashSet::new);
 	}
 
 	@Override
@@ -55,12 +55,14 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	}
 
 	private void mapModel(Model<?> model) {
+		model = model.source();
+
 		derivedModels.addToAll(
 				model.effective().baseModel().stream().map(Model::source)
-						.collect(Collectors.toSet()), model.source());
+						.collect(Collectors.toSet()), model);
 
 		if (!model.effective().isAbstract())
-			classModels.add(model.getDataType(), model);
+			classModels.add(model.effective().getDataType().getType(), model);
 	}
 
 	@SuppressWarnings("unchecked")

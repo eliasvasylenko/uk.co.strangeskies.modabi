@@ -75,8 +75,11 @@ public class Methods {
 					+ "method for class '" + receiver + "' with parameters '"
 					+ parameters + "' and any name of '" + names + "'.", exception);
 
-		if (!allowCast && result != null)
-			method = method.withTargetType(result);
+		if (result != null) {
+			if (!allowCast) {
+				method = method.withTargetType(result);
+			}
+		}
 
 		return method;
 	}

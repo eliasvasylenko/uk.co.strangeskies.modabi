@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -57,8 +58,10 @@ import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.ModelBuilder;
+import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.utilities.Enumeration;
 
@@ -73,6 +76,8 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		private final DataBindingType<Class<?>> classType;
 		private final DataBindingType<Type> typeType;
+		private final DataBindingType<AnnotatedType> annotatedTypeType;
+		private final DataBindingType<TypeToken<?>> typeTokenType;
 		private final DataBindingType<Enum<?>> enumType;
 		private final DataBindingType<Enumeration<?>> enumerationType;
 		private final DataBindingType<Range<Integer>> rangeType;
@@ -90,12 +95,12 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(arrayType = builder
 					.configure(loader)
 					.name("array", namespace)
-					.dataClass(Object[].class)
+					.dataType(new TypeToken<@Infer Object[]>() {})
 					.isAbstract(true)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.bindingType(List.class)
 					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
-					.unbindingType(List.class)
+					.unbindingType(new TypeToken<@Infer List<?>>() {})
 					.unbindingFactoryType(Arrays.class)
 					.unbindingMethod("asList")
 					.addChild(
@@ -109,24 +114,25 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(collectionType = builder
 					.configure(loader)
 					.name("collection", namespace)
-					.dataType(new TypeToken<Collection<?>>() {})
+					.dataType(new TypeToken<@Infer Collection<?>>() {})
 					.isAbstract(true)
 					.bindingStrategy(BindingStrategy.PROVIDED)
+					.unbindingStrategy(UnbindingStrategy.SIMPLE)
 					.addChild(
 							c -> c.data().name("element").inMethod("add").outMethod("this")
 									.isAbstract(true).occurrences(Range.create(0, null))
 									.outMethodIterable(true)).create());
 
 			typeSet.add(listType = builder.configure(loader).name("list", namespace)
-					.isAbstract(true).dataType(new TypeToken<List<?>>() {})
+					.isAbstract(true).dataType(new TypeToken<@Infer List<?>>() {})
 					.baseType(collectionType).create());
 
 			typeSet.add(setType = builder.configure(loader).name("set", namespace)
-					.isAbstract(true).dataType(new TypeToken<Set<?>>() {})
+					.isAbstract(true).dataType(new TypeToken<@Infer Set<?>>() {})
 					.baseType(collectionType).create());
 
 			typeSet.add(bufferedDataType = builder.configure(loader)
-					.name("bufferedData", namespace).dataClass(DataSource.class)
+					.name("bufferedData", namespace).dataType(DataSource.class)
 					.bindingType(DataSource.class)
 					.bindingStrategy(BindingStrategy.PROVIDED)
 					.unbindingType(DataTarget.class)
@@ -138,7 +144,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.add(referenceBaseType = builder
 							.configure(loader)
 							.name("referenceBase", namespace)
-							.dataClass(Object.class)
+							.dataType(Object.class)
 							.isAbstract(true)
 							.isPrivate(true)
 							.bindingType(DereferenceSource.class)
@@ -151,8 +157,11 @@ public class BaseSchemaImpl implements BaseSchema {
 							.providedUnbindingMethodParameters("targetModel", "targetId",
 									"this")
 							.addChild(
-									d -> d.data().dataClass(Model.class).name("targetModel")
-											.isAbstract(true)
+									d -> d.data().dataType(Model.class).name("targetModel")
+											.bindingType(DereferenceSource.class)
+											.bindingStrategy(BindingStrategy.PROVIDED)
+											.unbindingFactoryType(ReferenceTarget.class)
+											.unbindingType(DataSource.class).isAbstract(true)
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.inMethod("null").outMethod("null"))
 							.addChild(
@@ -169,7 +178,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.addChild(
 													d -> d
 															.data()
-															.dataClass(Model.class)
+															.dataType(Model.class)
 															.name("targetModel")
 															.provideValue(new BufferingDataTarget().buffer())
 															.outMethod("null")
@@ -181,8 +190,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputType(
-																					new TypeToken<DataBindingType.Effective<?>>() {}
-																							.getType())
+																					new TypeToken<DataBindingType.Effective<?>>() {})
 																			.inMethodCast(true)
 																			.outMethod("null")
 																			.type(primitives.get(DataType.INT))
@@ -204,15 +212,15 @@ public class BaseSchemaImpl implements BaseSchema {
 																							new QualifiedName("targetModel",
 																									namespace)).buffer())
 																			.postInputType(
-																					new TypeToken<DataNode.Effective<?>>() {}
-																							.getType()).inMethodCast(true))
+																					new TypeToken<DataNode.Effective<?>>() {})
+																			.inMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
 																			.inMethodChained(true)))
 											.addChild(
 													d -> d
 															.data()
-															.dataClass(QualifiedName.class)
+															.dataType(QualifiedName.class)
 															.name("targetId")
 															.outMethod("null")
 															.provideValue(new BufferingDataTarget().buffer())
@@ -224,7 +232,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputType(
-																					DataBindingType.Effective.class)
+																					new TypeToken<DataBindingType.Effective<?>>() {})
 																			.type(primitives.get(DataType.INT))
 																			.inMethodCast(true)
 																			.outMethod("null")
@@ -245,7 +253,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetId",
 																									namespace)).buffer())
-																			.postInputType(DataNode.Effective.class)
+																			.postInputType(new TypeToken<DataNode.Effective<?>>() {})
 																			.inMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
@@ -266,14 +274,14 @@ public class BaseSchemaImpl implements BaseSchema {
 									.name("targetModel")
 									.type(referenceBaseType)
 									.isAbstract(true)
-									.dataClass(Model.class)
+									.dataType(Model.class)
 									.addChild(
 											d -> d
 													.data()
 													.name("targetModel")
 													.type(referenceBaseType)
 													.extensible(true)
-													.dataClass(Model.class)
+													.dataType(Model.class)
 													.provideValue(
 															new BufferingDataTarget().put(
 																	DataType.QUALIFIED_NAME,
@@ -286,7 +294,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.type(referenceBaseType)
 																	.extensible(true)
 																	.isAbstract(true)
-																	.dataClass(Model.class)
+																	.dataType(Model.class)
 																	.provideValue(
 																			new BufferingDataTarget()
 																					.put(
@@ -325,12 +333,32 @@ public class BaseSchemaImpl implements BaseSchema {
 			typeSet.add(typeType = builder
 					.configure(loader)
 					.name("type", namespace)
-					.dataClass(Type.class)
+					.dataType(Type.class)
 					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 					.bindingType(Types.class)
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
 									.inMethod("fromString").outMethod("toString")).create());
+
+			typeSet.add(annotatedTypeType = builder
+					.configure(loader)
+					.name("annotatedType", namespace)
+					.dataType(AnnotatedType.class)
+					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+					.bindingType(AnnotatedTypes.class)
+					.addChild(
+							p -> p.data().type(primitives.get(DataType.STRING)).name("name")
+									.inMethod("fromString").outMethod("toString")).create());
+
+			typeSet.add(typeTokenType = builder
+					.configure(loader)
+					.name("typeTokenType", namespace)
+					.dataType(new TypeToken<TypeToken<?>>() {})
+					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+					.addChild(
+							o -> o.data().type(annotatedTypeType)
+									.outMethod("getAnnotatedDeclaration").inMethod("over"))
+					.create());
 
 			typeSet
 					.add(enumType = builder
@@ -340,6 +368,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.bindingType(Enumeration.class)
 							.isAbstract(true)
 							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.unbindingStrategy(UnbindingStrategy.SIMPLE)
 							.addChild(
 									n -> n
 											.inputSequence()
@@ -360,8 +389,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputType(
-																					new TypeToken<DataBindingType.Effective<?>>() {}
-																							.getType()).inMethodCast(true))
+																					new TypeToken<DataBindingType.Effective<?>>() {})
+																			.inMethodCast(true))
 															.addChild(
 																	p -> p.inputSequence().name("getDataType")
 																			.inMethodChained(true)))
@@ -375,7 +404,6 @@ public class BaseSchemaImpl implements BaseSchema {
 							.name("enumeration", namespace)
 							.baseType(enumerationBaseType)
 							.isAbstract(true)
-							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 							.addChild(
 									n -> n
 											.inputSequence()
@@ -397,8 +425,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.name("bindingNode")
 																			.inMethodChained(true)
 																			.postInputType(
-																					new TypeToken<DataBindingType.Effective<?>>() {}
-																							.getType()).inMethodCast(true))
+																					new TypeToken<DataBindingType.Effective<?>>() {})
+																			.inMethodCast(true))
 															.addChild(
 																	p -> p.inputSequence().name("getDataType")
 																			.inMethodChained(true))
@@ -419,7 +447,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.unbindingFactoryType(Range.class)
 					.addChild(
 							p -> p.data().type(primitives.get(DataType.STRING))
-									.name("string")).create());
+									.outMethod("this").name("string")).create());
 
 			typeSet
 					.add(includeType = builder
@@ -445,7 +473,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.outMethod("null")
 											.inMethod("null")
 											.bindingStrategy(BindingStrategy.PROVIDED)
-											.dataClass(IncludeTarget.class)
+											.dataType(IncludeTarget.class)
 											.addChild(
 													d -> d
 															.inputSequence()
@@ -490,7 +518,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																															namespace))
 																											.buffer())
 																							.postInputType(
-																									DataNode.Effective.class)
+																									new TypeToken<DataNode.Effective<?>>() {})
 																							.inMethodCast(true))
 																			.addChild(
 																					f -> f.inputSequence()
@@ -500,7 +528,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	e -> e
 																			.data()
 																			.name("object")
-																			.dataClass(Collection.class)
+																			.dataType(Collection.class)
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
 																			.bindingType(BindingContext.class)
@@ -521,9 +549,10 @@ public class BaseSchemaImpl implements BaseSchema {
 					.add(importType = builder
 							.configure(loader)
 							.name("import", namespace)
-							.dataClass(Object.class)
+							.dataType(Object.class)
 							.isAbstract(true)
 							.bindingStrategy(BindingStrategy.SOURCE_ADAPTOR)
+							.unbindingStrategy(UnbindingStrategy.SIMPLE)
 							.unbindingMethod("this")
 							.addChild(
 									b -> b
@@ -533,7 +562,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.inMethod("null")
 											.inMethodChained(true)
 											.isAbstract(true)
-											.dataClass(Object.class)
+											.dataType(Object.class)
 											.bindingType(ImportSource.class)
 											.bindingStrategy(BindingStrategy.PROVIDED)
 											.unbindingFactoryType(ImportReferenceTarget.class)
@@ -627,7 +656,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																															namespace))
 																											.buffer())
 																							.postInputType(
-																									DataNode.Effective.class)
+																									new TypeToken<DataNode.Effective<?>>() {})
 																							.inMethodCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
@@ -636,7 +665,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.addChild(
 																	d -> d
 																			.data()
-																			.dataClass(QualifiedName.class)
+																			.dataType(QualifiedName.class)
 																			.name("targetId")
 																			.outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED)
@@ -673,7 +702,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																															namespace))
 																											.buffer())
 																							.postInputType(
-																									DataNode.Effective.class)
+																									new TypeToken<DataNode.Effective<?>>() {})
 																							.inMethodCast(true))
 																			.addChild(
 																					e -> e.inputSequence()
@@ -693,6 +722,16 @@ public class BaseSchemaImpl implements BaseSchema {
 		@Override
 		public DataBindingType<Type> typeType() {
 			return typeType;
+		}
+
+		@Override
+		public DataBindingType<AnnotatedType> annotatedTypeType() {
+			return annotatedTypeType;
+		}
+
+		@Override
+		public DataBindingType<TypeToken<?>> typeTokenType() {
+			return typeTokenType;
 		}
 
 		@Override
@@ -777,8 +816,10 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		DataBindingType<Enumeration<?>> enumerationBaseType;
 		typeSet.add(enumerationBaseType = dataTypeBuilder.configure(loader)
+				.unbindingType(Enumeration.class)
+				.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 				.name("enumerationBase", namespace).isAbstract(true).isPrivate(true)
-				.dataType(new TypeToken<Enumeration<?>>() {}).create());
+				.dataType(new TypeToken<@Infer Enumeration<?>>() {}).create());
 
 		DataBindingType<Object> primitive;
 		typeSet.add(primitive = dataTypeBuilder
@@ -786,9 +827,9 @@ public class BaseSchemaImpl implements BaseSchema {
 				.name("primitive", namespace)
 				.isAbstract(true)
 				.isPrivate(true)
-				.bindingType(DataSource.class)
+				.bindingType(new TypeToken<DataSource>() {})
 				.bindingStrategy(BindingStrategy.PROVIDED)
-				.unbindingType(DataTarget.class)
+				.unbindingType(new TypeToken<DataTarget>() {})
 				.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
 				.unbindingMethod("put")
 				.providedUnbindingMethodParameters("dataType", "this")
@@ -797,8 +838,8 @@ public class BaseSchemaImpl implements BaseSchema {
 								.inMethod("get").isAbstract(true).extensible(true)
 								.inMethodChained(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
-								.dataType(new TypeToken<DataType<?>>() {}).outMethod("null"))
-				.create());
+								.dataType(new TypeToken<@Infer DataType<?>>() {})
+								.outMethod("null")).create());
 
 		primitives = new HashedMap<>();
 		for (DataType<?> dataType : Enumeration.getConstants(DataType.class))
@@ -808,7 +849,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.configure(loader)
 							.name(dataType.name(), namespace)
 							.baseType(primitive)
-							.dataClass(dataType.dataClass())
+							.dataType(dataType.dataClass())
 							.addChild(
 									c -> c
 											.data()

@@ -28,7 +28,6 @@ import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.Model.Effective;
-import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeBinder {
 	private final BindingContextImpl context;
@@ -54,7 +53,7 @@ public class ComplexNodeBinder {
 			 * input element matches by reading the name, so we must attempt to bind
 			 * in a protected context, and revert on failure, then continue on to the
 			 * next node if possible.
-			 *
+			 * 
 			 * If the current node is not inline, we first determine whether the next
 			 * input element is a match. If it is not, we break, then continue on to
 			 * the next node if possible. If it is, then we must bind the next input
@@ -115,8 +114,7 @@ public class ComplexNodeBinder {
 							+ "' to bind to.", context);
 				}
 
-				if (!TypeToken.over(node.getDataType().getType()).isAssignableFrom(
-						extension.getDataType().getType()))
+				if (!node.getDataType().isAssignableFrom(extension.getDataType()))
 					throw new BindingException("Named input node '" + nextElement
 							+ "' does not match class of extention point.", context);
 

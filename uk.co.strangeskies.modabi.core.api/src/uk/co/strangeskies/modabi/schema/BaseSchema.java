@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
@@ -27,6 +28,7 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataType;
 import uk.co.strangeskies.modabi.schema.node.DataBindingType;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
@@ -52,6 +54,10 @@ public interface BaseSchema extends Schema {
 		DataBindingType<Class<?>> classType();
 
 		DataBindingType<Type> typeType();
+
+		DataBindingType<TypeToken<?>> typeTokenType();
+
+		DataBindingType<AnnotatedType> annotatedTypeType();
 
 		/*
 		 * during binding / unbinding magically adds items to bindings list (so can

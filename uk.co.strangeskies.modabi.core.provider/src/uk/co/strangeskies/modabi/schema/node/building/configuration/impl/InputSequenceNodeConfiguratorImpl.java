@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,8 +59,8 @@ public class InputSequenceNodeConfiguratorImpl extends
 			private final Boolean allowInMethodResultCast;
 			private final Boolean inMethodUnchecked;
 
-			private final Type preInputClass;
-			private final Type postInputClass;
+			private final TypeToken<?> preInputClass;
+			private final TypeToken<?> postInputClass;
 
 			protected Effective(
 					OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl> overrideMerge) {
@@ -78,7 +77,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 						.stream()
 						.map(
 								o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective())
-										.getExactDataType()).collect(Collectors.toList());
+										.getDataType()).collect(Collectors.toList());
 
 				InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
 						isAbstract(), getName(), overrideMerge, overrideMerge
@@ -120,19 +119,19 @@ public class InputSequenceNodeConfiguratorImpl extends
 			}
 
 			@Override
-			public Type getPostInputType() {
+			public TypeToken<?> getPostInputType() {
 				return postInputClass;
 			}
 
 			@Override
-			public Type getPreInputType() {
+			public TypeToken<?> getPreInputType() {
 				return preInputClass;
 			}
 		}
 
 		private final Effective effective;
 
-		private final Type postInputClass;
+		private final TypeToken<?> postInputClass;
 		private final String inMethodName;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
@@ -176,7 +175,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 		}
 
 		@Override
-		public Type getPostInputType() {
+		public TypeToken<?> getPostInputType() {
 			return postInputClass;
 		}
 	}

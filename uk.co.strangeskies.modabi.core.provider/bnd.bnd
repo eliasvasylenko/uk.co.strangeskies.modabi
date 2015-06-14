@@ -17,10 +17,10 @@ Bundle-Version:					1.0.0.${tstamp}
 		version=latest,  \
 	uk.co.strangeskies.reflection;  \
 		version=latest,  \
+	uk.co.strangeskies.reflection;  \
+		version=latest,  \
 	uk.co.strangeskies.mathematics;  \
 		version=latest
-
--includeresource: {readme.md}
 
 -runrequires:  \
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)'

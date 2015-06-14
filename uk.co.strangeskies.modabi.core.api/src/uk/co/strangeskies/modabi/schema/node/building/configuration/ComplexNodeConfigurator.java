@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,13 +42,28 @@ public interface ComplexNodeConfigurator<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default <V extends T> ComplexNodeConfigurator<V> dataClass(Class<V> dataClass) {
+	default <V extends T> ComplexNodeConfigurator<V> dataType(Class<V> dataType) {
 		return (ComplexNodeConfigurator<V>) AbstractModelConfigurator.super
-				.dataClass(dataClass);
+				.dataType(dataType);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	default ComplexNodeConfigurator<? extends T> dataType(AnnotatedType dataType) {
+		return (ComplexNodeConfigurator<? extends T>) AbstractModelConfigurator.super
+				.dataType(dataType);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	default ComplexNodeConfigurator<? extends T> dataType(Type dataType) {
+		return (ComplexNodeConfigurator<? extends T>) AbstractModelConfigurator.super
+				.dataType(dataType);
 	}
 
 	@Override
-	<V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<? extends V> dataClass);
+	<V extends T> ComplexNodeConfigurator<V> dataType(
+			TypeToken<? extends V> dataClass);
 
 	ComplexNodeConfigurator<T> inline(boolean inline);
 }

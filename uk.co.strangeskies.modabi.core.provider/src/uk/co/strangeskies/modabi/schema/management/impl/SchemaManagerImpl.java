@@ -59,6 +59,7 @@ import uk.co.strangeskies.modabi.schema.node.building.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.node.building.impl.DataBindingTypeBuilderImpl;
 import uk.co.strangeskies.modabi.schema.node.building.impl.ModelBuilderImpl;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
@@ -97,10 +98,11 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
-		registerProvider(new TypeToken<Set<?>>() {}, HashSet::new);
-		registerProvider(new TypeToken<LinkedHashSet<?>>() {}, LinkedHashSet::new);
-		registerProvider(new TypeToken<List<?>>() {}, ArrayList::new);
-		registerProvider(new TypeToken<Map<?, ?>>() {}, HashMap::new);
+		registerProvider(new TypeToken<@Infer Set<?>>() {}, HashSet::new);
+		registerProvider(new TypeToken<@Infer LinkedHashSet<?>>() {},
+				LinkedHashSet::new);
+		registerProvider(new TypeToken<@Infer List<?>>() {}, ArrayList::new);
+		registerProvider(new TypeToken<@Infer Map<?, ?>>() {}, HashMap::new);
 	}
 
 	@Override
@@ -209,15 +211,24 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public <T> void unbind(TypeToken<T> dataClass, StructuredDataTarget output,
+	public <T> void unbind(TypeToken<T> dataType, StructuredDataTarget output,
 			T data) {
-		new SchemaUnbinder(this).unbind(output, dataClass, data);
+		new SchemaUnbinder(this).unbind(output, dataType, data);
 	}
 
 	@Override
-	public <T> void registerProvider(TypeToken<T> providedClass,
+	public <T> void registerProvider(TypeToken<T> providedType,
 			Supplier<T> provider) {
-		registerProvider(c -> c.equals(providedClass) ? provider.get() : null);
+		registerProvider(c -> canEqual(c, providedType) ? provider.get() : null);
+	}
+
+	private boolean canEqual(TypeToken<?> first, TypeToken<?> second) {
+		try {
+			first.withEquality(second);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	@Override
@@ -234,24 +245,25 @@ public class SchemaManagerImpl implements SchemaManager {
 				});
 	}
 
+	@Override
 	public Provisions provisions() {
 		return new Provisions() {
 			@Override
 			@SuppressWarnings("unchecked")
-			public <T> T provide(TypeToken<T> clazz) {
+			public <T> T provide(TypeToken<T> type) {
 				return (T) providers
 						.stream()
-						.map(p -> p.apply(clazz))
+						.map(p -> p.apply(type))
 						.filter(Objects::nonNull)
 						.findFirst()
 						.orElseThrow(
-								() -> new SchemaException("No provider exists for the class "
-										+ clazz));
+								() -> new SchemaException("No provider exists for the type '"
+										+ type + "'."));
 			}
 
 			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return providers.stream().map(p -> p.apply(clazz))
+			public boolean isProvided(TypeToken<?> type) {
+				return providers.stream().map(p -> p.apply(type))
 						.anyMatch(Objects::nonNull);
 			}
 		};

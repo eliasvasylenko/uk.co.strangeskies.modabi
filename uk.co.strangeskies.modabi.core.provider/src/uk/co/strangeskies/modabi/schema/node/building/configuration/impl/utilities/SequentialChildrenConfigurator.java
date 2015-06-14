@@ -243,8 +243,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = merge(new QualifiedName("?", Namespace.getDefault()),
 				effective, childIndex, true);
 
-		inputTarget = effective.getPostInputType() == null ? null : TypeToken
-				.over(effective.getPostInputType());
+		inputTarget = effective.getPostInputType();
 	}
 
 	@Override
@@ -315,8 +314,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 				if (mergeGroup != null) {
 					int index = mergedChildren.indexOf(mergeGroup);
 					if (index > 0)
-						inputTarget = TypeToken.over(mergedChildren.get(index - 1)
-								.getChild().getPostInputType());
+						inputTarget = mergedChildren.get(index - 1).getChild()
+								.getPostInputType();
 				}
 
 				return inputTarget;

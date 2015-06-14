@@ -92,35 +92,51 @@ public class DataNodeBinder {
 					context.input().endChild();
 				}
 			}
+
+			validateResults(node, results, null);
 		} else
 			results.addAll(bindList(context, node));
-
-		if (results.isEmpty() && !node.optional()
-				&& !node.occurrences().contains(0))
-			throw new BindingException("Node '" + node.getName()
-					+ "' must be bound data.", context);
-
-		if (!results.isEmpty() && !node.occurrences().contains(results.size()))
-			throw new BindingException("Node '" + node.getName()
-					+ "' binding results '" + results
-					+ "' must be bound data within range of '"
-					+ Range.compose(node.occurrences()) + "' occurrences.", context);
 
 		return results;
 	}
 
-	private static <U> List<U> bindList(BindingContextImpl context,
+	private void validateResults(DataNode.Effective<?> node, List<?> results,
+			Exception cause) {
+		if (results.isEmpty() && !node.optional()
+				&& !node.occurrences().contains(0)) {
+			String message = "Node '" + node.getName() + "' must be bound data.";
+			if (cause != null)
+				throw new BindingException(message, context, cause);
+			else
+				throw new BindingException(message, context);
+		}
+
+		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
+			String message = "Node '" + node.getName() + "' binding results '"
+					+ results + "' must be bound data within range of '"
+					+ Range.compose(node.occurrences()) + "' occurrences.";
+			if (cause != null)
+				throw new BindingException(message, context, cause);
+			else
+				throw new BindingException(message, context);
+		}
+	}
+
+	private <U> List<U> bindList(BindingContextImpl context,
 			DataNode.Effective<U> node) {
 		context = context.withInput(null);
 
 		List<U> results = new ArrayList<>();
+
+		Exception optionalException = null;
 
 		int count = 0;
 		DataSource dataSource = null;
 		int successfulIndex = 0;
 		try {
 			if (context.provisions().isProvided(DataSource.class))
-				dataSource = context.provide(TypeToken.over(DataSource.class));
+				dataSource = context.provisions().provide(
+						TypeToken.over(DataSource.class));
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();
@@ -131,16 +147,16 @@ public class DataNodeBinder {
 					successfulIndex = dataSource.index();
 			}
 		} catch (SchemaException e) {
-			// TODO sometimes this exception is hidden
 			if (dataSource != null) {
 				dataSource.reset();
 				while (dataSource.index() < successfulIndex)
 					dataSource.get();
 			}
 
-			if (node.occurrences().isValueBelow(count))
-				throw e;
+			optionalException = e;
 		}
+
+		validateResults(node, results, optionalException);
 
 		return results;
 	}

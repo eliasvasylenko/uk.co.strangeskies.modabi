@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.ConstraintFormula;
 import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
+import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -55,6 +55,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private String outMethodName;
 			private final Method outMethod;
 			private final Boolean outMethodUnchecked;
+			private final Boolean outMethodCast;
 
 			private String inMethodName;
 			private final Executable inMethod;
@@ -65,8 +66,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			private final Boolean extensible;
 			private final Boolean ordered;
 
-			private final Type preInputClass;
-			private final Type postInputClass;
+			private final TypeToken<?> preInputType;
+			private final TypeToken<?> postInputType;
 
 			protected Effective(
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
@@ -93,6 +94,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				outMethodUnchecked = overrideMerge.getValue(
 						BindingChildNode::isOutMethodUnchecked, false);
 
+				outMethodCast = overrideMerge.getValue(
+						BindingChildNode::isOutMethodCast, false);
+
 				outMethodName = overrideMerge
 						.tryGetValue(BindingChildNode::getOutMethodName);
 
@@ -110,13 +114,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				if (outMethodName == null && hasOutMethod(overrideMerge))
 					outMethodName = outMethod.getName();
 
-				System.out.println(getName() + " : "
-						+ overrideMerge.configurator().getContext().isAbstract());
-				System.out.println("    " + outInvokable + " ? " + outMethodName);
-
 				InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<S, E>(
 						isAbstract(), getName(), overrideMerge, overrideMerge
-								.configurator().getContext(), Arrays.asList(getExactDataType()));
+								.configurator().getContext(), Arrays.asList(getDataType()));
 
 				inMethodChained = inputNodeHelper.isInMethodChained();
 				allowInMethodResultCast = inputNodeHelper.isInMethodCast();
@@ -124,25 +124,25 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper
 						.getInMethod().getExecutable() : null;
 				inMethodName = inputNodeHelper.getInMethodName();
-				preInputClass = inputNodeHelper.getPreInputType();
-				postInputClass = inputNodeHelper.getPostInputType();
+				preInputType = inputNodeHelper.getPreInputType();
+				postInputType = inputNodeHelper.getPostInputType();
 			}
 
 			private boolean hasOutMethod(
 					OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				return !("null".equals(outMethodName) || (
-				// null == outMethodName &&
-				overrideMerge.configurator().getContext().isAbstract() && isAbstract()));
+				return !"null".equals(outMethodName)
+						&& !(overrideMerge.configurator().getContext().isAbstract()
+								&& isAbstract() && outMethodName == null);
 			}
 
 			@Override
-			public Type getPreInputType() {
-				return preInputClass;
+			public TypeToken<?> getPreInputType() {
+				return preInputType;
 			}
 
 			@Override
-			public Type getPostInputType() {
-				return postInputClass;
+			public TypeToken<?> getPostInputType() {
+				return postInputType;
 			}
 
 			@Override
@@ -181,6 +181,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 
 			@Override
+			public Boolean isOutMethodCast() {
+				return outMethodCast;
+			}
+
+			@Override
 			public final String getInMethodName() {
 				return inMethodName;
 			}
@@ -205,15 +210,19 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				return inMethodUnchecked;
 			}
 
+			@SuppressWarnings("unchecked")
 			private static <U> TypeToken<Iterable<? extends U>> getIteratorType(
 					TypeToken<U> type) {
+				if (type == null) {
+					type = (TypeToken<U>) new TypeToken<Object>() {};
+				}
 				return new TypeToken<Iterable<? extends U>>() {}.withTypeArgument(
 						new TypeParameter<U>() {}, type);
 			}
 
 			protected static Invokable<?, ?> getOutMethod(
-					BindingChildNodeImpl.Effective<?, ?, ?> node,
-					Method inheritedOutMethod, TypeToken<?> receiverType, BoundSet bounds) {
+					BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
+					TypeToken<?> receiverType, BoundSet bounds) {
 				/*
 				 * TODO
 				 * 
@@ -227,24 +236,25 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				 * applicability.
 				 */
 				try {
-					TypeToken<?> resultClass = ((node.isOutMethodIterable() != null && node
-							.isOutMethodIterable()) ? getIteratorType(node.getExactDataType())
-							: node.getExactDataType());
+					boolean outMethodCast = node.isOutMethodCast() != null
+							&& node.isOutMethodCast();
 
-					if (node.isOutMethodUnchecked())
-						resultClass = TypeToken.over(resultClass.getRawType());
+					TypeToken<?> resultType = ((node.isOutMethodIterable() != null && node
+							.isOutMethodIterable()) ? getIteratorType((TypeToken<?>) (outMethodCast ? TypeToken
+							.over(new InferenceVariable()) : node.getDataType()))
+							: node.getDataType());
+
+					if (node.isOutMethodUnchecked() != null
+							&& node.isOutMethodUnchecked())
+						resultType = TypeToken.over(resultType.getRawType());
 
 					Invokable<?, ?> outMethod;
 					if (node.getOutMethodName() != null
 							&& node.getOutMethodName().equals("this")) {
-						if (!resultClass.isAssignableFrom(receiverType)
-								&& !resultClass.getRawType().isAssignableFrom(
-										receiverType.getRawType())
-								&& !resultClass.isContainedBy(receiverType
-										.resolveSupertypeParameters(resultClass.getRawType()))) {
+						if (!resultType.isAssignableFrom(receiverType)) {
 							throw new SchemaException(
 									"Can't use out method 'this' for node '" + node.getName()
-											+ "', as result class '" + resultClass
+											+ "', as result class '" + resultType
 											+ "' cannot be assigned from target class'"
 											+ receiverType + "'.");
 						}
@@ -252,17 +262,25 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 						outMethod = null;
 
 						ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
-								receiverType.getType(), resultClass.getType(), bounds);
+								receiverType.getType(), resultType.getType(), bounds);
 					} else if (receiverType == null) {
 						throw new SchemaException("Can't find out method for node '"
 								+ node.getName() + "' as target class cannot be found.");
-					} else if (resultClass == null) {
+					} else if (resultType == null) {
 						throw new SchemaException("Can't find out method for node '"
 								+ node.getName() + "' as result class cannot be found.");
 					} else {
 						outMethod = Methods.findMethod(
-								generateOutMethodNames(node, resultClass.getRawType()),
-								receiverType, false, resultClass, false);
+								generateOutMethodNames(node, resultType.getRawType()),
+								receiverType, false, resultType, outMethodCast);
+
+						if (outMethodCast) {
+							/*
+							 * Enforce castability, with special treatment for iterable out
+							 * methods.
+							 */
+							;
+						}
 
 						if (inheritedOutMethod != null
 								&& !outMethod.getExecutable().equals(inheritedOutMethod))
@@ -293,12 +311,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			}
 		}
 
-		private final Type postInputClass;
+		private final TypeToken<?> postInputClass;
 
 		private final Range<Integer> occurrences;
 
 		private final Boolean iterable;
 		private final Boolean outMethodUnchecked;
+		private final Boolean outMethodCast;
 		private final String outMethodName;
 
 		private final String inMethodName;
@@ -317,8 +336,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			extensible = configurator.extensible;
 			ordered = configurator.ordered;
 			occurrences = configurator.occurrences;
-			iterable = configurator.iterable;
+			iterable = configurator.outMethodIterable;
 			outMethodUnchecked = configurator.outMethodUnchecked;
+			outMethodCast = configurator.outMethodCast;
 			outMethodName = configurator.outMethodName;
 
 			inMethodName = configurator.inMethodName;
@@ -358,6 +378,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
+		public Boolean isOutMethodCast() {
+			return outMethodCast;
+		}
+
+		@Override
 		public final String getInMethodName() {
 			return inMethodName;
 		}
@@ -378,16 +403,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		}
 
 		@Override
-		public Type getPostInputType() {
+		public TypeToken<?> getPostInputType() {
 			return postInputClass;
 		}
 	}
 
 	private final SchemaNodeConfigurationContext<? super N> context;
 
-	private Type postInputClass;
+	private TypeToken<?> postInputClass;
 	private Range<Integer> occurrences;
-	private Boolean iterable;
+	private Boolean outMethodIterable;
+	private Boolean outMethodCast;
 	private Boolean outMethodUnchecked;
 	private String outMethodName;
 	private String inMethodName;
@@ -477,8 +503,15 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S outMethodIterable(boolean iterable) {
-		assertConfigurable(this.iterable);
-		this.iterable = iterable;
+		assertConfigurable(this.outMethodIterable);
+		this.outMethodIterable = iterable;
+		return getThis();
+	}
+
+	@Override
+	public final S outMethodCast(boolean cast) {
+		assertConfigurable(this.outMethodCast);
+		this.outMethodCast = cast;
 		return getThis();
 	}
 
@@ -518,7 +551,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public S postInputType(Type postInputClass) {
+	public S postInputType(TypeToken<?> postInputClass) {
 		assertConfigurable(this.postInputClass);
 		this.postInputClass = postInputClass;
 

@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.schema.node.wrapping.impl;
 
 import java.lang.reflect.Executable;
-import java.lang.reflect.Type;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -30,6 +29,7 @@ import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		implements BindingNode.Effective<T, S, E> {
@@ -62,13 +62,13 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !TypeToken.over(base.getBindingType()).isAssignableFrom(
-						component.getBindingType()))
+				&& !Types.isAssignable(component.getBindingType().getType(), base
+						.getBindingType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !TypeToken.over(base.getUnbindingType()).isAssignableFrom(
-						component.getUnbindingType()))
+				&& !Types.isAssignable(component.getUnbindingType().getType(), base
+						.getUnbindingType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingMethodName() != null
@@ -103,19 +103,13 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		return (TypeToken<T>) component.getDataType();
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public final TypeToken<T> inferExactDataType() {
-		return (TypeToken<T>) component.inferExactDataType();
-	}
-
 	@Override
 	public final BindingStrategy getBindingStrategy() {
 		return component.getBindingStrategy();
 	}
 
 	@Override
-	public final Type getBindingType() {
+	public final TypeToken<?> getBindingType() {
 		return component.getBindingType();
 	}
 
@@ -125,7 +119,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Type getUnbindingType() {
+	public final TypeToken<?> getUnbindingType() {
 		return component.getUnbindingType();
 	}
 
@@ -145,7 +139,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Type getUnbindingFactoryType() {
+	public final TypeToken<?> getUnbindingFactoryType() {
 		return component.getUnbindingFactoryType();
 	}
 

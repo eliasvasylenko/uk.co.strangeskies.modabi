@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,10 +38,23 @@ public interface AbstractModelConfigurator<S extends AbstractModelConfigurator<S
 			List<? extends Model<? super V>> baseModel);
 
 	@Override
-	default <V extends T> AbstractModelConfigurator<?, ?, V> dataClass(
-			Class<V> dataClass) {
+	default <V extends T> AbstractModelConfigurator<?, ?, V> dataType(
+			Class<V> dataType) {
 		return (AbstractModelConfigurator<?, ?, V>) BindingNodeConfigurator.super
-				.dataClass(dataClass);
+				.dataType(dataType);
+	}
+
+	@Override
+	default AbstractModelConfigurator<?, ?, ? extends T> dataType(
+			AnnotatedType dataType) {
+		return (AbstractModelConfigurator<?, ?, ? extends T>) BindingNodeConfigurator.super
+				.dataType(dataType);
+	}
+
+	@Override
+	default AbstractModelConfigurator<?, ?, ? extends T> dataType(Type dataType) {
+		return (AbstractModelConfigurator<?, ?, ? extends T>) BindingNodeConfigurator.super
+				.dataType(dataType);
 	}
 
 	@Override

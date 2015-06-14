@@ -27,6 +27,7 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public class DummyNodes {
 	private DummyNodes() {}
@@ -84,8 +85,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Class<?> getPostInputType() {
-				return Object.class;
+			public TypeToken<?> getPostInputType() {
+				return TypeToken.over(Object.class);
 			}
 
 			@Override
@@ -133,13 +134,13 @@ public class DummyNodes {
 					}
 
 					@Override
-					public Class<?> getPreInputType() {
-						return Object.class;
+					public TypeToken<?> getPreInputType() {
+						return TypeToken.over(Object.class);
 					}
 
 					@Override
-					public Class<?> getPostInputType() {
-						return Object.class;
+					public TypeToken<?> getPostInputType() {
+						return TypeToken.over(Object.class);
 					}
 				};
 			}
@@ -185,13 +186,13 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Class<?> getPreInputType() {
-				return Object.class;
+			public TypeToken<?> getPreInputType() {
+				return TypeToken.over(Object.class);
 			}
 
 			@Override
-			public Class<?> getPostInputType() {
-				return Object.class;
+			public TypeToken<?> getPostInputType() {
+				return TypeToken.over(Object.class);
 			}
 		};
 	}

@@ -20,8 +20,6 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,8 +46,6 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypeToken.Wildcards;
-import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
@@ -60,10 +56,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				extends SchemaNodeImpl.Effective<S, E> implements
 				BindingNode.Effective<T, S, E> {
 			private final TypeToken<T> dataType;
-			private final TypeToken<T> exactDataType;
-			private final Type bindingClass;
-			private final Type unbindingClass;
-			private final Type unbindingFactoryClass;
+
+			private final TypeToken<?> bindingType;
+
+			private final TypeToken<?> unbindingType;
+
+			private final TypeToken<?> unbindingFactoryType;
+
 			private final BindingStrategy bindingStrategy;
 			private final UnbindingStrategy unbindingStrategy;
 			private String unbindingMethodName;
@@ -73,26 +72,24 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			private final List<QualifiedName> providedUnbindingParameterNames;
 			private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
+			@SuppressWarnings("unchecked")
 			protected Effective(
 					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 				super(overrideMerge);
 
-				dataType = overrideMerge.getValue(BindingNode::getDataType,
-						TypeToken::isAssignableTo, null);
+				BoundSet bounds = overrideMerge.configurator().getInferenceBounds();
 
-				exactDataType = inferDataType(overrideMerge);
+				dataType = inferDataType((TypeToken<T>) overrideMerge.configurator()
+						.getEffectiveDataType(), bounds);
 
-				bindingClass = overrideMerge.getValue(BindingNode::getBindingType, (v,
-						o) -> TypeToken.over(o).isAssignableFrom(v),
-						exactDataType == null ? null : exactDataType.getType());
+				bindingType = inferDataType(overrideMerge.configurator()
+						.getEffectiveBindingType(), bounds);
 
-				unbindingClass = overrideMerge.getValue(BindingNode::getUnbindingType,
-						(v, o) -> TypeToken.over(o).isAssignableFrom(v),
-						exactDataType == null ? null : exactDataType.getType());
+				unbindingType = inferDataType(overrideMerge.configurator()
+						.getEffectiveUnbindingType(), bounds);
 
-				unbindingFactoryClass = overrideMerge.getValue(
-						BindingNode::getUnbindingFactoryType, (v, o) -> TypeToken.over(o)
-								.isAssignableFrom(v), unbindingClass);
+				unbindingFactoryType = inferDataType(overrideMerge.configurator()
+						.getEffectiveUnbindingFactoryType(), bounds);
 
 				bindingStrategy = overrideMerge.getValue(
 						BindingNode::getBindingStrategy, BindingStrategy.PROVIDED);
@@ -122,40 +119,21 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					unbindingMethodName = unbindingMethod.getName();
 			}
 
-			@SuppressWarnings("unchecked")
-			private TypeToken<T> inferDataType(
-					OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-				TypeToken<T> exactDataType;
-
-				/*
-				 * Data type which may include inference variables.
-				 */
-				exactDataType = (TypeToken<T>) overrideMerge.configurator()
-						.getInferenceDataType();
-
+			private <U> TypeToken<U> inferDataType(TypeToken<U> exactDataType,
+					BoundSet bounds) {
 				/*
 				 * Incorporate bounds derived from child nodes through their input and
 				 * output methods.
 				 */
 				if (exactDataType != null && !exactDataType.isProper()) {
-					exactDataType = (TypeToken<T>) exactDataType.withBounds(
-							overrideMerge.configurator().getInferenceBounds()).resolve();
+					exactDataType = (TypeToken<U>) exactDataType.withBounds(bounds)
+							.resolve();
 
-					if (!isAbstract()
-							&& overrideMerge.configurator().isDataTypeExtensible())
+					if (!isAbstract())
 						exactDataType = exactDataType.infer();
 				}
 
 				return exactDataType;
-			}
-
-			protected TypeToken<T> getExactDataType() {
-				return exactDataType;
-			}
-
-			@Override
-			public TypeToken<T> inferExactDataType() {
-				return exactDataType == null ? null : exactDataType.deepCopy();
 			}
 
 			@Override
@@ -169,23 +147,23 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
+			public TypeToken<?> getBindingType() {
+				return bindingType;
+			}
+
+			@Override
 			public UnbindingStrategy getUnbindingStrategy() {
 				return unbindingStrategy;
 			}
 
 			@Override
-			public Type getBindingType() {
-				return bindingClass;
+			public TypeToken<?> getUnbindingType() {
+				return unbindingType;
 			}
 
 			@Override
-			public Type getUnbindingType() {
-				return unbindingClass;
-			}
-
-			@Override
-			public Type getUnbindingFactoryType() {
-				return unbindingFactoryClass;
+			public TypeToken<?> getUnbindingFactoryType() {
+				return unbindingFactoryType;
 			}
 
 			@Override
@@ -226,25 +204,25 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 				case STATIC_FACTORY:
 				case PROVIDED_FACTORY:
-					Type receiverClass = getUnbindingFactoryType() != null ? getUnbindingFactoryType()
+					TypeToken<?> receiverClass = getUnbindingFactoryType() != null ? getUnbindingFactoryType()
 							: getUnbindingType();
 					return findUnbindingMethod(
-							TypeToken.over(getUnbindingType()),
-							TypeToken.over(receiverClass),
-							findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getExactDataType),
+							getUnbindingType(),
+							receiverClass,
+							findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getDataType),
 							overrideMerge);
 
 				case PASS_TO_PROVIDED:
 					return findUnbindingMethod(
 							null,
-							TypeToken.over(getUnbindingType()),
-							findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getExactDataType),
+							getUnbindingType(),
+							findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getDataType),
 							overrideMerge);
 
 				case ACCEPT_PROVIDED:
-					return findUnbindingMethod(null, getExactDataType(),
-							findUnbindingMethodParameterClasses(t -> TypeToken.over(t
-									.getUnbindingType())), overrideMerge);
+					return findUnbindingMethod(null, getDataType(),
+							findUnbindingMethodParameterClasses(t -> t.getUnbindingType()),
+							overrideMerge);
 				}
 				throw new AssertionError();
 			}
@@ -428,9 +406,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		private final TypeToken<T> dataType;
-		private final Type bindingClass;
-		private final Type unbindingClass;
-		private final Type unbindingFactoryClass;
+		private final TypeToken<?> bindingClass;
+		private final TypeToken<?> unbindingClass;
+		private final TypeToken<?> unbindingFactoryClass;
 		private final BindingStrategy bindingStrategy;
 		private final UnbindingStrategy unbindingStrategy;
 		private final String unbindingMethodName;
@@ -438,23 +416,19 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 		private final List<QualifiedName> unbindingParameterNames;
 
-		@SuppressWarnings("unchecked")
 		public BindingNodeImpl(BindingNodeConfiguratorImpl<?, ?, T> configurator) {
 			super(configurator);
 
-			if (configurator.isDataTypeExtensible)
-				dataType = (TypeToken<T>) configurator.dataType.getWildcardExtending();
-			else
-				dataType = configurator.dataType;
+			dataType = configurator.dataType;
 
 			bindingStrategy = configurator.bindingStrategy;
-			bindingClass = configurator.bindingClass;
+			bindingClass = configurator.bindingType;
 
 			unbindingStrategy = configurator.unbindingStrategy;
-			unbindingClass = configurator.unbindingClass;
+			unbindingClass = configurator.unbindingType;
 			unbindingMethodName = configurator.unbindingMethod;
 			unbindingMethodUnchecked = configurator.unbindingMethodUnchecked;
-			unbindingFactoryClass = configurator.unbindingFactoryClass;
+			unbindingFactoryClass = configurator.unbindingFactoryType;
 			unbindingParameterNames = configurator.unbindingParameterNames == null ? null
 					: Collections.unmodifiableList(new ArrayList<>(
 							configurator.unbindingParameterNames));
@@ -476,17 +450,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 
 		@Override
-		public Type getBindingType() {
+		public TypeToken<?> getBindingType() {
 			return bindingClass;
 		}
 
 		@Override
-		public Type getUnbindingType() {
+		public TypeToken<?> getUnbindingType() {
 			return unbindingClass;
 		}
 
 		@Override
-		public Type getUnbindingFactoryType() {
+		public TypeToken<?> getUnbindingFactoryType() {
 			return unbindingFactoryClass;
 		}
 
@@ -507,19 +481,21 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	private TypeToken<T> dataType;
-	private boolean isDataTypeExtensible;
-	private TypeToken<T> inferenceDataType;
+	private TypeToken<T> effectiveDataType;
 	private BoundSet inferenceBounds = new BoundSet();
 
 	private BindingStrategy bindingStrategy;
-	private Type bindingClass;
+	private TypeToken<?> bindingType;
+	private TypeToken<?> effectiveBindingType;
 
 	private UnbindingStrategy unbindingStrategy;
-	private Type unbindingClass;
+	private TypeToken<?> unbindingType;
+	private TypeToken<?> effectiveUnbindingType;
 	private String unbindingMethod;
 	private Boolean unbindingMethodUnchecked;
 
-	private Type unbindingFactoryClass;
+	private TypeToken<?> unbindingFactoryType;
+	private TypeToken<?> effectiveUnbindingFactoryType;
 
 	private List<QualifiedName> unbindingParameterNames;
 
@@ -527,12 +503,20 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return inferenceBounds;
 	}
 
-	public TypeToken<T> getInferenceDataType() {
-		return inferenceDataType;
+	public TypeToken<T> getEffectiveDataType() {
+		return effectiveDataType;
 	}
 
-	protected boolean isDataTypeExtensible() {
-		return isDataTypeExtensible;
+	public TypeToken<?> getEffectiveBindingType() {
+		return effectiveBindingType;
+	}
+
+	public TypeToken<?> getEffectiveUnbindingType() {
+		return effectiveUnbindingType;
+	}
+
+	public TypeToken<?> getEffectiveUnbindingFactoryType() {
+		return effectiveUnbindingFactoryType;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -541,42 +525,87 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
-		Type unbindingClass = overrideMerge
-				.getValueWithOverride(this.unbindingClass,
-						BindingNode::getUnbindingType, Types::isAssignable);
-		Type bindingClass = overrideMerge.getValueWithOverride(this.bindingClass,
-				BindingNode::getBindingType, Types::isAssignable);
+		/*
+		 * Get declared data types, or overridden types thereof.
+		 */
+		effectiveDataType = (TypeToken<T>) (TypeToken<? super T>) overrideMerge
+				.getValueWithOverride(this.dataType, BindingNode::getDataType,
+						TypeToken::isAssignableTo);
+		effectiveBindingType = overrideMerge.getValueWithOverride(this.bindingType,
+				BindingNode::getBindingType, TypeToken::isAssignableTo);
+		effectiveUnbindingType = overrideMerge.getValueWithOverride(
+				this.unbindingType, BindingNode::getUnbindingType,
+				TypeToken::isAssignableTo);
+		effectiveUnbindingFactoryType = overrideMerge.getValueWithOverride(
+				this.unbindingFactoryType, BindingNode::getUnbindingFactoryType,
+				TypeToken::isAssignableTo);
 
 		/*
-		 * Get given data type and substitute inference variables for wildcards.
+		 * Incorporate bounds from inherited types.
 		 */
-		TypeToken<?> dataType = overrideMerge.getValueWithOverride(this.dataType,
-				BindingNode::getDataType, TypeToken::isAssignableTo);
-		if (dataType != null) {
-			dataType = TypeToken.over(dataType.getType(), Wildcards.INFER);
-
-			/*
-			 * Incorporate bounds from each inherited type.
-			 */
+		if (effectiveDataType != null) {
 			for (TypeToken<?> overriddenType : overrideMerge
-					.getOverridenValues(n -> n.effective().inferExactDataType())) {
-				dataType = dataType.withUpperBound(overriddenType);
+					.getOverridenValues(BindingNode::getDataType)) {
+				effectiveDataType = effectiveDataType.withUpperBound(overriddenType
+						.deepCopy());
 			}
+
+			inferenceBounds.incorporate(effectiveDataType.getResolver().getBounds());
+		}
+		if (effectiveBindingType != null) {
+			for (TypeToken<?> overriddenType : overrideMerge
+					.getOverridenValues(BindingNode::getBindingType)) {
+				effectiveBindingType = effectiveBindingType
+						.withUpperBound(overriddenType.deepCopy());
+			}
+
+			inferenceBounds.incorporate(effectiveBindingType.getResolver()
+					.getBounds());
+		}
+		if (effectiveUnbindingType != null) {
+			for (TypeToken<?> overriddenType : overrideMerge
+					.getOverridenValues(BindingNode::getUnbindingType)) {
+				effectiveUnbindingType = effectiveUnbindingType
+						.withUpperBound(overriddenType.deepCopy());
+			}
+
+			inferenceBounds.incorporate(effectiveUnbindingType.getResolver()
+					.getBounds());
+		}
+		if (effectiveUnbindingFactoryType != null) {
+			for (TypeToken<?> overriddenType : overrideMerge
+					.getOverridenValues(BindingNode::getUnbindingFactoryType)) {
+				effectiveUnbindingFactoryType = effectiveUnbindingFactoryType
+						.withUpperBound(overriddenType.deepCopy());
+			}
+
+			inferenceBounds.incorporate(effectiveUnbindingFactoryType.getResolver()
+					.getBounds());
 		}
 
-		TypeToken<?> inputTarget = bindingClass != null ? TypeToken.over(
-				bindingClass, Wildcards.INFER) : dataType;
-		TypeToken<?> outputTarget = unbindingClass != null ? TypeToken.over(
-				unbindingClass, Wildcards.INFER) : dataType;
+		/*
+		 * Effective binding and unbinding types.
+		 */
 
-		if (dataType != null)
-			inferenceBounds.incorporate(dataType.getResolver().getBounds());
-		if (inputTarget != null && inputTarget != dataType)
-			inferenceBounds.incorporate(inputTarget.getResolver().getBounds());
-		if (outputTarget != null && outputTarget != dataType)
-			inferenceBounds.incorporate(outputTarget.getResolver().getBounds());
+		BindingStrategy bindingStrategy = overrideMerge.getValueWithOverride(
+				this.bindingStrategy, BindingNode::getBindingStrategy);
+		TypeToken<?> inputTarget;
+		if (effectiveBindingType != null)
+			inputTarget = effectiveBindingType;
+		else if (bindingStrategy != null || !isAbstract())
+			inputTarget = effectiveDataType;
+		else
+			inputTarget = null;
 
-		inferenceDataType = (TypeToken<T>) dataType;
+		UnbindingStrategy unbindingStrategy = overrideMerge.getValueWithOverride(
+				this.unbindingStrategy, BindingNode::getUnbindingStrategy);
+		TypeToken<?> outputSource;
+		if (effectiveUnbindingType != null)
+			outputSource = effectiveUnbindingType;
+		else if (unbindingStrategy != null || !isAbstract())
+			outputSource = effectiveDataType;
+		else
+			outputSource = null;
 
 		/*
 		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE
@@ -628,7 +657,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 					@Override
 					public TypeToken<?> outputSourceType() {
-						return outputTarget;
+						return outputSource;
 					}
 
 					@Override
@@ -656,31 +685,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		if (dataType == null)
 			throw new IllegalArgumentException("Data type must not be null.");
 
-		if (!dataType.isProper())
+		if (!dataType.getResolver().getBounds()
+				.isProperType(dataType.getAnnotatedDeclaration().getType()))
 			throw new IllegalArgumentException("Data type must be proper.");
-
-		isDataTypeExtensible = dataType.getType() instanceof WildcardType;
-		if (isDataTypeExtensible) {
-			Type[] lowerBounds = ((WildcardType) dataType.getType()).getLowerBounds();
-			Type[] upperBounds = ((WildcardType) dataType.getType()).getUpperBounds();
-
-			if (lowerBounds != null && lowerBounds.length > 0)
-				throw new IllegalArgumentException(
-						"Data type must not specify a lower bound.");
-
-			Type upperBound;
-
-			if (upperBounds == null || upperBounds.length == 0) {
-				upperBound = Object.class;
-			} else if (upperBounds.length > 1) {
-				throw new IllegalArgumentException(
-						"Data type must not specify multiple upper bounds.");
-			} else {
-				upperBound = upperBounds[0];
-			}
-
-			dataType = (TypeToken<? extends V>) TypeToken.over(upperBound);
-		}
 
 		this.dataType = (TypeToken<T>) dataType;
 
@@ -691,16 +698,16 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public final S bindingType(TypeToken<?> bindingClass) {
-		assertConfigurable(this.bindingClass);
-		this.bindingClass = bindingClass.getType();
+		assertConfigurable(this.bindingType);
+		this.bindingType = bindingClass;
 
 		return getThis();
 	}
 
 	@Override
 	public S unbindingType(TypeToken<?> unbindingClass) {
-		assertConfigurable(this.unbindingClass);
-		this.unbindingClass = unbindingClass.getType();
+		assertConfigurable(this.unbindingType);
+		this.unbindingType = unbindingClass;
 
 		return getThis();
 	}
@@ -739,8 +746,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S unbindingFactoryType(TypeToken<?> factoryClass) {
-		assertConfigurable(unbindingFactoryClass);
-		unbindingFactoryClass = factoryClass.getType();
+		assertConfigurable(unbindingFactoryType);
+		unbindingFactoryType = factoryClass;
 
 		return getThis();
 	}

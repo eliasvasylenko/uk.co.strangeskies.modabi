@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.schema.node;
 
 import java.lang.reflect.Executable;
-import java.lang.reflect.Type;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -47,10 +46,12 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 		default PropertySet<? super E> effectivePropertySet() {
 			return PROPERTY_SET;
 		}
-
-		TypeToken<T> inferExactDataType();
 	}
 
+	/*
+	 * TODO MOVE THIS STUFF TO IMPLEMENTATION CLASSES, shouldn't really be in
+	 * interface.
+	 */
 	@SuppressWarnings("rawtypes")
 	static final PropertySet<BindingNode> PROPERTY_SET = new PropertySet<>(
 			BindingNode.class).add(SchemaNode.PROPERTY_SET)
@@ -72,17 +73,17 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	BindingStrategy getBindingStrategy();
 
-	Type getBindingType();
+	TypeToken<?> getBindingType();
 
 	UnbindingStrategy getUnbindingStrategy();
 
-	Type getUnbindingType();
+	TypeToken<?> getUnbindingType();
 
 	String getUnbindingMethodName();
 
 	Boolean isUnbindingMethodUnchecked();
 
-	Type getUnbindingFactoryType();
+	TypeToken<?> getUnbindingFactoryType();
 
 	List<QualifiedName> getProvidedUnbindingMethodParameterNames();
 }

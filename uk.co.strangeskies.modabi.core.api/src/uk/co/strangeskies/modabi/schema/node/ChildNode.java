@@ -18,16 +18,15 @@
  */
 package uk.co.strangeskies.modabi.schema.node;
 
-import java.lang.reflect.Type;
-
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
 		extends SchemaNode<S, E> {
 	interface Effective<S extends ChildNode<S, E>, E extends Effective<S, E>>
 			extends ChildNode<S, E>, SchemaNode.Effective<S, E> {
-		Type getPreInputType();
+		TypeToken<?> getPreInputType();
 
 		void process(SchemaProcessingContext context);
 
@@ -53,5 +52,5 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 		return PROPERTY_SET;
 	}
 
-	Type getPostInputType();
+	TypeToken<?> getPostInputType();
 }

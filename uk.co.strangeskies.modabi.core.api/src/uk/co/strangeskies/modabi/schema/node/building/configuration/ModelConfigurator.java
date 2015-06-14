@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,11 +40,26 @@ public interface ModelConfigurator<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default <V extends T> ModelConfigurator<V> dataClass(Class<V> dataClass) {
+	default <V extends T> ModelConfigurator<V> dataType(Class<V> dataType) {
 		return (ModelConfigurator<V>) AbstractModelConfigurator.super
-				.dataClass(dataClass);
+				.dataType(dataType);
 	}
 
 	@Override
-	<V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> bindingClass);
+	<V extends T> ModelConfigurator<V> dataType(
+			TypeToken<? extends V> bindingClass);
+
+	@SuppressWarnings("unchecked")
+	@Override
+	default ModelConfigurator<? extends T> dataType(AnnotatedType dataType) {
+		return (ModelConfigurator<? extends T>) AbstractModelConfigurator.super
+				.dataType(dataType);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	default ModelConfigurator<? extends T> dataType(Type dataType) {
+		return (ModelConfigurator<? extends T>) AbstractModelConfigurator.super
+				.dataType(dataType);
+	}
 }

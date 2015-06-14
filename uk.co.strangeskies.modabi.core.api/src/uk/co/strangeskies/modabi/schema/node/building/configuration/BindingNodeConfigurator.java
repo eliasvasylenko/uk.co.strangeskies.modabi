@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
@@ -27,42 +28,62 @@ import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.AnnotatedTypes;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {
-	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataType);
+	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(
+			TypeToken<? extends V> dataType);
 
 	@SuppressWarnings("unchecked")
-	default BindingNodeConfigurator<?, ?, ?> dataType(Type dataType) {
+	default <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
+			Class<V> dataClass) {
+		return (BindingNodeConfigurator<?, ?, V>) dataType((Type) dataClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	default BindingNodeConfigurator<?, ?, ? extends T> dataType(
+			AnnotatedType dataType) {
 		return dataType((TypeToken<? extends T>) TypeToken.over(dataType));
 	}
 
-	default <V extends T> BindingNodeConfigurator<?, ?, V> dataClass(
-			Class<V> dataClass) {
-		return (BindingNodeConfigurator<?, ?, V>) dataType(TypeToken
-				.over(dataClass));
+	default BindingNodeConfigurator<?, ?, ? extends T> dataType(Type dataType) {
+		return dataType(AnnotatedTypes.over(dataType));
 	}
 
 	S bindingStrategy(BindingStrategy strategy);
 
 	S bindingType(TypeToken<?> bindingType);
 
-	default S bindingType(Type bindingType) {
+	default S bindingType(AnnotatedType bindingType) {
 		return bindingType(TypeToken.over(bindingType));
+	}
+
+	default S bindingType(Type bindingType) {
+		return bindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
 	}
 
 	S unbindingStrategy(UnbindingStrategy strategy);
 
 	S unbindingFactoryType(TypeToken<?> factoryType);
 
-	default S unbindingFactoryType(Type factoryType) {
+	default S unbindingFactoryType(AnnotatedType factoryType) {
 		return unbindingFactoryType(TypeToken.over(factoryType));
+	}
+
+	default S unbindingFactoryType(Type factoryType) {
+		return unbindingFactoryType(TypeToken
+				.over(AnnotatedTypes.over(factoryType)));
 	}
 
 	S unbindingType(TypeToken<?> unbindingType);
 
-	default S unbindingType(Type unbindingType) {
+	default S unbindingType(AnnotatedType unbindingType) {
 		return unbindingType(TypeToken.over(unbindingType));
+	}
+
+	default S unbindingType(Type bindingType) {
+		return unbindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
 	}
 
 	S unbindingMethod(String unbindingMethod);

@@ -18,9 +18,12 @@
  */
 package uk.co.strangeskies.modabi.schema.node.building.configuration;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
+import uk.co.strangeskies.reflection.AnnotatedTypes;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
 		extends SchemaNodeConfigurator<S, N> {
@@ -33,5 +36,13 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	 */
 	public S name(String name);
 
-	public S postInputType(Type postInputType);
+	public S postInputType(TypeToken<?> postInputType);
+
+	default S postInputType(AnnotatedType unbindingType) {
+		return postInputType(TypeToken.over(unbindingType));
+	}
+
+	default S postInputType(Type bindingType) {
+		return postInputType(TypeToken.over(AnnotatedTypes.over(bindingType)));
+	}
 }

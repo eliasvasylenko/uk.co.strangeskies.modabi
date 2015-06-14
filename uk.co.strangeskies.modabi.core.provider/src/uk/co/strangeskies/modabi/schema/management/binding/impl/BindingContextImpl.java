@@ -27,52 +27,31 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.schema.management.Provisions;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.factory.Factory;
 
-public class BindingContextImpl extends ProcessingContextImpl implements
-		BindingContext {
-	private interface BindingProvisions {
-		<U> U provide(TypeToken<U> clazz, BindingContext headContext);
-
-		boolean isProvided(TypeToken<?> clazz);
-	}
-
+public class BindingContextImpl extends
+		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<Object> bindingTargetStack;
 	private final StructuredDataSource input;
-	private final BindingProvisions provider;
 
 	public BindingContextImpl(SchemaManager manager) {
 		super(manager);
 
 		this.bindingTargetStack = Collections.emptyList();
 		this.input = null;
-		this.provider = new BindingProvisions() {
-			@Override
-			public <U> U provide(TypeToken<U> clazz, BindingContext headContext) {
-				return manager.provisions().provide(clazz);
-			}
-
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return manager.provisions().isProvided(clazz);
-			}
-		};
 	}
 
 	private BindingContextImpl(BindingContextImpl parent,
 			List<Object> bindingTargetStack, StructuredDataSource input,
-			BindingProvisions provider) {
-		super(parent);
+			ProcessingProvisions provider) {
+		super(parent, provider);
 		this.bindingTargetStack = bindingTargetStack;
 		this.input = input;
-		this.provider = provider;
 	}
 
 	private BindingContextImpl(BindingContextImpl parent,
@@ -80,34 +59,11 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 		super(parent, node);
 		this.bindingTargetStack = parent.bindingTargetStack;
 		this.input = parent.input;
-		this.provider = parent.provider;
-	}
-
-	public <U> U provide(TypeToken<U> clazz) {
-		return provide(clazz, this);
-	}
-
-	public StructuredDataSource input() {
-		return input;
-	}
-
-	private <U> U provide(TypeToken<U> clazz, BindingContext headContext) {
-		return provider.provide(clazz, headContext);
 	}
 
 	@Override
-	public Provisions provisions() {
-		return new Provisions() {
-			@Override
-			public <U> U provide(TypeToken<U> clazz) {
-				return provider.provide(clazz, BindingContextImpl.this);
-			}
-
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return provider.isProvided(clazz);
-			}
-		};
+	public StructuredDataSource input() {
+		return input;
 	}
 
 	@Override
@@ -115,32 +71,17 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 		return bindingTargetStack;
 	}
 
-	public <T> BindingContextImpl withProvision(Class<T> providedClass,
-			Factory<T> provider) {
-		return withProvision(providedClass, c -> provider.create());
+	@Override
+	protected RuntimeException processingException(String message,
+			BindingContextImpl state) {
+		throw new BindingException(message, state);
 	}
 
-	public <T> BindingContextImpl withProvision(Class<T> providedClass,
-			Function<BindingContext, T> provider) {
-		BindingContextImpl base = this;
-
-		return new BindingContextImpl(this, bindingTargetStack, input,
-				new BindingProvisions() {
-					@SuppressWarnings("unchecked")
-					@Override
-					public <U> U provide(TypeToken<U> clazz, BindingContext headContext) {
-						if (clazz.equals(providedClass))
-							return (U) provider.apply(headContext);
-
-						return base.provide(clazz, headContext);
-					}
-
-					@Override
-					public boolean isProvided(TypeToken<?> clazz) {
-						return clazz.equals(providedClass)
-								|| base.provisions().isProvided(clazz);
-					}
-				});
+	@Override
+	public <T> BindingContextImpl withProvision(TypeToken<T> providedClass,
+			Function<? super BindingContextImpl, T> provider,
+			ProcessingContextImpl<BindingContextImpl>.ProcessingProvisions provisions) {
+		return new BindingContextImpl(this, bindingTargetStack, input, provisions);
 	}
 
 	public <T> BindingContextImpl withBindingTarget(Object target) {
@@ -148,7 +89,7 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 		bindingTargetStack.add(target);
 
 		return new BindingContextImpl(this,
-				Collections.unmodifiableList(bindingTargetStack), input, provider);
+				Collections.unmodifiableList(bindingTargetStack), input, getProvider());
 	}
 
 	public <T> BindingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
@@ -156,7 +97,8 @@ public class BindingContextImpl extends ProcessingContextImpl implements
 	}
 
 	public BindingContextImpl withInput(StructuredDataSource input) {
-		return new BindingContextImpl(this, bindingTargetStack, input, provider);
+		return new BindingContextImpl(this, bindingTargetStack, input,
+				getProvider());
 	}
 
 	public void attempt(Consumer<BindingContextImpl> bindingMethod) {

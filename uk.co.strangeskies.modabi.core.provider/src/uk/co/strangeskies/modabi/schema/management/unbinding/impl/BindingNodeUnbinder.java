@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -65,8 +66,7 @@ public class BindingNodeUnbinder {
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
-					Object o = context.provisions().provide(
-							TypeToken.over(node.getUnbindingType()));
+					Object o = context.provisions().provide(node.getUnbindingType());
 					invokeMethod((Method) node.getUnbindingMethod(), context, o,
 							prepareUnbingingParameterList(node, u));
 					return o;
@@ -74,8 +74,7 @@ public class BindingNodeUnbinder {
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
-					Object o = context.provisions().provide(
-							TypeToken.over(node.getUnbindingType()));
+					Object o = context.provisions().provide(node.getUnbindingType());
 					invokeMethod((Method) node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o));
 					return o;
@@ -91,30 +90,25 @@ public class BindingNodeUnbinder {
 						context, null, prepareUnbingingParameterList(node, u));
 				break;
 			case PROVIDED_FACTORY:
-				supplier = u -> invokeMethod(
-						(Method) node.getUnbindingMethod(),
+				supplier = u -> invokeMethod((Method) node.getUnbindingMethod(),
 						context,
-						context.provisions().provide(
-								TypeToken.over(node.getUnbindingFactoryType())),
+						context.provisions().provide(node.getUnbindingFactoryType()),
 						prepareUnbingingParameterList(node, u));
 				break;
 			}
 		}
 
-		SchemaProcessingContext processingContext = getProcessingContext(context
+		Consumer<ChildNode.Effective<?, ?>> processingContext = getChildProcessor(context
 				.withUnbindingSource(supplier.apply(data)));
 
-		System.out.println(node.getName().getName());
 		for (ChildNode.Effective<?, ?> child : node.children()) {
-			System.out.println("  " + node.getName().getName() + ": "
-					+ child.getName().getName());
-			child.process(processingContext);
+			processingContext.accept(child);
 		}
 	}
 
-	private SchemaProcessingContext getProcessingContext(
+	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(
 			UnbindingContextImpl context) {
-		return new SchemaProcessingContext() {
+		SchemaProcessingContext processor = new SchemaProcessingContext() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
 				new ComplexNodeUnbinder(context).unbind(node, getData(node, context));
@@ -145,11 +139,21 @@ public class BindingNodeUnbinder {
 
 			public void acceptSequence(SchemaNode.Effective<?, ?> node) {
 				for (ChildNode.Effective<?, ?> child : node.children())
-					child.process(getProcessingContext(context.withUnbindingNode(node)));
+					getChildProcessor(context.withUnbindingNode(node)).accept(child);
 			}
 
 			@Override
 			public void accept(ChoiceNode.Effective node) {}
+		};
+
+		return node -> {
+
+			try {
+				node.process(processor);
+			} catch (Exception e) {
+				throw new UnbindingException("Failed to unbind node '" + node + "'",
+						context, e);
+			}
 		};
 	}
 
@@ -215,7 +219,13 @@ public class BindingNodeUnbinder {
 
 		if (node.getDataType() == null)
 			throw new UnbindingException("Cannot unbind node '" + node.getName()
-					+ "' with no data class.", context);
+					+ "' from object '" + parent + "' with no data class.", context);
+
+		if (node.getOutMethod() == null
+				&& (node.getOutMethodName() == null || !node.getOutMethodName().equals(
+						"this")))
+			throw new UnbindingException("Cannot unbind node '" + node.getName()
+					+ "' from object '" + parent + "' with no out method.", context);
 
 		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
 			Iterable<U> iterable = null;
@@ -238,7 +248,8 @@ public class BindingNodeUnbinder {
 						+ " to " + node.getDataType());
 		} else {
 			U item;
-			if ("this".equals(node.getOutMethodName()))
+			if (node.getOutMethodName() != null
+					&& node.getOutMethodName().equals("this"))
 				item = (U) parent;
 			else
 				item = (U) invokeMethod(node.getOutMethod(), context, parent);

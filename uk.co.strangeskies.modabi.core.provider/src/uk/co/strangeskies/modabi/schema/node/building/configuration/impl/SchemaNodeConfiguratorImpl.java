@@ -304,8 +304,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return new OverrideMerge<S, C>(node, configurator);
 	}
 
-	protected boolean isChildContextAbstract() {
+	protected boolean isAbstract() {
 		return isAbstract != null && isAbstract;
+	}
+
+	protected boolean isChildContextAbstract() {
+		return isAbstract();
 	}
 
 	@Override

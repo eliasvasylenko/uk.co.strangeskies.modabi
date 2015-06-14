@@ -47,12 +47,6 @@ public class ComplexNodeUnbinder {
 										.isAssignableFrom(item.getClass()))
 						.collect(Collectors.toList());
 
-				System.out.println("# " + node + " item: " + item + " of: "
-						+ item.getClass());
-				System.out.println(node.baseModel());
-				System.out.println(overrides.keySet());
-				System.out.println(" : " + validOverrides);
-
 				if (validOverrides.isEmpty())
 					throw new UnbindingException(
 							"Unable to find model to satisfy complex node '"

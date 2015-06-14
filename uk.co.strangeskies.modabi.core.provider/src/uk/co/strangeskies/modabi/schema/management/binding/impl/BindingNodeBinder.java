@@ -22,7 +22,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,9 +67,9 @@ public class BindingNodeBinder {
 
 		switch (strategy) {
 		case PROVIDED:
-			Type providedType = node.getBindingType() != null ? node.getBindingType()
-					: node.getDataType().getType();
-			binding = context.provide(TypeToken.over(providedType));
+			TypeToken<?> providedType = node.getBindingType() != null ? node
+					.getBindingType() : node.getDataType();
+			binding = context.provisions().provide(providedType);
 
 			break;
 		case CONSTRUCTOR:
@@ -141,41 +140,45 @@ public class BindingNodeBinder {
 		IdentityProperty<Object> result = new IdentityProperty<>(
 				context.bindingTarget());
 
-		next.process(new SchemaProcessingContext() {
-			@Override
-			public <U> void accept(ComplexNode.Effective<U> node) {
-				process(node, new ComplexNodeBinder(context).bind(node), context);
-			}
+		try {
+			next.process(new SchemaProcessingContext() {
+				@Override
+				public <U> void accept(ComplexNode.Effective<U> node) {
+					process(node, new ComplexNodeBinder(context).bind(node), context);
+				}
 
-			@Override
-			public <U> void accept(DataNode.Effective<U> node) {
-				process(node, new DataNodeBinder(context).bind(node), context);
-			}
+				@Override
+				public <U> void accept(DataNode.Effective<U> node) {
+					process(node, new DataNodeBinder(context).bind(node), context);
+				}
 
-			public void process(InputNode.Effective<?, ?> node, List<?> data,
-					BindingContext context) {
-				for (Object item : data)
-					result.set(invokeInMethod(node, context, result.get(), item));
-			}
+				public void process(InputNode.Effective<?, ?> node, List<?> data,
+						BindingContext context) {
+					for (Object item : data)
+						result.set(invokeInMethod(node, context, result.get(), item));
+				}
 
-			@Override
-			public void accept(InputSequenceNode.Effective node) {
-				List<Object> parameters = getSingleBindingSequence(node,
-						context.withBindingNode(node));
-				result.set(invokeInMethod(node, context, result.get(),
-						parameters.toArray()));
-			}
+				@Override
+				public void accept(InputSequenceNode.Effective node) {
+					List<Object> parameters = getSingleBindingSequence(node,
+							context.withBindingNode(node));
+					result.set(invokeInMethod(node, context, result.get(),
+							parameters.toArray()));
+				}
 
-			@Override
-			public void accept(SequenceNode.Effective node) {
-				for (ChildNode.Effective<?, ?> child : node.children())
-					bindChild(child, context.withBindingNode(node));
-			}
+				@Override
+				public void accept(SequenceNode.Effective node) {
+					for (ChildNode.Effective<?, ?> child : node.children())
+						bindChild(child, context.withBindingNode(node));
+				}
 
-			@Override
-			public void accept(ChoiceNode.Effective node) {
-			}
-		});
+				@Override
+				public void accept(ChoiceNode.Effective node) {}
+			});
+		} catch (Exception e) {
+			throw new BindingException("Failed to bind node '" + next + "'", context,
+					e);
+		}
 
 		return result.get();
 	}
