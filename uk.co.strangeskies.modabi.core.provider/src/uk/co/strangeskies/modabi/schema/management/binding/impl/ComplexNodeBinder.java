@@ -81,7 +81,7 @@ public class ComplexNodeBinder {
 			} else
 				binding = bindExactNode(context, exactNode);
 
-			if (node.isInMethodChained())
+			if (node.isInMethodChained() != null && node.isInMethodChained())
 				context = this.context.withBindingTarget(binding);
 
 			result.add(binding);

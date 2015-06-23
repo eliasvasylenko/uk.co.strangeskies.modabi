@@ -27,8 +27,8 @@ import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.node.BindingNode;
-import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {

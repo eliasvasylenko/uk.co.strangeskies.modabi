@@ -253,7 +253,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																							DataType.QUALIFIED_NAME,
 																							new QualifiedName("targetId",
 																									namespace)).buffer())
-																			.postInputType(new TypeToken<DataNode.Effective<?>>() {})
+																			.postInputType(
+																					new TypeToken<DataNode.Effective<?>>() {})
 																			.inMethodCast(true))
 															.addChild(
 																	e -> e.inputSequence().name("providedValue")
@@ -393,6 +394,9 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.inMethodCast(true))
 															.addChild(
 																	p -> p.inputSequence().name("getDataType")
+																			.inMethodChained(true))
+															.addChild(
+																	p -> p.inputSequence().name("getRawType")
 																			.inMethodChained(true)))
 											.addChild(
 													o -> o.data().name("name")
