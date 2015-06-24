@@ -108,6 +108,11 @@ class BufferingDataTargetImpl implements DataTarget {
 		}
 
 		@Override
+		public DataItem<?> peek() {
+			return dataSequence.get(index);
+		}
+
+		@Override
 		public int size() {
 			return dataSequence.size();
 		}

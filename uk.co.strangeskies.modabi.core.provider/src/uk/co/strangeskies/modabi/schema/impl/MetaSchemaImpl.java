@@ -433,6 +433,12 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						c -> c.inputSequence().name("configure").inMethod("data")
 								.inMethodChained(true))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("format").optional(true)
+								.valueResolution(ValueResolution.REGISTRATION_TIME)
+								.isAbstract(true).type(base.derivedTypes().enumType())
+								.dataType(Format.class)
+								.postInputType(DataNodeConfigurator.class))
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n
@@ -466,12 +472,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("nullIfOmitted")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("format").optional(true)
-								.valueResolution(ValueResolution.REGISTRATION_TIME)
-								.isAbstract(true).type(base.derivedTypes().enumType())
-								.dataType(Format.class)
-								.postInputType(DataNodeConfigurator.class))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("valueResolution")
 								.optional(true).type(base.derivedTypes().enumType())

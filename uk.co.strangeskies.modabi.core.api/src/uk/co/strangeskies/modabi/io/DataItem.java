@@ -121,8 +121,7 @@ public interface DataItem<T> {
 		for (DataType<?> type : Enumeration.getConstants(DataType.class))
 			try {
 				forStringStrict(type, data);
-			} catch (ParseException e) {
-			}
+			} catch (ParseException e) {}
 
 		;
 

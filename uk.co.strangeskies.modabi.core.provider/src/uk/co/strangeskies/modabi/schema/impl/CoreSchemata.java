@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,8 +49,6 @@ public class CoreSchemata {
 
 	public CoreSchemata(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder) {
-		List<Object> objs = new ArrayList<>();
-
 		/*
 		 * We obviously don't have have any schema to use to bind provided values
 		 * which have registration time resolution, since what we're doing here is
@@ -98,9 +95,6 @@ public class CoreSchemata {
 
 							return model;
 						};
-
-						objs.add(new ProxyFactory().createDelegatorProxy(objectProvider,
-								new Class[] { Model.class }));
 
 						return (List<T>) Arrays.asList(new ProxyFactory()
 								.createDelegatorProxy(new SingletonProvider(objectProvider),

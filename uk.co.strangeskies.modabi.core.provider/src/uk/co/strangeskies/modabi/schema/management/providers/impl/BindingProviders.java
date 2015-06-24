@@ -24,8 +24,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.proxy.ObjectProvider;
+import org.apache.commons.proxy.ProxyFactory;
+import org.apache.commons.proxy.provider.SingletonProvider;
+
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.io.DataStreamState;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
@@ -41,11 +46,17 @@ import uk.co.strangeskies.modabi.schema.management.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.management.unbinding.impl.BindingNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.management.unbinding.impl.DataNodeUnbinder;
 import uk.co.strangeskies.modabi.schema.management.unbinding.impl.UnbindingContextImpl;
+import uk.co.strangeskies.modabi.schema.node.ChildNode;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
+import uk.co.strangeskies.modabi.schema.node.DataNode.Effective;
 import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 
 public class BindingProviders {
+	private interface ModelBindingProvider {
+		<T> Set<T> get(Model<T> model);
+	}
+
 	private final SchemaManager manager;
 
 	public BindingProviders(SchemaManager manager) {
@@ -57,18 +68,22 @@ public class BindingProviders {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(
-						manager,
-						context,
-						model,
-						manager.bindingFutures(model).stream()
-								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
-								.map(Binding::getData).collect(Collectors.toSet()), idDomain,
-						id);
+				return matchBinding(manager, context, model,
+						new ModelBindingProvider() {
+							@Override
+							public <T> Set<T> get(Model<T> model) {
+								return manager.bindingFutures(model).stream()
+										.filter(BindingFuture::isDone).map(BindingFuture::resolve)
+										.map(Binding::getData).collect(Collectors.toSet());
+							}
+						}, idDomain, id);
 			}
 		};
 	}
 
+	/*
+	 * TODO from BindingContext not BindingContextImpl
+	 */
 	public Function<BindingContextImpl, DataLoader> dataLoader() {
 		return context -> new DataLoader() {
 			@Override
@@ -83,8 +98,8 @@ public class BindingProviders {
 			@Override
 			public <U> U reference(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(manager, context, model,
-						context.bindings().get(model), idDomain, id);
+				return matchBinding(manager, context, model, context.bindings()::get,
+						idDomain, id);
 			}
 		};
 	}
@@ -111,52 +126,48 @@ public class BindingProviders {
 		 */
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <U> U matchBinding(SchemaManager manager,
-			BindingContext context, Model<U> model, Set<U> bindingCandidates,
+			BindingContext context, Model<U> model, ModelBindingProvider bindings,
 			QualifiedName idDomain, DataSource idSource) {
-		DataNode.Effective<?> node = (DataNode.Effective<?>) model
-				.effective()
-				.children()
-				.stream()
-				.filter(
-						c -> c.getName().equals(idDomain)
-								&& c instanceof DataNode.Effective<?>)
-				.findAny()
-				.orElseThrow(
-						() -> new BindingException("Can't find child '" + idDomain
-								+ "' to target for model '" + model + "'.", context));
+		if (idSource.currentState() == DataStreamState.TERMINATED)
+			throw new BindingException("No further id data to match in domain '"
+					+ idDomain + "' for model '" + model + "'.", context);
 
-		for (U bindingCandidate : bindingCandidates) {
-			DataSource candidateId = unbindDataNode(manager, node, bindingCandidate);
-			DataSource bufferedIdSource = idSource.copy();
+		DataItem<?> id = idSource.get();
 
-			if (bufferedIdSource.size() - bufferedIdSource.index() < candidateId
-					.size())
-				continue;
+		ObjectProvider objectProvider = () -> {
+			Set<U> bindingCandidates = bindings.get(model);
 
-			boolean match = true;
-			for (int i = 0; i < candidateId.size() && match; i++) {
+			ChildNode<?, ?> child = (DataNode.Effective<?>) model.effective().child(
+					idDomain);
+			if (!(child instanceof DataNode.Effective<?>))
+				throw new BindingException("Can't find child '" + idDomain
+						+ "' to target for model '" + model + "'.", context);
+			DataNode.Effective<?> node = (Effective<?>) child;
+
+			for (U bindingCandidate : bindingCandidates) {
+				DataSource candidateId = unbindDataNode(manager, node, bindingCandidate);
+
+				if (candidateId.size() != 1)
+					continue;
+
 				DataItem<?> candidateData = candidateId.get();
-				match = bufferedIdSource.get(candidateData.type()).equals(
-						candidateData.data());
+
+				if (id.data(candidateData.type()).equals(candidateData.data())) {
+					return bindingCandidate;
+				}
 			}
 
-			if (match) {
-				for (int i = 0; i < candidateId.size(); i++)
-					idSource.get();
+			throw new BindingException("Can't find any bindings matching id '" + id
+					+ "' in domain '" + idDomain + "' for model '" + model + "'.",
+					context);
+		};
 
-				return bindingCandidate;
-			}
-		}
-
-		System.out.println("#########################33");
-		for (U bindingCandidate : bindingCandidates) {
-			System.out.println(bindingCandidate);
-		}
-
-		throw new BindingException("Can't find any bindings matching '"
-				+ idSource.get() + "' in domain '" + idDomain + "' for model '" + model
-				+ "'.", context);
+		Set<? extends Class<?>> classes = model.effective().getDataType()
+				.getRawTypes();
+		return (U) new ProxyFactory().createDelegatorProxy(new SingletonProvider(
+				objectProvider), classes.toArray(new Class<?>[classes.size()]));
 	}
 
 	private static <V> DataSource unbindDataNode(SchemaManager manager,

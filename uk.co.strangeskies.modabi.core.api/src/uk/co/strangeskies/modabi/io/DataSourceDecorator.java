@@ -54,6 +54,11 @@ public class DataSourceDecorator extends Decorator<DataSource> implements
 	}
 
 	@Override
+	public DataItem<?> peek() {
+		return getComponent().peek();
+	}
+
+	@Override
 	public <T extends DataTarget> T pipe(T target, int items) {
 		return getComponent().pipe(target, items);
 	}

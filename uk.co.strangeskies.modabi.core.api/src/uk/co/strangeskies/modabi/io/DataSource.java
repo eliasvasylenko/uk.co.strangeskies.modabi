@@ -39,6 +39,12 @@ public interface DataSource extends Copyable<DataSource> {
 
 	DataItem<?> get();
 
+	default <T> T peek(DataType<T> type) {
+		return peek().data(type);
+	}
+
+	DataItem<?> peek();
+
 	<T extends DataTarget> T pipe(T target, int items);
 
 	default <T extends DataTarget> T pipeNext(T target) {
@@ -139,6 +145,11 @@ public interface DataSource extends Copyable<DataSource> {
 		@Override
 		public DataItem<?> get() {
 			return list.get(index++ % list.size());
+		}
+
+		@Override
+		public DataItem<?> peek() {
+			return list.get(index % list.size());
 		}
 
 		@Override

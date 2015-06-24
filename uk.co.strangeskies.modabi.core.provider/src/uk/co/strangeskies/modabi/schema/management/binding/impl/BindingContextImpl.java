@@ -38,7 +38,7 @@ public class BindingContextImpl extends
 		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<Object> bindingTargetStack;
 	private final StructuredDataSource input;
-
+	
 	public BindingContextImpl(SchemaManager manager) {
 		super(manager);
 
