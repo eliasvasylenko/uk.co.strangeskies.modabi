@@ -59,7 +59,8 @@ public interface DataNode<T> extends
 	static final PropertySet<DataNode> PROPERTY_SET = new PropertySet<>(
 			DataNode.class).add(BindingChildNode.PROPERTY_SET).add(DataNode::format)
 			.add(DataNode::providedValueBuffer).add(DataNode::valueResolution)
-			.add(DataNode::type).add(DataNode::optional).add(DataNode::isExtensible);
+			.add(DataNode::type).add(DataNode::optional).add(DataNode::isExtensible)
+			.add(DataNode::nullIfOmitted);
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -86,16 +87,4 @@ public interface DataNode<T> extends
 	Boolean optional();
 
 	Boolean nullIfOmitted();
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<Effective<T>> getEffectiveClass() {
-		return (Class) DataNode.Effective.class;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<DataNode<T>> getNodeClass() {
-		return (Class) DataNode.class;
-	}
 }

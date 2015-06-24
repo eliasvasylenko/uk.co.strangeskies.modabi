@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -74,10 +73,8 @@ public class MetaSchemaImpl implements MetaSchema {
 	@SuppressWarnings("unchecked")
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
 			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
-		Namespace namespace = new Namespace(MetaSchema.class.getPackage(),
-				LocalDate.of(2014, 1, 1));
-		QualifiedName name = new QualifiedName(MetaSchema.class.getSimpleName(),
-				namespace);
+		Namespace namespace = MetaSchema.NAMESPACE;
+		QualifiedName name = MetaSchema.QUALIFIED_NAME;
 
 		/*
 		 * Types
@@ -266,6 +263,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.primitiveType(DataType.STRING)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethodIterable")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("outMethodCast")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethodUnchecked")
@@ -464,6 +464,9 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("optional")
 								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
 				.addChild(
+						n -> n.data().format(Format.PROPERTY).name("nullIfOmitted")
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("format").optional(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
 								.isAbstract(true).type(base.derivedTypes().enumType())
@@ -474,9 +477,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true).type(base.derivedTypes().enumType())
 								.dataType(ValueResolution.class))
 				/*
-				 * TODO Figure out how to have value output itself as a SIMPLE_ELEMENT
-				 * if there are no 'child' elements. Perhaps can work something out once
-				 * 'choice' nodes are fully implemented.
+				 * TODO Figure out how to have value output itself as CONTENT if there
+				 * are no 'child' elements.
 				 */
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("value")

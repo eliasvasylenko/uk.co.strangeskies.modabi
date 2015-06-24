@@ -199,8 +199,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 		@Override
 		public final boolean equals(Object object) {
-			return propertySet().testEquality(source(), object)
-					&& effective().equals(((SchemaNode<?, ?>) object).effective());
+			return propertySet().testEquality(source(), object);
 		}
 
 		@Override

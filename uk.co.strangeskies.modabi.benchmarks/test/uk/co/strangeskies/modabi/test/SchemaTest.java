@@ -20,9 +20,12 @@ package uk.co.strangeskies.modabi.test;
 
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.schema.MetaSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.impl.SchemaManagerImpl;
+import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {
@@ -51,8 +54,18 @@ public class SchemaTest {
 		Schema metaSchema = schemaManager.bind(schemaManager.getMetaSchema()
 				.getSchemaModel(), buffered);
 
-		System.out.println("Success: "
-				+ metaSchema.equals(schemaManager.getMetaSchema()));
+		boolean success = metaSchema.equals(schemaManager.getMetaSchema());
+		System.out.println("Success: " + success);
+		if (!success) {
+			out = new BufferingStructuredDataTarget();
+
+			@SuppressWarnings("unchecked")
+			Model<Schema> schemaModel = (Model<Schema>) metaSchema.getModels().get(
+					new QualifiedName("schema", MetaSchema.NAMESPACE));
+
+			schemaManager.unbind(schemaModel, out, metaSchema);
+			out.buffer().pipeNextChild(new XMLTarget(System.out));
+		}
 
 		System.out.print("Profiling Preparation");
 		for (int i = 1; i <= 80; i++) {

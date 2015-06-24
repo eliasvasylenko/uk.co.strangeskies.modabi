@@ -136,7 +136,8 @@ public class BindingNodeOverrider {
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator
 					.addChild().data().name(override.getName())
-					.type(override.source().baseType());
+					.type(override.source().baseType())
+					.nullIfOmitted(node.nullIfOmitted());
 
 			dataNodeConfigurator = tryProperty(node.optional(),
 					DataNodeConfigurator::optional, dataNodeConfigurator);
@@ -206,6 +207,7 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.getOutMethodName(), C::outMethod, c);
 			c = tryProperty(node.isOutMethodIterable(), C::outMethodIterable, c);
 			c = tryProperty(node.isOutMethodUnchecked(), C::outMethodUnchecked, c);
+			c = tryProperty(node.isOutMethodCast(), C::outMethodCast, c);
 			c = tryProperty(node.occurrences(), C::occurrences, c);
 			c = tryProperty(node.isOrdered(), C::ordered, c);
 

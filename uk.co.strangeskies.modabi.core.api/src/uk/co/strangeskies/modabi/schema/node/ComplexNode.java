@@ -56,16 +56,4 @@ public interface ComplexNode<T> extends
 	public default PropertySet<ComplexNode<T>> propertySet() {
 		return (PropertySet<ComplexNode<T>>) (Object) PROPERTY_SET;
 	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<Effective<T>> getEffectiveClass() {
-		return (Class) Effective.class;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<ComplexNode<T>> getNodeClass() {
-		return (Class) ComplexNode.class;
-	}
 }

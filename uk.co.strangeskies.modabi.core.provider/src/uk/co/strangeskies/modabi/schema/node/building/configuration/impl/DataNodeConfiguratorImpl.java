@@ -88,8 +88,8 @@ public class DataNodeConfiguratorImpl<T> extends
 
 				providedBuffer = overrideMerge
 						.tryGetValue(DataNode::providedValueBuffer);
-				resolution = overrideMerge.getValue(DataNode::valueResolution,
-						ValueResolution.PROCESSING_TIME);
+				ValueResolution resolution = overrideMerge.getValue(
+						DataNode::valueResolution, ValueResolution.PROCESSING_TIME);
 
 				if (providedBuffer == null
 						&& resolution == ValueResolution.REGISTRATION_TIME && !isAbstract()
@@ -102,6 +102,8 @@ public class DataNodeConfiguratorImpl<T> extends
 						.configurator().getContext().dataLoader()
 						.loadData(DataNodeImpl.Effective.this, providedBuffer)
 						: null;
+
+				this.resolution = resolution;
 			}
 
 			@Override
@@ -228,7 +230,8 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataNodeConfigurator<U> dataType(TypeToken<? extends U> dataClass) {
+	public final <U extends T> DataNodeConfigurator<U> dataType(
+			TypeToken<? extends U> dataClass) {
 		return (DataNodeConfigurator<U>) super.dataType(dataClass);
 	}
 

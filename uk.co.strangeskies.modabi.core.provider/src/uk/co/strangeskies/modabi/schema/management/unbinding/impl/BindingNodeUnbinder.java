@@ -165,10 +165,14 @@ public class BindingNodeUnbinder {
 		if (node.getProvidedUnbindingMethodParameters() != null)
 			for (DataNode.Effective<?> parameter : node
 					.getProvidedUnbindingMethodParameters()) {
-				if (parameter != null)
+				if (parameter != null) {
+		//			System.out.println(parameter.getName());
+			//		System.out.println(parameter.providedValueBuffer());
+				//	System.out.println(parameter.providedValueBuffer().reset().get());
+					//System.out.println(parameter.providedValues());
 					parameters.add(parameter.providedValues() == null ? null : parameter
 							.providedValues().get(0));
-				else {
+				} else {
 					parameters.add(data);
 					addedData = true;
 				}

@@ -31,15 +31,5 @@ public interface ChoiceNode extends
 		}
 	}
 
-	@Override
-	default Class<Effective> getEffectiveClass() {
-		return ChoiceNode.Effective.class;
-	}
-
-	@Override
-	default Class<ChoiceNode> getNodeClass() {
-		return ChoiceNode.class;
-	}
-
 	Boolean isMandatory();
 }

@@ -52,16 +52,4 @@ public interface DataBindingType<T> extends
 	default PropertySet<DataBindingType<T>> propertySet() {
 		return (PropertySet<DataBindingType<T>>) (Object) PROPERTY_SET;
 	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<Effective<T>> getEffectiveClass() {
-		return (Class) Effective.class;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	default Class<DataBindingType<T>> getNodeClass() {
-		return (Class) DataBindingType.class;
-	}
 }

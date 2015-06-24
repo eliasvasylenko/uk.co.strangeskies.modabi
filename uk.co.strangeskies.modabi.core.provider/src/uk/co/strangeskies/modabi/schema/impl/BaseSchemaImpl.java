@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.schema.impl;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -808,10 +807,8 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder, DataLoader loader) {
-		Namespace namespace = new Namespace(BaseSchema.class.getPackage(),
-				LocalDate.of(2014, 1, 1));
-		QualifiedName name = new QualifiedName(BaseSchema.class.getSimpleName(),
-				namespace);
+		Namespace namespace = BaseSchema.NAMESPACE;
+		QualifiedName name = BaseSchema.QUALIFIED_NAME;
 
 		/*
 		 * Types

@@ -30,14 +30,4 @@ public interface InputSequenceNode extends
 			context.accept(this);
 		}
 	}
-
-	@Override
-	default Class<Effective> getEffectiveClass() {
-		return Effective.class;
-	}
-
-	@Override
-	default Class<InputSequenceNode> getNodeClass() {
-		return InputSequenceNode.class;
-	}
 }

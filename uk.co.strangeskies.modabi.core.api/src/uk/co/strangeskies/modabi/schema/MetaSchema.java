@@ -18,8 +18,18 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.time.LocalDate;
+
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.Model;
 
 public interface MetaSchema extends Schema {
+	public static final Namespace NAMESPACE = new Namespace(
+			MetaSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
+
+	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
+			MetaSchema.class.getSimpleName(), NAMESPACE);
+
 	public Model<Schema> getSchemaModel();
 }

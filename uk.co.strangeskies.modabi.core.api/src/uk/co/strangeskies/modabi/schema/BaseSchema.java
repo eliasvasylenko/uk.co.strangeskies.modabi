@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -27,11 +28,19 @@ import java.util.Set;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.namespace.Namespace;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
+	public static final Namespace NAMESPACE = new Namespace(
+			BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
+
+	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
+			BaseSchema.class.getSimpleName(), NAMESPACE);
+
 	public interface DerivedTypes {
 		DataBindingType<Object[]> arrayType();
 

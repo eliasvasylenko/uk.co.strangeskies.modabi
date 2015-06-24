@@ -49,6 +49,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 			.add(BindingChildNode::getOutMethodName)
 			.add(BindingChildNode::isOutMethodIterable)
 			.add(BindingChildNode::isOutMethodUnchecked)
+			.add(BindingChildNode::isOutMethodCast)
 			.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
 			.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
 			.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);

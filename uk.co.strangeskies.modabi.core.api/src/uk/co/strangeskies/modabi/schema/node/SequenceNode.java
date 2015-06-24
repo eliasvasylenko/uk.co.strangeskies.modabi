@@ -30,14 +30,4 @@ public interface SequenceNode extends
 			context.accept(this);
 		}
 	}
-
-	@Override
-	default Class<Effective> getEffectiveClass() {
-		return Effective.class;
-	}
-
-	@Override
-	default Class<SequenceNode> getNodeClass() {
-		return SequenceNode.class;
-	}
 }

@@ -32,6 +32,8 @@ import uk.co.strangeskies.modabi.schema.management.SchemaManager;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingFuture;
+import uk.co.strangeskies.modabi.schema.management.binding.impl.BindingContextImpl;
+import uk.co.strangeskies.modabi.schema.management.binding.impl.DataNodeBinder;
 import uk.co.strangeskies.modabi.schema.management.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.schema.management.providers.ImportSource;
 import uk.co.strangeskies.modabi.schema.management.providers.IncludeTarget;
@@ -67,12 +69,11 @@ public class BindingProviders {
 		};
 	}
 
-	public Function<BindingContext, DataLoader> dataLoader() {
+	public Function<BindingContextImpl, DataLoader> dataLoader() {
 		return context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				// return new DataNodeBinder(context).bind(node); TODO loadData
-				return null;
+				return new DataNodeBinder(context).bind(node.effective());
 			}
 		};
 	}
@@ -148,8 +149,14 @@ public class BindingProviders {
 			}
 		}
 
-		throw new BindingException("Can't find any bindings matching '" + idSource
-				+ "' in domain '" + idDomain + "' for model '" + model + "'.", context);
+		System.out.println("#########################33");
+		for (U bindingCandidate : bindingCandidates) {
+			System.out.println(bindingCandidate);
+		}
+
+		throw new BindingException("Can't find any bindings matching '"
+				+ idSource.get() + "' in domain '" + idDomain + "' for model '" + model
+				+ "'.", context);
 	}
 
 	private static <V> DataSource unbindDataNode(SchemaManager manager,

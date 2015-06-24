@@ -73,10 +73,6 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 		return (S) this;
 	}
 
-	Class<E> getEffectiveClass();
-
-	Class<S> getNodeClass();
-
 	default ChildNode<?, ?> child(QualifiedName name) {
 		return children()
 				.stream()

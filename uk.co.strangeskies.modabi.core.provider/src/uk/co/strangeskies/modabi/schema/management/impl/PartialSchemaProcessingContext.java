@@ -64,7 +64,7 @@ public interface PartialSchemaProcessingContext extends SchemaProcessingContext 
 	}
 
 	static void unexpectedNode(SchemaNode<?, ?> node) {
-		throw new SchemaException("Unexpected node type '"
-				+ node.getEffectiveClass() + "' for node '" + node.getName() + "'.");
+		throw new SchemaException("Unexpected node type '" + node.getClass()
+				+ "' for node '" + node.getName() + "'.");
 	}
 }
