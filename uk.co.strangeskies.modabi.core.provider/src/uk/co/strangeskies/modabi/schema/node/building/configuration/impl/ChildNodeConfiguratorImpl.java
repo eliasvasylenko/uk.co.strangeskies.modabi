@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.schema.node.building.configuration.impl;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
@@ -28,10 +29,31 @@ import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
 		ChildNodeConfigurator<S, N> {
+	@SuppressWarnings("rawtypes")
+	protected static final PropertySet<ChildNode> PROPERTY_SET = new PropertySet<>(
+			ChildNode.class).add(SchemaNodeImpl.PROPERTY_SET).add(
+			n -> Optional.ofNullable(n.getPostInputType())
+					.map(TypeToken::getAnnotatedDeclaration).orElse(null));
+
+	protected PropertySet<? super N> propertySet() {
+		return PROPERTY_SET;
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected static final PropertySet<ChildNode.Effective> EFFECTIVE_PROPERTY_SET = new PropertySet<>(
+			ChildNode.Effective.class).add(PROPERTY_SET)
+			.add(SchemaNodeImpl.Effective.PROPERTY_SET)
+			.add(ChildNode.Effective::getPreInputType);
+
+	protected PropertySet<? super N> effectivePropertySet() {
+		return PROPERTY_SET;
+	}
+
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private TypeToken<?> postInputClass;

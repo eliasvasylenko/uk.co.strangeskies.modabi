@@ -79,7 +79,7 @@ public class DataNodeUnbinder {
 					if (!node.providedValues().equals(data)) {
 						throw new SchemaException("Provided value '"
 								+ node.providedValues() + "'does not match unbinding object '"
-								+ data + "' for node '" + node.getName() + "'.");
+								+ data + "' for node '" + node.getName() + "'");
 					}
 					break;
 				}
@@ -125,7 +125,7 @@ public class DataNodeUnbinder {
 			UnbindingContextImpl context,
 			Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap) {
 		if (node.isExtensible() != null && node.isExtensible()) {
-			ComputingMap<DataBindingType.Effective<? extends U>, DataNode.Effective<? extends U>> overrides = context
+			ComputingMap<DataBindingType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
@@ -140,7 +140,7 @@ public class DataNodeUnbinder {
 							.keySet()
 							.stream()
 							.filter(
-									m -> m.getDataType().getRawType()
+									m -> m.effective().getDataType().getRawType()
 											.isAssignableFrom(data.getClass()))
 							.collect(Collectors.toList()),
 					(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
@@ -148,7 +148,7 @@ public class DataNodeUnbinder {
 							+ node.getName()
 							+ "' with type candidates '"
 							+ overrides.keySet().stream()
-									.map(m -> m.source().getName().toString())
+									.map(m -> m.effective().getName().toString())
 									.collect(Collectors.joining(", ")) + "' for object '" + data
 							+ "' to be unbound.", context, l));
 		} else

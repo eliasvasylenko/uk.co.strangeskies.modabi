@@ -62,7 +62,7 @@ public class SchemaBinder {
 		QualifiedName inputRoot = input.startNextChild();
 		if (!inputRoot.equals(model.getName()))
 			throw new BindingException("Model '" + model.getName()
-					+ "' does not match root input node '" + inputRoot + "'.", context);
+					+ "' does not match root input node '" + inputRoot + "'", context);
 
 		FutureTask<T> future = new FutureTask<>(() -> {
 			try {

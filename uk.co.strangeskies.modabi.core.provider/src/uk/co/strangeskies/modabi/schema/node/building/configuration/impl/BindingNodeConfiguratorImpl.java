@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements
@@ -126,8 +128,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				 * output methods.
 				 */
 				if (exactDataType != null && !exactDataType.isProper()) {
-					exactDataType = (TypeToken<U>) exactDataType.withBounds(bounds)
-							.resolve();
+					exactDataType = exactDataType.withBounds(bounds).resolve();
 
 					if (!isAbstract())
 						exactDataType = exactDataType.infer();
@@ -353,7 +354,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						throw new SchemaException("Cannot find unbinding method for node '"
 								+ this + "' of class '" + result + "', reveiver '" + receiver
 								+ "', and parameters '" + parameters + "' with any name of '"
-								+ names + "'.", e);
+								+ names + "'", e);
 					}
 				}
 			}
@@ -403,6 +404,18 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 				return names;
 			}
+
+			@SuppressWarnings("rawtypes")
+			static final PropertySet<BindingNode.Effective> PROPERTY_SET = new PropertySet<>(
+					BindingNode.Effective.class).add(BindingNodeImpl.PROPERTY_SET)
+					.add(SchemaNodeImpl.Effective.PROPERTY_SET)
+					.add(BindingNode.Effective::getUnbindingMethod)
+					.add(BindingNode.Effective::getProvidedUnbindingMethodParameters);
+
+			@Override
+			protected PropertySet<? super E> effectivePropertySet() {
+				return PROPERTY_SET;
+			}
 		}
 
 		private final TypeToken<T> dataType;
@@ -432,6 +445,34 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			unbindingParameterNames = configurator.unbindingParameterNames == null ? null
 					: Collections.unmodifiableList(new ArrayList<>(
 							configurator.unbindingParameterNames));
+		}
+
+		@SuppressWarnings("rawtypes")
+		protected static final PropertySet<BindingNode> PROPERTY_SET = new PropertySet<>(
+				BindingNode.class)
+				.add(SchemaNodeImpl.PROPERTY_SET)
+				.add(
+						n -> Optional.ofNullable(n.getDataType())
+								.map(TypeToken::getAnnotatedDeclaration).orElse(null))
+				.add(BindingNode::isAbstract)
+				.add(BindingNode::getBindingStrategy)
+				.add(
+						n -> Optional.ofNullable(n.getBindingType())
+								.map(TypeToken::getAnnotatedDeclaration).orElse(null))
+				.add(BindingNode::getUnbindingStrategy)
+				.add(
+						n -> Optional.ofNullable(n.getUnbindingType())
+								.map(TypeToken::getAnnotatedDeclaration).orElse(null))
+				.add(BindingNode::isUnbindingMethodUnchecked)
+				.add(BindingNode::getUnbindingMethodName)
+				.add(
+						n -> Optional.ofNullable(n.getUnbindingFactoryType())
+								.map(TypeToken::getAnnotatedDeclaration).orElse(null))
+				.add(BindingNode::getProvidedUnbindingMethodParameterNames);
+
+		@Override
+		protected PropertySet<? super S> propertySet() {
+			return PROPERTY_SET;
 		}
 
 		@Override
@@ -612,6 +653,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 */
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
 					public BoundSet boundSet() {
 						return inferenceBounds;
 					}
@@ -641,6 +683,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 						return bindingStrategy == BindingStrategy.CONSTRUCTOR;
 					}
 
+					@Override
 					public boolean isStaticMethodExpected() {
 						return bindingStrategy == BindingStrategy.STATIC_FACTORY;
 					}

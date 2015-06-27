@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.schema.node;
 
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public interface ComplexNode<T> extends
 		AbstractComplexNode<T, ComplexNode<T>, ComplexNode.Effective<T>>,
@@ -31,29 +30,7 @@ public interface ComplexNode<T> extends
 		default void process(SchemaProcessingContext context) {
 			context.accept(this);
 		}
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<ComplexNode.Effective> PROPERTY_SET = new PropertySet<>(
-				ComplexNode.Effective.class).add(ComplexNode.PROPERTY_SET).add(
-				BindingChildNode.Effective.PROPERTY_SET);
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public default PropertySet<ComplexNode.Effective<T>> effectivePropertySet() {
-			return (PropertySet<ComplexNode.Effective<T>>) (Object) PROPERTY_SET;
-		}
 	}
 
 	Boolean isInline();
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<ComplexNode> PROPERTY_SET = new PropertySet<>(
-			ComplexNode.class).add(BindingChildNode.PROPERTY_SET).add(
-			AbstractComplexNode::baseModel);
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public default PropertySet<ComplexNode<T>> propertySet() {
-		return (PropertySet<ComplexNode<T>>) (Object) PROPERTY_SET;
-	}
 }

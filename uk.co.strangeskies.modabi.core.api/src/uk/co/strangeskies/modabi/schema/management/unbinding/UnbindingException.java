@@ -18,16 +18,10 @@
  */
 package uk.co.strangeskies.modabi.schema.management.unbinding;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
 public class UnbindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
@@ -38,9 +32,7 @@ public class UnbindingException extends SchemaException {
 
 	public UnbindingException(String message, UnbindingState state,
 			Collection<? extends Exception> cause) {
-		super(message + " @ "
-				+ getUnbindingNodeStackString(state.bindingNodeStack()), cause
-				.iterator().next());
+		super(message + getUnbindingStateString(state), cause.iterator().next());
 
 		multiCause = cause;
 		this.state = state;
@@ -48,16 +40,14 @@ public class UnbindingException extends SchemaException {
 
 	public UnbindingException(String message, UnbindingState state,
 			Exception cause) {
-		super(message + " @ "
-				+ getUnbindingNodeStackString(state.bindingNodeStack()), cause);
+		super(message + getUnbindingStateString(state), cause);
 
 		multiCause = Arrays.asList(cause);
 		this.state = state;
 	}
 
 	public UnbindingException(String message, UnbindingState state) {
-		super(message + " @ "
-				+ getUnbindingNodeStackString(state.bindingNodeStack()));
+		super(message + getUnbindingStateString(state));
 		multiCause = null;
 		this.state = state;
 	}
@@ -66,14 +56,9 @@ public class UnbindingException extends SchemaException {
 		return multiCause;
 	}
 
-	private static String getUnbindingNodeStackString(
-			List<SchemaNode.Effective<?, ?>> stack) {
-		stack = new ArrayList<>(stack);
-		Collections.reverse(stack);
-
-		return "[ "
-				+ stack.stream().map(SchemaNode::getName).map(Objects::toString)
-						.collect(Collectors.joining(" < ")) + " ]";
+	private static String getUnbindingStateString(UnbindingState state) {
+		return " at node '" + state.unbindingNode().getName()
+				+ "' from unbinding source object '" + state.unbindingSource() + "'";
 	}
 
 	public UnbindingState getState() {

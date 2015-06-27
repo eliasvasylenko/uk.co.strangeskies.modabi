@@ -40,7 +40,7 @@ public class Methods {
 			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot find constructor for class '"
-					+ receiver + "' with parameters '" + parameters + "'.", e);
+					+ receiver + "' with parameters '" + parameters + "'", e);
 		}
 
 		return constructor;
@@ -73,7 +73,7 @@ public class Methods {
 		if (method == null)
 			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
 					+ "method for class '" + receiver + "' with parameters '"
-					+ parameters + "' and any name of '" + names + "'.", exception);
+					+ parameters + "' and any name of '" + names + "'", exception);
 
 		if (result != null) {
 			if (!allowCast) {

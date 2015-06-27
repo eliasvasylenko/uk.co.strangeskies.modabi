@@ -28,6 +28,7 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.namespace.Namespace;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.node.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.node.InputNode;
 import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.Methods;
@@ -40,6 +41,7 @@ import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements
@@ -256,7 +258,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 									"Can't use out method 'this' for node '" + node.getName()
 											+ "', as result class '" + resultType
 											+ "' cannot be assigned from target class'"
-											+ receiverType + "'.");
+											+ receiverType + "'");
 						}
 
 						outMethod = null;
@@ -309,6 +311,19 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 				return names;
 			}
+
+			@SuppressWarnings("rawtypes")
+			protected static final PropertySet<BindingChildNode.Effective> PROPERTY_SET = new PropertySet<>(
+					BindingChildNode.Effective.class)
+					.add(BindingChildNodeImpl.PROPERTY_SET)
+					.add(BindingNodeImpl.Effective.PROPERTY_SET)
+					.add(BindingChildNode.Effective::getOutMethod)
+					.add(InputNode.Effective::getInMethod);
+
+			@Override
+			protected PropertySet<? super E> effectivePropertySet() {
+				return PROPERTY_SET;
+			}
 		}
 
 		private final TypeToken<?> postInputClass;
@@ -345,6 +360,22 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 			inMethodChained = configurator.inMethodChained;
 			allowInMethodResultCast = configurator.allowInMethodResultCast;
 			inMethodUnchecked = configurator.inMethodUnchecked;
+		}
+
+		@SuppressWarnings("rawtypes")
+		protected static final PropertySet<BindingChildNode> PROPERTY_SET = new PropertySet<>(
+				BindingChildNode.class).add(BindingNodeImpl.PROPERTY_SET)
+				.add(BindingChildNode::getOutMethodName)
+				.add(BindingChildNode::isOutMethodIterable)
+				.add(BindingChildNode::isOutMethodUnchecked)
+				.add(BindingChildNode::isOutMethodCast)
+				.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
+				.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
+				.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
+
+		@Override
+		protected PropertySet<? super S> propertySet() {
+			return PROPERTY_SET;
 		}
 
 		@Override

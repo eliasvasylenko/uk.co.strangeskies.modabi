@@ -25,7 +25,6 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.SchemaException;
 import uk.co.strangeskies.modabi.schema.management.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.schema.management.ValueResolution;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public interface DataNode<T> extends
 		BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>,
@@ -46,26 +45,13 @@ public interface DataNode<T> extends
 		default T providedValue() {
 			if (!Range.create(0, 1).contains(occurrences()))
 				throw new SchemaException("Cannot request single value from node '"
-						+ getName() + "' with occurrences '" + occurrences() + "'.");
+						+ getName() + "' with occurrences '" + occurrences() + "'");
 
 			if (providedValues() == null || providedValues().isEmpty())
 				return null;
 			else
 				return providedValues().get(0);
 		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<DataNode> PROPERTY_SET = new PropertySet<>(
-			DataNode.class).add(BindingChildNode.PROPERTY_SET).add(DataNode::format)
-			.add(DataNode::providedValueBuffer).add(DataNode::valueResolution)
-			.add(DataNode::type).add(DataNode::optional).add(DataNode::isExtensible)
-			.add(DataNode::nullIfOmitted);
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public default PropertySet<DataNode<T>> propertySet() {
-		return (PropertySet<DataNode<T>>) (Object) PROPERTY_SET;
 	}
 
 	enum Format {

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
 import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -35,7 +36,7 @@ import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class Models extends QualifiedNamedSet<Model<?>> {
-	private final MultiMap<Model<?>, Model<?>, LinkedHashSet<Model<?>>> derivedModels;
+	private final MultiMap<QualifiedName, Model<?>, LinkedHashSet<Model<?>>> derivedModels;
 	private final MultiMap<Type, Model<?>, LinkedHashSet<Model<?>>> classModels;
 
 	public Models() {
@@ -58,7 +59,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 		model = model.source();
 
 		derivedModels.addToAll(
-				model.effective().baseModel().stream().map(Model::source)
+				model.effective().baseModel().stream().map(Model::getName)
 						.collect(Collectors.toSet()), model);
 
 		if (!model.effective().isAbstract())
@@ -71,7 +72,8 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 		 * TODO This extra cast is needed by javac but not JDT... Is it valid
 		 * without?
 		 */
-		LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.source());
+		LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.effective()
+				.getName());
 		return subModelList == null ? new ArrayList<>() : subModelList.stream()
 				.map(m -> (Model<? extends T>) m)
 				.collect(Collectors.toCollection(ArrayList::new));
@@ -79,7 +81,7 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<T>> getModelsWithClass(TypeToken<T> dataClass) {
-		Set<Model<?>> models = classModels.get(dataClass);
+		Set<Model<?>> models = classModels.get(dataClass.getType());
 		return models == null ? Collections.emptyList() : models.stream()
 				.map(m -> (Model<T>) m).collect(Collectors.toList());
 	}

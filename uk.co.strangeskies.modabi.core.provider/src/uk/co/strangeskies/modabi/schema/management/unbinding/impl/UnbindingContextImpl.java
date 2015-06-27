@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingContext;
 import uk.co.strangeskies.modabi.schema.management.unbinding.UnbindingException;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class UnbindingContextImpl extends
@@ -68,6 +69,11 @@ public class UnbindingContextImpl extends
 	@Override
 	public List<Object> unbindingSourceStack() {
 		return unbindingSourceStack;
+	}
+
+	@Override
+	public List<Effective<?, ?>> unbindingNodeStack() {
+		return nodeStack();
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.namespace.QualifiedNamedSet;
 import uk.co.strangeskies.modabi.schema.node.DataBindingType;
 import uk.co.strangeskies.modabi.schema.node.DataNode;
@@ -30,7 +31,7 @@ import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
-	private final MultiMap<DataBindingType<?>, DataBindingType<?>, LinkedHashSet<DataBindingType<?>>> derivedTypes;
+	private final MultiMap<QualifiedName, DataBindingType<?>, LinkedHashSet<DataBindingType<?>>> derivedTypes;
 
 	public DataBindingTypes() {
 		super(DataBindingType::getName);
@@ -48,7 +49,8 @@ public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
 	}
 
 	private void mapType(DataBindingType<?> type) {
-		derivedTypes.add(type.effective().baseType(), type.source());
+		if (type.effective().baseType() != null)
+			derivedTypes.add(type.effective().baseType().getName(), type.source());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -59,7 +61,7 @@ public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
 		 * without?
 		 */
 		LinkedHashSet<DataBindingType<?>> subTypeList = derivedTypes.get(type
-				.source());
+				.effective().getName());
 		return subTypeList == null ? new ArrayList<>()
 				: new ArrayList<DataBindingType<? extends T>>(subTypeList.stream()
 						.map(m -> (DataBindingType<? extends T>) m)

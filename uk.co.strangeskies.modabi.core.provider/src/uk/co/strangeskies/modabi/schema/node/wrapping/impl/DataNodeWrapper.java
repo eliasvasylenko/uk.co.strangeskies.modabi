@@ -40,7 +40,7 @@ public final class DataNodeWrapper<T>
 		super(component, base);
 
 		String message = "Cannot override '" + base.getName() + "' with '"
-				+ component.getName() + "'.";
+				+ component.getName() + "'";
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null

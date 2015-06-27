@@ -89,9 +89,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 					Schema other = (Schema) obj;
 
-					return getDataTypes().equals(other.getDataTypes())
-							&& getQualifiedName().equals(other.getQualifiedName())
+					return getQualifiedName().equals(other.getQualifiedName())
 							&& getModels().equals(other.getModels())
+							&& getDataTypes().equals(other.getDataTypes())
 							&& getDependencies().equals(other.getDependencies());
 				}
 

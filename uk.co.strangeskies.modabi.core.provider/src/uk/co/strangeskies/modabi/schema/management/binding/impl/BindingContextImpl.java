@@ -32,13 +32,14 @@ import uk.co.strangeskies.modabi.schema.management.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.management.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.management.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
+import uk.co.strangeskies.modabi.schema.node.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class BindingContextImpl extends
 		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<Object> bindingTargetStack;
 	private final StructuredDataSource input;
-	
+
 	public BindingContextImpl(SchemaManager manager) {
 		super(manager);
 
@@ -69,6 +70,11 @@ public class BindingContextImpl extends
 	@Override
 	public List<Object> bindingTargetStack() {
 		return bindingTargetStack;
+	}
+
+	@Override
+	public List<Effective<?, ?>> bindingNodeStack() {
+		return nodeStack();
 	}
 
 	@Override
@@ -112,6 +118,6 @@ public class BindingContextImpl extends
 	public <I> I attemptUntilSuccessful(Iterable<I> attemptItems,
 			BiConsumer<BindingContextImpl, I> bindingMethod,
 			Function<Set<Exception>, BindingException> onFailure) {
-		throw new BindingException("attemptUntilSuccessful unimplemented.", this);
+		throw new BindingException("attemptUntilSuccessful unimplemented", this);
 	}
 }

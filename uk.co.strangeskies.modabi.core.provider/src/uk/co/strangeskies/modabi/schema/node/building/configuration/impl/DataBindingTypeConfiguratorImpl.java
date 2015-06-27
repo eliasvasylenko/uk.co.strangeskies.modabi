@@ -29,6 +29,7 @@ import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public class DataBindingTypeConfiguratorImpl<T>
 		extends
@@ -65,6 +66,19 @@ public class DataBindingTypeConfiguratorImpl<T>
 			public DataBindingType.Effective<? super T> baseType() {
 				return baseType;
 			}
+
+			@SuppressWarnings("rawtypes")
+			protected static final PropertySet<DataBindingType.Effective> PROPERTY_SET = new PropertySet<>(
+					DataBindingType.Effective.class)
+					.add(BindingNodeImpl.Effective.PROPERTY_SET)
+					.add(DataBindingTypeImpl.PROPERTY_SET)
+					.add(DataBindingType::isPrivate).add(DataBindingType::baseType);
+
+			@SuppressWarnings("unchecked")
+			@Override
+			protected PropertySet<DataBindingType.Effective<T>> effectivePropertySet() {
+				return (PropertySet<DataBindingType.Effective<T>>) (Object) PROPERTY_SET;
+			}
 		}
 
 		private final Effective<T> effective;
@@ -81,6 +95,17 @@ public class DataBindingTypeConfiguratorImpl<T>
 			baseType = configurator.baseType;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
+		}
+
+		@SuppressWarnings("rawtypes")
+		protected static final PropertySet<DataBindingType> PROPERTY_SET = new PropertySet<>(
+				DataBindingType.class).add(BindingNodeImpl.PROPERTY_SET)
+				.add(DataBindingType::isPrivate).add(DataBindingType::baseType);
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected PropertySet<DataBindingType<T>> propertySet() {
+			return (PropertySet<DataBindingType<T>>) (Object) PROPERTY_SET;
 		}
 
 		@Override

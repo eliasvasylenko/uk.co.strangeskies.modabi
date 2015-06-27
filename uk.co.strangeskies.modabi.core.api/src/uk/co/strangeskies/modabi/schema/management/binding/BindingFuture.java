@@ -41,10 +41,10 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 			return get();
 		} catch (InterruptedException e) {
 			throw new SchemaException("Unexpected interrupt during binding of '"
-					+ getName() + "' with model '" + getModel().getName() + "'.", e);
+					+ getName() + "' with model '" + getModel().getName() + "'", e);
 		} catch (ExecutionException e) {
 			throw new SchemaException("Exception during binding of '" + getName()
-					+ "' with model '" + getModel().getName() + "'.", e.getCause());
+					+ "' with model '" + getModel().getName() + "'", e.getCause());
 		}
 	}
 

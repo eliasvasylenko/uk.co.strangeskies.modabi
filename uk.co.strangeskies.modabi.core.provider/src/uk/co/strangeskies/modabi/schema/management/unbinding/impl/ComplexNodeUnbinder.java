@@ -36,14 +36,14 @@ public class ComplexNodeUnbinder {
 	public <U> void unbind(ComplexNode.Effective<U> node, List<U> data) {
 		if (node.isExtensible()) {
 			for (U item : data) {
-				ComputingMap<Model.Effective<? extends U>, ComplexNode.Effective<? extends U>> overrides = context
+				ComputingMap<Model<? extends U>, ComplexNode.Effective<? extends U>> overrides = context
 						.getComplexNodeOverrides(node);
 
-				List<Model.Effective<? extends U>> validOverrides = overrides
+				List<Model<? extends U>> validOverrides = overrides
 						.keySet()
 						.stream()
 						.filter(
-								m -> m.getDataType().getRawType()
+								m -> m.effective().getDataType().getRawType()
 										.isAssignableFrom(item.getClass()))
 						.collect(Collectors.toList());
 
@@ -55,7 +55,7 @@ public class ComplexNodeUnbinder {
 									+ node.baseModel().stream()
 											.map(m -> m.source().getName().toString())
 											.collect(Collectors.joining(", ")) + "' for object '"
-									+ item + "' to be unbound.", context);
+									+ item + "' to be unbound", context);
 
 				context.attemptUnbindingUntilSuccessful(
 						validOverrides,
@@ -64,9 +64,9 @@ public class ComplexNodeUnbinder {
 								+ node.getName()
 								+ "' with model candidates '"
 								+ validOverrides.stream()
-										.map(m -> m.source().getName().toString())
+										.map(m -> m.effective().getName().toString())
 										.collect(Collectors.joining(", ")) + "' for object '"
-								+ item + "' to be unbound.", context, l));
+								+ item + "' to be unbound", context, l));
 			}
 		} else
 			for (U item : data)

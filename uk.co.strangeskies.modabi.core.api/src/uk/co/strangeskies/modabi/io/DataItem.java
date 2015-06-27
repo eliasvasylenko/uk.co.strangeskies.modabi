@@ -72,7 +72,7 @@ class TypedDataItem<T> extends AbstractDataItem<T> {
 		}
 
 		throw new ClassCastException("Cannot convert type '" + type()
-				+ "' to type '" + to + "'.");
+				+ "' to type '" + to + "'");
 	}
 }
 
@@ -104,7 +104,7 @@ class StringDataItem extends AbstractDataItem<String> {
 			return DataItem.forDataOfType(to, to.parse(data));
 		} catch (ParseException e) {
 			throw new IllegalArgumentException("Cannot convert type '" + type()
-					+ "' to type '" + to + "'.", e);
+					+ "' to type '" + to + "'", e);
 		}
 	}
 }

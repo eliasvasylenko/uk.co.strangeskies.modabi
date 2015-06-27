@@ -44,6 +44,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.ChildrenContainer;
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.OverrideMerge;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
 
@@ -164,6 +165,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			public String toString() {
 				return getName() != null ? getName().toString() : "[Unnamed Node]";
 			}
+
+			@SuppressWarnings("rawtypes")
+			protected static final PropertySet<SchemaNode.Effective> PROPERTY_SET = new PropertySet<SchemaNode.Effective>(
+					SchemaNode.Effective.class).add(SchemaNodeImpl.PROPERTY_SET);
+
+			protected PropertySet<? super E> effectivePropertySet() {
+				return PROPERTY_SET;
+			}
 		}
 
 		private final QualifiedName name;
@@ -180,6 +189,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 			children = Collections.unmodifiableList(new ArrayList<>(configurator
 					.getChildrenContainer().getChildren()));
+		}
+
+		@SuppressWarnings("rawtypes")
+		protected static final PropertySet<SchemaNode> PROPERTY_SET = new PropertySet<>(
+				SchemaNode.class).add(SchemaNode::children).add(SchemaNode::getName)
+				.add(SchemaNode::isAbstract);
+
+		protected PropertySet<? super S> propertySet() {
+			return PROPERTY_SET;
 		}
 
 		@Override

@@ -42,7 +42,7 @@ public interface StructuredDataSource {
 		QualifiedName nextName = startNextChild();
 		if (!nextName.equals(name)) {
 			throw new SchemaException("Next child '" + nextName
-					+ "' does not match expected name '" + name + "'.");
+					+ "' does not match expected name '" + name + "'");
 		}
 	}
 

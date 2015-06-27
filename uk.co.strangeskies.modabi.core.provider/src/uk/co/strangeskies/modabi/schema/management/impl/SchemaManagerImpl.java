@@ -36,6 +36,7 @@ import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.MetaSchema;
@@ -66,12 +67,12 @@ import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 @Component
 public class SchemaManagerImpl implements SchemaManager {
 	private final List<Function<TypeToken<?>, Object>> providers;
-	private final MultiMap<Model<?>, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
+	private final MultiMap<QualifiedName, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
 
 	private final CoreSchemata coreSchemata;
 
-	final Models registeredModels;
-	final DataBindingTypes registeredTypes;
+	private final Models registeredModels;
+	private final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchemata;
 
 	public SchemaManagerImpl() {
@@ -117,7 +118,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (DataBindingType<?> type : schema.getDataTypes())
 				registerDataType(type);
 
-			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel(),
+			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(),
 					BindingFuture.forData(coreSchemata.metaSchema().getSchemaModel(),
 							schema));
 		}
@@ -163,7 +164,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		if (models.contains(model))
 			throw new IllegalArgumentException("None of the models '" + model
 					+ "' compatible with the class '" + dataClass
-					+ "' match the root element '" + input.peekNextChild() + "'.");
+					+ "' match the root element '" + input.peekNextChild() + "'");
 		return (BindingFuture<T>) addBindingFuture(new SchemaBinder(this).bind(
 				model.effective(), input));
 	}
@@ -175,15 +176,15 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
-		bindingFutures.add(binding.getModel(), binding);
+		bindingFutures.add(binding.getModel().effective().getName(), binding);
 		new Thread(() -> {
 			try {
 				binding.get();
 			} catch (CancellationException e) {} catch (InterruptedException
 					| ExecutionException e) {
 				e.printStackTrace();
+				bindingFutures.remove(binding.getModel().effective().getName());
 			}
-			bindingFutures.remove(binding);
 		});
 		return binding;
 	}
@@ -191,7 +192,8 @@ public class SchemaManagerImpl implements SchemaManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Set<BindingFuture<T>> bindingFutures(Model<T> model) {
-		Set<BindingFuture<?>> modelBindings = bindingFutures.get(model);
+		Set<BindingFuture<?>> modelBindings = bindingFutures.get(model.effective()
+				.getName());
 
 		if (modelBindings == null)
 			return new HashSet<>();
@@ -258,7 +260,7 @@ public class SchemaManagerImpl implements SchemaManager {
 						.findFirst()
 						.orElseThrow(
 								() -> new SchemaException("No provider exists for the type '"
-										+ type + "'."));
+										+ type + "'"));
 			}
 
 			@Override

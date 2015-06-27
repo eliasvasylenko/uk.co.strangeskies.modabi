@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
@@ -33,6 +34,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.ComplexNodeWrapper;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public class ComplexNodeConfiguratorImpl<T>
 		extends
@@ -76,6 +78,25 @@ public class ComplexNodeConfiguratorImpl<T>
 			public Boolean isInline() {
 				return inline;
 			}
+
+			@SuppressWarnings("rawtypes")
+			static final PropertySet<AbstractComplexNode.Effective> ABSTRACT_PROPERTY_SET = new PropertySet<>(
+					AbstractComplexNode.Effective.class)
+					.add(BindingNodeImpl.Effective.PROPERTY_SET)
+					.add(ComplexNodeImpl.ABSTRACT_PROPERTY_SET)
+					.add(AbstractComplexNode::baseModel);
+
+			@SuppressWarnings("rawtypes")
+			static final PropertySet<ComplexNode.Effective> PROPERTY_SET = new PropertySet<>(
+					ComplexNode.Effective.class).add(ABSTRACT_PROPERTY_SET)
+					.add(ComplexNodeImpl.PROPERTY_SET)
+					.add(BindingChildNodeImpl.Effective.PROPERTY_SET);
+
+			@SuppressWarnings("unchecked")
+			@Override
+			protected PropertySet<ComplexNode.Effective<T>> effectivePropertySet() {
+				return (PropertySet<ComplexNode.Effective<T>>) (Object) PROPERTY_SET;
+			}
 		}
 
 		private final Effective<T> effective;
@@ -94,6 +115,22 @@ public class ComplexNodeConfiguratorImpl<T>
 			inline = configurator.inline;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
+		}
+
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<AbstractComplexNode> ABSTRACT_PROPERTY_SET = new PropertySet<>(
+				AbstractComplexNode.class).add(BindingNodeImpl.PROPERTY_SET).add(
+				AbstractComplexNode::baseModel);
+
+		@SuppressWarnings("rawtypes")
+		static final PropertySet<ComplexNode> PROPERTY_SET = new PropertySet<>(
+				ComplexNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
+				.add(ABSTRACT_PROPERTY_SET).add(AbstractComplexNode::baseModel);
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected PropertySet<ComplexNode<T>> propertySet() {
+			return (PropertySet<ComplexNode<T>>) (Object) PROPERTY_SET;
 		}
 
 		@Override

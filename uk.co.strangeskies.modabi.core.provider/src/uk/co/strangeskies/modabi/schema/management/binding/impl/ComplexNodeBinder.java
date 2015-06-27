@@ -75,7 +75,7 @@ public class ComplexNodeBinder {
 					if (node.occurrences().isValueBelow(count))
 						throw new BindingException("Node '" + node.getName()
 								+ "' failed to bind on occurance '" + count + "' of range '"
-								+ node.occurrences() + "'.", context, e);
+								+ node.occurrences() + "'", context, e);
 					break;
 				}
 			} else
@@ -92,7 +92,7 @@ public class ComplexNodeBinder {
 
 		if (!node.occurrences().contains(count))
 			throw new BindingException("Node '" + node.getName() + "' occurrences '"
-					+ count + "' should be within range '" + node.occurrences() + "'.",
+					+ count + "' should be within range '" + node.occurrences() + "'",
 					context);
 
 		return result;

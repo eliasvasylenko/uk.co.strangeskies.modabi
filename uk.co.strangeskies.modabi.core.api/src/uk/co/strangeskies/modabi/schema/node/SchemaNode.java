@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.SchemaException;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
 	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>>
@@ -41,23 +40,6 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 		@Override
 		S source();
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<SchemaNode.Effective> PROPERTY_SET = new PropertySet<SchemaNode.Effective>(
-				SchemaNode.Effective.class).add(SchemaNode.PROPERTY_SET);
-
-		default PropertySet<? super E> effectivePropertySet() {
-			return PROPERTY_SET;
-		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<SchemaNode> PROPERTY_SET = new PropertySet<>(
-			SchemaNode.class).add(SchemaNode::children).add(SchemaNode::getName)
-			.add(SchemaNode::isAbstract);
-
-	default PropertySet<? super S> propertySet() {
-		return PROPERTY_SET;
 	}
 
 	Boolean isAbstract();

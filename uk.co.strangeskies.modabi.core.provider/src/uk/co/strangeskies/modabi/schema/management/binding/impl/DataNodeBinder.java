@@ -171,12 +171,12 @@ public class DataNodeBinder {
 	private static <U> U bindExactNode(BindingContextImpl context,
 			DataNode.Effective<U> node) {
 		if (node.isExtensible()) {
-			ComputingMap<DataBindingType.Effective<? extends U>, DataNode.Effective<? extends U>> overrides = context
+			ComputingMap<DataBindingType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
 				throw new SchemaException("Unable to find type to satisfy data node '"
-						+ node.getName() + "' with type '" + node.effective().type() + "'.");
+						+ node.getName() + "' with type '" + node.effective().type() + "'");
 
 			Property<U, U> result = new IdentityProperty<U>();
 
@@ -188,8 +188,8 @@ public class DataNodeBinder {
 							+ node.getName()
 							+ "' with type candidates '"
 							+ overrides.keySet().stream()
-									.map(m -> m.source().getName().toString())
-									.collect(Collectors.joining(", ")) + "'.", context, l));
+									.map(m -> m.effective().getName().toString())
+									.collect(Collectors.joining(", ")) + "'", context, l));
 
 			return result.get();
 		} else

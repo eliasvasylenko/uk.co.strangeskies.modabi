@@ -62,7 +62,7 @@ public class BindingNodeOverrider {
 			return new OverridingProcessor().process(builder, node, override);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override complex node '" + node
-					+ "' with model '" + override + "'.", e);
+					+ "' with model '" + override + "'", e);
 		}
 	}
 
@@ -72,7 +72,7 @@ public class BindingNodeOverrider {
 			return new OverridingProcessor().process(builder, node, override);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override data node '" + node
-					+ "' with data binding type '" + override + "'.", e);
+					+ "' with data binding type '" + override + "'", e);
 		}
 	}
 
@@ -167,7 +167,7 @@ public class BindingNodeOverrider {
 				try {
 					child.effective().process(this);
 				} catch (Exception e) {
-					throw new SchemaException("Cannot override child '" + child + "'.", e);
+					throw new SchemaException("Cannot override child '" + child + "'", e);
 				}
 
 			configuratorStack.pop();
@@ -301,7 +301,7 @@ public class BindingNodeOverrider {
 							c));
 		}
 
-		private <U, C extends SchemaNodeConfigurator<? extends C, ?>> C tryProperty(
+		private <U, C extends SchemaNodeConfigurator<?, ?>> C tryProperty(
 				U property, BiFunction<C, U, C> consumer, C c) {
 			if (property != null)
 				return consumer.apply(c, property);

@@ -40,7 +40,7 @@ public class ComplexNodeWrapper<T>
 		super(component, base);
 
 		String message = "Cannot override '" + base.getName() + "' with '"
-				+ component.getName() + "'.";
+				+ component.getName() + "'";
 
 		if (!component.baseModel().containsAll(base.baseModel()))
 			throw new SchemaException(message);

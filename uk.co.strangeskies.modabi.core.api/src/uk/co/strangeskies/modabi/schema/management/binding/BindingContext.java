@@ -31,8 +31,8 @@ public interface BindingContext extends BindingState {
 
 	Model.Effective<?> getModel(QualifiedName nextElement);
 
-	<T> ComputingMap<DataBindingType.Effective<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
-			DataNode.Effective<T> node);
+	<T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
+			DataNode<T> node);
 
 	StructuredDataSource input();
 }

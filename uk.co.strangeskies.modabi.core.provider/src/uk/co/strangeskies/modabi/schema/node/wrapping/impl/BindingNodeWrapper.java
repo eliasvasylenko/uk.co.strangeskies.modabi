@@ -46,7 +46,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		this.base = base;
 
 		String message = "Cannot override '" + base.getName() + "' with '"
-				+ component.getName() + "'.";
+				+ component.getName() + "'";
 
 		if (base.getDataType() != null
 				&& !TypeToken.over(base.getDataType().getType()).isAssignableFrom(

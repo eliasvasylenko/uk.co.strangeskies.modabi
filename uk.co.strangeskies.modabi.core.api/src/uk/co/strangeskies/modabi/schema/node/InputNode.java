@@ -20,35 +20,11 @@ package uk.co.strangeskies.modabi.schema.node;
 
 import java.lang.reflect.Executable;
 
-import uk.co.strangeskies.utilities.PropertySet;
-
 public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effective<S, E>>
 		extends ChildNode<S, E> {
 	interface Effective<S extends InputNode<S, E>, E extends Effective<S, E>>
 			extends InputNode<S, E>, ChildNode.Effective<S, E> {
 		Executable getInMethod();
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<InputNode.Effective> PROPERTY_SET = new PropertySet<>(
-				InputNode.Effective.class).add(InputNode.PROPERTY_SET)
-				.add(ChildNode.Effective.PROPERTY_SET)
-				.add(InputNode.Effective::getInMethod);
-
-		@Override
-		default PropertySet<? super E> effectivePropertySet() {
-			return PROPERTY_SET;
-		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<InputNode> PROPERTY_SET = new PropertySet<>(
-			InputNode.class).add(ChildNode.PROPERTY_SET)
-			.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
-			.add(InputNode::isInMethodUnchecked).add(InputNode::isInMethodCast);
-
-	@Override
-	default PropertySet<? super S> propertySet() {
-		return PROPERTY_SET;
 	}
 
 	Boolean isInMethodUnchecked();

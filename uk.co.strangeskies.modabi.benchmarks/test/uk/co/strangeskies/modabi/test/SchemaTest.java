@@ -41,6 +41,8 @@ public class SchemaTest {
 				schemaManager.getBaseSchema());
 		out.buffer().pipeNextChild(new XMLTarget(System.out));
 
+		System.out.println();
+		System.out.println();
 		System.out.println("Unbinding MetaSchema...");
 		out = new BufferingStructuredDataTarget();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
@@ -50,6 +52,8 @@ public class SchemaTest {
 		buffered.pipeNextChild(new XMLTarget(System.out));
 		buffered.reset();
 
+		System.out.println();
+		System.out.println();
 		System.out.println("Re-binding MetaSchema...");
 		Schema metaSchema = schemaManager.bind(schemaManager.getMetaSchema()
 				.getSchemaModel(), buffered);
@@ -57,14 +61,44 @@ public class SchemaTest {
 		boolean success = metaSchema.equals(schemaManager.getMetaSchema());
 		System.out.println("Success: " + success);
 		if (!success) {
-			out = new BufferingStructuredDataTarget();
+			for (Model<?> model : schemaManager.getMetaSchema().getModels()) {
+				System.out.println("model: " + model + " && "
+						+ metaSchema.getModels().get(model.getName()));
+				System.out.println("  == "
+						+ model.source().equals(
+								metaSchema.getModels().get(model.getName()).source()));
+			}
 
 			@SuppressWarnings("unchecked")
 			Model<Schema> schemaModel = (Model<Schema>) metaSchema.getModels().get(
 					new QualifiedName("schema", MetaSchema.NAMESPACE));
 
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-unbinding MetaSchema...");
+			out = new BufferingStructuredDataTarget();
 			schemaManager.unbind(schemaModel, out, metaSchema);
-			out.buffer().pipeNextChild(new XMLTarget(System.out));
+			buffered = out.buffer();
+			buffered.pipeNextChild(new XMLTarget(System.out));
+			buffered.reset();
+
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-re-binding MetaSchema...");
+			metaSchema = schemaManager.bind(schemaManager.getMetaSchema()
+					.getSchemaModel(), buffered);
+
+			@SuppressWarnings("unchecked")
+			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.getModels().get(
+					new QualifiedName("schema", MetaSchema.NAMESPACE));
+
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-re-unbinding MetaSchema...");
+			out = new BufferingStructuredDataTarget();
+			schemaManager.unbind(schemaModel2, out, metaSchema);
+			buffered = out.buffer();
+			buffered.pipeNextChild(new XMLTarget(System.out));
 		}
 
 		System.out.print("Profiling Preparation");

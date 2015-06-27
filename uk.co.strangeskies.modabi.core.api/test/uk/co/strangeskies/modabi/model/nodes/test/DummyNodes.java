@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.node.ChildNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 import uk.co.strangeskies.modabi.schema.node.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -75,13 +74,19 @@ public class DummyNodes {
 
 			@Override
 			public boolean equals(Object object) {
-				return propertySet().testEquality(this, object)
-						&& effective().equals(((SchemaNode<?, ?>) object).effective());
+				if (!(object instanceof SequenceNode))
+					return false;
+
+				if (object == this)
+					return true;
+
+				return ((SequenceNode) object).getName().equals(getName())
+						&& children.equals(((SequenceNode) object).children());
 			}
 
 			@Override
 			public int hashCode() {
-				return propertySet().generateHashCode(this);
+				return getName().hashCode() + children.hashCode();
 			}
 
 			@Override
@@ -101,8 +106,10 @@ public class DummyNodes {
 
 					@Override
 					public boolean equals(Object object) {
-						return propertySet().testEquality(this, object)
-								&& effectivePropertySet().testEquality(effective(), object);
+						if (!(object instanceof SequenceNode.Effective))
+							return false;
+
+						return source().equals(((SequenceNode) object).source());
 					}
 
 					@Override
@@ -112,8 +119,7 @@ public class DummyNodes {
 
 					@Override
 					public int hashCode() {
-						return propertySet().generateHashCode(this)
-								^ effectivePropertySet().generateHashCode(effective());
+						return getName().hashCode() + children.hashCode();
 					}
 
 					@Override
@@ -175,14 +181,15 @@ public class DummyNodes {
 
 			@Override
 			public boolean equals(Object object) {
-				return propertySet().testEquality(this, object)
-						&& effectivePropertySet().testEquality(effective(), object);
+				if (!(object instanceof SequenceNode.Effective))
+					return false;
+
+				return ((SequenceNode) object).getName().equals(getName());
 			}
 
 			@Override
 			public int hashCode() {
-				return propertySet().generateHashCode(this)
-						^ effectivePropertySet().generateHashCode(effective());
+				return getName().hashCode();
 			}
 
 			@Override

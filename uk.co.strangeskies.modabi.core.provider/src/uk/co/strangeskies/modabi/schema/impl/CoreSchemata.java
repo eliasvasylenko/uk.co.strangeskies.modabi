@@ -109,7 +109,7 @@ public class CoreSchemata {
 				}
 
 				throw new SchemaException("Unable to provide value for node '" + node
-						+ "'.");
+						+ "'");
 			}
 		};
 		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,

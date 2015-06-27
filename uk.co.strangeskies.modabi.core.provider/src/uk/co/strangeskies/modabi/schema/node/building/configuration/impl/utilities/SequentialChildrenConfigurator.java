@@ -225,7 +225,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 							n -> {
 								throw new SchemaException(
 										"Cannot override with node of class '" + n.getClass()
-												+ "' with a node of class '" + nodeClass + "'.");
+												+ "' with a node of class '" + nodeClass + "'");
 							});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());

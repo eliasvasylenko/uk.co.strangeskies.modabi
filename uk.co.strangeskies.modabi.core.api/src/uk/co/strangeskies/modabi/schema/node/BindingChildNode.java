@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.schema.node;
 import java.lang.reflect.Method;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNode<T, S, E>, InputNode<S, E> {
@@ -29,34 +28,6 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 			extends BindingChildNode<T, S, E>, BindingNode.Effective<T, S, E>,
 			InputNode.Effective<S, E> {
 		Method getOutMethod();
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<BindingChildNode.Effective> PROPERTY_SET = new PropertySet<>(
-				BindingChildNode.Effective.class).add(BindingChildNode.PROPERTY_SET)
-				.add(BindingNode.Effective.PROPERTY_SET)
-				.add(BindingChildNode.Effective::getOutMethod)
-				.add(InputNode.Effective::getInMethod);
-
-		@Override
-		default PropertySet<? super E> effectivePropertySet() {
-			return PROPERTY_SET;
-		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<BindingChildNode> PROPERTY_SET = new PropertySet<>(
-			BindingChildNode.class).add(BindingNode.PROPERTY_SET)
-			.add(BindingChildNode::getOutMethodName)
-			.add(BindingChildNode::isOutMethodIterable)
-			.add(BindingChildNode::isOutMethodUnchecked)
-			.add(BindingChildNode::isOutMethodCast)
-			.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
-			.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
-			.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
-
-	@Override
-	public default PropertySet<? super S> propertySet() {
-		return PROPERTY_SET;
 	}
 
 	Boolean isOutMethodUnchecked();

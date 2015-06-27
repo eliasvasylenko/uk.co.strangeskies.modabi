@@ -35,6 +35,7 @@ import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final QualifiedName name;
@@ -72,6 +73,26 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		inMethodName = inMethodName();
 		preInputType = preInputType();
 		postInputType = postInputType();
+	}
+
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<InputNode> PROPERTY_SET = new PropertySet<>(
+			InputNode.class).add(ChildNodeConfiguratorImpl.PROPERTY_SET)
+			.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
+			.add(InputNode::isInMethodUnchecked).add(InputNode::isInMethodCast);
+
+	PropertySet<? super N> propertySet() {
+		return PROPERTY_SET;
+	}
+
+	@SuppressWarnings("rawtypes")
+	static final PropertySet<InputNode.Effective> EFFECTIVE_PROPERTY_SET = new PropertySet<>(
+			InputNode.Effective.class).add(PROPERTY_SET)
+			.add(ChildNodeConfiguratorImpl.EFFECTIVE_PROPERTY_SET)
+			.add(InputNode.Effective::getInMethod);
+
+	PropertySet<? super E> effectivePropertySet() {
+		return PROPERTY_SET;
 	}
 
 	public Boolean isInMethodChained() {
@@ -140,7 +161,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 				if (inMethodUnchecked)
 					parameters = parameters.stream()
-							.map(t -> (TypeToken<?>) TypeToken.over(t.getRawType()))
+							.<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				Executable inMethod = overrideMerge
@@ -163,7 +184,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException("Cannot find input method for node '" + name
 						+ "' on class '" + inputTargetType + "' with parameters '"
-						+ parameters + "'.", e);
+						+ parameters + "'", e);
 			}
 		}
 

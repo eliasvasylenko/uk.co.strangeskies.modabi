@@ -132,18 +132,18 @@ public class BindingProviders {
 			QualifiedName idDomain, DataSource idSource) {
 		if (idSource.currentState() == DataStreamState.TERMINATED)
 			throw new BindingException("No further id data to match in domain '"
-					+ idDomain + "' for model '" + model + "'.", context);
+					+ idDomain + "' for model '" + model + "'", context);
 
 		DataItem<?> id = idSource.get();
 
 		ObjectProvider objectProvider = () -> {
 			Set<U> bindingCandidates = bindings.get(model);
 
-			ChildNode<?, ?> child = (DataNode.Effective<?>) model.effective().child(
+			ChildNode<?, ?> child = model.effective().child(
 					idDomain);
 			if (!(child instanceof DataNode.Effective<?>))
 				throw new BindingException("Can't find child '" + idDomain
-						+ "' to target for model '" + model + "'.", context);
+						+ "' to target for model '" + model + "'", context);
 			DataNode.Effective<?> node = (Effective<?>) child;
 
 			for (U bindingCandidate : bindingCandidates) {
@@ -160,8 +160,7 @@ public class BindingProviders {
 			}
 
 			throw new BindingException("Can't find any bindings matching id '" + id
-					+ "' in domain '" + idDomain + "' for model '" + model + "'.",
-					context);
+					+ "' in domain '" + idDomain + "' for model '" + model + "'", context);
 		};
 
 		Set<? extends Class<?>> classes = model.effective().getDataType()

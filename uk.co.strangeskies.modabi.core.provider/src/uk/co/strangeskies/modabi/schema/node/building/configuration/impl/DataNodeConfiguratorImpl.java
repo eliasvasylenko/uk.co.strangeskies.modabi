@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utiliti
 import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.node.wrapping.impl.DataNodeWrapper;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.PropertySet;
 
 public class DataNodeConfiguratorImpl<T> extends
 		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
@@ -84,7 +85,7 @@ public class DataNodeConfiguratorImpl<T> extends
 								.configurator().getContext().isInputExpected()))
 					throw new SchemaException(
 							"'Null if omitted' property is not valid for node '" + getName()
-									+ "'.");
+									+ "'");
 
 				providedBuffer = overrideMerge
 						.tryGetValue(DataNode::providedValueBuffer);
@@ -96,7 +97,7 @@ public class DataNodeConfiguratorImpl<T> extends
 						&& !optional)
 					throw new SchemaException(
 							"Value must be provided at registration time for node '"
-									+ getName() + "'.");
+									+ getName() + "'");
 
 				provided = (resolution == ValueResolution.REGISTRATION_TIME && providedBuffer != null) ? overrideMerge
 						.configurator().getContext().dataLoader()
@@ -171,6 +172,20 @@ public class DataNodeConfiguratorImpl<T> extends
 			resolution = configurator.resolution;
 
 			effective = new Effective<>(overrideMerge(this, configurator));
+		}
+
+		@SuppressWarnings("rawtypes")
+		protected static final PropertySet<DataNode> PROPERTY_SET = new PropertySet<>(
+				DataNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
+				.add(DataNode::format).add(DataNode::providedValueBuffer)
+				.add(DataNode::valueResolution).add(DataNode::type)
+				.add(DataNode::optional).add(DataNode::isExtensible)
+				.add(DataNode::nullIfOmitted);
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected PropertySet<DataNode<T>> propertySet() {
+			return (PropertySet<DataNode<T>>) (Object) PROPERTY_SET;
 		}
 
 		@Override

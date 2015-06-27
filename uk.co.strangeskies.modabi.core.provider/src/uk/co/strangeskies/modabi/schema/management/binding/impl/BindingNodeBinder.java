@@ -86,7 +86,7 @@ public class BindingNodeBinder {
 					| InstantiationException e) {
 				throw new BindingException("Cannot invoke static factory method '"
 						+ inputMethod + "' on class '" + node.getUnbindingType()
-						+ "' with parameters '" + parameters + "'.", context, e);
+						+ "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
 		case IMPLEMENT_IN_PLACE:
@@ -114,7 +114,7 @@ public class BindingNodeBinder {
 					| InvocationTargetException | SecurityException e) {
 				throw new BindingException("Cannot invoke static factory method '"
 						+ inputMethod + "' on class '" + node.getUnbindingType()
-						+ "' with parameters '" + parameters + "'.", context, e);
+						+ "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
 		case TARGET_ADAPTOR:
@@ -194,7 +194,7 @@ public class BindingNodeBinder {
 					| InvocationTargetException | SecurityException e) {
 				throw new BindingException("Unable to call method '"
 						+ node.getInMethod() + "' with parameters '"
-						+ Arrays.toString(parameters) + "' at node '" + node + "'.",
+						+ Arrays.toString(parameters) + "' at node '" + node + "'",
 						context, e);
 			}
 

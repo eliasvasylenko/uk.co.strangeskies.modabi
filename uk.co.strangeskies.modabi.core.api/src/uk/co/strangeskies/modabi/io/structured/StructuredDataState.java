@@ -58,11 +58,11 @@ public enum StructuredDataState {
 			StructuredDataState... validExitState) {
 		if (!Arrays.asList(validExitState).contains(exitState))
 			throw new IOException("Cannot move to state '" + exitState
-					+ "' from state '" + this + "'.");
+					+ "' from state '" + this + "'");
 	}
 
 	public void checkValid(StructuredDataState... validState) {
 		if (!Arrays.asList(validState).contains(this))
-			throw new IOException("Cannot perform action in state '" + this + "'.");
+			throw new IOException("Cannot perform action in state '" + this + "'");
 	}
 }

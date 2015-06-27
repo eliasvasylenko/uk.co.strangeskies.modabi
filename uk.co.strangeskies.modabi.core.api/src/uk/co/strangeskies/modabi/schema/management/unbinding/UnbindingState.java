@@ -24,14 +24,14 @@ import uk.co.strangeskies.modabi.schema.Bindings;
 import uk.co.strangeskies.modabi.schema.node.SchemaNode;
 
 public interface UnbindingState {
-	List<SchemaNode.Effective<?, ?>> bindingNodeStack();
+	List<SchemaNode.Effective<?, ?>> unbindingNodeStack();
 
 	default SchemaNode.Effective<?, ?> unbindingNode() {
 		return unbindingNode(0);
 	}
 
 	default SchemaNode.Effective<?, ?> unbindingNode(int parent) {
-		return bindingNodeStack().get(bindingNodeStack().size() - (1 + parent));
+		return unbindingNodeStack().get(unbindingNodeStack().size() - (1 + parent));
 	}
 
 	List<Object> unbindingSourceStack();

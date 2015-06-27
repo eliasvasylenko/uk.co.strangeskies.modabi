@@ -23,9 +23,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.modabi.schema.management.Models;
-import uk.co.strangeskies.modabi.schema.node.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.node.ComplexNode;
 import uk.co.strangeskies.modabi.schema.node.Model;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
@@ -33,7 +34,7 @@ import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
 public class Bindings {
 	public final Models models;
-	public final MultiMap<AbstractComplexNode<?, ?, ?>, Object, Set<Object>> bindings;
+	public final MultiMap<QualifiedName, Object, Set<Object>> bindings;
 
 	public Bindings() {
 		models = new Models();
@@ -42,12 +43,14 @@ public class Bindings {
 
 	public <T> void add(ComplexNode<?> element, T data) {
 		models.addAll(element.source().baseModel());
-		bindings.addToAll(element.source().baseModel(), data);
+		bindings.addToAll(
+				element.source().baseModel().stream().map(n -> n.effective().getName())
+						.collect(Collectors.toSet()), data);
 	}
 
 	public <T> void add(Model<T> model, T data) {
 		models.add(model);
-		bindings.add(model, data);
+		bindings.add(model.effective().getName(), data);
 	}
 
 	public void add(Binding<?>... bindings) {
@@ -65,13 +68,14 @@ public class Bindings {
 
 	@SuppressWarnings("unchecked")
 	public <T> Set<T> get(Model<T> model) {
-		Set<Object> all = bindings.get(model);
+		Set<Object> all = bindings.get(model.effective().getName());
 
 		if (all == null)
 			all = new HashSet<>();
 
 		all.addAll(models.getDerivedModels(model).stream()
-				.map(m -> bindings.get(m)).reduce(Collections.emptySet(), (s, t) -> {
+				.map(m -> bindings.get(m.effective().getName()))
+				.reduce(Collections.emptySet(), (s, t) -> {
 					Set<Object> set = new HashSet<>();
 					set.addAll(s);
 					set.addAll(t);

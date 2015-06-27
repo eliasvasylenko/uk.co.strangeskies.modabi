@@ -465,10 +465,33 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingMethodUnchecked(true)
 							.isAbstract(true)
 							.addChild(
-									c -> c.data().name("targetModel").isAbstract(true)
-											.dataType(new TypeToken<Model<?>>() {}).outMethod("null")
+									c -> c
+											.data()
+											.name("targetModel")
+											.type(referenceType)
+											.isAbstract(true)
+											.dataType(new TypeToken<Model<?>>() {})
+											.outMethod("null")
 											.inMethod("null")
-											.valueResolution(ValueResolution.REGISTRATION_TIME))
+											.valueResolution(ValueResolution.REGISTRATION_TIME)
+											.addChild(
+													d -> d
+															.data()
+															.name("targetModel")
+															.provideValue(
+																	new BufferingDataTarget().put(
+																			DataType.QUALIFIED_NAME,
+																			new QualifiedName("model", namespace))
+																			.buffer()))
+											.addChild(
+													d -> d
+															.data()
+															.name("targetId")
+															.provideValue(
+																	new BufferingDataTarget().put(
+																			DataType.QUALIFIED_NAME,
+																			new QualifiedName("name", namespace))
+																			.buffer())))
 							.addChild(
 									c -> c
 											.data()

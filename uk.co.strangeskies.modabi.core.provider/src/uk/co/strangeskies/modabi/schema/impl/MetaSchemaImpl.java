@@ -88,6 +88,28 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		/* Node Models */
 
+		Model<?> test1 = model.configure(loader).name("test1", namespace)
+				.dataType(new TypeToken<SchemaNode<?, ?>>() {}).create();
+		modelSet.add(test1);
+
+		System.out
+				.println("rer"
+						+ new TypeToken<SchemaNode<?, ?>>() {}.getAnnotatedDeclaration()
+								.equals(
+										new TypeToken<SchemaNode<?, ?>>() {}
+												.getAnnotatedDeclaration()));
+
+		Model<?> test2 = model.configure(loader).name("test2", namespace)
+				.dataType(new TypeToken<SchemaNode<?, ?>>() {}).create();
+		modelSet.add(test2);
+
+		System.out.println("rerarr! "
+				+ test1.getDataType().getAnnotatedDeclaration()
+						.equals(test2.getDataType().getAnnotatedDeclaration()));
+		System.out.println("wahtho? "
+				+ test1.getDataType().getAnnotatedDeclaration() + " @ @ "
+				+ test2.getDataType().getAnnotatedDeclaration());
+
 		Model<SchemaNode<?, ?>> nodeModel = model
 				.configure(loader)
 				.name("node", namespace)

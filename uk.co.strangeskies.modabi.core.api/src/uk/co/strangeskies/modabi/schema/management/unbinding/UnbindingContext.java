@@ -34,11 +34,11 @@ public interface UnbindingContext extends UnbindingState {
 
 	<T> List<Model.Effective<T>> getMatchingModels(TypeToken<T> dataClass);
 
-	<T> ComputingMap<Model.Effective<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
-			ComplexNode.Effective<T> element);
+	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
+			ComplexNode<T> element);
 
-	<T> ComputingMap<DataBindingType.Effective<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
-			DataNode.Effective<T> node);
+	<T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
+			DataNode<T> node);
 
 	StructuredDataTarget output();
 }

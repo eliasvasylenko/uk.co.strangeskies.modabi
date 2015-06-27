@@ -73,7 +73,7 @@ public class SchemaUnbinder {
 			throw e;
 		} catch (Exception e) {
 			throw new UnbindingException("Unexpected problem during uninding of '"
-					+ data + "' according to '" + model + "'.", context, e);
+					+ data + "' according to '" + model + "'", context, e);
 		}
 	}
 
@@ -107,7 +107,7 @@ public class SchemaUnbinder {
 						e);
 			}
 		}, e -> new UnbindingException("Cannot unbind data '" + data
-				+ "' of class '" + dataClass + "' with models '" + models + "'.",
+				+ "' of class '" + dataClass + "' with models '" + models + "'",
 				context, e));
 	}
 

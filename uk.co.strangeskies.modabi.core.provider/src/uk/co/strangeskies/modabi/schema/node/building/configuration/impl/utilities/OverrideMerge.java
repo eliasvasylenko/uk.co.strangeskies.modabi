@@ -75,7 +75,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 	private <T> T checkResult(T value, String valueName) {
 		if (value == null && (node.isAbstract() == null || !node.isAbstract()))
 			throw new SchemaException("No value '" + valueName
-					+ "' available for non-abstract node '" + node.getName() + "'.");
+					+ "' available for non-abstract node '" + node.getName() + "'");
 		return value;
 	}
 
