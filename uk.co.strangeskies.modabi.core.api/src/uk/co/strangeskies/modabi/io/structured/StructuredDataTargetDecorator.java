@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.DataTargetDecorator;
-import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Decorator;
 
 public class StructuredDataTargetDecorator extends

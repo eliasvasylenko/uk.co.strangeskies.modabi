@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Copyable;
 
 public interface DataSource extends Copyable<DataSource> {

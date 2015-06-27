@@ -20,9 +20,9 @@ package uk.co.strangeskies.modabi.io.structured;
 
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 public interface StructuredDataTarget {
 	public StructuredDataState currentState();

@@ -18,14 +18,14 @@
  */
 package uk.co.strangeskies.modabi.test;
 
+import uk.co.strangeskies.modabi.MetaSchema;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.MetaSchema;
-import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.management.SchemaManager;
-import uk.co.strangeskies.modabi.schema.management.impl.SchemaManagerImpl;
-import uk.co.strangeskies.modabi.schema.node.Model;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
 
 public class SchemaTest {

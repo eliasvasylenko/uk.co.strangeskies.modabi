@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.io;
 import java.text.ParseException;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Enumeration;
 
 abstract class AbstractDataItem<T> implements DataItem<T> {

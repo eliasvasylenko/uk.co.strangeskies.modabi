@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 /**
  * Not entirely sure what the most sensible API is for this... Will have to work

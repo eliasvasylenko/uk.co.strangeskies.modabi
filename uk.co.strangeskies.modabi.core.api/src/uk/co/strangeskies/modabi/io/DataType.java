@@ -23,7 +23,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class DataType<T> extends Enumeration<DataType<T>> {

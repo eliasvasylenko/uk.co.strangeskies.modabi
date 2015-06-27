@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.io;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
+import uk.co.strangeskies.modabi.QualifiedName;
 
 public interface DataTarget {
 	public default <T> DataTarget put(DataType<T> type, T data) {

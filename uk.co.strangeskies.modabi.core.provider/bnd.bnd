@@ -28,14 +28,10 @@ Bundle-Version:					1.0.0.${tstamp}
 -runbundles: \
 	${error;Resolve first}
 Export-Package: \
-	uk.co.strangeskies.modabi.schema.impl,\
-	uk.co.strangeskies.modabi.schema.management.binding.impl,\
-	uk.co.strangeskies.modabi.schema.management.impl,\
-	uk.co.strangeskies.modabi.schema.management.providers.impl,\
-	uk.co.strangeskies.modabi.schema.management.unbinding.impl,\
-	uk.co.strangeskies.modabi.schema.node.building.configuration.impl,\
-	uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities,\
-	uk.co.strangeskies.modabi.schema.node.building.impl,\
-	uk.co.strangeskies.modabi.schema.node.type.impl,\
-	uk.co.strangeskies.modabi.schema.node.wrapping.impl
+	uk.co.strangeskies.modabi.impl,\
+	uk.co.strangeskies.modabi.impl.processing,\
+	uk.co.strangeskies.modabi.impl.schema,\
+	uk.co.strangeskies.modabi.impl.schema.building,\
+	uk.co.strangeskies.modabi.impl.schema.utilities,\
+	uk.co.strangeskies.modabi.impl.schema.wrapping
 Bundle-Name: Modabi - Core Provider

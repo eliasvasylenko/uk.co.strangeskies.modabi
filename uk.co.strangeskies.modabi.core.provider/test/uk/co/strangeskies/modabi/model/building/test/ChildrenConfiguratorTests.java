@@ -27,15 +27,15 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.model.nodes.test.DummyNodes;
-import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
-import uk.co.strangeskies.modabi.schema.node.SchemaNode;
-import uk.co.strangeskies.modabi.schema.node.SequenceNode;
-import uk.co.strangeskies.modabi.schema.node.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.schema.node.building.configuration.impl.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.SequenceNode;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 

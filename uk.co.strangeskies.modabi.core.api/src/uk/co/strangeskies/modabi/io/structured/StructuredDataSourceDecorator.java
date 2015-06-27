@@ -20,10 +20,10 @@ package uk.co.strangeskies.modabi.io.structured;
 
 import java.util.Set;
 
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataSourceDecorator;
-import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 import uk.co.strangeskies.utilities.Decorator;
 
 public class StructuredDataSourceDecorator extends

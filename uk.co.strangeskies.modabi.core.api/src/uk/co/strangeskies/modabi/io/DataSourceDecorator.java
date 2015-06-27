@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.io;
 
-import uk.co.strangeskies.modabi.schema.SchemaException;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.utilities.Decorator;
 
 public class DataSourceDecorator extends Decorator<DataSource> implements

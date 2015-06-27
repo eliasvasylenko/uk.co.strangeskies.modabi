@@ -31,13 +31,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.IOException;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredData.BufferedStructuredData;
-import uk.co.strangeskies.modabi.namespace.Namespace;
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
 
 /**
  * It shouldn't matter what order attributes are added to a child, or whether

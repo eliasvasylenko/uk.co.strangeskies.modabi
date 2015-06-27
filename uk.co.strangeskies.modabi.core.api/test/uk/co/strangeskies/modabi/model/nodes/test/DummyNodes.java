@@ -23,9 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.namespace.QualifiedName;
-import uk.co.strangeskies.modabi.schema.node.ChildNode;
-import uk.co.strangeskies.modabi.schema.node.SequenceNode;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DummyNodes {
