@@ -951,4 +951,14 @@ public class BaseSchemaImpl implements BaseSchema {
 	public Models getModels() {
 		return baseSchema.getModels();
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return baseSchema.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		return baseSchema.hashCode();
+	}
 }

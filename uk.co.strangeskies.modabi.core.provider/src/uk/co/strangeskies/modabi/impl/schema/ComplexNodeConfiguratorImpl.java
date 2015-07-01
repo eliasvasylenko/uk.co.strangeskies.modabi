@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.impl.schema.wrapping.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;

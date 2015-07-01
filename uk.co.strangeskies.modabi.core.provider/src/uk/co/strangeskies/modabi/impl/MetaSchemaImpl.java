@@ -50,6 +50,7 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
@@ -59,7 +60,6 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
-import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
@@ -88,28 +88,6 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		/* Node Models */
 
-		Model<?> test1 = model.configure(loader).name("test1", namespace)
-				.dataType(new TypeToken<SchemaNode<?, ?>>() {}).create();
-		modelSet.add(test1);
-
-		System.out
-				.println("rer"
-						+ new TypeToken<SchemaNode<?, ?>>() {}.getAnnotatedDeclaration()
-								.equals(
-										new TypeToken<SchemaNode<?, ?>>() {}
-												.getAnnotatedDeclaration()));
-
-		Model<?> test2 = model.configure(loader).name("test2", namespace)
-				.dataType(new TypeToken<SchemaNode<?, ?>>() {}).create();
-		modelSet.add(test2);
-
-		System.out.println("rerarr! "
-				+ test1.getDataType().getAnnotatedDeclaration()
-						.equals(test2.getDataType().getAnnotatedDeclaration()));
-		System.out.println("wahtho? "
-				+ test1.getDataType().getAnnotatedDeclaration() + " @ @ "
-				+ test2.getDataType().getAnnotatedDeclaration());
-
 		Model<SchemaNode<?, ?>> nodeModel = model
 				.configure(loader)
 				.name("node", namespace)
@@ -132,6 +110,15 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("isAbstract").optional(true)).create();
 		modelSet.add(nodeModel);
 
+		Model<ChildNode<?, ?>> childBaseModel = model
+				.configure(loader)
+				.name("childBase", namespace)
+				.isAbstract(true)
+				.dataType(new TypeToken<ChildNode<?, ?>>() {})
+				.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
+				.create();
+		modelSet.add(childBaseModel);
+
 		Model<SchemaNode<?, ?>> branchModel = model
 				.configure(loader)
 				.name("branch", namespace)
@@ -140,19 +127,10 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().name("abstract"))
 				.addChild(
-						n -> n
-								.complex()
-								.name("child")
-								.outMethod("children")
-								.inMethod("null")
-								.isAbstract(true)
-								.extensible(true)
-								.baseModel(nodeModel)
-								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-								.bindingType(
-										new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
-								.dataType(new TypeToken<ChildNode<?, ?>>() {})
-								.outMethodIterable(true).occurrences(Range.create(0, null)))
+						n -> n.complex().name("child").outMethod("children")
+								.inMethod("null").isAbstract(true).extensible(true)
+								.baseModel(childBaseModel).outMethodIterable(true)
+								.occurrences(Range.create(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(branchModel);
@@ -160,7 +138,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<ChildNode<?, ?>> childModel = model
 				.configure(loader)
 				.name("child", namespace)
-				.baseModel(branchModel)
+				.baseModel(branchModel, childBaseModel)
 				.isAbstract(true)
 				.dataType(new TypeToken<ChildNode<?, ?>>() {})
 				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -754,5 +732,15 @@ public class MetaSchemaImpl implements MetaSchema {
 	@Override
 	public Model<Schema> getSchemaModel() {
 		return schemaModel;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return metaSchema.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		return metaSchema.hashCode();
 	}
 }

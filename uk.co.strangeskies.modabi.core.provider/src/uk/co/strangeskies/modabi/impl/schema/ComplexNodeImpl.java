@@ -39,7 +39,7 @@ class ComplexNodeImpl<T> extends
 
 			if (inline && isExtensible())
 				throw new SchemaException("Complex node '" + getName()
-						+ "' cannot be both inline and extensible.");
+						+ "' cannot be both inline and extensible");
 		}
 
 		@Override

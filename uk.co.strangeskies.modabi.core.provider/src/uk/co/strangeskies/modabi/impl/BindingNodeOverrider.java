@@ -165,6 +165,10 @@ public class BindingNodeOverrider {
 
 			for (ChildNode<?, ?> child : children)
 				try {
+					/*
+					 * TODO Create shortcut for adding children which don't override
+					 * anything...
+					 */
 					child.effective().process(this);
 				} catch (Exception e) {
 					throw new SchemaException("Cannot override child '" + child + "'", e);
@@ -174,7 +178,7 @@ public class BindingNodeOverrider {
 			return configurator.create();
 		}
 
-		private <N extends SchemaNode<N, ?>> N doChildren(N node,
+		private <N extends SchemaNode<N, ?>> N processSchemaNode(N node,
 				SchemaNodeConfigurator<?, N> c) {
 			if (node.isAbstract() != null)
 				c = c.isAbstract(node.isAbstract());
@@ -241,7 +245,7 @@ public class BindingNodeOverrider {
 
 			c = tryProperty(source.isInline(), ComplexNodeConfigurator::inline, c);
 
-			doChildren(source,
+			processSchemaNode(source,
 					processBindingNode(source, processBindingChildNode(source, c)));
 		}
 
@@ -270,7 +274,7 @@ public class BindingNodeOverrider {
 				cu = c.type(source.type());
 			}
 
-			doChildren(source,
+			processSchemaNode(source,
 					processBindingNode(source, processBindingChildNode(source, cu)));
 		}
 
@@ -278,7 +282,7 @@ public class BindingNodeOverrider {
 		public void accept(InputSequenceNode.Effective node) {
 			InputSequenceNode source = node.source();
 
-			doChildren(source,
+			processSchemaNode(source,
 					processInputNode(source, next(ChildBuilder::inputSequence)));
 		}
 
@@ -286,7 +290,7 @@ public class BindingNodeOverrider {
 		public void accept(SequenceNode.Effective node) {
 			SequenceNode source = node.source();
 
-			doChildren(source, next(ChildBuilder::sequence));
+			processSchemaNode(source, next(ChildBuilder::sequence));
 		}
 
 		@Override
@@ -295,7 +299,7 @@ public class BindingNodeOverrider {
 
 			ChoiceNodeConfigurator c = next(ChildBuilder::choice);
 
-			doChildren(
+			processSchemaNode(
 					source,
 					tryProperty(source.isMandatory(), ChoiceNodeConfigurator::mandatory,
 							c));

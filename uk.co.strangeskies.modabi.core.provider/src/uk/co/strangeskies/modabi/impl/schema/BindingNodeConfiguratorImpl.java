@@ -37,6 +37,8 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.ConstraintFormula;
+import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
@@ -90,9 +92,18 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		/*
 		 * Get declared data types, or overridden types thereof.
 		 */
-		effectiveDataType = (TypeToken<T>) (TypeToken<? super T>) overrideMerge
-				.getValueWithOverride(this.dataType, BindingNode::getDataType,
-						TypeToken::isAssignableTo);
+		try {
+			effectiveDataType = (TypeToken<T>) (TypeToken<? super T>) overrideMerge
+					.getValueWithOverride(this.dataType, BindingNode::getDataType,
+							TypeToken::isAssignableTo);
+		} catch (Exception ignore) {
+			for (BindingNode node : overrideMerge.configurator().getOverriddenNodes())
+				ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
+						this.dataType.getType(), node.getDataType().getType(),
+						this.dataType.getResolver().getBounds());
+
+			throw new IllegalArgumentException();
+		}
 		effectiveBindingType = overrideMerge.getValueWithOverride(this.bindingType,
 				BindingNode::getBindingType, TypeToken::isAssignableTo);
 		effectiveUnbindingType = overrideMerge.getValueWithOverride(

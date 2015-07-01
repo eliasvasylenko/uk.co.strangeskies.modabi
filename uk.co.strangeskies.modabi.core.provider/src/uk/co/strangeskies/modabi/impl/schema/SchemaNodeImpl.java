@@ -53,7 +53,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 			return null;
 		}
 
-		// TODO more sensible error message & get rid of 'instanceof' temp hack
+		// TODO more sensible error message
 		protected void requireNonAbstractDescendents(
 				Deque<SchemaNode.Effective<?, ?>> nodeStack) {
 			for (ChildNode.Effective<?, ?> child : nodeStack.peek().children()) {

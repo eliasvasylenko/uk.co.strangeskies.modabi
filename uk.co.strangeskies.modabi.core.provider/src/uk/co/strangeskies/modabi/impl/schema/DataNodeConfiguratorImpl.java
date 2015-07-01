@@ -23,8 +23,8 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.impl.schema.wrapping.DataNodeWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataNode;
