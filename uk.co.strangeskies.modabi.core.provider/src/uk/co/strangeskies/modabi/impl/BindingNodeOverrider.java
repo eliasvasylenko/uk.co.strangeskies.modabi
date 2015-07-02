@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -27,8 +28,10 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
+import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -59,21 +62,37 @@ public class BindingNodeOverrider {
 	public <T> ComplexNode.Effective<T> override(ModelBuilder builder,
 			ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
 		try {
-			return new OverridingProcessor().process(builder, node, override);
+			if (isDirectOverridePossible(node, override))
+				return new ComplexNodeWrapper<>(override, node);
+			else
+				return new OverridingProcessor().process(builder, node, override);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override complex node '" + node
 					+ "' with model '" + override + "'", e);
 		}
 	}
 
+	private <T> boolean isDirectOverridePossible(
+			ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
+		return node.children().isEmpty(); // TODO is this enough?
+	}
+
 	public <T> DataNode.Effective<T> override(DataBindingTypeBuilder builder,
 			DataNode.Effective<? super T> node, DataBindingType.Effective<T> override) {
 		try {
-			return new OverridingProcessor().process(builder, node, override);
+			if (isDirectOverridePossible(node, override))
+				return new DataNodeWrapper<>(override, node);
+			else
+				return new OverridingProcessor().process(builder, node, override);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override data node '" + node
 					+ "' with data binding type '" + override + "'", e);
 		}
+	}
+
+	private <T> boolean isDirectOverridePossible(
+			DataNode.Effective<? super T> node, DataBindingType.Effective<T> override) {
+		return node.children().isEmpty(); // TODO is this enough?
 	}
 
 	private class OverridingProcessor implements SchemaProcessingContext {
@@ -105,8 +124,11 @@ public class BindingNodeOverrider {
 
 			ComplexNodeConfigurator<T> elementConfigurator;
 
-			elementConfigurator = processAbstractComplexNode(override, configurator
-					.addChild().complex().outMethodCast(true));
+			List<Model<? super T>> models = new ArrayList<>(override.source()
+					.baseModel());
+			models.add(0, new ModelWrapper<>(node));
+			elementConfigurator = configurator.addChild().complex()
+					.outMethodCast(true).baseModel(models);
 			elementConfigurator = processBindingNode(override, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
 
@@ -165,10 +187,6 @@ public class BindingNodeOverrider {
 
 			for (ChildNode<?, ?> child : children)
 				try {
-					/*
-					 * TODO Create shortcut for adding children which don't override
-					 * anything...
-					 */
 					child.effective().process(this);
 				} catch (Exception e) {
 					throw new SchemaException("Cannot override child '" + child + "'", e);
@@ -218,7 +236,7 @@ public class BindingNodeOverrider {
 			return processInputNode(node, c);
 		}
 
-		public <U, C extends InputNodeConfigurator<C, ?>> C processInputNode(
+		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(
 				InputNode<?, ?> node, C c) {
 			c = tryProperty(node.isInMethodCast(), C::inMethodCast, c);
 			c = tryProperty(node.isInMethodUnchecked(), C::inMethodUnchecked, c);
@@ -229,19 +247,17 @@ public class BindingNodeOverrider {
 			return c;
 		}
 
-		public <U> ComplexNodeConfigurator<U> processAbstractComplexNode(
-				AbstractComplexNode<U, ?, ?> node, ComplexNodeConfigurator<Object> c) {
-			ComplexNodeConfigurator<U> cu = c.baseModel(node.source().baseModel());
-
-			return cu;
-		}
-
 		@Override
 		public <U> void accept(ComplexNode.Effective<U> node) {
 			ComplexNode<U> source = node.source();
 
-			ComplexNodeConfigurator<U> c = processAbstractComplexNode(source,
-					next(ChildBuilder::complex).extensible(node.isExtensible()));
+			/*
+			 * TODO some magic here to shortcut when no children are being overridden,
+			 * by folding the node as an overridden model rather than continuing to
+			 * propagate through the tree of children manually.
+			 */
+			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex).extensible(
+					node.isExtensible()).baseModel(node.source().baseModel());
 
 			c = tryProperty(source.isInline(), ComplexNodeConfigurator::inline, c);
 

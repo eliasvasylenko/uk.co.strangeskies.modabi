@@ -27,10 +27,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
@@ -118,7 +120,9 @@ public class UnbindingContextImpl extends
 		UnbindingContextImpl context = this;
 
 		BufferingDataTarget dataTarget = null;
-		BufferingStructuredDataTarget output = new BufferingStructuredDataTarget();
+
+		BufferingStructuredDataTarget output = new BufferingStructuredDataTarget()
+				.nextChild(new QualifiedName(""));
 
 		/*
 		 * Mark output! (by redirecting to a new buffer)
@@ -132,7 +136,7 @@ public class UnbindingContextImpl extends
 		context = context.withOutput(output);
 
 		/*
-		 * Make unbinding attempt! (Reset output to mark on failutre by discarding
+		 * Make unbinding attempt! (Reset output to mark on failure by discarding
 		 * buffer, via exception.)
 		 */
 		unbindingMethod.accept(context);
@@ -143,7 +147,10 @@ public class UnbindingContextImpl extends
 		if (dataTarget != null)
 			dataTarget.buffer().pipe(provisions().provide(DataTarget.class));
 
-		output.buffer().pipeNextChild(output());
+		BufferedStructuredDataSource bufferedData = output.endChild().buffer();
+		bufferedData.startNextChild();
+		bufferedData.pipeDataAtChild(output());
+		bufferedData.pipeNextChild(output());
 	}
 
 	public <I> I attemptUnbindingUntilSuccessful(Iterable<I> attemptItems,
@@ -163,11 +170,6 @@ public class UnbindingContextImpl extends
 			} catch (Exception e) {
 				failures.add(e);
 			}
-
-		for (Exception failure : failures) {
-			failure.printStackTrace();
-			System.out.println();
-		}
 
 		throw onFailure.apply(failures);
 	}

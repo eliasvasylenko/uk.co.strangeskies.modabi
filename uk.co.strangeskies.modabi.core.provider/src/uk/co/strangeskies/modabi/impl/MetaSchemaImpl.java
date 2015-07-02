@@ -476,14 +476,16 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("valueResolution")
 								.optional(true).type(base.derivedTypes().enumType())
 								.dataType(ValueResolution.class))
-				/*
-				 * TODO Figure out how to have value output itself as CONTENT if there
-				 * are no 'child' elements.
-				 */
 				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("value")
-								.inMethod("provideValue").outMethod("providedValueBuffer")
-								.optional(true).type(base.derivedTypes().bufferedDataType()))
+						n -> n
+								.choice()
+								.name("providedValue")
+								.mandatory(false)
+								.addChild(
+										o -> o.data().format(Format.PROPERTY).name("value")
+												.inMethod("provideValue")
+												.outMethod("providedValueBuffer")
+												.type(base.derivedTypes().bufferedDataType())))
 				.create();
 		modelSet.add(typedDataModel);
 

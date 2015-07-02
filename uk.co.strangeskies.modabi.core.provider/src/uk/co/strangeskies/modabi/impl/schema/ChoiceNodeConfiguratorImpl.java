@@ -18,11 +18,19 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.List;
+
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
+import uk.co.strangeskies.modabi.impl.schema.utilities.HidingChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ChoiceNodeConfiguratorImpl extends
@@ -42,8 +50,75 @@ public class ChoiceNodeConfiguratorImpl extends
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		return null; // TODO create hiding children configurator! options can be
-									// reduced, not increased, but overriding nodes.
+		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
+		TypeToken<?> outputSource = getContext().outputSourceType();
+
+		return new HidingChildrenConfigurator(
+				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public BoundSet boundSet() {
+						return getContext().boundSet();
+					}
+
+					@Override
+					public DataLoader dataLoader() {
+						return getDataLoader();
+					}
+
+					@Override
+					public boolean isAbstract() {
+						return isChildContextAbstract();
+					}
+
+					@Override
+					public boolean isInputExpected() {
+						return true;
+					}
+
+					@Override
+					public boolean isInputDataOnly() {
+						return getContext().isInputDataOnly();
+					}
+
+					@Override
+					public boolean isConstructorExpected() {
+						return false;
+					}
+
+					@Override
+					public boolean isStaticMethodExpected() {
+						return false;
+					}
+
+					@Override
+					public Namespace namespace() {
+						return getNamespace();
+					}
+
+					@Override
+					public TypeToken<?> inputTargetType(QualifiedName node) {
+						return inputTarget;
+					}
+
+					@Override
+					public TypeToken<?> outputSourceType() {
+						return outputSource;
+					}
+
+					@Override
+					public void addChild(ChildNode<?, ?> result) {}
+
+					@Override
+					public <U extends ChildNode<?, ?>> List<U> overrideChild(
+							QualifiedName id, TypeToken<U> nodeClass) {
+						return null;
+					}
+
+					@Override
+					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+						return getOverriddenNodes();
+					}
+				});
 	}
 
 	@Override

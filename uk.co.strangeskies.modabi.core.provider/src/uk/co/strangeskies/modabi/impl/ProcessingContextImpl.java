@@ -28,8 +28,6 @@ import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
-import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -140,11 +138,8 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 
 	private <T> DataNode.Effective<T> getDataNodeOverride(
 			DataNode.Effective<? super T> node, DataBindingType.Effective<T> type) {
-		if (node.children().isEmpty())
-			return new DataNodeWrapper<>(type, node);
-		else
-			return new BindingNodeOverrider().override(
-					provisions().provide(DataBindingTypeBuilder.class), node, type);
+		return new BindingNodeOverrider().override(
+				provisions().provide(DataBindingTypeBuilder.class), node, type);
 
 	}
 
@@ -183,11 +178,8 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 
 	private <T> ComplexNode.Effective<T> getComplexNodeOverride(
 			ComplexNode.Effective<? super T> node, Model.Effective<T> model) {
-		if (node.children().isEmpty())
-			return new ComplexNodeWrapper<>(model, node);
-		else
-			return new BindingNodeOverrider().override(
-					provisions().provide(ModelBuilder.class), node, model);
+		return new BindingNodeOverrider().override(
+				provisions().provide(ModelBuilder.class), node, model);
 	}
 
 	protected List<SchemaNode.Effective<?, ?>> nodeStack() {

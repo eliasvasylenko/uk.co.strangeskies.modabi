@@ -138,16 +138,27 @@ public class BindingNodeUnbinder {
 			}
 
 			public void acceptSequence(SchemaNode.Effective<?, ?> node) {
+				Consumer<ChildNode.Effective<?, ?>> childProcessor = getChildProcessor(context
+						.withUnbindingNode(node));
+
 				for (ChildNode.Effective<?, ?> child : node.children())
-					getChildProcessor(context.withUnbindingNode(node)).accept(child);
+					childProcessor.accept(child);
 			}
 
 			@Override
-			public void accept(ChoiceNode.Effective node) {}
+			public void accept(ChoiceNode.Effective node) {
+				try {
+					context.withUnbindingNode(node).attemptUnbindingUntilSuccessful(
+							node.children(), (c, n) -> getChildProcessor(c).accept(n),
+							n -> new UnbindingException("???", context, n));
+				} catch (Exception e) {
+					if (node.isMandatory() == null || node.isMandatory())
+						throw e;
+				}
+			}
 		};
 
 		return node -> {
-
 			try {
 				node.process(processor);
 			} catch (Exception e) {

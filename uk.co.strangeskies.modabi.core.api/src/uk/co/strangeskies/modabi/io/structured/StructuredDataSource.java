@@ -93,26 +93,32 @@ public interface StructuredDataSource {
 			while ((childElement = startNextChild()) != null) {
 				output.nextChild(childElement);
 
-				if (getDefaultNamespaceHint() != null)
-					output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
-				for (Namespace hint : getNamespaceHints())
-					output.registerNamespaceHint(hint);
-
-				for (QualifiedName property : getProperties())
-					readProperty(property).pipe(output.writeProperty(property))
-							.terminate();
-
-				DataSource content = readContent();
-				if (content != null)
-					content.pipe(output.writeContent()).terminate();
+				pipeDataAtChild(output);
 
 				depth++;
 			}
-			output.endChild();
-			endChild();
 
-			depth--;
+			if (depth-- > 0) {
+				output.endChild();
+				endChild();
+			}
 		} while (depth > 0);
+
+		return output;
+	}
+
+	public default <T extends StructuredDataTarget> T pipeDataAtChild(T output) {
+		if (getDefaultNamespaceHint() != null)
+			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
+		for (Namespace hint : getNamespaceHints())
+			output.registerNamespaceHint(hint);
+
+		for (QualifiedName property : getProperties())
+			readProperty(property).pipe(output.writeProperty(property)).terminate();
+
+		DataSource content = readContent();
+		if (content != null)
+			content.pipe(output.writeContent()).terminate();
 
 		return output;
 	}
