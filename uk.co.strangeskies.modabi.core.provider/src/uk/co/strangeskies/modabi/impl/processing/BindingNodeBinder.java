@@ -168,12 +168,25 @@ public class BindingNodeBinder {
 
 				@Override
 				public void accept(SequenceNode.Effective node) {
+					BindingContextImpl childContext = context.withBindingNode(node);
 					for (ChildNode.Effective<?, ?> child : node.children())
-						bindChild(child, context.withBindingNode(node));
+						bindChild(child, childContext);
 				}
 
 				@Override
-				public void accept(ChoiceNode.Effective node) {}
+				public void accept(ChoiceNode.Effective node) {
+					try {
+						context.withBindingNode(node).attemptUntilSuccessful(
+								node.children(),
+								(c, n) -> bindChild(n, c),
+								n -> new BindingException(
+										"Option '" + n + "' under choice node '" + node
+												+ "' could not be unbound", context, n));
+					} catch (Exception e) {
+						if (node.isMandatory() != null && node.isMandatory())
+							throw e;
+					}
+				}
 			});
 		} catch (Exception e) {
 			throw new BindingException("Failed to bind node '" + next + "'", context,

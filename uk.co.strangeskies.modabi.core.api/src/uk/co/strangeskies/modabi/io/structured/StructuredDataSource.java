@@ -71,20 +71,21 @@ public interface StructuredDataSource {
 
 	/**
 	 * throws an exception if there are more children, so call skipChildren()
-	 * first if you want to ignore them.
+	 * first, or call endChildEarly, if you want to ignore them.
 	 */
 	public void endChild();
+
+	public default void endChildEarly() {
+		skipChildren();
+		endChild();
+	}
 
 	public int depth();
 
 	public int indexAtDepth();
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
-		if (getDefaultNamespaceHint() != null)
-			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
-
-		for (Namespace hint : getNamespaceHints())
-			output.registerNamespaceHint(hint);
+		pipeNamespaceHints(output);
 
 		QualifiedName childElement;
 
@@ -107,11 +108,17 @@ public interface StructuredDataSource {
 		return output;
 	}
 
-	public default <T extends StructuredDataTarget> T pipeDataAtChild(T output) {
+	public default <T extends StructuredDataTarget> T pipeNamespaceHints(T output) {
 		if (getDefaultNamespaceHint() != null)
 			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
 		for (Namespace hint : getNamespaceHints())
 			output.registerNamespaceHint(hint);
+
+		return output;
+	}
+
+	public default <T extends StructuredDataTarget> T pipeDataAtChild(T output) {
+		pipeNamespaceHints(output);
 
 		for (QualifiedName property : getProperties())
 			readProperty(property).pipe(output.writeProperty(property)).terminate();

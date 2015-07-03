@@ -149,10 +149,13 @@ public class BindingNodeUnbinder {
 			public void accept(ChoiceNode.Effective node) {
 				try {
 					context.withUnbindingNode(node).attemptUnbindingUntilSuccessful(
-							node.children(), (c, n) -> getChildProcessor(c).accept(n),
-							n -> new UnbindingException("???", context, n));
+							node.children(),
+							(c, n) -> getChildProcessor(c).accept(n),
+							n -> new UnbindingException("Option '" + n
+									+ "' under choice node '" + node + "' could not be unbound",
+									context, n));
 				} catch (Exception e) {
-					if (node.isMandatory() == null || node.isMandatory())
+					if (node.isMandatory() != null && node.isMandatory())
 						throw e;
 				}
 			}

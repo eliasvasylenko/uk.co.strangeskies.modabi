@@ -118,6 +118,9 @@ public class BindingContextImpl extends
 	public <I> I attemptUntilSuccessful(Iterable<I> attemptItems,
 			BiConsumer<BindingContextImpl, I> bindingMethod,
 			Function<Set<Exception>, BindingException> onFailure) {
+		/*
+		 * TODO THIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIS
+		 */
 		throw new BindingException("attemptUntilSuccessful unimplemented", this);
 	}
 }

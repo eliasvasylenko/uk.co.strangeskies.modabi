@@ -54,6 +54,7 @@ public class SequenceNodeConfiguratorImpl extends
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
 		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
+		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
@@ -104,7 +105,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 					@Override
 					public TypeToken<?> outputSourceType() {
-						return null;
+						return outputSource;
 					}
 
 					@Override

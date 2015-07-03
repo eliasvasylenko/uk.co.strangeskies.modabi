@@ -282,7 +282,8 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("mandatory")
-								.type(base.primitiveType(DataType.BOOLEAN))).create();
+								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+				.create();
 		modelSet.add(choiceModel);
 
 		Model<SequenceNode> sequenceModel = model
@@ -480,10 +481,9 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n
 								.choice()
 								.name("providedValue")
-								.mandatory(false)
 								.addChild(
 										o -> o.data().format(Format.PROPERTY).name("value")
-												.inMethod("provideValue")
+												.optional(true).inMethod("provideValue")
 												.outMethod("providedValueBuffer")
 												.type(base.derivedTypes().bufferedDataType())))
 				.create();
