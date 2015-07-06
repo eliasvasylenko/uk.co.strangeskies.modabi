@@ -48,7 +48,7 @@ public class StructuredDataTests {
 
 	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })
 	public void equalityTest(BufferedStructuredDataSource bufferedData) {
-		Assert.assertEquals(bufferedData, bufferedData.copy());
+		Assert.assertEquals(bufferedData, bufferedData.split());
 	}
 
 	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })

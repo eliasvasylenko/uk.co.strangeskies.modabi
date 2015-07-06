@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -32,7 +33,7 @@ public interface StructuredDataSource {
 
 	public Set<Namespace> getNamespaceHints();
 
-	public Set<String> getComments();
+	public List<String> getComments();
 
 	public QualifiedName startNextChild();
 
@@ -83,6 +84,8 @@ public interface StructuredDataSource {
 	public int depth();
 
 	public int indexAtDepth();
+
+	public StructuredDataSource split();
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
 		pipeNamespaceHints(output);

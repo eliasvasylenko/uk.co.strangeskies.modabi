@@ -18,9 +18,12 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-public interface BufferedStructuredDataSource extends StructuredDataSource {
-	void reset();
+public abstract class SplittingStructuredDataSourceImpl extends
+		StructuredDataSourceImpl {
+	;
 
 	@Override
-	public BufferedStructuredDataSource split();
+	public StructuredDataSource split() {
+		return null;
+	}
 }

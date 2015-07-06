@@ -18,22 +18,26 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import java.util.function.Function;
+
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.DataTargetDecorator;
-import uk.co.strangeskies.utilities.Decorator;
 
-public class StructuredDataTargetDecorator extends
-		Decorator<StructuredDataTarget> implements StructuredDataTarget {
+public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImpl<S>>
+		implements StructuredDataTarget {
 	private StructuredDataState currentState;
 	private int depth;
 
-	public StructuredDataTargetDecorator(StructuredDataTarget component) {
-		super(component);
-
+	public StructuredDataTargetImpl() {
 		currentState = StructuredDataState.UNSTARTED;
 		depth = 0;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected S getThis() {
+		return (S) this;
 	}
 
 	@Override
@@ -46,38 +50,67 @@ public class StructuredDataTargetDecorator extends
 	}
 
 	@Override
-	public StructuredDataTarget registerDefaultNamespaceHint(Namespace namespace) {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
-				StructuredDataState.ELEMENT_START);
-		return getComponent().registerDefaultNamespaceHint(namespace);
+	public S writeProperty(QualifiedName name,
+			Function<DataTarget, DataTarget> targetOperation) {
+		StructuredDataTarget.super.writeProperty(name, targetOperation);
+		return getThis();
 	}
 
 	@Override
-	public StructuredDataTarget registerNamespaceHint(Namespace namespace) {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
-				StructuredDataState.ELEMENT_START);
-		return getComponent().registerNamespaceHint(namespace);
+	public S writeContent(Function<DataTarget, DataTarget> targetOperation) {
+		StructuredDataTarget.super.writeContent(targetOperation);
+		return getThis();
 	}
 
 	@Override
-	public StructuredDataTarget comment(String comment) {
+	public S registerDefaultNamespaceHint(Namespace namespace) {
+		currentState().checkValid(StructuredDataState.UNSTARTED,
+				StructuredDataState.ELEMENT_START);
+		registerDefaultNamespaceHintImpl(namespace);
+
+		return getThis();
+	}
+
+	protected abstract void registerDefaultNamespaceHintImpl(Namespace namespace);
+
+	@Override
+	public S registerNamespaceHint(Namespace namespace) {
+		currentState().checkValid(StructuredDataState.UNSTARTED,
+				StructuredDataState.ELEMENT_START);
+		registerNamespaceHintImpl(namespace);
+
+		return getThis();
+	}
+
+	protected abstract void registerNamespaceHintImpl(Namespace namespace);
+
+	@Override
+	public S comment(String comment) {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START,
 				StructuredDataState.POPULATED_ELEMENT);
-		return getComponent().comment(comment);
+		commentImpl(comment);
+
+		return getThis();
 	}
 
+	protected abstract void commentImpl(String comment);
+
 	@Override
-	public StructuredDataTarget nextChild(QualifiedName name) {
+	public S nextChild(QualifiedName name) {
 		depth++;
 		enterState(StructuredDataState.ELEMENT_START);
-		return getComponent().nextChild(name);
+		nextChildImpl(name);
+
+		return getThis();
 	}
+
+	protected abstract void nextChildImpl(QualifiedName name);
 
 	@Override
 	public DataTarget writeProperty(QualifiedName name) {
 		enterState(StructuredDataState.PROPERTY);
-		return new DataTargetDecorator(getComponent().writeProperty(name)) {
+		return new DataTargetDecorator(writePropertyImpl(name)) {
 			@Override
 			public void terminate() {
 				super.terminate();
@@ -86,10 +119,12 @@ public class StructuredDataTargetDecorator extends
 		};
 	}
 
+	protected abstract DataTarget writePropertyImpl(QualifiedName name);
+
 	@Override
 	public DataTarget writeContent() {
 		enterState(StructuredDataState.CONTENT);
-		return new DataTargetDecorator(getComponent().writeContent()) {
+		return new DataTargetDecorator(writeContentImpl()) {
 			@Override
 			public void terminate() {
 				super.terminate();
@@ -98,12 +133,18 @@ public class StructuredDataTargetDecorator extends
 		};
 	}
 
+	protected abstract DataTarget writeContentImpl();
+
 	@Override
-	public StructuredDataTarget endChild() {
+	public S endChild() {
 		if (--depth == 0)
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
-		return getComponent().endChild();
+		endChildImpl();
+
+		return getThis();
 	}
+
+	protected abstract void endChildImpl();
 }
