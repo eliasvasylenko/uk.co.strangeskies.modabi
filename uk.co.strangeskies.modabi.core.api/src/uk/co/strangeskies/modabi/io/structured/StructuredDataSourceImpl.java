@@ -84,7 +84,7 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 	@Override
 	public DataSource readProperty(QualifiedName name) {
 		DataSource property = readPropertyImpl(name);
-		return property == null ? null : new DataSourceDecorator(property);
+		return property == null ? null : new DataSourceDecorator(property.copy());
 	}
 
 	protected abstract DataSource readPropertyImpl(QualifiedName name);
@@ -92,7 +92,7 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 	@Override
 	public DataSource readContent() {
 		DataSource content = readContentImpl();
-		return content == null ? null : new DataSourceDecorator(content);
+		return content == null ? null : new DataSourceDecorator(content.copy());
 	}
 
 	protected abstract DataSource readContentImpl();
@@ -107,4 +107,10 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 	}
 
 	protected abstract void endChildImpl();
+
+	@Override
+	public StructuredDataSource split() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
