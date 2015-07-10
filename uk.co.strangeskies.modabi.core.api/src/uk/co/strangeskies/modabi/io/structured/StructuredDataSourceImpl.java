@@ -113,4 +113,10 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public BufferedStructuredDataSource buffer() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

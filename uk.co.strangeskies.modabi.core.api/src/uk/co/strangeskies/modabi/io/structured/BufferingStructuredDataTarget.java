@@ -57,32 +57,18 @@ import uk.co.strangeskies.modabi.io.structured.BufferingStructuredData.BufferedS
  */
 public class BufferingStructuredDataTarget extends
 		StructuredDataTargetImpl<BufferingStructuredDataTarget> {
+	private int startDepth = 0;
 	private final Deque<BufferingStructuredData> stack = new ArrayDeque<>(
 			Arrays.asList(new BufferingStructuredData(null)));
 
-	private Namespace defaultNamespaceHint;
-	private final Set<Namespace> namespaceHints = new HashSet<>();
-
-	private final List<String> comments = new ArrayList<>();
-
 	@Override
 	public void registerDefaultNamespaceHintImpl(Namespace namespace) {
-		if (stack.isEmpty())
-			if (defaultNamespaceHint != null)
-				throw new IOException(
-						"Cannot register multiple default namespace hints at any given location.");
-			else
-				defaultNamespaceHint = namespace;
-		else
-			stack.peek().setDefaultNamespaceHint(namespace);
+		stack.peek().setDefaultNamespaceHint(namespace);
 	}
 
 	@Override
 	public void registerNamespaceHintImpl(Namespace namespace) {
-		if (stack.isEmpty())
-			namespaceHints.add(namespace);
-		else
-			stack.peek().addNamespaceHint(namespace);
+		stack.peek().addNamespaceHint(namespace);
 	}
 
 	@Override
@@ -103,16 +89,16 @@ public class BufferingStructuredDataTarget extends
 	@Override
 	public void endChildImpl() {
 		BufferingStructuredData element = stack.pop();
+		if (stack.isEmpty()) {
+			startDepth++;
+			stack.addFirst(new BufferingStructuredData(null));
+		}
 		stack.peek().addChild(element);
 	}
 
 	public BufferedStructuredDataSource buffer(boolean linked, boolean consumable) {
-		if (!linked && stack.size() != 1)
-			throw new IllegalStateException("Stack depth '" + stack.size()
-					+ "' should be 1.");
-
 		return new BufferedStructuredDataSourceImpl(stack.getFirst().buffer(linked,
-				consumable), defaultNamespaceHint, namespaceHints, comments);
+				consumable), startDepth);
 	}
 
 	public BufferedStructuredDataSource buffer() {
@@ -121,62 +107,43 @@ public class BufferingStructuredDataTarget extends
 
 	@Override
 	public void commentImpl(String comment) {
-		if (stack.isEmpty())
-			comments.add(comment);
-		else
-			stack.peek().comment(comment);
+		stack.peek().comment(comment);
 	}
 }
 
 class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		implements BufferedStructuredDataSource {
-	private final Namespace defaultNamespaceHint;
-	private final Set<Namespace> namespaceHints;
-
-	private final List<String> comments;
-
+	private final int startDepth;
 	private final BufferedStructuredData root;
 	private final Deque<BufferedStructuredData> stack;
 
 	public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
-			Namespace defaultNamespaceHint, Set<Namespace> namespaceHints,
-			List<String> comments) {
-		this(root, new ArrayDeque<>(Arrays.asList(root)), defaultNamespaceHint,
-				namespaceHints, comments);
+			int startDepth) {
+		this(root, new ArrayDeque<>(Arrays.asList(root)), startDepth);
 	}
 
 	public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
-			Deque<BufferedStructuredData> stack, Namespace defaultNamespaceHint,
-			Set<Namespace> namespaceHints, List<String> comments) {
+			Deque<BufferedStructuredData> stack, int startDepth) {
 		this.root = root;
 		this.stack = stack;
-		this.defaultNamespaceHint = defaultNamespaceHint;
-		this.namespaceHints = namespaceHints;
-		this.comments = comments;
+		this.startDepth = startDepth;
+
+		reset();
 	}
 
 	@Override
 	public Namespace getDefaultNamespaceHintImpl() {
-		if (stack.isEmpty())
-			return defaultNamespaceHint;
-		else
-			return stack.peek().defaultNamespaceHint();
+		return stack.peek().defaultNamespaceHint();
 	}
 
 	@Override
 	public Set<Namespace> getNamespaceHintsImpl() {
-		if (stack.isEmpty())
-			return namespaceHints;
-		else
-			return stack.peek().namespaceHints();
+		return stack.peek().namespaceHints();
 	}
 
 	@Override
 	public List<String> getCommentsImpl() {
-		if (stack.isEmpty())
-			return comments;
-		else
-			return stack.peek().comments();
+		return stack.peek().comments();
 	}
 
 	@Override
@@ -226,12 +193,16 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		stack.clear();
 		stack.push(root);
 		root.reset();
+
+		int depth = startDepth;
+		while (depth > 0)
+			startNextChild();
 	}
 
 	@Override
 	public BufferedStructuredDataSourceImpl split() {
 		BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-				root, stack, defaultNamespaceHint, namespaceHints, comments);
+				root, stack, startDepth);
 		return copy;
 	}
 
@@ -248,13 +219,6 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 		thatCopy = thatCopy.split();
 		thatCopy.reset();
-
-		if (!Objects.equals(defaultNamespaceHint,
-				thatCopy.getDefaultNamespaceHint()))
-			return false;
-
-		if (!Objects.equals(namespaceHints, thatCopy.getNamespaceHints()))
-			return false;
 
 		return root.equals(((BufferedStructuredDataSourceImpl) thatCopy
 				.pipeNextChild(new BufferingStructuredDataTarget()).buffer()).root);

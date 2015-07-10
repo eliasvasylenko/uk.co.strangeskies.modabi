@@ -87,6 +87,8 @@ public interface StructuredDataSource {
 
 	public StructuredDataSource split();
 
+	public BufferedStructuredDataSource buffer();
+
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
 		pipeNamespaceHints(output);
 
