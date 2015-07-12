@@ -37,17 +37,18 @@ public class SchemaTest {
 	public void run(SchemaManager schemaManager) {
 		System.out.println("Unbinding BaseSchema...");
 		BufferingStructuredDataTarget out = new BufferingStructuredDataTarget();
+		BufferedStructuredDataSource buffered = out.getBuffer();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getBaseSchema());
-		out.buffer().pipeNextChild(new XMLTarget(System.out));
+		buffered.pipeNextChild(new XMLTarget(System.out));
 
 		System.out.println();
 		System.out.println();
 		System.out.println("Unbinding MetaSchema...");
 		out = new BufferingStructuredDataTarget();
+		buffered = out.getBuffer();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getMetaSchema());
-		BufferedStructuredDataSource buffered = out.buffer();
 
 		buffered.pipeNextChild(new XMLTarget(System.out));
 		buffered.reset();
@@ -69,8 +70,8 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println("Re-unbinding MetaSchema...");
 		out = new BufferingStructuredDataTarget();
+		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel, out, metaSchema);
-		buffered = out.buffer();
 		buffered.pipeNextChild(new XMLTarget(System.out));
 		buffered.reset();
 
@@ -88,8 +89,8 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println("Re-re-unbinding MetaSchema...");
 		out = new BufferingStructuredDataTarget();
+		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel2, out, metaSchema);
-		buffered = out.buffer();
 		buffered.pipeNextChild(new XMLTarget(System.out));
 
 		System.out.print("Profiling Preparation");

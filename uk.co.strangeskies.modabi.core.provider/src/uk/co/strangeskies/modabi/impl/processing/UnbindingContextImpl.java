@@ -147,7 +147,7 @@ public class UnbindingContextImpl extends
 		if (dataTarget != null)
 			dataTarget.buffer().pipe(provisions().provide(DataTarget.class));
 
-		BufferedStructuredDataSource bufferedData = output.endChild().buffer();
+		BufferedStructuredDataSource bufferedData = output.endChild().getBuffer();
 		bufferedData.startNextChild();
 		bufferedData.pipeDataAtChild(output());
 		bufferedData.pipeNextChild(output());

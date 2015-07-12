@@ -56,7 +56,6 @@ import uk.co.strangeskies.modabi.io.IOException;
  */
 public class BufferingStructuredDataTarget extends
 		StructuredDataTargetImpl<BufferingStructuredDataTarget> {
-	private final Deque<StructuredDataBuffer> stack;
 	private final BufferedStructuredDataSourceImpl buffer;
 
 	public BufferingStructuredDataTarget() {
@@ -64,121 +63,142 @@ public class BufferingStructuredDataTarget extends
 	}
 
 	public BufferingStructuredDataTarget(boolean consumable) {
-		StructuredDataBuffer root = new StructuredDataBuffer((QualifiedName) null);
-		stack = new ArrayDeque<>(Arrays.asList(root));
-		buffer = new BufferedStructuredDataSourceImpl(root, consumable);
+		buffer = new BufferedStructuredDataSourceImpl(consumable);
 	}
 
 	@Override
 	public void registerDefaultNamespaceHintImpl(Namespace namespace) {
-		stack.peek().setDefaultNamespaceHint(namespace);
+		buffer.peekHead().setDefaultNamespaceHint(namespace);
 	}
 
 	@Override
 	public void registerNamespaceHintImpl(Namespace namespace) {
-		stack.peek().addNamespaceHint(namespace);
+		buffer.peekHead().addNamespaceHint(namespace);
 	}
 
 	@Override
 	public DataTarget writePropertyImpl(QualifiedName name) {
-		return stack.peek().addProperty(name);
+		BufferingDataTarget target = new BufferingDataTarget();
+		buffer.peekHead().addProperty(name, target);
+		return target;
 	}
 
 	@Override
 	public DataTarget writeContentImpl() {
-		return stack.peek().addContent();
+		BufferingDataTarget target = new BufferingDataTarget();
+		buffer.peekHead().addContent(target);
+		return target;
 	}
 
 	@Override
 	public void nextChildImpl(QualifiedName name) {
-		stack.push(new StructuredDataBuffer(name));
+		buffer.pushHead(new StructuredDataBuffer(name));
 	}
 
 	@Override
 	public void endChildImpl() {
-		StructuredDataBuffer element = stack.pop();
-		element.endChild();
-
-		if (stack.isEmpty()) {
-			StructuredDataBuffer base = new StructuredDataBuffer((QualifiedName) null);
-			stack.addFirst(base);
-			buffer.addBase(base);
-		}
-
-		stack.peek().addChild(element);
+		buffer.popHead();
 	}
 
-	public BufferedStructuredDataSource buffer() {
+	public BufferedStructuredDataSource getBuffer() {
 		return buffer;
 	}
 
 	@Override
 	public void commentImpl(String comment) {
-		stack.peek().comment(comment);
+		buffer.peekHead().comment(comment);
 	}
 }
 
 class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		implements BufferedStructuredDataSource {
 	private int startDepth;
-	private final Deque<StructuredDataBuffer> stack;
+	/*
+	 * Where new structured data is added to the front of the buffer:
+	 */
+	private final Deque<StructuredDataBuffer> headStack;
+	/*
+	 * Where structured data is read from the back of the buffer:
+	 */
+	private final Deque<StructuredDataBuffer> tailStack;
 	private final Deque<Integer> index;
 	private final boolean consumable;
 
-	public BufferedStructuredDataSourceImpl(StructuredDataBuffer root,
-			boolean consumable) {
-		this(Arrays.asList(root), Arrays.asList(0), consumable);
+	public BufferedStructuredDataSourceImpl(boolean consumable) {
+		this(Arrays.asList(new StructuredDataBuffer((QualifiedName) null)), Arrays
+				.asList(0), consumable);
 	}
 
 	public BufferedStructuredDataSourceImpl(List<StructuredDataBuffer> stack,
 			List<Integer> index, boolean consumable) {
-		this(new ArrayDeque<>(stack), new ArrayDeque<>(index), consumable);
+		this(new ArrayDeque<>(stack), new ArrayDeque<>(stack), new ArrayDeque<>(
+				index), consumable);
 	}
 
-	private BufferedStructuredDataSourceImpl(Deque<StructuredDataBuffer> stack,
-			Deque<Integer> index, boolean consumable) {
-		this.stack = stack;
+	private BufferedStructuredDataSourceImpl(
+			Deque<StructuredDataBuffer> headStack,
+			Deque<StructuredDataBuffer> tailStack, Deque<Integer> index,
+			boolean consumable) {
+		this.headStack = headStack;
+		this.tailStack = tailStack;
 		this.index = index;
-		this.startDepth = stack.size() - 1;
+		this.startDepth = tailStack.size() - 1;
 		this.consumable = consumable;
 
 		reset();
 	}
 
-	public void addBase(StructuredDataBuffer base) {
-		stack.addFirst(base);
-		index.addFirst(0);
-		startDepth++;
+	public StructuredDataBuffer peekHead() {
+		return headStack.peek();
+	}
+
+	public void pushHead(StructuredDataBuffer child) {
+		headStack.push(child);
+	}
+
+	public void popHead() {
+		StructuredDataBuffer element = headStack.pop();
+		element.endChild();
+
+		if (headStack.isEmpty()) {
+			StructuredDataBuffer base = new StructuredDataBuffer((QualifiedName) null);
+			headStack.addFirst(base);
+			tailStack.addFirst(base);
+			index.addFirst(0);
+			startDepth++;
+		}
+
+		headStack.peek().addChild(element);
 	}
 
 	@Override
 	public Namespace getDefaultNamespaceHintImpl() {
-		return stack.peek().defaultNamespaceHint();
+		return tailStack.peek().defaultNamespaceHint();
 	}
 
 	@Override
 	public Set<Namespace> getNamespaceHintsImpl() {
-		return stack.peek().namespaceHints();
+		return tailStack.peek().namespaceHints();
 	}
 
 	@Override
 	public List<String> getCommentsImpl() {
-		return stack.peek().comments();
+		return tailStack.peek().comments();
 	}
 
 	@Override
 	public DataSource readPropertyImpl(QualifiedName name) {
-		return stack.peek().propertyData(name);
+		return tailStack.peek().propertyData(name);
 	}
 
 	@Override
 	public Set<QualifiedName> getProperties() {
-		return stack.peek().properties();
+		return tailStack.peek().properties();
 	}
 
 	@Override
 	public QualifiedName startNextChildImpl() {
-		StructuredDataBuffer child = stack.peek().getChild(
+		StructuredDataBuffer child = tailStack.peek().getChild(
 				consumable ? 0 : index.peek());
 
 		index.push(index.pop() + 1);
@@ -186,7 +206,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		if (child == null)
 			return null;
 
-		stack.push(child);
+		tailStack.push(child);
 		index.push(0);
 
 		return child.name();
@@ -194,10 +214,10 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public QualifiedName peekNextChild() {
-		StructuredDataBuffer buffer = stack.peek();
+		StructuredDataBuffer buffer = tailStack.peek();
 
 		if (buffer != null) {
-			buffer = stack.peek().getChild(index.peek());
+			buffer = tailStack.peek().getChild(index.peek());
 
 			if (buffer != null)
 				return buffer.name();
@@ -208,25 +228,25 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public boolean hasNextChild() {
-		return stack.peek().hasChild(index.peek());
+		return tailStack.peek().hasChild(index.peek());
 	}
 
 	@Override
 	public void endChildImpl() {
-		if (!stack.peek().isEnded())
+		if (!tailStack.peek().isEnded())
 			throw new IllegalStateException();
 
-		stack.pop();
+		tailStack.pop();
 		index.pop();
 
 		if (consumable) {
-			stack.push(stack.pop().consumeFirst());
+			tailStack.push(tailStack.pop().consumeFirst());
 		}
 	}
 
 	@Override
 	public DataSource readContentImpl() {
-		DataSource content = stack.peek().content();
+		DataSource content = tailStack.peek().content();
 		return content == null ? null : content;
 	}
 
@@ -234,8 +254,8 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 	public void reset() {
 		StructuredDataBuffer root = root();
 
-		stack.clear();
-		stack.push(root);
+		tailStack.clear();
+		tailStack.push(root);
 		index.clear();
 		index.push(0);
 
@@ -247,7 +267,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 	@Override
 	public BufferedStructuredDataSourceImpl split() {
 		BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-				stack, index, true);
+				headStack, tailStack, index, true);
 		throw new UnsupportedOperationException();
 	}
 
@@ -257,7 +277,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 	}
 
 	private StructuredDataBuffer root() {
-		return stack.getLast();
+		return tailStack.getLast();
 	}
 
 	@Override
@@ -276,7 +296,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 		return root().equals(
 				((BufferedStructuredDataSourceImpl) thatCopy.pipeNextChild(
-						new BufferingStructuredDataTarget(false)).buffer()).root());
+						new BufferingStructuredDataTarget(false)).getBuffer()).root());
 	}
 
 	@Override
@@ -286,7 +306,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public int depth() {
-		return stack.size();
+		return tailStack.size();
 	}
 
 	@Override
@@ -373,13 +393,11 @@ class StructuredDataBuffer {
 		defaultNamespaceHint = namespace;
 	}
 
-	public BufferingDataTarget addProperty(QualifiedName name) {
+	public void addProperty(QualifiedName name, BufferingDataTarget target) {
 		if (ended)
 			throw new IllegalStateException();
 
-		BufferingDataTarget target = new BufferingDataTarget();
 		properties.put(name, target);
-		return target;
 	}
 
 	public void addChild(StructuredDataBuffer element) {
@@ -393,12 +411,11 @@ class StructuredDataBuffer {
 		ended = true;
 	}
 
-	public BufferingDataTarget addContent() {
+	public void addContent(BufferingDataTarget target) {
 		if (ended)
 			throw new IllegalStateException();
 
-		content = new BufferingDataTarget();
-		return content;
+		content = target;
 	}
 
 	@Override
