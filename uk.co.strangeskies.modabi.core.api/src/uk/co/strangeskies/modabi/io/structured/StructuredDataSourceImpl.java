@@ -107,16 +107,4 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 	}
 
 	protected abstract void endChildImpl();
-
-	@Override
-	public StructuredDataSource split() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BufferedStructuredDataSource buffer() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

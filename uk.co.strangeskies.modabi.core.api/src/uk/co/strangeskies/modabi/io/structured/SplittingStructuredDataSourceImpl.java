@@ -20,10 +20,15 @@ package uk.co.strangeskies.modabi.io.structured;
 
 public abstract class SplittingStructuredDataSourceImpl extends
 		StructuredDataSourceImpl {
-	;
-
 	@Override
 	public StructuredDataSource split() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BufferedStructuredDataSource buffer() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

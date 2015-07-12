@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -38,7 +36,6 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.IOException;
-import uk.co.strangeskies.modabi.io.structured.BufferingStructuredData.BufferedStructuredData;
 
 /**
  * It shouldn't matter in what order attributes are added to a child, or whether
@@ -57,9 +54,14 @@ import uk.co.strangeskies.modabi.io.structured.BufferingStructuredData.BufferedS
  */
 public class BufferingStructuredDataTarget extends
 		StructuredDataTargetImpl<BufferingStructuredDataTarget> {
-	private int startDepth = 0;
-	private final Deque<BufferingStructuredData> stack = new ArrayDeque<>(
-			Arrays.asList(new BufferingStructuredData(null)));
+	private final Deque<StructuredDataBuffer> stack;
+	private final BufferedStructuredDataSourceImpl buffer;
+
+	public BufferingStructuredDataTarget() {
+		StructuredDataBuffer root = new StructuredDataBuffer(null);
+		stack = new ArrayDeque<>(Arrays.asList(root));
+		buffer = new BufferedStructuredDataSourceImpl(stack);
+	}
 
 	@Override
 	public void registerDefaultNamespaceHintImpl(Namespace namespace) {
@@ -83,26 +85,25 @@ public class BufferingStructuredDataTarget extends
 
 	@Override
 	public void nextChildImpl(QualifiedName name) {
-		stack.push(new BufferingStructuredData(name));
+		stack.push(new StructuredDataBuffer(name));
 	}
 
 	@Override
 	public void endChildImpl() {
-		BufferingStructuredData element = stack.pop();
+		StructuredDataBuffer element = stack.pop();
+		element.endChild();
+
 		if (stack.isEmpty()) {
-			startDepth++;
-			stack.addFirst(new BufferingStructuredData(null));
+			StructuredDataBuffer base = new StructuredDataBuffer(null);
+			stack.addFirst(base);
+			buffer.addBase(base);
 		}
+
 		stack.peek().addChild(element);
 	}
 
-	public BufferedStructuredDataSource buffer(boolean linked, boolean consumable) {
-		return new BufferedStructuredDataSourceImpl(stack.getFirst().buffer(linked,
-				consumable), startDepth);
-	}
-
 	public BufferedStructuredDataSource buffer() {
-		return buffer(false, false);
+		return buffer;
 	}
 
 	@Override
@@ -113,22 +114,19 @@ public class BufferingStructuredDataTarget extends
 
 class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		implements BufferedStructuredDataSource {
-	private final int startDepth;
-	private final BufferedStructuredData root;
-	private final Deque<BufferedStructuredData> stack;
+	private int startDepth;
+	private final Deque<StructuredDataBuffer> stack;
 
-	public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
-			int startDepth) {
-		this(root, new ArrayDeque<>(Arrays.asList(root)), startDepth);
-	}
-
-	public BufferedStructuredDataSourceImpl(BufferedStructuredData root,
-			Deque<BufferedStructuredData> stack, int startDepth) {
-		this.root = root;
-		this.stack = stack;
-		this.startDepth = startDepth;
+	public BufferedStructuredDataSourceImpl(Deque<StructuredDataBuffer> stack) {
+		this.stack = new ArrayDeque<>(stack);
+		this.startDepth = stack.size() - 1;
 
 		reset();
+	}
+
+	public void addBase(StructuredDataBuffer base) {
+		stack.addFirst(base);
+		startDepth++;
 	}
 
 	@Override
@@ -158,13 +156,13 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public QualifiedName startNextChildImpl() {
-		BufferedStructuredData child = stack.peek().nextChild();
+		StructuredDataBuffer child = stack.peek().nextChild();
 
 		if (child == null)
 			return null;
 
 		stack.push(child);
-		return stack.peek().name();
+		return child.name();
 	}
 
 	@Override
@@ -179,6 +177,9 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public void endChildImpl() {
+		if (!stack.peek().isEnded())
+			throw new IllegalStateException();
+
 		stack.pop();
 	}
 
@@ -190,6 +191,8 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public void reset() {
+		StructuredDataBuffer root = root();
+
 		stack.clear();
 		stack.push(root);
 		root.reset();
@@ -202,8 +205,17 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 	@Override
 	public BufferedStructuredDataSourceImpl split() {
 		BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-				root, stack, startDepth);
-		return copy;
+				stack);
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public BufferedStructuredDataSource buffer() {
+		throw new UnsupportedOperationException();
+	}
+
+	private StructuredDataBuffer root() {
+		return stack.getLast();
 	}
 
 	@Override
@@ -220,13 +232,14 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		thatCopy = thatCopy.split();
 		thatCopy.reset();
 
-		return root.equals(((BufferedStructuredDataSourceImpl) thatCopy
-				.pipeNextChild(new BufferingStructuredDataTarget()).buffer()).root);
+		return root().equals(
+				((BufferedStructuredDataSourceImpl) thatCopy.pipeNextChild(
+						new BufferingStructuredDataTarget()).buffer()).root());
 	}
 
 	@Override
 	public int hashCode() {
-		return root.hashCode() + depth() + indexAtDepth();
+		return root().hashCode() + depth() + indexAtDepth();
 	}
 
 	@Override
@@ -240,40 +253,57 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 	}
 }
 
-class BufferingStructuredData {
+class StructuredDataBuffer {
 	private final QualifiedName name;
-
-	private Namespace defaultNamespaceHint;
-	private final Set<Namespace> namespaceHints;
 
 	private final Map<QualifiedName, BufferingDataTarget> properties;
 	private BufferingDataTarget content;
 
-	private final List<BufferingStructuredData> children;
+	private final List<StructuredDataBuffer> children;
+	private boolean ended;
+
+	private Namespace defaultNamespaceHint;
+	private final Set<Namespace> namespaceHints;
 
 	private final List<String> comments;
 
-	private final Set<Consumer<BufferedStructuredData>> childListeners;
+	private int childIndex;
 
-	public BufferingStructuredData(QualifiedName name) {
+	public StructuredDataBuffer(QualifiedName name) {
 		namespaceHints = new HashSet<>();
 		comments = new ArrayList<>();
 
 		children = new ArrayList<>();
+
 		properties = new LinkedHashMap<>();
 		this.name = name;
-		childListeners = new HashSet<>();
+
+		childIndex = 0;
+		ended = false;
+	}
+
+	public boolean isEnded() {
+		return ended;
 	}
 
 	public void comment(String comment) {
+		if (ended)
+			throw new IllegalStateException();
+
 		comments.add(comment);
 	}
 
 	public void addNamespaceHint(Namespace namespace) {
+		if (ended)
+			throw new IllegalStateException();
+
 		namespaceHints.add(namespace);
 	}
 
 	public void setDefaultNamespaceHint(Namespace namespace) {
+		if (ended)
+			throw new IllegalStateException();
+
 		if (defaultNamespaceHint != null)
 			throw new IOException(
 					"Cannot register multiple default namespace hints at any given location.");
@@ -281,37 +311,40 @@ class BufferingStructuredData {
 	}
 
 	public BufferingDataTarget addProperty(QualifiedName name) {
+		if (ended)
+			throw new IllegalStateException();
+
 		BufferingDataTarget target = new BufferingDataTarget();
 		properties.put(name, target);
 		return target;
 	}
 
-	public void addChild(BufferingStructuredData element) {
+	public void addChild(StructuredDataBuffer element) {
+		if (ended)
+			throw new IllegalStateException();
+
 		children.add(element);
 	}
 
+	public void endChild() {
+		ended = true;
+	}
+
 	public BufferingDataTarget addContent() {
+		if (ended)
+			throw new IllegalStateException();
+
 		content = new BufferingDataTarget();
 		return content;
 	}
 
-	public BufferedStructuredData buffer(boolean linked, boolean consumable) {
-		return new BufferedStructuredData(linked, consumable);
-	}
-
-	public void addChildListener(Consumer<BufferedStructuredData> childConsumer) {
-		childListeners.add(childConsumer);
-	}
-
-	public void endChild() {}
-
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof BufferingStructuredData))
+		if (!(obj instanceof StructuredDataBuffer))
 			return false;
-		BufferingStructuredData that = (BufferingStructuredData) obj;
+		StructuredDataBuffer that = (StructuredDataBuffer) obj;
 
-		return super.equals(obj)
+		return childIndex == that.childIndex && ended == that.ended
 				&& Objects.equals(defaultNamespaceHint, that.defaultNamespaceHint)
 				&& Objects.equals(namespaceHints, that.namespaceHints)
 				&& Objects.equals(name, that.name)
@@ -322,7 +355,7 @@ class BufferingStructuredData {
 
 	@Override
 	public int hashCode() {
-		int hashCode = 0;
+		int hashCode = childIndex + (ended ? 1 : 0);
 		if (name != null)
 			hashCode += name.hashCode();
 		if (properties != null)
@@ -334,89 +367,62 @@ class BufferingStructuredData {
 		return hashCode;
 	}
 
-	public class BufferedStructuredData {
-		private int childIndex;
+	public Set<Namespace> namespaceHints() {
+		return namespaceHints;
+	}
 
-		public BufferedStructuredData(boolean linked, boolean consumable) {
-			childIndex = 0;
-		}
+	public Namespace defaultNamespaceHint() {
+		return defaultNamespaceHint;
+	}
 
-		public Set<Namespace> namespaceHints() {
-			return namespaceHints;
-		}
+	public List<String> comments() {
+		return comments;
+	}
 
-		public Namespace defaultNamespaceHint() {
-			return defaultNamespaceHint;
-		}
+	public List<StructuredDataBuffer> children() {
+		return children;
+	}
 
-		public List<String> comments() {
-			return comments;
-		}
+	public StructuredDataBuffer nextChild() {
+		if (childIndex == children.size())
+			return null;
+		return children.get(childIndex++);
+	}
 
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof BufferedStructuredData))
-				return false;
-			BufferedStructuredData that = (BufferedStructuredData) obj;
+	public QualifiedName peekNextChild() {
+		if (childIndex == children.size())
+			return null;
+		return children.get(childIndex).name;
+	}
 
-			return super.equals(obj) && childIndex == that.childIndex
-					&& Objects.equals(base(), that.base());
-		}
+	public boolean hasNextChild() {
+		return childIndex < children.size();
+	}
 
-		private Object base() {
-			return BufferingStructuredData.this;
-		}
+	public QualifiedName name() {
+		return name;
+	}
 
-		@Override
-		public int hashCode() {
-			return childIndex += base().hashCode();
-		}
+	public Set<QualifiedName> properties() {
+		return properties.keySet();
+	}
 
-		public List<BufferedStructuredData> children() {
-			return children.stream()
-					.map(c -> c.new BufferedStructuredData(false, false))
-					.collect(Collectors.toList());
-		}
+	public DataSource propertyData(QualifiedName name) {
+		return Optional.ofNullable(properties.get(name)).map(p -> p.buffer())
+				.orElse(null);
+	}
 
-		public BufferedStructuredData nextChild() {
-			if (childIndex == children.size())
-				return null;
-			return children.get(childIndex++).new BufferedStructuredData(false, false);
-		}
+	public DataSource content() {
+		return Optional.ofNullable(content).map(p -> p.buffer()).orElse(null);
+	}
 
-		public QualifiedName peekNextChild() {
-			if (childIndex == children.size())
-				return null;
-			return children.get(childIndex).name;
-		}
+	public int childIndex() {
+		return childIndex;
+	}
 
-		public boolean hasNextChild() {
-			return childIndex < children.size();
-		}
-
-		public QualifiedName name() {
-			return name;
-		}
-
-		public Set<QualifiedName> properties() {
-			return properties.keySet();
-		}
-
-		public DataSource propertyData(QualifiedName name) {
-			return Optional.ofNullable(properties.get(name)).map(p -> p.buffer())
-					.orElse(null);
-		}
-
-		public DataSource content() {
-			return Optional.ofNullable(content).map(p -> p.buffer()).orElse(null);
-		}
-
-		public int childIndex() {
-			return childIndex;
-		}
-
-		public void reset() {
-			childIndex = 0;
-		}
+	public void reset() {
+		childIndex = 0;
+		for (StructuredDataBuffer child : children)
+			child.reset();
 	}
 }
