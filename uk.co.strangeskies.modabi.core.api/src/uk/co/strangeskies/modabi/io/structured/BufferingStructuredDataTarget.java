@@ -21,8 +21,10 @@ package uk.co.strangeskies.modabi.io.structured;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,9 +60,13 @@ public class BufferingStructuredDataTarget extends
 	private final BufferedStructuredDataSourceImpl buffer;
 
 	public BufferingStructuredDataTarget() {
-		StructuredDataBuffer root = new StructuredDataBuffer(null);
+		this(false);
+	}
+
+	public BufferingStructuredDataTarget(boolean consumable) {
+		StructuredDataBuffer root = new StructuredDataBuffer((QualifiedName) null);
 		stack = new ArrayDeque<>(Arrays.asList(root));
-		buffer = new BufferedStructuredDataSourceImpl(stack);
+		buffer = new BufferedStructuredDataSourceImpl(root, consumable);
 	}
 
 	@Override
@@ -94,7 +100,7 @@ public class BufferingStructuredDataTarget extends
 		element.endChild();
 
 		if (stack.isEmpty()) {
-			StructuredDataBuffer base = new StructuredDataBuffer(null);
+			StructuredDataBuffer base = new StructuredDataBuffer((QualifiedName) null);
 			stack.addFirst(base);
 			buffer.addBase(base);
 		}
@@ -116,16 +122,32 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 		implements BufferedStructuredDataSource {
 	private int startDepth;
 	private final Deque<StructuredDataBuffer> stack;
+	private final Deque<Integer> index;
+	private final boolean consumable;
 
-	public BufferedStructuredDataSourceImpl(Deque<StructuredDataBuffer> stack) {
-		this.stack = new ArrayDeque<>(stack);
+	public BufferedStructuredDataSourceImpl(StructuredDataBuffer root,
+			boolean consumable) {
+		this(Arrays.asList(root), Arrays.asList(0), consumable);
+	}
+
+	public BufferedStructuredDataSourceImpl(List<StructuredDataBuffer> stack,
+			List<Integer> index, boolean consumable) {
+		this(new ArrayDeque<>(stack), new ArrayDeque<>(index), consumable);
+	}
+
+	private BufferedStructuredDataSourceImpl(Deque<StructuredDataBuffer> stack,
+			Deque<Integer> index, boolean consumable) {
+		this.stack = stack;
+		this.index = index;
 		this.startDepth = stack.size() - 1;
+		this.consumable = consumable;
 
 		reset();
 	}
 
 	public void addBase(StructuredDataBuffer base) {
 		stack.addFirst(base);
+		index.addFirst(0);
 		startDepth++;
 	}
 
@@ -156,23 +178,37 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public QualifiedName startNextChildImpl() {
-		StructuredDataBuffer child = stack.peek().nextChild();
+		StructuredDataBuffer child = stack.peek().getChild(
+				consumable ? 0 : index.peek());
+
+		index.push(index.pop() + 1);
 
 		if (child == null)
 			return null;
 
 		stack.push(child);
+		index.push(0);
+
 		return child.name();
 	}
 
 	@Override
 	public QualifiedName peekNextChild() {
-		return stack.peek() == null ? null : stack.peek().peekNextChild();
+		StructuredDataBuffer buffer = stack.peek();
+
+		if (buffer != null) {
+			buffer = stack.peek().getChild(index.peek());
+
+			if (buffer != null)
+				return buffer.name();
+		}
+
+		return null;
 	}
 
 	@Override
 	public boolean hasNextChild() {
-		return stack.peek().hasNextChild();
+		return stack.peek().hasChild(index.peek());
 	}
 
 	@Override
@@ -181,6 +217,11 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 			throw new IllegalStateException();
 
 		stack.pop();
+		index.pop();
+
+		if (consumable) {
+			stack.push(stack.pop().consumeFirst());
+		}
 	}
 
 	@Override
@@ -195,7 +236,8 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 		stack.clear();
 		stack.push(root);
-		root.reset();
+		index.clear();
+		index.push(0);
 
 		int depth = startDepth;
 		while (depth > 0)
@@ -205,7 +247,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 	@Override
 	public BufferedStructuredDataSourceImpl split() {
 		BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-				stack);
+				stack, index, true);
 		throw new UnsupportedOperationException();
 	}
 
@@ -234,7 +276,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 		return root().equals(
 				((BufferedStructuredDataSourceImpl) thatCopy.pipeNextChild(
-						new BufferingStructuredDataTarget()).buffer()).root());
+						new BufferingStructuredDataTarget(false)).buffer()).root());
 	}
 
 	@Override
@@ -249,7 +291,7 @@ class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
 
 	@Override
 	public int indexAtDepth() {
-		return stack.peek().childIndex();
+		return index.peek();
 	}
 }
 
@@ -267,19 +309,40 @@ class StructuredDataBuffer {
 
 	private final List<String> comments;
 
-	private int childIndex;
-
 	public StructuredDataBuffer(QualifiedName name) {
-		namespaceHints = new HashSet<>();
-		comments = new ArrayList<>();
+		this.name = name;
+		properties = new LinkedHashMap<>();
 
 		children = new ArrayList<>();
 
-		properties = new LinkedHashMap<>();
-		this.name = name;
-
-		childIndex = 0;
+		namespaceHints = new HashSet<>();
+		comments = new ArrayList<>();
 		ended = false;
+	}
+
+	public StructuredDataBuffer(StructuredDataBuffer from) {
+		name = from.name;
+		properties = from.properties;
+
+		if (from.children.isEmpty())
+			children = Collections.emptyList();
+		else {
+			Iterator<StructuredDataBuffer> childrenIterator = from.children
+					.iterator();
+			childrenIterator.next();
+			children = new ArrayList<>(from.children.size() - 1);
+			while (childrenIterator.hasNext()) {
+				children.add(childrenIterator.next());
+			}
+		}
+
+		namespaceHints = from.namespaceHints;
+		comments = from.comments;
+		ended = from.ended;
+	}
+
+	public StructuredDataBuffer consumeFirst() {
+		return new StructuredDataBuffer(this);
 	}
 
 	public boolean isEnded() {
@@ -344,7 +407,7 @@ class StructuredDataBuffer {
 			return false;
 		StructuredDataBuffer that = (StructuredDataBuffer) obj;
 
-		return childIndex == that.childIndex && ended == that.ended
+		return ended == that.ended
 				&& Objects.equals(defaultNamespaceHint, that.defaultNamespaceHint)
 				&& Objects.equals(namespaceHints, that.namespaceHints)
 				&& Objects.equals(name, that.name)
@@ -355,7 +418,7 @@ class StructuredDataBuffer {
 
 	@Override
 	public int hashCode() {
-		int hashCode = childIndex + (ended ? 1 : 0);
+		int hashCode = (ended ? 1 : 0);
 		if (name != null)
 			hashCode += name.hashCode();
 		if (properties != null)
@@ -383,20 +446,14 @@ class StructuredDataBuffer {
 		return children;
 	}
 
-	public StructuredDataBuffer nextChild() {
-		if (childIndex == children.size())
+	public StructuredDataBuffer getChild(int index) {
+		if (index == children.size())
 			return null;
-		return children.get(childIndex++);
+		return children.get(index++);
 	}
 
-	public QualifiedName peekNextChild() {
-		if (childIndex == children.size())
-			return null;
-		return children.get(childIndex).name;
-	}
-
-	public boolean hasNextChild() {
-		return childIndex < children.size();
+	public boolean hasChild(int index) {
+		return index < children.size() && index >= 0;
 	}
 
 	public QualifiedName name() {
@@ -414,15 +471,5 @@ class StructuredDataBuffer {
 
 	public DataSource content() {
 		return Optional.ofNullable(content).map(p -> p.buffer()).orElse(null);
-	}
-
-	public int childIndex() {
-		return childIndex;
-	}
-
-	public void reset() {
-		childIndex = 0;
-		for (StructuredDataBuffer child : children)
-			child.reset();
 	}
 }
