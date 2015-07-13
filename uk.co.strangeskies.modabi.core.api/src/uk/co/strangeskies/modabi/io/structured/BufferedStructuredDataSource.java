@@ -18,9 +18,9 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-public interface BufferedStructuredDataSource extends StructuredDataSource {
-	void reset();
+import uk.co.strangeskies.utilities.Copyable;
 
-	@Override
-	public BufferedStructuredDataSource split();
+public interface BufferedStructuredDataSource extends StructuredDataSource,
+		Copyable<BufferedStructuredDataSource> {
+	void reset();
 }

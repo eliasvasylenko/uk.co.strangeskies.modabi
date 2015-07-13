@@ -214,12 +214,19 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			buffers.add(new WeakReference<>(this));
 		}
 
+		@Override
 		public BufferedStructuredDataSourceImpl split() {
 			return new BufferedStructuredDataSourceImpl(component.getSplit());
 		}
 
+		@Override
 		public BufferedStructuredDataSource buffer() {
 			return new BufferedStructuredDataSourceImpl(component.getBuffer());
+		}
+
+		@Override
+		public BufferedStructuredDataSource copy() {
+			return new BufferedStructuredDataSourceImpl(component.getCopy());
 		}
 
 		@Override
@@ -284,11 +291,18 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		}
 
 		public PartialBufferedStructuredDataSource getSplit() {
+			// TODO should pre-consume to current position
 			return new PartialBufferedStructuredDataSource(headStack, tailStack,
 					index, true);
 		}
 
 		public PartialBufferedStructuredDataSource getBuffer() {
+			// TODO should only reset to current position
+			return new PartialBufferedStructuredDataSource(headStack, tailStack,
+					index, false);
+		}
+
+		public PartialBufferedStructuredDataSource getCopy() {
 			return new PartialBufferedStructuredDataSource(headStack, tailStack,
 					index, false);
 		}
@@ -411,7 +425,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 					|| indexAtDepth() != thatCopy.indexAtDepth())
 				return false;
 
-			thatCopy = thatCopy.split();
+			thatCopy = thatCopy.copy();
 			thatCopy.reset();
 
 			return root()

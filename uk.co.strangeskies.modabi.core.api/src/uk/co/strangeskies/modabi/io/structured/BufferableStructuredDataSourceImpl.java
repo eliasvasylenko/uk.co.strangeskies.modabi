@@ -18,32 +18,137 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import java.util.List;
+import java.util.Set;
+
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBufferManager;
 
 public class BufferableStructuredDataSourceImpl extends
-		StructuredDataSourceWrapper {
-	private final StructuredDataTargetBufferManager buffers = BufferingStructuredDataTarget
-			.multipleBuffers();
+		StructuredDataSourceWrapper implements BufferedStructuredDataSource {
+	private final StructuredDataSource wrappedComponent;
+	private final StructuredDataSource buffer;
+	private final StructuredDataTargetBufferManager buffers;
 
 	public BufferableStructuredDataSourceImpl(StructuredDataSource component) {
-		super(component);
+		this(component, BufferingStructuredDataTarget.multipleBuffers());
+	}
+
+	private BufferableStructuredDataSourceImpl(StructuredDataSource component,
+			StructuredDataTargetBufferManager buffers) {
+		this(component, buffers, buffers.openConsumableBuffer());
+	}
+
+	private BufferableStructuredDataSourceImpl(StructuredDataSource component,
+			StructuredDataTargetBufferManager buffers, StructuredDataSource buffer) {
+		super(wrapComponent(component, buffer));
+
+		this.wrappedComponent = component;
+		this.buffers = buffers;
+		this.buffer = buffer;
+	}
+
+	protected static StructuredDataSource wrapComponent(
+			StructuredDataSource component, StructuredDataSource buffer) {
+		return new StructuredDataSource() {
+			@Override
+			public QualifiedName startNextChild() {
+				return buffer.startNextChild();
+			}
+
+			@Override
+			public StructuredDataState currentState() {
+				throw new AssertionError();
+			}
+
+			@Override
+			public BufferedStructuredDataSource buffer() {
+				throw new AssertionError();
+			}
+
+			@Override
+			public StructuredDataSource split() {
+				throw new AssertionError();
+			}
+
+			@Override
+			public DataSource readProperty(QualifiedName name) {
+				return buffer.readProperty(name);
+			}
+
+			@Override
+			public DataSource readContent() {
+				return buffer.readContent();
+			}
+
+			@Override
+			public QualifiedName peekNextChild() {
+				return buffer.peekNextChild();
+			}
+
+			@Override
+			public int indexAtDepth() {
+				return buffer.indexAtDepth();
+			}
+
+			@Override
+			public boolean hasNextChild() {
+				return buffer.hasNextChild();
+			}
+
+			@Override
+			public Set<QualifiedName> getProperties() {
+				return buffer.getProperties();
+			}
+
+			@Override
+			public Set<Namespace> getNamespaceHints() {
+				return buffer.getNamespaceHints();
+			}
+
+			@Override
+			public Namespace getDefaultNamespaceHint() {
+				return buffer.getDefaultNamespaceHint();
+			}
+
+			@Override
+			public List<String> getComments() {
+				return buffer.getComments();
+			}
+
+			@Override
+			public void endChild() {
+				buffer.endChild();
+			}
+
+			@Override
+			public int depth() {
+				return buffer.depth();
+			}
+		};
+	}
+
+	@Override
+	public BufferedStructuredDataSource copy() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public StructuredDataSource split() {
-		// TODO Auto-generated method stub
-
-		StructuredDataSource buffer = buffers.openConsumableBuffer();
-
-		return null;
+		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers,
+				buffer.split());
 	}
 
 	@Override
 	public BufferedStructuredDataSource buffer() {
-		// TODO Auto-generated method stub
+		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers,
+				buffer.buffer());
+	}
 
-		BufferedStructuredDataSource buffer = buffers.openBuffer();
-
-		return null;
+	@Override
+	public void reset() {
+		throw new UnsupportedOperationException();
 	}
 }
