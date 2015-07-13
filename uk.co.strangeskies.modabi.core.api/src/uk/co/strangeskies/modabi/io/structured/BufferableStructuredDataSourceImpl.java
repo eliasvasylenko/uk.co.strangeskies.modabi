@@ -18,17 +18,32 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-public abstract class SplittingStructuredDataSourceImpl extends
-		StructuredDataSourceImpl {
+import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBufferManager;
+
+public class BufferableStructuredDataSourceImpl extends
+		StructuredDataSourceWrapper {
+	private final StructuredDataTargetBufferManager buffers = BufferingStructuredDataTarget
+			.multipleBuffers();
+
+	public BufferableStructuredDataSourceImpl(StructuredDataSource component) {
+		super(component);
+	}
+
 	@Override
 	public StructuredDataSource split() {
 		// TODO Auto-generated method stub
+
+		StructuredDataSource buffer = buffers.openConsumableBuffer();
+
 		return null;
 	}
 
 	@Override
 	public BufferedStructuredDataSource buffer() {
 		// TODO Auto-generated method stub
+
+		BufferedStructuredDataSource buffer = buffers.openBuffer();
+
 		return null;
 	}
 }

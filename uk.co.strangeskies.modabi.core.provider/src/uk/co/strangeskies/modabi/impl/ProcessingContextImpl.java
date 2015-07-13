@@ -258,7 +258,7 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 		});
 	}
 
-	public abstract <T> S withProvision(TypeToken<T> providedClass,
+	protected abstract <T> S withProvision(TypeToken<T> providedClass,
 			Function<? super S, T> provider, ProcessingProvisions provisions);
 
 	public Model.Effective<?> getModel(QualifiedName nextElement) {

@@ -39,9 +39,13 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.IOException;
-import uk.co.strangeskies.modabi.io.structured.SplittingStructuredDataSourceImpl;
+import uk.co.strangeskies.modabi.io.structured.BufferableStructuredDataSourceImpl;
+import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceWrapper;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
-public class XMLSource extends SplittingStructuredDataSourceImpl {
+public class XMLSource implements StructuredDataSource {
 	private final XMLStreamReader in;
 	private final Deque<Integer> currentLocation;
 
@@ -50,7 +54,7 @@ public class XMLSource extends SplittingStructuredDataSourceImpl {
 	private final Map<QualifiedName, DataSource> properties;
 	private String content;
 
-	public XMLSource(XMLStreamReader in) {
+	private XMLSource(XMLStreamReader in) {
 		this.in = in;
 		currentLocation = new ArrayDeque<>();
 
@@ -60,8 +64,12 @@ public class XMLSource extends SplittingStructuredDataSourceImpl {
 		pumpEvents();
 	}
 
-	public XMLSource(InputStream in) {
-		this(createXMLStreamReader(in));
+	public static StructuredDataSourceWrapper from(InputStream in) {
+		return from(createXMLStreamReader(in));
+	}
+
+	public static StructuredDataSourceWrapper from(XMLStreamReader in) {
+		return new BufferableStructuredDataSourceImpl(new XMLSource(in));
 	}
 
 	private static XMLStreamReader createXMLStreamReader(InputStream in) {
@@ -73,12 +81,12 @@ public class XMLSource extends SplittingStructuredDataSourceImpl {
 	}
 
 	@Override
-	public Namespace getDefaultNamespaceHintImpl() {
+	public Namespace getDefaultNamespaceHint() {
 		return Namespace.parseHttpString(in.getNamespaceURI());
 	}
 
 	@Override
-	public Set<Namespace> getNamespaceHintsImpl() {
+	public Set<Namespace> getNamespaceHints() {
 		Set<Namespace> namespaces = new HashSet<>();
 		for (int i = 0; i < in.getNamespaceCount(); i++)
 			namespaces.add(Namespace.parseHttpString(in.getNamespaceURI(i)));
@@ -86,7 +94,7 @@ public class XMLSource extends SplittingStructuredDataSourceImpl {
 	}
 
 	@Override
-	public QualifiedName startNextChildImpl() {
+	public QualifiedName startNextChild() {
 		if (nextChild == null)
 			throw new IOException();
 
@@ -188,17 +196,17 @@ public class XMLSource extends SplittingStructuredDataSourceImpl {
 	}
 
 	@Override
-	public DataSource readPropertyImpl(QualifiedName name) {
+	public DataSource readProperty(QualifiedName name) {
 		return properties.get(name);
 	}
 
 	@Override
-	public DataSource readContentImpl() {
+	public DataSource readContent() {
 		return DataSource.parseString(content, this::parseName);
 	}
 
 	@Override
-	public void endChildImpl() {
+	public void endChild() {
 		if (nextChild != null)
 			while (pumpEvents() != null)
 				;
@@ -219,7 +227,22 @@ public class XMLSource extends SplittingStructuredDataSourceImpl {
 	}
 
 	@Override
-	public List<String> getCommentsImpl() {
+	public List<String> getComments() {
 		return comments;
+	}
+
+	@Override
+	public StructuredDataState currentState() {
+		throw new AssertionError();
+	}
+
+	@Override
+	public StructuredDataSource split() {
+		throw new AssertionError();
+	}
+
+	@Override
+	public BufferedStructuredDataSource buffer() {
+		throw new AssertionError();
 	}
 }

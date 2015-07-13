@@ -60,7 +60,7 @@ public class BenchmarkRunner {
 				}
 			}
 
-			StructuredDataSource benchmarkSchemaResource = new XMLSource(getClass()
+			StructuredDataSource benchmarkSchemaResource = XMLSource.from(getClass()
 					.getResourceAsStream("/BenchmarkSchema.xml"));
 			manager.registerSchemaBinding(benchmarkSchemaResource);
 
@@ -167,7 +167,7 @@ public class BenchmarkRunner {
 		long start = System.currentTimeMillis();
 
 		try (FileInputStream fis = new FileInputStream(file)) {
-			manager.bind(new XMLSource(fis));
+			manager.bind(XMLSource.from(fis));
 
 			long end = System.currentTimeMillis();
 

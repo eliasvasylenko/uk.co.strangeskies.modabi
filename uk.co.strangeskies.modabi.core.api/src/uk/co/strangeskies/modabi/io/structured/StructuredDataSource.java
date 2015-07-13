@@ -136,6 +136,7 @@ public interface StructuredDataSource {
 	}
 
 	public default BufferedStructuredDataSource bufferNextChild() {
-		return pipeNextChild(new BufferingStructuredDataTarget(false)).getBuffer();
+		return pipeNextChild(BufferingStructuredDataTarget.singleBuffer())
+				.getBuffer();
 	}
 }

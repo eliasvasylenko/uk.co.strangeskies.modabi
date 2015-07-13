@@ -180,7 +180,7 @@ public class DataNodeBinder {
 
 			Property<U, U> result = new IdentityProperty<U>();
 
-			context.attemptUntilSuccessful(
+			context.attemptBindingUntilSuccessful(
 					overrides.keySet(),
 					(c, n) -> result.set(new BindingNodeBinder(c).bind(overrides
 							.putGet(n))),

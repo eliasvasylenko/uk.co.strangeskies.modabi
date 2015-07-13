@@ -176,7 +176,7 @@ public class BindingNodeBinder {
 				@Override
 				public void accept(ChoiceNode.Effective node) {
 					try {
-						context.withBindingNode(node).attemptUntilSuccessful(
+						context.withBindingNode(node).attemptBindingUntilSuccessful(
 								node.children(),
 								(c, n) -> bindChild(n, c),
 								n -> new BindingException(

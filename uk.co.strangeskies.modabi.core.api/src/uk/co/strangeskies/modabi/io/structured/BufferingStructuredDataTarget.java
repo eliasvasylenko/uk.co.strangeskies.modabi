@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -38,6 +40,7 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.utilities.IdentityComparator;
 
 /**
  * It shouldn't matter in what order attributes are added to a child, or whether
@@ -54,439 +57,570 @@ import uk.co.strangeskies.modabi.io.IOException;
  * @author Elias N Vasylenko
  *
  */
-public class BufferingStructuredDataTarget extends
-		StructuredDataTargetImpl<BufferingStructuredDataTarget> {
-	private final BufferedStructuredDataSourceImpl buffer;
+public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
+		extends StructuredDataTargetImpl<S> {
+	public static class StructuredDataTargetBufferManager extends
+			BufferingStructuredDataTarget<StructuredDataTargetBufferManager> {
+		public BufferedStructuredDataSource openBuffer() {
+			return openBuffer(false);
+		}
 
-	public BufferingStructuredDataTarget() {
-		this(false);
+		public StructuredDataSource openConsumableBuffer() {
+			return openBuffer(true);
+		}
 	}
 
-	public BufferingStructuredDataTarget(boolean consumable) {
-		buffer = new BufferedStructuredDataSourceImpl(consumable);
+	public static class StructuredDataTargetBuffer extends
+			BufferingStructuredDataTarget<StructuredDataTargetBuffer> {
+		private final BufferedStructuredDataSource buffer;
+
+		public StructuredDataTargetBuffer() {
+			buffer = openBuffer(false);
+		}
+
+		public BufferedStructuredDataSource getBuffer() {
+			return buffer;
+		}
+	}
+
+	public static class ConsumableStructuredDataTargetBuffer extends
+			BufferingStructuredDataTarget<ConsumableStructuredDataTargetBuffer> {
+		private final StructuredDataSource buffer;
+
+		public ConsumableStructuredDataTargetBuffer() {
+			buffer = openBuffer(true);
+		}
+
+		public StructuredDataSource getBuffer() {
+			return buffer;
+		}
+	}
+
+	private final List<WeakReference<BufferedStructuredDataSourceImpl>> buffers;
+
+	private BufferingStructuredDataTarget() {
+		buffers = new ArrayList<>();
+	}
+
+	public static StructuredDataTargetBuffer singleBuffer() {
+		return new StructuredDataTargetBuffer();
+	}
+
+	public static ConsumableStructuredDataTargetBuffer singleConsumableBuffer() {
+		return new ConsumableStructuredDataTargetBuffer();
+	}
+
+	public static StructuredDataTargetBufferManager multipleBuffers() {
+		return new StructuredDataTargetBufferManager();
+	}
+
+	private void forEachHead(Consumer<StructuredDataBuffer> perform) {
+		if (buffers.isEmpty())
+			return;
+		else if (buffers.size() == 1) {
+			BufferedStructuredDataSourceImpl buffer = buffers.iterator().next().get();
+			if (buffer != null) {
+				perform.accept(buffer.component().peekHead());
+			} else {
+				buffers.clear();
+			}
+		} else {
+			Set<StructuredDataBuffer> bufferHeads = new TreeSet<>(
+					new IdentityComparator<>());
+			forEachBuffer(buffer -> {
+				StructuredDataBuffer bufferHead = buffer.component().peekHead();
+				if (bufferHeads.add(bufferHead)) {
+					perform.accept(bufferHead);
+				}
+			});
+		}
+	}
+
+	private void forEachBuffer(Consumer<BufferedStructuredDataSourceImpl> perform) {
+		if (buffers.isEmpty())
+			return;
+		else {
+			Iterator<WeakReference<BufferedStructuredDataSourceImpl>> bufferIterator = buffers
+					.iterator();
+
+			while (bufferIterator.hasNext()) {
+				BufferedStructuredDataSourceImpl buffer = bufferIterator.next().get();
+				if (buffer != null) {
+					perform.accept(buffer);
+				} else {
+					bufferIterator.remove();
+				}
+			}
+		}
 	}
 
 	@Override
 	public void registerDefaultNamespaceHintImpl(Namespace namespace) {
-		buffer.peekHead().setDefaultNamespaceHint(namespace);
+		forEachHead(h -> h.setDefaultNamespaceHint(namespace));
 	}
 
 	@Override
 	public void registerNamespaceHintImpl(Namespace namespace) {
-		buffer.peekHead().addNamespaceHint(namespace);
+		forEachHead(h -> h.addNamespaceHint(namespace));
 	}
 
 	@Override
 	public DataTarget writePropertyImpl(QualifiedName name) {
 		BufferingDataTarget target = new BufferingDataTarget();
-		buffer.peekHead().addProperty(name, target);
+		forEachHead(h -> h.addProperty(name, target));
 		return target;
 	}
 
 	@Override
 	public DataTarget writeContentImpl() {
 		BufferingDataTarget target = new BufferingDataTarget();
-		buffer.peekHead().addContent(target);
+		forEachHead(h -> h.addContent(target));
 		return target;
 	}
 
 	@Override
 	public void nextChildImpl(QualifiedName name) {
-		buffer.pushHead(new StructuredDataBuffer(name));
+		StructuredDataBuffer child = new StructuredDataBuffer(name);
+		forEachBuffer(b -> b.component().pushHead(child));
 	}
 
 	@Override
 	public void endChildImpl() {
-		buffer.popHead();
+		forEachBuffer(b -> b.component().popHead());
 	}
 
-	public BufferedStructuredDataSource getBuffer() {
-		return buffer;
+	protected BufferedStructuredDataSource openBuffer(boolean consumable) {
+		return new BufferedStructuredDataSourceImpl(consumable);
 	}
 
 	@Override
 	public void commentImpl(String comment) {
-		buffer.peekHead().comment(comment);
-	}
-}
-
-class BufferedStructuredDataSourceImpl extends StructuredDataSourceImpl
-		implements BufferedStructuredDataSource {
-	private int startDepth;
-	/*
-	 * Where new structured data is added to the front of the buffer:
-	 */
-	private final Deque<StructuredDataBuffer> headStack;
-	/*
-	 * Where structured data is read from the back of the buffer:
-	 */
-	private final Deque<StructuredDataBuffer> tailStack;
-	private final Deque<Integer> index;
-	private final boolean consumable;
-
-	public BufferedStructuredDataSourceImpl(boolean consumable) {
-		this(Arrays.asList(new StructuredDataBuffer((QualifiedName) null)), Arrays
-				.asList(0), consumable);
+		forEachHead(h -> h.comment(comment));
 	}
 
-	public BufferedStructuredDataSourceImpl(List<StructuredDataBuffer> stack,
-			List<Integer> index, boolean consumable) {
-		this(new ArrayDeque<>(stack), new ArrayDeque<>(stack), new ArrayDeque<>(
-				index), consumable);
-	}
+	class BufferedStructuredDataSourceImpl extends StructuredDataSourceWrapper
+			implements BufferedStructuredDataSource {
+		private PartialBufferedStructuredDataSource component;
 
-	private BufferedStructuredDataSourceImpl(
-			Deque<StructuredDataBuffer> headStack,
-			Deque<StructuredDataBuffer> tailStack, Deque<Integer> index,
-			boolean consumable) {
-		this.headStack = headStack;
-		this.tailStack = tailStack;
-		this.index = index;
-		this.startDepth = tailStack.size() - 1;
-		this.consumable = consumable;
-
-		reset();
-	}
-
-	public StructuredDataBuffer peekHead() {
-		return headStack.peek();
-	}
-
-	public void pushHead(StructuredDataBuffer child) {
-		headStack.push(child);
-	}
-
-	public void popHead() {
-		StructuredDataBuffer element = headStack.pop();
-		element.endChild();
-
-		if (headStack.isEmpty()) {
-			StructuredDataBuffer base = new StructuredDataBuffer((QualifiedName) null);
-			headStack.addFirst(base);
-			tailStack.addFirst(base);
-			index.addFirst(0);
-			startDepth++;
+		public BufferedStructuredDataSourceImpl(boolean consumable) {
+			this(new PartialBufferedStructuredDataSource(consumable));
 		}
 
-		headStack.peek().addChild(element);
+		private BufferedStructuredDataSourceImpl(
+				PartialBufferedStructuredDataSource partial) {
+			super(partial);
+			component = partial;
+
+			buffers.add(new WeakReference<>(this));
+		}
+
+		public BufferedStructuredDataSourceImpl split() {
+			return new BufferedStructuredDataSourceImpl(component.getSplit());
+		}
+
+		public BufferedStructuredDataSource buffer() {
+			return new BufferedStructuredDataSourceImpl(component.getBuffer());
+		}
+
+		@Override
+		public void reset() {
+			component.reset();
+		}
+
+		public PartialBufferedStructuredDataSource component() {
+			return component;
+		}
 	}
 
-	@Override
-	public Namespace getDefaultNamespaceHintImpl() {
-		return tailStack.peek().defaultNamespaceHint();
-	}
+	class PartialBufferedStructuredDataSource implements StructuredDataSource {
+		private int startDepth;
+		/*
+		 * Where new structured data is added to the front of the buffer:
+		 */
+		private final Deque<StructuredDataBuffer> headStack;
+		/*
+		 * Where structured data is read from the back of the buffer:
+		 */
+		private final Deque<StructuredDataBuffer> tailStack;
+		private final Deque<Integer> index;
+		private final boolean consumable;
 
-	@Override
-	public Set<Namespace> getNamespaceHintsImpl() {
-		return tailStack.peek().namespaceHints();
-	}
+		public PartialBufferedStructuredDataSource(boolean consumable) {
+			this(Arrays.asList(new StructuredDataBuffer((QualifiedName) null)),
+					Arrays.asList(0), consumable);
+		}
 
-	@Override
-	public List<String> getCommentsImpl() {
-		return tailStack.peek().comments();
-	}
+		public PartialBufferedStructuredDataSource(
+				List<StructuredDataBuffer> stack, List<Integer> index,
+				boolean consumable) {
+			this(new ArrayDeque<>(stack), new ArrayDeque<>(stack), new ArrayDeque<>(
+					index), consumable);
+		}
 
-	@Override
-	public DataSource readPropertyImpl(QualifiedName name) {
-		return tailStack.peek().propertyData(name);
-	}
+		private PartialBufferedStructuredDataSource(
+				Deque<StructuredDataBuffer> headStack,
+				Deque<StructuredDataBuffer> tailStack, Deque<Integer> index,
+				boolean consumable) {
+			this.headStack = headStack;
+			this.tailStack = tailStack;
+			this.index = index;
+			this.startDepth = tailStack.size() - 1;
+			this.consumable = consumable;
 
-	@Override
-	public Set<QualifiedName> getProperties() {
-		return tailStack.peek().properties();
-	}
+			reset();
+		}
 
-	@Override
-	public QualifiedName startNextChildImpl() {
-		StructuredDataBuffer child = tailStack.peek().getChild(
-				consumable ? 0 : index.peek());
+		public void reset() {
+			StructuredDataBuffer root = root();
 
-		index.push(index.pop() + 1);
+			tailStack.clear();
+			tailStack.push(root);
+			index.clear();
+			index.push(0);
 
-		if (child == null)
+			int depth = startDepth;
+			while (depth-- > 0)
+				startNextChild();
+		}
+
+		public PartialBufferedStructuredDataSource getSplit() {
+			return new PartialBufferedStructuredDataSource(headStack, tailStack,
+					index, true);
+		}
+
+		public PartialBufferedStructuredDataSource getBuffer() {
+			return new PartialBufferedStructuredDataSource(headStack, tailStack,
+					index, false);
+		}
+
+		public StructuredDataBuffer peekHead() {
+			return headStack.peek();
+		}
+
+		public void pushHead(StructuredDataBuffer child) {
+			headStack.push(child);
+		}
+
+		public void popHead() {
+			StructuredDataBuffer element = headStack.pop();
+			element.endChild();
+
+			if (headStack.isEmpty()) {
+				StructuredDataBuffer base = new StructuredDataBuffer(
+						(QualifiedName) null);
+				headStack.addFirst(base);
+				tailStack.addFirst(base);
+				index.addFirst(0);
+				startDepth++;
+			}
+
+			headStack.peek().addChild(element);
+		}
+
+		@Override
+		public Namespace getDefaultNamespaceHint() {
+			return tailStack.peek().defaultNamespaceHint();
+		}
+
+		@Override
+		public Set<Namespace> getNamespaceHints() {
+			return tailStack.peek().namespaceHints();
+		}
+
+		@Override
+		public List<String> getComments() {
+			return tailStack.peek().comments();
+		}
+
+		@Override
+		public DataSource readProperty(QualifiedName name) {
+			return tailStack.peek().propertyData(name);
+		}
+
+		@Override
+		public Set<QualifiedName> getProperties() {
+			return tailStack.peek().properties();
+		}
+
+		@Override
+		public QualifiedName startNextChild() {
+			StructuredDataBuffer child = tailStack.peek().getChild(
+					consumable ? 0 : index.peek(), consumable);
+
+			index.push(index.pop() + 1);
+
+			if (child == null)
+				return null;
+
+			tailStack.push(child);
+			index.push(0);
+
+			return child.name();
+		}
+
+		@Override
+		public QualifiedName peekNextChild() {
+			StructuredDataBuffer buffer = tailStack.peek();
+
+			if (buffer != null) {
+				buffer = tailStack.peek().getChild(index.peek(), false);
+
+				if (buffer != null)
+					return buffer.name();
+			}
+
 			return null;
-
-		tailStack.push(child);
-		index.push(0);
-
-		return child.name();
-	}
-
-	@Override
-	public QualifiedName peekNextChild() {
-		StructuredDataBuffer buffer = tailStack.peek();
-
-		if (buffer != null) {
-			buffer = tailStack.peek().getChild(index.peek());
-
-			if (buffer != null)
-				return buffer.name();
 		}
 
-		return null;
-	}
-
-	@Override
-	public boolean hasNextChild() {
-		return tailStack.peek().hasChild(index.peek());
-	}
-
-	@Override
-	public void endChildImpl() {
-		if (!tailStack.peek().isEnded())
-			throw new IllegalStateException();
-
-		tailStack.pop();
-		index.pop();
-
-		if (consumable) {
-			tailStack.push(tailStack.pop().consumeFirst());
+		@Override
+		public boolean hasNextChild() {
+			return tailStack.peek().hasChild(index.peek());
 		}
-	}
 
-	@Override
-	public DataSource readContentImpl() {
-		DataSource content = tailStack.peek().content();
-		return content == null ? null : content;
-	}
+		@Override
+		public void endChild() {
+			if (!tailStack.peek().isEnded())
+				throw new IllegalStateException();
 
-	@Override
-	public void reset() {
-		StructuredDataBuffer root = root();
+			tailStack.pop();
+			index.pop();
 
-		tailStack.clear();
-		tailStack.push(root);
-		index.clear();
-		index.push(0);
-
-		int depth = startDepth;
-		while (depth > 0)
-			startNextChild();
-	}
-
-	@Override
-	public BufferedStructuredDataSourceImpl split() {
-		BufferedStructuredDataSourceImpl copy = new BufferedStructuredDataSourceImpl(
-				headStack, tailStack, index, true);
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public BufferedStructuredDataSource buffer() {
-		throw new UnsupportedOperationException();
-	}
-
-	private StructuredDataBuffer root() {
-		return tailStack.getLast();
-	}
-
-	@Override
-	public boolean equals(Object that) {
-		if (!(that instanceof BufferedStructuredDataSource))
-			return false;
-
-		BufferedStructuredDataSource thatCopy = (BufferedStructuredDataSource) that;
-
-		if (depth() != thatCopy.depth()
-				|| indexAtDepth() != thatCopy.indexAtDepth())
-			return false;
-
-		thatCopy = thatCopy.split();
-		thatCopy.reset();
-
-		return root().equals(
-				((BufferedStructuredDataSourceImpl) thatCopy.pipeNextChild(
-						new BufferingStructuredDataTarget(false)).getBuffer()).root());
-	}
-
-	@Override
-	public int hashCode() {
-		return root().hashCode() + depth() + indexAtDepth();
-	}
-
-	@Override
-	public int depth() {
-		return tailStack.size();
-	}
-
-	@Override
-	public int indexAtDepth() {
-		return index.peek();
-	}
-}
-
-class StructuredDataBuffer {
-	private final QualifiedName name;
-
-	private final Map<QualifiedName, BufferingDataTarget> properties;
-	private BufferingDataTarget content;
-
-	private final List<StructuredDataBuffer> children;
-	private boolean ended;
-
-	private Namespace defaultNamespaceHint;
-	private final Set<Namespace> namespaceHints;
-
-	private final List<String> comments;
-
-	public StructuredDataBuffer(QualifiedName name) {
-		this.name = name;
-		properties = new LinkedHashMap<>();
-
-		children = new ArrayList<>();
-
-		namespaceHints = new HashSet<>();
-		comments = new ArrayList<>();
-		ended = false;
-	}
-
-	public StructuredDataBuffer(StructuredDataBuffer from) {
-		name = from.name;
-		properties = from.properties;
-
-		if (from.children.isEmpty())
-			children = Collections.emptyList();
-		else {
-			Iterator<StructuredDataBuffer> childrenIterator = from.children
-					.iterator();
-			childrenIterator.next();
-			children = new ArrayList<>(from.children.size() - 1);
-			while (childrenIterator.hasNext()) {
-				children.add(childrenIterator.next());
+			if (consumable) {
+				tailStack.peek().children.remove(0);
 			}
 		}
 
-		namespaceHints = from.namespaceHints;
-		comments = from.comments;
-		ended = from.ended;
+		@Override
+		public DataSource readContent() {
+			DataSource content = tailStack.peek().content();
+			return content == null ? null : content;
+		}
+
+		private StructuredDataBuffer root() {
+			return tailStack.getLast();
+		}
+
+		@Override
+		public boolean equals(Object that) {
+			if (!(that instanceof BufferedStructuredDataSource))
+				return false;
+
+			BufferedStructuredDataSource thatCopy = (BufferedStructuredDataSource) that;
+
+			if (depth() != thatCopy.depth()
+					|| indexAtDepth() != thatCopy.indexAtDepth())
+				return false;
+
+			thatCopy = thatCopy.split();
+			thatCopy.reset();
+
+			return root()
+					.equals(
+							((BufferingStructuredDataTarget<?>.BufferedStructuredDataSourceImpl) thatCopy
+									.pipeNextChild(BufferingStructuredDataTarget.singleBuffer())
+									.getBuffer()).component().root());
+		}
+
+		@Override
+		public int hashCode() {
+			return root().hashCode() + depth() + indexAtDepth();
+		}
+
+		@Override
+		public int depth() {
+			return tailStack.size();
+		}
+
+		@Override
+		public int indexAtDepth() {
+			return index.peek();
+		}
+
+		@Override
+		public StructuredDataState currentState() {
+			throw new AssertionError();
+		}
+
+		@Override
+		public StructuredDataSource split() {
+			throw new AssertionError();
+		}
+
+		@Override
+		public BufferedStructuredDataSource buffer() {
+			throw new AssertionError();
+		}
 	}
 
-	public StructuredDataBuffer consumeFirst() {
-		return new StructuredDataBuffer(this);
-	}
+	class StructuredDataBuffer {
+		private final QualifiedName name;
 
-	public boolean isEnded() {
-		return ended;
-	}
+		private final Map<QualifiedName, BufferingDataTarget> properties;
+		private BufferingDataTarget content;
 
-	public void comment(String comment) {
-		if (ended)
-			throw new IllegalStateException();
+		private final List<StructuredDataBuffer> children;
+		private boolean ended;
 
-		comments.add(comment);
-	}
+		private Namespace defaultNamespaceHint;
+		private final Set<Namespace> namespaceHints;
 
-	public void addNamespaceHint(Namespace namespace) {
-		if (ended)
-			throw new IllegalStateException();
+		private final List<String> comments;
 
-		namespaceHints.add(namespace);
-	}
+		public StructuredDataBuffer(QualifiedName name) {
+			this.name = name;
+			properties = new LinkedHashMap<>();
 
-	public void setDefaultNamespaceHint(Namespace namespace) {
-		if (ended)
-			throw new IllegalStateException();
+			children = new ArrayList<>();
 
-		if (defaultNamespaceHint != null)
-			throw new IOException(
-					"Cannot register multiple default namespace hints at any given location.");
-		defaultNamespaceHint = namespace;
-	}
+			namespaceHints = new HashSet<>();
+			comments = new ArrayList<>();
+			ended = false;
+		}
 
-	public void addProperty(QualifiedName name, BufferingDataTarget target) {
-		if (ended)
-			throw new IllegalStateException();
+		public StructuredDataBuffer(StructuredDataBuffer from) {
+			name = from.name;
+			properties = from.properties;
 
-		properties.put(name, target);
-	}
+			children = new ArrayList<>(from.children);
 
-	public void addChild(StructuredDataBuffer element) {
-		if (ended)
-			throw new IllegalStateException();
+			namespaceHints = from.namespaceHints;
+			comments = from.comments;
+			ended = from.ended;
+		}
 
-		children.add(element);
-	}
+		public boolean isEnded() {
+			return ended;
+		}
 
-	public void endChild() {
-		ended = true;
-	}
+		public void comment(String comment) {
+			if (ended)
+				throw new IllegalStateException();
 
-	public void addContent(BufferingDataTarget target) {
-		if (ended)
-			throw new IllegalStateException();
+			comments.add(comment);
+		}
 
-		content = target;
-	}
+		public void addNamespaceHint(Namespace namespace) {
+			if (ended)
+				throw new IllegalStateException();
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof StructuredDataBuffer))
-			return false;
-		StructuredDataBuffer that = (StructuredDataBuffer) obj;
+			namespaceHints.add(namespace);
+		}
 
-		return ended == that.ended
-				&& Objects.equals(defaultNamespaceHint, that.defaultNamespaceHint)
-				&& Objects.equals(namespaceHints, that.namespaceHints)
-				&& Objects.equals(name, that.name)
-				&& Objects.equals(properties, that.properties)
-				&& Objects.equals(content, that.content)
-				&& Objects.equals(children, that.children);
-	}
+		public void setDefaultNamespaceHint(Namespace namespace) {
+			if (ended)
+				throw new IllegalStateException();
 
-	@Override
-	public int hashCode() {
-		int hashCode = (ended ? 1 : 0);
-		if (name != null)
-			hashCode += name.hashCode();
-		if (properties != null)
-			hashCode += properties.hashCode();
-		if (content != null)
-			hashCode += content.hashCode();
-		if (children != null)
-			hashCode += children.hashCode();
-		return hashCode;
-	}
+			if (defaultNamespaceHint != null)
+				throw new IOException(
+						"Cannot register multiple default namespace hints at any given location.");
+			defaultNamespaceHint = namespace;
+		}
 
-	public Set<Namespace> namespaceHints() {
-		return namespaceHints;
-	}
+		public void addProperty(QualifiedName name, BufferingDataTarget target) {
+			if (ended)
+				throw new IllegalStateException();
 
-	public Namespace defaultNamespaceHint() {
-		return defaultNamespaceHint;
-	}
+			properties.put(name, target);
+		}
 
-	public List<String> comments() {
-		return comments;
-	}
+		public void addChild(StructuredDataBuffer element) {
+			if (ended)
+				throw new IllegalStateException();
 
-	public List<StructuredDataBuffer> children() {
-		return children;
-	}
+			children.add(element);
+		}
 
-	public StructuredDataBuffer getChild(int index) {
-		if (index == children.size())
-			return null;
-		return children.get(index++);
-	}
+		public void endChild() {
+			ended = true;
+		}
 
-	public boolean hasChild(int index) {
-		return index < children.size() && index >= 0;
-	}
+		public void addContent(BufferingDataTarget target) {
+			if (ended)
+				throw new IllegalStateException();
 
-	public QualifiedName name() {
-		return name;
-	}
+			content = target;
+		}
 
-	public Set<QualifiedName> properties() {
-		return properties.keySet();
-	}
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof BufferingStructuredDataTarget.StructuredDataBuffer))
+				return false;
+			BufferingStructuredDataTarget<?>.StructuredDataBuffer that = (BufferingStructuredDataTarget<?>.StructuredDataBuffer) obj;
 
-	public DataSource propertyData(QualifiedName name) {
-		return Optional.ofNullable(properties.get(name)).map(p -> p.buffer())
-				.orElse(null);
-	}
+			return ended == that.ended
+					&& Objects.equals(defaultNamespaceHint, that.defaultNamespaceHint)
+					&& Objects.equals(namespaceHints, that.namespaceHints)
+					&& Objects.equals(name, that.name)
+					&& Objects.equals(properties, that.properties)
+					&& Objects.equals(content, that.content)
+					&& Objects.equals(children, that.children);
+		}
 
-	public DataSource content() {
-		return Optional.ofNullable(content).map(p -> p.buffer()).orElse(null);
+		@Override
+		public int hashCode() {
+			int hashCode = (ended ? 1 : 0);
+			if (name != null)
+				hashCode += name.hashCode();
+			if (properties != null)
+				hashCode += properties.hashCode();
+			if (content != null)
+				hashCode += content.hashCode();
+			if (children != null)
+				hashCode += children.hashCode();
+			return hashCode;
+		}
+
+		public Set<Namespace> namespaceHints() {
+			return namespaceHints;
+		}
+
+		public Namespace defaultNamespaceHint() {
+			return defaultNamespaceHint;
+		}
+
+		public List<String> comments() {
+			return comments;
+		}
+
+		public List<StructuredDataBuffer> children() {
+			return children;
+		}
+
+		public StructuredDataBuffer getChild(int index, boolean consuming) {
+			if (index == children.size())
+				return null;
+
+			StructuredDataBuffer child = children.get(index);
+
+			if (consuming) {
+				child = new StructuredDataBuffer(child);
+				children.set(index, child);
+			}
+
+			index++;
+
+			return child;
+		}
+
+		public boolean hasChild(int index) {
+			return index < children.size() && index >= 0;
+		}
+
+		public QualifiedName name() {
+			return name;
+		}
+
+		public Set<QualifiedName> properties() {
+			return properties.keySet();
+		}
+
+		public DataSource propertyData(QualifiedName name) {
+			return Optional.ofNullable(properties.get(name)).map(p -> p.buffer())
+					.orElse(null);
+		}
+
+		public DataSource content() {
+			return Optional.ofNullable(content).map(p -> p.buffer()).orElse(null);
+		}
 	}
 }

@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -28,6 +29,8 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.ProcessingContextImpl;
+import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;
@@ -38,7 +41,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 public class BindingContextImpl extends
 		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<Object> bindingTargetStack;
-	private final StructuredDataSource input;
+	private StructuredDataSource input;
 
 	public BindingContextImpl(SchemaManager manager) {
 		super(manager);
@@ -84,7 +87,7 @@ public class BindingContextImpl extends
 	}
 
 	@Override
-	public <T> BindingContextImpl withProvision(TypeToken<T> providedClass,
+	protected <T> BindingContextImpl withProvision(TypeToken<T> providedClass,
 			Function<? super BindingContextImpl, T> provider,
 			ProcessingContextImpl<BindingContextImpl>.ProcessingProvisions provisions) {
 		return new BindingContextImpl(this, bindingTargetStack, input, provisions);
@@ -115,12 +118,59 @@ public class BindingContextImpl extends
 		return bindingMethod.apply(this);
 	}
 
-	public <I> I attemptUntilSuccessful(Iterable<I> attemptItems,
+	public void attemptBinding(Consumer<BindingContextImpl> bindingMethod) {
+		BindingContextImpl context = this;
+
+		DataSource dataSource = null;
+
+		/*
+		 * Mark output! (by redirecting to a new buffer)
+		 */
+		if (context.provisions().isProvided(DataSource.class)) {
+			dataSource = context.provisions().provide(DataSource.class).copy();
+			DataSource finalSource = dataSource;
+			context = context.withProvision(new TypeToken<DataSource>() {},
+					() -> finalSource);
+		}
+		StructuredDataSource input = this.input.split();
+		context = context.withInput(input);
+
+		/*
+		 * Make unbinding attempt! (Reset output to mark on failure by discarding
+		 * buffer, via exception.)
+		 */
+		bindingMethod.accept(context);
+
+		/*
+		 * Remove mark! (by flushing buffer into output)
+		 */
+		if (dataSource != null) {
+			DataSource originalDataSource = provisions().provide(DataSource.class);
+			while (originalDataSource.index() < dataSource.index())
+				originalDataSource.get();
+		}
+
+		this.input = input;
+	}
+
+	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems,
 			BiConsumer<BindingContextImpl, I> bindingMethod,
 			Function<Set<Exception>, BindingException> onFailure) {
-		/*
-		 * TODO THIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIS
-		 */
-		throw new BindingException("attemptUntilSuccessful unimplemented", this);
+		if (!attemptItems.iterator().hasNext())
+			throw new BindingException("Must supply items for binding attempt.", this);
+
+		Set<Exception> failures = new HashSet<>();
+
+		for (I item : attemptItems)
+			try {
+				attemptBinding(c -> bindingMethod.accept(c, item));
+
+				return item;
+			} catch (Exception e) {
+				e.printStackTrace();
+				failures.add(e);
+			}
+
+		throw onFailure.apply(failures);
 	}
 }

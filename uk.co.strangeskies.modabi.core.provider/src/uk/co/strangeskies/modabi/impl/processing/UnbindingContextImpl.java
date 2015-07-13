@@ -35,6 +35,7 @@ import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -90,7 +91,7 @@ public class UnbindingContextImpl extends
 	}
 
 	@Override
-	public <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
+	protected <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
 			Function<? super UnbindingContextImpl, T> provider,
 			ProcessingProvisions provisions) {
 		return new UnbindingContextImpl(this, unbindingSourceStack, output,
@@ -121,8 +122,8 @@ public class UnbindingContextImpl extends
 
 		BufferingDataTarget dataTarget = null;
 
-		BufferingStructuredDataTarget output = new BufferingStructuredDataTarget()
-				.nextChild(new QualifiedName(""));
+		StructuredDataTargetBuffer output = BufferingStructuredDataTarget
+				.singleBuffer().nextChild(new QualifiedName(""));
 
 		/*
 		 * Mark output! (by redirecting to a new buffer)

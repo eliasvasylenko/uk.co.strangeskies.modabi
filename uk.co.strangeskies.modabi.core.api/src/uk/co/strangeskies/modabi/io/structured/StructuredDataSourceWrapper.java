@@ -26,11 +26,13 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataSourceDecorator;
 
-public abstract class StructuredDataSourceImpl implements StructuredDataSource {
+public class StructuredDataSourceWrapper implements StructuredDataSource {
 	private StructuredDataState currentState;
+	private StructuredDataSource component;
 
-	public StructuredDataSourceImpl() {
+	public StructuredDataSourceWrapper(StructuredDataSource component) {
 		currentState = StructuredDataState.UNSTARTED;
+		this.component = component;
 	}
 
 	@Override
@@ -43,59 +45,44 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 	}
 
 	@Override
-	public abstract QualifiedName peekNextChild();
-
-	@Override
 	public Namespace getDefaultNamespaceHint() {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
-		return getDefaultNamespaceHintImpl();
+		return component.getDefaultNamespaceHint();
 	}
-
-	protected abstract Namespace getDefaultNamespaceHintImpl();
 
 	@Override
 	public Set<Namespace> getNamespaceHints() {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
-		return getNamespaceHintsImpl();
+		return component.getNamespaceHints();
 	}
-
-	protected abstract Set<Namespace> getNamespaceHintsImpl();
 
 	@Override
 	public List<String> getComments() {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START,
 				StructuredDataState.POPULATED_ELEMENT);
-		return getCommentsImpl();
+		return component.getComments();
 	}
-
-	protected abstract List<String> getCommentsImpl();
 
 	@Override
 	public QualifiedName startNextChild() {
 		enterState(StructuredDataState.ELEMENT_START);
-		return startNextChildImpl();
+		return component.startNextChild();
 	}
-
-	protected abstract QualifiedName startNextChildImpl();
 
 	@Override
 	public DataSource readProperty(QualifiedName name) {
-		DataSource property = readPropertyImpl(name);
+		DataSource property = component.readProperty(name);
 		return property == null ? null : new DataSourceDecorator(property.copy());
 	}
 
-	protected abstract DataSource readPropertyImpl(QualifiedName name);
-
 	@Override
 	public DataSource readContent() {
-		DataSource content = readContentImpl();
+		DataSource content = component.readContent();
 		return content == null ? null : new DataSourceDecorator(content.copy());
 	}
-
-	protected abstract DataSource readContentImpl();
 
 	@Override
 	public void endChild() {
@@ -103,8 +90,41 @@ public abstract class StructuredDataSourceImpl implements StructuredDataSource {
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
-		endChildImpl();
+		component.endChild();
 	}
 
-	protected abstract void endChildImpl();
+	@Override
+	public QualifiedName peekNextChild() {
+		return component.peekNextChild();
+	}
+
+	@Override
+	public Set<QualifiedName> getProperties() {
+		return component.getProperties();
+	}
+
+	@Override
+	public boolean hasNextChild() {
+		return component.hasNextChild();
+	}
+
+	@Override
+	public int depth() {
+		return component.depth();
+	}
+
+	@Override
+	public int indexAtDepth() {
+		return component.indexAtDepth();
+	}
+
+	@Override
+	public StructuredDataSource split() {
+		return component.split();
+	}
+
+	@Override
+	public BufferedStructuredDataSource buffer() {
+		return component.buffer();
+	}
 }

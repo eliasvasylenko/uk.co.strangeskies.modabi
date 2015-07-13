@@ -32,10 +32,11 @@ public class StructuredDataTests {
 	public Object[][] createBufferedSources() {
 		return new Object[][] {
 
-				{ new BufferingStructuredDataTarget()
+				{ BufferingStructuredDataTarget.singleBuffer()
 						.nextChild(new QualifiedName("one")).endChild().getBuffer() },
 
-				{ new BufferingStructuredDataTarget()
+				{ BufferingStructuredDataTarget
+						.singleBuffer()
 						.nextChild(new QualifiedName("one"))
 						.writeProperty(new QualifiedName("two"),
 								o -> o.put(DataType.STRING, "twoValue")).endChild().getBuffer() } };
@@ -54,7 +55,7 @@ public class StructuredDataTests {
 	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })
 	public void pipeNextChildTest(BufferedStructuredDataSource bufferedData) {
 		BufferedStructuredDataSource pipedBufferedData = bufferedData
-				.pipeNextChild(new BufferingStructuredDataTarget()).getBuffer();
+				.pipeNextChild(BufferingStructuredDataTarget.singleBuffer()).getBuffer();
 
 		bufferedData.reset();
 		pipedBufferedData.reset();

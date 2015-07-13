@@ -479,7 +479,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.dataType(ValueResolution.class))
 				.addChild(
 						n -> n
-								.sequence() // TODO make choice
+								.choice()
 								.name("providedValue")
 								.addChild(
 										o -> o.data().format(Format.PROPERTY).name("value")
