@@ -81,9 +81,7 @@ public interface StructuredDataSource {
 		endChild();
 	}
 
-	public int depth();
-
-	public int indexAtDepth();
+	public List<Integer> indexStack();
 
 	public StructuredDataSource split();
 

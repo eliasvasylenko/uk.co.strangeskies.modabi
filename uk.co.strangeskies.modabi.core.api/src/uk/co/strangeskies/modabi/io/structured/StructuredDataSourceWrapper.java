@@ -86,7 +86,7 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 
 	@Override
 	public void endChild() {
-		if (depth() == 1)
+		if (indexStack().size() == 1)
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
@@ -109,13 +109,8 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 	}
 
 	@Override
-	public int depth() {
-		return component.depth();
-	}
-
-	@Override
-	public int indexAtDepth() {
-		return component.indexAtDepth();
+	public List<Integer> indexStack() {
+		return component.indexStack();
 	}
 
 	@Override

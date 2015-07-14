@@ -74,6 +74,11 @@ public class BufferableStructuredDataSourceImpl extends
 			}
 
 			@Override
+			public List<Integer> indexStack() {
+				throw new AssertionError();
+			}
+
+			@Override
 			public DataSource readProperty(QualifiedName name) {
 				return buffer.readProperty(name);
 			}
@@ -86,11 +91,6 @@ public class BufferableStructuredDataSourceImpl extends
 			@Override
 			public QualifiedName peekNextChild() {
 				return buffer.peekNextChild();
-			}
-
-			@Override
-			public int indexAtDepth() {
-				return buffer.indexAtDepth();
 			}
 
 			@Override
@@ -121,11 +121,6 @@ public class BufferableStructuredDataSourceImpl extends
 			@Override
 			public void endChild() {
 				buffer.endChild();
-			}
-
-			@Override
-			public int depth() {
-				return buffer.depth();
 			}
 		};
 	}

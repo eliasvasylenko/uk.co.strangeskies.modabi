@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,6 +62,10 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		extends StructuredDataTargetImpl<S> {
 	public static class StructuredDataTargetBufferManager extends
 			BufferingStructuredDataTarget<StructuredDataTargetBufferManager> {
+		private StructuredDataTargetBufferManager(List<Integer> indexStack) {
+			super(indexStack);
+		}
+
 		public BufferedStructuredDataSource openBuffer() {
 			return openBuffer(false);
 		}
@@ -74,7 +79,8 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			BufferingStructuredDataTarget<StructuredDataTargetBuffer> {
 		private final BufferedStructuredDataSource buffer;
 
-		public StructuredDataTargetBuffer() {
+		private StructuredDataTargetBuffer(List<Integer> indexStack) {
+			super(indexStack);
 			buffer = openBuffer(false);
 		}
 
@@ -87,7 +93,8 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			BufferingStructuredDataTarget<ConsumableStructuredDataTargetBuffer> {
 		private final StructuredDataSource buffer;
 
-		public ConsumableStructuredDataTargetBuffer() {
+		private ConsumableStructuredDataTargetBuffer(List<Integer> indexStack) {
+			super(indexStack);
 			buffer = openBuffer(true);
 		}
 
@@ -97,21 +104,37 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 	}
 
 	private final List<WeakReference<BufferedStructuredDataSourceImpl>> buffers;
+	private final List<Integer> indexStack;
 
-	private BufferingStructuredDataTarget() {
+	private BufferingStructuredDataTarget(List<Integer> indexStack) {
 		buffers = new ArrayList<>();
+		this.indexStack = indexStack;
 	}
 
 	public static StructuredDataTargetBuffer singleBuffer() {
-		return new StructuredDataTargetBuffer();
+		return singleBuffer(Collections.emptyList());
+	}
+
+	public static StructuredDataTargetBuffer singleBuffer(List<Integer> indexStack) {
+		return new StructuredDataTargetBuffer(indexStack);
 	}
 
 	public static ConsumableStructuredDataTargetBuffer singleConsumableBuffer() {
-		return new ConsumableStructuredDataTargetBuffer();
+		return singleConsumableBuffer(Collections.emptyList());
+	}
+
+	public static ConsumableStructuredDataTargetBuffer singleConsumableBuffer(
+			List<Integer> indexStack) {
+		return new ConsumableStructuredDataTargetBuffer(indexStack);
 	}
 
 	public static StructuredDataTargetBufferManager multipleBuffers() {
-		return new StructuredDataTargetBufferManager();
+		return multipleBuffers(Collections.emptyList());
+	}
+
+	public static StructuredDataTargetBufferManager multipleBuffers(
+			List<Integer> indexStack) {
+		return new StructuredDataTargetBufferManager(indexStack);
 	}
 
 	private void forEachHead(Consumer<StructuredDataBuffer> perform) {
@@ -241,6 +264,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 	class PartialBufferedStructuredDataSource implements StructuredDataSource {
 		private int startDepth;
+
 		/*
 		 * Where new structured data is added to the front of the buffer:
 		 */
@@ -249,6 +273,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		 * Where structured data is read from the back of the buffer:
 		 */
 		private final Deque<StructuredDataBuffer> tailStack;
+
 		private final Deque<Integer> index;
 		private final boolean consumable;
 
@@ -421,8 +446,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 			BufferedStructuredDataSource thatCopy = (BufferedStructuredDataSource) that;
 
-			if (depth() != thatCopy.depth()
-					|| indexAtDepth() != thatCopy.indexAtDepth())
+			if (!indexStack().equals(thatCopy.indexStack()))
 				return false;
 
 			thatCopy = thatCopy.copy();
@@ -437,17 +461,12 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 		@Override
 		public int hashCode() {
-			return root().hashCode() + depth() + indexAtDepth();
+			return root().hashCode() + indexStack().hashCode();
 		}
 
 		@Override
-		public int depth() {
-			return tailStack.size();
-		}
-
-		@Override
-		public int indexAtDepth() {
-			return index.peek();
+		public List<Integer> indexStack() {
+			return new ArrayList<>(index);
 		}
 
 		@Override

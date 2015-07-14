@@ -217,13 +217,8 @@ public class XMLSource implements StructuredDataSource {
 	}
 
 	@Override
-	public int depth() {
-		return currentLocation.size();
-	}
-
-	@Override
-	public int indexAtDepth() {
-		return currentLocation.peek();
+	public List<Integer> indexStack() {
+		return new ArrayList<>(currentLocation);
 	}
 
 	@Override
