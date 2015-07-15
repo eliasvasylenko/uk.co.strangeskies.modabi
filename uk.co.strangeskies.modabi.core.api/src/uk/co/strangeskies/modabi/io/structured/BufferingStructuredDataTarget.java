@@ -285,15 +285,6 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		return stack;
 	}
 
-	private static Deque<Integer> initialIndex(int size) {
-		Deque<Integer> index = new ArrayDeque<>(size);
-
-		for (int i = 0; i < size; i++)
-			index.push(0);
-
-		return index;
-	}
-
 	class PartialBufferedStructuredDataSource implements StructuredDataSource {
 		/*
 		 * Where new structured data is added to the front of the buffer:
@@ -316,9 +307,8 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		public PartialBufferedStructuredDataSource(
 				Collection<StructuredDataBuffer> stack, Collection<Integer> startIndex,
 				boolean consumable) {
-			this(new ArrayDeque<>(stack), new ArrayDeque<>(stack),
-					initialIndex(startIndex.size()), new ArrayList<>(startIndex),
-					consumable, false);
+			this(new ArrayDeque<>(stack), new ArrayDeque<>(stack), new ArrayDeque<>(
+					startIndex), new ArrayList<>(startIndex), consumable, false);
 		}
 
 		private PartialBufferedStructuredDataSource(
@@ -326,10 +316,6 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 				Deque<StructuredDataBuffer> tailStack, Deque<Integer> index,
 				List<Integer> startIndex, boolean consumable,
 				boolean consumeOnConstruction) {
-			List<Integer> givenIndex = null;
-			if (consumeOnConstruction)
-				givenIndex = new ArrayList<>(index);
-
 			this.headStack = headStack;
 			this.tailStack = tailStack;
 			this.index = index;
@@ -337,7 +323,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			this.consumable = consumable;
 
 			if (consumeOnConstruction)
-				consumeToIndex(givenIndex);
+				consumeToIndex(startIndex);
 		}
 
 		public void reset() {
@@ -346,15 +332,20 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			tailStack.clear();
 			tailStack.push(root);
 			index.clear();
-			index.push(0);
+			index.addAll(startIndex);
 
 			int depth = startIndex.size();
 			while (--depth > 0)
-				startNextChild();
+				tailStack.push(tailStack.peek().getChild(0, false));
 		}
 
 		private void consumeToIndex(List<Integer> givenIndex) {
-			// TODO
+			int depth = 0;
+			for (Integer index : givenIndex) {
+				depth++;
+
+				;
+			}
 		}
 
 		public PartialBufferedStructuredDataSource getSplit() {
@@ -419,7 +410,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		@Override
 		public QualifiedName startNextChild() {
 			StructuredDataBuffer child = tailStack.peek().getChild(
-					consumable ? 0 : index.peek(), consumable);
+					getActualTailIndex(), consumable);
 
 			if (child == null)
 				return null;
@@ -428,6 +419,23 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			index.push(0);
 
 			return child.name();
+		}
+
+		private int getActualTailIndex() {
+			if (consumable)
+				return 0;
+
+			if (startIndex.size() < index.size())
+				return index.peek();
+
+			Iterator<Integer> startIndexIterator = startIndex.iterator();
+			Iterator<Integer> indexIterator = index.iterator();
+			for (int i = 1; i < index.size(); i++) {
+				if (startIndexIterator.next() != indexIterator.next())
+					return index.peek();
+			}
+
+			return indexIterator.next() + startIndexIterator.next();
 		}
 
 		@Override

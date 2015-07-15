@@ -479,11 +479,12 @@ public class MetaSchemaImpl implements MetaSchema {
 								.dataType(ValueResolution.class))
 				.addChild(
 						n -> n
-								.sequence()
+								.choice()
 								.name("providedValue")
+								.mandatory(false)
 								.addChild(
 										o -> o.data().format(Format.PROPERTY).name("value")
-												.optional(true).inMethod("provideValue")
+												.inMethod("provideValue")
 												.outMethod("providedValueBuffer")
 												.type(base.derivedTypes().bufferedDataType())))
 				.create();

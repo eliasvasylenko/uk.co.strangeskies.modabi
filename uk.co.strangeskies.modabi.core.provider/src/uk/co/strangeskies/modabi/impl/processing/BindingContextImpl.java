@@ -166,7 +166,6 @@ public class BindingContextImpl extends
 
 				return item;
 			} catch (Exception e) {
-				e.printStackTrace();
 				failures.add(e);
 			}
 
