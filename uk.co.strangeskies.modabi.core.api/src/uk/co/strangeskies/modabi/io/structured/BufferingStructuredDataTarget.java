@@ -285,6 +285,15 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		return stack;
 	}
 
+	private static Deque<Integer> initialIndex(int size) {
+		Deque<Integer> index = new ArrayDeque<>(size);
+
+		for (int i = 0; i < size; i++)
+			index.push(0);
+
+		return index;
+	}
+
 	class PartialBufferedStructuredDataSource implements StructuredDataSource {
 		/*
 		 * Where new structured data is added to the front of the buffer:
@@ -305,10 +314,11 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		}
 
 		public PartialBufferedStructuredDataSource(
-				Collection<StructuredDataBuffer> stack, Collection<Integer> index,
+				Collection<StructuredDataBuffer> stack, Collection<Integer> startIndex,
 				boolean consumable) {
-			this(new ArrayDeque<>(stack), new ArrayDeque<>(stack), new ArrayDeque<>(
-					index), new ArrayList<>(index), consumable, false);
+			this(new ArrayDeque<>(stack), new ArrayDeque<>(stack),
+					initialIndex(startIndex.size()), new ArrayList<>(startIndex),
+					consumable, false);
 		}
 
 		private PartialBufferedStructuredDataSource(
@@ -325,8 +335,6 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			this.index = index;
 			this.startIndex = startIndex;
 			this.consumable = consumable;
-
-			reset();
 
 			if (consumeOnConstruction)
 				consumeToIndex(givenIndex);
@@ -345,7 +353,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 				startNextChild();
 		}
 
-		public void consumeToIndex(List<Integer> givenIndex) {
+		private void consumeToIndex(List<Integer> givenIndex) {
 			// TODO
 		}
 
@@ -413,8 +421,6 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			StructuredDataBuffer child = tailStack.peek().getChild(
 					consumable ? 0 : index.peek(), consumable);
 
-			index.push(index.pop() + 1);
-
 			if (child == null)
 				return null;
 
@@ -450,6 +456,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 			tailStack.pop();
 			index.pop();
+			index.push(index.pop() + 1);
 
 			if (consumable) {
 				tailStack.peek().children.remove(0);
