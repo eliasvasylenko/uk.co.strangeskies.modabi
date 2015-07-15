@@ -81,7 +81,7 @@ public interface StructuredDataSource {
 		endChild();
 	}
 
-	public List<Integer> indexStack();
+	public List<Integer> index();
 
 	public StructuredDataSource split();
 

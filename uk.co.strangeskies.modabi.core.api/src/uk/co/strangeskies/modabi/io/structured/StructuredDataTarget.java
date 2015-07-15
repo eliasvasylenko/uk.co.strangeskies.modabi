@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -75,4 +76,6 @@ public interface StructuredDataTarget {
 	public StructuredDataTarget endChild();
 
 	public StructuredDataTarget comment(String comment);
+
+	public List<Integer> index();
 }

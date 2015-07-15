@@ -74,7 +74,7 @@ public class BufferableStructuredDataSourceImpl extends
 			}
 
 			@Override
-			public List<Integer> indexStack() {
+			public List<Integer> index() {
 				throw new AssertionError();
 			}
 

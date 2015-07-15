@@ -30,7 +30,6 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;

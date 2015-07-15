@@ -217,7 +217,7 @@ public class XMLSource implements StructuredDataSource {
 	}
 
 	@Override
-	public List<Integer> indexStack() {
+	public List<Integer> index() {
 		return new ArrayList<>(currentLocation);
 	}
 

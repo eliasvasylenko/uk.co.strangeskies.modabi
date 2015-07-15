@@ -22,7 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -104,15 +104,15 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 	}
 
 	private final List<WeakReference<BufferedStructuredDataSourceImpl>> buffers;
-	private final List<Integer> indexStack;
+	private final Deque<Integer> indexStack;
 
 	private BufferingStructuredDataTarget(List<Integer> indexStack) {
 		buffers = new ArrayList<>();
-		this.indexStack = indexStack;
+		this.indexStack = new ArrayDeque<>(indexStack);
 	}
 
 	public static StructuredDataTargetBuffer singleBuffer() {
-		return singleBuffer(Collections.emptyList());
+		return singleBuffer(Arrays.asList(0));
 	}
 
 	public static StructuredDataTargetBuffer singleBuffer(List<Integer> indexStack) {
@@ -120,7 +120,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 	}
 
 	public static ConsumableStructuredDataTargetBuffer singleConsumableBuffer() {
-		return singleConsumableBuffer(Collections.emptyList());
+		return singleConsumableBuffer(Arrays.asList(0));
 	}
 
 	public static ConsumableStructuredDataTargetBuffer singleConsumableBuffer(
@@ -129,7 +129,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 	}
 
 	public static StructuredDataTargetBufferManager multipleBuffers() {
-		return multipleBuffers(Collections.emptyList());
+		return multipleBuffers(Arrays.asList(0));
 	}
 
 	public static StructuredDataTargetBufferManager multipleBuffers(
@@ -205,11 +205,16 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 	public void nextChildImpl(QualifiedName name) {
 		StructuredDataBuffer child = new StructuredDataBuffer(name);
 		forEachBuffer(b -> b.component().pushHead(child));
+
+		indexStack.push(0);
 	}
 
 	@Override
 	public void endChildImpl() {
 		forEachBuffer(b -> b.component().popHead());
+
+		indexStack.pop();
+		indexStack.push(indexStack.pop() + 1);
 	}
 
 	protected BufferedStructuredDataSource openBuffer(boolean consumable) {
@@ -226,7 +231,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		private PartialBufferedStructuredDataSource component;
 
 		public BufferedStructuredDataSourceImpl(boolean consumable) {
-			this(new PartialBufferedStructuredDataSource(consumable));
+			this(new PartialBufferedStructuredDataSource(consumable, indexStack));
 		}
 
 		private BufferedStructuredDataSourceImpl(
@@ -262,9 +267,25 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		}
 	}
 
-	class PartialBufferedStructuredDataSource implements StructuredDataSource {
-		private int startDepth;
+	private static Deque<StructuredDataBuffer> initialBuffer(int size) {
+		Deque<StructuredDataBuffer> stack = new ArrayDeque<>(size);
 
+		StructuredDataBuffer base = new StructuredDataBuffer((QualifiedName) null);
+		stack.push(base);
+
+		while (--size > 0) {
+			StructuredDataBuffer child = new StructuredDataBuffer(
+					(QualifiedName) null);
+			stack.push(child);
+
+			base.addChild(child);
+			base = child;
+		}
+
+		return stack;
+	}
+
+	class PartialBufferedStructuredDataSource implements StructuredDataSource {
 		/*
 		 * Where new structured data is added to the front of the buffer:
 		 */
@@ -274,32 +295,41 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		 */
 		private final Deque<StructuredDataBuffer> tailStack;
 
+		private final List<Integer> startIndex;
 		private final Deque<Integer> index;
 		private final boolean consumable;
 
-		public PartialBufferedStructuredDataSource(boolean consumable) {
-			this(Arrays.asList(new StructuredDataBuffer((QualifiedName) null)),
-					Arrays.asList(0), consumable);
+		public PartialBufferedStructuredDataSource(boolean consumable,
+				Collection<Integer> index) {
+			this(initialBuffer(index.size()), index, consumable);
 		}
 
 		public PartialBufferedStructuredDataSource(
-				List<StructuredDataBuffer> stack, List<Integer> index,
+				Collection<StructuredDataBuffer> stack, Collection<Integer> index,
 				boolean consumable) {
 			this(new ArrayDeque<>(stack), new ArrayDeque<>(stack), new ArrayDeque<>(
-					index), consumable);
+					index), new ArrayList<>(index), consumable, false);
 		}
 
 		private PartialBufferedStructuredDataSource(
 				Deque<StructuredDataBuffer> headStack,
 				Deque<StructuredDataBuffer> tailStack, Deque<Integer> index,
-				boolean consumable) {
+				List<Integer> startIndex, boolean consumable,
+				boolean consumeOnConstruction) {
+			List<Integer> givenIndex = null;
+			if (consumeOnConstruction)
+				givenIndex = new ArrayList<>(index);
+
 			this.headStack = headStack;
 			this.tailStack = tailStack;
 			this.index = index;
-			this.startDepth = tailStack.size() - 1;
+			this.startIndex = startIndex;
 			this.consumable = consumable;
 
 			reset();
+
+			if (consumeOnConstruction)
+				consumeToIndex(givenIndex);
 		}
 
 		public void reset() {
@@ -310,26 +340,28 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			index.clear();
 			index.push(0);
 
-			int depth = startDepth;
-			while (depth-- > 0)
+			int depth = startIndex.size();
+			while (--depth > 0)
 				startNextChild();
 		}
 
+		public void consumeToIndex(List<Integer> givenIndex) {
+			// TODO
+		}
+
 		public PartialBufferedStructuredDataSource getSplit() {
-			// TODO should pre-consume to current position
 			return new PartialBufferedStructuredDataSource(headStack, tailStack,
-					index, true);
+					index, startIndex, true, true);
 		}
 
 		public PartialBufferedStructuredDataSource getBuffer() {
-			// TODO should only reset to current position
 			return new PartialBufferedStructuredDataSource(headStack, tailStack,
-					index, false);
+					index, startIndex, false, true);
 		}
 
 		public PartialBufferedStructuredDataSource getCopy() {
 			return new PartialBufferedStructuredDataSource(headStack, tailStack,
-					index, false);
+					index, startIndex, false, false);
 		}
 
 		public StructuredDataBuffer peekHead() {
@@ -345,12 +377,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			element.endChild();
 
 			if (headStack.isEmpty()) {
-				StructuredDataBuffer base = new StructuredDataBuffer(
-						(QualifiedName) null);
-				headStack.addFirst(base);
-				tailStack.addFirst(base);
-				index.addFirst(0);
-				startDepth++;
+				throw new IllegalStateException();
 			}
 
 			headStack.peek().addChild(element);
@@ -446,7 +473,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 			BufferedStructuredDataSource thatCopy = (BufferedStructuredDataSource) that;
 
-			if (!indexStack().equals(thatCopy.indexStack()))
+			if (!index().equals(thatCopy.index()))
 				return false;
 
 			thatCopy = thatCopy.copy();
@@ -461,11 +488,11 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 		@Override
 		public int hashCode() {
-			return root().hashCode() + indexStack().hashCode();
+			return root().hashCode() + index().hashCode();
 		}
 
 		@Override
-		public List<Integer> indexStack() {
+		public List<Integer> index() {
 			return new ArrayList<>(index);
 		}
 
@@ -485,7 +512,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		}
 	}
 
-	class StructuredDataBuffer {
+	static class StructuredDataBuffer {
 		private final QualifiedName name;
 
 		private final Map<QualifiedName, BufferingDataTarget> properties;
@@ -578,7 +605,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 		public boolean equals(Object obj) {
 			if (!(obj instanceof BufferingStructuredDataTarget.StructuredDataBuffer))
 				return false;
-			BufferingStructuredDataTarget<?>.StructuredDataBuffer that = (BufferingStructuredDataTarget<?>.StructuredDataBuffer) obj;
+			StructuredDataBuffer that = (StructuredDataBuffer) obj;
 
 			return ended == that.ended
 					&& Objects.equals(defaultNamespaceHint, that.defaultNamespaceHint)
@@ -625,7 +652,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 
 			StructuredDataBuffer child = children.get(index);
 
-			if (consuming) {
+			if (consuming && child.hasChild(0)) {
 				child = new StructuredDataBuffer(child);
 				children.set(index, child);
 			}

@@ -86,7 +86,7 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 
 	@Override
 	public void endChild() {
-		if (indexStack().size() == 1)
+		if (index().size() == 1)
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
@@ -109,8 +109,8 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 	}
 
 	@Override
-	public List<Integer> indexStack() {
-		return component.indexStack();
+	public List<Integer> index() {
+		return component.index();
 	}
 
 	@Override

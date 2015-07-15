@@ -18,6 +18,10 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -28,11 +32,12 @@ import uk.co.strangeskies.modabi.io.DataTargetDecorator;
 public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImpl<S>>
 		implements StructuredDataTarget {
 	private StructuredDataState currentState;
-	private int depth;
+	private Deque<Integer> index;
 
 	public StructuredDataTargetImpl() {
 		currentState = StructuredDataState.UNSTARTED;
-		depth = 0;
+		index = new ArrayDeque<>();
+		index.push(0);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -98,7 +103,7 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 
 	@Override
 	public S nextChild(QualifiedName name) {
-		depth++;
+		index.push(0);
 		enterState(StructuredDataState.ELEMENT_START);
 		nextChildImpl(name);
 
@@ -137,7 +142,9 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 
 	@Override
 	public S endChild() {
-		if (--depth == 0)
+		index.pop();
+		index.push(index.pop() + 1);
+		if (index.size() == 1)
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
@@ -147,4 +154,9 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 	}
 
 	protected abstract void endChildImpl();
+
+	@Override
+	public List<Integer> index() {
+		return new ArrayList<>(index);
+	}
 }

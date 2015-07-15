@@ -111,12 +111,14 @@ public class ComplexNodeBinder {
 
 				if (extension == null) {
 					throw new BindingException("Cannot find model '" + nextElement
-							+ "' to bind to.", context);
+							+ "' to bind to", context);
 				}
 
 				if (!node.getDataType().isAssignableFrom(extension.getDataType()))
 					throw new BindingException("Named input node '" + nextElement
-							+ "' does not match class of extention point.", context);
+							+ "' of type '" + extension.getDataType()
+							+ "' does not match type '" + node.getDataType()
+							+ "' of extention point", context);
 
 				exactNode = context.getComplexNodeOverrides(node).putGet(
 						(Effective<? extends U>) extension);
