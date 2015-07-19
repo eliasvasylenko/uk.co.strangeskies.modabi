@@ -78,6 +78,11 @@ public class Methods {
 		if (result != null) {
 			if (!allowCast) {
 				method = method.withTargetType(result);
+			} else {
+				/*
+				 * TODO Enforce castability, with special treatment for iterable out
+				 * methods.
+				 */
 			}
 		}
 

@@ -170,6 +170,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				if (inMethod != null) {
 					inInvokable = Invokable.over(inMethod, inputTargetType)
 							.withTargetType(result);
+					try {
+						inInvokable = inInvokable.withLooseApplicability(parameters);
+					} catch (Exception e) {
+						inInvokable = inInvokable
+								.withVariableArityApplicability(parameters);
+					}
 				} else if (context.isConstructorExpected()) {
 					inInvokable = Methods.findConstructor(inputTargetType, parameters)
 							.withTargetType(result);

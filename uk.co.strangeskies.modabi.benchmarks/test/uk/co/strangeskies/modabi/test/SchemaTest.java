@@ -96,7 +96,7 @@ public class SchemaTest {
 		buffered.pipeNextChild(new XMLTarget(System.out));
 
 		System.out.print("Profiling Preparation");
-		for (int i = 1; i <= 80; i++) {
+		for (int i = 1; i <= 60; i++) {
 			if (i % 50 == 0)
 				System.out.println();
 			System.out.print(".");
@@ -111,7 +111,7 @@ public class SchemaTest {
 		}
 		System.out.println();
 
-		int profileRounds = 40;
+		int profileRounds = 20;
 
 		System.out.print("Unbinding Profiling");
 		long startTime = System.currentTimeMillis();

@@ -198,18 +198,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		protected static Invokable<?, ?> getOutMethod(
 				BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
 				TypeToken<?> receiverType, BoundSet bounds) {
-			/*
-			 * TODO
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * TODO When overriding nodes with an existing outMethod, don't bother
-			 * trying to resolve the overload again!!!!!! Just use it and check for
-			 * applicability.
-			 */
+
 			try {
 				boolean outMethodCast = node.isOutMethodCast() != null
 						&& node.isOutMethodCast();
@@ -223,8 +212,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 					resultType = TypeToken.over(resultType.getRawType());
 
 				Invokable<?, ?> outMethod;
-				if (node.getOutMethodName() != null
-						&& node.getOutMethodName().equals("this")) {
+				if ("this".equals(node.getOutMethodName())) {
 					if (!resultType.isAssignableFrom(receiverType)) {
 						throw new SchemaException("Can't use out method 'this' for node '"
 								+ node.getName() + "', as result class '" + resultType
@@ -242,22 +230,24 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				} else if (resultType == null) {
 					throw new SchemaException("Can't find out method for node '"
 							+ node.getName() + "' as result class cannot be found.");
+				} else if (inheritedOutMethod != null) {
+					try {
+						outMethod = Invokable.over(inheritedOutMethod, receiverType)
+								.withLooseApplicability();
+					} catch (Exception e) {
+						outMethod = Invokable.over(inheritedOutMethod, receiverType)
+								.withVariableArityApplicability();
+					}
+
+					if (outMethodCast) {
+						// TODO enforce castability
+					} else {
+						outMethod = outMethod.withTargetType(resultType);
+					}
 				} else {
 					outMethod = Methods.findMethod(
 							generateOutMethodNames(node, resultType.getRawType()),
 							receiverType, false, resultType, outMethodCast);
-
-					if (outMethodCast) {
-						/*
-						 * Enforce castability, with special treatment for iterable out
-						 * methods.
-						 */
-						;
-					}
-
-					if (inheritedOutMethod != null
-							&& !outMethod.getExecutable().equals(inheritedOutMethod))
-						throw new SchemaException();
 				}
 
 				if (outMethod != null)

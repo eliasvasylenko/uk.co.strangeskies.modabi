@@ -92,57 +92,61 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 */
 		effectiveDataType = (TypeToken<T>) (TypeToken<? super T>) overrideMerge
 				.getValueWithOverride(this.dataType, BindingNode::getDataType,
-						TypeToken::isAssignableTo);
+						(o, n) -> true);
 		effectiveBindingType = overrideMerge.getValueWithOverride(this.bindingType,
-				BindingNode::getBindingType, TypeToken::isAssignableTo);
+				BindingNode::getBindingType, (o, n) -> true);
 		effectiveUnbindingType = overrideMerge.getValueWithOverride(
-				this.unbindingType, BindingNode::getUnbindingType,
-				TypeToken::isAssignableTo);
+				this.unbindingType, BindingNode::getUnbindingType, (o, n) -> true);
 		effectiveUnbindingFactoryType = overrideMerge.getValueWithOverride(
 				this.unbindingFactoryType, BindingNode::getUnbindingFactoryType,
-				TypeToken::isAssignableTo);
+				(o, n) -> true);
 
 		/*
 		 * Incorporate bounds from inherited types.
 		 */
 		if (effectiveDataType != null) {
-			for (TypeToken<?> overriddenType : overrideMerge
-					.getOverridenValues(BindingNode::getDataType)) {
-				effectiveDataType = effectiveDataType.withUpperBound(overriddenType
-						.deepCopy());
+			if (this.dataType != null) {
+				for (TypeToken<?> overriddenType : overrideMerge
+						.getOverridenValues(BindingNode::getDataType)) {
+					effectiveDataType = effectiveDataType.withUpperBound(overriddenType
+							.deepCopy());
+				}
 			}
 
-			inferenceBounds.incorporate(effectiveDataType.getResolver().getBounds());
+			effectiveDataType.incorporateInto(inferenceBounds);
 		}
 		if (effectiveBindingType != null) {
-			for (TypeToken<?> overriddenType : overrideMerge
-					.getOverridenValues(BindingNode::getBindingType)) {
-				effectiveBindingType = effectiveBindingType
-						.withUpperBound(overriddenType.deepCopy());
+			if (this.bindingType != null) {
+				for (TypeToken<?> overriddenType : overrideMerge
+						.getOverridenValues(BindingNode::getBindingType)) {
+					effectiveBindingType = effectiveBindingType
+							.withUpperBound(overriddenType.deepCopy());
+				}
 			}
 
-			inferenceBounds.incorporate(effectiveBindingType.getResolver()
-					.getBounds());
+			effectiveBindingType.incorporateInto(inferenceBounds);
 		}
 		if (effectiveUnbindingType != null) {
-			for (TypeToken<?> overriddenType : overrideMerge
-					.getOverridenValues(BindingNode::getUnbindingType)) {
-				effectiveUnbindingType = effectiveUnbindingType
-						.withUpperBound(overriddenType.deepCopy());
+			if (this.unbindingType != null) {
+				for (TypeToken<?> overriddenType : overrideMerge
+						.getOverridenValues(BindingNode::getUnbindingType)) {
+					effectiveUnbindingType = effectiveUnbindingType
+							.withUpperBound(overriddenType.deepCopy());
+				}
 			}
 
-			inferenceBounds.incorporate(effectiveUnbindingType.getResolver()
-					.getBounds());
+			effectiveUnbindingType.incorporateInto(inferenceBounds);
 		}
 		if (effectiveUnbindingFactoryType != null) {
-			for (TypeToken<?> overriddenType : overrideMerge
-					.getOverridenValues(BindingNode::getUnbindingFactoryType)) {
-				effectiveUnbindingFactoryType = effectiveUnbindingFactoryType
-						.withUpperBound(overriddenType.deepCopy());
+			if (this.unbindingFactoryType != null) {
+				for (TypeToken<?> overriddenType : overrideMerge
+						.getOverridenValues(BindingNode::getUnbindingFactoryType)) {
+					effectiveUnbindingFactoryType = effectiveUnbindingFactoryType
+							.withUpperBound(overriddenType.deepCopy());
+				}
 			}
 
-			inferenceBounds.incorporate(effectiveUnbindingFactoryType.getResolver()
-					.getBounds());
+			effectiveUnbindingFactoryType.incorporateInto(inferenceBounds);
 		}
 
 		/*
