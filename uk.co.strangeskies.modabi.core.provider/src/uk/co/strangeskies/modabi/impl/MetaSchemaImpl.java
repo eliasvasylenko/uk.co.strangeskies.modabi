@@ -110,13 +110,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.inMethod("isAbstract").optional(true)).create();
 		modelSet.add(nodeModel);
 
-		Model<ChildNode<?, ?>> childBaseModel = model
-				.configure(loader)
-				.name("childBase", namespace)
-				.isAbstract(true)
+		Model<ChildNode<?, ?>> childBaseModel = model.configure(loader)
+				.name("childBase", namespace).isAbstract(true)
 				.dataType(new TypeToken<ChildNode<?, ?>>() {})
-				.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
-				.create();
+				.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}).create();
 		modelSet.add(childBaseModel);
 
 		Model<SchemaNode<?, ?>> branchModel = model
@@ -478,16 +475,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true).type(base.derivedTypes().enumType())
 								.dataType(ValueResolution.class))
 				.addChild(
-						n -> n
-								.choice()
-								.name("providedValue")
-								.mandatory(false)
-								.addChild(
-										o -> o.data().format(Format.PROPERTY).name("value")
-												.inMethod("provideValue")
-												.outMethod("providedValueBuffer")
-												.type(base.derivedTypes().bufferedDataType())))
-				.create();
+						o -> o.data().format(Format.PROPERTY).name("value").optional(true)
+								.inMethod("provideValue").outMethod("providedValueBuffer")
+								.type(base.derivedTypes().bufferedDataType())).create();
 		modelSet.add(typedDataModel);
 
 		Model<DataNode<?>> contentModel = model

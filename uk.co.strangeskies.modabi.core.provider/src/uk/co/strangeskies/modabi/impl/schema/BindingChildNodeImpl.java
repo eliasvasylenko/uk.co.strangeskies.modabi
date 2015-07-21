@@ -226,10 +226,10 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 							receiverType.getType(), resultType.getType(), bounds);
 				} else if (receiverType == null) {
 					throw new SchemaException("Can't find out method for node '"
-							+ node.getName() + "' as target class cannot be found.");
+							+ node.getName() + "' as target class cannot be found");
 				} else if (resultType == null) {
 					throw new SchemaException("Can't find out method for node '"
-							+ node.getName() + "' as result class cannot be found.");
+							+ node.getName() + "' as result class cannot be found");
 				} else if (inheritedOutMethod != null) {
 					try {
 						outMethod = Invokable.over(inheritedOutMethod, receiverType)

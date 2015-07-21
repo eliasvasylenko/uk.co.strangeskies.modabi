@@ -175,16 +175,21 @@ public class BindingNodeBinder {
 
 				@Override
 				public void accept(ChoiceNode.Effective node) {
-					try {
-						context.withBindingNode(node).attemptBindingUntilSuccessful(
-								node.children(),
-								(c, n) -> bindChild(n, c),
-								n -> new BindingException(
-										"Option '" + n + "' under choice node '" + node
-												+ "' could not be unbound", context, n));
-					} catch (Exception e) {
-						if (node.isMandatory() != null && node.isMandatory())
-							throw e;
+					if (node.children().size() == 1) {
+						bindChild(node.children().iterator().next(),
+								context.withBindingNode(node));
+					} else if (!node.children().isEmpty()) {
+						try {
+							context.withBindingNode(node).attemptBindingUntilSuccessful(
+									node.children(),
+									(c, n) -> bindChild(n, c),
+									n -> new BindingException("Option '" + n
+											+ "' under choice node '" + node
+											+ "' could not be unbound", context, n));
+						} catch (Exception e) {
+							if (node.isMandatory() != null && node.isMandatory())
+								throw e;
+						}
 					}
 				}
 			});
