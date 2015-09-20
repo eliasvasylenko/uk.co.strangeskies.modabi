@@ -10,6 +10,12 @@ import aQute.bnd.build.Workspace
 buildscript {
   repositories {
     jcenter()
+    ivy {
+      url 'https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact/dist/bundles'
+      layout 'pattern', {
+            artifact '[module]/[artifact]-[revision].[ext]' /* OSGi repo pattern */
+      }
+    }
   }
   dependencies {
     classpath bnd_plugin
@@ -70,8 +76,8 @@ if (projectNames.remove('')) {
 projectNames.each { projectName ->
   include projectName
   def project = getBndProject(workspace, projectName)
-  project?.dependson.each {
-    include it.name
+  project?.getDependson()*.getName().each {
+    include it
   }
 }
 
@@ -88,10 +94,10 @@ def getBndProject(Workspace workspace, String projectName) {
 
   project.getInfo(workspace, "${rootDir} :")
   def errorCount = 0
-  project.warnings.each {
+  project.getWarnings().each {
     println "Warning: ${it}"
   }
-  project.errors.each {
+  project.getErrors().each {
     println "Error  : ${it}"
     errorCount++
   }

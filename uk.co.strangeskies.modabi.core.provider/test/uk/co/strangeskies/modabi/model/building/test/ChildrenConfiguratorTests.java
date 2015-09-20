@@ -23,9 +23,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.testng.Assert;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.experimental.theories.DataPoints;
+import org.junit.experimental.theories.Theories;
+import org.junit.experimental.theories.Theory;
+import org.junit.runner.RunWith;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -39,6 +41,7 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
+@RunWith(Theories.class)
 public class ChildrenConfiguratorTests {
 	private class MergeTestData {
 		private List<SequenceNode> sequences;
@@ -70,29 +73,30 @@ public class ChildrenConfiguratorTests {
 				.collect(Collectors.toList());
 	}
 
-	@DataProvider(name = "mergeData")
-	public Object[][] createMergeTestData() {
-		return new Object[][] {
-				{ new MergeTestData(Arrays.asList(
+	@DataPoints
+	public List<MergeTestData> createMergeTestData() {
+		return Arrays.asList(
+
+				new MergeTestData(Arrays.asList(
 						DummyNodes.sequenceNode("first", "a", "b", "c"),
 						DummyNodes.sequenceNode("second", "1", "2", "3")), qualifyNames(),
-						qualifyNames("a", "b", "c", "1", "2", "3")) },
+						qualifyNames("a", "b", "c", "1", "2", "3")),
 
-				{ new MergeTestData(Arrays.asList(
+				new MergeTestData(Arrays.asList(
 						DummyNodes.sequenceNode("first", "a", "b", "c"),
 						DummyNodes.sequenceNode("second", "1", "2", "3"),
 						DummyNodes.sequenceNode("third", "uno", "dos", "tres")),
 						qualifyNames(), qualifyNames("a", "b", "c", "1", "2", "3", "uno",
-								"dos", "tres")) },
+								"dos", "tres")),
 
-				{ new MergeTestData(Arrays.asList(
+				new MergeTestData(Arrays.asList(
 						DummyNodes.sequenceNode("first", "a", "b", "c", "d"),
 						DummyNodes.sequenceNode("second", "1", "a", "2", "3", "c", "4")),
 						qualifyNames("a", "c"), qualifyNames("1", "a", "b", "2", "3", "c",
-								"d", "4")) } };
+								"d", "4")));
 	}
 
-	@Test(dataProvider = "mergeData")
+	@Theory
 	public void childrenMergeTest(MergeTestData mergeTestData) {
 		BoundSet boundSet = new BoundSet();
 		SequentialChildrenConfigurator configurator = new SequentialChildrenConfigurator(

@@ -1,18 +1,18 @@
--dsannotations:  \
-	*
+-dsannotations: *
+
 Bundle-Name: Modabi - Core
+
 -runee: JavaSE-1.8
--buildpath:  \
-	osgi.enroute.base.api;  \
-		version = latest,  \
-	uk.co.strangeskies.utilities;  \
-		version = latest,  \
-	uk.co.strangeskies.mathematics;  \
-		version = latest,  \
-	uk.co.strangeskies.reflection;  \
-		version = latest,  \
-	org.testng:testng;  \
-		version = latest
+
+-buildpath: \
+	osgi.enroute.base.api,\
+	osgi.enroute.junit.wrapper,\
+	osgi.enroute.hamcrest.wrapper,\
+	org.hamcrest__java-hamcrest,\
+	${ss;utilities},\
+	${ss;mathematics},\
+	${ss;reflection}
+
 Export-Package: \
 	uk.co.strangeskies.modabi,\
 	uk.co.strangeskies.modabi.declarative,\
@@ -23,6 +23,8 @@ Export-Package: \
 	uk.co.strangeskies.modabi.processing.providers,\
 	uk.co.strangeskies.modabi.schema,\
 	uk.co.strangeskies.modabi.schema.building
+	
 -runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
+
 -runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'
 

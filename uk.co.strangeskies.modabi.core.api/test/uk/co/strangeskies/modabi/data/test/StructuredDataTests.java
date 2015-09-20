@@ -18,44 +18,50 @@
  */
 package uk.co.strangeskies.modabi.data.test;
 
-import org.testng.Assert;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.experimental.theories.DataPoints;
+import org.junit.experimental.theories.Theories;
+import org.junit.experimental.theories.Theory;
+import org.junit.runner.RunWith;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataType;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 
+@RunWith(Theories.class)
 public class StructuredDataTests {
-	@DataProvider(name = "bufferedData")
-	public Object[][] createBufferedSources() {
-		return new Object[][] {
-
-				{ BufferingStructuredDataTarget.singleBuffer()
-						.nextChild(new QualifiedName("one")).endChild().getBuffer() },
-
-				{ BufferingStructuredDataTarget
-						.singleBuffer()
-						.nextChild(new QualifiedName("one"))
-						.writeProperty(new QualifiedName("two"),
-								o -> o.put(DataType.STRING, "twoValue")).endChild().getBuffer() } };
-	}
-
+	@DataPoints
 	@Test
-	public void bufferingTargetTest() {
-		createBufferedSources();
+	public List<BufferedStructuredDataSource> createBufferedSourceTest() {
+		List<BufferedStructuredDataSource> sources = new ArrayList<>();
+
+		sources.add(BufferingStructuredDataTarget.singleBuffer()
+				.nextChild(new QualifiedName("one")).endChild().getBuffer());
+
+		sources.add(BufferingStructuredDataTarget
+				.singleBuffer()
+				.nextChild(new QualifiedName("one"))
+				.writeProperty(new QualifiedName("two"),
+						o -> o.put(DataType.STRING, "twoValue")).endChild().getBuffer());
+
+		return sources;
 	}
 
-	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })
+	@Theory
 	public void equalityTest(BufferedStructuredDataSource bufferedData) {
 		Assert.assertEquals(bufferedData, bufferedData.split());
 	}
 
-	@Test(dataProvider = "bufferedData", dependsOnMethods = { "bufferingTargetTest" })
+	@Theory
 	public void pipeNextChildTest(BufferedStructuredDataSource bufferedData) {
 		BufferedStructuredDataSource pipedBufferedData = bufferedData
-				.pipeNextChild(BufferingStructuredDataTarget.singleBuffer()).getBuffer();
+				.pipeNextChild(BufferingStructuredDataTarget.singleBuffer())
+				.getBuffer();
 
 		bufferedData.reset();
 		pipedBufferedData.reset();

@@ -41,7 +41,7 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.IOException;
-import uk.co.strangeskies.utilities.IdentityComparator;
+import uk.co.strangeskies.utilities.EqualityComparator;
 
 /**
  * It shouldn't matter in what order attributes are added to a child, or whether
@@ -149,7 +149,7 @@ public class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarg
 			}
 		} else {
 			Set<StructuredDataBuffer> bufferHeads = new TreeSet<>(
-					new IdentityComparator<>());
+					new EqualityComparator<>((a, b) -> a == b));
 			forEachBuffer(buffer -> {
 				StructuredDataBuffer bufferHead = buffer.component().peekHead();
 				if (bufferHeads.add(bufferHead)) {

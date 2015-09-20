@@ -11,11 +11,21 @@ import aQute.bnd.build.Workspace
 buildscript {
   repositories {
     jcenter()
+    ivy {
+      url 'https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact/dist/bundles'
+      layout 'pattern', {
+            artifact '[module]/[artifact]-[revision].[ext]' /* OSGi repo pattern */
+      }
+    }
   }
 
   dependencies {
-    classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
     classpath bndPlugin
+    classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+    classpath ('org.ajoberstar:gradle-git:1.2.0') {
+      /* Resolve dependency conflict with bndplugin: */
+      exclude group: 'org.apache.httpcomponents'
+    }
   }
 }
 
@@ -27,8 +37,23 @@ if (bndWorkspace == null) {
 
 ext.cnf = rootProject.project(bnd_cnf)
 
-/* Configure the subprojects */
+/* Configure Subprojects */
 subprojects {
+  def bndProject = bndWorkspace.getProject(name)
+  if (bndProject != null) {
+    plugins.apply 'biz.aQute.bnd'
+  }
+}
+
+/* Configure Java Projects */
+apply plugin: 'java'
+def javaProjects() {
+  return subprojects.findAll { new File(it.projectDir, "src").exists() }
+}
+
+/* Source License Generation */
+apply plugin: 'license'
+configure(javaProjects()) {
   apply plugin: 'license'
 
   license {
@@ -43,13 +68,35 @@ subprojects {
       java = 'SLASHSTAR_STYLE'
     }
   }
+}
 
-  def bndProject = bndWorkspace.getProject(name)
-  if (bndProject != null) {
-    plugins.apply 'biz.aQute.bnd'
+/* Javadoc Generation */
+task aggregateJavadoc(type: Javadoc) {
+  options.charSet = 'UTF-8'
+  options.encoding = 'UTF-8'
+  source subprojects.collect {project -> project.sourceSets{main.allJava} }
+  destinationDir = new File(buildDir, 'javadoc')
+  classpath = files(subprojects.collect {project -> project.sourceSets{main.compileClasspath}})
+}
+
+/* Javadoc Publish to GH Pages */
+apply plugin: 'org.ajoberstar.github-pages'
+
+githubPages {
+  repoUri = 'https://github.com/StrangeSkies/uk.co.strangeskies.git'
+  if (project.hasProperty('githubUser') && project.hasProperty('githubPassword')) {
+    credentials.setUsername githubUser
+    credentials.setPassword githubPassword
+  }
+
+  pages {
+    from aggregateJavadoc
   }
 }
 
+/* Wrapper */
 task wrapper(type: Wrapper) {
   jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
+  gradleVersion = '2.6'
 }
+

@@ -1,13 +1,10 @@
--dsannotations:  \
-	*
+-dsannotations: *
+
 Bundle-Name: Modabi - YAML
+
 -runee: JavaSE-1.8
--buildpath:  \
-	osgi.enroute.base.api;  \
-		version = latest,  \
-	uk.co.strangeskies.utilities;  \
-		version = latest,  \
-	uk.co.strangeskies.modabi.core.api;  \
-		version = latest,  \
-	org.testng:testng;  \
-		version = latest
+
+-buildpath: \
+	osgi.enroute.base.api,\
+	${ss;utilities},\
+	uk.co.strangeskies.modabi.core.api

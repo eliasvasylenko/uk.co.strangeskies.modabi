@@ -7,20 +7,16 @@ Bundle-Version:					1.0.0.${tstamp}
 
 	
 -buildpath: \
-	osgi.enroute.base.api;version=1.0,\
-	biz.aQute.junit,\
-	uk.co.strangeskies.modabi.core.api;version=latest,\
-	org.apache.commons:commons-collections4;version=${commons-collections4.version};strategy=exact,\
-	org.apache.commons:commons-proxy;version=${commons-proxy.version};strategy=exact,\
-	org.testng:testng;version=latest,\
-	uk.co.strangeskies.utilities;  \
-		version=latest,  \
-	uk.co.strangeskies.reflection;  \
-		version=latest,  \
-	uk.co.strangeskies.reflection;  \
-		version=latest,  \
-	uk.co.strangeskies.mathematics;  \
-		version=latest
+	osgi.enroute.base.api,\
+	osgi.enroute.junit.wrapper,\
+	osgi.enroute.hamcrest.wrapper,\
+	org.hamcrest__java-hamcrest,\
+	uk.co.strangeskies.modabi.core.api,\
+	org.apache.commons.collections4,\
+	org.apache.commons.proxy,\
+	${ss;utilities},\
+	${ss;reflection},\
+	${ss;mathematics}
 
 -runrequires:  \
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)'
