@@ -19,6 +19,7 @@ buildscript {
     classpath ("org.ajoberstar:gradle-git:1.2.0") {
       /* Resolve dependency conflict with bndplugin: */
       exclude group: 'org.apache.httpcomponents'
+      exclude group: 'org.apache.maven.artifact.repository.metadata'
     }
   }
 }

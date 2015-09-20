@@ -25,15 +25,12 @@ Bundle-License: LGPL <http://www.gnu.org/licenses/>
 ## ext/repositories.bnd:
 # -plugin: ${ext.repositories.-plugin}, org.example.MyPlugin
 
-
-## To enable baselining, uncomment the following lines:
-# -baseline: *
-
 -releaserepo: Release
 
 -pluginpath:\
 	${build}/cache/biz.aQute.repository.aether.jar; \
 		url = ${bnd-release}/biz.aQute.repository.aether/biz.aQute.repository.aether-latest.jar
+
 ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}}
 
 -plugin.7.StrangeSkies: \
@@ -41,6 +38,9 @@ ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}}
 		aQute.bnd.deployer.repository.aether.AetherRepository; \
 			name				=		StrangeSkies; \
 			url					=		http://oss.jfrog.org/libs-snapshot/
+
+## To enable baselining, uncomment the following lines:
+# -baseline: *
 
 # For users with a copy of the uk.co.strangeskies project checked out
 # from git locally, they can redirect dependencies on bundles in that
