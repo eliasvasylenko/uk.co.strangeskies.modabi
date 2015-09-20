@@ -29,31 +29,31 @@ public interface DataBindingTypeConfigurator<T>
 		extends
 		BindingNodeConfigurator<DataBindingTypeConfigurator<T>, DataBindingType<T>, T> {
 	/**
-	 * @param name
-	 *          The value to be returned by {@link DataBindingType#getName()}.
+	 * @param isAbstract
+	 *          The value to be returned by {@link DataBindingType#isAbstract()}.
 	 * @return
 	 */
 	@Override
-	DataBindingTypeConfigurator<T> isAbstract(boolean hidden);
+	DataBindingTypeConfigurator<T> isAbstract(boolean isAbstract);
 
 	/**
-	 * @param name
-	 *          The value to be returned by {@link DataBindingType#getName()}.
+	 * @param hidden
+	 *          The value to be returned by {@link DataBindingType#isPrivate()}.
 	 * @return
 	 */
 	DataBindingTypeConfigurator<T> isPrivate(boolean hidden);
 
 	/**
-	 * @param name
-	 *          The value to be returned by {@link DataBindingType#getBaseType()}.
+	 * @param dataType
+	 *          The value to be returned by {@link DataBindingType#getDataType()}.
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	default <U extends T> DataBindingTypeConfigurator<U> dataType(
-			Class<U> dataClass) {
+			Class<U> dataType) {
 		return (DataBindingTypeConfigurator<U>) BindingNodeConfigurator.super
-				.dataType(dataClass);
+				.dataType(dataType);
 	}
 
 	@Override

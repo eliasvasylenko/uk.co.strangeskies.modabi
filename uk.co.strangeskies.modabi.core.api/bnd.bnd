@@ -28,3 +28,4 @@ Export-Package: \
 
 -runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'
 
+Bundle-Version: 0.0.1.${tstamp}

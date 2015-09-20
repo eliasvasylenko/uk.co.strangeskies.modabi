@@ -8,3 +8,5 @@ Bundle-Name: Modabi - YAML
 	osgi.enroute.base.api,\
 	${ss;utilities},\
 	uk.co.strangeskies.modabi.core.api
+
+Bundle-Version: 0.0.1.${tstamp}

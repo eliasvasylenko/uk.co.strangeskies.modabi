@@ -13,3 +13,5 @@ Bundle-Name: Modabi - Benchmarks
 	org.apache.commons.lang3
 	
 Private-Package: uk.co.strangeskies.modabi.benchmark
+
+Bundle-Version: 0.0.1.${tstamp}

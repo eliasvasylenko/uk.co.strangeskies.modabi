@@ -88,8 +88,7 @@ public enum BindingStrategy {
 	 * If a data node binds with this strategy and is set to resolve a provided
 	 * value at registration time, the object being bound by the parent node
 	 * during processing will not be available yet. In this case, an instance of
-	 * {@link RegistrationTimeTargetAdapter} will be provided, so that the
-	 * configurator stack can be reflected upon.
+	 * the node being bound to will be provided.
 	 */
 	TARGET_ADAPTOR;
 }

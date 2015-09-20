@@ -11,22 +11,21 @@ import aQute.bnd.build.Workspace
 buildscript {
   repositories {
     jcenter()
-    ivy {
-      url 'https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact/dist/bundles'
-      layout 'pattern', {
-            artifact '[module]/[artifact]-[revision].[ext]' /* OSGi repo pattern */
-      }
-    }
   }
-
   dependencies {
     classpath bndPlugin
-    classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-    classpath ('org.ajoberstar:gradle-git:1.2.0') {
+    classpath "nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
+    classpath ("org.ajoberstar:gradle-git:1.2.0") {
       /* Resolve dependency conflict with bndplugin: */
       exclude group: 'org.apache.httpcomponents'
     }
   }
+}
+
+task wrapper(type: Wrapper) {
+  jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
+  gradleVersion = '2.6'
 }
 
 /* Initialize the bnd workspace */
@@ -37,23 +36,20 @@ if (bndWorkspace == null) {
 
 ext.cnf = rootProject.project(bnd_cnf)
 
-/* Configure Subprojects */
-subprojects {
-  def bndProject = bndWorkspace.getProject(name)
-  if (bndProject != null) {
-    plugins.apply 'biz.aQute.bnd'
+/* Configure the subprojects */
+def bndProjects() {
+  return subprojects.findAll {
+    bndWorkspace.getProject(it.name) != null && new File(it.projectDir, "src").exists()
   }
 }
 
-/* Configure Java Projects */
-apply plugin: 'java'
-def javaProjects() {
-  return subprojects.findAll { new File(it.projectDir, "src").exists() }
+configure(bndProjects()) {
+  plugins.apply 'biz.aQute.bnd'
 }
 
 /* Source License Generation */
 apply plugin: 'license'
-configure(javaProjects()) {
+configure(bndProjects()) {
   apply plugin: 'license'
 
   license {
@@ -71,19 +67,67 @@ configure(javaProjects()) {
 }
 
 /* Javadoc Generation */
+def javadocOptions(options, title) {
+  configure(options) {
+    docTitle = title
+    windowTitle = title
+    memberLevel = JavadocMemberLevel.PROTECTED
+    charSet = 'UTF-8'
+    encoding = 'UTF-8'
+    docEncoding = 'UTF-8'
+    links('http://docs.oracle.com/javase/8/docs/api/')
+  }
+}
+
+def javadocExports(project) {
+  def javadocSpecs = project.bnd('Export-Package', project.name)
+
+  return javadocSpecs.split(/\s*,\s*/).collect {
+    it.replace('.','/')+"/*.java"
+  }
+}
+
+configure(bndProjects()) {
+  def javadocTitle = bnd('javadoc.title', project.name)
+
+  javadoc {
+    javadocOptions(options, javadocTitle)
+
+    javadocExports(project).each { include it }
+
+    doFirst {
+      project.delete(destinationDir)
+      logger.info "Title    : ${options.windowTitle}"
+      logger.info "Destdir  : ${destinationDir}"
+    }
+  }
+}
+
 task aggregateJavadoc(type: Javadoc) {
-  options.charSet = 'UTF-8'
-  options.encoding = 'UTF-8'
-  source subprojects.collect {project -> project.sourceSets{main.allJava} }
+  javadocOptions(options, project.name)
+
+  bndProjects().each {
+    javadocExports(it).each { include it }
+  }
+
+  source bndProjects().collect { it.sourceSets.main.allJava }
+
   destinationDir = new File(buildDir, 'javadoc')
-  classpath = files(subprojects.collect {project -> project.sourceSets{main.compileClasspath}})
+
+  classpath = files(bndProjects().collect {project -> project.sourceSets.main.compileClasspath})
+
+  doFirst {
+    project.delete(destinationDir)
+    logger.info "Title    : ${options.windowTitle}"
+    logger.info "Destdir  : ${destinationDir}"
+  }
 }
 
 /* Javadoc Publish to GH Pages */
 apply plugin: 'org.ajoberstar.github-pages'
 
 githubPages {
-  repoUri = 'https://github.com/StrangeSkies/uk.co.strangeskies.git'
+  repoUri = 'https://github.com/StrangeSkies/uk.co.strangeskies.modabi.git'
   if (project.hasProperty('githubUser') && project.hasProperty('githubPassword')) {
     credentials.setUsername githubUser
     credentials.setPassword githubPassword
@@ -94,9 +138,49 @@ githubPages {
   }
 }
 
-/* Wrapper */
-task wrapper(type: Wrapper) {
-  jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
-  gradleVersion = '2.6'
+/* Artifactory Publication */
+configure(bndProjects()) {
+  apply plugin: 'com.jfrog.artifactory'
+  apply plugin: 'maven-publish'
+
+  artifactory {
+    contextUrl = 'https://oss.jfrog.org'
+
+    publish {
+      repository {
+        repoKey = 'oss-snapshot-local'
+        maven = true
+
+        if (project.hasProperty('jfrogUser') && project.hasProperty('jfrogPassword')) {
+          username = jfrogUser
+          password = jfrogPassword
+        }
+      }
+
+      defaults {
+        project.bnd.project.getSubBuilders().each {
+          publications("maven_${it.getBsn()}")
+        }
+      }
+    }
+  }
+
+  artifactoryPublish { 
+    dependsOn jar
+    properties = ['bintray.package': project.name]
+  }
+
+  publishing {
+    publications {
+      bnd.project.getSubBuilders().each {
+        builder -> "maven_${builder.getBsn()}"(MavenPublication) {
+          artifactId = builder.getBsn()
+          version = builder.getProperty('Bundle-Version').replaceAll('.[^.]+$', '-SNAPSHOT')
+
+          artifact new File("${buildDir}/${artifactId}.jar")
+        }
+      }
+    }
+  }
 }
 

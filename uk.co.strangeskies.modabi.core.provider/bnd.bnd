@@ -2,9 +2,7 @@
 #  BUNDLE 
 #
 
-
 Bundle-Version:					1.0.0.${tstamp}
-
 	
 -buildpath: \
 	osgi.enroute.base.api,\
@@ -31,3 +29,5 @@ Export-Package: \
 	uk.co.strangeskies.modabi.impl.schema.utilities,\
 	uk.co.strangeskies.modabi.impl.schema.wrapping
 Bundle-Name: Modabi - Core Provider
+
+Bundle-Version: 0.0.1.${tstamp}

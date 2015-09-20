@@ -47,6 +47,7 @@ gen/
 target/
 build/
 generated/
+test-output/
 .gradle/
 .e4css/
 reports/
@@ -69,3 +70,4 @@ local.properties
 *~
 enroute.zip
 cache/
+/.gradle/

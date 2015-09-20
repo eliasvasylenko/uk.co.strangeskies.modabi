@@ -11,3 +11,5 @@ Bundle-Name: Modabi - XML
 	org.apache.servicemix.bundles.stax-utils
 	
 Export-Package: uk.co.strangeskies.modabi.xml.impl
+
+Bundle-Version: 0.0.1.${tstamp}

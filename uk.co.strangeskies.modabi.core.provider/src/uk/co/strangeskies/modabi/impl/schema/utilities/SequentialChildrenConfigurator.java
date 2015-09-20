@@ -66,9 +66,6 @@ import uk.co.strangeskies.reflection.TypeToken;
  * with sequence ordering preservation.
  *
  * @author Elias N Vasylenko
- *
- * @param <C>
- * @param <B>
  */
 public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private class MergeGroup {
