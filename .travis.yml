@@ -11,5 +11,5 @@ env:
 
 install: "./gradlew --version"
 
-script: ./gradlew build test aggregateJavadoc publishGhPages -PgithubUser="${GITHUB_TOKEN}" -PgithubPassword="" -PjfrogUser="${jfrogUser}" -PjfrogPassword="${jfrogPassword}"
+script: ./gradlew build test aggregateJavadoc publishGhPages -PgithubUser="${GITHUB_TOKEN}" -PgithubPassword="" -PjfrogUser="${jfrogUser}" -PjfrogPassword="${jfrogPassword}" --stacktrace
 
