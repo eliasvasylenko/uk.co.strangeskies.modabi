@@ -43,15 +43,15 @@ import uk.co.strangeskies.utilities.collection.computingmap.LRUCacheComputingMap
 import uk.co.strangeskies.utilities.factory.Factory;
 
 public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
-		implements Self<S> {
+	implements Self<S> {
 	protected abstract class ProcessingProvisions {
-		public abstract <U> U provide(TypeToken<U> clazz, S headContext);
+	public abstract <U> U provide(TypeToken<U> clazz, S headContext);
 
-		public abstract boolean isProvided(TypeToken<?> clazz);
+	public abstract boolean isProvided(TypeToken<?> clazz);
 	}
 
 	public enum CacheScope {
-		MANAGER_GLOBAL, PROCESSING_CONTEXT
+	MANAGER_GLOBAL, PROCESSING_CONTEXT
 	}
 
 	private final SchemaManager manager;
@@ -65,223 +65,218 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	private final ProcessingProvisions provider;
 
 	public ProcessingContextImpl(SchemaManager manager) {
-		this.manager = manager;
+	this.manager = manager;
 
-		nodeStack = Collections.emptyList();
-		bindings = new Bindings();
+	nodeStack = Collections.emptyList();
+	bindings = new Bindings();
 
-		dataTypeCache = new LRUCacheComputingMap<>(
-				node -> getDataNodeOverrideMap(node.effective()), 150, true);
+	dataTypeCache = new LRUCacheComputingMap<DataNode<?>, ComputingMap<? extends DataBindingType<?>, ? extends DataNode.Effective<?>>>(
+		node -> getDataNodeOverrideMap(node.effective()), 150, true);
 
-		modelCache = new LRUCacheComputingMap<>(
-				node -> getComplexNodeOverrideMap(node.effective()), 150, true);
+	modelCache = new LRUCacheComputingMap<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode.Effective<?>>>(
+		node -> getComplexNodeOverrideMap(node.effective()), 150, true);
 
-		provider = new ProcessingProvisions() {
-			@Override
-			public <U> U provide(TypeToken<U> clazz, S headContext) {
-				return manager.provisions().provide(clazz);
-			}
+	provider = new ProcessingProvisions() {
+		@Override
+		public <U> U provide(TypeToken<U> clazz, S headContext) {
+		return manager.provisions().provide(clazz);
+		}
 
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return manager.provisions().isProvided(clazz);
-			}
-		};
+		@Override
+		public boolean isProvided(TypeToken<?> clazz) {
+		return manager.provisions().isProvided(clazz);
+		}
+	};
 	}
 
 	public ProcessingContextImpl(ProcessingContextImpl<S> parentContext,
-			ProcessingProvisions provider) {
-		manager = parentContext.manager;
+		ProcessingProvisions provider) {
+	manager = parentContext.manager;
 
-		nodeStack = parentContext.nodeStack;
-		bindings = parentContext.bindings;
+	nodeStack = parentContext.nodeStack;
+	bindings = parentContext.bindings;
 
-		dataTypeCache = parentContext.dataTypeCache;
-		modelCache = parentContext.modelCache;
+	dataTypeCache = parentContext.dataTypeCache;
+	modelCache = parentContext.modelCache;
 
-		this.provider = provider;
+	this.provider = provider;
 	}
 
 	public ProcessingContextImpl(ProcessingContextImpl<S> parentContext,
-			SchemaNode.Effective<?, ?> bindingNode) {
-		manager = parentContext.manager;
+		SchemaNode.Effective<?, ?> bindingNode) {
+	manager = parentContext.manager;
 
-		List<SchemaNode.Effective<?, ?>> bindingNodeStack = new ArrayList<>(
-				parentContext.nodeStack);
-		bindingNodeStack.add(bindingNode);
-		this.nodeStack = Collections.unmodifiableList(bindingNodeStack);
-		bindings = parentContext.bindings;
+	List<SchemaNode.Effective<?, ?>> bindingNodeStack = new ArrayList<>(
+		parentContext.nodeStack);
+	bindingNodeStack.add(bindingNode);
+	this.nodeStack = Collections.unmodifiableList(bindingNodeStack);
+	bindings = parentContext.bindings;
 
-		dataTypeCache = parentContext.dataTypeCache;
-		modelCache = parentContext.modelCache;
+	dataTypeCache = parentContext.dataTypeCache;
+	modelCache = parentContext.modelCache;
 
-		provider = parentContext.provider;
+	provider = parentContext.provider;
 	}
 
 	@Override
 	public S copy() {
-		return getThis();
+	return getThis();
 	}
 
 	private <T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrideMap(
-			DataNode.Effective<T> node) {
-		List<DataBindingType<? extends T>> types = manager.registeredTypes()
-				.getTypesWithBase(node).stream().map(n -> n.source())
-				.collect(Collectors.toCollection(ArrayList::new));
+		DataNode.Effective<T> node) {
+	List<DataBindingType<? extends T>> types = manager.registeredTypes()
+		.getTypesWithBase(node).stream().map(n -> n.source())
+		.collect(Collectors.toCollection(ArrayList::new));
 
-		ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
-				type -> getDataNodeOverride(node, type.effective()));
-		overrideMap.putAll(types);
+	ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>>(
+		type -> getDataNodeOverride(node, type.effective()));
+	overrideMap.putAll(types);
 
-		return overrideMap;
+	return overrideMap;
 	}
 
 	private <T> DataNode.Effective<T> getDataNodeOverride(
-			DataNode.Effective<? super T> node, DataBindingType.Effective<T> type) {
-		return new BindingNodeOverrider().override(
-				provisions().provide(DataBindingTypeBuilder.class), node, type);
+		DataNode.Effective<? super T> node, DataBindingType.Effective<T> type) {
+	return new BindingNodeOverrider().override(
+		provisions().provide(DataBindingTypeBuilder.class), node, type);
 
 	}
 
 	@SuppressWarnings("unchecked")
 	private <T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrideMap(
-			ComplexNode.Effective<T> node) {
-		List<Model<? extends T>> models;
+		ComplexNode.Effective<T> node) {
+	List<Model<? extends T>> models;
 
-		if (node.baseModel() != null && !node.baseModel().isEmpty()) {
-			models = manager
-					.registeredModels()
-					.getModelsWithBase(node.baseModel())
-					.stream()
-					.map(SchemaNode::source)
-					.filter(
-							n -> node.getDataType().isAssignableFrom(
-									n.effective().getDataType())).collect(Collectors.toList());
-		} else {
-			models = manager
-					.registeredModels()
-					.stream()
-					.map(SchemaNode::source)
-					.filter(
-							c -> node.getDataType().isAssignableFrom(
-									c.effective().getDataType()))
-					.map(m -> (Model.Effective<? extends T>) m)
-					.collect(Collectors.toList());
-		}
+	if (node.baseModel() != null && !node.baseModel().isEmpty()) {
+		models = manager.registeredModels().getModelsWithBase(node.baseModel())
+			.stream().map(SchemaNode::source)
+			.filter(n -> node.getDataType()
+				.isAssignableFrom(n.effective().getDataType()))
+			.collect(Collectors.toList());
+	} else {
+		models = manager.registeredModels().stream().map(SchemaNode::source)
+			.filter(c -> node.getDataType()
+				.isAssignableFrom(c.effective().getDataType()))
+			.map(m -> (Model.Effective<? extends T>) m)
+			.collect(Collectors.toList());
+	}
 
-		ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
-				model -> getComplexNodeOverride(node, model.effective()));
-		overrideMap.putAll(models);
+	ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>>(
+		model -> getComplexNodeOverride(node, model.effective()));
+	overrideMap.putAll(models);
 
-		return overrideMap;
+	return overrideMap;
 	}
 
 	private <T> ComplexNode.Effective<T> getComplexNodeOverride(
-			ComplexNode.Effective<? super T> node, Model.Effective<T> model) {
-		return new BindingNodeOverrider().override(
-				provisions().provide(ModelBuilder.class), node, model);
+		ComplexNode.Effective<? super T> node, Model.Effective<T> model) {
+	return new BindingNodeOverrider()
+		.override(provisions().provide(ModelBuilder.class), node, model);
 	}
 
 	protected List<SchemaNode.Effective<?, ?>> nodeStack() {
-		return new ArrayList<>(nodeStack);
+	return new ArrayList<>(nodeStack);
 	}
 
 	public Bindings bindings() {
-		return bindings;
+	return bindings;
 	}
 
 	protected ProcessingProvisions getProvider() {
-		return provider;
+	return provider;
 	}
 
 	protected <U> U provide(TypeToken<U> clazz, S state) {
-		if (!provider.isProvided(clazz))
-			throw processingException("Requested type '" + clazz
-					+ "' is not provided by the unbinding context", state);
-		return provider.provide(clazz, state);
+	if (!provider.isProvided(clazz))
+		throw processingException("Requested type '" + clazz
+			+ "' is not provided by the unbinding context", state);
+	return provider.provide(clazz, state);
 	}
 
 	protected abstract RuntimeException processingException(String message,
-			S state);
+		S state);
 
 	public Provisions provisions() {
-		return new Provisions() {
-			@Override
-			public <U> U provide(TypeToken<U> clazz) {
-				return ProcessingContextImpl.this.provide(clazz, getThis());
-			}
+	return new Provisions() {
+		@Override
+		public <U> U provide(TypeToken<U> clazz) {
+		return ProcessingContextImpl.this.provide(clazz, getThis());
+		}
 
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return provider.isProvided(clazz);
-			}
-		};
+		@Override
+		public boolean isProvided(TypeToken<?> clazz) {
+		return provider.isProvided(clazz);
+		}
+	};
 	}
 
 	public <T> S withProvision(Class<T> providedClass, Factory<T> provider) {
-		return withProvision(TypeToken.over(providedClass), c -> provider.create());
-	}
-
-	public <T> S withProvision(TypeToken<T> providedClass, Factory<T> provider) {
-		return withProvision(providedClass, c -> provider.create());
-	}
-
-	public <T> S withProvision(Class<T> providedClass,
-			Function<? super S, T> provider) {
-		return withProvision(TypeToken.over(providedClass), provider);
+	return withProvision(TypeToken.over(providedClass), c -> provider.create());
 	}
 
 	public <T> S withProvision(TypeToken<T> providedClass,
-			Function<? super S, T> provider) {
-		return withProvision(providedClass, provider, new ProcessingProvisions() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public <U> U provide(TypeToken<U> type, S headContext) {
-				boolean canEqual = false;
+		Factory<T> provider) {
+	return withProvision(providedClass, c -> provider.create());
+	}
 
-				try {
-					type.withEquality(providedClass);
-					canEqual = true;
-				} catch (Exception e) {}
+	public <T> S withProvision(Class<T> providedClass,
+		Function<? super S, T> provider) {
+	return withProvision(TypeToken.over(providedClass), provider);
+	}
 
-				if (canEqual)
-					return (U) provider.apply(headContext);
+	public <T> S withProvision(TypeToken<T> providedClass,
+		Function<? super S, T> provider) {
+	return withProvision(providedClass, provider, new ProcessingProvisions() {
+		@SuppressWarnings("unchecked")
+		@Override
+		public <U> U provide(TypeToken<U> type, S headContext) {
+		boolean canEqual = false;
 
-				return getThis().provide(type, headContext);
-			}
+		try {
+			type.withEquality(providedClass);
+			canEqual = true;
+		} catch (Exception e) {}
 
-			@Override
-			public boolean isProvided(TypeToken<?> clazz) {
-				return clazz.equals(providedClass)
-						|| getThis().provisions().isProvided(clazz);
-			}
-		});
+		if (canEqual)
+			return (U) provider.apply(headContext);
+
+		return getThis().provide(type, headContext);
+		}
+
+		@Override
+		public boolean isProvided(TypeToken<?> clazz) {
+		return clazz.equals(providedClass)
+			|| getThis().provisions().isProvided(clazz);
+		}
+	});
 	}
 
 	protected abstract <T> S withProvision(TypeToken<T> providedClass,
-			Function<? super S, T> provider, ProcessingProvisions provisions);
+		Function<? super S, T> provider, ProcessingProvisions provisions);
 
 	public Model.Effective<?> getModel(QualifiedName nextElement) {
-		Model<?> model = manager.registeredModels().get(nextElement);
-		return model == null ? null : model.effective();
+	Model<?> model = manager.registeredModels().get(nextElement);
+	return model == null ? null : model.effective();
 	}
 
-	public <U> List<Model.Effective<U>> getMatchingModels(TypeToken<U> dataClass) {
-		return manager.registeredModels().getModelsWithClass(dataClass).stream()
-				.map(n -> n.effective()).collect(Collectors.toList());
+	public <U> List<Model.Effective<U>> getMatchingModels(
+		TypeToken<U> dataClass) {
+	return manager.registeredModels().getModelsWithClass(dataClass).stream()
+		.map(n -> n.effective()).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
-			DataNode<T> node) {
-		return (ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>>) dataTypeCache
-				.putGet(node.source());
+		DataNode<T> node) {
+	return (ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>>) dataTypeCache
+		.putGet(node.source());
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
-			ComplexNode<T> node) {
-		return (ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>>) modelCache
-				.putGet(node.source());
+		ComplexNode<T> node) {
+	return (ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>>) modelCache
+		.putGet(node.source());
 	}
 }

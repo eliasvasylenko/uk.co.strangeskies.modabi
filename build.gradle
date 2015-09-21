@@ -14,19 +14,21 @@ buildscript {
   }
   dependencies {
     classpath bndPlugin
-    classpath "nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0"
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
-    classpath ("org.ajoberstar:gradle-git:1.2.0") {
-      /* Resolve dependency conflict with bndplugin: */
+    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
+    classpath ('nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0') {
+      /* Resolve dependency conflict with aether: */
+      exclude group: 'org.apache.maven'
+    }
+    classpath ('org.ajoberstar:gradle-git:1.2.0') {
+      /* Resolve dependency conflict with bndtools: */
       exclude group: 'org.apache.httpcomponents'
-      exclude group: 'org.apache.maven.artifact.repository.metadata'
     }
   }
 }
 
 task wrapper(type: Wrapper) {
   jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
-  gradleVersion = '2.6'
+  gradleVersion = '2.7'
 }
 
 /* Initialize the bnd workspace */
