@@ -1,19 +1,17 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 sudo: false
 addons:
   apt:
     packages:
-      - oracle-java8-installer
+    - oracle-java8-installer
 env:
   matrix:
   - TERM=dumb
   global:
-  - secure: aHymzi4IVCeX5lZA9j3ovJXZ9UW3YHczVZQuYahkqXiycOanCF8ZxHwWgYjt/tQnhxgabll4Lz/ZkBFf4z7WyxfA1I7UQ3BIIj0RmONzK1XZGLagLHovBb0f6sMOVYHqjHoZ9GgwomIyDYJoDIsV2cd040vBctSHPe8SpIxcefo=
-  - secure: FqGggOGREA4csW+xPNtC1zwX543FJ0oGz78fHVxD2eRAKqDTwfAmEg60633laXBxn79/oN/MTm5f4+iad9hntNqgILqy4YN9OX79t22FqXRy7yEOu+0WBNszjYR4zMRed1nGX226RlTAYZ2g8UUR3b+a62B4BWX/ci6X7EsNUoc=
-  - secure: ObS+5VJqk+K/3Ln3j47XVEt/KHTv+a44B3gUD2tl7PsLfptF7ExikcCRQ4Gpv40dNuy+4cJydbxmXxfxv5WI6JmhDcIT5YDh9Mmkxl0+lL5KmJSNnIQY40gUjSrwKtCPy97Lc9brTkL9RtcPQwyUJTkpXfOfF2cEjEfqb74fVPA=
-
+  - secure: gjT/7+UM+b++9QYenPDDB9WtiDpQWrIicWIsmgLTs8r2k7EYUQhc5es/UotE0snYN7jYYQPRusBQENRFZJq718msOdwdeU7Xid/Rc2pA25vuDdWNzn2lkrTNQDFf0BNQnwPWkKeWwWiw1QZwMwwLI7aazkBPMB66eZK1QCs2xHs=
+  - secure: Uon5TCEqAqdtSChW4kd8ui8Ct8lWEPML/Q2I5+GWwKYQydIfIOrbNl3Xeu2Nh+Y2hWTIDm7N9FT63seKGZ44hBfmUxtsXBq1p4SSRwDcXMN9EYBCiJfHxwjNVkbgKzIy2lJ/JCR4fduadePOybVhvMhAW2oWDMyRJi4/rcBAsvg=
+  - secure: Nrhyns2rgmS3PnoLsUUoqElUBMxw9cr4TBCe3zEA1ro7zr4+YL3uUis/UFlwsPVt0jIeTI7AQFVeggSgWwT8vnEZ5dnB1ZOlhIHWP6hiaij2000HAfuuam0fMhLoZtXFN+xZKSi5JuVxfAs5hjobkr5xQC52jHWNhy3DkLhdSFo=
 install: "./gradlew --version"
-
-script: ./gradlew build test aggregateJavadoc publishGhPages -PgithubUser="${GITHUB_TOKEN}" -PgithubPassword="" -PjfrogUser="${jfrogUser}" -PjfrogPassword="${jfrogPassword}" --stacktrace
+script: ./gradlew build test aggregateJavadoc publishGhPages -PgithubUser="${GITHUB_TOKEN}" -PgithubPassword="" -PjfrogUser="${JFROG_USER}" -PjfrogPassword="${JFROG_PASSWORD}" --stacktrace
