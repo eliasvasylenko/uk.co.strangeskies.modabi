@@ -34,8 +34,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.osgi.service.component.annotations.Component;
-
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -47,7 +45,6 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceWrapper;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
-@Component(property = "format=xml")
 public class XmlSource implements StructuredDataSource {
 	private final XMLStreamReader in;
 	private final Deque<Integer> currentLocation;

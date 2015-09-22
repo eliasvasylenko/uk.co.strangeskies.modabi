@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.io;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -40,7 +42,7 @@ public interface DataTarget {
 			private boolean terminated;
 			private boolean compound;
 
-			StringBuilder stringBuilder = new StringBuilder();
+			private final StringBuilder stringBuilder = new StringBuilder();
 
 			private void next(Object value) {
 				if (compound)
@@ -65,6 +67,43 @@ public interface DataTarget {
 			@Override
 			public void terminate() {
 				resultConsumer.accept(stringBuilder.toString());
+
+				terminated = true;
+			}
+
+			@Override
+			public DataStreamState currentState() {
+				return null;
+			}
+		});
+	}
+
+	static DataTarget composeList(Consumer<List<Object>> resultConsumer,
+			Function<QualifiedName, String> qualifiedNameFormat) {
+		return new DataTargetDecorator(new DataTarget() {
+			private boolean terminated;
+
+			private final List<Object> result = new ArrayList<>();
+
+			private void next(Object value) {
+				result.add(value);
+			}
+
+			@Override
+			public <T> DataTarget put(DataItem<T> item) {
+				if (terminated)
+					throw new IOException();
+
+				if (item.type() == DataType.QUALIFIED_NAME) {
+					next(qualifiedNameFormat.apply((QualifiedName) item.data()));
+				} else
+					next(item.data());
+				return this;
+			}
+
+			@Override
+			public void terminate() {
+				resultConsumer.accept(result);
 
 				terminated = true;
 			}

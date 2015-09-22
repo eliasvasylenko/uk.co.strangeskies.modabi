@@ -21,15 +21,11 @@ package uk.co.strangeskies.modabi.xml.impl;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javanet.staxutils.IndentingXMLStreamWriter;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -38,15 +34,14 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.osgi.service.component.annotations.Component;
-
+import javanet.staxutils.IndentingXMLStreamWriter;
 import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.NamespaceAliases;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.IOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 
-@Component(property = "format=xml")
 public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 	private final XMLStreamWriter out;
 
@@ -214,14 +209,12 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 
 class NamespaceStack implements NamespaceContext {
 	private Namespace defaultNamespace;
-	private Map<Namespace, String> namespaceAliases;
-	private Map<String, Namespace> aliasedNamespaces;
+	private NamespaceAliases aliasSet;
 
 	private NamespaceStack next;
 
 	public NamespaceStack() {
-		namespaceAliases = new HashMap<>();
-		aliasedNamespaces = new HashMap<>();
+		aliasSet = new NamespaceAliases();
 	}
 
 	private NamespaceStack(NamespaceStack from) {
@@ -230,8 +223,7 @@ class NamespaceStack implements NamespaceContext {
 
 	private void setFrom(NamespaceStack from) {
 		defaultNamespace = from.defaultNamespace;
-		namespaceAliases = from.namespaceAliases;
-		aliasedNamespaces = from.aliasedNamespaces;
+		aliasSet = from.aliasSet;
 		next = from.next;
 	}
 
@@ -240,7 +232,7 @@ class NamespaceStack implements NamespaceContext {
 				&& defaultNamespace.equals(name.getNamespace()))
 			return name.getName();
 
-		String alias = namespaceAliases.get(name.getNamespace());
+		String alias = aliasSet.getAlias(name.getNamespace());
 		if (alias != null)
 			return alias + ":" + name.getName();
 
@@ -252,8 +244,7 @@ class NamespaceStack implements NamespaceContext {
 
 	public void push() {
 		next = new NamespaceStack(this);
-		namespaceAliases = new HashMap<>();
-		aliasedNamespaces = new HashMap<>();
+		aliasSet = new NamespaceAliases();
 		defaultNamespace = null;
 	}
 
@@ -266,22 +257,6 @@ class NamespaceStack implements NamespaceContext {
 
 	public boolean isBase() {
 		return next == null;
-	}
-
-	private String generateAlias(Namespace namespace) {
-		Set<String> existingAliases = new HashSet<>(namespaceAliases.values());
-		NamespaceStack next = this.next;
-		while (next != null) {
-			existingAliases.addAll(next.namespaceAliases.values());
-			next = next.next;
-		}
-
-		String alias = "";
-		do {
-			alias += "a";
-		} while (existingAliases.contains(alias));
-
-		return alias;
 	}
 
 	public void setDefaultNamespace(Namespace namespace) {
@@ -297,23 +272,19 @@ class NamespaceStack implements NamespaceContext {
 		if (alias != null)
 			return alias;
 
-		alias = generateAlias(namespace);
-		namespaceAliases.put(namespace, alias);
-		aliasedNamespaces.put(alias, namespace);
-
-		return alias;
+		return aliasSet.addNamespace(namespace);
 	}
 
 	public Set<Namespace> getNamespaces() {
-		return namespaceAliases.keySet();
+		return aliasSet.getNamespaces();
 	}
 
 	public String getNamespaceAlias(Namespace namespace) {
 		if (namespace.equals(defaultNamespace))
 			return XMLConstants.DEFAULT_NS_PREFIX;
 
-		if (namespaceAliases.containsKey(namespace))
-			return namespaceAliases.get(namespace);
+		if (getNamespaces().contains(namespace))
+			return aliasSet.getAlias(namespace);
 
 		if (next != null)
 			return next.getNamespaceAlias(namespace);
@@ -323,7 +294,7 @@ class NamespaceStack implements NamespaceContext {
 
 	@Override
 	public String getNamespaceURI(String prefix) {
-		return aliasedNamespaces.get(prefix).toHttpString();
+		return aliasSet.getNamespace(prefix).toHttpString();
 	}
 
 	@Override
