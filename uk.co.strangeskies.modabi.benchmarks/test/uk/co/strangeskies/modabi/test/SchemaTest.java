@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
+import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
 
 public class SchemaTest {
 	public static void main(String... args) {
@@ -42,7 +42,7 @@ public class SchemaTest {
 		BufferedStructuredDataSource buffered = out.getBuffer();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getBaseSchema());
-		buffered.pipeNextChild(new XMLTarget(System.out));
+		buffered.pipeNextChild(new XmlTarget(System.out));
 
 		System.out.println();
 		System.out.println();
@@ -52,7 +52,7 @@ public class SchemaTest {
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getMetaSchema());
 
-		buffered.pipeNextChild(new XMLTarget(System.out));
+		buffered.pipeNextChild(new XmlTarget(System.out));
 		buffered.reset();
 
 		System.out.println();
@@ -74,7 +74,7 @@ public class SchemaTest {
 		out = BufferingStructuredDataTarget.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel, out, metaSchema);
-		buffered.pipeNextChild(new XMLTarget(System.out));
+		buffered.pipeNextChild(new XmlTarget(System.out));
 		buffered.reset();
 
 		System.out.println();
@@ -93,7 +93,7 @@ public class SchemaTest {
 		out = BufferingStructuredDataTarget.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel2, out, metaSchema);
-		buffered.pipeNextChild(new XMLTarget(System.out));
+		buffered.pipeNextChild(new XmlTarget(System.out));
 
 		System.out.print("Profiling Preparation");
 		for (int i = 1; i <= 60; i++) {

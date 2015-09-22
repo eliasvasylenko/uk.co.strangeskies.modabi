@@ -38,13 +38,16 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.osgi.service.component.annotations.Component;
+
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.IOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 
-public class XMLTarget extends StructuredDataTargetImpl<XMLTarget> {
+@Component(property = "format=xml")
+public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 	private final XMLStreamWriter out;
 
 	private final NamespaceStack namespaces;
@@ -54,7 +57,7 @@ public class XMLTarget extends StructuredDataTargetImpl<XMLTarget> {
 	private final Map<QualifiedName, String> properties;
 	private final List<String> comments;
 
-	public XMLTarget(XMLStreamWriter out) {
+	public XmlTarget(XMLStreamWriter out) {
 		this.out = out;
 
 		namespaces = new NamespaceStack();
@@ -71,7 +74,7 @@ public class XMLTarget extends StructuredDataTargetImpl<XMLTarget> {
 		}
 	}
 
-	public XMLTarget(OutputStream out, boolean formatted) {
+	public XmlTarget(OutputStream out, boolean formatted) {
 		this(createXMLStreamWriter(out, formatted));
 	}
 
@@ -88,7 +91,7 @@ public class XMLTarget extends StructuredDataTargetImpl<XMLTarget> {
 		}
 	}
 
-	public XMLTarget(OutputStream out) {
+	public XmlTarget(OutputStream out) {
 		this(out, true);
 	}
 
@@ -107,17 +110,18 @@ public class XMLTarget extends StructuredDataTargetImpl<XMLTarget> {
 		try {
 			if (done) {
 				// write start of element
-				if (selfClosing)
+				if (selfClosing) {
 					out.writeEmptyElement(currentChild.getNamespace().toHttpString(),
 							currentChild.getName());
-				else
+				} else {
 					out.writeStartElement(currentChild.getNamespace().toHttpString(),
 							currentChild.getName());
+				}
 
 				// write namespaces
 				if (namespaces.getDefaultNamespace() != null)
-					out.writeDefaultNamespace(namespaces.getDefaultNamespace()
-							.toHttpString());
+					out.writeDefaultNamespace(
+							namespaces.getDefaultNamespace().toHttpString());
 				for (Namespace namespace : namespaces.getNamespaces())
 					out.writeNamespace(namespaces.getNamespaceAlias(namespace),
 							namespace.toHttpString());
@@ -188,7 +192,7 @@ public class XMLTarget extends StructuredDataTargetImpl<XMLTarget> {
 			} catch (XMLStreamException e) {
 				throw new IOException(e);
 			}
-		}, this::composeName);
+		} , this::composeName);
 	}
 
 	private String composeName(QualifiedName name) {

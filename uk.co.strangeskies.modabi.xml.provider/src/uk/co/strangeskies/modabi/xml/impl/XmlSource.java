@@ -34,6 +34,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.osgi.service.component.annotations.Component;
+
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -45,7 +47,8 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceWrapper;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
-public class XMLSource implements StructuredDataSource {
+@Component(property = "format=xml")
+public class XmlSource implements StructuredDataSource {
 	private final XMLStreamReader in;
 	private final Deque<Integer> currentLocation;
 
@@ -54,7 +57,7 @@ public class XMLSource implements StructuredDataSource {
 	private final Map<QualifiedName, DataSource> properties;
 	private String content;
 
-	private XMLSource(XMLStreamReader in) {
+	private XmlSource(XMLStreamReader in) {
 		this.in = in;
 		currentLocation = new ArrayDeque<>();
 
@@ -69,7 +72,7 @@ public class XMLSource implements StructuredDataSource {
 	}
 
 	public static StructuredDataSourceWrapper from(XMLStreamReader in) {
-		return new BufferableStructuredDataSourceImpl(new XMLSource(in));
+		return new BufferableStructuredDataSourceImpl(new XmlSource(in));
 	}
 
 	private static XMLStreamReader createXMLStreamReader(InputStream in) {
@@ -185,9 +188,8 @@ public class XMLSource implements StructuredDataSource {
 		else
 			prefix = "";
 
-		return new QualifiedName(splitName[splitName.length - 1],
-				Namespace.parseHttpString(in.getNamespaceContext().getNamespaceURI(
-						prefix)));
+		return new QualifiedName(splitName[splitName.length - 1], Namespace
+				.parseHttpString(in.getNamespaceContext().getNamespaceURI(prefix)));
 	}
 
 	@Override

@@ -40,8 +40,8 @@ import org.apache.commons.lang3.RandomUtils;
 
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.xml.impl.XMLSource;
-import uk.co.strangeskies.modabi.xml.impl.XMLTarget;
+import uk.co.strangeskies.modabi.xml.impl.XmlSource;
+import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
 
 public class BenchmarkRunner {
 	private static final String OUTPUT_FOLDER = System.getProperty("user.home")
@@ -60,7 +60,7 @@ public class BenchmarkRunner {
 				}
 			}
 
-			StructuredDataSource benchmarkSchemaResource = XMLSource.from(getClass()
+			StructuredDataSource benchmarkSchemaResource = XmlSource.from(getClass()
 					.getResourceAsStream("/BenchmarkSchema.xml"));
 			manager.registerSchemaBinding(benchmarkSchemaResource);
 
@@ -155,7 +155,7 @@ public class BenchmarkRunner {
 		OutputStream fos = new FileOutputStream(file);
 
 		try {
-			manager.unbind(PersonsType.class, new XMLTarget(fos), persons);
+			manager.unbind(PersonsType.class, new XmlTarget(fos), persons);
 			fos.flush();
 		} finally {
 			fos.close();
@@ -167,7 +167,7 @@ public class BenchmarkRunner {
 		long start = System.currentTimeMillis();
 
 		try (FileInputStream fis = new FileInputStream(file)) {
-			manager.bind(XMLSource.from(fis));
+			manager.bind(XmlSource.from(fis));
 
 			long end = System.currentTimeMillis();
 

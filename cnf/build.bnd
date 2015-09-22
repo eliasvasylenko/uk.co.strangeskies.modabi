@@ -55,10 +55,10 @@ ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}}
 #
 #-plugin.8.StrangeSkies: \
 #\
-#        aQute.bnd.deployer.repository.LocalIndexedRepo;\
-#            name                =       StrangeSkies;\
-#            pretty              =       true;\
-#            local               =       ${user.home}[/workspaces]/uk.co.strangeskies/cnf/release
+#		aQute.bnd.deployer.repository.LocalIndexedRepo;\
+#			name                =       StrangeSkies;\
+#			pretty              =       true;\
+#			local               =       ${user.home}[/workspaces]/uk.co.strangeskies/cnf/release
 
 ## If you use git, you might want to uncomment the following lines:
 Git-Descriptor: ${system-allow-fail;git describe --dirty --always}

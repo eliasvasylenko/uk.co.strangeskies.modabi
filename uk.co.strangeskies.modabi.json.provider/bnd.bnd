@@ -1,6 +1,6 @@
 -dsannotations: *
 
-Bundle-Name: Modabi - XML
+Bundle-Name: Modabi - JSON
 
 -runee: JavaSE-1.8
 
@@ -8,8 +8,8 @@ Bundle-Name: Modabi - XML
 	osgi.enroute.base.api,\
 	${ss;utilities},\
 	uk.co.strangeskies.modabi.core.api,\
-	org.apache.servicemix.bundles.stax-utils
+	net.minidev.json-smart
 	
-Private-Package: uk.co.strangeskies.modabi.xml.impl
+Private-Package: uk.co.strangeskies.modabi.json.impl
 
 Bundle-Version: 0.0.1.${tstamp}
