@@ -7,6 +7,7 @@ uk.co.strangeskies.modabi.impl.schema.building
 uk.co.strangeskies.modabi.impl.schema.utilities
 uk.co.strangeskies.modabi.io
 uk.co.strangeskies.modabi.io.structured
+uk.co.strangeskies.modabi.json.impl
 uk.co.strangeskies.modabi.processing
 uk.co.strangeskies.modabi.processing.providers
 uk.co.strangeskies.modabi.schema
