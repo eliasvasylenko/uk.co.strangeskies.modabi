@@ -9,7 +9,7 @@ Bundle-Version:					1.0.0.${tstamp}
 	osgi.enroute.junit.wrapper,\
 	osgi.enroute.hamcrest.wrapper,\
 	org.hamcrest__java-hamcrest,\
-	uk.co.strangeskies.modabi.core.api,\
+	uk.co.strangeskies.modabi.core.api;version=latest,\
 	org.apache.commons.collections4,\
 	org.apache.commons.proxy,\
 	${ss;utilities},\

@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import java.time.LocalDate;
+
 public class QualifiedName {
 	private final String name;
 	private final Namespace namespace;
@@ -25,6 +27,11 @@ public class QualifiedName {
 	public QualifiedName(String name, Namespace namespace) {
 		this.name = name;
 		this.namespace = namespace;
+	}
+
+	public QualifiedName(Class<?> name, LocalDate date) {
+		this.name = name.getSimpleName();
+		this.namespace = new Namespace(name.getPackage(), date);
 	}
 
 	public QualifiedName(String name) {

@@ -16,7 +16,7 @@ copyright = Copyright (c) Strange Skies (2014, ${copyright.year}). All Rights Re
 
 groupid: uk.co.strangeskies
 
-Bundle-Vendor: Skies http://strangeskies.co.uk/
+Bundle-Vendor: Strange Skies http://strangeskies.co.uk/
 Bundle-Copyright: ${copyright}
 Bundle-License: LGPL <http://www.gnu.org/licenses/>
 
@@ -25,6 +25,8 @@ Bundle-License: LGPL <http://www.gnu.org/licenses/>
 ## ext/repositories.bnd:
 # -plugin: ${ext.repositories.-plugin}, org.example.MyPlugin
 
+## To enable baselining, uncomment the following lines:
+# -baseline: *
 -releaserepo: Release
 
 -pluginpath:\
@@ -38,9 +40,6 @@ ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}}
 		aQute.bnd.deployer.repository.aether.AetherRepository; \
 			name				=		StrangeSkies; \
 			url					=		http://oss.jfrog.org/libs-snapshot/
-
-## To enable baselining, uncomment the following lines:
-# -baseline: *
 
 # For users with a copy of the uk.co.strangeskies project checked out
 # from git locally, they can redirect dependencies on bundles in that

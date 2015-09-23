@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.json.impl.JsonTarget;
 
 public class JsonTest {
 	private void run() {
-		StructuredDataTarget output = new JsonTarget(System.out);
+		StructuredDataTarget output = new JsonTarget(System.out, true);
 
 		output.registerDefaultNamespaceHint(Namespace.getDefault());
 		output.nextChild(new QualifiedName("root"));

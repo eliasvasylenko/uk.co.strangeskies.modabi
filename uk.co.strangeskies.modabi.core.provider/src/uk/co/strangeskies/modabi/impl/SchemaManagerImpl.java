@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import org.osgi.service.component.annotations.Component;
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataBindingTypes;
+import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provisions;
@@ -73,6 +75,10 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchemata;
 
+	private final SchemaBuilder schemaBuilder;
+	private final ModelBuilder modelBuilder;
+	private final DataBindingTypeBuilder dataTypeBuilder;
+
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
 				new DataBindingTypeBuilderImpl());
@@ -80,6 +86,10 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
+		this.schemaBuilder = schemaBuilder;
+		this.modelBuilder = modelBuilder;
+		this.dataTypeBuilder = dataTypeBuilder;
+
 		providers = new ArrayList<>();
 		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
 
@@ -117,8 +127,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				registerDataType(type);
 
 			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(),
-					BindingFuture.forData(coreSchemata.metaSchema().getSchemaModel(),
-							schema));
+					BindingFuture.forBinding(new Binding<>(
+							coreSchemata.metaSchema().getSchemaModel(), schema)));
 		}
 	}
 
@@ -132,8 +142,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public void registerBinding(Binding<?> binding) {
-		// TODO Auto-generated method stub
-
+		bindingFutures.add(binding.getModel().getName(),
+				BindingFuture.forBinding(binding));
 	}
 
 	@Override
@@ -149,8 +159,8 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
 			StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder(this).bind(model.effective(),
-				input));
+		return addBindingFuture(
+				new SchemaBinder(this).bind(model.effective(), input));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -163,14 +173,14 @@ public class SchemaManagerImpl implements SchemaManager {
 			throw new IllegalArgumentException("None of the models '" + model
 					+ "' compatible with the class '" + dataClass
 					+ "' match the root element '" + input.peekNextChild() + "'");
-		return (BindingFuture<T>) addBindingFuture(new SchemaBinder(this).bind(
-				model.effective(), input));
+		return (BindingFuture<T>) addBindingFuture(
+				new SchemaBinder(this).bind(model.effective(), input));
 	}
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder(this).bind(
-				registeredModels.get(input.peekNextChild()).effective(), input));
+		return addBindingFuture(new SchemaBinder(this)
+				.bind(registeredModels.get(input.peekNextChild()).effective(), input));
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
@@ -190,30 +200,34 @@ public class SchemaManagerImpl implements SchemaManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Set<BindingFuture<T>> bindingFutures(Model<T> model) {
-		Set<BindingFuture<?>> modelBindings = bindingFutures.get(model.effective()
-				.getName());
+		Set<BindingFuture<?>> modelBindings = bindingFutures
+				.get(model.effective().getName());
 
 		if (modelBindings == null)
 			return new HashSet<>();
 		else
-			return new HashSet<>(modelBindings.stream()
-					.map(t -> (BindingFuture<T>) t).collect(Collectors.toSet()));
+			return new HashSet<>(modelBindings.stream().map(t -> (BindingFuture<T>) t)
+					.collect(Collectors.toSet()));
 	}
 
 	@Override
-	public <T> void unbind(Model<T> model, StructuredDataTarget output, T data) {
-		new SchemaUnbinder(this).unbind(model.effective(), output, data);
-	}
-
-	@Override
-	public void unbind(StructuredDataTarget output, Object data) {
-		new SchemaUnbinder(this).unbind(output, data);
-	}
-
-	@Override
-	public <T> void unbind(TypeToken<T> dataType, StructuredDataTarget output,
+	public <T, U extends StructuredDataTarget> U unbind(Model<T> model, U output,
 			T data) {
+		new SchemaUnbinder(this).unbind(model.effective(), output, data);
+		return output;
+	}
+
+	@Override
+	public <U extends StructuredDataTarget> U unbind(U output, Object data) {
+		new SchemaUnbinder(this).unbind(output, data);
+		return output;
+	}
+
+	@Override
+	public <T, U extends StructuredDataTarget> U unbind(TypeToken<T> dataType,
+			U output, T data) {
 		new SchemaUnbinder(this).unbind(output, dataType, data);
+		return output;
 	}
 
 	@Override
@@ -233,16 +247,14 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public void registerProvider(Function<TypeToken<?>, ?> provider) {
-		providers
-				.add(c -> {
-					Object provided = provider.apply(c);
-					if (provided != null
-							&& !TypeToken.over(c.getType()).isAssignableFrom(
-									provided.getClass()))
-						throw new SchemaException("Invalid object provided for the class ["
-								+ c + "] by provider [" + provider + "]");
-					return provided;
-				});
+		providers.add(c -> {
+			Object provided = provider.apply(c);
+			if (provided != null
+					&& !TypeToken.over(c.getType()).isAssignableFrom(provided.getClass()))
+				throw new SchemaException("Invalid object provided for the class [" + c
+						+ "] by provider [" + provider + "]");
+			return provided;
+		});
 	}
 
 	@Override
@@ -251,14 +263,10 @@ public class SchemaManagerImpl implements SchemaManager {
 			@Override
 			@SuppressWarnings("unchecked")
 			public <T> T provide(TypeToken<T> type) {
-				return (T) providers
-						.stream()
-						.map(p -> p.apply(type))
-						.filter(Objects::nonNull)
-						.findFirst()
-						.orElseThrow(
-								() -> new SchemaException("No provider exists for the type '"
-										+ type + "'"));
+				return (T) providers.stream().map(p -> p.apply(type))
+						.filter(Objects::nonNull).findFirst()
+						.orElseThrow(() -> new SchemaException(
+								"No provider exists for the type '" + type + "'"));
 			}
 
 			@Override
@@ -282,5 +290,11 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public DataBindingTypes registeredTypes() {
 		return registeredTypes;
+	}
+
+	@Override
+	public GeneratedSchema generateSchema(QualifiedName name,
+			Collection<? extends Schema> dependencies) {
+		return new GeneratedSchemaImpl(this, name, dependencies);
 	}
 }

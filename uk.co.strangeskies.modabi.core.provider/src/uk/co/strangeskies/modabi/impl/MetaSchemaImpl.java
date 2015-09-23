@@ -73,8 +73,8 @@ public class MetaSchemaImpl implements MetaSchema {
 	@SuppressWarnings("unchecked")
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
 			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
-		Namespace namespace = MetaSchema.NAMESPACE;
 		QualifiedName name = MetaSchema.QUALIFIED_NAME;
+		Namespace namespace = name.getNamespace();
 
 		/*
 		 * Types

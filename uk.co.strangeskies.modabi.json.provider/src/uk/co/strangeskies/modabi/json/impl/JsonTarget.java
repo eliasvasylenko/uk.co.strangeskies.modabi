@@ -19,8 +19,7 @@
 package uk.co.strangeskies.modabi.json.impl;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -32,7 +31,7 @@ import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 
 public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
-	private final PrintWriter out;
+	private final Appendable out;
 
 	private final Deque<JSONObject> jsonObjectStack;
 
@@ -41,12 +40,16 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 
 	private boolean skipRoot;
 
-	public JsonTarget(OutputStream out) {
+	public JsonTarget() {
+		this(new StringWriter(), true);
+	}
+
+	public JsonTarget(Appendable out) {
 		this(out, false);
 	}
 
-	public JsonTarget(OutputStream out, boolean skipRoot) {
-		this.out = new PrintWriter(out);
+	public JsonTarget(Appendable out, boolean skipRoot) {
+		this.out = out;
 
 		jsonObjectStack = new ArrayDeque<>();
 		jsonObjectStack.push(new JSONObject());
@@ -121,10 +124,14 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 
 			try {
 				object.writeJSONString(out);
-				out.flush();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+		return out.toString();
 	}
 }

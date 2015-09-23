@@ -23,11 +23,8 @@ import java.time.LocalDate;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface MetaSchema extends Schema {
-	public static final Namespace NAMESPACE = new Namespace(
-			MetaSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
-
 	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
-			MetaSchema.class.getSimpleName(), NAMESPACE);
+			MetaSchema.class, LocalDate.of(2014, 1, 1));
 
 	public Model<Schema> getSchemaModel();
 }

@@ -58,15 +58,15 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println();
 		System.out.println("Re-binding MetaSchema...");
-		Schema metaSchema = schemaManager.bind(schemaManager.getMetaSchema()
-				.getSchemaModel(), buffered);
+		Schema metaSchema = schemaManager
+				.bind(schemaManager.getMetaSchema().getSchemaModel(), buffered);
 
 		boolean success = metaSchema.equals(schemaManager.getMetaSchema());
 		System.out.println("Success: " + success);
 
 		@SuppressWarnings("unchecked")
 		Model<Schema> schemaModel = (Model<Schema>) metaSchema.getModels().get(
-				new QualifiedName("schema", MetaSchema.NAMESPACE));
+				new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 		System.out.println();
 		System.out.println();
@@ -80,12 +80,12 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println();
 		System.out.println("Re-re-binding MetaSchema...");
-		metaSchema = schemaManager.bind(schemaManager.getMetaSchema()
-				.getSchemaModel(), buffered);
+		metaSchema = schemaManager
+				.bind(schemaManager.getMetaSchema().getSchemaModel(), buffered);
 
 		@SuppressWarnings("unchecked")
 		Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.getModels().get(
-				new QualifiedName("schema", MetaSchema.NAMESPACE));
+				new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 		System.out.println();
 		System.out.println();
@@ -141,9 +141,9 @@ public class SchemaTest {
 		long totalTimeBinding = System.currentTimeMillis() - startTime;
 		System.out.println();
 
-		System.out.println("Time per unbind: " + (double) totalTimeUnbinding
-				/ (profileRounds * 1000) + " seconds");
-		System.out.println("Time per bind: " + (double) totalTimeBinding
-				/ (profileRounds * 1000) + " seconds");
+		System.out.println("Time per unbind: "
+				+ (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
+		System.out.println("Time per bind: "
+				+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
 	}
 }

@@ -830,8 +830,8 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
 			DataBindingTypeBuilder dataTypeBuilder, DataLoader loader) {
-		Namespace namespace = BaseSchema.NAMESPACE;
 		QualifiedName name = BaseSchema.QUALIFIED_NAME;
+		Namespace namespace = name.getNamespace();
 
 		/*
 		 * Types

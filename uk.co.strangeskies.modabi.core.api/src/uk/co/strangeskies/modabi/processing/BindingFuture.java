@@ -59,9 +59,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 		return resolve();
 	}
 
-	static <U> BindingFuture<U> forData(Model<U> model, U data) {
-		Binding<U> binding = new Binding<U>(model, data);
-
+	static <U> BindingFuture<U> forBinding(Binding<U> binding) {
 		return new BindingFuture<U>() {
 			@Override
 			public boolean cancel(boolean mayInterruptIfRunning) {
@@ -90,12 +88,12 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 
 			@Override
 			public QualifiedName getName() {
-				return model.getName();
+				return binding.getModel().getName();
 			}
 
 			@Override
 			public Model<U> getModel() {
-				return model;
+				return binding.getModel();
 			}
 
 			@Override

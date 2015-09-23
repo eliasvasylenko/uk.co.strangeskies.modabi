@@ -18,6 +18,9 @@
  */
 package uk.co.strangeskies.modabi;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -31,11 +34,24 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaManager {
+	default GeneratedSchema generateSchema(QualifiedName name) {
+		return generateSchema(name, Collections.emptySet());
+	}
+
+	default GeneratedSchema generateSchema(QualifiedName name,
+			Schema... dependencies) {
+		return generateSchema(name, Arrays.asList(dependencies));
+	}
+
+	GeneratedSchema generateSchema(QualifiedName name,
+			Collection<? extends Schema> dependencies);
+
 	<T> void registerProvider(TypeToken<T> providedClass, Supplier<T> provider);
 
 	void registerProvider(Function<TypeToken<?>, ?> provider);
 
-	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
+	default <T> void registerProvider(Class<T> providedClass,
+			Supplier<T> provider) {
 		registerProvider(TypeToken.over(providedClass), provider);
 	}
 
@@ -103,16 +119,18 @@ public interface SchemaManager {
 		return schema;
 	}
 
-	<T> void unbind(Model<T> model, StructuredDataTarget output, T data);
+	<T, U extends StructuredDataTarget> U unbind(Model<T> model, U output,
+			T data);
 
-	<T> void unbind(TypeToken<T> dataClass, StructuredDataTarget output, T data);
+	<T, U extends StructuredDataTarget> U unbind(TypeToken<T> dataClass, U output,
+			T data);
 
-	default <T> void unbind(Class<T> dataClass, StructuredDataTarget output,
-			T data) {
-		unbind(TypeToken.over(dataClass), output, data);
+	default <T, U extends StructuredDataTarget> U unbind(Class<T> dataClass,
+			U output, T data) {
+		return unbind(TypeToken.over(dataClass), output, data);
 	}
 
-	void unbind(StructuredDataTarget output, Object data);
+	<U extends StructuredDataTarget> U unbind(U output, Object data);
 
 	/*-
 	 * TODO Best effort at unbinding, outputting comments on errors instead of

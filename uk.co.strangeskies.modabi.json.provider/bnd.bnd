@@ -10,6 +10,7 @@ Bundle-Name: Modabi - JSON
 	uk.co.strangeskies.modabi.core.api,\
 	net.minidev.json-smart
 	
-Private-Package: uk.co.strangeskies.modabi.json.impl
+
 
 Bundle-Version: 0.0.1.${tstamp}
+Export-Package: uk.co.strangeskies.modabi.json.impl

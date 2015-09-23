@@ -33,11 +33,8 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
-	public static final Namespace NAMESPACE = new Namespace(
-			BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
-
 	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
-			BaseSchema.class.getSimpleName(), NAMESPACE);
+			BaseSchema.class, LocalDate.of(2014, 1, 1));
 
 	public interface DerivedTypes {
 		DataBindingType<Object[]> arrayType();
