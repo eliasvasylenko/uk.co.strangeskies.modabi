@@ -2,7 +2,7 @@
 #  BUNDLE 
 #
 
-Bundle-Version:					1.0.0.${tstamp}
+Bundle-Version: 1.0.0.${tstamp}
 	
 -buildpath: \
 	osgi.enroute.base.api,\
@@ -10,8 +10,6 @@ Bundle-Version:					1.0.0.${tstamp}
 	osgi.enroute.hamcrest.wrapper,\
 	org.hamcrest__java-hamcrest,\
 	uk.co.strangeskies.modabi.core.api;version=latest,\
-	org.apache.commons.collections4,\
-	org.apache.commons.proxy,\
 	${ss;utilities},\
 	${ss;reflection},\
 	${ss;mathematics}
@@ -28,6 +26,5 @@ Export-Package: \
 	uk.co.strangeskies.modabi.impl.schema.building,\
 	uk.co.strangeskies.modabi.impl.schema.utilities,\
 	uk.co.strangeskies.modabi.impl.schema.wrapping
-Bundle-Name: Modabi - Core Provider
 
-Bundle-Version: 0.0.1.${tstamp}
+Bundle-Name: Modabi - Core Provider

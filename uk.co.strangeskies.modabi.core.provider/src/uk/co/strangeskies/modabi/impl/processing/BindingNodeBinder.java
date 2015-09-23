@@ -20,14 +20,14 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.proxy.ProxyFactory;
-import org.apache.commons.proxy.invoker.NullInvoker;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.impl.PartialSchemaProcessingContext;
@@ -67,8 +67,8 @@ public class BindingNodeBinder {
 
 		switch (strategy) {
 		case PROVIDED:
-			TypeToken<?> providedType = node.getBindingType() != null ? node
-					.getBindingType() : node.getDataType();
+			TypeToken<?> providedType = node.getBindingType() != null
+					? node.getBindingType() : node.getDataType();
 			binding = context.provisions().provide(providedType);
 
 			break;
@@ -80,8 +80,8 @@ public class BindingNodeBinder {
 			List<Object> parameters = getSingleBindingSequence(firstChild,
 					childContext);
 			try {
-				binding = ((Constructor<?>) inputMethod).newInstance(parameters
-						.toArray());
+				binding = ((Constructor<?>) inputMethod)
+						.newInstance(parameters.toArray());
 			} catch (IllegalAccessException | InvocationTargetException
 					| InstantiationException e) {
 				throw new BindingException("Cannot invoke static factory method '"
@@ -94,8 +94,17 @@ public class BindingNodeBinder {
 			 * TODO some proxy magic with simple bean-like semantics. Remember, this
 			 * may be more complex if we want proper *generic* type safety!
 			 */
-			binding = new ProxyFactory().createInvokerProxy(new NullInvoker(),
-					new Class[] { node.getDataType().getRawType() });
+			Set<? extends Class<?>> classes = node.getDataType().getRawTypes();
+
+			binding = Proxy.newProxyInstance(getClass().getClassLoader(),
+					classes.toArray(new Class<?>[classes.size()]),
+					new InvocationHandler() {
+						@Override
+						public Object invoke(Object proxy, Method method, Object[] args)
+								throws Throwable {
+							return null;
+						}
+					});
 
 			break;
 		case SOURCE_ADAPTOR:
@@ -181,11 +190,11 @@ public class BindingNodeBinder {
 					} else if (!node.children().isEmpty()) {
 						try {
 							context.withBindingNode(node).attemptBindingUntilSuccessful(
-									node.children(),
-									(c, n) -> bindChild(n, c),
-									n -> new BindingException("Option '" + n
-											+ "' under choice node '" + node
-											+ "' could not be unbound", context, n));
+									node.children(), (c, n) -> bindChild(n, c),
+									n -> new BindingException(
+											"Option '" + n + "' under choice node '" + node
+													+ "' could not be unbound",
+											context, n));
 						} catch (Exception e) {
 							if (node.isMandatory() != null && node.isMandatory())
 								throw e;
@@ -212,8 +221,8 @@ public class BindingNodeBinder {
 					| InvocationTargetException | SecurityException e) {
 				throw new BindingException("Unable to call method '"
 						+ node.getInMethod() + "' with parameters '"
-						+ Arrays.toString(parameters) + "' at node '" + node + "'",
-						context, e);
+						+ Arrays.toString(parameters) + "' at node '" + node + "'", context,
+						e);
 			}
 
 			if (node.isInMethodChained())

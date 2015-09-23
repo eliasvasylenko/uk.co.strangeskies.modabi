@@ -7,9 +7,9 @@ Bundle-Name: Modabi - XML
 -buildpath: \
 	osgi.enroute.base.api,\
 	${ss;utilities},\
-	uk.co.strangeskies.modabi.core.api,\
+	uk.co.strangeskies.modabi.core.api;version=latest,\
 	org.apache.servicemix.bundles.stax-utils
 	
-Private-Package: uk.co.strangeskies.modabi.xml.impl
 
 Bundle-Version: 0.0.1.${tstamp}
+Export-Package: uk.co.strangeskies.modabi.xml.impl

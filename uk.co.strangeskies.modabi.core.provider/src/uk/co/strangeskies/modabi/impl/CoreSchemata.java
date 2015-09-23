@@ -18,14 +18,14 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.commons.proxy.ObjectProvider;
-import org.apache.commons.proxy.ProxyFactory;
-import org.apache.commons.proxy.provider.SingletonProvider;
+import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
@@ -36,8 +36,8 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
@@ -67,12 +67,12 @@ public class CoreSchemata {
 						return Collections.emptyList();
 
 					if (node.getName().getName().equals("format"))
-						return (List<T>) Arrays.asList(Format.valueOf(data
-								.get(DataType.STRING)));
+						return (List<T>) Arrays
+								.asList(Format.valueOf(data.get(DataType.STRING)));
 
 					if (node.getName().getName().equals("dataType"))
-						return (List<T>) Arrays.asList(Enumeration.valueOf(DataType.class,
-								data.get(DataType.STRING)));
+						return (List<T>) Arrays.asList(
+								Enumeration.valueOf(DataType.class, data.get(DataType.STRING)));
 
 					if (node.getName().getName().equals("targetId"))
 						return (List<T>) Arrays.asList(data.get(DataType.QUALIFIED_NAME));
@@ -83,7 +83,7 @@ public class CoreSchemata {
 					if (node.getName().getName().equals("targetModel")) {
 						QualifiedName name = data.get(DataType.QUALIFIED_NAME);
 
-						ObjectProvider objectProvider = () -> {
+						Supplier<Model<?>> objectProvider = () -> {
 							Model<?> model = baseSchema.getModels().get(name);
 
 							if (model == null)
@@ -96,9 +96,20 @@ public class CoreSchemata {
 							return model;
 						};
 
-						return (List<T>) Arrays.asList(new ProxyFactory()
-								.createDelegatorProxy(new SingletonProvider(objectProvider),
-										new Class[] { Model.class }));
+						return (List<T>) Arrays
+								.asList(Proxy.newProxyInstance(Model.class.getClassLoader(),
+										new Class[] { Model.class }, new InvocationHandler() {
+							private Model<?> model;
+
+							@Override
+							public Object invoke(Object proxy, Method method, Object[] args)
+									throws Throwable {
+								if (model == null)
+									model = objectProvider.get();
+
+								return method.invoke(model, args);
+							}
+						}));
 					}
 
 					if (node.getName().getName().equals("enumType"))
@@ -108,8 +119,8 @@ public class CoreSchemata {
 						return (List<T>) Arrays.asList(Enumeration.class);
 				}
 
-				throw new SchemaException("Unable to provide value for node '" + node
-						+ "'");
+				throw new SchemaException(
+						"Unable to provide value for node '" + node + "'");
 			}
 		};
 		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,

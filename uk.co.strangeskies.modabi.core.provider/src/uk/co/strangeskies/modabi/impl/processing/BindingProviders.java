@@ -18,15 +18,15 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import org.apache.commons.proxy.ObjectProvider;
-import org.apache.commons.proxy.ProxyFactory;
-import org.apache.commons.proxy.provider.SingletonProvider;
 
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -43,8 +43,8 @@ import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.DataNode.Effective;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 
 public class BindingProviders {
@@ -65,13 +65,13 @@ public class BindingProviders {
 					DataSource id) {
 				return matchBinding(manager, context, model,
 						new ModelBindingProvider() {
-							@Override
-							public <T> Set<T> get(Model<T> model) {
-								return manager.bindingFutures(model).stream()
-										.filter(BindingFuture::isDone).map(BindingFuture::resolve)
-										.map(Binding::getData).collect(Collectors.toSet());
-							}
-						}, idDomain, id);
+					@Override
+					public <T> Set<T> get(Model<T> model) {
+						return manager.bindingFutures(model).stream()
+								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
+								.map(Binding::getData).collect(Collectors.toSet());
+					}
+				}, idDomain, id);
 			}
 		};
 	}
@@ -114,7 +114,7 @@ public class BindingProviders {
 		/*-{
 			Class<?> raw = null;
 			List<Class<?>> parameters = null;
-
+		
 			return TypeUtils.parameterize(raw,
 					parameters.toArray(new Type[parameters.size()]));
 		};
@@ -131,18 +131,18 @@ public class BindingProviders {
 
 		DataItem<?> id = idSource.get();
 
-		ObjectProvider objectProvider = () -> {
+		Supplier<U> objectProvider = () -> {
 			Set<U> bindingCandidates = bindings.get(model);
 
-			ChildNode<?, ?> child = model.effective().child(
-					idDomain);
+			ChildNode<?, ?> child = model.effective().child(idDomain);
 			if (!(child instanceof DataNode.Effective<?>))
 				throw new BindingException("Can't find child '" + idDomain
 						+ "' to target for model '" + model + "'", context);
 			DataNode.Effective<?> node = (Effective<?>) child;
 
 			for (U bindingCandidate : bindingCandidates) {
-				DataSource candidateId = unbindDataNode(manager, node, bindingCandidate);
+				DataSource candidateId = unbindDataNode(manager, node,
+						bindingCandidate);
 
 				if (candidateId.size() != 1)
 					continue;
@@ -155,13 +155,26 @@ public class BindingProviders {
 			}
 
 			throw new BindingException("Can't find any bindings matching id '" + id
-					+ "' in domain '" + idDomain + "' for model '" + model + "'", context);
+					+ "' in domain '" + idDomain + "' for model '" + model + "'",
+					context);
 		};
 
 		Set<? extends Class<?>> classes = model.effective().getDataType()
 				.getRawTypes();
-		return (U) new ProxyFactory().createDelegatorProxy(new SingletonProvider(
-				objectProvider), classes.toArray(new Class<?>[classes.size()]));
+
+		return (U) Proxy.newProxyInstance(manager.getClass().getClassLoader(),
+				classes.toArray(new Class<?>[classes.size()]), new InvocationHandler() {
+					private U object;
+
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args)
+							throws Throwable {
+						if (object == null)
+							object = objectProvider.get();
+
+						return method.invoke(object, args);
+					}
+				});
 	}
 
 	private static <V> DataSource unbindDataNode(SchemaManager manager,
