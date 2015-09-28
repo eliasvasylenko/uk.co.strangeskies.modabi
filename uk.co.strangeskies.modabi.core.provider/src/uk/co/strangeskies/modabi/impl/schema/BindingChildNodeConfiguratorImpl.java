@@ -31,8 +31,8 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
-		extends BindingNodeConfiguratorImpl<S, N, T> implements
-		BindingChildNodeConfigurator<S, N, T> {
+		extends BindingNodeConfiguratorImpl<S, N, T>
+		implements BindingChildNodeConfigurator<S, N, T> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private TypeToken<?> postInputClass;
@@ -61,8 +61,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	protected Namespace getNamespace() {
-		return getName() != null ? getName().getNamespace() : getContext()
-				.namespace();
+		return getName() != null ? getName().getNamespace()
+				: getContext().namespace();
 	}
 
 	@Override
@@ -209,8 +209,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public List<N> getOverriddenNodes() {
-		return getName() == null ? Collections.emptyList() : getContext()
-				.overrideChild(getName(), getNodeClass());
+		return getName() == null ? Collections.emptyList()
+				: getContext().overrideChild(getName(), getNodeClass());
 	}
 
 	@Override
@@ -229,5 +229,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	public TypeToken<?> getPostInputClass() {
 		return postInputClass;
+	}
+
+	@Override
+	protected TypeToken<?> getInputTargetForTargetAdapter() {
+		return getContext().inputTargetType();
 	}
 }

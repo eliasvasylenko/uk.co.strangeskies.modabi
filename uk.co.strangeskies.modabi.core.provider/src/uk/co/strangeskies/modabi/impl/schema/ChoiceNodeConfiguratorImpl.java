@@ -33,9 +33,9 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ChoiceNodeConfiguratorImpl extends
-		ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode> implements
-		ChoiceNodeConfigurator {
+public class ChoiceNodeConfiguratorImpl
+		extends ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode>
+		implements ChoiceNodeConfigurator {
 	private Boolean mandatory;
 
 	public ChoiceNodeConfiguratorImpl(
@@ -50,7 +50,7 @@ public class ChoiceNodeConfiguratorImpl extends
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
+		TypeToken<?> inputTarget = getContext().inputTargetType();
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new HidingChildrenConfigurator(
@@ -96,7 +96,7 @@ public class ChoiceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
+					public TypeToken<?> inputTargetType() {
 						return inputTarget;
 					}
 

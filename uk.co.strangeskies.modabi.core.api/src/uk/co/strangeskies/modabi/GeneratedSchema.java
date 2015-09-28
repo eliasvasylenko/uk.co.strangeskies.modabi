@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.DataBindingType;

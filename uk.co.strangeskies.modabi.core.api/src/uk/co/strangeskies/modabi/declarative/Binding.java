@@ -18,6 +18,9 @@
  */
 package uk.co.strangeskies.modabi.declarative;
 
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+
 /**
  * This annotation marks a method inside a class or interface marked as a
  * {@link Model} or {@link Type} as binding point.
@@ -26,5 +29,7 @@ package uk.co.strangeskies.modabi.declarative;
  *
  */
 public @interface Binding {
+	BindingStrategy bindingStrategy() default BindingStrategy.PROVIDED;
 
+	UnbindingStrategy unbindingStrategy() default UnbindingStrategy.SIMPLE;
 }

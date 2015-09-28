@@ -73,22 +73,27 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		private final Set<ChildNode.Effective<?, ?>> children;
 		private boolean overridden;
 
-		public MergeGroup(ChildNode.Effective<?, ?> node) {
-			this.name = node.getName();
+		public MergeGroup(QualifiedName name, int index) {
+			this.name = name;
 			children = new HashSet<>();
-			children.add(node);
+
+			if (name != null)
+				namedMergeGroups.put(name, this);
+			mergedChildren.add(index, this);
 		}
 
 		public QualifiedName getName() {
 			return name;
 		}
 
+		public int getIndex() {
+			return mergedChildren.indexOf(this);
+		}
+
 		public ChildNode.Effective<?, ?> getChild() {
 			if (children.size() > 1)
-				throw new SchemaException(
-						"Node '"
-								+ getName()
-								+ "' is inherited multiple times and must be explicitly overridden.");
+				throw new SchemaException("Node '" + getName()
+						+ "' is inherited multiple times and must be explicitly overridden.");
 
 			return children.stream().findAny().get();
 		}
@@ -134,63 +139,44 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		for (SchemaNode<?, ?> overriddenNode : reversedNodes) {
 			int index = 0;
 
-			for (ChildNode<?, ?> child : overriddenNode.children())
-				index = merge(overriddenNode.getName(), child.effective(), index, false);
+			for (ChildNode<?, ?> child : overriddenNode.children()) {
+				MergeGroup group = merge(overriddenNode.getName(),
+						child.effective().getName(), index);
+				group.addChild(child.effective());
+				index = group.getIndex() + 1;
+			}
 		}
 
 		this.context = context;
-		inputTarget = context.inputTargetType(null);
+		inputTarget = context.inputTargetType();
 
 		childIndex = 0;
 	}
 
-	private int merge(QualifiedName parentName, ChildNode.Effective<?, ?> child,
-			int index, boolean override) {
-		QualifiedName name = child.getName();
+	private MergeGroup merge(QualifiedName parentName, QualifiedName name,
+			int index) {
+		MergeGroup group;
 
-		if (name != null) {
-			MergeGroup group = namedMergeGroups.get(name);
+		group = namedMergeGroups.get(name);
 
-			if (group == null) {
-				group = new MergeGroup(child);
-				namedMergeGroups.put(name, group);
-				mergedChildren.add(index++, group);
-			} else {
-				int newIndex = mergedChildren.indexOf(group) + 1;
+		if (group == null) {
+			group = new MergeGroup(name, index);
+		} else if (group.getIndex() < index) {
+			List<String> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName)
+					.map(Objects::toString)
+					.collect(Collectors.toCollection(ArrayList::new));
+			nodesSoFar.add(group.getIndex() + 1, "*");
 
-				List<String> nodesSoFar = mergedChildren.stream()
-						.map(MergeGroup::getName).map(Objects::toString)
-						.collect(Collectors.toCollection(ArrayList::new));
-				nodesSoFar.add(newIndex, "*");
+			String nodesSoFarMessage = "Nodes so far: ["
+					+ nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
 
-				String nodesSoFarMessage = "Nodes so far: ["
-						+ nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
+			throw new SchemaException(
+					"The child node '" + name + "' declared by '" + parentName
+							+ "' cannot be merged into the overridden nodes with order preservation. "
+							+ nodesSoFarMessage);
+		}
 
-				if (newIndex < index)
-					if (override)
-						throw new SchemaException(
-								"The child node '"
-										+ name
-										+ "' declared by '"
-										+ parentName
-										+ "' cannot be merged into the overridden nodes with order preservation. "
-										+ nodesSoFarMessage);
-					else
-						throw new SchemaException("The child node '" + name
-								+ "' inherited from the overridden node '" + parentName
-								+ "' cannot be merged with order preservation. "
-								+ nodesSoFarMessage);
-
-				if (override)
-					group.override(child);
-				else
-					group.addChild(child);
-				index = newIndex;
-			}
-		} else
-			mergedChildren.add(index++, new MergeGroup(child));
-
-		return index;
+		return group;
 	}
 
 	@Override
@@ -213,19 +199,28 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
-			mergeGroup
-					.getChildren()
-					.stream()
+			mergeGroup.getChildren().stream()
 					.filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass()))
-					.findAny()
-					.ifPresent(
-							n -> {
-								throw new SchemaException(
-										"Cannot override with node of class '" + n.getClass()
-												+ "' with a node of class '" + nodeClass + "'");
-							});
+					.findAny().ifPresent(n -> {
+						throw new SchemaException("Cannot override with node of class '"
+								+ n.getClass() + "' with a node of class '" + nodeClass + "'");
+					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
+
+			for (; childIndex < mergeGroup.getIndex(); childIndex++) {
+				ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex)
+						.getChild();
+
+				if (!context.isAbstract() && skippedChild.isAbstract()) {
+					throw new SchemaException("Must override abstract node '"
+							+ skippedChild.getName() + "' before node '" + id + "'");
+				}
+			}
+
+			if (childIndex > 0)
+				inputTarget = mergedChildren.get(childIndex - 1).getChild()
+						.getPostInputType();
 		}
 
 		return (List<U>) overriddenNodes;
@@ -237,8 +232,10 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		childIndex = merge(new QualifiedName("?", Namespace.getDefault()),
-				effective, childIndex, true);
+		MergeGroup group = merge(new QualifiedName("?", Namespace.getDefault()),
+				effective.getName(), childIndex);
+		group.override(effective);
+		childIndex = group.getIndex() + 1;
 
 		inputTarget = effective.getPostInputType();
 	}
@@ -275,8 +272,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(
-					QualifiedName id, TypeToken<U> nodeClass) {
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
+					TypeToken<U> nodeClass) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 
@@ -303,17 +300,9 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public TypeToken<?> inputTargetType(QualifiedName name) {
+			public TypeToken<?> inputTargetType() {
 				if (!isInputExpected())
 					return null;
-
-				MergeGroup mergeGroup = namedMergeGroups.get(name);
-				if (mergeGroup != null) {
-					int index = mergedChildren.indexOf(mergeGroup);
-					if (index > 0)
-						inputTarget = mergedChildren.get(index - 1).getChild()
-								.getPostInputType();
-				}
 
 				return inputTarget;
 			}

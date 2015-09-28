@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.DataBindingTypes;
 import uk.co.strangeskies.modabi.GeneratedSchema;

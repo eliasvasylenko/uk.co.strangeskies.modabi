@@ -27,11 +27,13 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.reflection.Reified;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 
-public class DataNodeImpl<T> extends
-		BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>> implements
-		DataNode<T> {
+public class DataNodeImpl<T>
+		extends BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>>
+		implements DataNode<T> {
 	public static class Effective<T> extends
 			BindingChildNodeImpl.Effective<T, DataNode<T>, DataNode.Effective<T>>
 			implements DataNode.Effective<T> {
@@ -61,8 +63,8 @@ public class DataNodeImpl<T> extends
 			format = overrideMerge.tryGetValue(DataNode::format);
 			if (format != null
 					&& overrideMerge.configurator().getContext().isInputDataOnly())
-				throw new SchemaException("Node '" + getName()
-						+ "' must not provide a format.");
+				throw new SchemaException(
+						"Node '" + getName() + "' must not provide a format.");
 
 			optional = overrideMerge.getValue(DataNode::optional, (n, o) -> o || !n,
 					false);
@@ -70,29 +72,61 @@ public class DataNodeImpl<T> extends
 			nullIfOmitted = overrideMerge.getValue(DataNode::nullIfOmitted,
 					(n, o) -> o || !n, false);
 
-			if (!isAbstract()
-					&& nullIfOmitted
-					&& (!optional || format == Format.SIMPLE || !overrideMerge
-							.configurator().getContext().isInputExpected()))
+			if (!isAbstract() && nullIfOmitted
+					&& (!optional || format == Format.SIMPLE
+							|| !overrideMerge.configurator().getContext().isInputExpected()))
 				throw new SchemaException(
 						"'Null if omitted' property is not valid for node '" + getName()
 								+ "'");
 
 			providedBuffer = overrideMerge.tryGetValue(DataNode::providedValueBuffer);
 			ValueResolution resolution = overrideMerge.getValue(
-					DataNode::valueResolution, ValueResolution.PROCESSING_TIME);
+					DataNode::valueResolution,
+					(o, n) -> o == n || (o == ValueResolution.REGISTRATION_TIME
+							&& n == ValueResolution.POST_REGISTRATION),
+					ValueResolution.PROCESSING_TIME);
 
-			if (providedBuffer == null
-					&& resolution == ValueResolution.REGISTRATION_TIME && !isAbstract()
-					&& !optional)
+			if (providedBuffer == null && !isAbstract() && !optional
+					&& (resolution == ValueResolution.REGISTRATION_TIME
+							|| resolution == ValueResolution.POST_REGISTRATION))
 				throw new SchemaException(
-						"Value must be provided at registration time for node '"
-								+ getName() + "'");
+						"Value must be provided at registration time for node '" + getName()
+								+ "'");
 
-			provided = (resolution == ValueResolution.REGISTRATION_TIME && providedBuffer != null) ? overrideMerge
-					.configurator().getContext().dataLoader()
-					.loadData(DataNodeImpl.Effective.this, providedBuffer)
-					: null;
+			if ((resolution == ValueResolution.REGISTRATION_TIME
+					|| resolution == ValueResolution.POST_REGISTRATION)
+					&& providedBuffer != null) {
+				provided = overrideMerge.configurator().getContext().dataLoader()
+						.loadData(DataNodeImpl.Effective.this, providedBuffer);
+
+				/*
+				 * Incorporate type information from provided data if possible
+				 */
+				for (T providedItem : provided) {
+					Class<?> rawType = provided.iterator().next().getClass();
+
+					if (resolution == ValueResolution.REGISTRATION_TIME
+							&& Reified.class.isAssignableFrom(rawType)) {
+						TypeToken<?> providedType = ((Reified<?>) providedItem)
+								.getThisType();
+						System.out.println(providedType);
+						/*
+						 * Should be possible to just replace the current dataType with the
+						 * providedType here. No need to worry too much about output or
+						 * extensibility given that it only applies to the specific
+						 * circumstance of provided data.
+						 */
+					} else {
+						/*
+						 * Only a check is useful here, since the actual type may be too
+						 * specific to consider for inference.
+						 */
+						TypeToken.over(rawType).withLooseCompatibility(getDataType());
+					}
+				}
+			} else {
+				provided = null;
+			}
 
 			this.resolution = resolution;
 		}
@@ -161,17 +195,17 @@ public class DataNodeImpl<T> extends
 		providedBuffer = configurator.getProvidedBufferedValue();
 		resolution = configurator.getResolution();
 
-		effective = new Effective<>(DataNodeConfiguratorImpl.overrideMerge(this,
-				configurator));
+		effective = new Effective<>(
+				DataNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@SuppressWarnings("rawtypes")
 	protected static final PropertySet<DataNode> PROPERTY_SET = new PropertySet<>(
 			DataNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
-			.add(DataNode::format).add(DataNode::providedValueBuffer)
-			.add(DataNode::valueResolution).add(DataNode::type)
-			.add(DataNode::optional).add(DataNode::isExtensible)
-			.add(DataNode::nullIfOmitted);
+					.add(DataNode::format).add(DataNode::providedValueBuffer)
+					.add(DataNode::valueResolution).add(DataNode::type)
+					.add(DataNode::optional).add(DataNode::isExtensible)
+					.add(DataNode::nullIfOmitted);
 
 	@SuppressWarnings("unchecked")
 	@Override

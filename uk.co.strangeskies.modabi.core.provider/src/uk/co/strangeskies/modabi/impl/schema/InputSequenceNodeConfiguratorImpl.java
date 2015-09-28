@@ -99,7 +99,8 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public final InputSequenceNodeConfigurator inMethodUnchecked(boolean unchecked) {
+	public final InputSequenceNodeConfigurator inMethodUnchecked(
+			boolean unchecked) {
 		assertConfigurable(inMethodUnchecked);
 		inMethodUnchecked = unchecked;
 
@@ -162,7 +163,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
+					public TypeToken<?> inputTargetType() {
 						return null;
 					}
 

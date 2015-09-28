@@ -55,7 +55,8 @@ package uk.co.strangeskies.modabi.declarative;
  * 
  * - Publishing 'providers' to be consumed by schema manager. (service registry)
  * 
- * - Publishing Schema to be consumed by schema manager? (service registry, annotated classes?)
+ * - Publishing Schema to be consumed by schema manager? (service registry,
+ * annotated classes?)
  * 
  * How to have OSGi work alongside custom systems for people not working in OSGi
  * environments?
@@ -63,9 +64,10 @@ package uk.co.strangeskies.modabi.declarative;
  * Perhaps have metadata scanners which look for what metadata is published in
  * META-INF for all jars on the classpath.
  * 
- * @author eli
+ * @author Elias N Vasylenko
  *
  */
 public @interface Model {
-
+	Binding binding() default @Binding()
+	;
 }

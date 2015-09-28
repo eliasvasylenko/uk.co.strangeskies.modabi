@@ -40,8 +40,8 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
-		extends SchemaNodeConfiguratorImpl<S, N> implements
-		BindingNodeConfigurator<S, N, T> {
+		extends SchemaNodeConfiguratorImpl<S, N>
+		implements BindingNodeConfigurator<S, N, T> {
 	private TypeToken<T> dataType;
 	private TypeToken<T> effectiveDataType;
 	private BoundSet inferenceBounds = new BoundSet();
@@ -108,8 +108,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			if (this.dataType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge
 						.getOverridenValues(BindingNode::getDataType)) {
-					effectiveDataType = effectiveDataType.withUpperBound(overriddenType
-							.deepCopy());
+					effectiveDataType = effectiveDataType
+							.withUpperBound(overriddenType.deepCopy());
 				}
 			}
 
@@ -158,6 +158,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
 			inputTarget = effectiveBindingType;
+		else if (bindingStrategy == BindingStrategy.TARGET_ADAPTOR)
+			inputTarget = getInputTargetForTargetAdapter();
 		else if (bindingStrategy != null || !isChildContextAbstract())
 			inputTarget = effectiveDataType;
 		else
@@ -173,9 +175,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			outputSource = null;
 
-		/*
-		 * TODO make 'hasInput' optional for IMPLEMENT_IN_PLACE
-		 */
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
@@ -195,7 +194,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 					@Override
 					public boolean isInputExpected() {
-						return true;
+						return bindingStrategy != BindingStrategy.SOURCE_ADAPTOR;
 					}
 
 					@Override
@@ -219,7 +218,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
+					public TypeToken<?> inputTargetType() {
 						return inputTarget;
 					}
 
@@ -244,6 +243,15 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 				});
 	}
 
+	protected TypeToken<?> getInputTargetForTargetAdapter() {
+		if (isChildContextAbstract())
+			return null;
+		else
+			throw new UnsupportedOperationException(
+					"Non-abstract base binding node cannot use binding strategy "
+							+ BindingStrategy.TARGET_ADAPTOR.toString());
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
@@ -251,11 +259,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		assertConfigurable(this.dataType);
 
 		if (dataType == null)
-			throw new IllegalArgumentException("Data type must not be null.");
+			throw new IllegalArgumentException("Data type must not be null");
 
 		if (!dataType.getResolver().getBounds()
 				.isProperType(dataType.getAnnotatedDeclaration().getType()))
-			throw new IllegalArgumentException("Data type must be proper.");
+			throw new IllegalArgumentException(
+					"Data type must be proper: " + dataType);
 
 		this.dataType = (TypeToken<T>) dataType;
 

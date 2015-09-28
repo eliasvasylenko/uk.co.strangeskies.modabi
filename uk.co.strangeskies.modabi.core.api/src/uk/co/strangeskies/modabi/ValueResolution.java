@@ -19,5 +19,47 @@
 package uk.co.strangeskies.modabi;
 
 public enum ValueResolution {
-	REGISTRATION_TIME, PROCESSING_TIME;
+	/**
+	 * Delay resolution of the provided value buffer until the schema node is
+	 * processed as part of its binding, then bind individually for each bound
+	 * instance.
+	 */
+	PROCESSING_TIME,
+
+	/**
+	 * Resolve the provided value buffer during initial registration of this node
+	 * as part of its containing schema.
+	 */
+	REGISTRATION_TIME,
+
+	/**
+	 * Create a proxy instance for the resolved value during initial registration
+	 * of this node as part of its containing schema. Resolution will then be
+	 * performed as soon as any attempt is made to invoke methods on this proxy.
+	 */
+	POST_REGISTRATION
+
+	/*
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * TODO:
+	 * 
+	 * create special "providedType" node under "complex" node in MetaSchema which
+	 * expects a REGISTRATION_TIME provided value. Use this to perform more
+	 * complex type checking/inference for complex nodes upon build &
+	 * registration.
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
 }

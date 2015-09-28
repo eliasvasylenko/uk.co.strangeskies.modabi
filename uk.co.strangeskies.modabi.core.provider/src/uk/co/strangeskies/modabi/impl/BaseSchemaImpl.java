@@ -27,6 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
@@ -51,12 +52,18 @@ import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
+import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
+import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
+import uk.co.strangeskies.reflection.Annotations;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
@@ -64,8 +71,14 @@ import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
-	private interface PrimitiveMapping {
-		<T> DataBindingType<T> get(DataType<T> dataType);
+	private interface TypeFactory {
+		<T> DataBindingType<T> apply(String name,
+				Function<DataBindingTypeConfigurator<Object>, DataBindingType<T>> type);
+	}
+
+	private interface ModelFactory {
+		<T> Model<T> apply(String name,
+				Function<ModelConfigurator<Object>, Model<T>> type);
 	}
 
 	private class DerivedTypesImpl implements DerivedTypes {
@@ -86,13 +99,12 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataBindingType<Object> importType;
 		private final DataBindingType<Collection<?>> includeType;
 
-		public DerivedTypesImpl(DataLoader loader, Namespace namespace,
-				DataBindingTypeBuilder builder, Set<DataBindingType<?>> typeSet,
-				PrimitiveMapping primitives,
+		public DerivedTypesImpl(TypeFactory factory,
 				DataBindingType<Enumeration<?>> enumerationBaseType) {
-			typeSet
-					.add(arrayType = builder.configure(loader).name("array", namespace)
-							.dataType(new TypeToken<@Infer Object[]>() {}).isAbstract(true)
+			Namespace namespace = BaseSchema.QUALIFIED_NAME.getNamespace();
+
+			arrayType = factory.apply("array",
+					t -> t.dataType(new TypeToken<@Infer Object[]>() {}).isAbstract(true)
 							.bindingStrategy(BindingStrategy.PROVIDED).bindingType(List.class)
 							.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
 							.unbindingType(new TypeToken<@Infer List<?>>() {})
@@ -104,129 +116,131 @@ public class BaseSchemaImpl implements BaseSchema {
 					.addChild(c -> c.inputSequence().name("toArray").inMethodChained(true)
 							.inMethodCast(true)).create());
 
-			typeSet.add(collectionType = builder.configure(loader)
-					.name("collection", namespace)
-					.dataType(new TypeToken<@Infer Collection<?>>() {}).isAbstract(true)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingStrategy(UnbindingStrategy.SIMPLE)
-					.addChild(c -> c.data().name("element").inMethod("add")
-							.outMethod("this").isAbstract(true)
-							.occurrences(Range.create(0, null)).outMethodIterable(true))
+			collectionType = factory.apply("collection",
+					t -> t.dataType(new TypeToken<@Infer Collection<?>>() {})
+							.isAbstract(true).bindingStrategy(BindingStrategy.PROVIDED)
+							.unbindingStrategy(UnbindingStrategy.SIMPLE)
+							.addChild(c -> c.data().name("element").inMethod("add")
+									.outMethod("this").isAbstract(true)
+									.occurrences(Range.create(0, null)).outMethodIterable(true))
 					.create());
 
-			typeSet.add(listType = builder.configure(loader).name("list", namespace)
-					.isAbstract(true).dataType(new TypeToken<@Infer List<?>>() {})
-					.baseType(collectionType).create());
+			listType = factory
+					.apply("list",
+							t -> t.isAbstract(true)
+									.dataType(new TypeToken<@Infer List<?>>() {})
+									.baseType(collectionType).create());
 
-			typeSet.add(setType = builder.configure(loader).name("set", namespace)
-					.isAbstract(true).dataType(new TypeToken<@Infer Set<?>>() {})
-					.baseType(collectionType).create());
+			setType = factory
+					.apply("set",
+							t -> t.isAbstract(true)
+									.dataType(new TypeToken<@Infer Set<?>>() {})
+									.baseType(collectionType).create());
 
-			typeSet.add(bufferedDataType = builder.configure(loader)
-					.name("bufferedData", namespace).dataType(DataSource.class)
-					.bindingType(DataSource.class)
-					.bindingStrategy(BindingStrategy.PROVIDED)
-					.unbindingType(DataTarget.class)
-					.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
-					.unbindingMethod("pipe").create());
+			bufferedDataType = factory.apply("bufferedData",
+					t -> t.dataType(DataSource.class).bindingType(DataSource.class)
+							.bindingStrategy(BindingStrategy.PROVIDED)
+							.unbindingType(DataTarget.class)
+							.unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
+							.unbindingMethod("pipe").create());
 
-			DataBindingType<Object> referenceBaseType;
-			typeSet
-					.add(
-							referenceBaseType = builder.configure(loader)
-									.name("referenceBase", namespace).dataType(Object.class)
-									.isAbstract(true).isPrivate(true)
-									.bindingType(DereferenceSource.class)
-									.bindingStrategy(BindingStrategy.PROVIDED)
-									.unbindingFactoryType(ReferenceTarget.class)
-									.unbindingType(DataSource.class)
-									.unbindingMethod("dereference").unbindingMethodUnchecked(true)
-									.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
-									.providedUnbindingMethodParameters("targetModel", "targetId",
-											"this")
-									.addChild(d -> d.data().dataType(Model.class)
-											.name("targetModel").bindingType(DereferenceSource.class)
-											.bindingStrategy(BindingStrategy.PROVIDED)
-											.unbindingFactoryType(ReferenceTarget.class)
-											.unbindingType(DataSource.class).isAbstract(true)
+			DataBindingType<Object> referenceBaseType = factory.apply("referenceBase",
+					t -> t
+							.<Object> dataType(TypeToken.over(AnnotatedWildcardTypes
+									.unbounded(Annotations.from(Infer.class))))
+							.isAbstract(true).isPrivate(true)
+							.bindingType(DereferenceSource.class)
+							.bindingStrategy(BindingStrategy.PROVIDED)
+							.unbindingFactoryType(ReferenceTarget.class)
+							.unbindingType(DataSource.class).unbindingMethod("reference")
+							.unbindingMethodUnchecked(true)
+							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
+							.providedUnbindingMethodParameters("targetModel", "targetId",
+									"this")
+							.addChild(
+									d -> d.data().dataType(new TypeToken<@Infer Model<?>>() {})
+											.name("targetModel").isAbstract(true)
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.inMethod(
 													"null")
 											.outMethod("null"))
-									.addChild(d -> d.data()
-											.type(primitives.get(DataType.QUALIFIED_NAME))
-											.isAbstract(true).name("targetId")
+							.addChild(
+									d -> d.data().type(primitives.get(DataType.QUALIFIED_NAME))
+											.name("targetId").isAbstract(true)
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.inMethod("null").outMethod("null"))
-									.addChild(
-											c -> c.inputSequence().name("reference")
-													.inMethodChained(true).inMethodUnchecked(true)
+							.addChild(
+									c -> c.inputSequence().name("dereference")
+											.inMethodChained(true).inMethodUnchecked(true)
+											.addChild(d -> d.data().dataType(
+													Model.class)
+											/*
+											 * TODO make value resolution REGISTRATION_TIME, and make
+											 * abstract so that it is delayed until a non-abstract
+											 * base is created (thus ensuring targetModel and targetId
+											 * provisions will be available)
+											 */
+											.name("targetModelInput")
+											.provideValue(new BufferingDataTarget().buffer())
+											.outMethod("null")
+											.bindingStrategy(BindingStrategy.PROVIDED)
+											.bindingType(BindingContext.class)
+											.addChild(
+													e -> e.data().name("bindingNode")
+															.inMethodChained(true)
+															.postInputType(
+																	new TypeToken<DataBindingType.Effective<?>>() {})
+															.inMethodCast(true).outMethod("null")
+															.type(primitives.get(DataType.INT))
+															.provideValue(new BufferingDataTarget()
+																	.put(DataType.INT, 1).buffer()))
 													.addChild(
-															d -> d.data().dataType(Model.class)
-																	.name("targetModel")
-																	.provideValue(
-																			new BufferingDataTarget().buffer())
-													.outMethod("null")
+															e -> e.data().name("child")
+																	.type(primitives.get(DataType.QUALIFIED_NAME))
+																	.inMethodChained(true)
+																	.outMethod(
+																			"null")
+																	.provideValue(new BufferingDataTarget()
+																			.put(DataType.QUALIFIED_NAME,
+																					new QualifiedName("targetModel",
+																							namespace))
+																			.buffer())
+													.postInputType(
+															new TypeToken<DataNode.Effective<?>>() {})
+													.inMethodCast(true))
+											.addChild(e -> e.inputSequence().name("providedValue")
+													.inMethodChained(true)))
+											.addChild(d -> d.data().dataType(QualifiedName.class)
+													.name("targetIdInput").outMethod("null")
+													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingType(BindingContext.class)
 													.addChild(e -> e.data().name("bindingNode")
 															.inMethodChained(true)
 															.postInputType(
 																	new TypeToken<DataBindingType.Effective<?>>() {})
-													.inMethodCast(true).outMethod("null")
-													.type(primitives.get(DataType.INT))
+													.type(primitives.get(DataType.INT)).inMethodCast(true)
+													.outMethod("null")
 													.provideValue(new BufferingDataTarget()
-															.put(DataType.INT, 1).buffer())).addChild(
-																	e -> e.data().name("child")
-																			.type(primitives
-																					.get(DataType.QUALIFIED_NAME))
-																	.inMethodChained(true)
-																	.outMethod(
-																			"null").provideValue(
-																					new BufferingDataTarget()
-																							.put(DataType.QUALIFIED_NAME,
-																									new QualifiedName(
-																											"targetModel", namespace))
-																							.buffer())
-																			.postInputType(
-																					new TypeToken<DataNode.Effective<?>>() {})
-											.inMethodCast(true)).addChild(
-													e -> e.inputSequence().name("providedValue")
-															.inMethodChained(true)))
-													.addChild(
-															d -> d.data().dataType(QualifiedName.class)
-																	.name("targetId").outMethod("null")
-																	.provideValue(
-																			new BufferingDataTarget().buffer())
-											.bindingStrategy(BindingStrategy.PROVIDED)
-											.bindingType(BindingContext.class)
-											.addChild(e -> e.data().name("bindingNode")
-													.inMethodChained(true)
-													.postInputType(
-															new TypeToken<DataBindingType.Effective<?>>() {})
-											.type(primitives.get(DataType.INT)).inMethodCast(true)
-											.outMethod("null").provideValue(
-													new BufferingDataTarget().put(DataType.INT, 1)
-															.buffer())).addChild(
-																	e -> e.data().name("child")
-																			.type(primitives
-																					.get(DataType.QUALIFIED_NAME))
+															.put(DataType.INT, 1).buffer()))
+													.addChild(e -> e.data().name("child")
+															.type(primitives.get(DataType.QUALIFIED_NAME))
 															.inMethodChained(true).outMethod("null")
 															.provideValue(new BufferingDataTarget()
 																	.put(DataType.QUALIFIED_NAME,
 																			new QualifiedName("targetId", namespace))
 																	.buffer())
-											.postInputType(new TypeToken<DataNode.Effective<?>>() {})
-											.inMethodCast(true))
-									.addChild(e -> e.inputSequence().name("providedValue")
-											.inMethodChained(true)))
-							.addChild(d -> d.data().name("data").type(bufferedDataType)
-									.outMethod("this"))).create());
-			typeSet.add(referenceBaseType);
+													.postInputType(
+															new TypeToken<DataNode.Effective<?>>() {})
+													.inMethodCast(true))
+											.addChild(e -> e.inputSequence().name("providedValue")
+													.inMethodChained(true)))
+									.addChild(d -> d.data().name("data").type(bufferedDataType)
+											.outMethod("this")))
+							.create());
 
-			typeSet.add(
-					referenceType = builder.configure(loader).name("reference", namespace)
-							.baseType(referenceBaseType).isAbstract(true)
+			referenceType = factory.apply("reference",
+					t -> t.baseType(referenceBaseType).isAbstract(true)
 							.addChild(
 									c -> c.data().name("targetModel").type(referenceBaseType)
 											.isAbstract(true).dataType(Model.class)
@@ -237,13 +251,13 @@ public class BaseSchemaImpl implements BaseSchema {
 															.put(DataType.QUALIFIED_NAME,
 																	new QualifiedName("model", namespace))
 															.buffer())
-													.addChild(e -> e.data().name("targetModel")
-															.type(referenceBaseType).extensible(true)
-															.isAbstract(true).dataType(Model.class)
-															.provideValue(new BufferingDataTarget()
-																	.put(DataType.QUALIFIED_NAME,
-																			new QualifiedName("model", namespace))
-																	.buffer()))
+											.addChild(e -> e.data().name("targetModel")
+													.type(referenceBaseType).extensible(true)
+													.isAbstract(true).dataType(Model.class)
+													.provideValue(new BufferingDataTarget()
+															.put(DataType.QUALIFIED_NAME,
+																	new QualifiedName("model", namespace))
+															.buffer()))
 													.addChild(e -> e.data().name("targetId")
 															.provideValue(new BufferingDataTarget()
 																	.put(DataType.QUALIFIED_NAME,
@@ -256,42 +270,40 @@ public class BaseSchemaImpl implements BaseSchema {
 															.buffer())))
 							.create());
 
-			typeSet.add(classType = builder.configure(loader).name("class", namespace)
-					.dataType(new TypeToken<Class<?>>() {})
-					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.bindingType(Types.class)
-					.addChild(p -> p.data().type(primitives.get(DataType.STRING))
-							.name("name").inMethod("fromString").inMethodCast(true))
+			classType = factory.apply("class",
+					t -> t.dataType(new TypeToken<Class<?>>() {})
+							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.bindingType(Types.class)
+							.addChild(p -> p.data().type(primitives.get(DataType.STRING))
+									.name("name").inMethod("fromString").inMethodCast(true))
 					.create());
 
-			typeSet.add(typeType = builder.configure(loader).name("type", namespace)
-					.dataType(Type.class).bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.bindingType(Types.class)
-					.addChild(p -> p.data().type(primitives.get(DataType.STRING))
-							.name("name").inMethod("fromString").outMethod("toString"))
+			typeType = factory.apply("type",
+					t -> t.dataType(Type.class)
+							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.bindingType(Types.class)
+							.addChild(p -> p.data().type(primitives.get(DataType.STRING))
+									.name("name").inMethod("fromString").outMethod("toString"))
 					.create());
 
-			typeSet.add(annotatedTypeType = builder.configure(loader)
-					.name("annotatedType", namespace).dataType(AnnotatedType.class)
-					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.bindingType(AnnotatedTypes.class)
-					.addChild(p -> p.data().type(primitives.get(DataType.STRING))
-							.name("name").inMethod("fromString").outMethod("toString"))
+			annotatedTypeType = factory.apply("annotatedType",
+					t -> t.dataType(AnnotatedType.class)
+							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.bindingType(AnnotatedTypes.class)
+							.addChild(p -> p.data().type(primitives.get(DataType.STRING))
+									.name("name").inMethod("fromString").outMethod("toString"))
 					.create());
 
-			typeSet
-					.add(typeTokenType = builder.configure(loader)
-							.name("typeTokenType", namespace)
-							.dataType(new TypeToken<TypeToken<?>>() {})
+			typeTokenType = factory.apply("typeToken",
+					t -> t.dataType(new TypeToken<TypeToken<?>>() {})
 							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 							.addChild(o -> o.data().type(annotatedTypeType)
 									.outMethod("getAnnotatedDeclaration").inMethod("over"))
 					.create());
 
-			typeSet
-					.add(
-							enumType = builder.configure(loader).name("enum", namespace)
-									.dataType(new TypeToken<Enum<?>>() {})
+			enumType = factory
+					.apply("enum",
+							t -> t.dataType(new TypeToken<Enum<?>>() {})
 									.bindingType(Enumeration.class).isAbstract(true)
 									.bindingStrategy(BindingStrategy.STATIC_FACTORY)
 									.unbindingStrategy(
@@ -319,10 +331,9 @@ public class BaseSchemaImpl implements BaseSchema {
 							.addChild(o -> o.data().name("name")
 									.type(primitives.get(DataType.STRING)))).create());
 
-			typeSet
-					.add(
-							enumerationType = builder.configure(loader)
-									.name("enumeration", namespace).baseType(enumerationBaseType)
+			enumerationType = factory
+					.apply("enumeration",
+							t -> t.baseType(enumerationBaseType)
 									.isAbstract(
 											true)
 									.addChild(
@@ -340,27 +351,25 @@ public class BaseSchemaImpl implements BaseSchema {
 															.inMethodChained(true)
 															.postInputType(
 																	new TypeToken<DataBindingType.Effective<?>>() {})
-															.inMethodCast(true))
-											.addChild(p -> p.inputSequence().name("getDataType")
-													.inMethodChained(true))
-											.addChild(p -> p.inputSequence().name("getType")
-													.inMethodChained(true)))
-									.addChild(o -> o.data().name("name")
-											.type(primitives.get(DataType.STRING))))
-									.create());
+											.inMethodCast(true))
+									.addChild(p -> p.inputSequence().name("getDataType")
+											.inMethodChained(true))
+									.addChild(p -> p.inputSequence().name("getType")
+											.inMethodChained(true)))
+							.addChild(o -> o.data().name("name")
+									.type(primitives.get(DataType.STRING)))).create());
 
-			typeSet.add(rangeType = builder.configure(loader).name("range", namespace)
-					.dataType(new TypeToken<Range<Integer>>() {})
-					.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-					.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
-					.unbindingType(String.class).unbindingFactoryType(Range.class)
-					.addChild(p -> p.data().type(primitives.get(DataType.STRING))
-							.outMethod("this").name("string"))
-					.create());
+			rangeType = factory.apply("range",
+					t -> t.dataType(new TypeToken<Range<Integer>>() {})
+							.bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
+							.unbindingType(String.class).unbindingFactoryType(Range.class)
+							.addChild(p -> p.data().type(primitives.get(DataType.STRING))
+									.outMethod("this").name("string"))
+							.create());
 
-			typeSet.add(
-					includeType = builder.configure(loader).name("include", namespace)
-							.dataType(new TypeToken<Collection<?>>() {})
+			includeType = factory.apply("include",
+					t -> t.dataType(new TypeToken<Collection<?>>() {})
 							.unbindingType(IncludeTarget.class)
 							.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 							.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
@@ -434,67 +443,78 @@ public class BaseSchemaImpl implements BaseSchema {
 																			.put(DataType.INT, 1).buffer())))))
 					.create());
 
-			typeSet.add(importType = builder.configure(loader)
-					.name("import", namespace).dataType(Object.class).isAbstract(true)
-					.bindingStrategy(BindingStrategy.SOURCE_ADAPTOR)
-					.unbindingStrategy(UnbindingStrategy.SIMPLE).unbindingMethod("this")
-					.addChild(b -> b.data().name("import").outMethod("this")
-							.inMethod("null").inMethodChained(true).isAbstract(true)
-							.dataType(Object.class).bindingType(ImportSource.class)
-							.bindingStrategy(BindingStrategy.PROVIDED)
-							.unbindingFactoryType(ImportReferenceTarget.class)
-							.unbindingType(DataSource.class)
-							.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
-							.unbindingMethod("dereferenceImport")
-							.unbindingMethodUnchecked(true)
-							.providedUnbindingMethodParameters("targetModel", "targetId",
-									"this")
-							.addChild(
-									c -> c.data().name("targetModel").type(referenceType)
-											.isAbstract(true).dataType(new TypeToken<Model<?>>() {})
-											.outMethod("null").inMethod("null")
-											.valueResolution(ValueResolution.REGISTRATION_TIME)
-											.addChild(d -> d.data().name("targetModel")
-													.provideValue(new BufferingDataTarget()
-															.put(DataType.QUALIFIED_NAME,
-																	new QualifiedName("model", namespace))
-															.buffer()))
-											.addChild(d -> d.data().name("targetId")
+			importType = factory
+					.apply("import",
+							t -> t.dataType(Object.class)
+									.isAbstract(
+											true)
+									.bindingStrategy(BindingStrategy.SOURCE_ADAPTOR)
+									.unbindingStrategy(
+											UnbindingStrategy.SIMPLE)
+									.unbindingMethod(
+											"this")
+									.addChild(b -> b.data().name("import").outMethod("this")
+											.inMethod("null").inMethodChained(true).isAbstract(true)
+											.dataType(Object.class).bindingType(ImportSource.class)
+											.bindingStrategy(BindingStrategy.PROVIDED)
+											.unbindingFactoryType(ImportReferenceTarget.class)
+											.unbindingType(DataSource.class)
+											.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
+											.unbindingMethod("dereferenceImport")
+											.unbindingMethodUnchecked(true)
+											.providedUnbindingMethodParameters("targetModel",
+													"targetId", "this")
+							.addChild(c -> c.data().name("targetModel").type(referenceType)
+									.isAbstract(true).dataType(new TypeToken<Model<?>>() {})
+									.outMethod("null").inMethod("null")
+									.valueResolution(ValueResolution.REGISTRATION_TIME)
+									.addChild(d -> d.data().name("targetModel")
+											.provideValue(new BufferingDataTarget()
+													.put(DataType.QUALIFIED_NAME,
+															new QualifiedName("model", namespace))
+													.buffer()))
+									.addChild(
+											d -> d.data().name("targetId")
 													.provideValue(new BufferingDataTarget()
 															.put(DataType.QUALIFIED_NAME,
 																	new QualifiedName("name", namespace))
 															.buffer())))
-							.addChild(
-									d -> d.data().type(primitives.get(DataType.QUALIFIED_NAME))
-											.isAbstract(true).name("targetId")
-											.valueResolution(ValueResolution.REGISTRATION_TIME)
-											.outMethod("null").inMethod("null"))
-							.addChild(c -> c.inputSequence().name("importObject")
-									.inMethodChained(true).inMethodUnchecked(true)
-									.addChild(d -> d.data().dataType(new TypeToken<Model<?>>() {})
-											.name("targetModel").outMethod("null")
-											.bindingStrategy(BindingStrategy.PROVIDED)
-											.bindingType(BindingContext.class)
-											.provideValue(new BufferingDataTarget().buffer())
+											.addChild(d -> d.data()
+													.type(primitives.get(DataType.QUALIFIED_NAME))
+													.isAbstract(true).name("targetId")
+													.valueResolution(ValueResolution.REGISTRATION_TIME)
+													.outMethod("null").inMethod(
+															"null"))
+											.addChild(
+													c -> c.inputSequence().name("importObject")
+															.inMethodChained(true)
+															.inMethodUnchecked(
+																	true)
+															.addChild(d -> d.data()
+																	.dataType(new TypeToken<Model<?>>() {})
+																	.name("targetModel").outMethod("null")
+																	.bindingStrategy(BindingStrategy.PROVIDED)
+																	.bindingType(BindingContext.class)
+																	.provideValue(
+																			new BufferingDataTarget().buffer())
 											.addChild(f -> f.data().name("bindingNode")
 													.type(primitives.get(DataType.INT)).outMethod("null")
 													.inMethodChained(true)
 													.provideValue(new BufferingDataTarget()
-															.put(DataType.INT, 1).buffer()))
-											.addChild(
-													e -> e.data().name("child")
-															.type(primitives.get(DataType.QUALIFIED_NAME))
-															.inMethodChained(
-																	true)
-															.outMethod("null")
-															.provideValue(new BufferingDataTarget()
-																	.put(DataType.QUALIFIED_NAME,
-																			new QualifiedName("targetModel",
-																					namespace))
-																	.buffer())
-													.postInputType(
-															new TypeToken<DataNode.Effective<?>>() {})
-													.inMethodCast(true))
+															.put(DataType.INT, 1).buffer())).addChild(
+																	e -> e.data().name("child")
+																			.type(primitives
+																					.get(DataType.QUALIFIED_NAME))
+																			.inMethodChained(true).outMethod("null")
+																			.provideValue(
+																					new BufferingDataTarget()
+																							.put(DataType.QUALIFIED_NAME,
+																									new QualifiedName(
+																											"targetModel", namespace))
+																							.buffer())
+																			.postInputType(
+																					new TypeToken<DataNode.Effective<?>>() {})
+																			.inMethodCast(true))
 											.addChild(e -> e.inputSequence().name("providedValue")
 													.inMethodChained(true)))
 									.addChild(d -> d.data().dataType(QualifiedName.class)
@@ -521,7 +541,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.inMethodChained(true)))
 									.addChild(d -> d.data().name("data").type(bufferedDataType)
 											.outMethod("this"))))
-					.create());
+									.create());
 		}
 
 		@Override
@@ -601,8 +621,95 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	private class BaseModelsImpl implements BaseModels {
-		public BaseModelsImpl(DataLoader loader, Namespace namespace,
-				ModelBuilder builder, Set<Model<?>> modelSet) {}
+		private Model<?> simpleModel;
+		private Model<Map<?, ?>> mapModel;
+
+		public BaseModelsImpl(ModelFactory factory) {
+			simpleModel = factory.apply("simpleModel",
+					m -> m
+							.dataType(TypeToken.over(AnnotatedWildcardTypes
+									.unbounded(Annotations.from(Infer.class))))
+							.isAbstract(true).bindingStrategy(BindingStrategy.SOURCE_ADAPTOR)
+							.addChild(w -> w.data().name("content").isAbstract(true)
+									.format(Format.CONTENT).outMethod("this"))
+							.create());
+
+			/*
+			 * Having trouble annotating Map.Entry for some reason, so need this
+			 * kludge.
+			 */
+			AnnotatedType annotatedMapEntry = AnnotatedParameterizedTypes.from(
+					AnnotatedTypes.over(Map.Entry.class, Annotations.from(Infer.class)),
+					Arrays.asList(AnnotatedWildcardTypes.unbounded(),
+							AnnotatedWildcardTypes.unbounded()));
+			TypeToken<?> inferredMapEntry = TypeToken.over(annotatedMapEntry);
+			TypeToken<?> inferredMapEntrySet = TypeToken
+					.over(AnnotatedParameterizedTypes.from(
+							AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
+							Arrays.asList(
+									AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
+
+			mapModel = factory
+					.apply("map",
+							c -> c.dataType(new TypeToken<@Infer Map<?, ?>>() {})
+									.isAbstract(true)
+									.bindingStrategy(
+											BindingStrategy.PROVIDED)
+									.addChild(
+											e -> e.complex().name("entrySet").inline(true)
+													.inMethod("null").isAbstract(true)
+													.dataType(inferredMapEntrySet)
+													.bindingStrategy(
+															BindingStrategy.TARGET_ADAPTOR)
+													.unbindingStrategy(
+															UnbindingStrategy.SIMPLE)
+							.addChild(
+									s -> s.inputSequence().name("entrySet")
+											.inMethodChained(true)).addChild(
+													f -> f.complex().name("entry").outMethodIterable(true)
+															.inMethod("add").outMethod("this")
+															.isAbstract(true)
+															.bindingStrategy(
+																	BindingStrategy.IMPLEMENT_IN_PLACE)
+									.bindingType(BaseSchemaImpl.class).unbindingMethod("mapEntry")
+									.dataType(inferredMapEntry)
+									.addChild(k -> k.data().name("key").format(Format.PROPERTY)
+											.isAbstract(true))
+									.addChild(v -> v.complex().name("value").isAbstract(true))))
+					.create());
+
+			/*-
+			 * An example, inferred as type Map<Integer, String>
+			 * 
+			Model<Map<?, ?>> m = factory.apply("stringIntMap",
+					t -> t.baseModel(mapModel)
+							.addChild(u -> u.complex().name("entrySet")
+									.addChild(e -> e.complex().name("entry")
+											.addChild(k -> k.data().name("key").inMethod("null")
+													.type(primitiveType(DataType.STRING)))
+											.addChild(
+													v -> v.complex().name("value").baseModel(simpleModel)
+															.inMethod("null")
+															.addChild(w -> w.data().name("content")
+																	.type(primitiveType(DataType.INT))))))
+					.create());
+			System.out.println(m.effective().getDataType());
+			*/
+		}
+
+		@Override
+		public Model<?> simpleModel() {
+			return simpleModel;
+		}
+
+		@Override
+		public Model<Map<?, ?>> mapModel() {
+			return mapModel;
+		}
+	}
+
+	public static <K, V> Map.Entry<K, V> mapEntry(K key, V value) {
+		return null;
 	}
 
 	private final Schema baseSchema;
@@ -622,16 +729,26 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		Set<DataBindingType<?>> typeSet = new LinkedHashSet<>();
 
-		DataBindingType<Enumeration<?>> enumerationBaseType;
-		typeSet.add(enumerationBaseType = dataTypeBuilder.configure(loader)
-				.unbindingType(Enumeration.class)
-				.bindingStrategy(BindingStrategy.STATIC_FACTORY)
-				.name("enumerationBase", namespace).isAbstract(true).isPrivate(true)
-				.dataType(new TypeToken<@Infer Enumeration<?>>() {}).create());
+		TypeFactory typeFactory = new TypeFactory() {
+			@Override
+			public <T> DataBindingType<T> apply(String name,
+					Function<DataBindingTypeConfigurator<Object>, DataBindingType<T>> typeFunction) {
+				DataBindingType<T> type = typeFunction
+						.apply(dataTypeBuilder.configure(loader).name(name, namespace));
+				typeSet.add(type);
+				return type;
+			}
+		};
 
-		DataBindingType<Object> primitive;
-		typeSet.add(primitive = dataTypeBuilder.configure(loader)
-				.name("primitive", namespace).isAbstract(true).isPrivate(true)
+		DataBindingType<Enumeration<?>> enumerationBaseType = typeFactory.apply(
+				"enumerationBase",
+				c -> c.unbindingType(Enumeration.class)
+						.bindingStrategy(BindingStrategy.STATIC_FACTORY).isAbstract(true)
+						.isPrivate(true).dataType(new TypeToken<@Infer Enumeration<?>>() {})
+						.create());
+
+		DataBindingType<Object> primitive = typeFactory.apply("primitive", p -> p
+				.isAbstract(true).isPrivate(true)
 				.bindingType(new TypeToken<DataSource>() {})
 				.bindingStrategy(BindingStrategy.PROVIDED)
 				.unbindingType(new TypeToken<DataTarget>() {})
@@ -648,31 +765,31 @@ public class BaseSchemaImpl implements BaseSchema {
 		primitives = new HashMap<>();
 		for (DataType<?> dataType : Enumeration.getConstants(DataType.class))
 			primitives.put(dataType,
-					dataTypeBuilder.configure(loader).name(dataType.name(), namespace)
-							.baseType(primitive).dataType(dataType.dataClass())
-							.addChild(c -> c.data().name("dataType")
-									.dataType(resolvePrimitiveDataType(dataType))
-									.provideValue(new BufferingDataTarget()
-											.put(DataType.STRING, dataType.name()).buffer()))
-					.create());
+					typeFactory.apply(dataType.name(),
+							p -> p.baseType(primitive).dataType(dataType.dataClass())
+									.addChild(c -> c.data().name("dataType")
+											.dataType(resolvePrimitiveDataType(dataType))
+											.provideValue(new BufferingDataTarget()
+													.put(DataType.STRING, dataType.name()).buffer()))
+					.create()));
 
-		primitives.values().stream().forEach(typeSet::add);
-
-		derivedTypes = new DerivedTypesImpl(loader, namespace, dataTypeBuilder,
-				typeSet, new PrimitiveMapping() {
-					@SuppressWarnings("unchecked")
-					@Override
-					public <T> DataBindingType<T> get(DataType<T> dataType) {
-						return (DataBindingType<T>) primitives.get(dataType);
-					}
-				}, enumerationBaseType);
+		derivedTypes = new DerivedTypesImpl(typeFactory, enumerationBaseType);
 
 		/*
 		 * Models
 		 */
 		Set<Model<?>> modelSet = new LinkedHashSet<>();
 
-		models = new BaseModelsImpl(loader, namespace, modelBuilder, modelSet);
+		models = new BaseModelsImpl(new ModelFactory() {
+			@Override
+			public <T> Model<T> apply(String name,
+					Function<ModelConfigurator<Object>, Model<T>> modelFunction) {
+				Model<T> model = modelFunction
+						.apply(modelBuilder.configure(loader).name(name, namespace));
+				modelSet.add(model);
+				return model;
+			}
+		});
 
 		/*
 		 * Schema

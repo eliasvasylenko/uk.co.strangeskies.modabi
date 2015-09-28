@@ -23,6 +23,5 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface ReferenceTarget {
-	<T> DataSource dereference(Model<T> model, QualifiedName idDomain,
-			T object);
+	<T> DataSource reference(Model<T> model, QualifiedName idDomain, T object);
 }

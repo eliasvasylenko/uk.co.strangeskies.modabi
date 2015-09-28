@@ -58,17 +58,13 @@ public class UnbindingProviders {
 			@Override
 			public <U> DataSource dereferenceImport(Model<U> model,
 					QualifiedName idDomain, U object) {
-				DataNode.Effective<?> node = (DataNode.Effective<?>) model
-						.effective()
-						.children()
-						.stream()
-						.filter(
-								c -> c.getName().equals(idDomain)
-										&& c instanceof DataNode.Effective<?>)
+				DataNode.Effective<?> node = (DataNode.Effective<?>) model.effective()
+						.children().stream()
+						.filter(c -> c.getName().equals(idDomain)
+								&& c instanceof DataNode.Effective<?>)
 						.findAny()
-						.orElseThrow(
-								() -> new SchemaException("Can't fine child '" + idDomain
-										+ "' to target for model '" + model + "'"));
+						.orElseThrow(() -> new SchemaException("Can't fine child '"
+								+ idDomain + "' to target for model '" + model + "'"));
 
 				return unbindDataNode.apply(node, object);
 			}
@@ -78,11 +74,12 @@ public class UnbindingProviders {
 	public Function<UnbindingContext, ReferenceTarget> referenceTarget() {
 		return context -> new ReferenceTarget() {
 			@Override
-			public <U> DataSource dereference(Model<U> model, QualifiedName idDomain,
+			public <U> DataSource reference(Model<U> model, QualifiedName idDomain,
 					U object) {
 				if (!context.bindings().get(model).contains(object))
 					throw new SchemaException("Cannot find any instance '" + object
-							+ "' bound to model '" + model.getName() + "'");
+							+ "' bound to model '" + model.getName() + "' from '"
+							+ context.bindings().get(model) + "'");
 
 				return importTarget().apply(context).dereferenceImport(model, idDomain,
 						object);
