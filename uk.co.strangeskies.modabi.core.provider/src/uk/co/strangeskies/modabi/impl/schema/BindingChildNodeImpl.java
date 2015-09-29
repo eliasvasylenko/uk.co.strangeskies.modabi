@@ -210,7 +210,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				type = (TypeToken<U>) new TypeToken<Object>() {};
 			}
 			return new TypeToken<Iterable<? extends U>>() {}.withTypeArgument(
-					new TypeParameter<U>() {}, type);
+					new TypeParameter<U>() {}, type.wrapPrimitive());
 		}
 
 		protected static Invokable<?, ?> getOutMethod(
