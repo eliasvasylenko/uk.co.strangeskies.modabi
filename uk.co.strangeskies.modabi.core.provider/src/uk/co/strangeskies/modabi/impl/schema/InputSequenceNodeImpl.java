@@ -27,9 +27,9 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class InputSequenceNodeImpl extends
-		SchemaNodeImpl<InputSequenceNode, InputSequenceNode.Effective> implements
-		InputSequenceNode {
+class InputSequenceNodeImpl
+		extends SchemaNodeImpl<InputSequenceNode, InputSequenceNode.Effective>
+		implements InputSequenceNode {
 	private static class Effective extends
 			SchemaNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
 			implements InputSequenceNode.Effective {
@@ -50,24 +50,21 @@ class InputSequenceNodeImpl extends
 				throw new SchemaException("InputSequenceNode '" + getName()
 						+ "' cannot occur in a context without input.");
 
-			List<TypeToken<?>> parameterClasses = overrideMerge
-					.configurator()
-					.getChildrenContainer()
-					.getChildren()
-					.stream()
-					.map(
-							o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective())
-									.getDataType()).collect(Collectors.toList());
+			List<TypeToken<?>> parameterClasses = overrideMerge.configurator()
+					.getChildrenContainer().getChildren().stream()
+					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective())
+							.getDataType())
+					.collect(Collectors.toList());
 
 			InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
-					isAbstract(), getName(), overrideMerge, overrideMerge.configurator()
-							.getContext(), parameterClasses);
+					isAbstract(), getName(), overrideMerge,
+					overrideMerge.configurator().getContext(), parameterClasses);
 
 			inMethodChained = inputNodeHelper.isInMethodChained();
 			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 			inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-			inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper
-					.getInMethod().getExecutable() : null;
+			inMethod = inputNodeHelper.getInMethod() != null
+					? inputNodeHelper.getInMethod().getExecutable() : null;
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputClass = inputNodeHelper.getPreInputType();
 			postInputClass = inputNodeHelper.getPostInputType();
@@ -126,8 +123,8 @@ class InputSequenceNodeImpl extends
 		allowInMethodResultCast = configurator.getInMethodCast();
 		inMethodUnchecked = configurator.getInMethodUnchecked();
 
-		effective = new Effective(InputSequenceNodeConfiguratorImpl.overrideMerge(
-				this, configurator));
+		effective = new Effective(
+				InputSequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override

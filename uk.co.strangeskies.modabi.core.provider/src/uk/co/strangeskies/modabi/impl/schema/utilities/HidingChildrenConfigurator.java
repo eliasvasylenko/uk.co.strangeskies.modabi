@@ -85,10 +85,8 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 		public ChildNode.Effective<?, ?> getChild() {
 			if (children.size() > 1)
-				throw new SchemaException(
-						"Node '"
-								+ getName()
-								+ "' is inherited multiple times and must be explicitly overridden.");
+				throw new SchemaException("Node '" + getName()
+						+ "' is inherited multiple times and must be explicitly overridden.");
 
 			return children.stream().findAny().get();
 		}
@@ -122,8 +120,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 	private final SchemaNodeConfigurationContext<?> context;
 	private TypeToken<?> inputTarget;
 
-	public HidingChildrenConfigurator(
-			SchemaNodeConfigurationContext<?> context) {
+	public HidingChildrenConfigurator(SchemaNodeConfigurationContext<?> context) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
@@ -135,11 +132,12 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			int index = 0;
 
 			for (ChildNode<?, ?> child : overriddenNode.children())
-				index = merge(overriddenNode.getName(), child.effective(), index, false);
+				index = merge(overriddenNode.getName(), child.effective(), index,
+						false);
 		}
 
 		this.context = context;
-		inputTarget = context.inputTargetType(null);
+		inputTarget = context.inputTargetType();
 
 		childIndex = 0;
 	}
@@ -169,10 +167,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 				if (newIndex < index)
 					if (override)
 						throw new SchemaException(
-								"The child node '"
-										+ name
-										+ "' declared by '"
-										+ parentName
+								"The child node '" + name + "' declared by '" + parentName
 										+ "' cannot be merged into the overridden nodes with order preservation. "
 										+ nodesSoFarMessage);
 					else
@@ -213,19 +208,19 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
-			mergeGroup
-					.getChildren()
-					.stream()
+			mergeGroup.getChildren().stream()
 					.filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass()))
-					.findAny()
-					.ifPresent(
-							n -> {
-								throw new SchemaException(
-										"Cannot override with node of class '" + n.getClass()
-												+ "' with a node of class '" + nodeClass + "'");
-							});
+					.findAny().ifPresent(n -> {
+						throw new SchemaException("Cannot override with node of class '"
+								+ n.getClass() + "' with a node of class '" + nodeClass + "'");
+					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
+
+			int index = mergedChildren.indexOf(mergeGroup);
+			if (index > 0)
+				inputTarget = mergedChildren.get(index - 1).getChild()
+						.getPostInputType();
 		}
 
 		return (List<U>) overriddenNodes;
@@ -275,8 +270,8 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(
-					QualifiedName id, TypeToken<U> nodeClass) {
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
+					TypeToken<U> nodeClass) {
 				return HidingChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 
@@ -292,28 +287,20 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public boolean isConstructorExpected() {
-				return HidingChildrenConfigurator.this.context
-						.isConstructorExpected() && children.isEmpty();
+				return HidingChildrenConfigurator.this.context.isConstructorExpected()
+						&& children.isEmpty();
 			}
 
 			@Override
 			public boolean isStaticMethodExpected() {
-				return HidingChildrenConfigurator.this.context
-						.isStaticMethodExpected() && children.isEmpty();
+				return HidingChildrenConfigurator.this.context.isStaticMethodExpected()
+						&& children.isEmpty();
 			}
 
 			@Override
-			public TypeToken<?> inputTargetType(QualifiedName name) {
+			public TypeToken<?> inputTargetType() {
 				if (!isInputExpected())
 					return null;
-
-				MergeGroup mergeGroup = namedMergeGroups.get(name);
-				if (mergeGroup != null) {
-					int index = mergedChildren.indexOf(mergeGroup);
-					if (index > 0)
-						inputTarget = mergedChildren.get(index - 1).getChild()
-								.getPostInputType();
-				}
 
 				return inputTarget;
 			}

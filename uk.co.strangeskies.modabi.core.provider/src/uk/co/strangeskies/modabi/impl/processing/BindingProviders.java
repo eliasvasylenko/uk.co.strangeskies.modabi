@@ -91,7 +91,7 @@ public class BindingProviders {
 	public Function<BindingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
-			public <U> U reference(Model<U> model, QualifiedName idDomain,
+			public <U> U dereference(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
 				return matchBinding(manager, context, model, context.bindings()::get,
 						idDomain, id);

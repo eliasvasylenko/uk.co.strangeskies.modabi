@@ -45,7 +45,7 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	BoundSet boundSet();
 
-	TypeToken<?> inputTargetType(QualifiedName node);
+	TypeToken<?> inputTargetType();
 
 	TypeToken<?> outputSourceType();
 

@@ -78,8 +78,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	@SuppressWarnings("rawtypes")
 	static final PropertySet<InputNode> PROPERTY_SET = new PropertySet<>(
 			InputNode.class).add(ChildNodeConfiguratorImpl.PROPERTY_SET)
-			.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
-			.add(InputNode::isInMethodUnchecked).add(InputNode::isInMethodCast);
+					.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
+					.add(InputNode::isInMethodUnchecked).add(InputNode::isInMethodCast);
 
 	PropertySet<? super N> propertySet() {
 		return PROPERTY_SET;
@@ -88,8 +88,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	@SuppressWarnings("rawtypes")
 	static final PropertySet<InputNode.Effective> EFFECTIVE_PROPERTY_SET = new PropertySet<>(
 			InputNode.Effective.class).add(PROPERTY_SET)
-			.add(ChildNodeConfiguratorImpl.EFFECTIVE_PROPERTY_SET)
-			.add(InputNode.Effective::getInMethod);
+					.add(ChildNodeConfiguratorImpl.EFFECTIVE_PROPERTY_SET)
+					.add(InputNode.Effective::getInMethod);
 
 	PropertySet<? super E> effectivePropertySet() {
 		return PROPERTY_SET;
@@ -124,7 +124,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private TypeToken<?> inputTargetType() {
-		return context.inputTargetType(name);
+		return context.inputTargetType();
 	}
 
 	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
@@ -164,9 +164,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							.<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
-				Executable inMethod = overrideMerge
-						.tryGetValue(n -> n.effective() == null ? null : n.effective()
-								.getInMethod());
+				Executable inMethod = overrideMerge.tryGetValue(
+						n -> n.effective() == null ? null : n.effective().getInMethod());
 				if (inMethod != null) {
 					inInvokable = Invokable.over(inMethod, inputTargetType)
 							.withTargetType(result);
@@ -188,9 +187,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
 			} catch (NoSuchMethodException e) {
-				throw new SchemaException("Cannot find input method for node '" + name
-						+ "' on class '" + inputTargetType + "' with parameters '"
-						+ parameters + "'", e);
+				throw new SchemaException(
+						"Cannot find input method for node '" + name + "' on class '"
+								+ inputTargetType + "' with parameters '" + parameters + "'",
+						e);
 			}
 		}
 
@@ -225,8 +225,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	static String capitalize(String string) {
-		return string == "" ? "" : Character.toUpperCase(string.charAt(0))
-				+ string.substring(1);
+		return string == "" ? ""
+				: Character.toUpperCase(string.charAt(0)) + string.substring(1);
 	}
 
 	private String inMethodName() {
@@ -242,8 +242,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private TypeToken<?> preInputType() {
-		return (isAbstract || "null".equals(inMethodName)) ? null : TypeToken
-				.over(inMethod.getExecutable().getDeclaringClass());
+		return (isAbstract || "null".equals(inMethodName)) ? null
+				: TypeToken.over(inMethod.getExecutable().getDeclaringClass());
 	}
 
 	private TypeToken<?> postInputType() {
@@ -264,10 +264,11 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			if (methodReturn.getType() instanceof TypeVariableCapture)
 				methodReturn = TypeToken
 						.over(
-								IntersectionType.from(Arrays
-										.asList(((TypeVariableCapture) methodReturn.getType())
-												.getUpperBounds()), methodReturn.getResolver()
-										.getBounds())).withBoundsFrom(methodReturn.getResolver());
+								IntersectionType.from(
+										Arrays.asList(((TypeVariableCapture) methodReturn.getType())
+												.getUpperBounds()),
+						methodReturn.getResolver().getBounds()))
+						.withBoundsFrom(methodReturn.getResolver());
 
 			TypeToken<?> localPostInputClass = overrideMerge.node()
 					.getPostInputType();

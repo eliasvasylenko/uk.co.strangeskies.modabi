@@ -55,8 +55,8 @@ public class DataNodeUnbinder {
 			List<U> data) {
 		BufferingDataTarget target = new BufferingDataTarget();
 
-		UnbindingContextImpl context = this.context.withOutput(null).withProvision(
-				new TypeToken<DataTarget>() {}, c -> target);
+		UnbindingContextImpl context = this.context.withOutput(null)
+				.withProvision(new TypeToken<DataTarget>() {}, c -> target);
 
 		unbindWithFormat(node, data, null, context);
 
@@ -76,10 +76,11 @@ public class DataNodeUnbinder {
 
 					break;
 				case REGISTRATION_TIME:
+				case POST_REGISTRATION:
 					if (!node.providedValues().equals(data)) {
-						throw new SchemaException("Provided value '"
-								+ node.providedValues() + "'does not match unbinding object '"
-								+ data + "' for node '" + node.getName() + "'");
+						throw new SchemaException("Provided value '" + node.providedValues()
+								+ "'does not match unbinding object '" + data + "' for node '"
+								+ node.getName() + "'");
 					}
 					break;
 				}
@@ -100,8 +101,9 @@ public class DataNodeUnbinder {
 						if (bufferedTarget.size() > 0)
 							switch (format) {
 							case PROPERTY:
-								bufferedTarget.pipe(
-										context.output().writeProperty(node.getName())).terminate();
+								bufferedTarget
+										.pipe(context.output().writeProperty(node.getName()))
+										.terminate();
 								break;
 							case SIMPLE:
 								context.output().nextChild(node.getName());
@@ -135,22 +137,20 @@ public class DataNodeUnbinder {
 								+ node.effective().type().getName() + "' for object '" + data
 								+ "' to be unbound.");
 
-			context.<DataBindingType<? extends U>> attemptUnbindingUntilSuccessful(
-					overrides
-							.keySet()
-							.stream()
-							.filter(
-									m -> m.effective().getDataType().getRawType()
+			context
+					.<DataBindingType<? extends U>> attemptUnbindingUntilSuccessful(
+							overrides.keySet().stream()
+									.filter(m -> m.effective().getDataType().getRawType()
 											.isAssignableFrom(data.getClass()))
-							.collect(Collectors.toList()),
-					(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
-					l -> new UnbindingException("Unable to unbind data node '"
-							+ node.getName()
-							+ "' with type candidates '"
-							+ overrides.keySet().stream()
-									.map(m -> m.effective().getName().toString())
-									.collect(Collectors.joining(", ")) + "' for object '" + data
-							+ "' to be unbound.", context, l));
+									.collect(Collectors.toList()),
+							(c, n) -> unbindExactNode(context, overrides.putGet(n),
+									data),
+							l -> new UnbindingException("Unable to unbind data node '"
+									+ node.getName() + "' with type candidates '"
+									+ overrides.keySet().stream()
+											.map(m -> m.effective().getName().toString())
+											.collect(Collectors.joining(", "))
+									+ "' for object '" + data + "' to be unbound.", context, l));
 		} else
 			new BindingNodeUnbinder(context).unbind(node, data);
 	}
@@ -159,8 +159,8 @@ public class DataNodeUnbinder {
 	private <U extends V, V> void unbindExactNode(UnbindingContextImpl context,
 			DataNode.Effective<U> element, V data) {
 		try {
-			new BindingNodeUnbinder(context).unbind(element, (U) element
-					.getDataType().getRawType().cast(data));
+			new BindingNodeUnbinder(context).unbind(element,
+					(U) element.getDataType().getRawType().cast(data));
 		} catch (ClassCastException e) {
 			throw new UnbindingException("Cannot unbind data at this node.", context,
 					e);

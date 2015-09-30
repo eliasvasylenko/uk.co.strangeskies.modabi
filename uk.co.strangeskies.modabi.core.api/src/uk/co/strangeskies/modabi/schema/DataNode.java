@@ -19,15 +19,17 @@
 package uk.co.strangeskies.modabi.schema;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.reflection.TypedObject;
 
-public interface DataNode<T> extends
-		BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>,
+public interface DataNode<T>
+		extends BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>,
 		ChildNode<DataNode<T>, DataNode.Effective<T>> {
 	interface Effective<T> extends DataNode<T>,
 			BindingChildNode.Effective<T, DataNode<T>, Effective<T>>,
@@ -42,6 +44,11 @@ public interface DataNode<T> extends
 
 		List<T> providedValues();
 
+		default List<TypedObject<T>> typedProvidedValues() {
+			return providedValues().stream().map(getDataType()::typedObject)
+					.collect(Collectors.toList());
+		}
+
 		default T providedValue() {
 			if (!Range.create(0, 1).contains(occurrences()))
 				throw new SchemaException("Cannot request single value from node '"
@@ -51,6 +58,10 @@ public interface DataNode<T> extends
 				return null;
 			else
 				return providedValues().get(0);
+		}
+
+		default TypedObject<T> typedProvidedValue() {
+			return getDataType().typedObject(providedValue());
 		}
 	}
 

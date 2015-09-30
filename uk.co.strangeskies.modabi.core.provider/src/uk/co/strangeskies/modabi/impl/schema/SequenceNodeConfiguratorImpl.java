@@ -33,9 +33,9 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class SequenceNodeConfiguratorImpl extends
-		ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode> implements
-		SequenceNodeConfigurator {
+public class SequenceNodeConfiguratorImpl
+		extends ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
+		implements SequenceNodeConfigurator {
 	public SequenceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super SequenceNode> parent) {
 		super(parent);
@@ -53,7 +53,7 @@ public class SequenceNodeConfiguratorImpl extends
 
 	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
-		TypeToken<?> inputTarget = getContext().inputTargetType(getName());
+		TypeToken<?> inputTarget = getContext().inputTargetType();
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(
@@ -99,7 +99,7 @@ public class SequenceNodeConfiguratorImpl extends
 					}
 
 					@Override
-					public TypeToken<?> inputTargetType(QualifiedName node) {
+					public TypeToken<?> inputTargetType() {
 						return inputTarget;
 					}
 

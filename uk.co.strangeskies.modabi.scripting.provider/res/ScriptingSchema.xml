@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="ScriptingSchema">
+	<dependencies />
+
+	<types />
+
+	<models>
+		<model name="script">
+			<choice name="scriptType">
+				<property name="source" type="url" />
+				<sequence>
+					<content name="script" type="string" />
+					<property name="language" type="string" />
+				</sequence>
+			</choice>
+		</model>
+	</models>
+</schema>

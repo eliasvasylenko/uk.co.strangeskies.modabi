@@ -98,8 +98,8 @@ public class BindingNodeUnbinder {
 			}
 		}
 
-		Consumer<ChildNode.Effective<?, ?>> processingContext = getChildProcessor(context
-				.withUnbindingSource(supplier.apply(data)));
+		Consumer<ChildNode.Effective<?, ?>> processingContext = getChildProcessor(
+				context.withUnbindingSource(supplier.apply(data)));
 
 		for (ChildNode.Effective<?, ?> child : node.children()) {
 			processingContext.accept(child);
@@ -120,7 +120,8 @@ public class BindingNodeUnbinder {
 						|| !node.getOutMethodName().equals("null")) {
 					List<U> data = null;
 					if (!node.isValueProvided()
-							|| node.valueResolution() == ValueResolution.REGISTRATION_TIME)
+							|| node.valueResolution() == ValueResolution.REGISTRATION_TIME
+							|| node.valueResolution() == ValueResolution.POST_REGISTRATION)
 						data = getData(node, context);
 
 					new DataNodeUnbinder(context).unbind(node, data);
@@ -138,8 +139,8 @@ public class BindingNodeUnbinder {
 			}
 
 			public void acceptSequence(SchemaNode.Effective<?, ?> node) {
-				Consumer<ChildNode.Effective<?, ?>> childProcessor = getChildProcessor(context
-						.withUnbindingNode(node));
+				Consumer<ChildNode.Effective<?, ?>> childProcessor = getChildProcessor(
+						context.withUnbindingNode(node));
 
 				for (ChildNode.Effective<?, ?> child : node.children())
 					childProcessor.accept(child);
@@ -149,8 +150,7 @@ public class BindingNodeUnbinder {
 			public void accept(ChoiceNode.Effective node) {
 				try {
 					context.withUnbindingNode(node).attemptUnbindingUntilSuccessful(
-							node.children(),
-							(c, n) -> getChildProcessor(c).accept(n),
+							node.children(), (c, n) -> getChildProcessor(c).accept(n),
 							n -> new UnbindingException("Option '" + n
 									+ "' under choice node '" + node + "' could not be unbound",
 									context, n));
@@ -180,8 +180,8 @@ public class BindingNodeUnbinder {
 			for (DataNode.Effective<?> parameter : node
 					.getProvidedUnbindingMethodParameters()) {
 				if (parameter != null) {
-					parameters.add(parameter.providedValues() == null ? null : parameter
-							.providedValues().get(0));
+					parameters.add(parameter.providedValues() == null ? null
+							: parameter.providedValues().get(0));
 				} else {
 					parameters.add(data);
 					addedData = true;
@@ -198,14 +198,13 @@ public class BindingNodeUnbinder {
 		try {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException | SecurityException | NullPointerException e) {
-			throw new UnbindingException("Cannot invoke method '"
-					+ method
-					+ "' on '"
+				| InvocationTargetException | SecurityException
+				| NullPointerException e) {
+			throw new UnbindingException("Cannot invoke method '" + method + "' on '"
 					+ receiver
-					+ "' with arguments '["
-					+ Arrays.asList(parameters).stream().map(Objects::toString)
-							.collect(Collectors.joining(", ")) + "]'", context, e);
+					+ "' with arguments '[" + Arrays.asList(parameters).stream()
+							.map(Objects::toString).collect(Collectors.joining(", "))
+					+ "]'", context, e);
 		}
 	}
 
@@ -216,11 +215,10 @@ public class BindingNodeUnbinder {
 		} catch (NullPointerException | InstantiationException
 				| IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
-			throw new UnbindingException("Cannot invoke method '"
-					+ method
-					+ "' with arguments '["
-					+ Arrays.asList(parameters).stream().map(Objects::toString)
-							.collect(Collectors.joining(", ")) + "]'", context, e);
+			throw new UnbindingException("Cannot invoke method '" + method
+					+ "' with arguments '[" + Arrays.asList(parameters).stream()
+							.map(Objects::toString).collect(Collectors.joining(", "))
+					+ "]'", context, e);
 		}
 	}
 
@@ -235,9 +233,8 @@ public class BindingNodeUnbinder {
 			throw new UnbindingException("Cannot unbind node '" + node.getName()
 					+ "' from object '" + parent + "' with no data class.", context);
 
-		if (node.getOutMethod() == null
-				&& (node.getOutMethodName() == null || !node.getOutMethodName().equals(
-						"this")))
+		if (node.getOutMethod() == null && (node.getOutMethodName() == null
+				|| !node.getOutMethodName().equals("this")))
 			throw new UnbindingException("Cannot unbind node '" + node.getName()
 					+ "' from object '" + parent + "' with no out method.", context);
 
@@ -252,11 +249,10 @@ public class BindingNodeUnbinder {
 
 			itemList = StreamSupport.stream(iterable.spliterator(), false)
 					.filter(Objects::nonNull).collect(Collectors.toList());
-			U failedCast = itemList
-					.stream()
-					.filter(
-							o -> !Types.isLooseInvocationContextCompatible(o.getClass(), node
-									.getDataType().getRawType())).findAny().orElse(null);
+			U failedCast = itemList.stream()
+					.filter(o -> !Types.isLooseInvocationContextCompatible(o.getClass(),
+							node.getDataType().getRawType()))
+					.findAny().orElse(null);
 			if (failedCast != null)
 				throw new ClassCastException("Cannot cast " + failedCast.getClass()
 						+ " to " + node.getDataType());
@@ -271,8 +267,8 @@ public class BindingNodeUnbinder {
 			if (item == null)
 				itemList = null;
 			else {
-				if (!Types.isLooseInvocationContextCompatible(item.getClass(), node
-						.getDataType().getRawType()))
+				if (!Types.isLooseInvocationContextCompatible(item.getClass(),
+						node.getDataType().getRawType()))
 					throw new UnbindingException("Cannot unbind node '" + node + "'",
 							context, new ClassCastException("Cannot cast " + item.getClass()
 									+ " to " + node.getDataType()));

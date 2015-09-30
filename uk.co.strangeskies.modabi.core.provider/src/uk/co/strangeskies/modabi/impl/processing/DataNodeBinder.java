@@ -47,12 +47,13 @@ public class DataNodeBinder {
 		List<U> results = new ArrayList<>();
 
 		if (node.isValueProvided()) {
-			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME) {
+			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME
+					|| node.valueResolution() == ValueResolution.POST_REGISTRATION) {
 				results.addAll(node.providedValues());
 			} else {
 				DataSource providedValueBuffer = node.providedValueBuffer();
-				BindingContextImpl context = this.context.withProvision(
-						DataSource.class, () -> providedValueBuffer);
+				BindingContextImpl context = this.context
+						.withProvision(DataSource.class, () -> providedValueBuffer);
 				results.addAll(bindList(context, node));
 			}
 		} else if (node.format() != null) {
@@ -135,8 +136,8 @@ public class DataNodeBinder {
 		int successfulIndex = 0;
 		try {
 			if (context.provisions().isProvided(DataSource.class))
-				dataSource = context.provisions().provide(
-						TypeToken.over(DataSource.class));
+				dataSource = context.provisions()
+						.provide(TypeToken.over(DataSource.class));
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();
@@ -180,16 +181,22 @@ public class DataNodeBinder {
 
 			Property<U, U> result = new IdentityProperty<U>();
 
-			context.attemptBindingUntilSuccessful(
-					overrides.keySet(),
-					(c, n) -> result.set(new BindingNodeBinder(c).bind(overrides
-							.putGet(n))),
-					l -> new BindingException("Unable to bind data node '"
-							+ node.getName()
-							+ "' with type candidates '"
-							+ overrides.keySet().stream()
-									.map(m -> m.effective().getName().toString())
-									.collect(Collectors.joining(", ")) + "'", context, l));
+			context
+					.attemptBindingUntilSuccessful(
+							overrides
+									.keySet(),
+							(c, n) -> result
+									.set(
+											new BindingNodeBinder(c).bind(
+													overrides.putGet(n))),
+							l -> new BindingException(
+									"Unable to bind data node '" + node.getName()
+											+ "' with type candidates '"
+											+ overrides.keySet().stream()
+													.map(m -> m.effective().getName().toString())
+													.collect(Collectors.joining(", "))
+											+ "'",
+									context, l));
 
 			return result.get();
 		} else

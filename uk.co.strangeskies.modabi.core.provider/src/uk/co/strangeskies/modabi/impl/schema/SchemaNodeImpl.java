@@ -95,13 +95,13 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 
 					@Override
 					public <U> void accept(DataNode.Effective<U> node) {
-						if (!node.isExtensible())
+						if (node.isExtensible() == null || !node.isExtensible())
 							requireNonAbstract(nodeStack);
 					}
 
 					@Override
 					public <U> void accept(ComplexNode.Effective<U> node) {
-						if (!node.isExtensible())
+						if (node.isExtensible() == null || !node.isExtensible())
 							requireNonAbstract(nodeStack);
 					}
 				});
@@ -113,9 +113,9 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 		protected void requireNonAbstract(
 				Deque<SchemaNode.Effective<?, ?>> nodeStack) {
 			if (nodeStack.peek().isAbstract())
-				throw new SchemaException("Inherited descendent '"
-						+ nodeStack.stream().map(n -> n.getName().toString())
-								.collect(Collectors.joining(" < ")) + "' cannot be abstract.");
+				throw new SchemaException("Inherited descendent '" + nodeStack.stream()
+						.map(n -> n.getName().toString()).collect(Collectors.joining(" < "))
+						+ "' must be overridden");
 
 			requireNonAbstractDescendents(nodeStack);
 		}
@@ -176,14 +176,14 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 
 		isAbstract = configurator.isAbstract();
 
-		children = Collections.unmodifiableList(new ArrayList<>(configurator
-				.getChildrenContainer().getChildren()));
+		children = Collections.unmodifiableList(
+				new ArrayList<>(configurator.getChildrenContainer().getChildren()));
 	}
 
 	@SuppressWarnings("rawtypes")
 	protected static final PropertySet<SchemaNode> PROPERTY_SET = new PropertySet<>(
 			SchemaNode.class).add(SchemaNode::children).add(SchemaNode::getName)
-			.add(SchemaNode::isAbstract);
+					.add(SchemaNode::isAbstract);
 
 	protected PropertySet<? super S> propertySet() {
 		return PROPERTY_SET;

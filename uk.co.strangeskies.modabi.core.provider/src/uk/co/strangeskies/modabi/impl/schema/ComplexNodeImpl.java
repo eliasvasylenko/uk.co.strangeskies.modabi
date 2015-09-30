@@ -31,11 +31,10 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.utilities.PropertySet;
 
-class ComplexNodeImpl<T> extends
-		BindingChildNodeImpl<T, ComplexNode<T>, ComplexNode.Effective<T>> implements
-		ComplexNode<T> {
-	private static class Effective<T>
-			extends
+class ComplexNodeImpl<T>
+		extends BindingChildNodeImpl<T, ComplexNode<T>, ComplexNode.Effective<T>>
+		implements ComplexNode<T> {
+	private static class Effective<T> extends
 			BindingChildNodeImpl.Effective<T, ComplexNode<T>, ComplexNode.Effective<T>>
 			implements ComplexNode.Effective<T> {
 		private final List<Model.Effective<? super T>> baseModel;
@@ -53,9 +52,10 @@ class ComplexNodeImpl<T> extends
 					.map(SchemaNode::effective).collect(Collectors.toSet()));
 			this.baseModel = Collections.unmodifiableList(baseModel);
 
-			this.inline = overrideMerge.getValue(ComplexNode::isInline, false);
+			Boolean inline = overrideMerge.getValue(ComplexNode::isInline, false);
+			this.inline = inline != null && inline;
 
-			if (inline && isExtensible())
+			if (this.inline && isExtensible() != null && isExtensible())
 				throw new SchemaException("Complex node '" + getName()
 						+ "' cannot be both inline and extensible");
 		}
@@ -73,15 +73,15 @@ class ComplexNodeImpl<T> extends
 		@SuppressWarnings("rawtypes")
 		static final PropertySet<AbstractComplexNode.Effective> ABSTRACT_PROPERTY_SET = new PropertySet<>(
 				AbstractComplexNode.Effective.class)
-				.add(BindingNodeImpl.Effective.PROPERTY_SET)
-				.add(ComplexNodeImpl.ABSTRACT_PROPERTY_SET)
-				.add(AbstractComplexNode::baseModel);
+						.add(BindingNodeImpl.Effective.PROPERTY_SET)
+						.add(ComplexNodeImpl.ABSTRACT_PROPERTY_SET)
+						.add(AbstractComplexNode::baseModel);
 
 		@SuppressWarnings("rawtypes")
 		static final PropertySet<ComplexNode.Effective> PROPERTY_SET = new PropertySet<>(
 				ComplexNode.Effective.class).add(ABSTRACT_PROPERTY_SET)
-				.add(ComplexNodeImpl.PROPERTY_SET)
-				.add(BindingChildNodeImpl.Effective.PROPERTY_SET);
+						.add(ComplexNodeImpl.PROPERTY_SET)
+						.add(BindingChildNodeImpl.Effective.PROPERTY_SET);
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -100,8 +100,8 @@ class ComplexNodeImpl<T> extends
 		super(configurator);
 
 		baseModel = configurator.getBaseModel() == null ? Collections.emptyList()
-				: Collections.unmodifiableList(new ArrayList<>(configurator
-						.getBaseModel()));
+				: Collections
+						.unmodifiableList(new ArrayList<>(configurator.getBaseModel()));
 
 		inline = configurator.getInline();
 
@@ -111,13 +111,13 @@ class ComplexNodeImpl<T> extends
 
 	@SuppressWarnings("rawtypes")
 	static final PropertySet<AbstractComplexNode> ABSTRACT_PROPERTY_SET = new PropertySet<>(
-			AbstractComplexNode.class).add(BindingNodeImpl.PROPERTY_SET).add(
-			AbstractComplexNode::baseModel);
+			AbstractComplexNode.class).add(BindingNodeImpl.PROPERTY_SET)
+					.add(AbstractComplexNode::baseModel);
 
 	@SuppressWarnings("rawtypes")
 	static final PropertySet<ComplexNode> PROPERTY_SET = new PropertySet<>(
 			ComplexNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
-			.add(ABSTRACT_PROPERTY_SET).add(AbstractComplexNode::baseModel);
+					.add(ABSTRACT_PROPERTY_SET).add(AbstractComplexNode::baseModel);
 
 	@SuppressWarnings("unchecked")
 	@Override
