@@ -13,6 +13,14 @@ Bundle-Name: Modabi - Core
 	${ss;mathematics},\
 	${ss;reflection}
 
+
+	
+-runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
+
+-runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'
+
+Bundle-Version: 0.0.1.${tstamp}
+
 Export-Package: \
 	uk.co.strangeskies.modabi,\
 	uk.co.strangeskies.modabi.declarative,\
@@ -23,9 +31,3 @@ Export-Package: \
 	uk.co.strangeskies.modabi.processing.providers,\
 	uk.co.strangeskies.modabi.schema,\
 	uk.co.strangeskies.modabi.schema.building
-	
--runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
-
--runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core)'
-
-Bundle-Version: 0.0.1.${tstamp}
