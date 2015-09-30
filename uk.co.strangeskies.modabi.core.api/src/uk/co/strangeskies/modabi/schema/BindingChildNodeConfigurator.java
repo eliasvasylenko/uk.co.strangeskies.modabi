@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, ?, ?>, T>
 		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N>,
@@ -43,4 +44,8 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 	 * existing XML document) by not considering it a violation of model equality
 	 * to reorder from outMethod iterator.
 	 */
+
+	public default TypeToken<T> getExpectedTypeBounds() {
+		return null;
+	}
 }
