@@ -18,6 +18,10 @@
  */
 package uk.co.strangeskies.modabi.test;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
@@ -26,6 +30,7 @@ import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
+import uk.co.strangeskies.modabi.json.impl.JsonTarget;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
 
@@ -36,6 +41,19 @@ public class SchemaTest {
 	}
 
 	public void run(SchemaManager schemaManager) {
+		Map<String, Integer> stringIntMap = new HashMap<>();
+		stringIntMap.put("first", 1);
+		stringIntMap.put("second", 2);
+		stringIntMap.put("third", 3);
+		@SuppressWarnings("unchecked")
+		Model<Map<?, ?>> stringIntMapModel = (Model<Map<?, ?>>) schemaManager
+				.getBaseSchema().getModels().get(new QualifiedName("stringIntMap",
+						BaseSchema.QUALIFIED_NAME.getNamespace()));
+		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
+				stringIntMap);
+		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
+				stringIntMap);
+
 		System.out.println("Unbinding BaseSchema...");
 		StructuredDataTargetBuffer out = BufferingStructuredDataTarget
 				.singleBuffer();

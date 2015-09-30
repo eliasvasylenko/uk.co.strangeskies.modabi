@@ -120,7 +120,7 @@ public class DataNodeUnbinder {
 			}
 		} else if (!node.optional())
 			throw new SchemaException("Non-optional node '" + node.getName()
-					+ "' cannot omit data for unbinding.");
+					+ "' cannot omit data for unbinding");
 	}
 
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data,
@@ -130,27 +130,40 @@ public class DataNodeUnbinder {
 			ComputingMap<DataBindingType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
-			if (overrides.isEmpty())
+			if (node.isAbstract() && overrides.isEmpty()) {
 				throw new SchemaException(
 						"Unable to find concrete type to satisfy data node '"
 								+ node.getName() + "' with type '"
 								+ node.effective().type().getName() + "' for object '" + data
-								+ "' to be unbound.");
+								+ "' to be unbound");
+			}
 
-			context
-					.<DataBindingType<? extends U>> attemptUnbindingUntilSuccessful(
-							overrides.keySet().stream()
-									.filter(m -> m.effective().getDataType().getRawType()
-											.isAssignableFrom(data.getClass()))
-									.collect(Collectors.toList()),
-							(c, n) -> unbindExactNode(context, overrides.putGet(n),
-									data),
-							l -> new UnbindingException("Unable to unbind data node '"
-									+ node.getName() + "' with type candidates '"
-									+ overrides.keySet().stream()
-											.map(m -> m.effective().getName().toString())
-											.collect(Collectors.joining(", "))
-									+ "' for object '" + data + "' to be unbound.", context, l));
+			try {
+				context
+						.<DataBindingType<? extends U>> attemptUnbindingUntilSuccessful(
+								overrides.keySet().stream()
+										.filter(m -> m.effective().getDataType().getRawType()
+												.isAssignableFrom(data.getClass()))
+										.collect(Collectors.toList()),
+								(c, n) -> unbindExactNode(context,
+										overrides
+												.putGet(
+														n),
+										data),
+								l -> new UnbindingException("Unable to unbind data node '"
+										+ node.getName() + "' with type candidates '"
+										+ overrides.keySet().stream()
+												.map(m -> m.effective().getName().toString())
+												.collect(Collectors.joining(", "))
+										+ "' for object '" + data + "' to be unbound", context, l));
+			} catch (UnbindingException e) {
+				if (!node.isAbstract()) {
+					new BindingNodeUnbinder(context).unbind(node, data);
+				} else {
+					throw new UnbindingException("Could not unbind without extension",
+							context, e);
+				}
+			}
 		} else
 			new BindingNodeUnbinder(context).unbind(node, data);
 	}

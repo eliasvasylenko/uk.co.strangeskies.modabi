@@ -24,19 +24,19 @@ import uk.co.strangeskies.reflection.TypeToken;
 public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, ?, ?>, T>
 		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N>,
 		ChildNodeConfigurator<S, N> {
-	public S outMethod(String methodName);
+	S outMethod(String methodName);
 
-	public S outMethodUnchecked(boolean unchecked);
+	S outMethodUnchecked(boolean unchecked);
 
-	public S outMethodIterable(boolean iterable);
+	S outMethodIterable(boolean iterable);
 
-	public S outMethodCast(boolean cast);
+	S outMethodCast(boolean cast);
 
-	public S occurrences(Range<Integer> occuranceRange);
+	S occurrences(Range<Integer> occuranceRange);
 
-	public S extensible(boolean extensible);
+	S extensible(boolean extensible);
 
-	public S ordered(boolean ordered);
+	S ordered(boolean ordered);
 
 	/*
 	 * TODO 'isOrdered' hint, for ranges above ..2, to help magically minimise
@@ -45,7 +45,5 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 	 * to reorder from outMethod iterator.
 	 */
 
-	public default TypeToken<T> getExpectedTypeBounds() {
-		return null;
-	}
+	TypeToken<T> getExpectedTypeBounds();
 }

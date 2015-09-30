@@ -24,6 +24,7 @@ import java.util.List;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
@@ -234,5 +235,21 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	protected TypeToken<?> getInputTargetForTargetAdapter() {
 		return getContext().inputTargetType();
+	}
+
+	@Override
+	public TypeToken<T> getExpectedTypeBounds() {
+		OverrideMerge<? extends BindingChildNode<?, ?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
+				null, this);
+
+		System.out.println(overrideMerge
+				.tryGetValue(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
+						.getInMethod()));
+
+		System.out.println(overrideMerge
+				.tryGetValue(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
+						.getOutMethod()));
+
+		return null;
 	}
 }

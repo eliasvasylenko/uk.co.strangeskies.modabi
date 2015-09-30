@@ -10,6 +10,7 @@ Bundle-Name: Modabi - Benchmarks
 	uk.co.strangeskies.modabi.core.api;version=latest,\
 	uk.co.strangeskies.modabi.core.provider;version=latest,\
 	uk.co.strangeskies.modabi.xml.provider;version=latest,\
+	uk.co.strangeskies.modabi.json.provider;version=latest,\
 	org.apache.commons.lang3
 	
 Private-Package: uk.co.strangeskies.modabi.benchmark

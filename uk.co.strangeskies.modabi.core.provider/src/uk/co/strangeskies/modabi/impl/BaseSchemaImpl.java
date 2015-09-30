@@ -649,33 +649,35 @@ public class BaseSchemaImpl implements BaseSchema {
 							Arrays.asList(
 									AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 
-			mapModel = factory.apply("map", c -> c
-					.dataType(
-							new TypeToken<@Infer Map<?, ?>>() {})
-					.isAbstract(
-							true)
-					.bindingStrategy(
-							BindingStrategy.PROVIDED)
-					.addChild(
-							e -> e.complex().name("entrySet").inline(true).inMethod("null")
-									.isAbstract(
-											true)
-									.dataType(inferredMapEntrySet)
-									.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-									.unbindingStrategy(UnbindingStrategy.SIMPLE)
-									.addChild(s -> s.inputSequence().name("entrySet")
-											.inMethodChained(true))
-									.addChild(f -> f.complex().name("entry")
-											.outMethodIterable(true).inMethod("add").outMethod("this")
-											.isAbstract(true)
-											.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
-											.bindingType(BaseSchemaImpl.class)
-											.unbindingMethod("mapEntry").dataType(inferredMapEntry)
-											.addChild(k -> k.data().name("key").inMethod("null")
-													.format(Format.PROPERTY).isAbstract(true))
+			mapModel = factory
+					.apply("map",
+							c -> c.dataType(new TypeToken<@Infer Map<?, ?>>() {})
+									.isAbstract(true).bindingStrategy(BindingStrategy.PROVIDED)
+									.addChild(
+											e -> e.complex().name("entrySet").inline(true)
+													.inMethod("null").isAbstract(true)
+													.dataType(inferredMapEntrySet)
+													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+													.unbindingStrategy(UnbindingStrategy.SIMPLE)
+													.addChild(s -> s.inputSequence()
+															.name(
+																	"entrySet")
+															.inMethodChained(true))
+													.addChild(f -> f.complex().name("entry")
+															.outMethodIterable(true)
+															.occurrences(Range.create(0, null))
+															.inMethod("add").outMethod("this")
+															.isAbstract(true)
+															.bindingStrategy(
+																	BindingStrategy.IMPLEMENT_IN_PLACE)
+									.bindingType(BaseSchemaImpl.class).unbindingMethod("mapEntry")
+									.dataType(inferredMapEntry)
+									.addChild(k -> k.data().name("key").inMethod("null")
+											.format(Format.PROPERTY).isAbstract(true)
+											.extensible(true))
 									.addChild(v -> v.complex().name("value").inMethod("null")
-											.isAbstract(true))))
-					.create());
+											.isAbstract(true).extensible(true))))
+									.create());
 
 			/*-
 			 * An example, inferred as type Map<Integer, String>
@@ -692,17 +694,22 @@ public class BaseSchemaImpl implements BaseSchema {
 											.name("content").type(primitiveType(DataType.INT))))))
 					.create());
 			System.out.println(m.effective().getDataType());
-
+			/*-
 			@SuppressWarnings("unchecked")
 			Model<Map<List<String>, Double>> m2 = factory.apply("listDoubleMap",
 					t -> t.baseModel(mapModel)
 							.dataType(new TypeToken<Map<List<String>, Double>>() {})
 							.addChild(u -> u.complex().name("entrySet")
-									.addChild(e -> e.complex().name("entry")
-											.addChild(k -> k.data().name("key"))
-											.addChild(v -> v.complex().name("value"))))
+									.addChild(e -> e.complex().name("entry").addChild(k -> {
+										DataNodeConfigurator<?> n = k.data().name("key");
+			
+										System.out.println(n.getExpectedTypeBounds());
+			
+										return n;
+									}).addChild(v -> v.complex().name("value"))))
 							.create());
 			System.out.println(m2.effective().getDataType());
+			*/
 		}
 
 		@Override

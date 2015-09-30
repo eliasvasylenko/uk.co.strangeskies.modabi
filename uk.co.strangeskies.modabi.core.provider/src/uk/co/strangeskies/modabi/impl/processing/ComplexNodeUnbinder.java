@@ -39,34 +39,45 @@ public class ComplexNodeUnbinder {
 				ComputingMap<Model<? extends U>, ComplexNode.Effective<? extends U>> overrides = context
 						.getComplexNodeOverrides(node);
 
-				List<Model<? extends U>> validOverrides = overrides
-						.keySet()
-						.stream()
-						.filter(
-								m -> m.effective().getDataType().getRawType()
-										.isAssignableFrom(item.getClass()))
+				List<Model<? extends U>> validOverrides = overrides.keySet().stream()
+						.filter(m -> m.effective().getDataType().getRawType()
+								.isAssignableFrom(item.getClass()))
 						.collect(Collectors.toList());
 
-				if (validOverrides.isEmpty())
+				if (node.isAbstract() && validOverrides.isEmpty()) {
 					throw new UnbindingException(
-							"Unable to find model to satisfy complex node '"
-									+ node.getName()
+							"Unable to find model to satisfy complex node '" + node.getName()
 									+ "' with base model '"
 									+ node.baseModel().stream()
 											.map(m -> m.source().getName().toString())
-											.collect(Collectors.joining(", ")) + "' for object '"
-									+ item + "' to be unbound", context);
+											.collect(Collectors.joining(", "))
+									+ "' for object '" + item + "' to be unbound",
+							context);
+				}
 
-				context.attemptUnbindingUntilSuccessful(
-						validOverrides,
-						(c, n) -> unbindExactNode(c, overrides.putGet(n), item),
-						l -> new UnbindingException("Unable to unbind complex node '"
-								+ node.getName()
-								+ "' with model candidates '"
-								+ validOverrides.stream()
-										.map(m -> m.effective().getName().toString())
-										.collect(Collectors.joining(", ")) + "' for object '"
-								+ item + "' to be unbound", context, l));
+				try {
+					context
+							.attemptUnbindingUntilSuccessful(
+									validOverrides, (c,
+											n) -> unbindExactNode(c, overrides.putGet(n),
+													item),
+									l -> new UnbindingException(
+											"Unable to unbind complex node '" + node.getName()
+													+ "' with model candidates '"
+													+ validOverrides.stream()
+															.map(m -> m.effective().getName().toString())
+															.collect(Collectors.joining(", "))
+													+ "' for object '" + item + "' to be unbound",
+											context, l));
+				} catch (UnbindingException e) {
+					if (!node.isAbstract()) {
+						for (U i : data)
+							unbindExactNode(context, node, i);
+					} else {
+						throw new UnbindingException("Could not unbind without extension",
+								context, e);
+					}
+				}
 			}
 		} else
 			for (U item : data)
@@ -80,8 +91,8 @@ public class ComplexNodeUnbinder {
 			if (!element.isInline())
 				context.output().nextChild(element.getName());
 
-			new BindingNodeUnbinder(context).unbind(element, (U) element
-					.getDataType().getRawType().cast(data));
+			new BindingNodeUnbinder(context).unbind(element,
+					(U) element.getDataType().getRawType().cast(data));
 
 			if (!element.isInline())
 				context.output().endChild();
