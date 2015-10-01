@@ -71,24 +71,26 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			BoundSet bounds = overrideMerge.configurator().getInferenceBounds();
 
-			bindingStrategy = overrideMerge.getValue(BindingNode::getBindingStrategy,
-					BindingStrategy.PROVIDED);
+			bindingStrategy = overrideMerge
+					.getOverride(BindingNode::getBindingStrategy)
+					.orDefault(BindingStrategy.PROVIDED).get();
 
-			unbindingStrategy = overrideMerge.getValue(
-					BindingNode::getUnbindingStrategy, UnbindingStrategy.SIMPLE);
+			unbindingStrategy = overrideMerge
+					.getOverride(BindingNode::getUnbindingStrategy)
+					.orDefault(UnbindingStrategy.SIMPLE).get();
 
-			providedUnbindingParameterNames = overrideMerge.getValue(
-					BindingNode::getProvidedUnbindingMethodParameterNames,
-					Collections.<QualifiedName> emptyList());
+			providedUnbindingParameterNames = overrideMerge
+					.getOverride(BindingNode::getProvidedUnbindingMethodParameterNames)
+					.orDefault(Collections.<QualifiedName> emptyList()).get();
 
 			unbindingMethodName = overrideMerge
-					.tryGetValue(BindingNode::getUnbindingMethodName);
+					.getOverride(BindingNode::getUnbindingMethodName).tryGet();
 
 			providedUnbindingParameters = isAbstract() ? null
 					: findProvidedUnbindingParameters(this);
 
 			unbindingMethodUnchecked = overrideMerge
-					.tryGetValue(BindingNode::isUnbindingMethodUnchecked);
+					.getOverride(BindingNode::isUnbindingMethodUnchecked).tryGet();
 
 			dataType = inferDataType(
 					(TypeToken<T>) overrideMerge.configurator().getEffectiveDataType(),
@@ -122,7 +124,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			if (exactDataType != null && !exactDataType.isProper()) {
 				exactDataType = exactDataType.withBounds(bounds).resolve();
 
-				if (!isAbstract())
+				if (!isAbstract() && !hasExtensibleChildren())
 					exactDataType = exactDataType.infer();
 			}
 
@@ -288,12 +290,12 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		private <U> Method findUnbindingMethod(TypeToken<?> result,
 				TypeToken<U> receiver, List<TypeToken<?>> parameters,
 				OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-			Executable overridden = overrideMerge.tryGetValue(b -> {
+			Executable overridden = overrideMerge.getOverride(b -> {
 				if (b.effective() != null)
 					return b.effective().getUnbindingMethod();
 				else
 					return null;
-			});
+			}).tryGet();
 
 			if (overridden != null) {
 				Invokable<U, ?> invokable = (Invokable<U, ?>) Invokable.over(overridden)

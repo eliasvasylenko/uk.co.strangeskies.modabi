@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 import uk.co.strangeskies.utilities.PropertySet;
@@ -62,12 +63,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		this.overrideMerge = overrideMerge;
 		this.context = context;
 
-		inMethodChained = overrideMerge.getValue(InputNode::isInMethodChained,
-				false);
-		inMethodUnchecked = overrideMerge.getValue(InputNode::isInMethodUnchecked,
-				false);
+		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained)
+				.orDefault(false).get();
+		inMethodUnchecked = overrideMerge
+				.getOverride(InputNode::isInMethodUnchecked).orDefault(false).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: overrideMerge.getValue(InputNode::isInMethodCast, false);
+				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false)
+						.get();
 
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
@@ -131,7 +133,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		Invokable<?, ?> inInvokable;
 
 		String overriddenInMethodName = overrideMerge
-				.tryGetValue(InputNode::getInMethodName);
+				.getOverride(InputNode::getInMethodName).tryGet();
 
 		if (!context.isInputExpected())
 			if (overriddenInMethodName == null)
@@ -148,8 +150,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			try {
 				TypeToken<?> result;
 				if (inMethodChained) {
-					TypeToken<?> resultType = overrideMerge.tryGetValue(
-							InputNode::getPostInputType, TypeToken::isAssignableTo);
+					TypeToken<?> resultType = overrideMerge
+							.getOverride(InputNode::getPostInputType)
+							.validate(TypeToken::isAssignableTo).tryGet();
 
 					result = resultType == null ? null : resultType;
 					if (result == null) {
@@ -164,8 +167,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							.<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
-				Executable inMethod = overrideMerge.tryGetValue(
-						n -> n.effective() == null ? null : n.effective().getInMethod());
+				Executable inMethod = overrideMerge
+						.getOverride(
+								n -> n.effective() == null ? null : n.effective().getInMethod())
+						.tryGet();
 				if (inMethod != null) {
 					inInvokable = Invokable.over(inMethod, inputTargetType)
 							.withTargetType(result);
@@ -183,6 +188,27 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							generateInMethodNames(name, overriddenInMethodName),
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
+
+					if (inputTargetType != null) {
+						Resolver resolver = inInvokable.getReturnType().getResolver();
+						System.out.println();
+						System.out.println();
+						System.out.println();
+						System.out.println("!!!!!!!!!!!!!! " + inputTargetType);
+						System.out.println(resolver.getBounds());
+						System.out
+								.println("   = "
+										+ resolver.getBounds().getInferenceVariables().stream()
+												.map(i -> i.toString()
+														+ resolver.getBounds().getBoundsOn(i)
+																.getInstantiation()
+														+ " ? "
+														+ resolver.getBounds().getBoundsOn(i)
+																.isInstantiated())
+								.collect(Collectors.joining(", ")));
+					}
+
+					System.out.println("~~~" + inInvokable + " " + inInvokable.getReturnType());
 				}
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
@@ -230,7 +256,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private String inMethodName() {
-		String inMethodName = overrideMerge.tryGetValue(InputNode::getInMethodName);
+		String inMethodName = overrideMerge.getOverride(InputNode::getInMethodName)
+				.tryGet();
 
 		if (!context.isInputExpected() && inMethodName == null)
 			inMethodName = "null";
@@ -253,9 +280,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				|| (inMethodChained != null && !inMethodChained)) {
 			postInputClass = inputTargetType();
 		} else if (isAbstract || inMethodChained == null) {
-			postInputClass = overrideMerge.tryGetValue(
-					n -> n.getPostInputType() == null ? null : n.getPostInputType(),
-					TypeToken::isAssignableTo);
+			postInputClass = overrideMerge
+					.getOverride(
+							n -> n.getPostInputType() == null ? null : n.getPostInputType())
+					.validate(TypeToken::isAssignableTo).tryGet();
 		} else {
 			TypeToken<?> methodReturn;
 
@@ -277,8 +305,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 					|| localPostInputClass.isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge.getValueWithOverride(localPostInputClass,
-					n -> n.getPostInputType(), TypeToken::isAssignableTo);
+			postInputClass = overrideMerge
+					.getOverride(n -> n.getPostInputType(), localPostInputClass)
+					.validate(TypeToken::isAssignableTo).get();
 		}
 
 		return postInputClass;

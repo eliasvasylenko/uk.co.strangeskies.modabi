@@ -45,6 +45,7 @@ public class SchemaTest {
 		stringIntMap.put("first", 1);
 		stringIntMap.put("second", 2);
 		stringIntMap.put("third", 3);
+		/*
 		@SuppressWarnings("unchecked")
 		Model<Map<?, ?>> stringIntMapModel = (Model<Map<?, ?>>) schemaManager
 				.getBaseSchema().getModels().get(new QualifiedName("stringIntMap",
@@ -52,7 +53,7 @@ public class SchemaTest {
 		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
 				stringIntMap);
 		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
-				stringIntMap);
+				stringIntMap);*/
 
 		System.out.println("Unbinding BaseSchema...");
 		StructuredDataTargetBuffer out = BufferingStructuredDataTarget

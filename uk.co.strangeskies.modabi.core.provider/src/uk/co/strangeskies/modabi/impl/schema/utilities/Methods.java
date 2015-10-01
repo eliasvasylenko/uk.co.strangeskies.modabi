@@ -20,27 +20,29 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class Methods {
 	public static <T> Invokable<? super T, ? extends T> findConstructor(
 			TypeToken<T> receiver, TypeToken<?>... parameters)
-			throws NoSuchMethodException {
+					throws NoSuchMethodException {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
 	public static <T> Invokable<? super T, ? extends T> findConstructor(
 			TypeToken<T> receiver, List<TypeToken<?>> parameters)
-			throws NoSuchMethodException {
+					throws NoSuchMethodException {
 		Invokable<? super T, ? extends T> constructor;
 		try {
 			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
-			throw new SchemaException("Cannot find constructor for class '"
-					+ receiver + "' with parameters '" + parameters + "'", e);
+			throw new SchemaException("Cannot find constructor for class '" + receiver
+					+ "' with parameters '" + parameters + "'", e);
 		}
 
 		return constructor;
@@ -49,7 +51,7 @@ public class Methods {
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
 			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
 			boolean allowCast, TypeToken<?>... parameters)
-			throws NoSuchMethodException {
+					throws NoSuchMethodException {
 		return findMethod(names, receiver, isStatic, result, allowCast,
 				Arrays.asList(parameters));
 	}
@@ -57,7 +59,7 @@ public class Methods {
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
 			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
 			boolean allowCast, List<TypeToken<?>> parameters)
-			throws NoSuchMethodException {
+					throws NoSuchMethodException {
 		Invokable<? super T, ?> method = null;
 
 		Exception exception = null;
@@ -72,8 +74,8 @@ public class Methods {
 
 		if (method == null)
 			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
-					+ "method for class '" + receiver + "' with parameters '"
-					+ parameters + "' and any name of '" + names + "'", exception);
+					+ "method for class '" + receiver + "' with parameters '" + parameters
+					+ "' and any name of '" + names + "'", exception);
 
 		if (result != null) {
 			if (!allowCast) {

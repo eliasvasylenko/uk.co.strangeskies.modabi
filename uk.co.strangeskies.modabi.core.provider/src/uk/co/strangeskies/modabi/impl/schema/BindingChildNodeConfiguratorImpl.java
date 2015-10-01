@@ -243,12 +243,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				null, this);
 
 		System.out.println(overrideMerge
-				.tryGetValue(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
-						.getInMethod()));
+				.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
+						.getInMethod())
+				.tryGet());
 
 		System.out.println(overrideMerge
-				.tryGetValue(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
-						.getOutMethod()));
+				.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
+						.getOutMethod())
+				.tryGet());
 
 		return null;
 	}

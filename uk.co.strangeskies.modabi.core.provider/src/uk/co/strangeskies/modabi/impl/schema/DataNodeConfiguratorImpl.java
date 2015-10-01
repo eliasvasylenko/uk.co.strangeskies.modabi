@@ -105,7 +105,8 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution) {
+	public DataNodeConfigurator<T> valueResolution(
+			ValueResolution valueResolution) {
 		assertConfigurable(this.resolution);
 		this.resolution = valueResolution;
 

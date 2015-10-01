@@ -67,33 +67,41 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			super(overrideMerge);
 
+			extensible = overrideMerge.getOverride(BindingChildNode::isExtensible)
+					.orDefault(false).get();
+
 			if (isAbstract()
-					&& !overrideMerge.configurator().getContext().isAbstract())
+					&& !overrideMerge.configurator().getContext().isAbstract()
+					&& !isExtensible())
 				throw new SchemaException("Node '" + getName()
 						+ "' has no abstract or extensible parents, so cannot be abstract.");
 
-			extensible = overrideMerge.getValue(BindingChildNode::isExtensible,
-					false);
+			ordered = overrideMerge.getOverride(BindingChildNode::isOrdered)
+					.orDefault(true).get();
 
-			ordered = overrideMerge.getValue(BindingChildNode::isOrdered, true);
+			occurrences = overrideMerge.getOverride(BindingChildNode::occurrences)
+					.validate((v, o) -> o.contains(v)).orDefault(Range.create(1, 1))
+					.get();
 
-			occurrences = overrideMerge.getValue(BindingChildNode::occurrences,
-					(v, o) -> o.contains(v), Range.create(1, 1));
-
-			iterable = overrideMerge.getValue(BindingChildNode::isOutMethodIterable,
-					false);
+			iterable = overrideMerge
+					.getOverride(BindingChildNode::isOutMethodIterable).orDefault(false)
+					.get();
 
 			outMethodUnchecked = overrideMerge
-					.getValue(BindingChildNode::isOutMethodUnchecked, false);
+					.getOverride(BindingChildNode::isOutMethodUnchecked).orDefault(false)
+					.get();
 
-			outMethodCast = overrideMerge.getValue(BindingChildNode::isOutMethodCast,
-					false);
+			outMethodCast = overrideMerge
+					.getOverride(BindingChildNode::isOutMethodCast).orDefault(false)
+					.get();
 
 			outMethodName = overrideMerge
-					.tryGetValue(BindingChildNode::getOutMethodName);
+					.getOverride(BindingChildNode::getOutMethodName).tryGet();
 
-			Method overriddenOutMethod = overrideMerge.tryGetValue(
-					n -> n.effective() == null ? null : n.effective().getOutMethod());
+			Method overriddenOutMethod = overrideMerge
+					.getOverride(
+							n -> n.effective() == null ? null : n.effective().getOutMethod())
+					.tryGet();
 
 			Invokable<?, ?> outInvokable = hasOutMethod(overrideMerge)
 					? getOutMethod(this, overriddenOutMethod,
@@ -148,6 +156,12 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		@Override
 		public final Boolean isExtensible() {
 			return extensible;
+		}
+
+		@Override
+		public boolean hasExtensibleChildren() {
+			return isExtensible() == null || isExtensible()
+					|| super.hasExtensibleChildren();
 		}
 
 		@Override
@@ -252,7 +266,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 					outMethod = null;
 
-					bounds.incorporate(resultType.getResolver().getBounds());
 					ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
 							receiverType.getType(), resultType.getType(), bounds);
 				} else if (inheritedOutMethod != null) {
@@ -275,8 +288,10 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 							receiverType, false, resultType, outMethodCast);
 				}
 
-				if (outMethod != null)
+				if (outMethod != null) {
 					bounds.incorporate(outMethod.getResolver().getBounds());
+				}
+
 				return outMethod;
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException(e);

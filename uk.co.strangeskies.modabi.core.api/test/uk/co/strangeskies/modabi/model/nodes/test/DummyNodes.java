@@ -38,10 +38,8 @@ public class DummyNodes {
 
 	public static SequenceNode sequenceNode(QualifiedName name,
 			QualifiedName... children) {
-		return sequenceNode(
-				name,
-				Arrays.asList(children).stream().map(DummyNodes::sequenceNode)
-						.collect(Collectors.toList()));
+		return sequenceNode(name, Arrays.asList(children).stream()
+				.map(DummyNodes::sequenceNode).collect(Collectors.toList()));
 	}
 
 	public static SequenceNode sequenceNode(String name,
@@ -118,6 +116,11 @@ public class DummyNodes {
 					}
 
 					@Override
+					public boolean hasExtensibleChildren() {
+						return false;
+					}
+
+					@Override
 					public int hashCode() {
 						return getName().hashCode() + children.hashCode();
 					}
@@ -129,8 +132,8 @@ public class DummyNodes {
 						 * SchemaNode::effective as the argument to map, and leave out the
 						 * explicit parametrisation,but javac gets upset.
 						 */
-						return children.stream()
-								.<ChildNode.Effective<?, ?>> map(c -> c.effective())
+						return children.stream().<ChildNode
+								.Effective<?, ?>> map(c -> c.effective())
 								.collect(Collectors.toList());
 					}
 
@@ -176,6 +179,11 @@ public class DummyNodes {
 
 			@Override
 			public Boolean isAbstract() {
+				return false;
+			}
+
+			@Override
+			public boolean hasExtensibleChildren() {
 				return false;
 			}
 

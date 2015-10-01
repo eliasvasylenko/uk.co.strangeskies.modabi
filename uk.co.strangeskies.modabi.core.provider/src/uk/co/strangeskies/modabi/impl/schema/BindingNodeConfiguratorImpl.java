@@ -81,25 +81,27 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return effectiveUnbindingFactoryType;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
-		OverrideMerge<? extends BindingNode<?, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
+		OverrideMerge<? extends BindingNode<T, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
 		/*
 		 * Get declared data types, or overridden types thereof.
 		 */
-		effectiveDataType = (TypeToken<T>) (TypeToken<? super T>) overrideMerge
-				.getValueWithOverride(this.dataType, BindingNode::getDataType,
-						(o, n) -> true);
-		effectiveBindingType = overrideMerge.getValueWithOverride(this.bindingType,
-				BindingNode::getBindingType, (o, n) -> true);
-		effectiveUnbindingType = overrideMerge.getValueWithOverride(
-				this.unbindingType, BindingNode::getUnbindingType, (o, n) -> true);
-		effectiveUnbindingFactoryType = overrideMerge.getValueWithOverride(
-				this.unbindingFactoryType, BindingNode::getUnbindingFactoryType,
-				(o, n) -> true);
+		effectiveDataType = overrideMerge
+				.getOverride(BindingNode::getDataType, this.dataType)
+				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+		effectiveBindingType = overrideMerge
+				.getOverride(BindingNode::getBindingType, this.bindingType)
+				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+		effectiveUnbindingType = overrideMerge
+				.getOverride(BindingNode::getUnbindingType, this.unbindingType)
+				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+		effectiveUnbindingFactoryType = overrideMerge
+				.getOverride(BindingNode::getUnbindingFactoryType,
+						this.unbindingFactoryType)
+				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
 
 		/*
 		 * Incorporate bounds from inherited types.
@@ -153,8 +155,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Effective binding and unbinding types.
 		 */
 
-		BindingStrategy bindingStrategy = overrideMerge.getValueWithOverride(
-				this.bindingStrategy, BindingNode::getBindingStrategy);
+		BindingStrategy bindingStrategy = overrideMerge
+				.getOverride(BindingNode::getBindingStrategy, this.bindingStrategy)
+				.get();
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
 			inputTarget = effectiveBindingType;
@@ -165,8 +168,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			inputTarget = null;
 
-		UnbindingStrategy unbindingStrategy = overrideMerge.getValueWithOverride(
-				this.unbindingStrategy, BindingNode::getUnbindingStrategy);
+		UnbindingStrategy unbindingStrategy = overrideMerge
+				.getOverride(BindingNode::getUnbindingStrategy, this.unbindingStrategy)
+				.get();
 		TypeToken<?> outputSource;
 		if (effectiveUnbindingType != null)
 			outputSource = effectiveUnbindingType;

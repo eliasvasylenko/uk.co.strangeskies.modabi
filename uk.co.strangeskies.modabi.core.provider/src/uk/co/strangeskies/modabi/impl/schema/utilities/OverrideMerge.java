@@ -18,10 +18,13 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.SchemaException;
@@ -29,6 +32,115 @@ import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S>> {
+	public class OverrideOptional<T> {
+		private Function<S, T> valueFunction;
+		private BiPredicate<? super T, ? super T> validation;
+
+		private T override;
+		private Set<T> values;
+
+		private OverrideOptional(Function<S, T> valueFunction) {
+			this.valueFunction = valueFunction;
+
+			values = getOverridenValues(valueFunction);
+		}
+
+		private OverrideOptional(OverrideOptional<T> from) {
+			override = from.override;
+			values = from.values;
+		}
+
+		public OverrideOptional<T> orDefault(T value) {
+			if (node == null || (node.isAbstract() == null || !node.isAbstract())
+					&& !isOverridden()) {
+				return or(() -> value);
+			} else {
+				return this;
+			}
+		}
+
+		public OverrideOptional<T> orMerged(
+				Function<? super Collection<T>, ? extends T> merge) {
+			if (values != null && !values.isEmpty()) {
+				return or(() -> merge.apply(values));
+			} else {
+				return this;
+			}
+		}
+
+		public OverrideOptional<T> orMerged(BinaryOperator<T> merge) {
+			return orMerged(s -> s.stream().reduce(merge).get());
+		}
+
+		private OverrideOptional<T> or(Supplier<T> supplier) {
+			if (override == null) {
+				OverrideOptional<T> optional = new OverrideOptional<>(this);
+				optional.override = supplier.get();
+
+				return optional;
+			} else {
+				return this;
+			}
+		}
+
+		private OverrideOptional<T> or() {
+			return or(() -> valueFunction.apply(node));
+		}
+
+		public T tryGet() {
+			if (isOverridden() && validation != null) {
+				for (T value : values) {
+					if (!validation.test(override, value)) {
+						throw new SchemaException("Cannot override incompatible property '"
+								+ value + "' with '" + override + "'");
+					}
+				}
+			}
+
+			return override;
+		}
+
+		public T get() {
+			override = tryGet();
+
+			if (override == null && node != null
+					&& (node.isAbstract() == null || !node.isAbstract()))
+				throw new SchemaException("No value '" + valueFunction
+						+ "' available for non-abstract node '" + node.getName() + "'");
+
+			return override;
+		}
+
+		private boolean isOverridden() {
+			boolean overridden = override != null;
+
+			if (!overridden) {
+				if (values.size() == 1) {
+					override = values.iterator().next();
+				} else if (values.size() > 1) {
+					throw new SchemaException(
+							"No override provided for incompatible properties '" + values
+									+ "'");
+				}
+			}
+
+			return overridden;
+		}
+
+		public OverrideOptional<T> validate(
+				BiPredicate<? super T, ? super T> validation) {
+			OverrideOptional<T> optional = new OverrideOptional<>(this);
+			if (optional.validation == null) {
+				optional.validation = validation;
+			} else {
+				optional.validation = (a, b) -> validation.test(a, b)
+						&& optional.validation.test(a, b);
+			}
+
+			return optional;
+		}
+	}
+
 	private final S node;
 	private final C configurator;
 
@@ -45,93 +157,19 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 		return configurator;
 	}
 
-	public <T> T getValue(Function<S, T> valueFunction) {
-		return getValue(valueFunction, (T) null);
-	}
-
-	public <T> T getValue(Function<S, T> valueFunction, T defaultValue) {
-		return getValue(valueFunction, Objects::equals, defaultValue);
-	}
-
-	public <T> T getValue(Function<S, T> valueFunction,
-			BiPredicate<? super T, ? super T> validateOverride, T defaultValue) {
-		return checkResult(
-				getValueWithOverride(node == null ? null : valueFunction.apply(node),
-						defaultValue, valueFunction, validateOverride),
-				valueFunction.toString());
-	}
-
-	public <T> T tryGetValue(Function<S, T> valueFunction) {
-		return tryGetValue(valueFunction, Objects::equals);
-	}
-
-	public <T> T tryGetValue(Function<S, T> valueFunction,
-			BiPredicate<? super T, ? super T> validateOverride) {
-		return getValueWithOverride(
-				node == null ? null : valueFunction.apply(node), null, valueFunction,
-				validateOverride);
-	}
-
-	private <T> T checkResult(T value, String valueName) {
-		if (value == null && (node.isAbstract() == null || !node.isAbstract()))
-			throw new SchemaException("No value '" + valueName
-					+ "' available for non-abstract node '" + node.getName() + "'");
-		return value;
-	}
-
-	public <T> T getValueWithOverride(T valueOverride,
-			Function<S, T> valueFunction) {
-		return getValueWithOverride(valueOverride, valueFunction, Objects::equals);
-	}
-
-	public <T> T getValueWithOverride(T valueOverride,
-			Function<S, T> valueFunction,
-			BiPredicate<? super T, ? super T> validateOverride) {
-		return getValueWithOverride(valueOverride, null, valueFunction,
-				validateOverride);
-	}
-
-	private <T> T getValueWithOverride(T valueOverride, T defaultValue,
-			Function<S, T> valueFunction,
-			BiPredicate<? super T, ? super T> validateOverride) {
-		Set<T> values = getOverridenValues(valueFunction);
-
-		T value = valueOverride;
-
-		if (values.size() == 1) {
-			T overriddenValue = values.iterator().next();
-			if (valueOverride != null)
-				if (!validateOverride.test(valueOverride, overriddenValue))
-					throw new SchemaException("Cannot override property ["
-							+ overriddenValue + "] with [" + valueOverride + "]");
-				else
-					value = valueOverride;
-			else
-				value = overriddenValue;
-		} else if (!values.isEmpty()) {
-			if (valueOverride == null) {
-				throw new SchemaException(
-						"No override provided for incompatible properties '" + values + "'");
-			}
-			for (T existingValue : values) {
-				if (!validateOverride.test(valueOverride, existingValue)) {
-					throw new SchemaException("Cannot override incompatible property '"
-							+ existingValue + "' with '" + valueOverride + "'");
-				}
-			}
-		}
-
-		if (value == null
-				&& (node == null || (node.isAbstract() == null || !node.isAbstract())))
-			value = defaultValue;
-
-		return value;
-	}
-
 	@SuppressWarnings("unchecked")
 	public <T> Set<T> getOverridenValues(Function<S, T> valueFunction) {
 		return configurator.getOverriddenNodes().stream()
 				.map(n -> valueFunction.apply((S) n.effective()))
 				.filter(Objects::nonNull).collect(Collectors.toSet());
+	}
+
+	public <T> OverrideOptional<T> getOverride(Function<S, T> valueFunction) {
+		return new OverrideOptional<>(valueFunction).or();
+	}
+
+	public <T> OverrideOptional<T> getOverride(Function<S, T> valueFunction,
+			T override) {
+		return new OverrideOptional<>(valueFunction).or(() -> override);
 	}
 }

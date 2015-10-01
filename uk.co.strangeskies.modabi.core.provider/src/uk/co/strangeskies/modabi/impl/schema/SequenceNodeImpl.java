@@ -23,12 +23,12 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class SequenceNodeImpl extends
-		SchemaNodeImpl<SequenceNode, SequenceNode.Effective> implements
-		SequenceNode {
-	private class Effective extends
-			SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective> implements
-			SequenceNode.Effective {
+class SequenceNodeImpl
+		extends SchemaNodeImpl<SequenceNode, SequenceNode.Effective>
+		implements SequenceNode {
+	private class Effective
+			extends SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
+			implements SequenceNode.Effective {
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;
 
@@ -38,8 +38,9 @@ class SequenceNodeImpl extends
 
 			preInputClass = isAbstract() ? null : children().get(0).getPreInputType();
 
-			TypeToken<?> postInputClass = overrideMerge.tryGetValue(
-					ChildNode::getPostInputType, TypeToken::isAssignableTo);
+			TypeToken<?> postInputClass = overrideMerge
+					.getOverride(ChildNode::getPostInputType)
+					.validate(TypeToken::isAssignableTo).tryGet();
 			if (postInputClass == null && !isAbstract()) {
 				for (ChildNode.Effective<?, ?> child : children()) {
 					if (postInputClass != null
@@ -71,8 +72,8 @@ class SequenceNodeImpl extends
 
 		postInputClass = configurator.getPostInputClass();
 
-		effective = new Effective(SequenceNodeConfiguratorImpl.overrideMerge(this,
-				configurator));
+		effective = new Effective(
+				SequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override

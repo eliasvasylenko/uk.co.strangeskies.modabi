@@ -26,9 +26,9 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 		implements ChoiceNode {
-	private static class Effective extends
-			SchemaNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective> implements
-			ChoiceNode.Effective {
+	private static class Effective
+			extends SchemaNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
+			implements ChoiceNode.Effective {
 		private final boolean mandatory;
 
 		private final TypeToken<?> preInputClass;
@@ -50,8 +50,9 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 				}
 			this.preInputClass = preInputClass;
 
-			TypeToken<?> postInputClass = overrideMerge.tryGetValue(
-					ChildNode::getPostInputType, TypeToken::isAssignableTo);
+			TypeToken<?> postInputClass = overrideMerge
+					.getOverride(ChildNode::getPostInputType)
+					.validate(TypeToken::isAssignableTo).tryGet();
 			if (!isAbstract())
 				if (postInputClass == null)
 					for (ChildNode.Effective<?, ?> child : children()) {
@@ -68,7 +69,8 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 							throw new SchemaException();
 			this.postInputClass = postInputClass;
 
-			mandatory = overrideMerge.getValue(ChoiceNode::isMandatory, false);
+			mandatory = overrideMerge.getOverride(ChoiceNode::isMandatory)
+					.orDefault(false).get();
 		}
 
 		@Override
@@ -98,8 +100,8 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 		postInputClass = configurator.getPostInputClass();
 		mandatory = configurator.getMandatory();
 
-		effective = new Effective(ChoiceNodeConfiguratorImpl.overrideMerge(this,
-				configurator));
+		effective = new Effective(
+				ChoiceNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override

@@ -52,7 +52,8 @@ class ComplexNodeImpl<T>
 					.map(SchemaNode::effective).collect(Collectors.toSet()));
 			this.baseModel = Collections.unmodifiableList(baseModel);
 
-			Boolean inline = overrideMerge.getValue(ComplexNode::isInline, false);
+			Boolean inline = overrideMerge.getOverride(ComplexNode::isInline)
+					.orDefault(false).get();
 			this.inline = inline != null && inline;
 
 			if (this.inline && isExtensible() != null && isExtensible())

@@ -55,6 +55,7 @@ import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
+import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
@@ -118,24 +119,20 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			collectionType = factory.apply("collection",
 					t -> t.dataType(new TypeToken<@Infer Collection<?>>() {})
-							.isAbstract(true).bindingStrategy(BindingStrategy.PROVIDED)
+							.bindingStrategy(BindingStrategy.PROVIDED)
 							.unbindingStrategy(UnbindingStrategy.SIMPLE)
 							.addChild(c -> c.data().name("element").inMethod("add")
-									.outMethod("this").isAbstract(true)
+									.outMethod("this").isAbstract(true).extensible(true)
 									.occurrences(Range.create(0, null)).outMethodIterable(true))
 					.create());
 
-			listType = factory
-					.apply("list",
-							t -> t.isAbstract(true)
-									.dataType(new TypeToken<@Infer List<?>>() {})
-									.baseType(collectionType).create());
+			listType = factory.apply("list",
+					t -> t.dataType(new TypeToken<@Infer List<?>>() {})
+							.baseType(collectionType).create());
 
-			setType = factory
-					.apply("set",
-							t -> t.isAbstract(true)
-									.dataType(new TypeToken<@Infer Set<?>>() {})
-									.baseType(collectionType).create());
+			setType = factory.apply("set",
+					t -> t.dataType(new TypeToken<@Infer Set<?>>() {})
+							.baseType(collectionType).create());
 
 			bufferedDataType = factory.apply("bufferedData",
 					t -> t.dataType(DataSource.class).bindingType(DataSource.class)
@@ -678,38 +675,25 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(v -> v.complex().name("value").inMethod("null")
 											.isAbstract(true).extensible(true))))
 									.create());
+			System.out.println(mapModel.effective().getDataType());
 
-			/*-
-			 * An example, inferred as type Map<Integer, String>
-			 */
-			@SuppressWarnings("unchecked")
-			Model<Map<?, ?>> m = factory.apply("stringIntMap",
-					t -> t.baseModel(mapModel)
-							.addChild(u -> u.complex().name("entrySet")
-									.addChild(e -> e.complex().name("entry")
-											.addChild(k -> k.data().name("key")
-													.type(primitiveType(DataType.STRING)))
-							.addChild(v -> v.complex()
-									.name("value").baseModel(simpleModel).addChild(w -> w.data()
-											.name("content").type(primitiveType(DataType.INT))))))
-					.create());
-			System.out.println(m.effective().getDataType());
-			/*-
-			@SuppressWarnings("unchecked")
-			Model<Map<List<String>, Double>> m2 = factory.apply("listDoubleMap",
-					t -> t.baseModel(mapModel)
-							.dataType(new TypeToken<Map<List<String>, Double>>() {})
-							.addChild(u -> u.complex().name("entrySet")
-									.addChild(e -> e.complex().name("entry").addChild(k -> {
-										DataNodeConfigurator<?> n = k.data().name("key");
-			
-										System.out.println(n.getExpectedTypeBounds());
-			
-										return n;
-									}).addChild(v -> v.complex().name("value"))))
-							.create());
-			System.out.println(m2.effective().getDataType());
-			*/
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+			System.out
+					.println("########################################################");
+
 		}
 
 		@Override

@@ -49,8 +49,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 				+ component.getName() + "'";
 
 		if (base.getDataType() != null
-				&& !TypeToken.over(base.getDataType().getType()).isAssignableFrom(
-						component.getDataType().getType()))
+				&& !TypeToken.over(base.getDataType().getType())
+						.isAssignableFrom(component.getDataType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getBindingStrategy() != null
@@ -62,13 +62,13 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !Types.isAssignable(component.getBindingType().getType(), base
-						.getBindingType().getType()))
+				&& !Types.isAssignable(component.getBindingType().getType(),
+						base.getBindingType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !Types.isAssignable(component.getUnbindingType().getType(), base
-						.getUnbindingType().getType()))
+				&& !Types.isAssignable(component.getUnbindingType().getType(),
+						base.getUnbindingType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingMethodName() != null
@@ -146,6 +146,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	@Override
 	public final QualifiedName getName() {
 		return component.getName();
+	}
+
+	@Override
+	public boolean hasExtensibleChildren() {
+		return component.hasExtensibleChildren();
 	}
 
 	@Override

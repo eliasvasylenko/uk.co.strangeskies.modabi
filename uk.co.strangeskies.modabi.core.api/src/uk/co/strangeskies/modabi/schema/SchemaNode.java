@@ -40,6 +40,8 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 		@Override
 		S source();
+
+		boolean hasExtensibleChildren();
 	}
 
 	Boolean isAbstract();
@@ -56,19 +58,12 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name) {
-		return children()
-				.stream()
-				.filter(c -> c.getName().equals(name))
-				.findAny()
-				.orElseThrow(
-						() -> new SchemaException("Cannot find child '"
-								+ name
-								+ "' for node '"
-								+ getName()
-								+ "' amongst children '["
-								+ children().stream().map(SchemaNode::getName)
-										.map(Objects::toString).collect(Collectors.joining(", "))
-								+ "]."));
+		return children().stream().filter(c -> c.getName().equals(name)).findAny()
+				.orElseThrow(() -> new SchemaException("Cannot find child '" + name
+						+ "' for node '" + getName() + "' amongst children '["
+						+ children().stream().map(SchemaNode::getName)
+								.map(Objects::toString).collect(Collectors.joining(", "))
+						+ "]."));
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {

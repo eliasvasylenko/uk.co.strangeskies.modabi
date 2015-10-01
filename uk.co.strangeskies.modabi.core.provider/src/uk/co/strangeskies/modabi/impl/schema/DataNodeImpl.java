@@ -49,28 +49,28 @@ public class DataNodeImpl<T>
 				OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
-			DataBindingType<T> type = overrideMerge.tryGetValue(DataNode::type,
-					(n, o) -> {
+			DataBindingType<T> type = overrideMerge.getOverride(DataNode::type)
+					.validate((n, o) -> {
 						DataBindingType<?> p = n.effective();
 						do
 							if (p == o.effective())
 								return true;
 						while ((p = p.baseType().effective()) != null);
 						return false;
-					});
+					}).tryGet();
 			this.type = type == null ? null : type.effective();
 
-			format = overrideMerge.tryGetValue(DataNode::format);
+			format = overrideMerge.getOverride(DataNode::format).tryGet();
 			if (format != null
 					&& overrideMerge.configurator().getContext().isInputDataOnly())
 				throw new SchemaException(
 						"Node '" + getName() + "' must not provide a format.");
 
-			optional = overrideMerge.getValue(DataNode::optional, (n, o) -> o || !n,
-					false);
+			optional = overrideMerge.getOverride(DataNode::optional)
+					.validate((n, o) -> o || !n).orDefault(false).get();
 
-			nullIfOmitted = overrideMerge.getValue(DataNode::nullIfOmitted,
-					(n, o) -> o || !n, false);
+			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted)
+					.validate((n, o) -> o || !n).orDefault(false).get();
 
 			if (!isAbstract() && nullIfOmitted
 					&& (!optional || format == Format.SIMPLE
@@ -79,12 +79,14 @@ public class DataNodeImpl<T>
 						"'Null if omitted' property is not valid for node '" + getName()
 								+ "'");
 
-			providedBuffer = overrideMerge.tryGetValue(DataNode::providedValueBuffer);
-			ValueResolution resolution = overrideMerge.getValue(
-					DataNode::valueResolution,
-					(o, n) -> o == n || (o == ValueResolution.REGISTRATION_TIME
-							&& n == ValueResolution.POST_REGISTRATION),
-					ValueResolution.PROCESSING_TIME);
+			providedBuffer = overrideMerge.getOverride(DataNode::providedValueBuffer)
+					.tryGet();
+			ValueResolution resolution = overrideMerge
+					.getOverride(DataNode::valueResolution)
+					.validate((o,
+							n) -> o == n || (o == ValueResolution.REGISTRATION_TIME
+									&& n == ValueResolution.POST_REGISTRATION))
+					.orDefault(ValueResolution.PROCESSING_TIME).get();
 
 			if (providedBuffer == null && !isAbstract() && !optional
 					&& (resolution == ValueResolution.REGISTRATION_TIME
@@ -134,8 +136,8 @@ public class DataNodeImpl<T>
 		@Override
 		protected QualifiedName defaultName(
 				OverrideMerge<DataNode<T>, ? extends SchemaNodeConfiguratorImpl<?, DataNode<T>>> overrideMerge) {
-			DataBindingType<T> type = overrideMerge.tryGetValue(DataNode::type,
-					(o, n) -> true);
+			DataBindingType<T> type = overrideMerge.getOverride(DataNode::type)
+					.validate((o, n) -> true).tryGet();
 			return type == null ? null : type.getName();
 		}
 

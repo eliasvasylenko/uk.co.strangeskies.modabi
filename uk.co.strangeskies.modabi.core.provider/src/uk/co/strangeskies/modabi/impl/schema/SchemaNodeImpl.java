@@ -53,8 +53,8 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 				OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
 			source = overrideMerge.node().source();
 
-			name = overrideMerge.getValue(SchemaNode::getName, (n, o) -> true,
-					defaultName(overrideMerge));
+			name = overrideMerge.getOverride(SchemaNode::getName)
+					.orDefault(defaultName(overrideMerge)).validate((n, o) -> true).get();
 
 			isAbstract = overrideMerge.node().isAbstract() == null ? false
 					: overrideMerge.node().isAbstract();
@@ -64,6 +64,17 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 
 			if (!overrideMerge.configurator().isChildContextAbstract())
 				requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
+		}
+
+		@Override
+		public boolean hasExtensibleChildren() {
+			for (SchemaNode.Effective<?, ?> child : children()) {
+				if (child.hasExtensibleChildren()) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		protected QualifiedName defaultName(
