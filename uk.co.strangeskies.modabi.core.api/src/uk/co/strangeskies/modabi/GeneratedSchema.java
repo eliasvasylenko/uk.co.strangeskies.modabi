@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.DataBindingType;
@@ -73,7 +74,9 @@ public interface GeneratedSchema extends Schema {
 		return this;
 	}
 
-	DataBindingTypeConfigurator<Object> buildDataBindingType();
+	<T> DataBindingType<T> buildDataBindingType(
+			Function<DataBindingTypeConfigurator<Object>, DataBindingTypeConfigurator<T>> build);
 
-	ModelConfigurator<Object> buildModel();
+	<T> Model<T> buildModel(
+			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build);
 }

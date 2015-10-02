@@ -18,10 +18,12 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 
-public interface Model<T> extends
-		AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
+public interface Model<T>
+		extends AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
 	interface Effective<T> extends Model<T>,
 			AbstractComplexNode.Effective<T, Model<T>, Effective<T>> {}
 }

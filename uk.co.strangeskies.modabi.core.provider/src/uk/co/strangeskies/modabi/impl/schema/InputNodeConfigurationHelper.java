@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import java.lang.reflect.Executable;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -137,7 +138,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		if (!context.isInputExpected())
 			if (overriddenInMethodName == null)
 				overriddenInMethodName = "null";
-			else if (overriddenInMethodName != "null")
+			else if (!"null".equals(overriddenInMethodName))
 				throw new SchemaException(
 						"In method name should not be provided for this node.");
 
@@ -176,8 +177,16 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 					try {
 						inInvokable = inInvokable.withLooseApplicability(parameters);
 					} catch (Exception e) {
-						inInvokable = inInvokable
-								.withVariableArityApplicability(parameters);
+						if (inInvokable.isVariableArity()) {
+							try {
+								inInvokable = inInvokable
+										.withVariableArityApplicability(parameters);
+							} catch (Exception e2) {
+								throw e;
+							}
+						} else {
+							throw e;
+						}
 					}
 				} else if (context.isConstructorExpected()) {
 					inInvokable = Methods.findConstructor(inputTargetType, parameters)

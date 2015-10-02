@@ -83,7 +83,6 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final DataBindingTypes registeredTypes;
 	private final Schemata registeredSchemata;
 
-	private final SchemaBuilder schemaBuilder;
 	private final ModelBuilder modelBuilder;
 	private final DataBindingTypeBuilder dataTypeBuilder;
 
@@ -96,7 +95,6 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
 			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
-		this.schemaBuilder = schemaBuilder;
 		this.modelBuilder = modelBuilder;
 		this.dataTypeBuilder = dataTypeBuilder;
 
@@ -167,11 +165,11 @@ public class SchemaManagerImpl implements SchemaManager {
 		}
 	}
 
-	private void registerModel(Model<?> model) {
+	void registerModel(Model<?> model) {
 		registeredModels.add(model);
 	}
 
-	private void registerDataType(DataBindingType<?> type) {
+	void registerDataType(DataBindingType<?> type) {
 		registeredTypes.add(type);
 	}
 
@@ -328,6 +326,9 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public GeneratedSchema generateSchema(QualifiedName name,
 			Collection<? extends Schema> dependencies) {
-		return new GeneratedSchemaImpl(this, name, dependencies);
+		GeneratedSchemaImpl schema = new GeneratedSchemaImpl(this, name,
+				dependencies);
+		registerSchema(schema);
+		return schema;
 	}
 }

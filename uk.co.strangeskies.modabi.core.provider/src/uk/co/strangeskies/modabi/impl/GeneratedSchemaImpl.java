@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.DataBindingTypes;
 import uk.co.strangeskies.modabi.GeneratedSchema;
@@ -96,26 +97,38 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	}
 
 	@Override
-	public DataBindingTypeConfigurator<Object> buildDataBindingType() {
+	public <T> DataBindingType<T> buildDataBindingType(
+			Function<DataBindingTypeConfigurator<Object>, DataBindingTypeConfigurator<T>> build) {
 		BindingContextImpl context = manager.getBindingContext();
 
-		return manager.getDataTypeBuilder().configure(new DataLoader() {
-			@Override
-			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
-				return new DataNodeBinder(context).bind(node.effective());
-			}
-		});
+		DataBindingType<T> type = build
+				.apply(manager.getDataTypeBuilder().configure(new DataLoader() {
+					@Override
+					public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+						return new DataNodeBinder(context).bind(node.effective());
+					}
+				})).create();
+
+		manager.registerDataType(type);
+
+		return type;
 	}
 
 	@Override
-	public ModelConfigurator<Object> buildModel() {
+	public <T> Model<T> buildModel(
+			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build) {
 		BindingContextImpl context = manager.getBindingContext();
 
-		return manager.getModelBuilder().configure(new DataLoader() {
-			@Override
-			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
-				return new DataNodeBinder(context).bind(node.effective());
-			}
-		});
+		Model<T> model = build
+				.apply(manager.getModelBuilder().configure(new DataLoader() {
+					@Override
+					public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+						return new DataNodeBinder(context).bind(node.effective());
+					}
+				})).create();
+
+		manager.registerModel(model);
+
+		return model;
 	}
 }

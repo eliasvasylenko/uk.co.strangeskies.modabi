@@ -670,6 +670,39 @@ public class BaseSchemaImpl implements BaseSchema {
 											.isAbstract(true).extensible(true))))
 							.create());
 			System.out.println(mapModel.effective().getDataType());
+
+			Model<Map<?, ?>> mapModel = factory.apply("map2",
+					c -> c
+							.dataType(
+									new TypeToken<@Infer Map<?, ?>>() {})
+							.addChild(
+									e -> e.complex().name("entrySet").inline(true)
+											.inMethod("null").dataType(inferredMapEntrySet)
+											.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+											.addChild(
+													s -> s.inputSequence()
+															.name(
+																	"entrySet")
+															.inMethodChained(true))
+											.addChild(f -> f.complex().name("entry")
+													.outMethodIterable(true)
+													.occurrences(Range.create(0, null)).inMethod("add")
+													.outMethod("this")
+													.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
+													.bindingType(BaseSchemaImpl.class)
+													.unbindingMethod("mapEntry")
+													.dataType(inferredMapEntry)
+													.addChild(k -> k.data().name("key").inMethod("null")
+															.format(Format.PROPERTY)
+															.type(primitiveType(DataType.STRING)))
+													.addChild(
+															v -> v.complex().name("value").inMethod("null")
+																	.baseModel(simpleModel)
+																	.addChild(g -> g.data().name("content")
+																			.type(primitiveType(
+																					DataType.QUALIFIED_NAME))))))
+					.create());
+			System.out.println(mapModel.effective().getDataType());
 		}
 
 		@Override

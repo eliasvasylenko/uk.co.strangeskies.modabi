@@ -22,11 +22,13 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ModelConfigurator<T> extends
-		AbstractComplexNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
+public interface ModelConfigurator<T>
+		extends AbstractComplexNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
 	@Override
 	default <V extends T> ModelConfigurator<V> baseModel(
 			@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
@@ -40,8 +42,8 @@ public interface ModelConfigurator<T> extends
 	@SuppressWarnings("unchecked")
 	@Override
 	default <V extends T> ModelConfigurator<V> dataType(Class<V> dataType) {
-		return (ModelConfigurator<V>) AbstractComplexNodeConfigurator.super
-				.dataType(dataType);
+		return (ModelConfigurator<V>) AbstractComplexNodeConfigurator.super.dataType(
+				dataType);
 	}
 
 	@Override
@@ -51,14 +53,21 @@ public interface ModelConfigurator<T> extends
 	@SuppressWarnings("unchecked")
 	@Override
 	default ModelConfigurator<? extends T> dataType(AnnotatedType dataType) {
-		return (ModelConfigurator<? extends T>) AbstractComplexNodeConfigurator.super
-				.dataType(dataType);
+		return (ModelConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
+				dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default ModelConfigurator<? extends T> dataType(Type dataType) {
-		return (ModelConfigurator<? extends T>) AbstractComplexNodeConfigurator.super
-				.dataType(dataType);
+		return (ModelConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
+				dataType);
+	}
+
+	@Override
+	default public ModelConfigurator<T> addChild(
+			Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> propertyConfiguration) {
+		propertyConfiguration.apply(addChild()).create();
+		return this;
 	}
 }

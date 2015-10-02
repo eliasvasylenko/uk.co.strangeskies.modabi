@@ -49,11 +49,12 @@ public class SchemaTest {
 				new QualifiedName("testExtentions", Namespace.getDefault()));
 
 		DataBindingType<List<?>> intListType = generatedSchema
-				.buildDataBindingType().name("intSet", Namespace.getDefault())
-				.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
-				.addChild(e -> e.data().name("element")
-						.type(schemaManager.getBaseSchema().primitiveType(DataType.INT)))
-				.create();
+				.buildDataBindingType(
+						n -> n.name("intSet", Namespace.getDefault())
+								.baseType(
+										schemaManager.getBaseSchema().derivedTypes().listType())
+						.addChild(e -> e.data().name("element").type(
+								schemaManager.getBaseSchema().primitiveType(DataType.INT))));
 		System.out.println(intListType.effective().getDataType());
 
 		Map<String, Integer> stringIntMap = new HashMap<>();
@@ -62,25 +63,25 @@ public class SchemaTest {
 		stringIntMap.put("third", 3);
 
 		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> stringIntMapModel = generatedSchema.buildModel()
-				.name("stringIntMap", Namespace.getDefault())
-				.baseModel(
-						schemaManager.getBaseSchema().models().mapModel())
-				.addChild(s -> s.complex()
-						.name(
-								"entrySet")
-						.addChild(e -> e.complex().name("entry")
-								.addChild(k -> k.data().name("key")
-										.type(schemaManager.getBaseSchema()
-												.primitiveType(DataType.STRING)))
-								.addChild(
-										v -> v.complex().name("value")
-												.baseModel(schemaManager.getBaseSchema().models()
-														.simpleModel())
-												.addChild(c -> c.data().name("content")
-														.type(schemaManager.getBaseSchema()
-																.primitiveType(DataType.INT))))))
-				.create();
+		Model<Map<?, ?>> stringIntMapModel = generatedSchema
+				.<Map<?, ?>> buildModel(
+						n -> n
+								.name("stringIntMap", Namespace
+										.getDefault())
+						.baseModel(schemaManager.getBaseSchema().models().mapModel())
+						.addChild(s -> s.complex().name("entrySet").addChild(e -> e
+								.complex().name("entry")
+								.addChild(k -> k.data().name("key").type(schemaManager
+										.getBaseSchema().primitiveType(DataType.STRING)))
+								.addChild(v -> v.complex().name("value")
+										.baseModel(schemaManager.getBaseSchema().models()
+												.simpleModel())
+										.addChild(c -> c.data().name("content").type(schemaManager
+												.getBaseSchema().primitiveType(DataType.INT)))))));
+		System.out.println(stringIntMapModel.effective().getDataType());
+		System.out.println("    ~# " + stringIntMapModel.effective().getDataType()
+				.getResolver().getBounds());
+
 		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
 				stringIntMap);
 		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
