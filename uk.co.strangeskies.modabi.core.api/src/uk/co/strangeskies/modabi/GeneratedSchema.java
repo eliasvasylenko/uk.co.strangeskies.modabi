@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface GeneratedSchema extends Schema {
@@ -70,4 +72,8 @@ public interface GeneratedSchema extends Schema {
 			generateDataType(type);
 		return this;
 	}
+
+	DataBindingTypeConfigurator<Object> buildDataBindingType();
+
+	ModelConfigurator<Object> buildModel();
 }

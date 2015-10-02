@@ -27,31 +27,16 @@ import java.util.concurrent.TimeoutException;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
-import uk.co.strangeskies.modabi.processing.providers.ImportSource;
-import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 
 public class SchemaBinder {
 	private final BindingContextImpl context;
 
-	public SchemaBinder(SchemaManager manager) {
-		BindingProviders providers = new BindingProviders(manager);
-
-		context = new BindingContextImpl(manager)
-				.withProvision(DereferenceSource.class, providers.dereferenceSource())
-				.withProvision(IncludeTarget.class, providers.includeTarget())
-				.withProvision(ImportSource.class, providers.importSource())
-				.withProvision(DataLoader.class, providers.dataLoader())
-				.withProvision(TypeParser.class, providers.typeParser())
-				.withProvision(BindingContext.class, c -> c);
+	public SchemaBinder(BindingContextImpl context) {
+		this.context = context;
 	}
 
 	public <T> BindingFuture<T> bind(Model.Effective<T> model,

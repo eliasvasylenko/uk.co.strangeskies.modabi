@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
-import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 
 class InputSequenceNodeImpl
@@ -69,8 +68,8 @@ class InputSequenceNodeImpl
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputClass = inputNodeHelper.getPreInputType();
 			postInputClass = inputNodeHelper.getPostInputType();
-			
 
+			/*-
 			if (postInputClass != null) {
 				Resolver resolver = postInputClass.getResolver();
 				System.out.println();
@@ -85,6 +84,7 @@ class InputSequenceNodeImpl
 								+ resolver.getBounds().getBoundsOn(i).isInstantiated())
 						.collect(Collectors.joining(", ")));
 			}
+			*/
 		}
 
 		@Override

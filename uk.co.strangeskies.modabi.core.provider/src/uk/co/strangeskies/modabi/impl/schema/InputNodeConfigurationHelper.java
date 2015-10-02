@@ -33,7 +33,6 @@ import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.Invokable;
-import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 import uk.co.strangeskies.utilities.PropertySet;
@@ -188,28 +187,33 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							generateInMethodNames(name, overriddenInMethodName),
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
-
-					if (inputTargetType != null) {
-						Resolver resolver = inInvokable.getReturnType().getResolver();
-						System.out.println();
-						System.out.println();
-						System.out.println();
-						System.out.println("!!!!!!!!!!!!!! " + inputTargetType);
-						System.out.println(resolver.getBounds());
-						System.out
-								.println("   = "
-										+ resolver.getBounds().getInferenceVariables().stream()
-												.map(i -> i.toString()
-														+ resolver.getBounds().getBoundsOn(i)
-																.getInstantiation()
-														+ " ? "
-														+ resolver.getBounds().getBoundsOn(i)
-																.isInstantiated())
-								.collect(Collectors.joining(", ")));
-					}
-
-					System.out.println("~~~" + inInvokable + " " + inInvokable.getReturnType());
 				}
+
+				context.boundSet().assertConsistent();
+
+				/*-
+				if (inputTargetType != null) {
+					Resolver resolver = inInvokable.getReturnType().getResolver();
+					System.out.println();
+					System.out.println();
+					System.out.println();
+					System.out.println("!!!!!!!!!!!!!! " + inputTargetType);
+					System.out.println(resolver.getBounds());
+					System.out
+							.println("   = "
+									+ resolver.getBounds().getInferenceVariables().stream()
+											.map(i -> i.toString()
+													+ resolver.getBounds().getBoundsOn(i)
+															.getInstantiation()
+													+ " ? "
+													+ resolver.getBounds().getBoundsOn(i)
+															.isInstantiated())
+							.collect(Collectors.joining(", ")));
+				}
+				
+				System.out
+						.println("~~~" + inInvokable + " " + inInvokable.getReturnType());
+						*/
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
 			} catch (NoSuchMethodException e) {
@@ -221,6 +225,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		}
 
 		return inInvokable;
+
 	}
 
 	private static List<String> generateInMethodNames(QualifiedName nodeName,

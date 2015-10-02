@@ -46,7 +46,6 @@ import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
-import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 
 /**
@@ -140,10 +139,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		for (SchemaNode<?, ?> overriddenNode : reversedNodes) {
 			int index = 0;
 
-			for (ChildNode<?, ?> child : overriddenNode.children()) {
-				MergeGroup group = merge(overriddenNode.getName(),
-						child.effective().getName(), index);
-				group.addChild(child.effective());
+			for (ChildNode.Effective<?, ?> child : overriddenNode.effective()
+					.children()) {
+				MergeGroup group = merge(overriddenNode.getName(), child.getName(),
+						index);
+				group.addChild(child);
 				index = group.getIndex() + 1;
 			}
 		}

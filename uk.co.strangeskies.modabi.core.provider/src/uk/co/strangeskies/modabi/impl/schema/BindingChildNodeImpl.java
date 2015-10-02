@@ -67,8 +67,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			super(overrideMerge);
 
-			extensible = overrideMerge.getOverride(BindingChildNode::isExtensible)
-					.orDefault(false).get();
+			extensible = overrideMerge.node().isExtensible() == null ? false
+					: overrideMerge.node().isExtensible();
 
 			if (isAbstract()
 					&& !overrideMerge.configurator().getContext().isAbstract()
@@ -160,7 +160,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 		@Override
 		public boolean hasExtensibleChildren() {
-			return isExtensible() == null || isExtensible()
+			return (isExtensible() == null || isExtensible())
 					|| super.hasExtensibleChildren();
 		}
 
@@ -232,6 +232,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		protected static Invokable<?, ?> getOutMethod(
 				BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
 				TypeToken<?> receiverType, BoundSet bounds) {
+			bounds.assertConsistent();
 
 			try {
 				if (receiverType == null)
@@ -266,8 +267,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 					outMethod = null;
 
+					bounds.assertConsistent();
+					resultType.incorporateInto(bounds);
 					ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
 							receiverType.getType(), resultType.getType(), bounds);
+					bounds.assertConsistent();
 				} else if (inheritedOutMethod != null) {
 					try {
 						outMethod = Invokable.over(inheritedOutMethod, receiverType)

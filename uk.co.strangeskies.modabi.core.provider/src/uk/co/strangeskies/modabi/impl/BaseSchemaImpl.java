@@ -55,7 +55,6 @@ import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
-import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
@@ -646,54 +645,31 @@ public class BaseSchemaImpl implements BaseSchema {
 							Arrays.asList(
 									AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 
-			mapModel = factory
-					.apply("map",
-							c -> c.dataType(new TypeToken<@Infer Map<?, ?>>() {})
-									.isAbstract(true).bindingStrategy(BindingStrategy.PROVIDED)
-									.addChild(
-											e -> e.complex().name("entrySet").inline(true)
-													.inMethod("null").isAbstract(true)
-													.dataType(inferredMapEntrySet)
-													.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-													.unbindingStrategy(UnbindingStrategy.SIMPLE)
-													.addChild(s -> s.inputSequence()
-															.name(
-																	"entrySet")
-															.inMethodChained(true))
-													.addChild(f -> f.complex().name("entry")
-															.outMethodIterable(true)
-															.occurrences(Range.create(0, null))
-															.inMethod("add").outMethod("this")
-															.isAbstract(true)
-															.bindingStrategy(
-																	BindingStrategy.IMPLEMENT_IN_PLACE)
-									.bindingType(BaseSchemaImpl.class).unbindingMethod("mapEntry")
-									.dataType(inferredMapEntry)
-									.addChild(k -> k.data().name("key").inMethod("null")
-											.format(Format.PROPERTY).isAbstract(true)
-											.extensible(true))
+			mapModel = factory.apply("map",
+					c -> c.dataType(new TypeToken<@Infer Map<?, ?>>() {})
+							.addChild(e -> e.complex().name("entrySet").inline(true)
+									.inMethod("null").dataType(inferredMapEntrySet)
+									.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+									.addChild(s -> s.inputSequence().name("entrySet")
+											.inMethodChained(true))
+									.addChild(f -> f.complex().name("entry")
+											.outMethodIterable(true)
+											.occurrences(Range.create(0, null)).inMethod("add")
+											.outMethod("this")
+											.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
+											.bindingType(BaseSchemaImpl.class)
+											.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+											.addChild(k -> k.data().name("key").inMethod("null")
+													.format(Format.PROPERTY)
+													.dataType(AnnotatedWildcardTypes
+															.unbounded(Annotations.from(Infer.class)))
+											.isAbstract(true).extensible(true))
 									.addChild(v -> v.complex().name("value").inMethod("null")
+											.dataType(AnnotatedWildcardTypes
+													.unbounded(Annotations.from(Infer.class)))
 											.isAbstract(true).extensible(true))))
-									.create());
+							.create());
 			System.out.println(mapModel.effective().getDataType());
-
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-			System.out
-					.println("########################################################");
-
 		}
 
 		@Override

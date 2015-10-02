@@ -37,6 +37,7 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
@@ -179,6 +180,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			outputSource = null;
 
+		inferenceBounds.assertConsistent();
+
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
@@ -265,7 +268,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		if (dataType == null)
 			throw new IllegalArgumentException("Data type must not be null");
 
-		if (!dataType.getResolver().getBounds()
+		if (!InferenceVariable
 				.isProperType(dataType.getAnnotatedDeclaration().getType()))
 			throw new IllegalArgumentException(
 					"Data type must be proper: " + dataType);

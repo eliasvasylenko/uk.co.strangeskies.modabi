@@ -39,6 +39,7 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.TypeException;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 
@@ -124,8 +125,14 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			if (exactDataType != null && !exactDataType.isProper()) {
 				exactDataType = exactDataType.withBounds(bounds).resolve();
 
-				if (!isAbstract() && !hasExtensibleChildren())
-					exactDataType = exactDataType.infer();
+				if (!isAbstract() && !hasExtensibleChildren()) {
+					try {
+						exactDataType = exactDataType.infer();
+					} catch (TypeException e) {
+						throw new SchemaException("Cannot infer data type '" + exactDataType
+								+ "' at node '" + this + "'", e);
+					}
+				}
 			}
 
 			return exactDataType;

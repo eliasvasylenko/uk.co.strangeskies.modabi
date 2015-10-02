@@ -20,11 +20,9 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.reflection.Invokable;
-import uk.co.strangeskies.reflection.Resolver;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class Methods {
@@ -66,6 +64,7 @@ public class Methods {
 		for (String name : names) {
 			try {
 				method = receiver.resolveMethodOverload(name, parameters);
+
 				break;
 			} catch (Exception e) {
 				exception = e;
@@ -79,7 +78,15 @@ public class Methods {
 
 		if (result != null) {
 			if (!allowCast) {
+				receiver.getResolver().getBounds().assertConsistent();
+
+				method.getReturnType().getResolver().getBounds().assertConsistent();
+
+				result.getResolver().getBounds().assertConsistent();
+
 				method = method.withTargetType(result);
+
+				method.getResolver().getBounds().assertConsistent();
 			} else {
 				/*
 				 * TODO Enforce castability, with special treatment for iterable out

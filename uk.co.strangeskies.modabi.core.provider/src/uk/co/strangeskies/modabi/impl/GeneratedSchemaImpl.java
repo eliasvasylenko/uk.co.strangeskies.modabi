@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.Collection;
+import java.util.List;
 
 import uk.co.strangeskies.modabi.DataBindingTypes;
 import uk.co.strangeskies.modabi.GeneratedSchema;
@@ -26,12 +27,19 @@ import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.Schemata;
+import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
+import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class GeneratedSchemaImpl implements GeneratedSchema {
-	private final SchemaManagerImpl schemaManager;
+	private final SchemaManagerImpl manager;
 
 	private final QualifiedName name;
 
@@ -42,7 +50,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 
 	public GeneratedSchemaImpl(SchemaManagerImpl schemaManager,
 			QualifiedName name, Collection<? extends Schema> dependencies) {
-		this.schemaManager = schemaManager;
+		this.manager = schemaManager;
 
 		this.name = name;
 
@@ -85,5 +93,29 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	public <T> DataBindingType<T> generateDataType(TypeToken<T> type) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public DataBindingTypeConfigurator<Object> buildDataBindingType() {
+		BindingContextImpl context = manager.getBindingContext();
+
+		return manager.getDataTypeBuilder().configure(new DataLoader() {
+			@Override
+			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
+				return new DataNodeBinder(context).bind(node.effective());
+			}
+		});
+	}
+
+	@Override
+	public ModelConfigurator<Object> buildModel() {
+		BindingContextImpl context = manager.getBindingContext();
+
+		return manager.getModelBuilder().configure(new DataLoader() {
+			@Override
+			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
+				return new DataNodeBinder(context).bind(node.effective());
+			}
+		});
 	}
 }

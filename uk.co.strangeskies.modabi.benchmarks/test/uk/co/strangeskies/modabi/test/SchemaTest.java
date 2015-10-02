@@ -19,18 +19,22 @@
 package uk.co.strangeskies.modabi.test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import uk.co.strangeskies.modabi.BaseSchema;
+import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
+import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
+import uk.co.strangeskies.modabi.io.DataType;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
 import uk.co.strangeskies.modabi.json.impl.JsonTarget;
+import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
 
@@ -40,20 +44,51 @@ public class SchemaTest {
 		new SchemaTest().run(new SchemaManagerImpl());
 	}
 
-	public void run(SchemaManager schemaManager) {
+	private void manualSchemaCreationTest(SchemaManager schemaManager) {
+		GeneratedSchema generatedSchema = schemaManager.generateSchema(
+				new QualifiedName("testExtentions", Namespace.getDefault()));
+
+		DataBindingType<List<?>> intListType = generatedSchema
+				.buildDataBindingType().name("intSet", Namespace.getDefault())
+				.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
+				.addChild(e -> e.data().name("element")
+						.type(schemaManager.getBaseSchema().primitiveType(DataType.INT)))
+				.create();
+		System.out.println(intListType.effective().getDataType());
+
 		Map<String, Integer> stringIntMap = new HashMap<>();
 		stringIntMap.put("first", 1);
 		stringIntMap.put("second", 2);
 		stringIntMap.put("third", 3);
-		/*
+
 		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> stringIntMapModel = (Model<Map<?, ?>>) schemaManager
-				.getBaseSchema().getModels().get(new QualifiedName("stringIntMap",
-						BaseSchema.QUALIFIED_NAME.getNamespace()));
+		Model<Map<?, ?>> stringIntMapModel = generatedSchema.buildModel()
+				.name("stringIntMap", Namespace.getDefault())
+				.baseModel(
+						schemaManager.getBaseSchema().models().mapModel())
+				.addChild(s -> s.complex()
+						.name(
+								"entrySet")
+						.addChild(e -> e.complex().name("entry")
+								.addChild(k -> k.data().name("key")
+										.type(schemaManager.getBaseSchema()
+												.primitiveType(DataType.STRING)))
+								.addChild(
+										v -> v.complex().name("value")
+												.baseModel(schemaManager.getBaseSchema().models()
+														.simpleModel())
+												.addChild(c -> c.data().name("content")
+														.type(schemaManager.getBaseSchema()
+																.primitiveType(DataType.INT))))))
+				.create();
 		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
 				stringIntMap);
 		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
-				stringIntMap);*/
+				stringIntMap);
+	}
+
+	public void run(SchemaManager schemaManager) {
+		manualSchemaCreationTest(schemaManager);
 
 		System.out.println("Unbinding BaseSchema...");
 		StructuredDataTargetBuffer out = BufferingStructuredDataTarget

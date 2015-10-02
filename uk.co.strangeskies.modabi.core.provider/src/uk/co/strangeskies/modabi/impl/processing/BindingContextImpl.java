@@ -37,8 +37,8 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class BindingContextImpl extends
-		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
+public class BindingContextImpl
+		extends ProcessingContextImpl<BindingContextImpl>implements BindingContext {
 	private final List<Object> bindingTargetStack;
 	private StructuredDataSource input;
 
@@ -100,7 +100,8 @@ public class BindingContextImpl extends
 				Collections.unmodifiableList(bindingTargetStack), input, getProvider());
 	}
 
-	public <T> BindingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
+	public <T> BindingContextImpl withBindingNode(
+			SchemaNode.Effective<?, ?> node) {
 		return new BindingContextImpl(this, node);
 	}
 
@@ -156,7 +157,8 @@ public class BindingContextImpl extends
 			BiConsumer<BindingContextImpl, I> bindingMethod,
 			Function<Set<Exception>, BindingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new BindingException("Must supply items for binding attempt.", this);
+			throw new BindingException("Must supply items for binding attempt.",
+					this);
 
 		Set<Exception> failures = new HashSet<>();
 

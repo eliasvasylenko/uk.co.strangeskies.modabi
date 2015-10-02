@@ -48,16 +48,24 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
+import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
+import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
 import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
 import uk.co.strangeskies.modabi.impl.schema.building.DataBindingTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
+import uk.co.strangeskies.modabi.processing.providers.ImportSource;
+import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
+import uk.co.strangeskies.modabi.processing.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
@@ -78,6 +86,8 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final SchemaBuilder schemaBuilder;
 	private final ModelBuilder modelBuilder;
 	private final DataBindingTypeBuilder dataTypeBuilder;
+
+	private final BindingProviders bindingProviders;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
@@ -112,6 +122,31 @@ public class SchemaManagerImpl implements SchemaManager {
 				LinkedHashSet::new);
 		registerProvider(new TypeToken<@Infer List<?>>() {}, ArrayList::new);
 		registerProvider(new TypeToken<@Infer Map<?, ?>>() {}, HashMap::new);
+
+		bindingProviders = new BindingProviders(this);
+	}
+
+	SchemaBinder getSchemaBinder() {
+		return new SchemaBinder(getBindingContext());
+	}
+
+	BindingContextImpl getBindingContext() {
+		return new BindingContextImpl(this)
+				.withProvision(DereferenceSource.class,
+						bindingProviders.dereferenceSource())
+				.withProvision(IncludeTarget.class, bindingProviders.includeTarget())
+				.withProvision(ImportSource.class, bindingProviders.importSource())
+				.withProvision(DataLoader.class, bindingProviders.dataLoader())
+				.withProvision(TypeParser.class, bindingProviders.typeParser())
+				.withProvision(BindingContext.class, c -> c);
+	}
+
+	ModelBuilder getModelBuilder() {
+		return modelBuilder;
+	}
+
+	DataBindingTypeBuilder getDataTypeBuilder() {
+		return dataTypeBuilder;
 	}
 
 	@Override
@@ -159,8 +194,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
 			StructuredDataSource input) {
-		return addBindingFuture(
-				new SchemaBinder(this).bind(model.effective(), input));
+		return addBindingFuture(getSchemaBinder().bind(model.effective(), input));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -174,12 +208,12 @@ public class SchemaManagerImpl implements SchemaManager {
 					+ "' compatible with the class '" + dataClass
 					+ "' match the root element '" + input.peekNextChild() + "'");
 		return (BindingFuture<T>) addBindingFuture(
-				new SchemaBinder(this).bind(model.effective(), input));
+				getSchemaBinder().bind(model.effective(), input));
 	}
 
 	@Override
 	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(new SchemaBinder(this)
+		return addBindingFuture(getSchemaBinder()
 				.bind(registeredModels.get(input.peekNextChild()).effective(), input));
 	}
 
@@ -249,8 +283,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	public void registerProvider(Function<TypeToken<?>, ?> provider) {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
-			if (provided != null
-					&& !TypeToken.over(c.getType()).isAssignableFrom(provided.getClass()))
+			if (provided != null && !c.isAssignableFrom(provided.getClass()))
 				throw new SchemaException("Invalid object provided for the class [" + c
 						+ "] by provider [" + provider + "]");
 			return provided;
