@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -197,8 +196,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							inputTargetType, context.isStaticMethodExpected(), result,
 							inMethodChained && allowInMethodResultCast, parameters);
 				}
-
-				context.boundSet().assertConsistent();
 
 				/*-
 				if (inputTargetType != null) {

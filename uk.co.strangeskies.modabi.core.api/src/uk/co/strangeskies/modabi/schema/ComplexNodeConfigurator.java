@@ -30,6 +30,12 @@ public interface ComplexNodeConfigurator<T> extends
 		BindingChildNodeConfigurator<ComplexNodeConfigurator<T>, ComplexNode<T>, T> {
 	@Override
 	default <V extends T> ComplexNodeConfigurator<V> baseModel(
+			Model<? super V> baseModel) {
+		return baseModel(Arrays.asList(baseModel));
+	}
+
+	@Override
+	default <V extends T> ComplexNodeConfigurator<V> baseModel(
 			@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
 		return baseModel(Arrays.asList(baseModel));
 	}
@@ -41,22 +47,23 @@ public interface ComplexNodeConfigurator<T> extends
 	@SuppressWarnings("unchecked")
 	@Override
 	default <V extends T> ComplexNodeConfigurator<V> dataType(Class<V> dataType) {
-		return (ComplexNodeConfigurator<V>) AbstractComplexNodeConfigurator.super
-				.dataType(dataType);
+		return (ComplexNodeConfigurator<V>) AbstractComplexNodeConfigurator.super.dataType(
+				dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default ComplexNodeConfigurator<? extends T> dataType(AnnotatedType dataType) {
-		return (ComplexNodeConfigurator<? extends T>) AbstractComplexNodeConfigurator.super
-				.dataType(dataType);
+	default ComplexNodeConfigurator<? extends T> dataType(
+			AnnotatedType dataType) {
+		return (ComplexNodeConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
+				dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default ComplexNodeConfigurator<? extends T> dataType(Type dataType) {
-		return (ComplexNodeConfigurator<? extends T>) AbstractComplexNodeConfigurator.super
-				.dataType(dataType);
+		return (ComplexNodeConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
+				dataType);
 	}
 
 	@Override

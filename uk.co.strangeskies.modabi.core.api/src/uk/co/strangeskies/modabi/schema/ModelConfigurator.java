@@ -31,6 +31,12 @@ public interface ModelConfigurator<T>
 		extends AbstractComplexNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
 	@Override
 	default <V extends T> ModelConfigurator<V> baseModel(
+			Model<? super V> baseModel) {
+		return baseModel(Arrays.asList(baseModel));
+	}
+
+	@Override
+	default <V extends T> ModelConfigurator<V> baseModel(
 			@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
 		return baseModel(Arrays.asList(baseModel));
 	}

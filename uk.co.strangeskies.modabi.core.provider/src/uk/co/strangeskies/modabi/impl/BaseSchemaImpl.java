@@ -51,6 +51,7 @@ import uk.co.strangeskies.modabi.processing.providers.ImportReferenceTarget;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
+import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.DataBindingType;
 import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -703,6 +704,13 @@ public class BaseSchemaImpl implements BaseSchema {
 																					DataType.QUALIFIED_NAME))))))
 					.create());
 			System.out.println(mapModel.effective().getDataType());
+			System.out.println(
+					((BindingChildNode<?, ?, ?>) mapModel.effective().child("entrySet"))
+							.getDataType().infer());
+			System.out.println(((BindingChildNode<?, ?, ?>) mapModel.effective()
+					.child("entrySet", "entry")).getDataType().infer());
+			System.out.println(((BindingChildNode<?, ?, ?>) mapModel.effective()
+					.child("entrySet", "entry", "key")).getDataType().infer());
 		}
 
 		@Override

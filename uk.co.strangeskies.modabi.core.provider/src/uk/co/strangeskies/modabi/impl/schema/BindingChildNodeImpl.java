@@ -39,7 +39,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 
 abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
-		extends BindingNodeImpl<T, S, E>implements BindingChildNode<T, S, E> {
+		extends BindingNodeImpl<T, S, E> implements BindingChildNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 			extends BindingNodeImpl.Effective<T, S, E>
 			implements BindingChildNode.Effective<T, S, E> {
@@ -232,74 +232,70 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		protected static Invokable<?, ?> getOutMethod(
 				BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
 				TypeToken<?> receiverType, BoundSet bounds) {
-			bounds.assertConsistent();
+			if (receiverType == null)
+				throw new SchemaException("Can't find out method for node '"
+						+ node.getName() + "' as target class cannot be found");
 
-			try {
-				if (receiverType == null)
-					throw new SchemaException("Can't find out method for node '"
-							+ node.getName() + "' as target class cannot be found");
+			boolean outMethodCast = node.isOutMethodCast() != null
+					&& node.isOutMethodCast();
 
-				boolean outMethodCast = node.isOutMethodCast() != null
-						&& node.isOutMethodCast();
+			TypeToken<?> resultType = ((node.isOutMethodIterable() != null
+					&& node.isOutMethodIterable())
+							? getIteratorType((TypeToken<?>) (outMethodCast
+									? TypeToken.over(new InferenceVariable())
+									: node.getDataType()))
+							: node.getDataType());
 
-				TypeToken<?> resultType = ((node.isOutMethodIterable() != null
-						&& node.isOutMethodIterable())
-								? getIteratorType((TypeToken<?>) (outMethodCast
-										? TypeToken.over(new InferenceVariable())
-										: node.getDataType()))
-								: node.getDataType());
+			if (node.isOutMethodUnchecked() != null && node.isOutMethodUnchecked())
+				resultType = TypeToken.over(resultType.getRawType());
 
-				if (node.isOutMethodUnchecked() != null && node.isOutMethodUnchecked())
-					resultType = TypeToken.over(resultType.getRawType());
+			if (resultType == null)
+				throw new SchemaException("Can't find out method for node '"
+						+ node.getName() + "' as result class cannot be found");
 
-				if (resultType == null)
-					throw new SchemaException("Can't find out method for node '"
-							+ node.getName() + "' as result class cannot be found");
+			Invokable<?, ?> outMethod;
+			if ("this".equals(node.getOutMethodName())) {
+				if (!resultType.isAssignableFrom(receiverType.resolve())) {
+					throw new SchemaException("Can't use out method 'this' for node '"
+							+ node.getName() + "', as result class '" + resultType
+							+ "' cannot be assigned from target class'" + receiverType + "'");
+				}
 
-				Invokable<?, ?> outMethod;
-				if ("this".equals(node.getOutMethodName())) {
-					if (!resultType.isAssignableFrom(receiverType.resolve())) {
-						throw new SchemaException("Can't use out method 'this' for node '"
-								+ node.getName() + "', as result class '" + resultType
-								+ "' cannot be assigned from target class'" + receiverType
-								+ "'");
-					}
+				outMethod = null;
 
-					outMethod = null;
+				resultType.incorporateInto(bounds);
+				ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
+						receiverType.getType(), resultType.getType(), bounds);
+			} else if (inheritedOutMethod != null) {
+				try {
+					outMethod = Invokable.over(inheritedOutMethod, receiverType)
+							.withLooseApplicability();
+				} catch (Exception e) {
+					outMethod = Invokable.over(inheritedOutMethod, receiverType)
+							.withVariableArityApplicability();
+				}
 
-					bounds.assertConsistent();
-					resultType.incorporateInto(bounds);
-					ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY,
-							receiverType.getType(), resultType.getType(), bounds);
-					bounds.assertConsistent();
-				} else if (inheritedOutMethod != null) {
-					try {
-						outMethod = Invokable.over(inheritedOutMethod, receiverType)
-								.withLooseApplicability();
-					} catch (Exception e) {
-						outMethod = Invokable.over(inheritedOutMethod, receiverType)
-								.withVariableArityApplicability();
-					}
-
-					if (outMethodCast) {
-						// TODO enforce castability
-					} else {
-						outMethod = outMethod.withTargetType(resultType);
-					}
+				if (outMethodCast) {
+					// TODO enforce castability
 				} else {
+					outMethod = outMethod.withTargetType(resultType);
+				}
+			} else {
+				try {
 					outMethod = Methods.findMethod(
 							generateOutMethodNames(node, resultType.getRawType()),
 							receiverType, false, resultType, outMethodCast);
+				} catch (NoSuchMethodException e) {
+					throw new SchemaException(e);
 				}
-
-				if (outMethod != null) {
-					bounds.incorporate(outMethod.getResolver().getBounds());
-				}
-
-				return outMethod;
-			} catch (NoSuchMethodException e) {
-				throw new SchemaException(e);
 			}
+
+			if (outMethod != null) {
+				System.out.println(outMethod.getResolver().getBounds());
+				bounds.incorporate(outMethod.getResolver().getBounds());
+			}
+
+			return outMethod;
 		}
 
 		private static List<String> generateOutMethodNames(

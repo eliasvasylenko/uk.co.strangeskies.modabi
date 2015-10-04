@@ -33,7 +33,7 @@ Bundle-License: LGPL <http://www.gnu.org/licenses/>
 	${build}/cache/biz.aQute.repository.aether.jar; \
 		url = ${bnd-release}/biz.aQute.repository.aether/biz.aQute.repository.aether-latest.jar
 
-ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}}
+ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}\\;version=latest}
 
 -plugin.7.StrangeSkies: \
 \
@@ -50,7 +50,7 @@ ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}}
 # should point to the cnf/release/ repository for the local
 # uk.co.strangeskies project.
 #
-#strangeSkiesDependency: uk.co.strangeskies.${1}
+#strangeSkiesDependency: uk.co.strangeskies.${1}\;version=latest
 #
 #-plugin.8.StrangeSkies: \
 #\

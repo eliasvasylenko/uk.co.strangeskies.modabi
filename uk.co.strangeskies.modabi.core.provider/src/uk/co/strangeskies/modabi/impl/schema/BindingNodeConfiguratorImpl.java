@@ -180,8 +180,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			outputSource = null;
 
-		inferenceBounds.assertConsistent();
-
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
