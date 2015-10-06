@@ -1,5 +1,6 @@
 uk.co.strangeskies.modabi
 uk.co.strangeskies.modabi.declarative
+uk.co.strangeskies.modabi.fx
 uk.co.strangeskies.modabi.impl
 uk.co.strangeskies.modabi.impl.processing
 uk.co.strangeskies.modabi.impl.schema
