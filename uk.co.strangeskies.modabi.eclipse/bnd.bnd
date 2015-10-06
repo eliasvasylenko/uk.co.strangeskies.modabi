@@ -1,0 +1,12 @@
+-dsannotations: *
+
+Bundle-Name: Modabi - Scripting
+
+-runee: JavaSE-1.8
+
+-buildpath: \
+	osgi.enroute.base.api,\
+	${ss;utilities},\
+	uk.co.strangeskies.modabi.core.api;version=latest
+
+Bundle-Version: 0.0.1.${tstamp}
