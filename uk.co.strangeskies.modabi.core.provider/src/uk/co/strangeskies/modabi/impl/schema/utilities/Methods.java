@@ -18,8 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
+import java.lang.reflect.Executable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.reflection.Invokable;
@@ -54,27 +56,40 @@ public class Methods {
 				Arrays.asList(parameters));
 	}
 
+	public static <T> Invokable<? super T, ?> resolveMethodOverload(
+			TypeToken<T> type, List<String> names,
+			List<? extends TypeToken<?>> arguments) {
+		Set<? extends Invokable<? super T, ? extends Object>> candidates = type
+				.getMethods(m -> names.contains(m.getName())
+						&& isArgumentCountValid(m, arguments.size()));
+
+		if (candidates.isEmpty())
+			throw new SchemaException("Cannot find any applicable methods");
+
+		candidates = Invokable.resolveApplicableInvokables(candidates, arguments);
+
+		return Invokable.resolveMostSpecificInvokable(candidates);
+	}
+
+	private static boolean isArgumentCountValid(Executable method,
+			int arguments) {
+		return (method.isVarArgs() ? method.getParameterCount() <= arguments + 1
+				: method.getParameterCount() == arguments);
+	}
+
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
 			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
 			boolean allowCast, List<TypeToken<?>> parameters)
 					throws NoSuchMethodException {
 		Invokable<? super T, ?> method = null;
 
-		Exception exception = null;
-		for (String name : names) {
-			try {
-				method = receiver.resolveMethodOverload(name, parameters);
-
-				break;
-			} catch (Exception e) {
-				exception = e;
-			}
-		}
-
-		if (method == null)
+		try {
+			method = resolveMethodOverload(receiver, names, parameters);
+		} catch (Exception e) {
 			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
 					+ "method for class '" + receiver + "' with parameters '" + parameters
-					+ "' and any name of '" + names + "'", exception);
+					+ "' and any name of '" + names + "'", e);
+		}
 
 		if (result != null) {
 			if (!allowCast) {
