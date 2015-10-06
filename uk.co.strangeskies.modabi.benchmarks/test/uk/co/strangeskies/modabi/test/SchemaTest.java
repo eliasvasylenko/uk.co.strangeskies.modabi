@@ -62,7 +62,6 @@ public class SchemaTest {
 		stringIntMap.put("second", 2);
 		stringIntMap.put("third", 3);
 
-		@SuppressWarnings("unchecked")
 		Model<Map<?, ?>> stringIntMapModel = generatedSchema
 				.<Map<?, ?>> buildModel(
 						n -> n
@@ -79,8 +78,6 @@ public class SchemaTest {
 										.addChild(c -> c.data().name("content").type(schemaManager
 												.getBaseSchema().primitiveType(DataType.INT)))))));
 		System.out.println(stringIntMapModel.effective().getDataType());
-		System.out.println("    ~# " + stringIntMapModel.effective().getDataType()
-				.getResolver().getBounds());
 
 		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
 				stringIntMap);
