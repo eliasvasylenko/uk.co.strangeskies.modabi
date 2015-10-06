@@ -40,7 +40,7 @@ public interface DataNode<T>
 		}
 
 		@Override
-		DataBindingType.Effective<T> type();
+		DataType.Effective<T> type();
 
 		List<T> providedValues();
 
@@ -79,7 +79,7 @@ public interface DataNode<T>
 
 	ValueResolution valueResolution();
 
-	DataBindingType<T> type();
+	DataType<T> type();
 
 	Boolean optional();
 

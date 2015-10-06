@@ -24,32 +24,32 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
-import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class DataBindingTypeConfiguratorImpl<T>
+public class DataTypeConfiguratorImpl<T>
 		extends
-		BindingNodeConfiguratorImpl<DataBindingTypeConfigurator<T>, DataBindingType<T>, T>
-		implements DataBindingTypeConfigurator<T> {
+		BindingNodeConfiguratorImpl<DataTypeConfigurator<T>, DataType<T>, T>
+		implements DataTypeConfigurator<T> {
 	private final DataLoader loader;
 
 	private Boolean isPrivate;
 
-	private DataBindingType<? super T> baseType;
+	private DataType<? super T> baseType;
 
-	public DataBindingTypeConfiguratorImpl(DataLoader loader) {
+	public DataTypeConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
 	}
 
 	@Override
-	protected DataBindingType<T> tryCreate() {
-		return new DataBindingTypeImpl<>(this);
+	protected DataType<T> tryCreate() {
+		return new DataTypeImpl<>(this);
 	}
 
 	@Override
-	public DataBindingTypeConfigurator<T> isPrivate(boolean isPrivate) {
+	public DataTypeConfigurator<T> isPrivate(boolean isPrivate) {
 		assertConfigurable(this.isPrivate);
 		this.isPrivate = isPrivate;
 
@@ -62,23 +62,23 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataBindingTypeConfigurator<U> baseType(
-			DataBindingType<? super U> baseType) {
+	public final <U extends T> DataTypeConfigurator<U> baseType(
+			DataType<? super U> baseType) {
 		assertConfigurable(this.baseType);
-		this.baseType = (DataBindingType<? super T>) baseType;
+		this.baseType = (DataType<? super T>) baseType;
 
-		return (DataBindingTypeConfigurator<U>) this;
+		return (DataTypeConfigurator<U>) this;
 	}
 
-	public DataBindingType<? super T> getBaseType() {
+	public DataType<? super T> getBaseType() {
 		return baseType;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> DataBindingTypeConfigurator<V> dataType(
+	public <V extends T> DataTypeConfigurator<V> dataType(
 			TypeToken<? extends V> dataClass) {
-		return (DataBindingTypeConfigurator<V>) super.dataType(dataClass);
+		return (DataTypeConfigurator<V>) super.dataType(dataClass);
 	}
 
 	@Override
@@ -92,8 +92,8 @@ public class DataBindingTypeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected TypeToken<DataBindingType<T>> getNodeClass() {
-		return new TypeToken<DataBindingType<T>>() {};
+	protected TypeToken<DataType<T>> getNodeClass() {
+		return new TypeToken<DataType<T>>() {};
 	}
 
 	@Override
@@ -103,8 +103,8 @@ public class DataBindingTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<DataBindingType<T>> getOverriddenNodes() {
+	public List<DataType<T>> getOverriddenNodes() {
 		return baseType == null ? Collections.emptyList() : new ArrayList<>(
-				Arrays.asList((DataBindingType<T>) baseType));
+				Arrays.asList((DataType<T>) baseType));
 	}
 }

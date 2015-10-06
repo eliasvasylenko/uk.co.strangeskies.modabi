@@ -149,5 +149,5 @@ public interface SchemaManager {
 
 	Models registeredModels();
 
-	DataBindingTypes registeredTypes();
+	DataTypes registeredTypes();
 }

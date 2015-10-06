@@ -34,11 +34,11 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.utilities.Enumeration;
@@ -48,7 +48,7 @@ public class CoreSchemata {
 	private final MetaSchema metaSchema;
 
 	public CoreSchemata(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
-			DataBindingTypeBuilder dataTypeBuilder) {
+			DataTypeBuilder dataTypeBuilder) {
 		/*
 		 * We obviously don't have have any schema to use to bind provided values
 		 * which have registration time resolution, since what we're doing here is
@@ -68,20 +68,20 @@ public class CoreSchemata {
 
 					if (node.getName().getName().equals("format"))
 						return (List<T>) Arrays
-								.asList(Format.valueOf(data.get(DataType.STRING)));
+								.asList(Format.valueOf(data.get(Primitive.STRING)));
 
 					if (node.getName().getName().equals("dataType"))
 						return (List<T>) Arrays.asList(
-								Enumeration.valueOf(DataType.class, data.get(DataType.STRING)));
+								Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING)));
 
 					if (node.getName().getName().equals("targetId"))
-						return (List<T>) Arrays.asList(data.get(DataType.QUALIFIED_NAME));
+						return (List<T>) Arrays.asList(data.get(Primitive.QUALIFIED_NAME));
 
 					if (node.getName().getName().equals("inline"))
-						return (List<T>) Arrays.asList(data.get(DataType.BOOLEAN));
+						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
 
 					if (node.getName().getName().equals("targetModel")) {
-						QualifiedName name = data.get(DataType.QUALIFIED_NAME);
+						QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
 
 						Supplier<Model<?>> objectProvider = () -> {
 							Model<?> model = baseSchema.getModels().get(name);

@@ -33,13 +33,13 @@ public interface DataSource extends Copyable<DataSource> {
 
 	int index();
 
-	default <T> T get(DataType<T> type) {
+	default <T> T get(Primitive<T> type) {
 		return get().data(type);
 	}
 
 	DataItem<?> get();
 
-	default <T> T peek(DataType<T> type) {
+	default <T> T peek(Primitive<T> type) {
 		return peek().data(type);
 	}
 
@@ -78,7 +78,7 @@ public interface DataSource extends Copyable<DataSource> {
 				dataItemList.size()));
 	}
 
-	static <T> DataSource repeating(DataType<T> type, T data, int times) {
+	static <T> DataSource repeating(Primitive<T> type, T data, int times) {
 		return repeating(DataItem.forDataOfType(type, data), times);
 	}
 
@@ -86,7 +86,7 @@ public interface DataSource extends Copyable<DataSource> {
 		return new DataSourceDecorator(new RepeatingDataSource(item, times));
 	}
 
-	static <T> DataSource single(DataType<T> type, T data) {
+	static <T> DataSource single(Primitive<T> type, T data) {
 		return single(DataItem.forDataOfType(type, data));
 	}
 

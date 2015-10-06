@@ -45,5 +45,5 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 	 * to reorder from outMethod iterator.
 	 */
 
-	TypeToken<T> getExpectedTypeBounds();
+	TypeToken<T> getExpectedType();
 }

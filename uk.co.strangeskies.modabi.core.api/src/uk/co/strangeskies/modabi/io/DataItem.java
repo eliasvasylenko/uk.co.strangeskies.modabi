@@ -47,15 +47,15 @@ abstract class AbstractDataItem<T> implements DataItem<T> {
 }
 
 class TypedDataItem<T> extends AbstractDataItem<T> {
-	private final DataType<T> type;
+	private final Primitive<T> type;
 	private final T data;
 
-	TypedDataItem(DataType<T> type, T data) {
+	TypedDataItem(Primitive<T> type, T data) {
 		this.type = type;
 		this.data = data;
 	}
 
-	public DataType<T> type() {
+	public Primitive<T> type() {
 		return type;
 	}
 
@@ -64,7 +64,7 @@ class TypedDataItem<T> extends AbstractDataItem<T> {
 	}
 
 	@Override
-	public <U> DataItem<U> convert(DataType<U> to) {
+	public <U> DataItem<U> convert(Primitive<U> to) {
 		if (to == type()) {
 			@SuppressWarnings("unchecked")
 			DataItem<U> conversion = (DataItem<U>) this;
@@ -86,8 +86,8 @@ class StringDataItem extends AbstractDataItem<String> {
 		this.qualifiedNameParser = qualifiedNameParser;
 	}
 
-	public DataType<String> type() {
-		return DataType.STRING;
+	public Primitive<String> type() {
+		return Primitive.STRING;
 	}
 
 	public String data() {
@@ -95,9 +95,9 @@ class StringDataItem extends AbstractDataItem<String> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U> DataItem<U> convert(DataType<U> to) {
-		if (to == DataType.QUALIFIED_NAME)
-			return (DataItem<U>) DataItem.forDataOfType(DataType.QUALIFIED_NAME,
+	public <U> DataItem<U> convert(Primitive<U> to) {
+		if (to == Primitive.QUALIFIED_NAME)
+			return (DataItem<U>) DataItem.forDataOfType(Primitive.QUALIFIED_NAME,
 					qualifiedNameParser.apply(data));
 
 		try {
@@ -110,7 +110,7 @@ class StringDataItem extends AbstractDataItem<String> {
 }
 
 public interface DataItem<T> {
-	static <T> DataItem<T> forDataOfType(DataType<T> type, T data) {
+	static <T> DataItem<T> forDataOfType(Primitive<T> type, T data) {
 		return new TypedDataItem<T>(type, data);
 	}
 
@@ -118,7 +118,7 @@ public interface DataItem<T> {
 			Function<String, QualifiedName> qualifiedNameParser) {
 		data = data.trim();
 
-		for (DataType<?> type : Enumeration.getConstants(DataType.class))
+		for (Primitive<?> type : Enumeration.getConstants(Primitive.class))
 			try {
 				forStringStrict(type, data);
 			} catch (ParseException e) {}
@@ -128,18 +128,18 @@ public interface DataItem<T> {
 		return new StringDataItem(data, qualifiedNameParser);
 	}
 
-	static <T> DataItem<T> forStringStrict(DataType<T> type, String data)
+	static <T> DataItem<T> forStringStrict(Primitive<T> type, String data)
 			throws ParseException {
 		return new TypedDataItem<>(type, type.strictParse(data));
 	}
 
-	<U> DataItem<U> convert(DataType<U> to);
+	<U> DataItem<U> convert(Primitive<U> to);
 
-	default <U> U data(DataType<U> type) {
+	default <U> U data(Primitive<U> type) {
 		return convert(type).data();
 	}
 
-	DataType<T> type();
+	Primitive<T> type();
 
 	T data();
 }

@@ -78,11 +78,7 @@ public class Methods {
 
 		if (result != null) {
 			if (!allowCast) {
-				System.out.println();
-				System.out.println("eh " + method);
 				method = method.withTargetType(result);
-				System.out.println("  " + method);
-				System.out.println(result);
 			} else {
 				/*
 				 * TODO Enforce castability, with special treatment for iterable out

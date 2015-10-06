@@ -26,46 +26,47 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Enumeration;
 
-public class DataType<T> extends Enumeration<DataType<T>> {
-	public static final DataType<byte[]> BINARY = new DataType<>("binary",
+public class Primitive<T> extends Enumeration<Primitive<T>> {
+	public static final Primitive<byte[]> BINARY = new Primitive<>("binary",
 			byte[].class, s -> null);
 
-	public static final DataType<String> STRING = new DataType<>("string",
+	public static final Primitive<String> STRING = new Primitive<>("string",
 			String.class, Function.identity());
 
-	public static final DataType<BigInteger> INTEGER = new DataType<>("integer",
+	public static final Primitive<BigInteger> INTEGER = new Primitive<>("integer",
 			BigInteger.class, s -> null);
 
-	public static final DataType<BigDecimal> DECIMAL = new DataType<>("decimal",
+	public static final Primitive<BigDecimal> DECIMAL = new Primitive<>("decimal",
 			BigDecimal.class, s -> null);
 
-	public static final DataType<Integer> INT = new DataType<>("int", int.class,
+	public static final Primitive<Integer> INT = new Primitive<>("int", int.class,
 			s -> null);
 
-	public static final DataType<Long> LONG = new DataType<>("long", long.class,
+	public static final Primitive<Long> LONG = new Primitive<>("long", long.class,
 			s -> null);
 
-	public static final DataType<Float> FLOAT = new DataType<>("float",
+	public static final Primitive<Float> FLOAT = new Primitive<>("float",
 			float.class, s -> null);
 
-	public static final DataType<Double> DOUBLE = new DataType<>("double",
+	public static final Primitive<Double> DOUBLE = new Primitive<>("double",
 			double.class, s -> null);
 
-	public static final DataType<Boolean> BOOLEAN = new DataType<>("boolean",
+	public static final Primitive<Boolean> BOOLEAN = new Primitive<>("boolean",
 			boolean.class, s -> Boolean.parseBoolean(s));
 
-	public static final DataType<QualifiedName> QUALIFIED_NAME = new DataType<>(
+	public static final Primitive<QualifiedName> QUALIFIED_NAME = new Primitive<>(
 			"qualifiedName", QualifiedName.class, s -> null);
 
 	private final Class<T> dataClass;
 	private final Function<String, T> parse;
 	private final Function<String, T> strictParse;
 
-	private DataType(String name, Class<T> dataClass, Function<String, T> parse) {
+	private Primitive(String name, Class<T> dataClass,
+			Function<String, T> parse) {
 		this(name, dataClass, parse, parse);
 	}
 
-	private DataType(String name, Class<T> dataClass, Function<String, T> parse,
+	private Primitive(String name, Class<T> dataClass, Function<String, T> parse,
 			Function<String, T> strictParse) {
 		super(name);
 		this.dataClass = dataClass;

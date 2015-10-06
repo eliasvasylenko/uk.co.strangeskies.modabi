@@ -19,22 +19,21 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.utilities.PropertySet;
 
-public class DataBindingTypeImpl<T> extends
-		BindingNodeImpl<T, DataBindingType<T>, DataBindingType.Effective<T>>
-		implements DataBindingType<T> {
+public class DataTypeImpl<T>
+		extends BindingNodeImpl<T, DataType<T>, DataType.Effective<T>>
+		implements DataType<T> {
 	private static class Effective<T>
-			extends
-			BindingNodeImpl.Effective<T, DataBindingType<T>, DataBindingType.Effective<T>>
-			implements DataBindingType.Effective<T> {
+			extends BindingNodeImpl.Effective<T, DataType<T>, DataType.Effective<T>>
+			implements DataType.Effective<T> {
 		private final Boolean isPrivate;
 
-		private final DataBindingType.Effective<? super T> baseType;
+		private final DataType.Effective<? super T> baseType;
 
 		public Effective(
-				OverrideMerge<DataBindingType<T>, DataBindingTypeConfiguratorImpl<T>> overrideMerge) {
+				OverrideMerge<DataType<T>, DataTypeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
 			isPrivate = overrideMerge.node().isPrivate() != null
@@ -50,50 +49,49 @@ public class DataBindingTypeImpl<T> extends
 		}
 
 		@Override
-		public DataBindingType.Effective<? super T> baseType() {
+		public DataType.Effective<? super T> baseType() {
 			return baseType;
 		}
 
 		@SuppressWarnings("rawtypes")
-		protected static final PropertySet<DataBindingType.Effective> PROPERTY_SET = new PropertySet<>(
-				DataBindingType.Effective.class)
-				.add(BindingNodeImpl.Effective.PROPERTY_SET)
-				.add(DataBindingTypeImpl.PROPERTY_SET).add(DataBindingType::isPrivate)
-				.add(DataBindingType::baseType);
+		protected static final PropertySet<DataType.Effective> PROPERTY_SET = new PropertySet<>(
+				DataType.Effective.class).add(BindingNodeImpl.Effective.PROPERTY_SET)
+						.add(DataTypeImpl.PROPERTY_SET).add(DataType::isPrivate)
+						.add(DataType::baseType);
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected PropertySet<DataBindingType.Effective<T>> effectivePropertySet() {
-			return (PropertySet<DataBindingType.Effective<T>>) (Object) PROPERTY_SET;
+		protected PropertySet<DataType.Effective<T>> effectivePropertySet() {
+			return (PropertySet<DataType.Effective<T>>) (Object) PROPERTY_SET;
 		}
 	}
 
-	private final DataBindingTypeImpl.Effective<T> effective;
+	private final DataTypeImpl.Effective<T> effective;
 
 	private final Boolean isPrivate;
 
-	private final DataBindingType<? super T> baseType;
+	private final DataType<? super T> baseType;
 
-	public DataBindingTypeImpl(DataBindingTypeConfiguratorImpl<T> configurator) {
+	public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
 		isPrivate = configurator.getIsPrivate();
 
 		baseType = configurator.getBaseType();
 
-		effective = new DataBindingTypeImpl.Effective<>(
-				DataBindingTypeConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new DataTypeImpl.Effective<>(
+				DataTypeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected static final PropertySet<DataBindingType> PROPERTY_SET = new PropertySet<>(
-			DataBindingType.class).add(BindingNodeImpl.PROPERTY_SET)
-			.add(DataBindingType::isPrivate).add(DataBindingType::baseType);
+	protected static final PropertySet<DataType> PROPERTY_SET = new PropertySet<>(
+			DataType.class).add(BindingNodeImpl.PROPERTY_SET).add(DataType::isPrivate)
+					.add(DataType::baseType);
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected PropertySet<DataBindingType<T>> propertySet() {
-		return (PropertySet<DataBindingType<T>>) (Object) PROPERTY_SET;
+	protected PropertySet<DataType<T>> propertySet() {
+		return (PropertySet<DataType<T>>) (Object) PROPERTY_SET;
 	}
 
 	@Override
@@ -102,12 +100,12 @@ public class DataBindingTypeImpl<T> extends
 	}
 
 	@Override
-	public DataBindingType<? super T> baseType() {
+	public DataType<? super T> baseType() {
 		return baseType;
 	}
 
 	@Override
-	public DataBindingTypeImpl.Effective<T> effective() {
+	public DataTypeImpl.Effective<T> effective() {
 		return effective;
 	}
 }

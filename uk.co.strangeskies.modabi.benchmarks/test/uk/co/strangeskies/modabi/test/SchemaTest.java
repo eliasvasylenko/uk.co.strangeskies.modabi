@@ -18,74 +18,43 @@
  */
 package uk.co.strangeskies.modabi.test;
 
+import java.lang.reflect.AnnotatedType;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
-import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
 import uk.co.strangeskies.modabi.json.impl.JsonTarget;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
+import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
+import uk.co.strangeskies.reflection.AnnotatedTypes;
+import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
+import uk.co.strangeskies.reflection.Annotations;
+import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 
 public class SchemaTest {
 	public static void main(String... args) {
 		System.out.println("Creating SchemaManager...");
 		new SchemaTest().run(new SchemaManagerImpl());
-	}
-
-	private void manualSchemaCreationTest(SchemaManager schemaManager) {
-		GeneratedSchema generatedSchema = schemaManager.generateSchema(
-				new QualifiedName("testExtentions", Namespace.getDefault()));
-
-		DataBindingType<List<?>> intListType = generatedSchema
-				.buildDataBindingType(
-						n -> n.name("intSet", Namespace.getDefault())
-								.baseType(
-										schemaManager.getBaseSchema().derivedTypes().listType())
-						.addChild(e -> e.data().name("element").type(
-								schemaManager.getBaseSchema().primitiveType(DataType.INT))));
-		System.out.println(intListType.effective().getDataType());
-
-		Map<String, Integer> stringIntMap = new HashMap<>();
-		stringIntMap.put("first", 1);
-		stringIntMap.put("second", 2);
-		stringIntMap.put("third", 3);
-
-		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> stringIntMapModel = generatedSchema
-				.<Map<?, ?>> buildModel(
-						n -> n
-								.name("stringIntMap", Namespace
-										.getDefault())
-						.baseModel(schemaManager.getBaseSchema().models().mapModel())
-						.addChild(s -> s.complex().name("entrySet").addChild(e -> e
-								.complex().name("entry")
-								.addChild(k -> k.data().name("key").type(schemaManager
-										.getBaseSchema().primitiveType(DataType.STRING)))
-								.addChild(v -> v.complex().name("value")
-										.baseModel(schemaManager.getBaseSchema().models()
-												.simpleModel())
-										.addChild(c -> c.data().name("content").type(schemaManager
-												.getBaseSchema().primitiveType(DataType.INT)))))));
-		System.out.println(stringIntMapModel.effective().getDataType());
-		System.out.println("    ~# " + stringIntMapModel.effective().getDataType()
-				.getResolver().getBounds());
-
-		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
-				stringIntMap);
-		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
-				stringIntMap);
 	}
 
 	public void run(SchemaManager schemaManager) {
@@ -200,5 +169,97 @@ public class SchemaTest {
 				+ (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
 		System.out.println("Time per bind: "
 				+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
+	}
+
+	private void manualSchemaCreationTest(SchemaManager schemaManager) {
+		GeneratedSchema generatedSchema = schemaManager.generateSchema(
+				new QualifiedName("testExtentions", Namespace.getDefault()));
+
+		DataType<List<?>> intListType = generatedSchema
+				.buildDataType(
+						n -> n.name("intSet", Namespace.getDefault())
+								.baseType(
+										schemaManager.getBaseSchema().derivedTypes().listType())
+				.addChild(e -> e.data().name("element")
+						.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))));
+		System.out.println(intListType.effective().getDataType());
+
+		Map<String, Integer> stringIntMap = new HashMap<>();
+		stringIntMap.put("first", 1);
+		stringIntMap.put("second", 2);
+		stringIntMap.put("third", 3);
+
+		Model<Map<?, ?>> stringIntMapModel = generatedSchema.buildModel(n -> n
+				.name("stringIntMap", Namespace.getDefault())
+				.baseModel(schemaManager.getBaseSchema().models().mapModel())
+				.addChild(s -> s.complex().name("entrySet")
+						.addChild(e -> e.complex().name("entry")
+								.addChild(k -> k.data().name("key").type(schemaManager
+										.getBaseSchema().primitiveType(Primitive.STRING)))
+						.addChild(v -> v.complex().name("value")
+								.baseModel(schemaManager.getBaseSchema().models().simpleModel())
+								.addChild(c -> c.data().name("content").type(schemaManager
+										.getBaseSchema().primitiveType(Primitive.INT)))))));
+		System.out.println(stringIntMapModel.effective().getDataType());
+		System.out.println("    ~# " + stringIntMapModel.effective().getDataType()
+				.getResolver().getBounds());
+
+		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
+				stringIntMap);
+		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
+				stringIntMap);
+		System.out.println();
+
+		/*-
+		 * The following should be inferred as having type:
+		 * java.util.Map<java.util.List<byte[]>, java.util.Map<java.lang.String, java.lang.Integer>>
+		 */
+		AnnotatedType annotatedMapEntry = AnnotatedParameterizedTypes.from(
+				AnnotatedTypes.over(Map.Entry.class, Annotations.from(Infer.class)),
+				Arrays.asList(AnnotatedWildcardTypes.unbounded(),
+						AnnotatedWildcardTypes.unbounded()));
+		TypeToken<?> inferredMapEntry = TypeToken.over(annotatedMapEntry);
+		TypeToken<?> inferredMapEntrySet = TypeToken
+				.over(AnnotatedParameterizedTypes.from(
+						AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
+						Arrays.asList(
+								AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
+		Model<Map<?, ?>> mapModel3 = generatedSchema
+				.buildModel(n -> n.name("map3", Namespace.getDefault())
+						.dataType(new TypeToken<@Infer Map<?, ?>>() {})
+						.addChild(e -> e.complex().name("entrySet").inline(true)
+								.inMethod("null").dataType(inferredMapEntrySet)
+								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+								.addChild(s -> s.inputSequence().name("entrySet")
+										.inMethodChained(true))
+						.addChild(
+								f -> f.complex().name("entry").outMethodIterable(true)
+										.occurrences(Range.create(0, null)).inMethod("add")
+										.outMethod("this")
+										.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
+										.bindingType(BaseSchemaImpl.class)
+										.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+										.addChild(k -> k.data().name("key").inMethod("null")
+												.format(Format.PROPERTY)
+												.type(schemaManager.getBaseSchema().derivedTypes()
+														.listType())
+										.addChild(l -> l.data().name("element")
+												.type(schemaManager.getBaseSchema()
+														.primitiveType(Primitive.BINARY))))
+								.addChild(v -> v.complex().name("value").inMethod("null")
+										.baseModel(
+												schemaManager.getBaseSchema().models().mapModel())
+										.addChild(s -> s.complex().name("entrySet")
+												.addChild(ee -> ee.complex().name("entry")
+														.addChild(k -> k.data().name("key")
+																.type(schemaManager.getBaseSchema()
+																		.primitiveType(Primitive.STRING)))
+														.addChild(vv -> vv.complex().name("value")
+																.baseModel(schemaManager.getBaseSchema()
+																		.models().simpleModel())
+																.addChild(cc -> cc.data().name("content")
+																		.type(schemaManager.getBaseSchema()
+																				.primitiveType(Primitive.INT))))))))));
+		System.out.println(mapModel3.effective().getDataType());
 	}
 }

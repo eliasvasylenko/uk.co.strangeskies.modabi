@@ -18,14 +18,12 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-
-
-public interface DataBindingType<T> extends
-		BindingNode<T, DataBindingType<T>, DataBindingType.Effective<T>> {
-	interface Effective<T> extends DataBindingType<T>,
-			BindingNode.Effective<T, DataBindingType<T>, Effective<T>> {}
+public interface DataType<T>
+		extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
+	interface Effective<T> extends DataType<T>,
+			BindingNode.Effective<T, DataType<T>, Effective<T>> {}
 
 	Boolean isPrivate();
 
-	DataBindingType<? super T> baseType();
+	DataType<? super T> baseType();
 }

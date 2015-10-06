@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -127,7 +127,7 @@ public class DataNodeUnbinder {
 			UnbindingContextImpl context,
 			Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap) {
 		if (node.isExtensible() != null && node.isExtensible()) {
-			ComputingMap<DataBindingType<? extends U>, DataNode.Effective<? extends U>> overrides = context
+			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
 			if (node.isAbstract() && overrides.isEmpty()) {
@@ -140,7 +140,7 @@ public class DataNodeUnbinder {
 
 			try {
 				context
-						.<DataBindingType<? extends U>> attemptUnbindingUntilSuccessful(
+						.<DataType<? extends U>> attemptUnbindingUntilSuccessful(
 								overrides.keySet().stream()
 										.filter(m -> m.effective().getDataType().getRawType()
 												.isAssignableFrom(data.getClass()))

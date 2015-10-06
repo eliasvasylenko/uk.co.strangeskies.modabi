@@ -24,7 +24,7 @@ import java.util.Set;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.DataBindingTypes;
+import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Namespace;
@@ -34,7 +34,7 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
-import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
@@ -48,7 +48,7 @@ import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
@@ -60,7 +60,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
-import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -72,14 +72,14 @@ public class MetaSchemaImpl implements MetaSchema {
 
 	@SuppressWarnings("unchecked")
 	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
-			DataBindingTypeBuilder dataType, DataLoader loader, BaseSchema base) {
+			DataTypeBuilder dataType, DataLoader loader, BaseSchema base) {
 		QualifiedName name = MetaSchema.QUALIFIED_NAME;
 		Namespace namespace = name.getNamespace();
 
 		/*
 		 * Types
 		 */
-		Set<DataBindingType<?>> typeSet = new LinkedHashSet<>();
+		Set<DataType<?>> typeSet = new LinkedHashSet<>();
 
 		/*
 		 * Models
@@ -95,10 +95,10 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.inputSequence().name("configure").isAbstract(true)
 						.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
 				.addChild(n -> n.data().format(Format.PROPERTY)
-						.type(base.primitiveType(DataType.QUALIFIED_NAME)).name("name")
+						.type(base.primitiveType(Primitive.QUALIFIED_NAME)).name("name")
 						.inMethod("name").optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY)
-						.type(base.primitiveType(DataType.BOOLEAN)).name("abstract")
+						.type(base.primitiveType(Primitive.BOOLEAN)).name("abstract")
 						.inMethod("isAbstract").optional(true))
 				.create();
 		modelSet.add(nodeModel);
@@ -156,7 +156,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						.dataType(UnbindingStrategy.class).optional(true))
 				.addChild(o -> o.data().format(Format.PROPERTY).name("unbindingMethod")
 						.outMethod("getUnbindingMethodName")
-						.type(base.primitiveType(DataType.STRING)).optional(true))
+						.type(base.primitiveType(Primitive.STRING)).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("unbindingType")
 						.optional(true).type(base.derivedTypes().typeTokenType()))
 				.addChild(n -> n.data().format(Format.PROPERTY)
@@ -165,7 +165,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						.inMethod("providedUnbindingMethodParameters")
 						.type(base.derivedTypes().listType())
 						.addChild(o -> o.data().name("element")
-								.type(base.primitiveType(DataType.QUALIFIED_NAME))))
+								.type(base.primitiveType(Primitive.QUALIFIED_NAME))))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("unbindingFactoryType")
 								.optional(true).type(base.derivedTypes().typeTokenType()))
@@ -180,14 +180,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("inMethod")
 						.outMethod("getInMethodName").optional(true)
-						.type(base.primitiveType(DataType.STRING)))
+						.type(base.primitiveType(Primitive.STRING)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("inMethodChained")
-						.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("inMethodCast")
-						.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("inMethodUnchecked")
-								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+								.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.create();
 		modelSet.add(inputModel);
 
@@ -200,22 +200,22 @@ public class MetaSchemaImpl implements MetaSchema {
 								new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}))
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("extensible")
-						.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
+						.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("ordered")
-						.type(base.primitiveType(DataType.BOOLEAN)).optional(true))
+						.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("occurrences")
 						.type(base.derivedTypes().rangeType()).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("outMethod")
 						.outMethod("getOutMethodName").optional(true)
-						.type(base.primitiveType(DataType.STRING)))
+						.type(base.primitiveType(Primitive.STRING)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethodIterable")
-								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+								.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("outMethodCast")
-						.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("outMethodUnchecked")
-								.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+								.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.create();
 		modelSet.add(bindingChildNodeModel);
 
@@ -225,7 +225,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(c -> c.inputSequence().name("configure").inMethod("choice"))
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("mandatory")
-						.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.create();
 		modelSet.add(choiceModel);
 
@@ -274,13 +274,13 @@ public class MetaSchemaImpl implements MetaSchema {
 																.dataType(new TypeToken<Model<Model<?>>>() {})
 																.provideValue(
 																		new BufferingDataTarget()
-																				.put(DataType.QUALIFIED_NAME,
+																				.put(Primitive.QUALIFIED_NAME,
 																						new QualifiedName("model",
 																								namespace))
 																				.buffer()))
 												.addChild(p -> p.data().name("targetId")
 														.provideValue(new BufferingDataTarget()
-																.put(DataType.QUALIFIED_NAME,
+																.put(Primitive.QUALIFIED_NAME,
 																		new QualifiedName("name", namespace))
 																.buffer()))))
 				.create();
@@ -307,21 +307,21 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(c -> c.data().name("inline").isAbstract(true).optional(true)
 						.valueResolution(ValueResolution.REGISTRATION_TIME)
-						.type(base.primitiveType(DataType.BOOLEAN)))
+						.type(base.primitiveType(Primitive.BOOLEAN)))
 				.create();
 		modelSet.add(abstractComplexModel);
 
 		Model<ComplexNode<?>> complexModel = model.configure(loader)
 				.name("complex", namespace).baseModel(abstractComplexModel)
 				.addChild(c -> c.data().name("inline").optional(true).provideValue(
-						new BufferingDataTarget().put(DataType.BOOLEAN, false).buffer()))
+						new BufferingDataTarget().put(Primitive.BOOLEAN, false).buffer()))
 				.create();
 		modelSet.add(complexModel);
 
 		Model<ComplexNode<?>> inlineModel = model.configure(loader)
 				.name("inline", namespace).baseModel(abstractComplexModel)
 				.addChild(c -> c.data().name("inline").optional(false).provideValue(
-						new BufferingDataTarget().put(DataType.BOOLEAN, true).buffer()))
+						new BufferingDataTarget().put(Primitive.BOOLEAN, true).buffer()))
 				.create();
 		modelSet.add(inlineModel);
 
@@ -342,7 +342,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(Format.PROPERTY).name("type").optional(true)
 								.type(base.derivedTypes().referenceType())
 								.dataType(
-										new TypeToken<DataBindingType<?>>() {})
+										new TypeToken<DataType<?>>() {})
 								.addChild(
 										p -> p.data()
 												.name(
@@ -350,19 +350,19 @@ public class MetaSchemaImpl implements MetaSchema {
 												.valueResolution(ValueResolution.REGISTRATION_TIME)
 												.provideValue(
 														new BufferingDataTarget()
-																.put(DataType.QUALIFIED_NAME,
+																.put(Primitive.QUALIFIED_NAME,
 																		new QualifiedName("type", namespace))
 																.buffer()))
 						.addChild(p -> p.data().name("targetId")
 								.valueResolution(
 										ValueResolution.REGISTRATION_TIME)
 								.provideValue(
-										new BufferingDataTarget().put(DataType.QUALIFIED_NAME,
+										new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
 												new QualifiedName("name", namespace)).buffer())))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("optional")
-						.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("nullIfOmitted")
-						.optional(true).type(base.primitiveType(DataType.BOOLEAN)))
+						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("valueResolution")
 						.optional(true).type(base.derivedTypes().enumType())
 						.dataType(ValueResolution.class))
@@ -376,7 +376,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		Model<DataNode<?>> contentModel = model.configure(loader)
 				.name("content", namespace).baseModel(typedDataModel)
 				.addChild(n -> n.data().name("format").optional(false).provideValue(
-						new BufferingDataTarget().put(DataType.STRING, "CONTENT").buffer()))
+						new BufferingDataTarget().put(Primitive.STRING, "CONTENT").buffer()))
 				.create();
 		modelSet.add(contentModel);
 
@@ -386,14 +386,14 @@ public class MetaSchemaImpl implements MetaSchema {
 				.baseModel(typedDataModel)
 				.addChild(n -> n.data().name("format").optional(false)
 						.provideValue(new BufferingDataTarget()
-								.put(DataType.STRING, "PROPERTY").buffer()))
+								.put(Primitive.STRING, "PROPERTY").buffer()))
 				.create();
 		modelSet.add(propertyModel);
 
 		Model<DataNode<?>> simpleModel = model.configure(loader)
 				.name("simple", namespace).baseModel(typedDataModel)
 				.addChild(n -> n.data().name("format").optional(false).provideValue(
-						new BufferingDataTarget().put(DataType.STRING, "SIMPLE").buffer()))
+						new BufferingDataTarget().put(Primitive.STRING, "SIMPLE").buffer()))
 				.create();
 		modelSet.add(simpleModel);
 
@@ -405,10 +405,10 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		/* Type Models */
 
-		Model<DataBindingType<?>> typeModel = model.configure(loader)
+		Model<DataType<?>> typeModel = model.configure(loader)
 				.baseModel(bindingNodeModel).name("type", namespace)
-				.dataType(new TypeToken<DataBindingType<?>>() {})
-				.bindingType(DataBindingTypeBuilder.class)
+				.dataType(new TypeToken<DataType<?>>() {})
+				.bindingType(DataTypeBuilder.class)
 				.addChild(c -> c.inputSequence().name("configure").inMethodChained(true)
 						.addChild(d -> d.data().dataType(DataLoader.class)
 								.bindingStrategy(BindingStrategy.PROVIDED).name("configure")
@@ -416,23 +416,23 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("private")
 								.inMethod("isPrivate").optional(true).type(
-										base.primitiveType(DataType.BOOLEAN)))
+										base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("baseType")
 								.optional(true).type(base.derivedTypes().referenceType())
 								.dataType(
-										new TypeToken<DataBindingType<?>>() {})
+										new TypeToken<DataType<?>>() {})
 								.addChild(p -> p.data()
 										.name(
 												"targetModel")
 										.provideValue(
-												new BufferingDataTarget().put(DataType.QUALIFIED_NAME,
+												new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
 														new QualifiedName("type", namespace)).buffer()))
 						.addChild(
 								p -> p.data().name("targetId")
 										.provideValue(
 												new BufferingDataTarget()
-														.put(DataType.QUALIFIED_NAME,
+														.put(Primitive.QUALIFIED_NAME,
 																new QualifiedName("name", namespace))
 														.buffer())))
 				.create();
@@ -446,7 +446,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						c -> c.inputSequence().name("configure").inMethodChained(true))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("name")
 						.inMethod("qualifiedName").outMethod("getQualifiedName")
-						.type(base.primitiveType(DataType.QUALIFIED_NAME)))
+						.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
 				.addChild(n -> n.complex().name("dependencies")
 						.occurrences(Range.create(0, 1))
 						.dataType(new TypeToken<Set<Schema>>() {})
@@ -457,12 +457,12 @@ public class MetaSchemaImpl implements MetaSchema {
 								.addChild(i -> i.data().name("import")
 										.addChild(p -> p.data().name("targetModel")
 												.provideValue(new BufferingDataTarget()
-														.put(DataType.QUALIFIED_NAME,
+														.put(Primitive.QUALIFIED_NAME,
 																new QualifiedName("schema", namespace))
 														.buffer()))
 										.addChild(p -> p.data().name("targetId")
 												.provideValue(new BufferingDataTarget()
-														.put(DataType.QUALIFIED_NAME,
+														.put(Primitive.QUALIFIED_NAME,
 																new QualifiedName("name", namespace))
 														.buffer())))
 								.addChild(
@@ -474,7 +474,7 @@ public class MetaSchemaImpl implements MetaSchema {
 																.inMethodChained(true))
 												.addChild(q -> q.data().name("targetModel")
 														.provideValue(new BufferingDataTarget()
-																.put(DataType.QUALIFIED_NAME,
+																.put(Primitive.QUALIFIED_NAME,
 																		new QualifiedName("type", namespace))
 																.buffer())))
 								.addChild(
@@ -485,7 +485,7 @@ public class MetaSchemaImpl implements MetaSchema {
 														.inMethodChained(true))
 												.addChild(q -> q.data().name("targetModel")
 														.provideValue(new BufferingDataTarget()
-																.put(DataType.QUALIFIED_NAME,
+																.put(Primitive.QUALIFIED_NAME,
 																		new QualifiedName("model", namespace))
 																.buffer())))))
 				.addChild(n -> n.complex().name("types").outMethod("getDataTypes")
@@ -494,7 +494,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
 						.addChild(o -> o.complex().baseModel(typeModel).outMethod("this")
 								.name("type").outMethodIterable(true)
-								.dataType(new TypeToken<DataBindingType<?>>() {})
+								.dataType(new TypeToken<DataType<?>>() {})
 								.occurrences(Range.create(0, null))))
 				.addChild(
 						n -> n.complex().name("models").occurrences(Range.create(0, 1))
@@ -526,7 +526,7 @@ public class MetaSchemaImpl implements MetaSchema {
 	}
 
 	@Override
-	public DataBindingTypes getDataTypes() {
+	public DataTypes getDataTypes() {
 		return metaSchema.getDataTypes();
 	}
 

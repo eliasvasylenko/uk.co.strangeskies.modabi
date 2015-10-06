@@ -23,7 +23,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -37,7 +37,7 @@ public interface UnbindingContext extends UnbindingState {
 	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
 			ComplexNode<T> element);
 
-	<T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
+	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
 			DataNode<T> node);
 
 	StructuredDataTarget output();

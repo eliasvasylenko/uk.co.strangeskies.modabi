@@ -37,7 +37,7 @@ import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.DataBindingTypes;
+import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
@@ -52,7 +52,7 @@ import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
 import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
-import uk.co.strangeskies.modabi.impl.schema.building.DataBindingTypeBuilderImpl;
+import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
@@ -62,9 +62,9 @@ import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.TypeParser;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -80,21 +80,21 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final CoreSchemata coreSchemata;
 
 	private final Models registeredModels;
-	private final DataBindingTypes registeredTypes;
+	private final DataTypes registeredTypes;
 	private final Schemata registeredSchemata;
 
 	private final ModelBuilder modelBuilder;
-	private final DataBindingTypeBuilder dataTypeBuilder;
+	private final DataTypeBuilder dataTypeBuilder;
 
 	private final BindingProviders bindingProviders;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
-				new DataBindingTypeBuilderImpl());
+				new DataTypeBuilderImpl());
 	}
 
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
-			ModelBuilder modelBuilder, DataBindingTypeBuilder dataTypeBuilder) {
+			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
 		this.modelBuilder = modelBuilder;
 		this.dataTypeBuilder = dataTypeBuilder;
 
@@ -106,12 +106,12 @@ public class SchemaManagerImpl implements SchemaManager {
 
 		registeredSchemata = new Schemata();
 		registeredModels = new Models();
-		registeredTypes = new DataBindingTypes();
+		registeredTypes = new DataTypes();
 
 		registerSchema(coreSchemata.baseSchema());
 		registerSchema(coreSchemata.metaSchema());
 
-		registerProvider(DataBindingTypeBuilder.class, () -> dataTypeBuilder);
+		registerProvider(DataTypeBuilder.class, () -> dataTypeBuilder);
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
@@ -143,7 +143,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		return modelBuilder;
 	}
 
-	DataBindingTypeBuilder getDataTypeBuilder() {
+	DataTypeBuilder getDataTypeBuilder() {
 		return dataTypeBuilder;
 	}
 
@@ -156,7 +156,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (Model<?> model : schema.getModels())
 				registerModel(model);
 
-			for (DataBindingType<?> type : schema.getDataTypes())
+			for (DataType<?> type : schema.getDataTypes())
 				registerDataType(type);
 
 			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(),
@@ -169,7 +169,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		registeredModels.add(model);
 	}
 
-	void registerDataType(DataBindingType<?> type) {
+	void registerDataType(DataType<?> type) {
 		registeredTypes.add(type);
 	}
 
@@ -319,7 +319,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public DataBindingTypes registeredTypes() {
+	public DataTypes registeredTypes() {
 		return registeredTypes;
 	}
 

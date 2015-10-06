@@ -16,19 +16,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.impl.schema.building;
+package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import org.osgi.service.component.annotations.Component;
+import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataNode;
 
-import uk.co.strangeskies.modabi.impl.schema.DataBindingTypeConfiguratorImpl;
-import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
-import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
+public class DataTypeWrapper<T> extends
+		BindingNodeWrapper<T, DataNode.Effective<T>, DataType.Effective<? super T>, DataType<T>, DataType.Effective<T>>
+		implements DataType.Effective<T> {
+	public DataTypeWrapper(DataNode.Effective<T> component) {
+		super(component);
+	}
 
-@Component
-public class DataBindingTypeBuilderImpl implements DataBindingTypeBuilder {
 	@Override
-	public DataBindingTypeConfigurator<Object> configure(DataLoader loader) {
-		return new DataBindingTypeConfiguratorImpl<Object>(loader);
+	public DataType.Effective<? super T> baseType() {
+		return getComponent().type();
+	}
+
+	@Override
+	public Boolean isPrivate() {
+		return getBase() == null ? null : getBase().isPrivate();
 	}
 }

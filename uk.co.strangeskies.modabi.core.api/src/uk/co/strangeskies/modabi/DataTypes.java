@@ -23,21 +23,21 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
-public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
-	private final MultiMap<QualifiedName, DataBindingType<?>, LinkedHashSet<DataBindingType<?>>> derivedTypes;
+public class DataTypes extends QualifiedNamedSet<DataType<?>> {
+	private final MultiMap<QualifiedName, DataType<?>, LinkedHashSet<DataType<?>>> derivedTypes;
 
-	public DataBindingTypes() {
-		super(DataBindingType::getName);
+	public DataTypes() {
+		super(DataType::getName);
 		derivedTypes = new MultiHashMap<>(() -> new LinkedHashSet<>());
 	}
 
 	@Override
-	public boolean add(DataBindingType<?> element) {
+	public boolean add(DataType<?> element) {
 		boolean added = super.add(element.source());
 
 		if (added)
@@ -46,29 +46,29 @@ public class DataBindingTypes extends QualifiedNamedSet<DataBindingType<?>> {
 		return added;
 	}
 
-	private void mapType(DataBindingType<?> type) {
+	private void mapType(DataType<?> type) {
 		if (type.effective().baseType() != null)
 			derivedTypes.add(type.effective().baseType().getName(), type.source());
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<DataBindingType<? extends T>> getDerivedTypes(
-			DataBindingType<T> type) {
+	public <T> List<DataType<? extends T>> getDerivedTypes(
+			DataType<T> type) {
 		/*
 		 * TODO This extra cast is needed by javac but not JDT... Is it valid
 		 * without?
 		 */
-		LinkedHashSet<DataBindingType<?>> subTypeList = derivedTypes.get(type
+		LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type
 				.effective().getName());
 		return subTypeList == null ? new ArrayList<>()
-				: new ArrayList<DataBindingType<? extends T>>(subTypeList.stream()
-						.map(m -> (DataBindingType<? extends T>) m)
+				: new ArrayList<DataType<? extends T>>(subTypeList.stream()
+						.map(m -> (DataType<? extends T>) m)
 						.collect(Collectors.toList()));
 	}
 
-	public <T> List<DataBindingType<? extends T>> getTypesWithBase(
+	public <T> List<DataType<? extends T>> getTypesWithBase(
 			DataNode<T> node) {
-		List<DataBindingType<? extends T>> subTypes = getDerivedTypes(node
+		List<DataType<? extends T>> subTypes = getDerivedTypes(node
 				.effective().type());
 
 		subTypes = subTypes.stream().filter(m -> !m.effective().isAbstract())

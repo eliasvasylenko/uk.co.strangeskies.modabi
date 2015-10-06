@@ -23,19 +23,19 @@ import java.util.List;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public final class DataNodeWrapper<T>
 		extends
-		BindingChildNodeWrapper<T, DataBindingType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
+		BindingChildNodeWrapper<T, DataType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
 		implements DataNode.Effective<T> {
-	public DataNodeWrapper(DataBindingType.Effective<T> component) {
+	public DataNodeWrapper(DataType.Effective<T> component) {
 		super(component);
 	}
 
-	public DataNodeWrapper(DataBindingType.Effective<T> component,
+	public DataNodeWrapper(DataType.Effective<T> component,
 			DataNode.Effective<? super T> base) {
 		super(component, base);
 
@@ -48,9 +48,9 @@ public final class DataNodeWrapper<T>
 							providedValue.getClass()))
 				throw new SchemaException(message);
 
-		DataBindingType.Effective<? super T> check = component;
+		DataType.Effective<? super T> check = component;
 		while (!check.equals(base.type())) {
-			check = (DataBindingType.Effective<? super T>) check.baseType();
+			check = (DataType.Effective<? super T>) check.baseType();
 			if (check == null)
 				throw new SchemaException(message);
 		}
@@ -78,7 +78,7 @@ public final class DataNodeWrapper<T>
 	}
 
 	@Override
-	public DataBindingType.Effective<T> type() {
+	public DataType.Effective<T> type() {
 		return getComponent();
 	}
 

@@ -41,8 +41,8 @@ import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
-import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
@@ -54,7 +54,7 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
-import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 
@@ -77,8 +77,8 @@ public class BindingNodeOverrider {
 		return node.children().isEmpty(); // TODO is this enough?
 	}
 
-	public <T> DataNode.Effective<T> override(DataBindingTypeBuilder builder,
-			DataNode.Effective<? super T> node, DataBindingType.Effective<T> override) {
+	public <T> DataNode.Effective<T> override(DataTypeBuilder builder,
+			DataNode.Effective<? super T> node, DataType.Effective<T> override) {
 		try {
 			if (isDirectOverridePossible(node, override))
 				return new DataNodeWrapper<>(override, node);
@@ -91,7 +91,7 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(
-			DataNode.Effective<? super T> node, DataBindingType.Effective<T> override) {
+			DataNode.Effective<? super T> node, DataType.Effective<T> override) {
 		return node.children().isEmpty(); // TODO is this enough?
 	}
 
@@ -140,9 +140,9 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> DataNode.Effective<T> process(DataBindingTypeBuilder builder,
+		public <T> DataNode.Effective<T> process(DataTypeBuilder builder,
 				DataNode.Effective<? super T> node,
-				DataBindingType.Effective<T> override) {
+				DataType.Effective<T> override) {
 			DataLoader loader = new DataLoader() {
 				@Override
 				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
@@ -150,7 +150,7 @@ public class BindingNodeOverrider {
 				}
 			};
 
-			DataBindingTypeConfigurator<Object> configurator = builder
+			DataTypeConfigurator<Object> configurator = builder
 					.configure(loader).name(new QualifiedName("base"))
 					.bindingType(node.getPreInputType())
 					.unbindingType(node.getOutMethod().getDeclaringClass())

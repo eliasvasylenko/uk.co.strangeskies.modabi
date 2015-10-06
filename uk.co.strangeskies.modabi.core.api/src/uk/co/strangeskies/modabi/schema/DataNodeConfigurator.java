@@ -30,7 +30,7 @@ public interface DataNodeConfigurator<T> extends
 		BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T>,
 		SchemaNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>> {
 	public <U extends T> DataNodeConfigurator<U> type(
-			DataBindingType<? super U> type);
+			DataType<? super U> type);
 
 	@SuppressWarnings("unchecked")
 	@Override

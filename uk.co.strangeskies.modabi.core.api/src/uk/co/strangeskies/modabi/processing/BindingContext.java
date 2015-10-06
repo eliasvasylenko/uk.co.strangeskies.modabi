@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.processing;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -31,7 +31,7 @@ public interface BindingContext extends BindingState {
 
 	Model.Effective<?> getModel(QualifiedName nextElement);
 
-	<T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
+	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
 			DataNode<T> node);
 
 	StructuredDataSource input();

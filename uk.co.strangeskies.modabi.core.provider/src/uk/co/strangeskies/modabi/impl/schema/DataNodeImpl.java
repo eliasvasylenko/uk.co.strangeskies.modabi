@@ -25,7 +25,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -37,7 +37,7 @@ public class DataNodeImpl<T>
 	public static class Effective<T> extends
 			BindingChildNodeImpl.Effective<T, DataNode<T>, DataNode.Effective<T>>
 			implements DataNode.Effective<T> {
-		private final DataBindingType.Effective<T> type;
+		private final DataType.Effective<T> type;
 		private final Format format;
 		private final Boolean optional;
 		private final Boolean nullIfOmitted;
@@ -49,9 +49,9 @@ public class DataNodeImpl<T>
 				OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
-			DataBindingType<T> type = overrideMerge.getOverride(DataNode::type)
+			DataType<T> type = overrideMerge.getOverride(DataNode::type)
 					.validate((n, o) -> {
-						DataBindingType<?> p = n.effective();
+						DataType<?> p = n.effective();
 						do
 							if (p == o.effective())
 								return true;
@@ -136,13 +136,13 @@ public class DataNodeImpl<T>
 		@Override
 		protected QualifiedName defaultName(
 				OverrideMerge<DataNode<T>, ? extends SchemaNodeConfiguratorImpl<?, DataNode<T>>> overrideMerge) {
-			DataBindingType<T> type = overrideMerge.getOverride(DataNode::type)
+			DataType<T> type = overrideMerge.getOverride(DataNode::type)
 					.validate((o, n) -> true).tryGet();
 			return type == null ? null : type.getName();
 		}
 
 		@Override
-		public final DataBindingType.Effective<T> type() {
+		public final DataType.Effective<T> type() {
 			return type;
 		}
 
@@ -179,7 +179,7 @@ public class DataNodeImpl<T>
 
 	private final Effective<T> effective;
 
-	private final DataBindingType<T> type;
+	private final DataType<T> type;
 	private final Format format;
 	private final Boolean optional;
 	private final Boolean nullIfOmitted;
@@ -216,7 +216,7 @@ public class DataNodeImpl<T>
 	}
 
 	@Override
-	public final DataBindingType<T> type() {
+	public final DataType<T> type() {
 		return type;
 	}
 

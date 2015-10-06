@@ -23,8 +23,8 @@ import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.schema.DataBindingType;
-import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -52,7 +52,7 @@ public interface GeneratedSchema extends Schema {
 		return this;
 	}
 
-	default <T> DataBindingType<T> generateDataType(Class<T> type) {
+	default <T> DataType<T> generateDataType(Class<T> type) {
 		return generateDataType(TypeToken.over(type));
 	}
 
@@ -61,7 +61,7 @@ public interface GeneratedSchema extends Schema {
 				.<TypeToken<?>> map(TypeToken::over).collect(Collectors.toList()));
 	}
 
-	<T> DataBindingType<T> generateDataType(TypeToken<T> type);
+	<T> DataType<T> generateDataType(TypeToken<T> type);
 
 	default GeneratedSchema generateDataTypes(TypeToken<?>... types) {
 		return generateDataTypes(Arrays.asList(types));
@@ -74,8 +74,8 @@ public interface GeneratedSchema extends Schema {
 		return this;
 	}
 
-	<T> DataBindingType<T> buildDataBindingType(
-			Function<DataBindingTypeConfigurator<Object>, DataBindingTypeConfigurator<T>> build);
+	<T> DataType<T> buildDataType(
+			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build);
 
 	<T> Model<T> buildModel(
 			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build);

@@ -25,61 +25,61 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface DataBindingTypeConfigurator<T>
+public interface DataTypeConfigurator<T>
 		extends
-		BindingNodeConfigurator<DataBindingTypeConfigurator<T>, DataBindingType<T>, T> {
+		BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
 	/**
 	 * @param isAbstract
-	 *          The value to be returned by {@link DataBindingType#isAbstract()}.
+	 *          The value to be returned by {@link DataType#isAbstract()}.
 	 * @return
 	 */
 	@Override
-	DataBindingTypeConfigurator<T> isAbstract(boolean isAbstract);
+	DataTypeConfigurator<T> isAbstract(boolean isAbstract);
 
 	/**
 	 * @param hidden
-	 *          The value to be returned by {@link DataBindingType#isPrivate()}.
+	 *          The value to be returned by {@link DataType#isPrivate()}.
 	 * @return
 	 */
-	DataBindingTypeConfigurator<T> isPrivate(boolean hidden);
+	DataTypeConfigurator<T> isPrivate(boolean hidden);
 
 	/**
 	 * @param dataType
-	 *          The value to be returned by {@link DataBindingType#getDataType()}.
+	 *          The value to be returned by {@link DataType#getDataType()}.
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	default <U extends T> DataBindingTypeConfigurator<U> dataType(
+	default <U extends T> DataTypeConfigurator<U> dataType(
 			Class<U> dataType) {
-		return (DataBindingTypeConfigurator<U>) BindingNodeConfigurator.super
+		return (DataTypeConfigurator<U>) BindingNodeConfigurator.super
 				.dataType(dataType);
 	}
 
 	@Override
-	<U extends T> DataBindingTypeConfigurator<U> dataType(
+	<U extends T> DataTypeConfigurator<U> dataType(
 			TypeToken<? extends U> dataClass);
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default DataBindingTypeConfigurator<? extends T> dataType(
+	default DataTypeConfigurator<? extends T> dataType(
 			AnnotatedType dataType) {
-		return (DataBindingTypeConfigurator<? extends T>) BindingNodeConfigurator.super
+		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super
 				.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default DataBindingTypeConfigurator<? extends T> dataType(Type dataType) {
-		return (DataBindingTypeConfigurator<? extends T>) BindingNodeConfigurator.super
+	default DataTypeConfigurator<? extends T> dataType(Type dataType) {
+		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super
 				.dataType(dataType);
 	}
 
-	<U extends T> DataBindingTypeConfigurator<U> baseType(
-			DataBindingType<? super U> baseType);
+	<U extends T> DataTypeConfigurator<U> baseType(
+			DataType<? super U> baseType);
 
 	@Override
-	default public DataBindingTypeConfigurator<T> addChild(
+	default public DataTypeConfigurator<T> addChild(
 			Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> propertyConfiguration) {
 		propertyConfiguration.apply(addChild()).create();
 		return this;

@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.DataBindingTypes;
+import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -31,8 +31,8 @@ import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
-import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
@@ -46,7 +46,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 
 	private final Schemata dependencies;
 
-	private final DataBindingTypes types;
+	private final DataTypes types;
 	private final Models models;
 
 	public GeneratedSchemaImpl(SchemaManagerImpl schemaManager,
@@ -60,12 +60,12 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 		this.dependencies.add(schemaManager.getBaseSchema());
 		this.dependencies.add(schemaManager.getMetaSchema());
 
-		types = new DataBindingTypes();
+		types = new DataTypes();
 		models = new Models();
 	}
 
 	@Override
-	public DataBindingTypes getDataTypes() {
+	public DataTypes getDataTypes() {
 		return types;
 	}
 
@@ -91,17 +91,17 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	}
 
 	@Override
-	public <T> DataBindingType<T> generateDataType(TypeToken<T> type) {
+	public <T> DataType<T> generateDataType(TypeToken<T> type) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> DataBindingType<T> buildDataBindingType(
-			Function<DataBindingTypeConfigurator<Object>, DataBindingTypeConfigurator<T>> build) {
+	public <T> DataType<T> buildDataType(
+			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build) {
 		BindingContextImpl context = manager.getBindingContext();
 
-		DataBindingType<T> type = build
+		DataType<T> type = build
 				.apply(manager.getDataTypeBuilder().configure(new DataLoader() {
 					@Override
 					public <U> List<U> loadData(DataNode<U> node, DataSource data) {

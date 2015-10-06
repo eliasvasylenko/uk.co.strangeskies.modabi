@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
@@ -172,7 +172,7 @@ public class DataNodeBinder {
 	private static <U> U bindExactNode(BindingContextImpl context,
 			DataNode.Effective<U> node) {
 		if (node.isExtensible()) {
-			ComputingMap<DataBindingType<? extends U>, DataNode.Effective<? extends U>> overrides = context
+			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())

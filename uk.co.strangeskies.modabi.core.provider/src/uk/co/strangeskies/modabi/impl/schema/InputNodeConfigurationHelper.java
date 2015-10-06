@@ -197,30 +197,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 							inMethodChained && allowInMethodResultCast, parameters);
 				}
 
-				/*-
-				if (inputTargetType != null) {
-					Resolver resolver = inInvokable.getReturnType().getResolver();
-					System.out.println();
-					System.out.println();
-					System.out.println();
-					System.out.println("!!!!!!!!!!!!!! " + inputTargetType);
-					System.out.println(resolver.getBounds());
-					System.out
-							.println("   = "
-									+ resolver.getBounds().getInferenceVariables().stream()
-											.map(i -> i.toString()
-													+ resolver.getBounds().getBoundsOn(i)
-															.getInstantiation()
-													+ " ? "
-													+ resolver.getBounds().getBoundsOn(i)
-															.isInstantiated())
-							.collect(Collectors.joining(", ")));
-				}
-				
-				System.out
-						.println("~~~" + inInvokable + " " + inInvokable.getReturnType());
-						*/
-
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
 			} catch (NoSuchMethodException e) {
 				throw new SchemaException(

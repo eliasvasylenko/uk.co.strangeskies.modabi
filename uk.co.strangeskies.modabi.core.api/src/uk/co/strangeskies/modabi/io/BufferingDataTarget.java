@@ -32,7 +32,7 @@ public class BufferingDataTarget extends DataTargetDecorator {
 	}
 
 	@Override
-	public <T> BufferingDataTarget put(DataType<T> type, T data) {
+	public <T> BufferingDataTarget put(Primitive<T> type, T data) {
 		super.put(type, data);
 		return this;
 	}

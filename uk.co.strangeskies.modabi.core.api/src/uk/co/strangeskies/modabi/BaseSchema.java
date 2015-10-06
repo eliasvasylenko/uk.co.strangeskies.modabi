@@ -28,8 +28,8 @@ import java.util.Set;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.DataType;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.io.Primitive;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
@@ -39,43 +39,43 @@ public interface BaseSchema extends Schema {
 			BaseSchema.class, LocalDate.of(2014, 1, 1));
 
 	public interface DerivedTypes {
-		DataBindingType<Object[]> arrayType();
+		DataType<Object[]> arrayType();
 
-		DataBindingType<Collection<?>> collectionType();
+		DataType<Collection<?>> collectionType();
 
-		DataBindingType<List<?>> listType();
+		DataType<List<?>> listType();
 
-		DataBindingType<Set<?>> setType();
+		DataType<Set<?>> setType();
 
-		DataBindingType<Object> referenceType();
+		DataType<Object> referenceType();
 
-		DataBindingType<DataSource> bufferedDataType();
+		DataType<DataSource> bufferedDataType();
 
-		DataBindingType<Range<Integer>> rangeType();
+		DataType<Range<Integer>> rangeType();
 
-		DataBindingType<Enum<?>> enumType();
+		DataType<Enum<?>> enumType();
 
-		DataBindingType<Enumeration<?>> enumerationType();
+		DataType<Enumeration<?>> enumerationType();
 
-		DataBindingType<Class<?>> classType();
+		DataType<Class<?>> classType();
 
-		DataBindingType<Type> typeType();
+		DataType<Type> typeType();
 
-		DataBindingType<TypeToken<?>> typeTokenType();
+		DataType<TypeToken<?>> typeTokenType();
 
-		DataBindingType<AnnotatedType> annotatedTypeType();
+		DataType<AnnotatedType> annotatedTypeType();
 
 		/*
 		 * during binding / unbinding magically adds items to bindings list (so can
 		 * be referenced)
 		 */
-		DataBindingType<Collection<?>> includeType();
+		DataType<Collection<?>> includeType();
 
 		/*
 		 * retrieves objects already bound by SchemaBinder and 'includes' them, or
 		 * some children of them. Blocks if we are waiting for them.
 		 */
-		DataBindingType<Object> importType();
+		DataType<Object> importType();
 	}
 
 	public interface BaseModels {
@@ -84,7 +84,7 @@ public interface BaseSchema extends Schema {
 		Model<Map<?, ?>> mapModel();
 	}
 
-	<T> DataBindingType<T> primitiveType(DataType<T> type);
+	<T> DataType<T> primitiveType(Primitive<T> type);
 
 	DerivedTypes derivedTypes();
 

@@ -291,7 +291,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			}
 
 			if (outMethod != null) {
-				System.out.println(outMethod.getResolver().getBounds());
 				bounds.incorporate(outMethod.getResolver().getBounds());
 			}
 

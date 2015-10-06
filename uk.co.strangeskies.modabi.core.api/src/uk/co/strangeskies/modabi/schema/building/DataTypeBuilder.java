@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.building;
 
-import uk.co.strangeskies.modabi.schema.DataBindingTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 
-public interface DataBindingTypeBuilder {
-	public DataBindingTypeConfigurator<Object> configure(DataLoader loader);
+public interface DataTypeBuilder {
+	public DataTypeConfigurator<Object> configure(DataLoader loader);
 }

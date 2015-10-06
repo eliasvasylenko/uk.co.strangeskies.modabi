@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.xml.test;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataType;
+import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
 
@@ -31,9 +31,9 @@ public class XmlTest {
 		output.registerDefaultNamespaceHint(Namespace.getDefault());
 		output.nextChild(new QualifiedName("root"));
 		output.nextChild(new QualifiedName("poot"));
-		output.writeProperty(new QualifiedName("groot")).put(DataType.BOOLEAN, true)
+		output.writeProperty(new QualifiedName("groot")).put(Primitive.BOOLEAN, true)
 				.terminate();
-		output.writeContent().put(DataType.DOUBLE, 2d).put(DataType.STRING, "coot")
+		output.writeContent().put(Primitive.DOUBLE, 2d).put(Primitive.STRING, "coot")
 				.terminate();
 		output.endChild();
 		output.nextChild(new QualifiedName("joot"));

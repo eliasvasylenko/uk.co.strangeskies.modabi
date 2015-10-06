@@ -18,13 +18,12 @@
  */
 package uk.co.strangeskies.modabi;
 
-
 public interface Schema {
 	public QualifiedName getQualifiedName();
 
 	public Schemata getDependencies();
 
-	public DataBindingTypes getDataTypes();
+	public DataTypes getDataTypes();
 
 	public Models getModels();
 }

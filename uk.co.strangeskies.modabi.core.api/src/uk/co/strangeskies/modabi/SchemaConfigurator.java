@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi;
 
 import java.util.Collection;
 
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.factory.Factory;
 
@@ -30,7 +30,7 @@ public interface SchemaConfigurator extends Factory<Schema> {
 	public SchemaConfigurator dependencies(
 			Collection<? extends Schema> dependencies);
 
-	public SchemaConfigurator types(Collection<? extends DataBindingType<?>> types);
+	public SchemaConfigurator types(Collection<? extends DataType<?>> types);
 
 	public SchemaConfigurator models(Collection<? extends Model<?>> models);
 }

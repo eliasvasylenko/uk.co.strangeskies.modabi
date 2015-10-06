@@ -24,20 +24,20 @@ import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.DataBindingTypes;
+import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
-		private final Set<DataBindingType<?>> typeSet;
+		private final Set<DataType<?>> typeSet;
 		private QualifiedName qualifiedName;
 		private final Set<Model<?>> modelSet;
 		private final Schemata dependencySet;
@@ -51,7 +51,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		@Override
 		public Schema create() {
 			final QualifiedName qualifiedName = this.qualifiedName;
-			final DataBindingTypes types = new DataBindingTypes();
+			final DataTypes types = new DataTypes();
 			types.addAll(typeSet);
 			final Models models = new Models();
 			models.addAll(modelSet);
@@ -60,7 +60,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 			return new Schema() {
 				@Override
-				public DataBindingTypes getDataTypes() {
+				public DataTypes getDataTypes() {
 					return types;
 				}
 
@@ -112,7 +112,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public SchemaConfigurator types(
-				Collection<? extends DataBindingType<?>> types) {
+				Collection<? extends DataType<?>> types) {
 			typeSet.clear();
 			typeSet.addAll(types);
 

@@ -29,11 +29,11 @@ import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataBindingType;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.building.DataBindingTypeBuilder;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Self;
@@ -59,7 +59,7 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	private final List<SchemaNode.Effective<?, ?>> nodeStack;
 	private final Bindings bindings; // TODO erase bindings in failed sections
 
-	private final ComputingMap<DataNode<?>, ComputingMap<? extends DataBindingType<?>, ? extends DataNode.Effective<?>>> dataTypeCache;
+	private final ComputingMap<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode.Effective<?>>> dataTypeCache;
 	private final ComputingMap<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode.Effective<?>>> modelCache;
 
 	private final ProcessingProvisions provider;
@@ -70,7 +70,7 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	nodeStack = Collections.emptyList();
 	bindings = new Bindings();
 
-	dataTypeCache = new LRUCacheComputingMap<DataNode<?>, ComputingMap<? extends DataBindingType<?>, ? extends DataNode.Effective<?>>>(
+	dataTypeCache = new LRUCacheComputingMap<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode.Effective<?>>>(
 		node -> getDataNodeOverrideMap(node.effective()), 150, true);
 
 	modelCache = new LRUCacheComputingMap<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode.Effective<?>>>(
@@ -123,13 +123,13 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	return getThis();
 	}
 
-	private <T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrideMap(
+	private <T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrideMap(
 		DataNode.Effective<T> node) {
-	List<DataBindingType<? extends T>> types = manager.registeredTypes()
+	List<DataType<? extends T>> types = manager.registeredTypes()
 		.getTypesWithBase(node).stream().map(n -> n.source())
 		.collect(Collectors.toCollection(ArrayList::new));
 
-	ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>>(
+	ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>>(
 		type -> getDataNodeOverride(node, type.effective()));
 	overrideMap.putAll(types);
 
@@ -137,9 +137,9 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	}
 
 	private <T> DataNode.Effective<T> getDataNodeOverride(
-		DataNode.Effective<? super T> node, DataBindingType.Effective<T> type) {
+		DataNode.Effective<? super T> node, DataType.Effective<T> type) {
 	return new BindingNodeOverrider().override(
-		provisions().provide(DataBindingTypeBuilder.class), node, type);
+		provisions().provide(DataTypeBuilder.class), node, type);
 
 	}
 
@@ -267,9 +267,9 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
+	public <T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
 		DataNode<T> node) {
-	return (ComputingMap<DataBindingType<? extends T>, DataNode.Effective<? extends T>>) dataTypeCache
+	return (ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>>) dataTypeCache
 		.putGet(node.source());
 	}
 

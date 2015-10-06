@@ -238,7 +238,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public TypeToken<T> getExpectedTypeBounds() {
+	public TypeToken<T> getExpectedType() {
 		OverrideMerge<? extends BindingChildNode<?, ?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 

@@ -26,7 +26,7 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.QualifiedName;
 
 public interface DataTarget {
-	public default <T> DataTarget put(DataType<T> type, T data) {
+	public default <T> DataTarget put(Primitive<T> type, T data) {
 		return put(DataItem.forDataOfType(type, data));
 	}
 
@@ -57,7 +57,7 @@ public interface DataTarget {
 				if (terminated)
 					throw new IOException();
 
-				if (item.type() == DataType.QUALIFIED_NAME) {
+				if (item.type() == Primitive.QUALIFIED_NAME) {
 					next(qualifiedNameFormat.apply((QualifiedName) item.data()));
 				} else
 					next(item.data());
@@ -94,7 +94,7 @@ public interface DataTarget {
 				if (terminated)
 					throw new IOException();
 
-				if (item.type() == DataType.QUALIFIED_NAME) {
+				if (item.type() == Primitive.QUALIFIED_NAME) {
 					next(qualifiedNameFormat.apply((QualifiedName) item.data()));
 				} else
 					next(item.data());
