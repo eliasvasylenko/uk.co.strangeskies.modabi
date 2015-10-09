@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.xml.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.xml.impl;
+package uk.co.strangeskies.modabi.io.xml;
 
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -40,7 +40,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.IOException;
 import uk.co.strangeskies.modabi.io.structured.BufferableStructuredDataSourceImpl;
-import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceWrapper;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
@@ -236,7 +236,7 @@ public class XmlSource implements StructuredDataSource {
 	}
 
 	@Override
-	public BufferedStructuredDataSource buffer() {
+	public NavigableStructuredDataSource buffer() {
 		throw new AssertionError();
 	}
 }

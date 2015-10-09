@@ -37,8 +37,8 @@ public class SchemaUnbinder {
 	private final UnbindingContextImpl context;
 
 	public SchemaUnbinder(SchemaManager manager) {
-		UnbindingProviders providers = new UnbindingProviders((n, s) -> unbindData(
-				n, s));
+		UnbindingProviders providers = new UnbindingProviders(
+				(n, s) -> unbindData(n, s));
 
 		context = new UnbindingContextImpl(manager)
 				.withProvision(new TypeToken<ReferenceTarget>() {},
@@ -89,6 +89,10 @@ public class SchemaUnbinder {
 		List<? extends Model.Effective<U>> models = context
 				.getMatchingModels(dataClass);
 
+		if (models.isEmpty())
+			throw new UnbindingException("Cannot find any model of type '" + dataClass
+					+ "' to unbind '" + data + "'", context);
+
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
@@ -105,7 +109,7 @@ public class SchemaUnbinder {
 				throw new UnbindingException("Unexpected problem during uninding.", c,
 						e);
 			}
-		}, e -> new UnbindingException("Cannot unbind data '" + data
+		} , e -> new UnbindingException("Cannot unbind data '" + data
 				+ "' of class '" + dataClass + "' with models '" + models + "'",
 				context, e));
 	}

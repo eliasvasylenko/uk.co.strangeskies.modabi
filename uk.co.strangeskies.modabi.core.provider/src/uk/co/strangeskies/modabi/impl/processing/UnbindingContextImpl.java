@@ -32,9 +32,9 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
-import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
@@ -122,8 +122,8 @@ public class UnbindingContextImpl extends
 
 		BufferingDataTarget dataTarget = null;
 
-		StructuredDataTargetBuffer output = BufferingStructuredDataTarget
-				.singleBuffer(this.output.index()).nextChild(new QualifiedName(""));
+		Navigable output = StructuredDataBuffer.singleBuffer(this.output.index())
+				.nextChild(new QualifiedName(""));
 
 		/*
 		 * Mark output! (by redirecting to a new buffer)
@@ -148,7 +148,7 @@ public class UnbindingContextImpl extends
 		if (dataTarget != null)
 			dataTarget.buffer().pipe(provisions().provide(DataTarget.class));
 
-		BufferedStructuredDataSource bufferedData = output.endChild().getBuffer();
+		NavigableStructuredDataSource bufferedData = output.endChild().getBuffer();
 		bufferedData.startNextChild();
 		bufferedData.pipeDataAtChild(output());
 		bufferedData.pipeNextChild(output());
@@ -158,7 +158,7 @@ public class UnbindingContextImpl extends
 			BiConsumer<UnbindingContextImpl, I> unbindingMethod,
 			Function<Set<Exception>, UnbindingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new UnbindingException("Must supply items for unbinding attempt.",
+			throw new UnbindingException("Must supply items for unbinding attempt",
 					this);
 
 		Set<Exception> failures = new HashSet<>();

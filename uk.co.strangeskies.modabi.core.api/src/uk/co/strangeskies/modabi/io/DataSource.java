@@ -54,7 +54,7 @@ public interface DataSource extends Copyable<DataSource> {
 	int size();
 
 	default <T extends DataTarget> T pipe(T target) {
-		return pipe(target, size());
+		return pipe(target, size() - index());
 	}
 
 	static DataSource parseString(String string,
@@ -154,7 +154,7 @@ public interface DataSource extends Copyable<DataSource> {
 
 		@Override
 		public <U extends DataTarget> U pipe(U target, int items) {
-			if (items + index() >= size)
+			if (items + index() > size)
 				throw new ArrayIndexOutOfBoundsException(size);
 
 			if (items < 0)

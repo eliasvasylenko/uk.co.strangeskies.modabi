@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public class UnbindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
@@ -57,7 +58,8 @@ public class UnbindingException extends SchemaException {
 	}
 
 	private static String getUnbindingStateString(UnbindingState state) {
-		return " at node '" + state.unbindingNode().getName()
+		SchemaNode<?, ?> node = state.unbindingNode();
+		return " at node '" + (node != null ? node.getName() : null)
 				+ "' from unbinding source object '" + state.unbindingSource() + "'";
 	}
 

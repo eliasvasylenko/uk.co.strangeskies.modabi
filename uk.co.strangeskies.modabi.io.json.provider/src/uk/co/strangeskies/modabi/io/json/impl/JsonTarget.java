@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.json.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.json.impl;
+package uk.co.strangeskies.modabi.io.json.impl;
 
 import java.io.IOException;
 import java.io.StringWriter;

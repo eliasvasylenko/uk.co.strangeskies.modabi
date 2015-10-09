@@ -27,12 +27,23 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataSourceDecorator;
 
 public class StructuredDataSourceWrapper implements StructuredDataSource {
-	private StructuredDataState currentState;
 	private StructuredDataSource component;
 
+	private StructuredDataState currentState;
+
 	public StructuredDataSourceWrapper(StructuredDataSource component) {
-		currentState = StructuredDataState.UNSTARTED;
+		this(component, StructuredDataState.UNSTARTED);
+	}
+
+	public StructuredDataSourceWrapper(StructuredDataSource component,
+			StructuredDataState initialState) {
 		this.component = component;
+
+		currentState = initialState;
+	}
+
+	protected StructuredDataSource getComponent() {
+		return component;
 	}
 
 	@Override
@@ -40,22 +51,26 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 		return currentState;
 	}
 
-	private void enterState(StructuredDataState exitState) {
-		currentState = currentState.enterState(exitState);
+	protected void setState(StructuredDataState state) {
+		currentState = state;
+	}
+
+	protected void enterState(StructuredDataState exitState) {
+		setState(currentState.enterState(exitState));
 	}
 
 	@Override
 	public Namespace getDefaultNamespaceHint() {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
-		return component.getDefaultNamespaceHint();
+		return getComponent().getDefaultNamespaceHint();
 	}
 
 	@Override
 	public Set<Namespace> getNamespaceHints() {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
-		return component.getNamespaceHints();
+		return getComponent().getNamespaceHints();
 	}
 
 	@Override
@@ -63,24 +78,24 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 		currentState().checkValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START,
 				StructuredDataState.POPULATED_ELEMENT);
-		return component.getComments();
+		return getComponent().getComments();
 	}
 
 	@Override
 	public QualifiedName startNextChild() {
 		enterState(StructuredDataState.ELEMENT_START);
-		return component.startNextChild();
+		return getComponent().startNextChild();
 	}
 
 	@Override
 	public DataSource readProperty(QualifiedName name) {
-		DataSource property = component.readProperty(name);
+		DataSource property = getComponent().readProperty(name);
 		return property == null ? null : new DataSourceDecorator(property.copy());
 	}
 
 	@Override
 	public DataSource readContent() {
-		DataSource content = component.readContent();
+		DataSource content = getComponent().readContent();
 		return content == null ? null : new DataSourceDecorator(content.copy());
 	}
 
@@ -90,36 +105,36 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
-		component.endChild();
+		getComponent().endChild();
 	}
 
 	@Override
 	public QualifiedName peekNextChild() {
-		return component.peekNextChild();
+		return getComponent().peekNextChild();
 	}
 
 	@Override
 	public Set<QualifiedName> getProperties() {
-		return component.getProperties();
+		return getComponent().getProperties();
 	}
 
 	@Override
 	public boolean hasNextChild() {
-		return component.hasNextChild();
+		return getComponent().hasNextChild();
 	}
 
 	@Override
 	public List<Integer> index() {
-		return component.index();
+		return getComponent().index();
 	}
 
 	@Override
 	public StructuredDataSource split() {
-		return component.split();
+		return new StructuredDataSourceWrapper(getComponent().split());
 	}
 
 	@Override
-	public BufferedStructuredDataSource buffer() {
-		return component.buffer();
+	public NavigableStructuredDataSource buffer() {
+		return new NavigableStructuredDataSourceWrapper(getComponent().buffer());
 	}
 }

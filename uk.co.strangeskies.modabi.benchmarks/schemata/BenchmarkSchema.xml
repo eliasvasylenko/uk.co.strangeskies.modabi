@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://schema.modabi.strangeskies.co.uk/2014-01-01/"
+<schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="BenchmarkSchema">
 	<dependencies>
 		<dependency>BaseSchema</dependency>
 	</dependencies>
 
 	<models>
+		<model name="node2"
+			dataType="uk.co.strangeskies.modabi.schema.SchemaNode&lt;?, ?&gt;"
+			unbindingStrategy="SIMPLE" abstract="true">
+			<inputSequence name="configure"
+				postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&lt;?, ?&gt;"
+				abstract="true" />
+			<property name="name" type="qualifiedName" optional="true"
+				inMethod="name" />
+			<property name="abstract" type="boolean" optional="true"
+				inMethod="isAbstract" />
+		</model>
+
 		<model name="person" dataClass="uk.co.strangeskies.modabi.benchmark.PersonType"
 			bindingStrategy="CONSTRUCTOR">
 			<inputSequence name="constructor" />

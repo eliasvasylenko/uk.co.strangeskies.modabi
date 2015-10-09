@@ -24,26 +24,25 @@ import java.util.Set;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBufferManager;
 
 public class BufferableStructuredDataSourceImpl extends
-		StructuredDataSourceWrapper implements BufferedStructuredDataSource {
+		StructuredDataSourceWrapper implements NavigableStructuredDataSource {
 	private final StructuredDataSource wrappedComponent;
 	private final StructuredDataSource buffer;
-	private final StructuredDataTargetBufferManager buffers;
+	private final StructuredDataBuffer buffers;
 
 	public BufferableStructuredDataSourceImpl(StructuredDataSource component) {
-		this(component, BufferingStructuredDataTarget.multipleBuffers());
+		this(component, StructuredDataBuffer.multipleBuffers());
 	}
 
 	private BufferableStructuredDataSourceImpl(StructuredDataSource component,
-			StructuredDataTargetBufferManager buffers) {
-		this(component, buffers, buffers.openConsumableBuffer());
+			StructuredDataBuffer buffers) {
+		this(component, buffers, buffers.openBuffer());
 	}
 
 	private BufferableStructuredDataSourceImpl(StructuredDataSource component,
-			StructuredDataTargetBufferManager buffers, StructuredDataSource buffer) {
-		super(wrapComponent(component, buffer));
+			StructuredDataBuffer buffers, StructuredDataSource buffer) {
+		super(wrapComponent(component, buffers, buffer));
 
 		this.wrappedComponent = component;
 		this.buffers = buffers;
@@ -51,10 +50,16 @@ public class BufferableStructuredDataSourceImpl extends
 	}
 
 	protected static StructuredDataSource wrapComponent(
-			StructuredDataSource component, StructuredDataSource buffer) {
+			StructuredDataSource component, StructuredDataBuffer buffers,
+			StructuredDataSource buffer) {
 		return new StructuredDataSource() {
 			@Override
 			public QualifiedName startNextChild() {
+				if (buffer.index().equals(component.index())) {
+					buffers.nextChild(component.startNextChild());
+					component.pipeDataAtChild(buffers);
+				}
+
 				return buffer.startNextChild();
 			}
 
@@ -64,7 +69,7 @@ public class BufferableStructuredDataSourceImpl extends
 			}
 
 			@Override
-			public BufferedStructuredDataSource buffer() {
+			public NavigableStructuredDataSource buffer() {
 				throw new AssertionError();
 			}
 
@@ -120,13 +125,18 @@ public class BufferableStructuredDataSourceImpl extends
 
 			@Override
 			public void endChild() {
+				if (buffer.index().equals(component.index())) {
+					component.endChild();
+					buffers.endChild();
+				}
+
 				buffer.endChild();
 			}
 		};
 	}
 
 	@Override
-	public BufferedStructuredDataSource copy() {
+	public NavigableStructuredDataSource copy() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -137,7 +147,7 @@ public class BufferableStructuredDataSourceImpl extends
 	}
 
 	@Override
-	public BufferedStructuredDataSource buffer() {
+	public NavigableStructuredDataSource buffer() {
 		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers,
 				buffer.buffer());
 	}

@@ -85,7 +85,7 @@ public interface StructuredDataSource {
 
 	public StructuredDataSource split();
 
-	public BufferedStructuredDataSource buffer();
+	public NavigableStructuredDataSource buffer();
 
 	public default <T extends StructuredDataTarget> T pipeNextChild(T output) {
 		pipeNamespaceHints(output);
@@ -133,8 +133,8 @@ public interface StructuredDataSource {
 		return output;
 	}
 
-	public default BufferedStructuredDataSource bufferNextChild() {
-		return pipeNextChild(BufferingStructuredDataTarget.singleBuffer())
+	public default NavigableStructuredDataSource bufferNextChild() {
+		return pipeNextChild(StructuredDataBuffer.singleBuffer())
 				.getBuffer();
 	}
 }

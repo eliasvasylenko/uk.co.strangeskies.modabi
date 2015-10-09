@@ -7,10 +7,10 @@ Bundle-Name: Modabi - JSON
 -buildpath: \
 	osgi.enroute.base.api,\
 	${ss;utilities},\
-	uk.co.strangeskies.modabi.core.api;version=latest,\
+	uk.co.strangeskies.modabi.core.api;version=project,\
 	net.minidev.json-smart
 	
 
 
 Bundle-Version: 0.0.1.${tstamp}
-Export-Package: uk.co.strangeskies.modabi.json.impl
+Export-Package: uk.co.strangeskies.modabi.io.json.impl

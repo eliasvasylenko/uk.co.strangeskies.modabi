@@ -7,6 +7,6 @@ Bundle-Name: Modabi - Scripting
 -buildpath: \
 	osgi.enroute.base.api,\
 	${ss;utilities},\
-	uk.co.strangeskies.modabi.core.api;version=latest
+	uk.co.strangeskies.modabi.core.api;version=project
 
 Bundle-Version: 0.0.1.${tstamp}

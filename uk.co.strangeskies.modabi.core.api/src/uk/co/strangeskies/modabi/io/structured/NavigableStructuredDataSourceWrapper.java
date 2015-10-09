@@ -18,9 +18,38 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-import uk.co.strangeskies.utilities.Copyable;
+public class NavigableStructuredDataSourceWrapper extends
+		StructuredDataSourceWrapper implements NavigableStructuredDataSource {
+	private final StructuredDataState initialState;
 
-public interface BufferedStructuredDataSource extends StructuredDataSource,
-		Copyable<BufferedStructuredDataSource> {
-	void reset();
+	public NavigableStructuredDataSourceWrapper(
+			NavigableStructuredDataSource component) {
+		super(component);
+
+		initialState = currentState();
+	}
+
+	public NavigableStructuredDataSourceWrapper(
+			NavigableStructuredDataSource component,
+			StructuredDataState initialState) {
+		super(component);
+
+		this.initialState = initialState;
+	}
+
+	@Override
+	protected NavigableStructuredDataSource getComponent() {
+		return (NavigableStructuredDataSource) super.getComponent();
+	}
+
+	@Override
+	public NavigableStructuredDataSource copy() {
+		return new NavigableStructuredDataSourceWrapper(getComponent().copy());
+	}
+
+	@Override
+	public void reset() {
+		getComponent().reset();
+		setState(initialState);
+	}
 }

@@ -35,15 +35,15 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.io.structured.BufferedStructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget;
-import uk.co.strangeskies.modabi.io.structured.BufferingStructuredDataTarget.StructuredDataTargetBuffer;
-import uk.co.strangeskies.modabi.json.impl.JsonTarget;
+import uk.co.strangeskies.modabi.io.json.impl.JsonTarget;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
+import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.DataNode.Format;
-import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
 import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
@@ -61,9 +61,9 @@ public class SchemaTest {
 		manualSchemaCreationTest(schemaManager);
 
 		System.out.println("Unbinding BaseSchema...");
-		StructuredDataTargetBuffer out = BufferingStructuredDataTarget
+		Navigable out = StructuredDataBuffer
 				.singleBuffer();
-		BufferedStructuredDataSource buffered = out.getBuffer();
+		NavigableStructuredDataSource buffered = out.getBuffer();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getBaseSchema());
 		buffered.pipeNextChild(new XmlTarget(System.out));
@@ -71,7 +71,7 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println();
 		System.out.println("Unbinding MetaSchema...");
-		out = BufferingStructuredDataTarget.singleBuffer();
+		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
 				schemaManager.getMetaSchema());
@@ -95,7 +95,7 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println();
 		System.out.println("Re-unbinding MetaSchema...");
-		out = BufferingStructuredDataTarget.singleBuffer();
+		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel, out, metaSchema);
 		buffered.pipeNextChild(new XmlTarget(System.out));
@@ -114,7 +114,7 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println();
 		System.out.println("Re-re-unbinding MetaSchema...");
-		out = BufferingStructuredDataTarget.singleBuffer();
+		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel2, out, metaSchema);
 		buffered.pipeNextChild(new XmlTarget(System.out));
@@ -126,7 +126,7 @@ public class SchemaTest {
 			System.out.print(".");
 
 			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-					BufferingStructuredDataTarget.singleBuffer(),
+					StructuredDataBuffer.singleBuffer(),
 					schemaManager.getMetaSchema());
 
 			buffered.reset();
@@ -145,7 +145,7 @@ public class SchemaTest {
 			System.out.print(".");
 
 			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-					BufferingStructuredDataTarget.singleBuffer(),
+					StructuredDataBuffer.singleBuffer(),
 					schemaManager.getMetaSchema());
 		}
 		long totalTimeUnbinding = System.currentTimeMillis() - startTime;

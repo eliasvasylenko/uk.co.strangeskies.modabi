@@ -1,5 +1,5 @@
 package uk.co.strangeskies.modabi.fx;
 
-public class ModabiFxTreeView {
+public class ModabiFXTreeView {
 
 }

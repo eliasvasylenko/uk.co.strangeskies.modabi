@@ -37,22 +37,44 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.xml.impl.XmlSource;
-import uk.co.strangeskies.modabi.xml.impl.XmlTarget;
+import uk.co.strangeskies.modabi.io.xml.XmlSource;
+import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 
+@Component
 public class BenchmarkRunner {
 	private static final String OUTPUT_FOLDER = System.getProperty("user.home")
 			+ File.separatorChar + "xml-benchmark";
 
-	public void run(SchemaManager manager) {
+	private SchemaManager manager;
+
+	private LogService logger;
+
+	@Reference
+	public void setSchemaManager(SchemaManager manager) {
+		this.manager = manager;
+	}
+
+	@Reference
+	public void setLogger(LogService logger) {
+		this.logger = logger;
+	}
+
+	@Activate
+	public void run(BundleContext context) throws BundleException {
 		try {
 			File outputDir = new File(OUTPUT_FOLDER);
 			if (!outputDir.exists()) {
-				System.out.println("Creating output folder: "
-						+ outputDir.getAbsolutePath());
+				logger.log(LogService.LOG_INFO,
+						"Creating output folder: " + outputDir.getAbsolutePath());
 				boolean created = outputDir.mkdirs();
 				if (!created) {
 					throw new IllegalStateException("Could not create "
@@ -60,67 +82,68 @@ public class BenchmarkRunner {
 				}
 			}
 
-			StructuredDataSource benchmarkSchemaResource = XmlSource.from(getClass()
-					.getResourceAsStream("/BenchmarkSchema.xml"));
-			manager.registerSchemaBinding(benchmarkSchemaResource);
+			StructuredDataSource benchmarkSchemaResource = XmlSource.from(
+					context.getBundle().getResource("/BenchmarkSchema.xml").openStream());
+			System.out
+					.println(manager.registerSchemaBinding(benchmarkSchemaResource).getModels());
 
-			System.out.println(manager.registeredModels());
+			logger.log(LogService.LOG_INFO, manager.registeredModels().toString());
 
-			boolean createXml = false;
-			System.out.println("Will create XML files? " + createXml);
+			boolean createXml = true;
+			logger.log(LogService.LOG_INFO, "Will create XML files? " + createXml);
 			if (createXml) {
-				createXmlPortfolio(manager);
+				createXmlPortfolio();
 			}
 
 			System.gc();
 			System.gc();
 
 			for (int i = 0; i < 10; i++) {
-				readLargeXmlWithModabi(manager, new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-100.xml"));
-				readLargeXmlWithModabi(manager, new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-1000.xml"));
-				readLargeXmlWithModabi(manager, new File(OUTPUT_FOLDER
-						+ File.separatorChar + "large-person-10000.xml"));
+				readLargeXmlWithModabi(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
+				readLargeXmlWithModabi(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
+				readLargeXmlWithModabi(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
 
-				readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
-						+ "large-person-100.xml"));
-				readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
-						+ "large-person-1000.xml"));
-				readLargeXmlWithStax(new File(OUTPUT_FOLDER + File.separatorChar
-						+ "large-person-10000.xml"));
+				readLargeXmlWithStax(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
+				readLargeXmlWithStax(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
+				readLargeXmlWithStax(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
 
-				readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER + File.separatorChar
-						+ "large-person-100.xml"));
-				readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER + File.separatorChar
-						+ "large-person-1000.xml"));
-				readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER + File.separatorChar
-						+ "large-person-10000.xml"));
+				readLargeXmlWithFasterStax(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
+				readLargeXmlWithFasterStax(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
+				readLargeXmlWithFasterStax(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		context.getBundle(0).stop();
 	}
 
-	private static void createXmlPortfolio(SchemaManager manager)
-			throws Exception {
-		createXml(manager, 100, OUTPUT_FOLDER + File.separatorChar
-				+ "large-person-100.xml");
-		System.out.println("Completed generation of large XML with 100 entries...");
+	private void createXmlPortfolio() throws Exception {
+		createXml(100, OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml");
+		logger.log(LogService.LOG_INFO,
+				"Completed generation of large XML with 100 entries...");
 
-		createXml(manager, 1000, OUTPUT_FOLDER + File.separatorChar
-				+ "large-person-1000.xml");
-		System.out
-				.println("Completed generation of large XML with 1,000 entries...");
+		createXml(1000,
+				OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml");
+		logger.log(LogService.LOG_INFO,
+				"Completed generation of large XML with 1,000 entries...");
 
-		createXml(manager, 10000, OUTPUT_FOLDER + File.separatorChar
-				+ "large-person-10000.xml");
-		System.out
-				.println("Completed generation of large XML with 10,000 entries...");
+		createXml(10000,
+				OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml");
+		logger.log(LogService.LOG_INFO,
+				"Completed generation of large XML with 10,000 entries...");
 	}
 
-	private static void createXml(SchemaManager manager, int nbrElements,
-			String fileName) throws Exception {
+	private void createXml(int nbrElements, String fileName) throws Exception {
 		PersonsType persons = new PersonsType();
 
 		for (int i = 0; i < nbrElements; i++) {
@@ -129,23 +152,23 @@ public class BenchmarkRunner {
 
 			person.setPostCode(RandomStringUtils.randomAlphanumeric(5));
 
-			person.setLastName(RandomStringUtils.randomAlphabetic(RandomUtils
-					.nextInt(5, 15)));
+			person.setLastName(
+					RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(5, 15)));
 
-			person.setFirstName(RandomStringUtils.randomAlphabetic(RandomUtils
-					.nextInt(3, 10)));
+			person.setFirstName(
+					RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(3, 10)));
 
-			person.setCountry(RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(
-					4, 11)));
+			person.setCountry(
+					RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(4, 11)));
 
-			person.setCity(RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(4,
-					11)));
+			person.setCity(
+					RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(4, 11)));
 
-			person.setAddress2(RandomStringUtils.randomAlphabetic(RandomUtils
-					.nextInt(4, 11)));
+			person.setAddress2(
+					RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(4, 11)));
 
-			person.setAddress1(RandomStringUtils.randomAlphabetic(RandomUtils
-					.nextInt(4, 11)));
+			person.setAddress1(
+					RandomStringUtils.randomAlphabetic(RandomUtils.nextInt(4, 11)));
 
 			persons.getPerson().add(person);
 		}
@@ -162,7 +185,7 @@ public class BenchmarkRunner {
 		}
 	}
 
-	private static void readLargeXmlWithModabi(SchemaManager manager, File file)
+	private void readLargeXmlWithModabi(File file)
 			throws FileNotFoundException, IOException {
 		long start = System.currentTimeMillis();
 
@@ -171,14 +194,13 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("Modabi - (" + file + "): Time taken in ms: "
-					+ (end - start));
+			logger.log(LogService.LOG_INFO,
+					"Modabi - (" + file + "): Time taken in ms: " + (end - start));
 		}
 	}
 
-	private static void readLargeXmlWithStax(File file)
-			throws FactoryConfigurationError, XMLStreamException, JAXBException,
-			IOException {
+	private void readLargeXmlWithStax(File file) throws FactoryConfigurationError,
+			XMLStreamException, JAXBException, IOException {
 
 		// set up a StAX reader
 		XMLInputFactory xmlif = XMLInputFactory.newInstance();
@@ -206,13 +228,12 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("STax - (" + file + "): Time taken in ms: "
-					+ (end - start));
-
+			logger.log(LogService.LOG_INFO,
+					"STax - (" + file + "): Time taken in ms: " + (end - start));
 		}
 	}
 
-	private static void readLargeXmlWithFasterStax(File file)
+	private void readLargeXmlWithFasterStax(File file)
 			throws FactoryConfigurationError, XMLStreamException, JAXBException,
 			FileNotFoundException, IOException {
 
@@ -242,8 +263,8 @@ public class BenchmarkRunner {
 
 			long end = System.currentTimeMillis();
 
-			System.out.println("Woodstox - (" + file + "): Time taken in ms: "
-					+ (end - start));
+			logger.log(LogService.LOG_INFO,
+					"Woodstox - (" + file + "): Time taken in ms: " + (end - start));
 		}
 	}
 }

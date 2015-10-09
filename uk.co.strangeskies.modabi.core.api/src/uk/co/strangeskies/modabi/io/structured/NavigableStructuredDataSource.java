@@ -16,35 +16,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.processing;
+package uk.co.strangeskies.modabi.io.structured;
 
-import java.util.List;
+import uk.co.strangeskies.utilities.Copyable;
 
-import uk.co.strangeskies.modabi.Bindings;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
-
-public interface UnbindingState {
-	List<SchemaNode.Effective<?, ?>> unbindingNodeStack();
-
-	default SchemaNode.Effective<?, ?> unbindingNode() {
-		return unbindingNode(0);
-	}
-
-	default SchemaNode.Effective<?, ?> unbindingNode(int parent) {
-		int index = unbindingNodeStack().size() - (1 + parent);
-		return index >= 0 ? unbindingNodeStack().get(index) : null;
-	}
-
-	List<Object> unbindingSourceStack();
-
-	default Object unbindingSource() {
-		return unbindingSource(0);
-	}
-
-	default Object unbindingSource(int parent) {
-		int index = unbindingSourceStack().size() - (1 + parent);
-		return index >= 0 ? unbindingSourceStack().get(index) : null;
-	}
-
-	Bindings bindings();
+public interface NavigableStructuredDataSource
+		extends StructuredDataSource, Copyable<NavigableStructuredDataSource> {
+	void reset();
 }

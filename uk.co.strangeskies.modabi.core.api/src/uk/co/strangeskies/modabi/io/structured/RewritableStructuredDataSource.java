@@ -34,7 +34,7 @@ import uk.co.strangeskies.modabi.io.DataTarget;
  *
  */
 public interface RewritableStructuredDataSource extends
-		BufferedStructuredDataSource {
+		NavigableStructuredDataSource {
 	DataTarget overwriteProperty(QualifiedName name);
 
 	@Override
