@@ -108,6 +108,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Incorporate bounds from inherited types.
 		 */
 		if (effectiveDataType != null) {
+			effectiveDataType = effectiveDataType.deepCopy();
+
 			if (this.dataType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge
 						.getOverridenValues(BindingNode::getDataType)) {
@@ -119,6 +121,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveDataType.incorporateInto(inferenceBounds);
 		}
 		if (effectiveBindingType != null) {
+			effectiveBindingType = effectiveBindingType.deepCopy();
+
 			if (this.bindingType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge
 						.getOverridenValues(BindingNode::getBindingType)) {
@@ -130,6 +134,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveBindingType.incorporateInto(inferenceBounds);
 		}
 		if (effectiveUnbindingType != null) {
+			effectiveUnbindingType = effectiveUnbindingType.deepCopy();
+
 			if (this.unbindingType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge
 						.getOverridenValues(BindingNode::getUnbindingType)) {
@@ -141,6 +147,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveUnbindingType.incorporateInto(inferenceBounds);
 		}
 		if (effectiveUnbindingFactoryType != null) {
+			effectiveUnbindingFactoryType = effectiveUnbindingFactoryType.deepCopy();
+
 			if (this.unbindingFactoryType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge
 						.getOverridenValues(BindingNode::getUnbindingFactoryType)) {
