@@ -225,7 +225,7 @@ public class SchemaManagerImpl implements SchemaManager {
 				e.printStackTrace();
 				bindingFutures.remove(binding.getModel().effective().getName());
 			}
-		});
+		}).start();
 		return binding;
 	}
 

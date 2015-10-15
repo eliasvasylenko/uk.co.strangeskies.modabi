@@ -207,40 +207,6 @@ public class SchemaTest {
 				stringIntMap);
 		System.out.println();
 
-		Model<Map<?, ?>> mapmap = generatedSchema
-				.buildModel(n -> n
-						.name("mapmap", Namespace
-								.getDefault())
-				.baseModel(schemaManager.getBaseSchema().models().mapModel())
-				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex()
-						.name("entry")
-						.addChild(k -> k.data().name("key")
-								.type(schemaManager.getBaseSchema().derivedTypes().setType())
-								.addChild(c -> c.data().name("element")
-										.type(schemaManager.getBaseSchema()
-												.primitiveType(Primitive.LONG))))
-						.addChild(
-								v -> v.complex().name("value")
-										.baseModel(
-												schemaManager.getBaseSchema().models().mapModel())
-										.addChild(ss -> ss.complex().name("entrySet")
-												.addChild(ee -> ee.complex().name("entry")
-														.addChild(kk -> kk.data().name("key")
-																.type(schemaManager.getBaseSchema()
-																		.primitiveType(Primitive.BOOLEAN)))
-														.addChild(
-																vv -> vv.complex().name("value")
-																		.baseModel(schemaManager.getBaseSchema()
-																				.models().simpleModel())
-																		.addChild(cc -> cc.data().name("content")
-																				.type(schemaManager.getBaseSchema()
-																						.derivedTypes()
-																						.classType())))))))));
-		System.out.println(stringIntMapModel.effective().getDataType());
-		System.out.println("    ~# " + stringIntMapModel.effective().getDataType()
-				.getResolver().getBounds());
-
-		schemaManager.unbind(mapmap, new XmlTarget(System.out), stringIntMap);
 
 		/*-
 		 * The following should be inferred as having type:

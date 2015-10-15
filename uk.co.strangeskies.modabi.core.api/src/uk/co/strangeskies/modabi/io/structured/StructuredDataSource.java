@@ -94,7 +94,8 @@ public interface StructuredDataSource {
 
 		int depth = 0;
 		do {
-			while ((childElement = startNextChild()) != null) {
+			while (output.currentState() != StructuredDataState.ELEMENT_WITH_CONTENT
+					&& (childElement = startNextChild()) != null) {
 				output.nextChild(childElement);
 
 				pipeDataAtChild(output);
@@ -111,7 +112,8 @@ public interface StructuredDataSource {
 		return output;
 	}
 
-	public default <T extends StructuredDataTarget> T pipeNamespaceHints(T output) {
+	public default <T extends StructuredDataTarget> T pipeNamespaceHints(
+			T output) {
 		if (getDefaultNamespaceHint() != null)
 			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
 		for (Namespace hint : getNamespaceHints())
@@ -134,7 +136,6 @@ public interface StructuredDataSource {
 	}
 
 	public default NavigableStructuredDataSource bufferNextChild() {
-		return pipeNextChild(StructuredDataBuffer.singleBuffer())
-				.getBuffer();
+		return pipeNextChild(StructuredDataBuffer.singleBuffer()).getBuffer();
 	}
 }

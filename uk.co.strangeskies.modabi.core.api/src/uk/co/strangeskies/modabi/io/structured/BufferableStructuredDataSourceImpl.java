@@ -56,8 +56,11 @@ public class BufferableStructuredDataSourceImpl extends
 			@Override
 			public QualifiedName startNextChild() {
 				if (buffer.index().equals(component.index())) {
-					buffers.nextChild(component.startNextChild());
-					component.pipeDataAtChild(buffers);
+					QualifiedName child = component.startNextChild();
+					if (child != null) {
+						buffers.nextChild(child);
+						component.pipeDataAtChild(buffers);
+					}
 				}
 
 				return buffer.startNextChild();
@@ -65,7 +68,7 @@ public class BufferableStructuredDataSourceImpl extends
 
 			@Override
 			public StructuredDataState currentState() {
-				throw new AssertionError();
+				return buffer.currentState();
 			}
 
 			@Override
@@ -80,7 +83,7 @@ public class BufferableStructuredDataSourceImpl extends
 
 			@Override
 			public List<Integer> index() {
-				throw new AssertionError();
+				return buffer.index();
 			}
 
 			@Override

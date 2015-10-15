@@ -20,9 +20,7 @@ Bundle-Name: Modabi - Benchmarks
 Private-Package: uk.co.strangeskies.modabi.benchmark
 
 Bundle-Version: 0.0.1.${tstamp}
--runrequires: \
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.benchmarks)',\
-	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)'
+-runrequires: osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.benchmarks)'
 -runfw: org.eclipse.osgi
 -runbundles: \
 	org.apache.commons.lang3;version='[3.4.0,3.4.1)',\
@@ -32,7 +30,6 @@ Bundle-Version: 0.0.1.${tstamp}
 	org.apache.servicemix.bundles.stax-utils;version='[20070216.0.0,20070216.0.1)',\
 	org.eclipse.equinox.metatype;version='[1.4.100,1.4.101)',\
 	org.osgi.service.metatype;version='[1.3.0,1.3.1)',\
-	osgi.enroute.logger.simple.provider;version='[1.1.1,1.1.2)',\
 	uk.co.strangeskies.mathematics;version='[0.0.4,0.0.5)',\
 	uk.co.strangeskies.modabi.benchmarks;version=snapshot,\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\

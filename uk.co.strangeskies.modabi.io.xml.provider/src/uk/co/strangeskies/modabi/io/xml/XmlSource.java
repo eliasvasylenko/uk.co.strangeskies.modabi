@@ -19,9 +19,8 @@
 package uk.co.strangeskies.modabi.io.xml;
 
 import java.io.InputStream;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,19 +46,23 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
 public class XmlSource implements StructuredDataSource {
 	private final XMLStreamReader in;
-	private final Deque<Integer> currentLocation;
+	private final List<Integer> currentLocation;
 
 	private QualifiedName nextChild;
 	private final List<String> comments;
 	private final Map<QualifiedName, DataSource> properties;
 	private String content;
 
+	private NamespaceStack namespaces;
+
 	private XmlSource(XMLStreamReader in) {
 		this.in = in;
-		currentLocation = new ArrayDeque<>();
+		currentLocation = new ArrayList<>();
 
 		comments = new ArrayList<>();
 		properties = new HashMap<>();
+
+		namespaces = new NamespaceStack();
 
 		pumpEvents();
 	}
@@ -82,6 +85,8 @@ public class XmlSource implements StructuredDataSource {
 
 	@Override
 	public Namespace getDefaultNamespaceHint() {
+		System.out.println(nextChild);
+		System.out.println("    &^%$ " + in.getNamespaceURI());
 		return Namespace.parseHttpString(in.getNamespaceURI());
 	}
 
@@ -96,9 +101,9 @@ public class XmlSource implements StructuredDataSource {
 	@Override
 	public QualifiedName startNextChild() {
 		if (nextChild == null)
-			throw new IOException();
+			return null;
 
-		currentLocation.push(0);
+		currentLocation.add(0);
 
 		return pumpEvents();
 	}
@@ -152,6 +157,8 @@ public class XmlSource implements StructuredDataSource {
 				break;
 			case XMLStreamReader.CHARACTERS:
 				content = in.getText();
+				if (content.trim().equals(""))
+					content = null;
 				break;
 			}
 		} while (!done);
@@ -185,8 +192,14 @@ public class XmlSource implements StructuredDataSource {
 		else
 			prefix = "";
 
-		return new QualifiedName(splitName[splitName.length - 1], Namespace
-				.parseHttpString(in.getNamespaceContext().getNamespaceURI(prefix)));
+		String namespace = in.getNamespaceContext().getNamespaceURI(prefix);
+
+		if (namespace == null)
+			throw new IllegalArgumentException("Cannot find namespace with prefix '"
+					+ prefix + "' in current context");
+
+		return new QualifiedName(splitName[splitName.length - 1],
+				Namespace.parseHttpString(namespace));
 	}
 
 	@Override
@@ -201,7 +214,8 @@ public class XmlSource implements StructuredDataSource {
 
 	@Override
 	public DataSource readContent() {
-		return DataSource.parseString(content, this::parseName);
+		return content == null ? null
+				: DataSource.parseString(content, this::parseName);
 	}
 
 	@Override
@@ -209,15 +223,18 @@ public class XmlSource implements StructuredDataSource {
 		if (nextChild != null)
 			while (pumpEvents() != null)
 				;
-		currentLocation.pop();
-		currentLocation.push(currentLocation.pop() + 1);
+		currentLocation.remove(currentLocation.size() - 1);
+		if (!currentLocation.isEmpty()) {
+			currentLocation
+					.add(currentLocation.remove(currentLocation.size() - 1) + 1);
+		}
 
 		pumpEvents();
 	}
 
 	@Override
 	public List<Integer> index() {
-		return new ArrayList<>(currentLocation);
+		return Collections.unmodifiableList(currentLocation);
 	}
 
 	@Override

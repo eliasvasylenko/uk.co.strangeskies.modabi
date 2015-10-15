@@ -45,7 +45,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.xml.XmlSource;
 import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 
@@ -82,10 +81,12 @@ public class BenchmarkRunner {
 				}
 			}
 
-			StructuredDataSource benchmarkSchemaResource = XmlSource.from(
-					context.getBundle().getResource("/BenchmarkSchema.xml").openStream());
-			System.out
-					.println(manager.registerSchemaBinding(benchmarkSchemaResource).getModels());
+			XmlSource.from(
+					context.getBundle().getResource("/BenchmarkSchema.xml").openStream())
+					.pipeNextChild(new XmlTarget(System.out));
+
+			manager.registerSchemaBinding(XmlSource.from(context.getBundle()
+					.getResource("/BenchmarkSchema.xml").openStream()));
 
 			logger.log(LogService.LOG_INFO, manager.registeredModels().toString());
 

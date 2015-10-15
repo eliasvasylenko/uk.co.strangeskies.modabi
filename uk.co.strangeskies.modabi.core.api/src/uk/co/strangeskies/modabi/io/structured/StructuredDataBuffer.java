@@ -456,6 +456,21 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
 			return child.name();
 		}
 
+		@Override
+		public void endChild() {
+			if (!peekTail().isEnded())
+				throw new IllegalStateException();
+
+			tailStack.remove(tailStack.size() - 1);
+			index.remove(index.size() - 1);
+			if (!index.isEmpty())
+				index.set(index.size() - 1, peekIndex() + 1);
+
+			if (consumable) {
+				peekTail().children.remove(0);
+			}
+		}
+
 		private int getActualTailIndex() {
 			if (consumable || index.size() == 0)
 				return 0;
@@ -490,21 +505,6 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
 		@Override
 		public boolean hasNextChild() {
 			return peekTail().hasChild(peekIndex());
-		}
-
-		@Override
-		public void endChild() {
-			if (!peekTail().isEnded())
-				throw new IllegalStateException();
-
-			tailStack.remove(tailStack.size() - 1);
-			index.remove(index.size() - 1);
-			if (!index.isEmpty())
-				index.set(index.size() - 1, peekIndex() + 1);
-
-			if (consumable) {
-				peekTail().children.remove(0);
-			}
 		}
 
 		@Override
