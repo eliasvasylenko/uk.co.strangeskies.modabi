@@ -10,8 +10,9 @@ import javax.xml.namespace.NamespaceContext;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.NamespaceAliases;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.utilities.Copyable;
 
-class NamespaceStack implements NamespaceContext {
+class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 	private Namespace defaultNamespace;
 	private NamespaceAliases aliasSet;
 
@@ -23,6 +24,17 @@ class NamespaceStack implements NamespaceContext {
 
 	private NamespaceStack(NamespaceStack from) {
 		setFrom(from);
+	}
+
+	@Override
+	public NamespaceStack copy() {
+		NamespaceStack copy = new NamespaceStack(this);
+
+		copy.aliasSet = copy.aliasSet.copy();
+		if (copy.next != null)
+			copy.next = copy.next.copy();
+
+		return copy;
 	}
 
 	private void setFrom(NamespaceStack from) {
@@ -63,42 +75,89 @@ class NamespaceStack implements NamespaceContext {
 		return next == null;
 	}
 
-	public void setDefaultNamespace(Namespace namespace) {
-		defaultNamespace = namespace;
-	}
-
-	public Namespace getDefaultNamespace() {
-		return defaultNamespace;
+	public boolean setDefaultNamespace(Namespace namespace) {
+		if (!XMLConstants.DEFAULT_NS_PREFIX.equals(getNamespaceAlias(namespace))) {
+			defaultNamespace = namespace;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public String addNamespace(Namespace namespace) {
 		String alias = getNamespaceAlias(namespace);
-		if (alias != null)
-			return alias;
 
-		return aliasSet.addNamespace(namespace);
+		if (alias == null) {
+			alias = aliasSet.addNamespace(namespace);
+		}
+
+		return alias;
+	}
+
+	public boolean addNamespace(Namespace namespace, String alias) {
+		if (XMLConstants.DEFAULT_NS_PREFIX.equals(alias)) {
+			return setDefaultNamespace(namespace);
+		} else if (getNamespaceAlias(namespace) != null) {
+			return false;
+		} else {
+			aliasSet.addNamespace(namespace);
+
+			return true;
+		}
 	}
 
 	public Set<Namespace> getNamespaces() {
 		return aliasSet.getNamespaces();
 	}
 
+	public NamespaceAliases getAliasSet() {
+		return aliasSet;
+	}
+
 	public String getNamespaceAlias(Namespace namespace) {
-		if (namespace.equals(defaultNamespace))
+		if (namespace.equals(defaultNamespace)) {
 			return XMLConstants.DEFAULT_NS_PREFIX;
-
-		if (getNamespaces().contains(namespace))
+		} else if (getNamespaces().contains(namespace)) {
 			return aliasSet.getAlias(namespace);
-
-		if (next != null)
+		} else if (next != null) {
 			return next.getNamespaceAlias(namespace);
+		} else {
+			return null;
+		}
+	}
 
-		return null;
+	public String getDefaultNamespaceURI() {
+		return getDefaultNamespace().toHttpString();
+	}
+
+	public Namespace getDefaultNamespace() {
+		Namespace namespace = defaultNamespace;
+
+		if (namespace == null && next != null) {
+			namespace = next.getDefaultNamespace();
+		}
+
+		return namespace;
 	}
 
 	@Override
 	public String getNamespaceURI(String prefix) {
-		return aliasSet.getNamespace(prefix).toHttpString();
+		return getNamespace(prefix).toHttpString();
+	}
+
+	public Namespace getNamespace(String prefix) {
+		Namespace namespace;
+		if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+			namespace = defaultNamespace;
+		} else {
+			namespace = aliasSet.getNamespace(prefix);
+		}
+
+		if (namespace == null && next != null) {
+			namespace = next.getNamespace(prefix);
+		}
+
+		return namespace;
 	}
 
 	@Override

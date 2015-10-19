@@ -8,19 +8,7 @@
 	<types />
 
 	<models>
-		<model name="node2"
-			dataType="uk.co.strangeskies.modabi.schema.SchemaNode&lt;?, ?&gt;"
-			unbindingStrategy="SIMPLE" abstract="true">
-			<inputSequence name="configure"
-				postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&lt;?, ?&gt;"
-				abstract="true" />
-			<property name="name" type="qualifiedName" optional="true"
-				inMethod="name" />
-			<property name="abstract" type="boolean" optional="true"
-				inMethod="isAbstract" />
-		</model>
-
-		<model name="person" dataClass="uk.co.strangeskies.modabi.benchmark.PersonType"
+		<model name="person" dataType="uk.co.strangeskies.modabi.benchmark.PersonType"
 			bindingStrategy="CONSTRUCTOR">
 			<inputSequence name="constructor" />
 			<property name="active" type="boolean" />
@@ -33,9 +21,10 @@
 			<simple name="country" type="string" />
 		</model>
 
-		<model name="persons" dataClass="uk.co.strangeskies.modabi.benchmark.PersonsType"
+		<model name="persons" dataType="uk.co.strangeskies.modabi.benchmark.PersonsType"
 			bindingStrategy="CONSTRUCTOR">
-			<inline name="personList" outMethod="getPerson" dataClass="java.util.List">
+			<inline name="personList" outMethod="getPerson"
+				dataType="@uk.co.strangeskies.reflection.TypeToken.Infer java.util.List&lt;?&gt;">
 				<complex baseModel="person" outMethod="this" occurrences="0.."
 					inMethod="add" outMethodIterable="true" />
 			</inline>

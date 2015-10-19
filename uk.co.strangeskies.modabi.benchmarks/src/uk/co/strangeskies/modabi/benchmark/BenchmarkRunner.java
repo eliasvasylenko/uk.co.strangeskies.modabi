@@ -39,12 +39,15 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.xml.XmlSource;
 import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 
@@ -70,6 +73,9 @@ public class BenchmarkRunner {
 	@Activate
 	public void run(BundleContext context) throws BundleException {
 		try {
+			Thread.currentThread().setContextClassLoader(
+					context.getBundle().adapt(BundleWiring.class).getClassLoader());
+
 			File outputDir = new File(OUTPUT_FOLDER);
 			if (!outputDir.exists()) {
 				logger.log(LogService.LOG_INFO,
@@ -81,16 +87,20 @@ public class BenchmarkRunner {
 				}
 			}
 
-			XmlSource.from(
-					context.getBundle().getResource("/BenchmarkSchema.xml").openStream())
-					.pipeNextChild(new XmlTarget(System.out));
+			NavigableStructuredDataSource buffer = XmlSource
+					.from(context.getBundle().getResource("/BenchmarkSchema.xml")
+							.openStream())
+					.pipeNextChild(StructuredDataBuffer.singleBuffer()).getBuffer();
 
-			manager.registerSchemaBinding(XmlSource.from(context.getBundle()
-					.getResource("/BenchmarkSchema.xml").openStream()));
+			buffer.reset();
+			buffer.pipeNextChild(new XmlTarget(System.out));
+
+			buffer.reset();
+			manager.registerSchemaBinding(buffer);
 
 			logger.log(LogService.LOG_INFO, manager.registeredModels().toString());
 
-			boolean createXml = true;
+			boolean createXml = false;
 			logger.log(LogService.LOG_INFO, "Will create XML files? " + createXml);
 			if (createXml) {
 				createXmlPortfolio();

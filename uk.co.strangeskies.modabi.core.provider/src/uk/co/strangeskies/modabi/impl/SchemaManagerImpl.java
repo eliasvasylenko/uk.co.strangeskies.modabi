@@ -191,14 +191,15 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public <T> BindingFuture<T> bindFuture(Model<T> model,
-			StructuredDataSource input) {
-		return addBindingFuture(getSchemaBinder().bind(model.effective(), input));
+			StructuredDataSource input, ClassLoader classLoader) {
+		return addBindingFuture(
+				getSchemaBinder().bind(model.effective(), input, classLoader));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
-			StructuredDataSource input) {
+			StructuredDataSource input, ClassLoader classLoader) {
 		Model<?> model = registeredModels.get(input.peekNextChild());
 		List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
 		if (models.contains(model))
@@ -206,17 +207,20 @@ public class SchemaManagerImpl implements SchemaManager {
 					+ "' compatible with the class '" + dataClass
 					+ "' match the root element '" + input.peekNextChild() + "'");
 		return (BindingFuture<T>) addBindingFuture(
-				getSchemaBinder().bind(model.effective(), input));
+				getSchemaBinder().bind(model.effective(), input, classLoader));
 	}
 
 	@Override
-	public BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return addBindingFuture(getSchemaBinder()
-				.bind(registeredModels.get(input.peekNextChild()).effective(), input));
+	public BindingFuture<?> bindFuture(StructuredDataSource input,
+			ClassLoader classLoader) {
+		return addBindingFuture(getSchemaBinder().bind(
+				registeredModels.get(input.peekNextChild()).effective(), input,
+				classLoader));
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
 		bindingFutures.add(binding.getModel().effective().getName(), binding);
+
 		new Thread(() -> {
 			try {
 				binding.get();
@@ -226,6 +230,7 @@ public class SchemaManagerImpl implements SchemaManager {
 				bindingFutures.remove(binding.getModel().effective().getName());
 			}
 		}).start();
+
 		return binding;
 	}
 

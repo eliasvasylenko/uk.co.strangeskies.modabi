@@ -40,7 +40,7 @@ public class SchemaBinder {
 	}
 
 	public <T> BindingFuture<T> bind(Model.Effective<T> model,
-			StructuredDataSource input) {
+			StructuredDataSource input, ClassLoader classLoader) {
 		BindingContextImpl context = this.context.withInput(input);
 
 		QualifiedName inputRoot = input.startNextChild();
@@ -49,6 +49,8 @@ public class SchemaBinder {
 					+ "' does not match root input node '" + inputRoot + "'", context);
 
 		FutureTask<T> future = new FutureTask<>(() -> {
+			Thread.currentThread().setContextClassLoader(classLoader);
+
 			try {
 				return new BindingNodeBinder(context).bind(model);
 			} catch (SchemaException e) {

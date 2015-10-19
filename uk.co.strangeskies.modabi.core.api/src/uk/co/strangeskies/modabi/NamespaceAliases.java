@@ -32,6 +32,11 @@ public class NamespaceAliases {
 		aliasedNamespaces = new HashMap<>();
 	}
 
+	public NamespaceAliases(NamespaceAliases namespaceAliases) {
+		this.namespaceAliases = new HashMap<>(namespaceAliases.namespaceAliases);
+		this.aliasedNamespaces = new HashMap<>(namespaceAliases.aliasedNamespaces);
+	}
+
 	public String getNameString(QualifiedName name) {
 		String alias = namespaceAliases.get(name.getNamespace());
 		if (alias != null)
@@ -51,14 +56,24 @@ public class NamespaceAliases {
 		return alias;
 	}
 
-	public String addNamespace(Namespace namespace) {
-		String alias = getAlias(namespace);
-		if (alias != null)
-			return alias;
+	public boolean addNamespace(Namespace namespace, String alias) {
+		if (getAlias(namespace) != null)
+			return false;
 
-		alias = generateAlias(namespace);
 		namespaceAliases.put(namespace, alias);
 		aliasedNamespaces.put(alias, namespace);
+
+		return true;
+	}
+
+	public String addNamespace(Namespace namespace) {
+		String alias = getAlias(namespace);
+
+		if (alias == null) {
+			alias = generateAlias(namespace);
+
+			addNamespace(namespace, alias);
+		}
 
 		return alias;
 	}
@@ -79,5 +94,9 @@ public class NamespaceAliases {
 			return aliasedNamespaces.get(alias);
 
 		return null;
+	}
+
+	public NamespaceAliases copy() {
+		return new NamespaceAliases(this);
 	}
 }

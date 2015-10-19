@@ -65,39 +65,90 @@ public interface SchemaManager {
 	}
 
 	default <T> T bind(Model<T> model, StructuredDataSource input) {
-		return bindFuture(model, input).resolveNow().getData();
+		return bind(model, input, Thread.currentThread().getContextClassLoader());
+	}
+
+	default <T> T bind(Model<T> model, StructuredDataSource input,
+			ClassLoader classLoader) {
+		return bindFuture(model, input, classLoader).resolveNow().getData();
 	}
 
 	default <T> T bind(TypeToken<T> dataClass, StructuredDataSource input) {
-		return bindFuture(dataClass, input).resolveNow().getData();
+		return bind(dataClass, input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
+	default <T> T bind(TypeToken<T> dataClass, StructuredDataSource input,
+			ClassLoader classLoader) {
+		return bindFuture(dataClass, input, classLoader).resolveNow().getData();
 	}
 
 	default <T> T bind(Class<T> dataClass, StructuredDataSource input) {
-		return bindFuture(dataClass, input).resolveNow().getData();
+		return bind(dataClass, input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
+	default <T> T bind(Class<T> dataClass, StructuredDataSource input,
+			ClassLoader classLoader) {
+		return bindFuture(dataClass, input, classLoader).resolveNow().getData();
 	}
 
 	default Binding<?> bind(StructuredDataSource input) {
-		return bindFuture(input).resolveNow();
+		return bind(input, Thread.currentThread().getContextClassLoader());
+	}
+
+	default Binding<?> bind(StructuredDataSource input, ClassLoader classLoader) {
+		return bindFuture(input, classLoader).resolveNow();
 	}
 
 	// Blocks until all possible processing is done other than waiting imports:
-	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input);
+	default <T> BindingFuture<T> bindFuture(Model<T> model,
+			StructuredDataSource input) {
+		return bindFuture(model, input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
+	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input,
+			ClassLoader classLoader);
 
 	// Blocks until all possible processing is done other than waiting imports:
+	default <T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
+			StructuredDataSource input) {
+		return bindFuture(dataClass, input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
 	<T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
-			StructuredDataSource input);
+			StructuredDataSource input, ClassLoader classLoader);
 
 	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
 			StructuredDataSource input) {
+		return bindFuture(dataClass, input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
+	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
+			StructuredDataSource input, ClassLoader classLoader) {
 		return bindFuture(TypeToken.over(dataClass), input);
 	}
 
-	BindingFuture<?> bindFuture(StructuredDataSource input);
+	default BindingFuture<?> bindFuture(StructuredDataSource input) {
+		return bindFuture(input, Thread.currentThread().getContextClassLoader());
+	}
+
+	BindingFuture<?> bindFuture(StructuredDataSource input,
+			ClassLoader classLoader);
 
 	<T> Set<BindingFuture<T>> bindingFutures(Model<T> model);
 
 	default Schema registerSchemaBinding(StructuredDataSource input) {
-		Schema schema = bind(getMetaSchema().getSchemaModel(), input);
+		return registerSchemaBinding(input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
+	default Schema registerSchemaBinding(StructuredDataSource input,
+			ClassLoader classLoader) {
+		Schema schema = bind(getMetaSchema().getSchemaModel(), input, classLoader);
 
 		registerSchema(schema);
 
@@ -106,8 +157,14 @@ public interface SchemaManager {
 
 	default BindingFuture<Schema> registerSchemaBindingFuture(
 			StructuredDataSource input) {
+		return registerSchemaBindingFuture(input,
+				Thread.currentThread().getContextClassLoader());
+	}
+
+	default BindingFuture<Schema> registerSchemaBindingFuture(
+			StructuredDataSource input, ClassLoader classLoader) {
 		BindingFuture<Schema> schema = bindFuture(getMetaSchema().getSchemaModel(),
-				input);
+				input, classLoader);
 
 		new Thread(() -> {
 			try {

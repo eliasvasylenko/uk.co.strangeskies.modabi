@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
@@ -53,7 +54,7 @@ public class XmlSource implements StructuredDataSource {
 	private final Map<QualifiedName, DataSource> properties;
 	private String content;
 
-	private NamespaceStack namespaces;
+	private final NamespaceStack namespaceStack;
 
 	private XmlSource(XMLStreamReader in) {
 		this.in = in;
@@ -62,7 +63,7 @@ public class XmlSource implements StructuredDataSource {
 		comments = new ArrayList<>();
 		properties = new HashMap<>();
 
-		namespaces = new NamespaceStack();
+		namespaceStack = new NamespaceStack();
 
 		pumpEvents();
 	}
@@ -85,17 +86,12 @@ public class XmlSource implements StructuredDataSource {
 
 	@Override
 	public Namespace getDefaultNamespaceHint() {
-		System.out.println(nextChild);
-		System.out.println("    &^%$ " + in.getNamespaceURI());
-		return Namespace.parseHttpString(in.getNamespaceURI());
+		return namespaceStack.getDefaultNamespace();
 	}
 
 	@Override
 	public Set<Namespace> getNamespaceHints() {
-		Set<Namespace> namespaces = new HashSet<>();
-		for (int i = 0; i < in.getNamespaceCount(); i++)
-			namespaces.add(Namespace.parseHttpString(in.getNamespaceURI(i)));
-		return namespaces;
+		return namespaceStack.getNamespaces();
 	}
 
 	@Override
@@ -167,6 +163,23 @@ public class XmlSource implements StructuredDataSource {
 	}
 
 	private void fillProperties() {
+		/*
+		 * Namespaces:
+		 */
+		namespaceStack.push();
+		for (int i = 0; i < in.getNamespaceCount(); i++) {
+			namespaceStack.addNamespace(
+					Namespace.parseHttpString(in.getNamespaceURI(i)),
+					in.getNamespacePrefix(i));
+		}
+		String defaultNamespaceString = in.getNamespaceURI();
+		if (defaultNamespaceString != null)
+			namespaceStack.setDefaultNamespace(
+					Namespace.parseHttpString(defaultNamespaceString));
+
+		/*
+		 * Properties:
+		 */
 		properties.clear();
 
 		for (int i = 0; i < in.getAttributeCount(); i++) {
@@ -179,27 +192,30 @@ public class XmlSource implements StructuredDataSource {
 					in.getAttributeLocalName(i), namespace);
 
 			properties.put(propertyName,
-					DataSource.parseString(in.getAttributeValue(i), this::parseName));
+					DataSource.parseString(in.getAttributeValue(i), parseName()));
 		}
 	}
 
-	private QualifiedName parseName(String name) {
-		String[] splitName = name.split(":", 2);
+	private Function<String, QualifiedName> parseName() {
+		NamespaceStack namespaceStack = this.namespaceStack.copy();
 
-		String prefix;
-		if (splitName.length == 2)
-			prefix = splitName[0];
-		else
-			prefix = "";
+		return name -> {
+			String[] splitName = name.split(":", 2);
 
-		String namespace = in.getNamespaceContext().getNamespaceURI(prefix);
+			String prefix;
+			if (splitName.length == 2)
+				prefix = splitName[0];
+			else
+				prefix = "";
 
-		if (namespace == null)
-			throw new IllegalArgumentException("Cannot find namespace with prefix '"
-					+ prefix + "' in current context");
+			Namespace namespace = namespaceStack.getNamespace(prefix);
 
-		return new QualifiedName(splitName[splitName.length - 1],
-				Namespace.parseHttpString(namespace));
+			if (namespace == null)
+				throw new IllegalArgumentException("Cannot find namespace with prefix '"
+						+ prefix + "' in current context");
+
+			return new QualifiedName(splitName[splitName.length - 1], namespace);
+		};
 	}
 
 	@Override
@@ -215,7 +231,7 @@ public class XmlSource implements StructuredDataSource {
 	@Override
 	public DataSource readContent() {
 		return content == null ? null
-				: DataSource.parseString(content, this::parseName);
+				: DataSource.parseString(content, parseName());
 	}
 
 	@Override
