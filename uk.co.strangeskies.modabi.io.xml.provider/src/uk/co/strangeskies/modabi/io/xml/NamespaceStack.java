@@ -2,7 +2,6 @@ package uk.co.strangeskies.modabi.io.xml;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -13,9 +12,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Copyable;
 
 class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
-	private Namespace defaultNamespace;
 	private NamespaceAliases aliasSet;
-
 	private NamespaceStack next;
 
 	public NamespaceStack() {
@@ -28,25 +25,23 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 
 	@Override
 	public NamespaceStack copy() {
-		NamespaceStack copy = new NamespaceStack(this);
+		NamespaceStack copy = new NamespaceStack();
 
-		copy.aliasSet = copy.aliasSet.copy();
-		if (copy.next != null) {
-			copy.next = copy.next.copy();
+		copy.aliasSet = aliasSet.copy();
+		if (next != null) {
+			copy.next = next.copy();
 		}
 
 		return copy;
 	}
 
 	private void setFrom(NamespaceStack from) {
-		defaultNamespace = from.defaultNamespace;
 		aliasSet = from.aliasSet;
 		next = from.next;
 	}
 
 	public String getNameString(QualifiedName name) {
-		if (defaultNamespace != null
-				&& defaultNamespace.equals(name.getNamespace()))
+		if (name.getNamespace().equals(aliasSet.getDefaultNamespace()))
 			return name.getName();
 
 		String alias = aliasSet.getAlias(name.getNamespace());
@@ -62,7 +57,6 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 	public void push() {
 		next = new NamespaceStack(this);
 		aliasSet = new NamespaceAliases();
-		defaultNamespace = null;
 	}
 
 	public void pop() {
@@ -77,8 +71,8 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 	}
 
 	public boolean setDefaultNamespace(Namespace namespace) {
-		if (!XMLConstants.DEFAULT_NS_PREFIX.equals(getNamespaceAlias(namespace))) {
-			defaultNamespace = namespace;
+		if (!namespace.equals(getDefaultNamespace())) {
+			aliasSet.setDefaultNamespace(namespace);
 			return true;
 		} else {
 			return false;
@@ -107,18 +101,14 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 		}
 	}
 
-	public Set<Namespace> getNamespaces() {
-		return aliasSet.getNamespaces();
-	}
-
 	public NamespaceAliases getAliasSet() {
 		return aliasSet;
 	}
 
 	public String getNamespaceAlias(Namespace namespace) {
-		if (namespace.equals(defaultNamespace)) {
+		if (namespace.equals(getDefaultNamespace())) {
 			return XMLConstants.DEFAULT_NS_PREFIX;
-		} else if (getNamespaces().contains(namespace)) {
+		} else if (aliasSet.getNamespaces().contains(namespace)) {
 			return aliasSet.getAlias(namespace);
 		} else if (next != null) {
 			return next.getNamespaceAlias(namespace);
@@ -132,7 +122,7 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 	}
 
 	public Namespace getDefaultNamespace() {
-		Namespace namespace = defaultNamespace;
+		Namespace namespace = aliasSet.getDefaultNamespace();
 
 		if (namespace == null && next != null) {
 			namespace = next.getDefaultNamespace();
@@ -149,13 +139,13 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 	public Namespace getNamespace(String prefix) {
 		Namespace namespace;
 		if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-			namespace = defaultNamespace;
+			namespace = getDefaultNamespace();
 		} else {
 			namespace = aliasSet.getNamespace(prefix);
-		}
 
-		if (namespace == null && next != null) {
-			namespace = next.getNamespace(prefix);
+			if (namespace == null && next != null) {
+				namespace = next.getNamespace(prefix);
+			}
 		}
 
 		return namespace;

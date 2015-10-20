@@ -91,7 +91,7 @@ public class XmlSource implements StructuredDataSource {
 
 	@Override
 	public Set<Namespace> getNamespaceHints() {
-		return namespaceStack.getNamespaces();
+		return namespaceStack.getAliasSet().getNamespaces();
 	}
 
 	@Override

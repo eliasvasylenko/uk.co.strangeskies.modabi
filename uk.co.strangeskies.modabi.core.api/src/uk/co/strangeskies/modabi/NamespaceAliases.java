@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class NamespaceAliases {
+	private Namespace defaultNamespace;
 	private final Map<Namespace, String> namespaceAliases;
 	private final Map<String, Namespace> aliasedNamespaces;
 
@@ -33,6 +34,7 @@ public class NamespaceAliases {
 	}
 
 	public NamespaceAliases(NamespaceAliases namespaceAliases) {
+		this.defaultNamespace = namespaceAliases.defaultNamespace;
 		this.namespaceAliases = new HashMap<>(namespaceAliases.namespaceAliases);
 		this.aliasedNamespaces = new HashMap<>(namespaceAliases.aliasedNamespaces);
 	}
@@ -98,5 +100,13 @@ public class NamespaceAliases {
 
 	public NamespaceAliases copy() {
 		return new NamespaceAliases(this);
+	}
+
+	public void setDefaultNamespace(Namespace namespace) {
+		defaultNamespace = namespace;
+	}
+
+	public Namespace getDefaultNamespace() {
+		return defaultNamespace;
 	}
 }

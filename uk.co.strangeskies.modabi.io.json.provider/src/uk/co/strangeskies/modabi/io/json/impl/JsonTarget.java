@@ -35,7 +35,6 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 
 	private final Deque<JSONObject> jsonObjectStack;
 
-	private Namespace defaultNamespace;
 	private final NamespaceAliases namespaces;
 
 	private boolean skipRoot;
@@ -61,10 +60,11 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 
 	@Override
 	protected void registerDefaultNamespaceHintImpl(Namespace namespace) {
-		if (defaultNamespace != null)
+		if (namespaces.getDefaultNamespace() != null
+				&& !namespaces.getDefaultNamespace().equals(namespace))
 			namespaces.addNamespace(namespace);
 		else
-			defaultNamespace = namespace;
+			namespaces.setDefaultNamespace(namespace);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 	}
 
 	private String formatQualifiedName(QualifiedName name) {
-		if (name.getNamespace().equals(defaultNamespace)) {
+		if (name.getNamespace().equals(namespaces.getDefaultNamespace())) {
 			return name.getName();
 		} else {
 			String alias = namespaces.addNamespace(name.getNamespace());
@@ -117,7 +117,7 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 		if (jsonObjectStack.size() == 1) {
 			if (!skipRoot) {
 				object = jsonObjectStack.pop();
-				object.put("", defaultNamespace.toString());
+				object.put("", namespaces.getDefaultNamespace().toString());
 				for (Namespace namespace : namespaces.getNamespaces())
 					object.put(namespaces.getAlias(namespace), namespace.toString());
 			}

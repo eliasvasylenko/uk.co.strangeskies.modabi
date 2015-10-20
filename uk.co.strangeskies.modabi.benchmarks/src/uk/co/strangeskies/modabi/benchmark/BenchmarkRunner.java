@@ -73,6 +73,8 @@ public class BenchmarkRunner {
 	@Activate
 	public void run(BundleContext context) throws BundleException {
 		try {
+			logger.log(LogService.LOG_INFO, "Preparing benchmark...");
+
 			Thread.currentThread().setContextClassLoader(
 					context.getBundle().adapt(BundleWiring.class).getClassLoader());
 
@@ -115,8 +117,6 @@ public class BenchmarkRunner {
 						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
 				readLargeXmlWithModabi(new File(
 						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
-				readLargeXmlWithModabi(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
 
 				readLargeXmlWithStax(new File(
 						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));

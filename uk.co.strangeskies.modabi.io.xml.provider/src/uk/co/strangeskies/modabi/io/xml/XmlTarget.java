@@ -108,10 +108,10 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				}
 
 				// write namespaces
-				if (namespaces.getDefaultNamespace() != null)
+				if (namespaces.getAliasSet().getDefaultNamespace() != null)
 					out.writeDefaultNamespace(
 							namespaces.getDefaultNamespace().toHttpString());
-				for (Namespace namespace : namespaces.getNamespaces())
+				for (Namespace namespace : namespaces.getAliasSet().getNamespaces())
 					out.writeNamespace(namespaces.getNamespaceAlias(namespace),
 							namespace.toHttpString());
 				namespaces.push();
