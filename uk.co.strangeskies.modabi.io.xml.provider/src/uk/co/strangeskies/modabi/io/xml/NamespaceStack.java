@@ -31,8 +31,9 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 		NamespaceStack copy = new NamespaceStack(this);
 
 		copy.aliasSet = copy.aliasSet.copy();
-		if (copy.next != null)
+		if (copy.next != null) {
 			copy.next = copy.next.copy();
+		}
 
 		return copy;
 	}

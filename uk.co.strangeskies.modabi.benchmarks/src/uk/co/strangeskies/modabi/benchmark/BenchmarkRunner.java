@@ -79,11 +79,11 @@ public class BenchmarkRunner {
 			File outputDir = new File(OUTPUT_FOLDER);
 			if (!outputDir.exists()) {
 				logger.log(LogService.LOG_INFO,
-						"Creating output folder: " + outputDir.getAbsolutePath());
+						"Creating output directory: " + outputDir.getAbsolutePath());
 				boolean created = outputDir.mkdirs();
 				if (!created) {
-					throw new IllegalStateException("Could not create "
-							+ outputDir.getAbsolutePath() + ". Aborting...");
+					throw new IllegalStateException(
+							"Could not create output directory, aborting...");
 				}
 			}
 
@@ -96,7 +96,8 @@ public class BenchmarkRunner {
 			buffer.pipeNextChild(new XmlTarget(System.out));
 
 			buffer.reset();
-			manager.registerSchemaBinding(buffer);
+			manager.registerSchemaBinding(XmlSource.from(context.getBundle()
+					.getResource("/BenchmarkSchema.xml").openStream()));
 
 			logger.log(LogService.LOG_INFO, manager.registeredModels().toString());
 

@@ -98,12 +98,20 @@ public class BufferableStructuredDataSourceImpl extends
 
 			@Override
 			public QualifiedName peekNextChild() {
-				return buffer.peekNextChild();
+				if (buffer.index().equals(component.index())) {
+					return component.peekNextChild();
+				} else {
+					return buffer.startNextChild();
+				}
 			}
 
 			@Override
 			public boolean hasNextChild() {
-				return buffer.hasNextChild();
+				if (buffer.index().equals(component.index())) {
+					return component.hasNextChild();
+				} else {
+					return buffer.hasNextChild();
+				}
 			}
 
 			@Override
