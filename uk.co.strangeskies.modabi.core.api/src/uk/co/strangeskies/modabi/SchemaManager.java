@@ -18,15 +18,16 @@
  */
 package uk.co.strangeskies.modabi;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import uk.co.strangeskies.modabi.io.structured.FileLoader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -34,6 +35,22 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaManager {
+	interface Binder<T> {
+		BindingFuture<T> from(StructuredDataSource input);
+
+		BindingFuture<T> from(File input);
+
+		BindingFuture<T> from(InputStream input);
+
+		BindingFuture<T> from(InputStream input, String extension);
+	}
+
+	void registerFileLoader(FileLoader loader);
+
+	void unregisterFileLoader(FileLoader loader);
+
+	Set<FileLoader> getRegisteredFileLoaders();
+
 	default GeneratedSchema generateSchema(QualifiedName name) {
 		return generateSchema(name, Collections.emptySet());
 	}
@@ -64,116 +81,52 @@ public interface SchemaManager {
 		registerBinding(new Binding<T>(model, data));
 	}
 
-	default <T> T bind(Model<T> model, StructuredDataSource input) {
-		return bind(model, input, Thread.currentThread().getContextClassLoader());
-	}
-
-	default <T> T bind(Model<T> model, StructuredDataSource input,
-			ClassLoader classLoader) {
-		return bindFuture(model, input, classLoader).resolveNow().getData();
-	}
-
-	default <T> T bind(TypeToken<T> dataClass, StructuredDataSource input) {
-		return bind(dataClass, input,
-				Thread.currentThread().getContextClassLoader());
-	}
-
-	default <T> T bind(TypeToken<T> dataClass, StructuredDataSource input,
-			ClassLoader classLoader) {
-		return bindFuture(dataClass, input, classLoader).resolveNow().getData();
-	}
-
-	default <T> T bind(Class<T> dataClass, StructuredDataSource input) {
-		return bind(dataClass, input,
-				Thread.currentThread().getContextClassLoader());
-	}
-
-	default <T> T bind(Class<T> dataClass, StructuredDataSource input,
-			ClassLoader classLoader) {
-		return bindFuture(dataClass, input, classLoader).resolveNow().getData();
-	}
-
-	default Binding<?> bind(StructuredDataSource input) {
-		return bind(input, Thread.currentThread().getContextClassLoader());
-	}
-
-	default Binding<?> bind(StructuredDataSource input, ClassLoader classLoader) {
-		return bindFuture(input, classLoader).resolveNow();
-	}
+	// Blocks until all possible processing is done other than waiting imports:
+	<T> Binder<T> bind(Model<T> model);
 
 	// Blocks until all possible processing is done other than waiting imports:
-	default <T> BindingFuture<T> bindFuture(Model<T> model,
-			StructuredDataSource input) {
-		return bindFuture(model, input,
-				Thread.currentThread().getContextClassLoader());
+	<T> Binder<T> bind(TypeToken<T> dataClass);
+
+	default <T> Binder<T> bind(Class<T> dataClass) {
+		return bind(TypeToken.over(dataClass));
 	}
 
-	<T> BindingFuture<T> bindFuture(Model<T> model, StructuredDataSource input,
-			ClassLoader classLoader);
-
-	// Blocks until all possible processing is done other than waiting imports:
-	default <T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
-			StructuredDataSource input) {
-		return bindFuture(dataClass, input,
-				Thread.currentThread().getContextClassLoader());
-	}
-
-	<T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
-			StructuredDataSource input, ClassLoader classLoader);
-
-	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
-			StructuredDataSource input) {
-		return bindFuture(dataClass, input,
-				Thread.currentThread().getContextClassLoader());
-	}
-
-	default <T> BindingFuture<T> bindFuture(Class<T> dataClass,
-			StructuredDataSource input, ClassLoader classLoader) {
-		return bindFuture(TypeToken.over(dataClass), input);
-	}
-
-	default BindingFuture<?> bindFuture(StructuredDataSource input) {
-		return bindFuture(input, Thread.currentThread().getContextClassLoader());
-	}
-
-	BindingFuture<?> bindFuture(StructuredDataSource input,
-			ClassLoader classLoader);
+	Binder<?> bind();
 
 	<T> Set<BindingFuture<T>> bindingFutures(Model<T> model);
 
-	default Schema registerSchemaBinding(StructuredDataSource input) {
-		return registerSchemaBinding(input,
-				Thread.currentThread().getContextClassLoader());
-	}
+	default Binder<Schema> bindSchema() {
+		Binder<Schema> binder = bind(getMetaSchema().getSchemaModel());
 
-	default Schema registerSchemaBinding(StructuredDataSource input,
-			ClassLoader classLoader) {
-		Schema schema = bind(getMetaSchema().getSchemaModel(), input, classLoader);
+		return new Binder<Schema>() {
+			@Override
+			public BindingFuture<Schema> from(StructuredDataSource input) {
+				return registerFuture(binder.from(input));
+			}
 
-		registerSchema(schema);
+			@Override
+			public BindingFuture<Schema> from(File input) {
+				return registerFuture(binder.from(input));
+			}
 
-		return schema;
-	}
+			@Override
+			public BindingFuture<Schema> from(InputStream input) {
+				return registerFuture(binder.from(input));
+			}
 
-	default BindingFuture<Schema> registerSchemaBindingFuture(
-			StructuredDataSource input) {
-		return registerSchemaBindingFuture(input,
-				Thread.currentThread().getContextClassLoader());
-	}
+			@Override
+			public BindingFuture<Schema> from(InputStream input, String extension) {
+				return registerFuture(binder.from(input, extension));
+			}
 
-	default BindingFuture<Schema> registerSchemaBindingFuture(
-			StructuredDataSource input, ClassLoader classLoader) {
-		BindingFuture<Schema> schema = bindFuture(getMetaSchema().getSchemaModel(),
-				input, classLoader);
+			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> from) {
+				new Thread(() -> {
+					registerSchema(from.resolve());
+				}).start();
 
-		new Thread(() -> {
-			try {
-				registerSchema(schema.get().getData());
-			} catch (InterruptedException | ExecutionException
-					| CancellationException e) {}
-		});
-
-		return schema;
+				return from;
+			}
+		};
 	}
 
 	<T, U extends StructuredDataTarget> U unbind(Model<T> model, U output,

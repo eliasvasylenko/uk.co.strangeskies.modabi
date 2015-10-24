@@ -28,7 +28,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataItem;
@@ -69,7 +68,7 @@ public class BindingProviders {
 					public <T> Set<T> get(Model<T> model) {
 						return manager.bindingFutures(model).stream()
 								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
-								.map(Binding::getData).collect(Collectors.toSet());
+								.collect(Collectors.toSet());
 					}
 				}, idDomain, id);
 			}

@@ -8,5 +8,3 @@ Bundle-Name: Modabi - Scripting
 	osgi.enroute.base.api,\
 	${ss;utilities},\
 	uk.co.strangeskies.modabi.core.api;version=project
-
-Bundle-Version: 0.0.1.${tstamp}

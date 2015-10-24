@@ -82,7 +82,8 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println("Re-binding MetaSchema...");
 		Schema metaSchema = schemaManager
-				.bind(schemaManager.getMetaSchema().getSchemaModel(), buffered);
+				.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered)
+				.resolve();
 
 		boolean success = metaSchema.equals(schemaManager.getMetaSchema());
 		System.out.println("Success: " + success);
@@ -104,7 +105,8 @@ public class SchemaTest {
 		System.out.println();
 		System.out.println("Re-re-binding MetaSchema...");
 		metaSchema = schemaManager
-				.bind(schemaManager.getMetaSchema().getSchemaModel(), buffered);
+				.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered)
+				.resolve();
 
 		@SuppressWarnings("unchecked")
 		Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.getModels().get(
@@ -128,8 +130,8 @@ public class SchemaTest {
 					StructuredDataBuffer.singleBuffer(), schemaManager.getMetaSchema());
 
 			buffered.reset();
-			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel(),
-					buffered);
+			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
+					.from(buffered).resolve();
 		}
 		System.out.println();
 
@@ -156,8 +158,8 @@ public class SchemaTest {
 			System.out.print(".");
 
 			buffered.reset();
-			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel(),
-					buffered);
+			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
+					.from(buffered).resolve();
 		}
 		long totalTimeBinding = System.currentTimeMillis() - startTime;
 		System.out.println();
@@ -206,7 +208,6 @@ public class SchemaTest {
 		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
 				stringIntMap);
 		System.out.println();
-
 
 		/*-
 		 * The following should be inferred as having type:

@@ -46,12 +46,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
+import uk.co.strangeskies.modabi.io.xml.XmlLoader;
 import uk.co.strangeskies.modabi.io.xml.XmlSource;
 import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 
-@Component
+@Component(immediate = true)
 public class BenchmarkRunner {
 	private static final String OUTPUT_FOLDER = System.getProperty("user.home")
 			+ File.separatorChar + "xml-benchmark";
@@ -89,19 +88,10 @@ public class BenchmarkRunner {
 				}
 			}
 
-			NavigableStructuredDataSource buffer = XmlSource
-					.from(context.getBundle().getResource("/BenchmarkSchema.xml")
-							.openStream())
-					.pipeNextChild(StructuredDataBuffer.singleBuffer()).getBuffer();
-
-			buffer.reset();
-			buffer.pipeNextChild(new XmlTarget(System.out));
-
-			buffer.reset();
-			manager.registerSchemaBinding(XmlSource.from(context.getBundle()
-					.getResource("/BenchmarkSchema.xml").openStream()));
-
-			logger.log(LogService.LOG_INFO, manager.registeredModels().toString());
+			manager.registerFileLoader(new XmlLoader());
+			manager.bindSchema().from(
+					context.getBundle().getResource("/BenchmarkSchema.xml").openStream())
+					.resolve(500);
 
 			boolean createXml = false;
 			logger.log(LogService.LOG_INFO, "Will create XML files? " + createXml);
@@ -117,6 +107,8 @@ public class BenchmarkRunner {
 						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
 				readLargeXmlWithModabi(new File(
 						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
+				readLargeXmlWithModabi(new File(
+						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
 
 				readLargeXmlWithStax(new File(
 						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
@@ -202,7 +194,7 @@ public class BenchmarkRunner {
 		long start = System.currentTimeMillis();
 
 		try (FileInputStream fis = new FileInputStream(file)) {
-			manager.bind(XmlSource.from(fis));
+			manager.bind().from(XmlSource.from(fis)).resolve();
 
 			long end = System.currentTimeMillis();
 

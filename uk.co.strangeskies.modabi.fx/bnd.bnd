@@ -9,5 +9,4 @@ Bundle-Name: Modabi - Scripting
 	${ss;utilities},\
 	uk.co.strangeskies.modabi.core.api;version=project
 
-Bundle-Version: 0.0.1.${tstamp}
 Export-Package: uk.co.strangeskies.modabi.fx

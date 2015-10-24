@@ -18,8 +18,15 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -27,13 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.Binding;
@@ -54,6 +62,7 @@ import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
 import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.io.structured.FileLoader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingContext;
@@ -87,6 +96,8 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final DataTypeBuilder dataTypeBuilder;
 
 	private final BindingProviders bindingProviders;
+
+	private final Set<FileLoader> fileLoaders;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
@@ -122,6 +133,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(new TypeToken<@Infer Map<?, ?>>() {}, HashMap::new);
 
 		bindingProviders = new BindingProviders(this);
+
+		fileLoaders = new HashSet<>();
 	}
 
 	SchemaBinder getSchemaBinder() {
@@ -189,33 +202,106 @@ public class SchemaManagerImpl implements SchemaManager {
 		return coreSchemata.baseSchema();
 	}
 
+	private <T> Binder<T> createBinder(
+			Function<StructuredDataSource, BindingFuture<T>> bindingFunction) {
+		return new Binder<T>() {
+			@Override
+			public BindingFuture<T> from(StructuredDataSource input) {
+				return bindingFunction.apply(input);
+			}
+
+			@Override
+			public BindingFuture<T> from(File input) {
+				String extension = input.getName();
+				int lastDot = extension.lastIndexOf('.');
+				if (lastDot > 0) {
+					extension = extension.substring(lastDot);
+				} else {
+					extension = null;
+				}
+
+				try {
+					InputStream fileStream = new FileInputStream(input);
+
+					if (extension != null) {
+						return from(fileStream, extension);
+					} else {
+						return from(fileStream);
+					}
+				} catch (FileNotFoundException e) {
+					throw new IllegalArgumentException(e);
+				}
+			}
+
+			@Override
+			public BindingFuture<T> from(InputStream input) {
+				return from(input, getRegisteredFileLoaders());
+			}
+
+			@Override
+			public BindingFuture<T> from(InputStream input, String extension) {
+				return from(input,
+						getRegisteredFileLoaders().stream()
+								.filter(l -> l.isValidForExtension(extension))
+								.collect(Collectors.toList()));
+			}
+
+			private BindingFuture<T> from(InputStream input,
+					Collection<FileLoader> loaders) {
+				BufferedInputStream bufferedInput = new BufferedInputStream(input);
+				bufferedInput.mark(4096);
+
+				if (loaders.isEmpty())
+					throw new IllegalArgumentException(
+							"No valid file loader registered for input");
+
+				Exception exception = null;
+
+				for (FileLoader loader : loaders) {
+					try {
+						return from(loader.loadFile(bufferedInput));
+					} catch (Exception e) {
+						exception = e;
+					}
+					try {
+						bufferedInput.reset();
+					} catch (IOException e) {
+						throw new IllegalArgumentException(
+								"Problem buffering input for binding", e);
+					}
+				}
+
+				throw new IllegalArgumentException(
+						"Could not bind input with any registered file loaders", exception);
+			}
+		};
+	}
+
 	@Override
-	public <T> BindingFuture<T> bindFuture(Model<T> model,
-			StructuredDataSource input, ClassLoader classLoader) {
-		return addBindingFuture(
-				getSchemaBinder().bind(model.effective(), input, classLoader));
+	public <T> Binder<T> bind(Model<T> model) {
+		return createBinder(input -> addBindingFuture(
+				getSchemaBinder().bind(model.effective(), input)));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> BindingFuture<T> bindFuture(TypeToken<T> dataClass,
-			StructuredDataSource input, ClassLoader classLoader) {
-		Model<?> model = registeredModels.get(input.peekNextChild());
-		List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
-		if (models.contains(model))
-			throw new IllegalArgumentException("None of the models '" + model
-					+ "' compatible with the class '" + dataClass
-					+ "' match the root element '" + input.peekNextChild() + "'");
-		return (BindingFuture<T>) addBindingFuture(
-				getSchemaBinder().bind(model.effective(), input, classLoader));
+	public <T> Binder<T> bind(TypeToken<T> dataClass) {
+		return createBinder(input -> {
+			Model<?> model = registeredModels.get(input.peekNextChild());
+			List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
+			if (models.contains(model))
+				throw new IllegalArgumentException("None of the models '" + model
+						+ "' compatible with the class '" + dataClass
+						+ "' match the root element '" + input.peekNextChild() + "'");
+			return (BindingFuture<T>) addBindingFuture(
+					getSchemaBinder().bind(model.effective(), input));
+		});
 	}
 
 	@Override
-	public BindingFuture<?> bindFuture(StructuredDataSource input,
-			ClassLoader classLoader) {
-		return addBindingFuture(getSchemaBinder().bind(
-				registeredModels.get(input.peekNextChild()).effective(), input,
-				classLoader));
+	public Binder<?> bind() {
+		return createBinder(input -> addBindingFuture(getSchemaBinder()
+				.bind(registeredModels.get(input.peekNextChild()).effective(), input)));
 	}
 
 	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
@@ -224,9 +310,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		new Thread(() -> {
 			try {
 				binding.get();
-			} catch (CancellationException e) {} catch (InterruptedException
-					| ExecutionException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
 				bindingFutures.remove(binding.getModel().effective().getName());
 			}
 		}).start();
@@ -335,5 +419,21 @@ public class SchemaManagerImpl implements SchemaManager {
 				dependencies);
 		registerSchema(schema);
 		return schema;
+	}
+
+	@Override
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterFileLoader")
+	public void registerFileLoader(FileLoader loader) {
+		fileLoaders.add(loader);
+	}
+
+	@Override
+	public void unregisterFileLoader(FileLoader loader) {
+		fileLoaders.remove(loader);
+	}
+
+	@Override
+	public Set<FileLoader> getRegisteredFileLoaders() {
+		return Collections.unmodifiableSet(fileLoaders);
 	}
 }

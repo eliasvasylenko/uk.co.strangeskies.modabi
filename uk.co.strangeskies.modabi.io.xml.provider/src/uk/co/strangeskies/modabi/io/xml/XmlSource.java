@@ -142,7 +142,6 @@ public class XmlSource implements StructuredDataSource {
 				nextChild = qualifiedName;
 
 				done = true;
-
 				break;
 			case XMLStreamReader.END_DOCUMENT:
 			case XMLStreamReader.END_ELEMENT:
@@ -246,6 +245,8 @@ public class XmlSource implements StructuredDataSource {
 		}
 
 		pumpEvents();
+
+		namespaceStack.pop();
 	}
 
 	@Override

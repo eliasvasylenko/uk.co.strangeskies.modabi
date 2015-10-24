@@ -19,15 +19,14 @@ Bundle-Name: Modabi - Benchmarks
 
 Private-Package: uk.co.strangeskies.modabi.benchmark
 
-Bundle-Version: 0.0.1.${tstamp}
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.benchmarks)',\
 	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.utilities.osgi.uk.co.strangeskies.utilities.osgi.consolelog)',\
+	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.utilities.osgi.consolelog)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.runtime)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)'
--runfw: org.eclipse.osgi
+-runfw: org.eclipse.osgi;version='[3.10.100.v20150529-1857,3.10.100.v20150529-1857]'
 -runbundles: \
 	org.apache.commons.lang3;version='[3.4.0,3.4.1)',\
 	org.apache.felix.configadmin;version='[1.8.6,1.8.7)',\
@@ -43,10 +42,11 @@ Bundle-Version: 0.0.1.${tstamp}
 	uk.co.strangeskies.mathematics;version='[0.0.4,0.0.5)',\
 	uk.co.strangeskies.modabi.benchmarks;version=snapshot,\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
-	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.core.provider;version='[1.0.0,1.0.1)',\
 	uk.co.strangeskies.modabi.io.xml.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.scripting.provider;version=snapshot,\
 	uk.co.strangeskies.reflection;version='[0.0.3,0.0.4)',\
 	uk.co.strangeskies.utilities;version='[0.0.1,0.0.2)',\
-	uk.co.strangeskies.utilities.osgi.uk.co.strangeskies.utilities.osgi.consolelog;version='[0.0.1,0.0.2)'
+	uk.co.strangeskies.utilities.osgi.consolelog;version='[0.0.1,0.0.2)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000

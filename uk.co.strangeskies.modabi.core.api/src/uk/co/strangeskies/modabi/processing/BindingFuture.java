@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.processing;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -36,19 +35,21 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 
 	Set<BindingFuture<?>> getBlockingBindings();
 
-	default Binding<T> resolve() {
-		try {
-			return get();
-		} catch (InterruptedException e) {
-			throw new SchemaException("Unexpected interrupt during binding of '"
-					+ getName() + "' with model '" + getModel().getName() + "'", e);
-		} catch (ExecutionException e) {
-			throw new SchemaException("Exception during binding of '" + getName()
-					+ "' with model '" + getModel().getName() + "'", e.getCause());
-		}
+	@Override
+	Binding<T> get();
+
+	@Override
+	Binding<T> get(long timeout, TimeUnit unit);
+
+	default T resolve() {
+		return get().getData();
 	}
 
-	default Binding<T> resolveNow() {
+	default T resolve(long timeout) {
+		return get(timeout, TimeUnit.MILLISECONDS).getData();
+	}
+
+	default Binding<T> getNow() {
 		Set<BindingFuture<?>> blockingBindings = getBlockingBindings();
 
 		if (!isDone() && cancel(true))
@@ -56,7 +57,11 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 					"Binding has been blocked by the following missing dependencies: "
 							+ blockingBindings);
 
-		return resolve();
+		return get();
+	}
+
+	default T resolveNow() {
+		return getNow().getData();
 	}
 
 	static <U> BindingFuture<U> forBinding(Binding<U> binding) {
@@ -77,7 +82,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 			}
 
 			@Override
-			public Binding<U> get() throws InterruptedException, ExecutionException {
+			public Binding<U> get() {
 				return binding;
 			}
 

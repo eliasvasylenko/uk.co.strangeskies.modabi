@@ -33,6 +33,11 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public class SchemaBinder {
+	private static interface TryGet<T> {
+		T tryGet()
+				throws InterruptedException, ExecutionException, TimeoutException;
+	}
+
 	private final BindingContextImpl context;
 
 	public SchemaBinder(BindingContextImpl context) {
@@ -40,7 +45,9 @@ public class SchemaBinder {
 	}
 
 	public <T> BindingFuture<T> bind(Model.Effective<T> model,
-			StructuredDataSource input, ClassLoader classLoader) {
+			StructuredDataSource input) {
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
 		BindingContextImpl context = this.context.withInput(input);
 
 		QualifiedName inputRoot = input.startNextChild();
@@ -80,14 +87,30 @@ public class SchemaBinder {
 			}
 
 			@Override
-			public Binding<T> get() throws InterruptedException, ExecutionException {
-				return new Binding<T>(getModel(), future.get());
+			public Binding<T> get() {
+				return tryGet(future::get);
 			}
 
 			@Override
-			public Binding<T> get(long timeout, TimeUnit unit)
-					throws InterruptedException, ExecutionException, TimeoutException {
-				return new Binding<T>(getModel(), future.get(timeout, unit));
+			public Binding<T> get(long timeout, TimeUnit unit) {
+				return tryGet(() -> future.get(timeout, unit));
+			}
+
+			private Binding<T> tryGet(TryGet<T> get) {
+				try {
+					return new Binding<T>(getModel(), get.tryGet());
+				} catch (InterruptedException e) {
+					throw new SchemaException("Unexpected interrupt during binding of '"
+							+ getName() + "' with model '" + getModel().getName() + "'", e);
+				} catch (ExecutionException e) {
+					throw new SchemaException("Exception during binding of '" + getName()
+							+ "' with model '" + getModel().getName() + "'", e.getCause());
+				} catch (TimeoutException e) {
+					throw new SchemaException(
+							"Timed out waiting for binding of '" + getName()
+									+ "' with model '" + getModel().getName() + "'",
+							e.getCause());
+				}
 			}
 
 			@Override

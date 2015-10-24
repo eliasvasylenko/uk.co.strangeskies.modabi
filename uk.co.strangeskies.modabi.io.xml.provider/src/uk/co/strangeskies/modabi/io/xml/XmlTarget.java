@@ -95,8 +95,9 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 	}
 
 	private boolean outputCurrentChild(boolean selfClosing) {
-		boolean done = currentChild != null;
 		try {
+			boolean done = currentChild != null;
+
 			if (done) {
 				// write start of element
 				if (selfClosing) {
@@ -134,10 +135,11 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 					out.writeComment(comment);
 				comments.clear();
 			}
+
+			return done;
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
-		return done;
 	}
 
 	@Override

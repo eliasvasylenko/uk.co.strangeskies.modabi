@@ -19,6 +19,10 @@ groupid: uk.co.strangeskies
 Bundle-Vendor: Strange Skies http://strangeskies.co.uk/
 Bundle-Copyright: ${copyright}
 Bundle-License: LGPL <http://www.gnu.org/licenses/>
+Bundle-Version: 1.0.0.${tstamp}
+Bundle-ActivationPolicy: lazy
+
+-dsannotations: *
 
 ## Properties from ext/*.bnd can be referenced in order to extend them. For
 ## example, to add one additional plugin to the list defined in
@@ -66,7 +70,8 @@ Git-SHA: ${system-allow-fail;git rev-list -1 HEAD}
 
 # Run requirement groups:
 runreq.base=\
-	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)'
+	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)',\
+	osgi.identity;filter:='(osgi.identity=osgi.enroute.base.api)'
 
 runreq.felix.shell=\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
