@@ -92,17 +92,17 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 */
 		effectiveDataType = overrideMerge
 				.getOverride(BindingNode::getDataType, this.dataType)
-				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
 		effectiveBindingType = overrideMerge
 				.getOverride(BindingNode::getBindingType, this.bindingType)
-				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
 		effectiveUnbindingType = overrideMerge
 				.getOverride(BindingNode::getUnbindingType, this.unbindingType)
-				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
 		effectiveUnbindingFactoryType = overrideMerge
 				.getOverride(BindingNode::getUnbindingFactoryType,
 						this.unbindingFactoryType)
-				.orMerged(TypeToken::withEquality).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
 
 		/*
 		 * Incorporate bounds from inherited types.

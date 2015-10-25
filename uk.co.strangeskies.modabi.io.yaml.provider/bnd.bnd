@@ -1,6 +1,8 @@
--dsannotations: *
-
-Bundle-Name: Modabi - YAML
+Bundle-Name: Modabi :: YAML :: Provider
+Bundle-Description: \
+	YAML provider for the Modabi library.\
+\
+	${modabi-description}
 
 -runee: JavaSE-1.8
 

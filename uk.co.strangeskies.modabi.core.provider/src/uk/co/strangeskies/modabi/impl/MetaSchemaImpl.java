@@ -48,10 +48,10 @@ import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
@@ -60,8 +60,8 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
@@ -116,7 +116,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.complex().name("child").outMethod("children")
 						.inMethod("null").isAbstract(true).extensible(true)
 						.baseModel(childBaseModel).outMethodIterable(true)
-						.occurrences(Range.create(0, null)))
+						.occurrences(Range.between(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(branchModel);
@@ -399,7 +399,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<DataNode<?>> dataModel = model.configure(loader)
 				.name("data", namespace).baseModel(typedDataModel)
-				.addChild(n -> n.data().name("format").occurrences(Range.create(0, 0)))
+				.addChild(n -> n.data().name("format").occurrences(Range.between(0, 0)))
 				.create();
 		modelSet.add(dataModel);
 
@@ -448,12 +448,12 @@ public class MetaSchemaImpl implements MetaSchema {
 						.inMethod("qualifiedName").outMethod("getQualifiedName")
 						.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
 				.addChild(n -> n.complex().name("dependencies")
-						.occurrences(Range.create(0, 1))
+						.occurrences(Range.between(0, 1))
 						.dataType(new TypeToken<Set<Schema>>() {})
 						.addChild(o -> o.data().format(Format.SIMPLE).inMethod("add")
 								.name("dependency").type(base.derivedTypes().importType())
 								.dataType(Schema.class).outMethodIterable(true)
-								.outMethod("this").occurrences(Range.create(0, null))
+								.outMethod("this").occurrences(Range.between(0, null))
 								.addChild(i -> i.data().name("import")
 										.addChild(p -> p.data().name("targetModel")
 												.provideValue(new BufferingDataTarget()
@@ -489,20 +489,20 @@ public class MetaSchemaImpl implements MetaSchema {
 																		new QualifiedName("model", namespace))
 																.buffer())))))
 				.addChild(n -> n.complex().name("types").outMethod("getDataTypes")
-						.occurrences(Range.create(0, 1))
+						.occurrences(Range.between(0, 1))
 						.dataType(new TypeToken<@Infer Set<?>>() {})
 						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
 						.addChild(o -> o.complex().baseModel(typeModel).outMethod("this")
 								.name("type").outMethodIterable(true)
 								.dataType(new TypeToken<DataType<?>>() {})
-								.occurrences(Range.create(0, null))))
+								.occurrences(Range.between(0, null))))
 				.addChild(
-						n -> n.complex().name("models").occurrences(Range.create(0, 1))
+						n -> n.complex().name("models").occurrences(Range.between(0, 1))
 								.dataType(new TypeToken<@Infer Set<?>>() {})
 								.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
 								.addChild(o -> o.complex().baseModel(modelModel).inMethod("add")
 										.outMethodIterable(true).outMethod("this")
-										.occurrences(Range.create(0, null))))
+										.occurrences(Range.between(0, null))))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(schemaModel);

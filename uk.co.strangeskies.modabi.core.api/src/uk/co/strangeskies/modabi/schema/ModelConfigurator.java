@@ -48,8 +48,9 @@ public interface ModelConfigurator<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	default <V extends T> ModelConfigurator<V> dataType(Class<V> dataType) {
+		Type type = dataType;
 		return (ModelConfigurator<V>) AbstractComplexNodeConfigurator.super.dataType(
-				dataType);
+				type);
 	}
 
 	@Override

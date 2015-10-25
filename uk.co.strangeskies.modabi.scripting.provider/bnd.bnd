@@ -1,25 +1,26 @@
-Bundle-Name: Modabi - Scripting
+Bundle-Name: Modabi :: Scripting :: Provider
+Bundle-Description: \
+	This package contains a schema provider for loading scripts, \
+	and for adding scripting integration support for other schemata.\
+\
+	${modabi-description}
 
 -runee: JavaSE-1.8
 
+-pluginpath: \
+	${base-plugin-path}, \
+	${modabi-plugin-path}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
+
 -buildpath: \
-	osgi.enroute.base.api,\
 	${ss;utilities},\
-	uk.co.strangeskies.modabi.core.api;version=project
+	${ss;scripting.management}
 
 -includeresource: \
-	MODABI-INF=schemata
-
-Require-Capability: \
-	osgi.service; \
-		filter:="(&(objectClass=uk.co.strangeskies.modabi.io.structured.FileLoader)(id=xml))"; \
-		resolution:=mandatory
-
-Modabi-Schemata: \
-	MODABI-INF/ScriptingSchema.xml
-
-Provide-Capability: \
-	uk.co.strangeskies.modabi.schema; \
-		schemata:List<String>="uk.co.strangeskies.modabi:2014-01-01:ScriptingSchema"
-
+	META-INF/modabi=schemata
+	
 -runfw: org.eclipse.osgi
+
+Export-Package: uk.co.strangeskies.modabi.scripting

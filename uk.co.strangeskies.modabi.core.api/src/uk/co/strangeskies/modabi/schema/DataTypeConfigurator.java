@@ -26,8 +26,7 @@ import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataTypeConfigurator<T>
-		extends
-		BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
+		extends BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
 	/**
 	 * @param isAbstract
 	 *          The value to be returned by {@link DataType#isAbstract()}.
@@ -50,10 +49,10 @@ public interface DataTypeConfigurator<T>
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	default <U extends T> DataTypeConfigurator<U> dataType(
-			Class<U> dataType) {
-		return (DataTypeConfigurator<U>) BindingNodeConfigurator.super
-				.dataType(dataType);
+	default <U extends T> DataTypeConfigurator<U> dataType(Class<U> dataType) {
+		Type type = dataType;
+		return (DataTypeConfigurator<U>) BindingNodeConfigurator.super.dataType(
+				type);
 	}
 
 	@Override
@@ -62,21 +61,19 @@ public interface DataTypeConfigurator<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default DataTypeConfigurator<? extends T> dataType(
-			AnnotatedType dataType) {
-		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super
-				.dataType(dataType);
+	default DataTypeConfigurator<? extends T> dataType(AnnotatedType dataType) {
+		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(
+				dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default DataTypeConfigurator<? extends T> dataType(Type dataType) {
-		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super
-				.dataType(dataType);
+		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(
+				dataType);
 	}
 
-	<U extends T> DataTypeConfigurator<U> baseType(
-			DataType<? super U> baseType);
+	<U extends T> DataTypeConfigurator<U> baseType(DataType<? super U> baseType);
 
 	@Override
 	default public DataTypeConfigurator<T> addChild(

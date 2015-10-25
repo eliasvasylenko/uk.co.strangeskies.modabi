@@ -16,10 +16,13 @@ copyright = Copyright (c) Strange Skies (2014, ${copyright.year}). All Rights Re
 
 groupid: uk.co.strangeskies
 
+modabi-version: 1.0.0
+modabi-version-ceiling: 2.0.0
+
 Bundle-Vendor: Strange Skies http://strangeskies.co.uk/
 Bundle-Copyright: ${copyright}
 Bundle-License: LGPL <http://www.gnu.org/licenses/>
-Bundle-Version: 1.0.0.${tstamp}
+Bundle-Version: ${modabi-version}.${tstamp}
 Bundle-ActivationPolicy: lazy
 
 -dsannotations: *
@@ -33,9 +36,16 @@ Bundle-ActivationPolicy: lazy
 # -baseline: *
 -releaserepo: Release
 
--pluginpath:\
+base-plugin-path: \
 	${build}/cache/biz.aQute.repository.aether.jar; \
 		url = ${bnd-release}/biz.aQute.repository.aether/biz.aQute.repository.aether-latest.jar
+
+modabi-plugin-path: \
+	${build}/release/uk.co.strangeskies.modabi.bnd.core/uk.co.strangeskies.modabi.bnd.core-${modabi-version}.jar,\
+	${build}/release/uk.co.strangeskies.modabi.bnd.xml/uk.co.strangeskies.modabi.bnd.xml-${modabi-version}.jar
+
+-pluginpath: \
+	${base-plugin-path}
 
 ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}\\;version=latest}
 
@@ -88,3 +98,22 @@ runreq.felix.web=\
 runreq.eclipselink.jpa=\,\
 	osgi.identity;filter:='(osgi.identity=org.apache.aries.jpa.eclipselink.adapter)'
 	osgi.identity;filter:='(osgi.identity=javax.persistence)'
+
+# Build path groups:
+buildpath.base=\
+	osgi.enroute.junit.wrapper,\
+	osgi.enroute.hamcrest.wrapper,\
+	org.hamcrest__java-hamcrest,\
+	osgi.enroute.base.api
+
+# General configuration
+modabi-description: \
+	Modabi is a modular data binding library for Java. It is format \
+	agnostic, and schema can bind to interface over implementation. \
+	Complex binding rules are supported, including e.g. support for \
+	the builder pattern, so it's easy to plug into existing business \
+	objects and API without modification. \
+\
+	Type safety is provided beyond the current best in class - to the \
+	level of full generic input/output method invocation type \
+	inference.

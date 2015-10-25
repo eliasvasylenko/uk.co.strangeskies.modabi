@@ -1,23 +1,19 @@
 <?xml version="1.0" ?>
 <schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="ScriptingSchema">
-	<dependencies />
+	<dependencies>
+		<dependency>BaseSchema</dependency>
+	</dependencies>
 
 	<types />
 
 	<models>
-		<model name="script">
-			<property name="objectType" type="type" />
+		<model name="script" abstract="true" type="javax.script.ScriptEngineManager">
+			<property name="objectType" type="type" abstract="true"/>
 
-			<property name="objectName" type="string" optional="true" />
+			<property name="objectName" type="string" optional="true" abstract="true"/>
 
-			<choice name="scriptType">
-				<property name="source" type="url" />
-
-				<sequence>
-					<property name="language" type="string" />
-					<content name="script" type="string" />
-				</sequence>
+			<choice name="scriptType" abstract="true">
 			</choice>
 		</model>
 	</models>

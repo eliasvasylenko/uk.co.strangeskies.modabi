@@ -1,6 +1,8 @@
--dsannotations: *
-
-Bundle-Name: Modabi - JSON
+Bundle-Name: Modabi :: JSON :: Provider
+Bundle-Description: \
+	JSON provider for the Modabi library.\
+\
+	${modabi-description}
 
 -runee: JavaSE-1.8
 

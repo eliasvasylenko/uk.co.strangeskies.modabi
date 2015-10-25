@@ -1,6 +1,10 @@
--dsannotations: *
-
-Bundle-Name: Modabi - Scripting
+Bundle-Name: Modabi :: Eclipse
+Bundle-Description: \
+	Eclipse tooling for development with Modabi schemata, providing \
+	validation of source files during editing, as well as UI editing \
+	of files according to their schemata.\
+\
+	${modabi-description}
 
 -runee: JavaSE-1.8
 

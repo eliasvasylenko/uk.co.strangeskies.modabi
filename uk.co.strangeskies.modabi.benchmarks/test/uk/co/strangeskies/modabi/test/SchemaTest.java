@@ -195,8 +195,10 @@ public class SchemaTest {
 						.addChild(e -> e.complex().name("entry")
 								.addChild(k -> k.data().name("key").type(schemaManager
 										.getBaseSchema().primitiveType(Primitive.STRING)))
-						.addChild(v -> v.complex().name("value")
-								.baseModel(schemaManager.getBaseSchema().models().simpleModel())
+						.addChild(
+								v -> v.complex().name("value")
+										.baseModel(schemaManager.getBaseSchema().models()
+												.simpleModel())
 								.addChild(c -> c.data().name("content").type(schemaManager
 										.getBaseSchema().primitiveType(Primitive.INT)))))));
 		System.out.println(stringIntMapModel.effective().getDataType());
@@ -233,7 +235,7 @@ public class SchemaTest {
 										.inMethodChained(true))
 						.addChild(
 								f -> f.complex().name("entry").outMethodIterable(true)
-										.occurrences(Range.create(0, null)).inMethod("add")
+										.occurrences(Range.between(0, null)).inMethod("add")
 										.outMethod("this")
 										.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
 										.bindingType(BaseSchemaImpl.class)

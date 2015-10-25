@@ -1,6 +1,8 @@
--dsannotations: *
-
-Bundle-Name: Modabi - XML
+Bundle-Name: Modabi :: XML :: Provider
+Bundle-Description: \
+	XML provider for the Modabi library.\
+\
+	${modabi-description}
 
 -runee: JavaSE-1.8
 

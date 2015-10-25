@@ -34,10 +34,9 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(
 			TypeToken<? extends V> dataType);
 
-	@SuppressWarnings("unchecked")
 	default <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
 			Class<V> dataClass) {
-		return (BindingNodeConfigurator<?, ?, V>) dataType((Type) dataClass);
+		return dataType(dataClass);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -71,8 +70,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	}
 
 	default S unbindingFactoryType(Type factoryType) {
-		return unbindingFactoryType(TypeToken
-				.over(AnnotatedTypes.over(factoryType)));
+		return unbindingFactoryType(
+				TypeToken.over(AnnotatedTypes.over(factoryType)));
 	}
 
 	S unbindingType(TypeToken<?> unbindingType);

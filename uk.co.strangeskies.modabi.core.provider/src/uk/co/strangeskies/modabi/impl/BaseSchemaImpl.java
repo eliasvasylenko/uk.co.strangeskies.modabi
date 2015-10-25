@@ -20,6 +20,8 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -98,6 +100,8 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataType<Set<?>> setType;
 		private final DataType<Object> importType;
 		private final DataType<Collection<?>> includeType;
+		private final DataType<URI> uriType;
+		private final DataType<URL> urlType;
 
 		public DerivedTypesImpl(TypeFactory factory,
 				DataType<Enumeration<?>> enumerationBaseType) {
@@ -111,7 +115,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingFactoryType(Arrays.class).unbindingMethod("asList")
 							.addChild(c -> c.data().name("element").inMethod("add")
 									.outMethod("this").isAbstract(true)
-									.occurrences(Range.create(0, null)).inMethodChained(false)
+									.occurrences(Range.between(0, null)).inMethodChained(false)
 									.outMethodIterable(true))
 					.addChild(c -> c.inputSequence().name("toArray").inMethodChained(true)
 							.inMethodCast(true)).create());
@@ -122,7 +126,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingStrategy(UnbindingStrategy.SIMPLE)
 							.addChild(c -> c.data().name("element").inMethod("add")
 									.outMethod("this").isAbstract(true).extensible(true)
-									.occurrences(Range.create(0, null)).outMethodIterable(true))
+									.occurrences(Range.between(0, null)).outMethodIterable(true))
 					.create());
 
 			listType = factory.apply("list",
@@ -132,6 +136,20 @@ public class BaseSchemaImpl implements BaseSchema {
 			setType = factory.apply("set",
 					t -> t.dataType(new TypeToken<@Infer Set<?>>() {})
 							.baseType(collectionType).create());
+
+			uriType = factory.apply("uri",
+					t -> t.dataType(URI.class)
+							.bindingStrategy(BindingStrategy.CONSTRUCTOR)
+							.addChild(u -> u.data().name("uriString")
+									.type(primitiveType(Primitive.STRING)).outMethod("toString"))
+					.create());
+
+			urlType = factory.apply("url",
+					t -> t.dataType(URL.class)
+							.bindingStrategy(BindingStrategy.CONSTRUCTOR)
+							.addChild(u -> u.data().name("urlString")
+									.type(primitiveType(Primitive.STRING)).outMethod("toString"))
+					.create());
 
 			bufferedDataType = factory.apply("bufferedData",
 					t -> t.dataType(DataSource.class).bindingType(DataSource.class)
@@ -611,6 +629,16 @@ public class BaseSchemaImpl implements BaseSchema {
 		public DataType<Object> importType() {
 			return importType;
 		}
+
+		@Override
+		public DataType<URI> uriType() {
+			return uriType;
+		}
+
+		@Override
+		public DataType<URL> urlType() {
+			return urlType;
+		}
 	}
 
 	private class BaseModelsImpl implements BaseModels {
@@ -651,7 +679,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.inMethodChained(true))
 									.addChild(f -> f.complex().name("entry")
 											.outMethodIterable(true)
-											.occurrences(Range.create(0, null)).inMethod("add")
+											.occurrences(Range.between(0, null)).inMethod("add")
 											.outMethod("this")
 											.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
 											.bindingType(BaseSchemaImpl.class)

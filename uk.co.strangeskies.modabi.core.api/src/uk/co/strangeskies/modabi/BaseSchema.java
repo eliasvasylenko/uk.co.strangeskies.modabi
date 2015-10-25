@@ -20,6 +20,8 @@ package uk.co.strangeskies.modabi;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +48,10 @@ public interface BaseSchema extends Schema {
 		DataType<List<?>> listType();
 
 		DataType<Set<?>> setType();
+
+		DataType<URI> uriType();
+
+		DataType<URL> urlType();
 
 		DataType<Object> referenceType();
 

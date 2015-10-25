@@ -110,7 +110,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		this.dataTypeBuilder = dataTypeBuilder;
 
 		providers = new ArrayList<>();
-		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
+		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make
+																												// synchronous
 
 		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
 				dataTypeBuilder);

@@ -26,10 +26,10 @@ import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataNodeConfiguratorImpl<T> extends
@@ -63,8 +63,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataNodeConfigurator<U> type(
-			DataType<? super U> type) {
+	public final <U extends T> DataNodeConfigurator<U> type(DataType<U> type) {
 		assertConfigurable(this.type);
 		this.type = (DataType<T>) type;
 

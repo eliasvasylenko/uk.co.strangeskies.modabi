@@ -80,7 +80,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 					.orDefault(true).get();
 
 			occurrences = overrideMerge.getOverride(BindingChildNode::occurrences)
-					.validate((v, o) -> o.contains(v)).orDefault(Range.create(1, 1))
+					.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1))
 					.get();
 
 			iterable = overrideMerge
@@ -258,7 +258,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				if (!resultType.isAssignableFrom(receiverType.resolve())) {
 					throw new SchemaException("Can't use out method 'this' for node '"
 							+ node.getName() + "', as result class '" + resultType
-							+ "' cannot be assigned from target class'" + receiverType + "'");
+							+ "' cannot be assigned from target class '" + receiverType
+							+ "'");
 				}
 
 				outMethod = null;

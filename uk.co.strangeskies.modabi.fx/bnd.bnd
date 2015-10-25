@@ -1,6 +1,9 @@
--dsannotations: *
-
-Bundle-Name: Modabi - Scripting
+Bundle-Name: Modabi - FX
+Bundle-Description: \
+	This package provides UI components for manipulating Java \
+	objects by way of a given schema binding, built on JavaFX.\
+\
+	${modabi-description}
 
 -runee: JavaSE-1.8
 

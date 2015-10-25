@@ -1,0 +1,3 @@
+Private-Package: \
+	uk.co.strangeskies.modabi.bnd.xml,\
+	uk.co.strangeskies.modabi.io.xml
