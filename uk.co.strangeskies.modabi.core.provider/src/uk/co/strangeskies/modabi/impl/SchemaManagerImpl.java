@@ -19,11 +19,9 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -62,7 +61,7 @@ import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
 import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.io.structured.FileLoader;
+import uk.co.strangeskies.modabi.io.structured.DataInterface;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingContext;
@@ -97,7 +96,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private final BindingProviders bindingProviders;
 
-	private final Set<FileLoader> fileLoaders;
+	private final Set<DataInterface> fileLoaders;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
@@ -212,43 +211,20 @@ public class SchemaManagerImpl implements SchemaManager {
 			}
 
 			@Override
-			public BindingFuture<T> from(File input) {
-				String extension = input.getName();
-				int lastDot = extension.lastIndexOf('.');
-				if (lastDot > 0) {
-					extension = extension.substring(lastDot);
-				} else {
-					extension = null;
-				}
-
-				try {
-					InputStream fileStream = new FileInputStream(input);
-
-					if (extension != null) {
-						return from(fileStream, extension);
-					} else {
-						return from(fileStream);
-					}
-				} catch (FileNotFoundException e) {
-					throw new IllegalArgumentException(e);
-				}
-			}
-
-			@Override
 			public BindingFuture<T> from(InputStream input) {
 				return from(input, getRegisteredFileLoaders());
 			}
 
 			@Override
-			public BindingFuture<T> from(InputStream input, String extension) {
+			public BindingFuture<T> from(String extension, InputStream input) {
 				return from(input,
 						getRegisteredFileLoaders().stream()
-								.filter(l -> l.isValidForExtension(extension))
+								.filter(l -> l.getFileExtensions().contains(extension))
 								.collect(Collectors.toList()));
 			}
 
 			private BindingFuture<T> from(InputStream input,
-					Collection<FileLoader> loaders) {
+					Collection<DataInterface> loaders) {
 				BufferedInputStream bufferedInput = new BufferedInputStream(input);
 				bufferedInput.mark(4096);
 
@@ -258,9 +234,9 @@ public class SchemaManagerImpl implements SchemaManager {
 
 				Exception exception = null;
 
-				for (FileLoader loader : loaders) {
+				for (DataInterface loader : loaders) {
 					try {
-						return from(loader.loadFile(bufferedInput));
+						return from(loader.loadData(bufferedInput));
 					} catch (Exception e) {
 						exception = e;
 					}
@@ -332,24 +308,43 @@ public class SchemaManagerImpl implements SchemaManager {
 					.collect(Collectors.toSet()));
 	}
 
-	@Override
-	public <T, U extends StructuredDataTarget> U unbind(Model<T> model, U output,
-			T data) {
-		new SchemaUnbinder(this).unbind(model.effective(), output, data);
-		return output;
+	private Unbinder createUnbinder(
+			Consumer<StructuredDataTarget> unbindingFunction) {
+		return new Unbinder() {
+			@Override
+			public <U extends OutputStream> U to(String extension, U output) {
+				throw new UnsupportedOperationException();
+
+				// TODO consider ID as well as extension... separate method?
+				
+				// return output;
+			}
+
+			@Override
+			public <U extends StructuredDataTarget> U to(U output) {
+				unbindingFunction.accept(output);
+
+				return output;
+			}
+		};
 	}
 
 	@Override
-	public <U extends StructuredDataTarget> U unbind(U output, Object data) {
-		new SchemaUnbinder(this).unbind(output, data);
-		return output;
+	public <T> Unbinder unbind(Model<T> model, T data) {
+		return createUnbinder(output -> new SchemaUnbinder(this)
+				.unbind(model.effective(), output, data));
 	}
 
 	@Override
-	public <T, U extends StructuredDataTarget> U unbind(TypeToken<T> dataType,
-			U output, T data) {
-		new SchemaUnbinder(this).unbind(output, dataType, data);
-		return output;
+	public Unbinder unbind(Object data) {
+		return createUnbinder(
+				output -> new SchemaUnbinder(this).unbind(output, data));
+	}
+
+	@Override
+	public <T> Unbinder unbind(TypeToken<T> dataType, T data) {
+		return createUnbinder(
+				output -> new SchemaUnbinder(this).unbind(output, dataType, data));
 	}
 
 	@Override
@@ -424,17 +419,17 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterFileLoader")
-	public void registerFileLoader(FileLoader loader) {
+	public void registerFileLoader(DataInterface loader) {
 		fileLoaders.add(loader);
 	}
 
 	@Override
-	public void unregisterFileLoader(FileLoader loader) {
+	public void unregisterFileLoader(DataInterface loader) {
 		fileLoaders.remove(loader);
 	}
 
 	@Override
-	public Set<FileLoader> getRegisteredFileLoaders() {
+	public Set<DataInterface> getRegisteredFileLoaders() {
 		return Collections.unmodifiableSet(fileLoaders);
 	}
 }

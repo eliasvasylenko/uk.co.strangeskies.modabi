@@ -1,10 +1,11 @@
-Bundle-Name: Modabi :: Benchmarks
+Bundle-Name: Modabi :: Core :: Test
 Bundle-Description: \
-	Benchmarks comparing Modabi to simple parsers.\
+	Simple integration tests for Modabi core.\
 \
 	${modabi-description}
 
 -runee: JavaSE-1.8
+
 -buildpath:  \
 	${buildpath.base},\
 	${ss;utilities},\
@@ -13,19 +14,10 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	uk.co.strangeskies.modabi.core.provider;version=project,\
 	uk.co.strangeskies.modabi.io.xml.provider;version=project,\
+	uk.co.strangeskies.modabi.io.json.provider;version=project,\
 	org.apache.commons.lang3
 
--pluginpath: \
-	${base-plugin-path}, \
-	${modabi-plugin-path}
-
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
-
--includeresource: \
-	META-INF/modabi=schemata
-
-Private-Package: uk.co.strangeskies.modabi.benchmark
+Private-Package: uk.co.strangeskies.modabi.core.test
 
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)',\

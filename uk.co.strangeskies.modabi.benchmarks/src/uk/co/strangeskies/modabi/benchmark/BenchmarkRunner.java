@@ -46,9 +46,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.xml.XmlLoader;
-import uk.co.strangeskies.modabi.io.xml.XmlSource;
-import uk.co.strangeskies.modabi.io.xml.XmlTarget;
+import uk.co.strangeskies.modabi.io.xml.XmlInterface;
 
 @Component(immediate = true)
 public class BenchmarkRunner {
@@ -88,7 +86,7 @@ public class BenchmarkRunner {
 				}
 			}
 
-			manager.registerFileLoader(new XmlLoader());
+			manager.registerFileLoader(new XmlInterface());
 			manager.bindSchema().from(
 					context.getBundle().getResource("/BenchmarkSchema.xml").openStream())
 					.resolve(500);
@@ -182,8 +180,7 @@ public class BenchmarkRunner {
 		OutputStream fos = new FileOutputStream(file);
 
 		try {
-			manager.unbind(PersonsType.class, new XmlTarget(fos), persons);
-			fos.flush();
+			manager.unbind(PersonsType.class, persons).to("xml", fos).flush();
 		} finally {
 			fos.close();
 		}
@@ -194,7 +191,7 @@ public class BenchmarkRunner {
 		long start = System.currentTimeMillis();
 
 		try (FileInputStream fis = new FileInputStream(file)) {
-			manager.bind().from(XmlSource.from(fis)).resolve();
+			manager.bind().from("xml", fis).resolve();
 
 			long end = System.currentTimeMillis();
 

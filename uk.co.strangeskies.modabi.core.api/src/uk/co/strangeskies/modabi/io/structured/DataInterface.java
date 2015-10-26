@@ -19,9 +19,15 @@
 package uk.co.strangeskies.modabi.io.structured;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Set;
 
-public interface FileLoader {
-	boolean isValidForExtension(String extension);
+public interface DataInterface {
+	String getId();
 
-	StructuredDataSource loadFile(InputStream file);
+	Set<String> getFileExtensions();
+
+	StructuredDataSource loadData(InputStream in);
+
+	StructuredDataTarget saveData(OutputStream out);
 }

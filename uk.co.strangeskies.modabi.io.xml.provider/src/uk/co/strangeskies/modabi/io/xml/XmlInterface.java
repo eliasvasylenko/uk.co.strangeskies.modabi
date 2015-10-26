@@ -19,21 +19,38 @@
 package uk.co.strangeskies.modabi.io.xml;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.io.structured.FileLoader;
+import uk.co.strangeskies.modabi.io.structured.DataInterface;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 
-@Component(immediate = true, property = "id=xml")
-public class XmlLoader implements FileLoader {
+@Component(immediate = true, property = "id=" + XmlInterface.XML_ID)
+public class XmlInterface implements DataInterface {
+	public static final String XML_ID = "xml";
+
 	@Override
-	public boolean isValidForExtension(String extension) {
-		return "xml".equals(extension);
+	public String getId() {
+		return XML_ID;
 	}
 
 	@Override
-	public StructuredDataSource loadFile(InputStream in) {
+	public Set<String> getFileExtensions() {
+		return new LinkedHashSet<>(Arrays.asList(XML_ID));
+	}
+
+	@Override
+	public StructuredDataSource loadData(InputStream in) {
 		return XmlSource.from(in);
+	}
+
+	@Override
+	public StructuredDataTarget saveData(OutputStream out) {
+		return new XmlTarget(out);
 	}
 }

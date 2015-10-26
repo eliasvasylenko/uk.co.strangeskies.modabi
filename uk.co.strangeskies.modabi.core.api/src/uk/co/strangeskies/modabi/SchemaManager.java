@@ -19,7 +19,11 @@
 package uk.co.strangeskies.modabi;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,7 +31,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.io.structured.FileLoader;
+import uk.co.strangeskies.modabi.io.structured.DataInterface;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -38,18 +42,59 @@ public interface SchemaManager {
 	interface Binder<T> {
 		BindingFuture<T> from(StructuredDataSource input);
 
-		BindingFuture<T> from(File input);
+		default BindingFuture<T> from(File input) {
+			String extension = input.getName();
+			int lastDot = extension.lastIndexOf('.');
+			if (lastDot > 0) {
+				extension = extension.substring(lastDot);
+			} else {
+				extension = null;
+			}
+
+			try (InputStream fileStream = new FileInputStream(input)) {
+				if (extension != null) {
+					return from(extension, fileStream);
+				} else {
+					return from(fileStream);
+				}
+			} catch (IOException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
 
 		BindingFuture<T> from(InputStream input);
 
-		BindingFuture<T> from(InputStream input, String extension);
+		BindingFuture<T> from(String extension, InputStream input);
 	}
 
-	void registerFileLoader(FileLoader loader);
+	interface Unbinder {
+		<U extends StructuredDataTarget> U to(U output);
 
-	void unregisterFileLoader(FileLoader loader);
+		default void to(File output) {
+			String extension = output.getName();
+			int lastDot = extension.lastIndexOf('.');
+			if (lastDot > 0) {
+				extension = extension.substring(lastDot);
+			} else {
+				throw new IllegalArgumentException("No recognisable extension for file'"
+						+ output + "', data interface cannot be selected");
+			}
 
-	Set<FileLoader> getRegisteredFileLoaders();
+			try (OutputStream fileStream = new FileOutputStream(output)) {
+				to(extension, fileStream).flush();
+			} catch (IOException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+
+		<U extends OutputStream> U to(String extension, U output);
+	}
+
+	void registerFileLoader(DataInterface loader);
+
+	void unregisterFileLoader(DataInterface loader);
+
+	Set<DataInterface> getRegisteredFileLoaders();
 
 	default GeneratedSchema generateSchema(QualifiedName name) {
 		return generateSchema(name, Collections.emptySet());
@@ -115,8 +160,8 @@ public interface SchemaManager {
 			}
 
 			@Override
-			public BindingFuture<Schema> from(InputStream input, String extension) {
-				return registerFuture(binder.from(input, extension));
+			public BindingFuture<Schema> from(String extension, InputStream input) {
+				return registerFuture(binder.from(extension, input));
 			}
 
 			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> from) {
@@ -129,18 +174,15 @@ public interface SchemaManager {
 		};
 	}
 
-	<T, U extends StructuredDataTarget> U unbind(Model<T> model, U output,
-			T data);
+	<T> Unbinder unbind(Model<T> model, T data);
 
-	<T, U extends StructuredDataTarget> U unbind(TypeToken<T> dataClass, U output,
-			T data);
+	<T> Unbinder unbind(TypeToken<T> dataClass, T data);
 
-	default <T, U extends StructuredDataTarget> U unbind(Class<T> dataClass,
-			U output, T data) {
-		return unbind(TypeToken.over(dataClass), output, data);
+	default <T> Unbinder unbind(Class<T> dataClass, T data) {
+		return unbind(TypeToken.over(dataClass), data);
 	}
 
-	<U extends StructuredDataTarget> U unbind(U output, Object data);
+	Unbinder unbind(Object data);
 
 	/*-
 	 * TODO Best effort at unbinding, outputting comments on errors instead of

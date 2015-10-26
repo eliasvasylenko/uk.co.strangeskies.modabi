@@ -6,6 +6,8 @@ Bundle-Description: \
 \
 	${modabi-description}
 
+-dsannotations:
+
 -runee: JavaSE-1.8
 
 -buildpath: \

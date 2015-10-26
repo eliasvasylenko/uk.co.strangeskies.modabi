@@ -15,6 +15,8 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
 
 -buildpath: \
+	${buildpath.base},\
+	uk.co.strangeskies.modabi.core.api;version=project,\
 	${ss;utilities},\
 	${ss;scripting.management}
 

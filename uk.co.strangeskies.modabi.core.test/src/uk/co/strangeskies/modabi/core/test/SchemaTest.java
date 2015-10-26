@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.benchmarks.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.test;
+package uk.co.strangeskies.modabi.core.test;
 
 import java.lang.reflect.AnnotatedType;
 import java.util.Arrays;
@@ -63,8 +63,8 @@ public class SchemaTest {
 		System.out.println("Unbinding BaseSchema...");
 		Navigable out = StructuredDataBuffer.singleBuffer();
 		NavigableStructuredDataSource buffered = out.getBuffer();
-		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
-				schemaManager.getBaseSchema());
+		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+				schemaManager.getBaseSchema()).to(out);
 		buffered.pipeNextChild(new XmlTarget(System.out));
 
 		System.out.println();
@@ -72,8 +72,8 @@ public class SchemaTest {
 		System.out.println("Unbinding MetaSchema...");
 		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
-		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), out,
-				schemaManager.getMetaSchema());
+		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+				schemaManager.getMetaSchema()).to(out);
 
 		buffered.pipeNextChild(new XmlTarget(System.out));
 		buffered.reset();
@@ -97,7 +97,7 @@ public class SchemaTest {
 		System.out.println("Re-unbinding MetaSchema...");
 		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
-		schemaManager.unbind(schemaModel, out, metaSchema);
+		schemaManager.unbind(schemaModel, metaSchema).to(out);
 		buffered.pipeNextChild(new XmlTarget(System.out));
 		buffered.reset();
 
@@ -117,7 +117,7 @@ public class SchemaTest {
 		System.out.println("Re-re-unbinding MetaSchema...");
 		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
-		schemaManager.unbind(schemaModel2, out, metaSchema);
+		schemaManager.unbind(schemaModel2, metaSchema).to(out);
 		buffered.pipeNextChild(new XmlTarget(System.out));
 
 		System.out.print("Profiling Preparation");
@@ -126,8 +126,10 @@ public class SchemaTest {
 				System.out.println();
 			System.out.print(".");
 
-			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-					StructuredDataBuffer.singleBuffer(), schemaManager.getMetaSchema());
+			schemaManager
+					.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+							schemaManager.getMetaSchema())
+					.to(StructuredDataBuffer.singleBuffer());
 
 			buffered.reset();
 			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
@@ -144,8 +146,10 @@ public class SchemaTest {
 				System.out.println();
 			System.out.print(".");
 
-			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-					StructuredDataBuffer.singleBuffer(), schemaManager.getMetaSchema());
+			schemaManager
+					.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+							schemaManager.getMetaSchema())
+					.to(StructuredDataBuffer.singleBuffer());
 		}
 		long totalTimeUnbinding = System.currentTimeMillis() - startTime;
 		System.out.println();
@@ -195,20 +199,18 @@ public class SchemaTest {
 						.addChild(e -> e.complex().name("entry")
 								.addChild(k -> k.data().name("key").type(schemaManager
 										.getBaseSchema().primitiveType(Primitive.STRING)))
-						.addChild(
-								v -> v.complex().name("value")
-										.baseModel(schemaManager.getBaseSchema().models()
-												.simpleModel())
+						.addChild(v -> v.complex().name("value")
+								.baseModel(schemaManager.getBaseSchema().models().simpleModel())
 								.addChild(c -> c.data().name("content").type(schemaManager
 										.getBaseSchema().primitiveType(Primitive.INT)))))));
 		System.out.println(stringIntMapModel.effective().getDataType());
 		System.out.println("    ~# " + stringIntMapModel.effective().getDataType()
 				.getResolver().getBounds());
 
-		schemaManager.unbind(stringIntMapModel, new XmlTarget(System.out),
-				stringIntMap);
-		schemaManager.unbind(stringIntMapModel, new JsonTarget(System.out, true),
-				stringIntMap);
+		schemaManager.unbind(stringIntMapModel, stringIntMap)
+				.to(new XmlTarget(System.out));
+		schemaManager.unbind(stringIntMapModel, stringIntMap)
+				.to(new JsonTarget(System.out, true));
 		System.out.println();
 
 		/*-
