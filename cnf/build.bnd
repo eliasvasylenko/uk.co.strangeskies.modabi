@@ -14,7 +14,7 @@ bnd-release = https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBui
 copyright.year = ${tstamp;yyyy}
 copyright = Copyright (c) Strange Skies (2014, ${copyright.year}). All Rights Reserved.
 
-groupid: uk.co.strangeskies
+groupid: uk.co.strangeskies.modabi
 
 modabi-version: 1.0.0
 modabi-version-ceiling: 2.0.0
@@ -97,10 +97,10 @@ runreq.eclipselink.jpa=\,\
 	osgi.identity;filter:='(osgi.identity=javax.persistence)'
 
 # Build path groups:
-buildpath.base=\
+-buildpath.base=\
 	osgi.enroute.base.api
 
--testpath: \
+-testpath.base: \
 	osgi.enroute.base.test,\
 	osgi.enroute.junit.wrapper,\
 	osgi.enroute.hamcrest.wrapper,\

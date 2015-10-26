@@ -73,6 +73,7 @@ public class SchemaTest {
 		}
 	}
 
+	@Test
 	public void schemaUnbindingTest() {
 		System.out.println("TEST2");
 		SchemaManager schemaManager = getService(SchemaManager.class);
@@ -195,7 +196,8 @@ public class SchemaTest {
 				+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
 	}
 
-	private void manualSchemaCreationTest() {
+	@Test
+	public void manualSchemaCreationTest() {
 		System.out.println("TEST3");
 		SchemaManager schemaManager = getService(SchemaManager.class);
 

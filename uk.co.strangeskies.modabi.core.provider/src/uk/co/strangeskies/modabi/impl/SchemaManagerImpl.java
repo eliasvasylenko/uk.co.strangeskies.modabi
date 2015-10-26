@@ -80,7 +80,7 @@ import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
 
-@Component
+@Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
 	private final List<Function<TypeToken<?>, Object>> providers;
 	private final MultiMap<QualifiedName, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
@@ -217,10 +217,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 			@Override
 			public BindingFuture<T> from(String extension, InputStream input) {
-				return from(input,
-						getRegisteredDataInterfaces().stream()
-								.filter(l -> l.getFileExtensions().contains(extension))
-								.collect(Collectors.toList()));
+				return from(input, getDataInterfaces(extension));
 			}
 
 			private BindingFuture<T> from(InputStream input,
@@ -431,5 +428,17 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public Set<DataInterface> getRegisteredDataInterfaces() {
 		return Collections.unmodifiableSet(fileLoaders);
+	}
+
+	@Override
+	public DataInterface getDataInterface(String id) {
+		return null;
+	}
+
+	@Override
+	public Set<DataInterface> getDataInterfaces(String extension) {
+		return getRegisteredDataInterfaces().stream()
+				.filter(l -> l.getFileExtensions().contains(extension))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 }

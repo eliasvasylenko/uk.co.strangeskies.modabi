@@ -1,8 +1,4 @@
-Bundle-Name: Modabi :: Benchmarks
-Bundle-Description: \
-	Benchmarks comparing Modabi to simple parsers.\
-\
-	${modabi-description}
+Bundle-Name: Modabi :: Run
 
 -runee: JavaSE-1.8
 
@@ -11,7 +7,8 @@ Bundle-Description: \
 	${ss;reflection},\
 	${ss;mathematics},\
 	uk.co.strangeskies.modabi.core.api;version=project,\
-	org.apache.commons.lang3
+	uk.co.strangeskies.modabi.core.provider;version=project,\
+	uk.co.strangeskies.modabi.io.xml.provider;version=project
 
 -includeresource: \
 	META-INF/modabi=schemata
@@ -24,19 +21,18 @@ Private-Package: uk.co.strangeskies.modabi.run
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.runtime)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.benchmarks)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.xml.provider)'
+	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.run)',\
+	osgi.identity;filter:='(&(osgi.identity=org.apache.felix.scr)(version>=1.8.2)(version<=1.8.2))'
 
 -runfw: org.eclipse.osgi;version='[3.10.100.v20150529-1857,3.10.100.v20150529-1857]'
 
 -runbundles: \
-	biz.aQute.bndlib;version='[3.0.0,3.0.1)',\
-	org.apache.commons.lang3;version='[3.4.0,3.4.1)',\
 	org.apache.felix.configadmin;version='[1.8.6,1.8.7)',\
 	org.apache.felix.gogo.command;version='[0.14.0,0.14.1)',\
 	org.apache.felix.gogo.runtime;version='[0.16.2,0.16.3)',\
 	org.apache.felix.gogo.shell;version='[0.10.0,0.10.1)',\
 	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
 	org.apache.felix.scr;version='[2.0.0,2.0.1)',\
 	org.apache.servicemix.bundles.stax-utils;version='[20070216.0.0,20070216.0.1)',\
 	org.eclipse.equinox.metatype;version='[1.4.100,1.4.101)',\
@@ -44,10 +40,10 @@ Private-Package: uk.co.strangeskies.modabi.run
 	osgi.enroute.logger.simple.provider;version='[1.2.1,1.2.2)',\
 	uk.co.strangeskies.fx;version='[1.0.0,1.0.1)',\
 	uk.co.strangeskies.mathematics;version='[1.0.0,1.0.1)',\
-	uk.co.strangeskies.modabi.benchmarks;version=snapshot,\
-	uk.co.strangeskies.modabi.bnd.xml;version=snapshot,\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.io.xml.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.run;version=snapshot,\
 	uk.co.strangeskies.reflection;version='[1.0.0,1.0.1)',\
 	uk.co.strangeskies.utilities;version='[1.0.0,1.0.1)',\
 	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.0,1.0.1)'

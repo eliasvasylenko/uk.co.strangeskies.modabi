@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.benchmarks.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.benchmark;
+package uk.co.strangeskies.modabi.run;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,7 +45,7 @@ import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
 
-@Component(immediate = true)
+@Component
 public class BenchmarkRunner {
 	private static final String OUTPUT_FOLDER = System.getProperty("user.home")
 			+ File.separatorChar + "xml-benchmark";
@@ -59,7 +59,7 @@ public class BenchmarkRunner {
 		this.manager = manager;
 	}
 
-	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
+	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
 	public void setLogger(LogService logger) {
 		this.logger = logger;
 	}
@@ -77,8 +77,8 @@ public class BenchmarkRunner {
 			if (!outputDir.exists()) {
 				logger.log(LogService.LOG_INFO,
 						"Creating output directory: " + outputDir.getAbsolutePath());
-				boolean created = outputDir.mkdirs();
-				if (!created) {
+
+				if (!outputDir.mkdirs()) {
 					throw new IllegalStateException(
 							"Could not create output directory, aborting...");
 				}
@@ -87,7 +87,7 @@ public class BenchmarkRunner {
 			System.out.println("test");
 
 			manager.bindSchema().from(
-					context.getBundle().getResource("/BenchmarkSchema.xml").openStream())
+					context.getBundle().getResource("/META-INF/modabi/BenchmarkSchema.xml").openStream())
 					.resolve(500);
 
 			System.out.println("test2");
