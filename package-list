@@ -14,5 +14,6 @@ uk.co.strangeskies.modabi.io.structured
 uk.co.strangeskies.modabi.io.xml
 uk.co.strangeskies.modabi.processing
 uk.co.strangeskies.modabi.processing.providers
+uk.co.strangeskies.modabi.run
 uk.co.strangeskies.modabi.schema
 uk.co.strangeskies.modabi.schema.building
