@@ -18,54 +18,72 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
-import java.lang.reflect.AnnotatedType;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import uk.co.strangeskies.mathematics.Range;
+import org.junit.Assert;
+import org.junit.Test;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.util.tracker.ServiceTracker;
+
 import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.impl.BaseSchemaImpl;
-import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.io.json.impl.JsonTarget;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
-import uk.co.strangeskies.modabi.io.xml.XmlTarget;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
-import uk.co.strangeskies.reflection.AnnotatedTypes;
-import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
-import uk.co.strangeskies.reflection.Annotations;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypeToken.Infer;
 
 public class SchemaTest {
-	public static void main(String... args) {
-		System.out.println("Creating SchemaManager...");
-		new SchemaTest().run(new SchemaManagerImpl());
+	private <T> T getService(Class<T> clazz) {
+		System.out.println("testy");
+		try {
+			BundleContext context = FrameworkUtil.getBundle(this.getClass())
+					.getBundleContext();
+			System.out.println("testy2");
+
+			ServiceTracker<T, T> st = new ServiceTracker<>(context, clazz, null);
+			st.open();
+			try {
+				return st.waitForService(1000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
+		}
 	}
 
-	public void run(SchemaManager schemaManager) {
-		manualSchemaCreationTest(schemaManager);
+	@Test
+	public void schemaManagerServiceTest() {
+		try {
+			System.out.println("TEST1");
+			Assert.assertNotNull(getService(SchemaManager.class));
+		} catch (Error e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	public void schemaUnbindingTest() {
+		System.out.println("TEST2");
+		SchemaManager schemaManager = getService(SchemaManager.class);
 
 		System.out.println("Unbinding BaseSchema...");
 		Navigable out = StructuredDataBuffer.singleBuffer();
 		NavigableStructuredDataSource buffered = out.getBuffer();
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
 				schemaManager.getBaseSchema()).to(out);
-		buffered.pipeNextChild(new XmlTarget(System.out));
+		buffered.pipeNextChild(
+				schemaManager.getDataInterface("xml").saveData(System.out));
 
 		System.out.println();
 		System.out.println();
@@ -75,7 +93,8 @@ public class SchemaTest {
 		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
 				schemaManager.getMetaSchema()).to(out);
 
-		buffered.pipeNextChild(new XmlTarget(System.out));
+		buffered.pipeNextChild(
+				schemaManager.getDataInterface("xml").saveData(System.out));
 		buffered.reset();
 
 		System.out.println();
@@ -98,7 +117,8 @@ public class SchemaTest {
 		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel, metaSchema).to(out);
-		buffered.pipeNextChild(new XmlTarget(System.out));
+		buffered.pipeNextChild(
+				schemaManager.getDataInterface("xml").saveData(System.out));
 		buffered.reset();
 
 		System.out.println();
@@ -118,7 +138,8 @@ public class SchemaTest {
 		out = StructuredDataBuffer.singleBuffer();
 		buffered = out.getBuffer();
 		schemaManager.unbind(schemaModel2, metaSchema).to(out);
-		buffered.pipeNextChild(new XmlTarget(System.out));
+		buffered.pipeNextChild(
+				schemaManager.getDataInterface("xml").saveData(System.out));
 
 		System.out.print("Profiling Preparation");
 		for (int i = 1; i <= 60; i++) {
@@ -174,7 +195,10 @@ public class SchemaTest {
 				+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
 	}
 
-	private void manualSchemaCreationTest(SchemaManager schemaManager) {
+	private void manualSchemaCreationTest() {
+		System.out.println("TEST3");
+		SchemaManager schemaManager = getService(SchemaManager.class);
+
 		GeneratedSchema generatedSchema = schemaManager.generateSchema(
 				new QualifiedName("testExtentions", Namespace.getDefault()));
 
@@ -208,15 +232,16 @@ public class SchemaTest {
 				.getResolver().getBounds());
 
 		schemaManager.unbind(stringIntMapModel, stringIntMap)
-				.to(new XmlTarget(System.out));
+				.to(schemaManager.getDataInterface("xml").saveData(System.out));
 		schemaManager.unbind(stringIntMapModel, stringIntMap)
-				.to(new JsonTarget(System.out, true));
+				.to(schemaManager.getDataInterface("json").saveData(System.out));
 		System.out.println();
 
 		/*-
 		 * The following should be inferred as having type:
 		 * java.util.Map<java.util.List<byte[]>, java.util.Map<java.lang.String, java.lang.Integer>>
 		 */
+		/*-
 		AnnotatedType annotatedMapEntry = AnnotatedParameterizedTypes.from(
 				AnnotatedTypes.over(Map.Entry.class, Annotations.from(Infer.class)),
 				Arrays.asList(AnnotatedWildcardTypes.unbounded(),
@@ -240,8 +265,8 @@ public class SchemaTest {
 										.occurrences(Range.between(0, null)).inMethod("add")
 										.outMethod("this")
 										.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
-										.bindingType(BaseSchemaImpl.class)
-										.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+										.bindingType(BaseSchema.class).unbindingMethod("mapEntry")
+										.dataType(inferredMapEntry)
 										.addChild(k -> k.data().name("key").inMethod("null")
 												.format(Format.PROPERTY)
 												.type(schemaManager.getBaseSchema().derivedTypes()
@@ -264,5 +289,6 @@ public class SchemaTest {
 																		.type(schemaManager.getBaseSchema()
 																				.primitiveType(Primitive.INT))))))))));
 		System.out.println(mapModel3.effective().getDataType());
+		*/
 	}
 }

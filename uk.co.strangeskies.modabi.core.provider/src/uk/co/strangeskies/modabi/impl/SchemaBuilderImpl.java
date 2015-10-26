@@ -111,8 +111,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		}
 
 		@Override
-		public SchemaConfigurator types(
-				Collection<? extends DataType<?>> types) {
+		public SchemaConfigurator types(Collection<? extends DataType<?>> types) {
 			typeSet.clear();
 			typeSet.addAll(types);
 

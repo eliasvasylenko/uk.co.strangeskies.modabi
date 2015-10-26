@@ -212,13 +212,13 @@ public class SchemaManagerImpl implements SchemaManager {
 
 			@Override
 			public BindingFuture<T> from(InputStream input) {
-				return from(input, getRegisteredFileLoaders());
+				return from(input, getRegisteredDataInterfaces());
 			}
 
 			@Override
 			public BindingFuture<T> from(String extension, InputStream input) {
 				return from(input,
-						getRegisteredFileLoaders().stream()
+						getRegisteredDataInterfaces().stream()
 								.filter(l -> l.getFileExtensions().contains(extension))
 								.collect(Collectors.toList()));
 			}
@@ -316,7 +316,7 @@ public class SchemaManagerImpl implements SchemaManager {
 				throw new UnsupportedOperationException();
 
 				// TODO consider ID as well as extension... separate method?
-				
+
 				// return output;
 			}
 
@@ -418,18 +418,18 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterFileLoader")
-	public void registerFileLoader(DataInterface loader) {
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
+	public void registerDataInterface(DataInterface loader) {
 		fileLoaders.add(loader);
 	}
 
 	@Override
-	public void unregisterFileLoader(DataInterface loader) {
+	public void unregisterDataInterface(DataInterface loader) {
 		fileLoaders.remove(loader);
 	}
 
 	@Override
-	public Set<DataInterface> getRegisteredFileLoaders() {
+	public Set<DataInterface> getRegisteredDataInterfaces() {
 		return Collections.unmodifiableSet(fileLoaders);
 	}
 }

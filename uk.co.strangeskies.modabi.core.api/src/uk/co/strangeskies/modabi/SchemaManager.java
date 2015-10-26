@@ -19,11 +19,12 @@
 package uk.co.strangeskies.modabi;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +44,19 @@ public interface SchemaManager {
 		BindingFuture<T> from(StructuredDataSource input);
 
 		default BindingFuture<T> from(File input) {
-			String extension = input.getName();
+			return from(input.toURI());
+		}
+
+		default BindingFuture<T> from(URI input) {
+			try {
+				return from(input.toURL());
+			} catch (MalformedURLException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+
+		default BindingFuture<T> from(URL input) {
+			String extension = input.getQuery();
 			int lastDot = extension.lastIndexOf('.');
 			if (lastDot > 0) {
 				extension = extension.substring(lastDot);
@@ -51,7 +64,7 @@ public interface SchemaManager {
 				extension = null;
 			}
 
-			try (InputStream fileStream = new FileInputStream(input)) {
+			try (InputStream fileStream = input.openStream()) {
 				if (extension != null) {
 					return from(extension, fileStream);
 				} else {
@@ -71,7 +84,19 @@ public interface SchemaManager {
 		<U extends StructuredDataTarget> U to(U output);
 
 		default void to(File output) {
-			String extension = output.getName();
+			to(output.toURI());
+		}
+
+		default void to(URI output) {
+			try {
+				to(output.toURL());
+			} catch (MalformedURLException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+
+		default void to(URL output) {
+			String extension = output.getQuery();
 			int lastDot = extension.lastIndexOf('.');
 			if (lastDot > 0) {
 				extension = extension.substring(lastDot);
@@ -80,7 +105,8 @@ public interface SchemaManager {
 						+ output + "', data interface cannot be selected");
 			}
 
-			try (OutputStream fileStream = new FileOutputStream(output)) {
+			try (
+					OutputStream fileStream = output.openConnection().getOutputStream()) {
 				to(extension, fileStream).flush();
 			} catch (IOException e) {
 				throw new IllegalArgumentException(e);
@@ -90,11 +116,15 @@ public interface SchemaManager {
 		<U extends OutputStream> U to(String extension, U output);
 	}
 
-	void registerFileLoader(DataInterface loader);
+	void registerDataInterface(DataInterface handler);
 
-	void unregisterFileLoader(DataInterface loader);
+	void unregisterDataInterface(DataInterface handler);
 
-	Set<DataInterface> getRegisteredFileLoaders();
+	Set<DataInterface> getRegisteredDataInterfaces();
+
+	DataInterface getDataInterface(String id);
+
+	Set<DataInterface> getDataInterfaces(String extension);
 
 	default GeneratedSchema generateSchema(QualifiedName name) {
 		return generateSchema(name, Collections.emptySet());
@@ -150,7 +180,7 @@ public interface SchemaManager {
 			}
 
 			@Override
-			public BindingFuture<Schema> from(File input) {
+			public BindingFuture<Schema> from(URL input) {
 				return registerFuture(binder.from(input));
 			}
 

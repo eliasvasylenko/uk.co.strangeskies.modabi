@@ -29,15 +29,22 @@ import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.io.structured.DataInterface;
 
 public abstract class ModabiRegistration implements AnalyzerPlugin {
-	private final String handlerId;
+	public interface ThrowingRunnable<T extends Exception> {
+		void run() throws T;
+	}
+
+	private final DataInterface handler;
 	private final SchemaManager manager;
 
-	public ModabiRegistration(SchemaManager manager, String handlerId) {
-		this.handlerId = handlerId;
+	public ModabiRegistration(SchemaManager manager, DataInterface handler) {
+		this.handler = handler;
 		this.manager = manager;
+		manager.registerDataInterface(handler);
 	}
 
 	public SchemaManager getManager() {
@@ -58,6 +65,41 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 	private void scanSchemaAnnotations(Jar jar, Analyzer analyzer) {}
 
 	private void registerSchemata(Jar jar, Analyzer analyzer) {
+		withJarOnBuildPath(analyzer, jar, "buildpath", () -> {
+			Map<String, Resource> resources = jar.getDirectories()
+					.get("META-INF/modabi");
+
+			String newCapabilities = null;
+
+			for (String resourceName : resources.keySet()) {
+				Schema schema;
+				schema = manager.bindSchema()
+						.from(resources.get(resourceName).openInputStream()).resolve();
+
+				String capability = "uk.co.strangeskies.modabi;schema:String=\""
+						+ schema.getQualifiedName() + "\"";
+
+				if (newCapabilities != null)
+					newCapabilities += "," + capability;
+				else
+					newCapabilities = capability;
+			}
+
+			if (newCapabilities != null) {
+				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+						"osgi.service;" + "filter:=\"(&(objectClass="
+								+ DataInterface.class.getTypeName() + ")(formatId="
+								+ handler.getFormatId()
+								+ "))\";resolution:=mandatory;effective:=active");
+
+				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY,
+						newCapabilities);
+			}
+		});
+	}
+
+	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName,
+			ThrowingRunnable<?> run) {
 		ClassLoader threadClassLoader = Thread.currentThread()
 				.getContextClassLoader();
 
@@ -71,57 +113,28 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 								+ analyzer.getBase() + "' does not exist");
 
 			tempJar = new File(
-					tempJar.getAbsolutePath() + File.separator + "buildpath.jar");
+					tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
 			jar.write(tempJar);
 			Thread.currentThread().setContextClassLoader(new URLClassLoader(
-					new URL[] { new URL("file:" + tempJar) }, threadClassLoader));
+					new URL[] { tempJar.toURI().toURL() }, threadClassLoader));
+
+			run.run();
 		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-
-		try {
-			Map<String, Resource> resources = jar.getDirectories()
-					.get("META-INF/modabi");
-
-			String newCapabilities = null;
-
-			for (String resourceName : resources.keySet()) {
-				Schema schema;
-				try {
-					schema = manager.bindSchema()
-							.from(resources.get(resourceName).openInputStream()).resolve();
-
-					String capability = "uk.co.strangeskies.modabi;schema:String=\""
-							+ schema.getQualifiedName() + "\"";
-
-					if (newCapabilities != null)
-						newCapabilities += "," + capability;
-					else
-						newCapabilities = capability;
-				} catch (RuntimeException e) {
-					throw e;
-				} catch (Exception e) {
-					throw new IllegalStateException(
-							"Schema resource cannot be bound, ensure all participating classes and FileLoader implementations are on build path",
-							e);
-				}
-			}
-
-			if (newCapabilities != null) {
-				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-						"osgi.service;"
-								+ "filter:=\"(&(objectClass=uk.co.strangeskies.modabi.io.structured.FileLoader)(id="
-								+ handlerId + "))\";" + "resolution:=mandatory");
-
-				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY,
-						newCapabilities);
-			}
-		} catch (Exception e) {
-			throw e;
+			throw flattenMessage(e);
 		} finally {
 			Thread.currentThread().setContextClassLoader(threadClassLoader);
 		}
+	}
+
+	private SchemaException flattenMessage(Throwable e) {
+		String message = e.getMessage();
+
+		while ((e = e.getCause()) != null) {
+			message += ": " + e.getMessage();
+		}
+
+		return new SchemaException(message, e);
 	}
 
 	private File createDirs(String baseDirectory, String... directories) {

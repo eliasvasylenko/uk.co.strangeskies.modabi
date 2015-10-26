@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import java.util.Set;
 
 public interface DataInterface {
-	String getId();
+	String getFormatId();
 
 	Set<String> getFileExtensions();
 

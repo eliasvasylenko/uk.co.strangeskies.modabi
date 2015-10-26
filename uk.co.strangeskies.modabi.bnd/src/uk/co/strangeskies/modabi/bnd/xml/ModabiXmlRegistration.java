@@ -28,7 +28,6 @@ import uk.co.strangeskies.modabi.io.xml.XmlInterface;
 public class ModabiXmlRegistration extends ModabiRegistration
 		implements AnalyzerPlugin {
 	public ModabiXmlRegistration() {
-		super(new SchemaManagerImpl(), "xml");
-		getManager().registerFileLoader(new XmlInterface());
+		super(new SchemaManagerImpl(), new XmlInterface());
 	}
 }

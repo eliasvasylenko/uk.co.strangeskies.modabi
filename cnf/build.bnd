@@ -23,7 +23,6 @@ Bundle-Vendor: Strange Skies http://strangeskies.co.uk/
 Bundle-Copyright: ${copyright}
 Bundle-License: LGPL <http://www.gnu.org/licenses/>
 Bundle-Version: ${modabi-version}.${tstamp}
-Bundle-ActivationPolicy: lazy
 
 -dsannotations: *
 
@@ -36,24 +35,23 @@ Bundle-ActivationPolicy: lazy
 # -baseline: *
 -releaserepo: Release
 
-base-plugin-path: \
-	${build}/cache/biz.aQute.repository.aether.jar; \
-		url = ${bnd-release}/biz.aQute.repository.aether/biz.aQute.repository.aether-latest.jar
-
-modabi-plugin-path: \
+pluginpath.modabi: \
 	${build}/release/uk.co.strangeskies.modabi.bnd.core/uk.co.strangeskies.modabi.bnd.core-${modabi-version}.jar,\
 	${build}/release/uk.co.strangeskies.modabi.bnd.xml/uk.co.strangeskies.modabi.bnd.xml-${modabi-version}.jar
 
 -pluginpath: \
-	${base-plugin-path}
+	${build}/cache/biz.aQute.repository.aether.jar; \
+		url = ${bnd-release}/biz.aQute.repository.aether/biz.aQute.repository.aether-latest.jar
 
-ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}\\;version=latest}
+ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}\\\;version=latest}
+strangeSkiesDefaultRepo: \
+\
+		aQute.bnd.deployer.repository.aether.AetherRepository\; \
+			name				=		StrangeSkies\; \
+			url					=		http://oss.jfrog.org/libs-snapshot/
 
 -plugin.7.StrangeSkies: \
-\
-		aQute.bnd.deployer.repository.aether.AetherRepository; \
-			name				=		StrangeSkies; \
-			url					=		http://oss.jfrog.org/libs-snapshot/
+		${def;strangeSkiesRepo;\\\$\{strangeSkiesDefaultRepo\}}
 
 # For users with a copy of the uk.co.strangeskies project checked out
 # from git locally, they can redirect dependencies on bundles in that
@@ -65,13 +63,12 @@ ss: ${def;strangeSkiesDependency;uk.co.strangeskies:uk.co.strangeskies.${1}\\;ve
 # uk.co.strangeskies project.
 #
 #strangeSkiesDependency: uk.co.strangeskies.${1}\;version=latest
-#
-#-plugin.8.StrangeSkies: \
+#strangeSkiesRepo: \
 #\
 #		aQute.bnd.deployer.repository.LocalIndexedRepo;\
 #			name                =       StrangeSkies;\
 #			pretty              =       true;\
-#			local               =       ${user.home}[/workspaces]/uk.co.strangeskies/cnf/release
+#			local               =       ${user.home}[/git-location]/uk.co.strangeskies/cnf/release
 
 ## If you use git, you might want to uncomment the following lines:
 Git-Descriptor: ${system-allow-fail;git describe --dirty --always}
@@ -101,10 +98,13 @@ runreq.eclipselink.jpa=\,\
 
 # Build path groups:
 buildpath.base=\
+	osgi.enroute.base.api
+
+-testpath: \
+	osgi.enroute.base.test,\
 	osgi.enroute.junit.wrapper,\
 	osgi.enroute.hamcrest.wrapper,\
-	org.hamcrest__java-hamcrest,\
-	osgi.enroute.base.api
+	org.hamcrest__java-hamcrest
 
 # General configuration
 modabi-description: \

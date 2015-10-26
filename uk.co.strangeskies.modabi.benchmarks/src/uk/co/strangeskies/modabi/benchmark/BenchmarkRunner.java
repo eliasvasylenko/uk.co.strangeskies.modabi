@@ -19,12 +19,9 @@
 package uk.co.strangeskies.modabi.benchmark;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -43,10 +40,10 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.xml.XmlInterface;
 
 @Component(immediate = true)
 public class BenchmarkRunner {
@@ -62,13 +59,14 @@ public class BenchmarkRunner {
 		this.manager = manager;
 	}
 
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
 	public void setLogger(LogService logger) {
 		this.logger = logger;
 	}
 
 	@Activate
 	public void run(BundleContext context) throws BundleException {
+		System.out.println("TEST");
 		try {
 			logger.log(LogService.LOG_INFO, "Preparing benchmark...");
 
@@ -86,10 +84,13 @@ public class BenchmarkRunner {
 				}
 			}
 
-			manager.registerFileLoader(new XmlInterface());
+			System.out.println("test");
+
 			manager.bindSchema().from(
 					context.getBundle().getResource("/BenchmarkSchema.xml").openStream())
 					.resolve(500);
+
+			System.out.println("test2");
 
 			boolean createXml = false;
 			logger.log(LogService.LOG_INFO, "Will create XML files? " + createXml);
@@ -175,29 +176,19 @@ public class BenchmarkRunner {
 			persons.getPerson().add(person);
 		}
 
-		File file = new File(fileName);
-
-		OutputStream fos = new FileOutputStream(file);
-
-		try {
-			manager.unbind(PersonsType.class, persons).to("xml", fos).flush();
-		} finally {
-			fos.close();
-		}
+		manager.unbind(PersonsType.class, persons).to(new File(fileName));
 	}
 
 	private void readLargeXmlWithModabi(File file)
 			throws FileNotFoundException, IOException {
 		long start = System.currentTimeMillis();
 
-		try (FileInputStream fis = new FileInputStream(file)) {
-			manager.bind().from("xml", fis).resolve();
+		manager.bind().from(file).resolve();
 
-			long end = System.currentTimeMillis();
+		long end = System.currentTimeMillis();
 
-			logger.log(LogService.LOG_INFO,
-					"Modabi - (" + file + "): Time taken in ms: " + (end - start));
-		}
+		logger.log(LogService.LOG_INFO,
+				"Modabi - (" + file + "): Time taken in ms: " + (end - start));
 	}
 
 	private void readLargeXmlWithStax(File file) throws FactoryConfigurationError,

@@ -30,12 +30,12 @@ import uk.co.strangeskies.modabi.io.structured.DataInterface;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 
-@Component(immediate = true, property = "id=" + XmlInterface.XML_ID)
+@Component(immediate = true, property = "formatId=" + XmlInterface.XML_ID)
 public class XmlInterface implements DataInterface {
 	public static final String XML_ID = "xml";
 
 	@Override
-	public String getId() {
+	public String getFormatId() {
 		return XML_ID;
 	}
 
