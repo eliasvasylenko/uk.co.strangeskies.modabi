@@ -1,0 +1,8 @@
+Bundle-Name: Modabi :: Profiler
+
+Private-Package: uk.co.strangeskies.modabi.profile
+Import-Package: \
+	uk.co.strangeskies.modabi.schema.building,\
+	uk.co.strangeskies.modabi.io,\
+	uk.co.strangeskies.modabi,\
+	*

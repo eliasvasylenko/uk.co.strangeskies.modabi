@@ -18,9 +18,12 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
+import java.lang.reflect.AnnotatedType;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,6 +31,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
 
+import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
@@ -38,11 +43,19 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
+import uk.co.strangeskies.reflection.AnnotatedTypes;
+import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
+import uk.co.strangeskies.reflection.Annotations;
+import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 public class SchemaTest {
@@ -173,64 +186,8 @@ public class SchemaTest {
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
 			schemaManager.unbind(schemaModel2, metaSchema).to(out);
-			System.out.print("Profiling Preparation");
 			buffered.pipeNextChild(
 					schemaManager.getDataInterface("xml").saveData(System.out));
-
-			System.out.print("Profiling Preparation");
-			System.out.print("Profiling Preparation");
-			System.out.print("Profiling Preparation");
-			for (int i = 1; i <= 60; i++) {
-				if (i % 50 == 0)
-					System.out.println();
-				System.out.print(".");
-
-				schemaManager
-						.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-								schemaManager.getMetaSchema())
-						.to(StructuredDataBuffer.singleBuffer());
-
-				buffered.reset();
-				schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
-						.from(buffered).resolve();
-			}
-			System.out.println();
-
-			int profileRounds = 20;
-
-			System.out.print("Unbinding Profiling");
-			long startTime = System.currentTimeMillis();
-			for (int i = 1; i <= profileRounds; i++) {
-				if (i % 50 == 0)
-					System.out.println();
-				System.out.print(".");
-
-				schemaManager
-						.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-								schemaManager.getMetaSchema())
-						.to(StructuredDataBuffer.singleBuffer());
-			}
-			long totalTimeUnbinding = System.currentTimeMillis() - startTime;
-			System.out.println();
-
-			System.out.print("Binding Profiling");
-			startTime = System.currentTimeMillis();
-			for (int i = 1; i <= profileRounds; i++) {
-				if (i % 50 == 0)
-					System.out.println();
-				System.out.print(".");
-
-				buffered.reset();
-				schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
-						.from(buffered).resolve();
-			}
-			long totalTimeBinding = System.currentTimeMillis() - startTime;
-			System.out.println();
-
-			System.out.println("Time per unbind: "
-					+ (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
-			System.out.println("Time per bind: "
-					+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
 		});
 	}
 
@@ -273,15 +230,14 @@ public class SchemaTest {
 
 		schemaManager.unbind(stringIntMapModel, stringIntMap)
 				.to(schemaManager.getDataInterface("xml").saveData(System.out));
-		schemaManager.unbind(stringIntMapModel, stringIntMap)
-				.to(schemaManager.getDataInterface("json").saveData(System.out));
 		System.out.println();
 
 		/*-
+		 * TODO
+		 * 
 		 * The following should be inferred as having type:
 		 * java.util.Map<java.util.List<byte[]>, java.util.Map<java.lang.String, java.lang.Integer>>
 		 */
-		/*-
 		AnnotatedType annotatedMapEntry = AnnotatedParameterizedTypes.from(
 				AnnotatedTypes.over(Map.Entry.class, Annotations.from(Infer.class)),
 				Arrays.asList(AnnotatedWildcardTypes.unbounded(),
@@ -308,7 +264,7 @@ public class SchemaTest {
 										.bindingType(BaseSchema.class).unbindingMethod("mapEntry")
 										.dataType(inferredMapEntry)
 										.addChild(k -> k.data().name("key").inMethod("null")
-												.format(Format.PROPERTY)
+												.format(DataNode.Format.PROPERTY)
 												.type(schemaManager.getBaseSchema().derivedTypes()
 														.listType())
 										.addChild(l -> l.data().name("element")
@@ -329,6 +285,5 @@ public class SchemaTest {
 																		.type(schemaManager.getBaseSchema()
 																				.primitiveType(Primitive.INT))))))))));
 		System.out.println(mapModel3.effective().getDataType());
-		*/
 	}
 }

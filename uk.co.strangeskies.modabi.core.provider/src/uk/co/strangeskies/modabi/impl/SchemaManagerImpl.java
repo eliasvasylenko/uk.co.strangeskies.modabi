@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -310,11 +309,9 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new Unbinder() {
 			@Override
 			public <U extends OutputStream> U to(String extension, U output) {
-				throw new UnsupportedOperationException();
+				unbindingFunction.accept(getDataInterface(extension).saveData(output));
 
-				// TODO consider ID as well as extension... separate method?
-
-				// return output;
+				return output;
 			}
 
 			@Override

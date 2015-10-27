@@ -1,0 +1,12 @@
+Bundle-Name: Modabi :: Benchmarker
+
+-pluginpath: \
+	${pluginpath.modabi}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
+
+-includeresource: \
+	META-INF/modabi=schemata
+
+Export-Package: uk.co.strangeskies.modabi.benchmark

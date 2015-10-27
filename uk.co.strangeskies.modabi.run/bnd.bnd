@@ -6,6 +6,7 @@ Bundle-Name: Modabi :: Run
 	${ss;utilities},\
 	${ss;reflection},\
 	${ss;mathematics},\
+	uk.co.strangeskies.modabi.benchmarks;version=project,\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	uk.co.strangeskies.modabi.core.provider;version=project,\
 	uk.co.strangeskies.modabi.io.xml.provider;version=project
@@ -26,6 +27,7 @@ Private-Package: uk.co.strangeskies.modabi.run
 -runfw: org.apache.felix.framework;version='[5.2.0,5.2.0]'
 
 -runbundles: \
+	org.apache.commons.lang3;version='[3.4.0,3.4.1)',\
 	org.apache.felix.gogo.command;version='[0.14.0,0.14.1)',\
 	org.apache.felix.gogo.runtime;version='[0.16.2,0.16.3)',\
 	org.apache.felix.gogo.shell;version='[0.10.0,0.10.1)',\
@@ -35,6 +37,7 @@ Private-Package: uk.co.strangeskies.modabi.run
 	org.apache.servicemix.bundles.stax-utils;version='[20070216.0.0,20070216.0.1)',\
 	osgi.enroute.logger.simple.provider;version='[1.2.1,1.2.2)',\
 	uk.co.strangeskies.mathematics;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.modabi.benchmarks.benchmarker;version=snapshot,\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
 	uk.co.strangeskies.modabi.io.xml.provider;version=snapshot,\
@@ -44,3 +47,7 @@ Private-Package: uk.co.strangeskies.modabi.run
 	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.13,1.0.14)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000
+Import-Package: \
+	uk.co.strangeskies.modabi.benchmark,\
+	uk.co.strangeskies.modabi.schema,\
+	*

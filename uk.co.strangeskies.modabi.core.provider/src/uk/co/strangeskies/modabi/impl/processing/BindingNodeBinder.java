@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.impl.PartialSchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.BindingContext;
@@ -112,6 +113,10 @@ public class BindingNodeBinder {
 			children = children.subList(1, children.size());
 			break;
 		case STATIC_FACTORY:
+			if (children.isEmpty())
+				throw new SchemaException("Node '" + node.getName()
+						+ "' with binding strategy '" + BindingStrategy.STATIC_FACTORY
+						+ "' should contain at least one child");
 			firstChild = children.get(0);
 			children = children.subList(1, children.size());
 

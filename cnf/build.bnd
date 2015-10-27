@@ -35,9 +35,11 @@ Bundle-Version: ${modabi-version}.${tstamp}
 # -baseline: *
 -releaserepo: Release
 
+modabi-bnd-plugin: ${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar
+
 pluginpath.modabi: \
-	${build}/release/uk.co.strangeskies.modabi.bnd.core/uk.co.strangeskies.modabi.bnd.core-${modabi-version}.jar,\
-	${build}/release/uk.co.strangeskies.modabi.bnd.xml/uk.co.strangeskies.modabi.bnd.xml-${modabi-version}.jar
+	${modabi-bnd-plugin;core},\
+	${modabi-bnd-plugin;xml},\
 
 -pluginpath.base: \
 	${build}/cache/biz.aQute.repository.aether.jar; \
