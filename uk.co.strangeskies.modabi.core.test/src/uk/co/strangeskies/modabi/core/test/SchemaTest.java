@@ -38,8 +38,12 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
+import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 public class SchemaTest {
 	private <T> T getService(Class<T> clazz) {
@@ -64,136 +68,170 @@ public class SchemaTest {
 
 	@Test
 	public void schemaManagerServiceTest() {
-		try {
-			System.out.println("TEST1");
-			Assert.assertNotNull(getService(SchemaManager.class));
-		} catch (Error e) {
-			e.printStackTrace();
-			throw e;
-		}
+		System.out.println("TEST1");
+		Assert.assertNotNull(getService(SchemaManager.class));
 	}
 
 	@Test
 	public void schemaUnbindingTest() {
-		System.out.println("TEST2");
-		SchemaManager schemaManager = getService(SchemaManager.class);
+		new ContextClassLoaderRunner(getClass().getClassLoader()).run(() -> {
+			System.out.println("TEST2");
+			SchemaManager schemaManager = getService(SchemaManager.class);
 
-		System.out.println("Unbinding BaseSchema...");
-		Navigable out = StructuredDataBuffer.singleBuffer();
-		NavigableStructuredDataSource buffered = out.getBuffer();
-		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-				schemaManager.getBaseSchema()).to(out);
-		buffered.pipeNextChild(
-				schemaManager.getDataInterface("xml").saveData(System.out));
+			System.out.println("Unbinding BaseSchema...");
+			Navigable out = StructuredDataBuffer.singleBuffer();
+			NavigableStructuredDataSource buffered = out.getBuffer();
+			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+					schemaManager.getBaseSchema()).to(out);
+			buffered.pipeNextChild(
+					schemaManager.getDataInterface("xml").saveData(System.out));
 
-		System.out.println();
-		System.out.println();
-		System.out.println("Unbinding MetaSchema...");
-		out = StructuredDataBuffer.singleBuffer();
-		buffered = out.getBuffer();
-		schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-				schemaManager.getMetaSchema()).to(out);
+			System.out.println();
+			System.out.println();
+			System.out.println("Unbinding MetaSchema...");
+			out = StructuredDataBuffer.singleBuffer();
+			buffered = out.getBuffer();
+			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+					schemaManager.getMetaSchema()).to(out);
 
-		buffered.pipeNextChild(
-				schemaManager.getDataInterface("xml").saveData(System.out));
-		buffered.reset();
+			SchemaNode<?, ?> s = new SchemaNode<ChoiceNode, ChoiceNode.Effective>() {
+				@Override
+				public Boolean isAbstract() {
+					// TODO Auto-generated method stub
+					return null;
+				}
 
-		System.out.println();
-		System.out.println();
-		System.out.println("Re-binding MetaSchema...");
-		Schema metaSchema = schemaManager
-				.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered)
-				.resolve();
+				@Override
+				public QualifiedName getName() {
+					return new QualifiedName("successful name get...");
+				}
 
-		boolean success = metaSchema.equals(schemaManager.getMetaSchema());
-		System.out.println("Success: " + success);
+				@Override
+				public List<? extends ChildNode<?, ?>> children() {
+					// TODO Auto-generated method stub
+					return null;
+				}
 
-		@SuppressWarnings("unchecked")
-		Model<Schema> schemaModel = (Model<Schema>) metaSchema.getModels().get(
-				new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
+				@Override
+				public uk.co.strangeskies.modabi.schema.ChoiceNode.Effective effective() {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			};
+			System.out.println(s.getName());
+			try {
+				System.out.println(
+						Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode"));
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
 
-		System.out.println();
-		System.out.println();
-		System.out.println("Re-unbinding MetaSchema...");
-		out = StructuredDataBuffer.singleBuffer();
-		buffered = out.getBuffer();
-		schemaManager.unbind(schemaModel, metaSchema).to(out);
-		buffered.pipeNextChild(
-				schemaManager.getDataInterface("xml").saveData(System.out));
-		buffered.reset();
-
-		System.out.println();
-		System.out.println();
-		System.out.println("Re-re-binding MetaSchema...");
-		metaSchema = schemaManager
-				.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered)
-				.resolve();
-
-		@SuppressWarnings("unchecked")
-		Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.getModels().get(
-				new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
-
-		System.out.println();
-		System.out.println();
-		System.out.println("Re-re-unbinding MetaSchema...");
-		out = StructuredDataBuffer.singleBuffer();
-		buffered = out.getBuffer();
-		schemaManager.unbind(schemaModel2, metaSchema).to(out);
-		buffered.pipeNextChild(
-				schemaManager.getDataInterface("xml").saveData(System.out));
-
-		System.out.print("Profiling Preparation");
-		for (int i = 1; i <= 60; i++) {
-			if (i % 50 == 0)
-				System.out.println();
-			System.out.print(".");
-
-			schemaManager
-					.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-							schemaManager.getMetaSchema())
-					.to(StructuredDataBuffer.singleBuffer());
-
+			buffered.pipeNextChild(
+					schemaManager.getDataInterface("xml").saveData(System.out));
 			buffered.reset();
-			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
-					.from(buffered).resolve();
-		}
-		System.out.println();
 
-		int profileRounds = 20;
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-binding MetaSchema...");
+			Schema metaSchema = schemaManager
+					.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered)
+					.resolve();
 
-		System.out.print("Unbinding Profiling");
-		long startTime = System.currentTimeMillis();
-		for (int i = 1; i <= profileRounds; i++) {
-			if (i % 50 == 0)
-				System.out.println();
-			System.out.print(".");
+			boolean success = metaSchema.equals(schemaManager.getMetaSchema());
+			System.out.println("Success: " + success);
 
-			schemaManager
-					.unbind(schemaManager.getMetaSchema().getSchemaModel(),
-							schemaManager.getMetaSchema())
-					.to(StructuredDataBuffer.singleBuffer());
-		}
-		long totalTimeUnbinding = System.currentTimeMillis() - startTime;
-		System.out.println();
+			@SuppressWarnings("unchecked")
+			Model<Schema> schemaModel = (Model<Schema>) metaSchema.getModels()
+					.get(new QualifiedName("schema",
+							MetaSchema.QUALIFIED_NAME.getNamespace()));
 
-		System.out.print("Binding Profiling");
-		startTime = System.currentTimeMillis();
-		for (int i = 1; i <= profileRounds; i++) {
-			if (i % 50 == 0)
-				System.out.println();
-			System.out.print(".");
-
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-unbinding MetaSchema...");
+			out = StructuredDataBuffer.singleBuffer();
+			buffered = out.getBuffer();
+			schemaManager.unbind(schemaModel, metaSchema).to(out);
+			buffered.pipeNextChild(
+					schemaManager.getDataInterface("xml").saveData(System.out));
 			buffered.reset();
-			schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
-					.from(buffered).resolve();
-		}
-		long totalTimeBinding = System.currentTimeMillis() - startTime;
-		System.out.println();
 
-		System.out.println("Time per unbind: "
-				+ (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
-		System.out.println("Time per bind: "
-				+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-re-binding MetaSchema...");
+			metaSchema = schemaManager
+					.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered)
+					.resolve();
+
+			@SuppressWarnings("unchecked")
+			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.getModels()
+					.get(new QualifiedName("schema",
+							MetaSchema.QUALIFIED_NAME.getNamespace()));
+
+			System.out.println();
+			System.out.println();
+			System.out.println("Re-re-unbinding MetaSchema...");
+			out = StructuredDataBuffer.singleBuffer();
+			buffered = out.getBuffer();
+			schemaManager.unbind(schemaModel2, metaSchema).to(out);
+			System.out.print("Profiling Preparation");
+			buffered.pipeNextChild(
+					schemaManager.getDataInterface("xml").saveData(System.out));
+
+			System.out.print("Profiling Preparation");
+			System.out.print("Profiling Preparation");
+			System.out.print("Profiling Preparation");
+			for (int i = 1; i <= 60; i++) {
+				if (i % 50 == 0)
+					System.out.println();
+				System.out.print(".");
+
+				schemaManager
+						.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+								schemaManager.getMetaSchema())
+						.to(StructuredDataBuffer.singleBuffer());
+
+				buffered.reset();
+				schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
+						.from(buffered).resolve();
+			}
+			System.out.println();
+
+			int profileRounds = 20;
+
+			System.out.print("Unbinding Profiling");
+			long startTime = System.currentTimeMillis();
+			for (int i = 1; i <= profileRounds; i++) {
+				if (i % 50 == 0)
+					System.out.println();
+				System.out.print(".");
+
+				schemaManager
+						.unbind(schemaManager.getMetaSchema().getSchemaModel(),
+								schemaManager.getMetaSchema())
+						.to(StructuredDataBuffer.singleBuffer());
+			}
+			long totalTimeUnbinding = System.currentTimeMillis() - startTime;
+			System.out.println();
+
+			System.out.print("Binding Profiling");
+			startTime = System.currentTimeMillis();
+			for (int i = 1; i <= profileRounds; i++) {
+				if (i % 50 == 0)
+					System.out.println();
+				System.out.print(".");
+
+				buffered.reset();
+				schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel())
+						.from(buffered).resolve();
+			}
+			long totalTimeBinding = System.currentTimeMillis() - startTime;
+			System.out.println();
+
+			System.out.println("Time per unbind: "
+					+ (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
+			System.out.println("Time per bind: "
+					+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
+		});
 	}
 
 	@Test

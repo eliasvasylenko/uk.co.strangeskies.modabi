@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.benchmarks.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.run;
+package uk.co.strangeskies.modabi.benchmark;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +44,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 @Component
 public class BenchmarkRunner {
@@ -66,67 +67,72 @@ public class BenchmarkRunner {
 
 	@Activate
 	public void run(BundleContext context) throws BundleException {
-		System.out.println("TEST");
-		try {
-			logger.log(LogService.LOG_INFO, "Preparing benchmark...");
+		new ContextClassLoaderRunner(
+				context.getBundle().adapt(BundleWiring.class).getClassLoader())
+						.run(() -> {
+							try {
+								logger.log(LogService.LOG_INFO, "Preparing benchmark...");
 
-			Thread.currentThread().setContextClassLoader(
-					context.getBundle().adapt(BundleWiring.class).getClassLoader());
+								File outputDir = new File(OUTPUT_FOLDER);
+								if (!outputDir.exists()) {
+									logger.log(LogService.LOG_INFO, "Creating output directory: "
+											+ outputDir.getAbsolutePath());
 
-			File outputDir = new File(OUTPUT_FOLDER);
-			if (!outputDir.exists()) {
-				logger.log(LogService.LOG_INFO,
-						"Creating output directory: " + outputDir.getAbsolutePath());
+									if (!outputDir.mkdirs()) {
+										throw new IllegalStateException(
+												"Could not create output directory, aborting...");
+									}
+								}
 
-				if (!outputDir.mkdirs()) {
-					throw new IllegalStateException(
-							"Could not create output directory, aborting...");
-				}
-			}
+								System.out.println("test");
+								manager.bindSchema()
+										.from(context.getBundle()
+												.getResource("/META-INF/modabi/BenchmarkSchema.xml")
+												.openStream())
+										.resolve(500);
 
-			System.out.println("test");
+								System.out.println("test2");
 
-			manager.bindSchema().from(
-					context.getBundle().getResource("/META-INF/modabi/BenchmarkSchema.xml").openStream())
-					.resolve(500);
+								boolean createXml = false;
+								logger.log(LogService.LOG_INFO,
+										"Will create XML files? " + createXml);
+								if (createXml) {
+									createXmlPortfolio();
+								}
 
-			System.out.println("test2");
+								System.gc();
+								System.gc();
 
-			boolean createXml = false;
-			logger.log(LogService.LOG_INFO, "Will create XML files? " + createXml);
-			if (createXml) {
-				createXmlPortfolio();
-			}
+								for (int i = 0; i < 10; i++) {
+									readLargeXmlWithModabi(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-100.xml"));
+									readLargeXmlWithModabi(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-1000.xml"));
+									readLargeXmlWithModabi(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-10000.xml"));
 
-			System.gc();
-			System.gc();
+									readLargeXmlWithStax(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-100.xml"));
+									readLargeXmlWithStax(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-1000.xml"));
+									readLargeXmlWithStax(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-10000.xml"));
 
-			for (int i = 0; i < 10; i++) {
-				readLargeXmlWithModabi(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
-				readLargeXmlWithModabi(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
-				readLargeXmlWithModabi(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
-
-				readLargeXmlWithStax(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
-				readLargeXmlWithStax(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
-				readLargeXmlWithStax(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
-
-				readLargeXmlWithFasterStax(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-100.xml"));
-				readLargeXmlWithFasterStax(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-1000.xml"));
-				readLargeXmlWithFasterStax(new File(
-						OUTPUT_FOLDER + File.separatorChar + "large-person-10000.xml"));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+									readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-100.xml"));
+									readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-1000.xml"));
+									readLargeXmlWithFasterStax(new File(OUTPUT_FOLDER
+											+ File.separatorChar + "large-person-10000.xml"));
+								}
+							} catch (RuntimeException e) {
+								e.printStackTrace();
+								throw e;
+							} catch (Exception e) {
+								e.printStackTrace();
+								throw new RuntimeException(e);
+							}
+						});
 		context.getBundle(0).stop();
 	}
 

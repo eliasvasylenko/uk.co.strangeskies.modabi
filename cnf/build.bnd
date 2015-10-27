@@ -39,7 +39,7 @@ pluginpath.modabi: \
 	${build}/release/uk.co.strangeskies.modabi.bnd.core/uk.co.strangeskies.modabi.bnd.core-${modabi-version}.jar,\
 	${build}/release/uk.co.strangeskies.modabi.bnd.xml/uk.co.strangeskies.modabi.bnd.xml-${modabi-version}.jar
 
--pluginpath: \
+-pluginpath.base: \
 	${build}/cache/biz.aQute.repository.aether.jar; \
 		url = ${bnd-release}/biz.aQute.repository.aether/biz.aQute.repository.aether-latest.jar
 

@@ -7,7 +7,6 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	osgi.enroute.base.api,\
 	${ss;utilities},\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	org.apache.servicemix.bundles.stax-utils

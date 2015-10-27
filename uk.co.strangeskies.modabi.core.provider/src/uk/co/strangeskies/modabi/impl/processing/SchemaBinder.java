@@ -46,6 +46,14 @@ public class SchemaBinder {
 
 	public <T> BindingFuture<T> bind(Model.Effective<T> model,
 			StructuredDataSource input) {
+		try {
+			Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode");
+			Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode", true,
+					Thread.currentThread().getContextClassLoader());
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
 		BindingContextImpl context = this.context.withInput(input);

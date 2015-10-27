@@ -19,8 +19,6 @@
 package uk.co.strangeskies.modabi.bnd;
 
 import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Map;
 
 import aQute.bnd.osgi.Analyzer;
@@ -32,12 +30,9 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.DataInterface;
+import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 public abstract class ModabiRegistration implements AnalyzerPlugin {
-	public interface ThrowingRunnable<T extends Exception> {
-		void run() throws T;
-	}
-
 	private final DataInterface handler;
 	private final SchemaManager manager;
 
@@ -73,8 +68,12 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 
 			for (String resourceName : resources.keySet()) {
 				Schema schema;
-				schema = manager.bindSchema()
-						.from(resources.get(resourceName).openInputStream()).resolve();
+				try {
+					schema = manager.bindSchema()
+							.from(resources.get(resourceName).openInputStream()).resolve();
+				} catch (Exception e) {
+					throw new SchemaException(e);
+				}
 
 				String capability = "uk.co.strangeskies.modabi;schema:String=\""
 						+ schema.getQualifiedName() + "\"";
@@ -99,10 +98,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 	}
 
 	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName,
-			ThrowingRunnable<?> run) {
-		ClassLoader threadClassLoader = Thread.currentThread()
-				.getContextClassLoader();
-
+			Runnable run) {
 		try {
 			File tempJar = createDirs(
 					analyzer.getBase() + File.separator + "generated", "tmp", "jar");
@@ -116,14 +112,9 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 					tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
 			jar.write(tempJar);
-			Thread.currentThread().setContextClassLoader(new URLClassLoader(
-					new URL[] { tempJar.toURI().toURL() }, threadClassLoader));
-
-			run.run();
+			new ContextClassLoaderRunner(tempJar.toURI().toURL()).run(run);
 		} catch (Exception e) {
 			throw flattenMessage(e);
-		} finally {
-			Thread.currentThread().setContextClassLoader(threadClassLoader);
 		}
 	}
 

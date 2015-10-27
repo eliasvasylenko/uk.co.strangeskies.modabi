@@ -96,7 +96,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private final BindingProviders bindingProviders;
 
-	private final Set<DataInterface> fileLoaders;
+	private final Map<String, DataInterface> dataInterfaces;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
@@ -134,7 +134,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 		bindingProviders = new BindingProviders(this);
 
-		fileLoaders = new HashSet<>();
+		dataInterfaces = new HashMap<>();
 	}
 
 	SchemaBinder getSchemaBinder() {
@@ -417,22 +417,22 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
 	public void registerDataInterface(DataInterface loader) {
-		fileLoaders.add(loader);
+		dataInterfaces.put(loader.getFormatId(), loader);
 	}
 
 	@Override
 	public void unregisterDataInterface(DataInterface loader) {
-		fileLoaders.remove(loader);
+		dataInterfaces.remove(loader.getFormatId(), loader);
 	}
 
 	@Override
 	public Set<DataInterface> getRegisteredDataInterfaces() {
-		return Collections.unmodifiableSet(fileLoaders);
+		return new HashSet<>(dataInterfaces.values());
 	}
 
 	@Override
 	public DataInterface getDataInterface(String id) {
-		return null;
+		return dataInterfaces.get(id);
 	}
 
 	@Override
