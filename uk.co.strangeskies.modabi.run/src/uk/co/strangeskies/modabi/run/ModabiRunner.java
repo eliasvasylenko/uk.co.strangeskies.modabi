@@ -27,34 +27,48 @@ import org.osgi.service.component.annotations.Component;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.xml.XmlInterface;
+import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 @Component
 public class ModabiRunner {
 	private SchemaManager manager;
 
 	@Activate
-	public void run(BundleContext context) throws BundleException {
-		try {
-			System.out.println("TEST");
+	public void run(BundleContext context) throws BundleException, ClassNotFoundException {
+		System.out.println("TEST");
+		Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode", true,
+				Thread.currentThread().getContextClassLoader());
 
-			manager = new SchemaManagerImpl();
-			manager.registerDataInterface(new XmlInterface());
+		new ContextClassLoaderRunner(
+				context.getBundle().adapt(BundleWiring.class).getClassLoader())
+						.run(() -> {
+							System.out.println("TES2T");
+							try {
+								Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode",
+										true, Thread.currentThread().getContextClassLoader());
 
-			System.out.println("Preparing benchmark...");
+								System.out.println("TEST");
 
-			Thread.currentThread().setContextClassLoader(
-					context.getBundle().adapt(BundleWiring.class).getClassLoader());
+								manager = new SchemaManagerImpl();
+								manager.registerDataInterface(new XmlInterface());
 
-			System.out.println("test");
+								System.out.println("Preparing benchmark...");
 
-			manager.bindSchema()
-					.from(context.getBundle()
-							.getResource("/META-INF/modabi/BenchmarkSchema.xml").openStream())
-					.resolve(500);
+								Thread.currentThread().setContextClassLoader(context.getBundle()
+										.adapt(BundleWiring.class).getClassLoader());
 
-			System.out.println("test2");
-		} catch (Throwable e) {
-			e.printStackTrace();
-		}
+								System.out.println("test");
+
+								manager.bindSchema()
+										.from(context.getBundle()
+												.getResource("/META-INF/modabi/BenchmarkSchema.xml")
+												.openStream())
+										.resolve(500);
+
+								System.out.println("test2");
+							} catch (Throwable e) {
+								e.printStackTrace();
+							}
+						});
 	}
 }
