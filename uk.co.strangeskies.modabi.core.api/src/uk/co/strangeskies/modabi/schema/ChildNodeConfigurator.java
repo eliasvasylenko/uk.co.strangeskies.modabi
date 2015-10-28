@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.schema;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -33,9 +34,18 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	 * @param name
 	 * @return
 	 */
-	public S name(String name);
+	S name(String name);
 
-	public S postInputType(TypeToken<?> postInputType);
+	S occurrences(Range<Integer> occuranceRange);
+
+	default S optional(boolean optional) {
+		return optional ? occurrences(Range.between(0, 1))
+				: occurrences(Range.between(1, 1));
+	}
+
+	S ordered(boolean ordered);
+
+	S postInputType(TypeToken<?> postInputType);
 
 	default S postInputType(AnnotatedType unbindingType) {
 		return postInputType(TypeToken.over(unbindingType));

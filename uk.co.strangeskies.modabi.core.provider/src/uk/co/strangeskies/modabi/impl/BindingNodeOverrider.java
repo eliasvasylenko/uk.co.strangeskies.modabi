@@ -37,14 +37,14 @@ import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
@@ -54,8 +54,8 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 
 public class BindingNodeOverrider {
@@ -119,13 +119,13 @@ public class BindingNodeOverrider {
 			if (node.getPreInputType() != null)
 				configurator = configurator.bindingType(node.getPreInputType());
 			if (node.getOutMethod().getDeclaringClass() != null)
-				configurator = configurator.unbindingType(node.getOutMethod()
-						.getDeclaringClass());
+				configurator = configurator
+						.unbindingType(node.getOutMethod().getDeclaringClass());
 
 			ComplexNodeConfigurator<T> elementConfigurator;
 
-			List<Model<? super T>> models = new ArrayList<>(override.source()
-					.baseModel());
+			List<Model<? super T>> models = new ArrayList<>(
+					override.source().baseModel());
 			models.add(0, new ModelWrapper<>(node));
 			elementConfigurator = configurator.addChild().complex()
 					.outMethodCast(true).baseModel(models);
@@ -141,8 +141,7 @@ public class BindingNodeOverrider {
 
 		@SuppressWarnings("unchecked")
 		public <T> DataNode.Effective<T> process(DataTypeBuilder builder,
-				DataNode.Effective<? super T> node,
-				DataType.Effective<T> override) {
+				DataNode.Effective<? super T> node, DataType.Effective<T> override) {
 			DataLoader loader = new DataLoader() {
 				@Override
 				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
@@ -150,9 +149,8 @@ public class BindingNodeOverrider {
 				}
 			};
 
-			DataTypeConfigurator<Object> configurator = builder
-					.configure(loader).name(new QualifiedName("base"))
-					.bindingType(node.getPreInputType())
+			DataTypeConfigurator<Object> configurator = builder.configure(loader)
+					.name(new QualifiedName("base")).bindingType(node.getPreInputType())
 					.unbindingType(node.getOutMethod().getDeclaringClass())
 					.isAbstract(true);
 
@@ -161,13 +159,12 @@ public class BindingNodeOverrider {
 					.type(override.source().baseType())
 					.nullIfOmitted(node.nullIfOmitted());
 
-			dataNodeConfigurator = tryProperty(node.optional(),
-					DataNodeConfigurator::optional, dataNodeConfigurator);
 			dataNodeConfigurator = tryProperty(node.format(),
 					DataNodeConfigurator::format, dataNodeConfigurator);
 
 			dataNodeConfigurator = processBindingNode(override, dataNodeConfigurator);
-			dataNodeConfigurator = processBindingChildNode(node, dataNodeConfigurator);
+			dataNodeConfigurator = processBindingChildNode(node,
+					dataNodeConfigurator);
 
 			doChildren(override.children(), dataNodeConfigurator);
 
@@ -196,10 +193,11 @@ public class BindingNodeOverrider {
 			return configurator.create();
 		}
 
-		private <N extends SchemaNode<N, ?>> N processSchemaNode(N node,
-				SchemaNodeConfigurator<?, N> c) {
-			if (node.isAbstract() != null)
-				c = c.isAbstract(node.isAbstract());
+		private <N extends ChildNode<N, ?>, C extends ChildNodeConfigurator<C, N>> N processChildNode(
+				N node, C c) {
+			c = tryProperty(node.isAbstract(), C::isAbstract, c);
+			c = tryProperty(node.occurrences(), C::occurrences, c);
+			c = tryProperty(node.isOrdered(), C::ordered, c);
 
 			return doChildren(node.children(), c.name(node.getName()));
 		}
@@ -230,8 +228,6 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.isOutMethodIterable(), C::outMethodIterable, c);
 			c = tryProperty(node.isOutMethodUnchecked(), C::outMethodUnchecked, c);
 			c = tryProperty(node.isOutMethodCast(), C::outMethodCast, c);
-			c = tryProperty(node.occurrences(), C::occurrences, c);
-			c = tryProperty(node.isOrdered(), C::ordered, c);
 
 			return processInputNode(node, c);
 		}
@@ -256,12 +252,12 @@ public class BindingNodeOverrider {
 			 * by folding the node as an overridden model rather than continuing to
 			 * propagate through the tree of children manually.
 			 */
-			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex).extensible(
-					node.isExtensible()).baseModel(node.source().baseModel());
+			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex)
+					.extensible(node.isExtensible()).baseModel(node.source().baseModel());
 
 			c = tryProperty(source.isInline(), ComplexNodeConfigurator::inline, c);
 
-			processSchemaNode(source,
+			processChildNode(source,
 					processBindingNode(source, processBindingChildNode(source, c)));
 		}
 
@@ -279,7 +275,6 @@ public class BindingNodeOverrider {
 					DataNodeConfigurator::valueResolution, c);
 			c = tryProperty(source.isExtensible(), DataNodeConfigurator::extensible,
 					c);
-			c = tryProperty(source.optional(), DataNodeConfigurator::optional, c);
 
 			currentProvidedValue = node.providedValues();
 
@@ -290,7 +285,7 @@ public class BindingNodeOverrider {
 				cu = c.type(source.type());
 			}
 
-			processSchemaNode(source,
+			processChildNode(source,
 					processBindingNode(source, processBindingChildNode(source, cu)));
 		}
 
@@ -298,7 +293,7 @@ public class BindingNodeOverrider {
 		public void accept(InputSequenceNode.Effective node) {
 			InputSequenceNode source = node.source();
 
-			processSchemaNode(source,
+			processChildNode(source,
 					processInputNode(source, next(ChildBuilder::inputSequence)));
 		}
 
@@ -306,19 +301,14 @@ public class BindingNodeOverrider {
 		public void accept(SequenceNode.Effective node) {
 			SequenceNode source = node.source();
 
-			processSchemaNode(source, next(ChildBuilder::sequence));
+			processChildNode(source, next(ChildBuilder::sequence));
 		}
 
 		@Override
 		public void accept(ChoiceNode.Effective node) {
 			ChoiceNode source = node.source();
 
-			ChoiceNodeConfigurator c = next(ChildBuilder::choice);
-
-			processSchemaNode(
-					source,
-					tryProperty(source.isMandatory(), ChoiceNodeConfigurator::mandatory,
-							c));
+			processChildNode(source, next(ChildBuilder::choice));
 		}
 
 		private <U, C extends SchemaNodeConfigurator<?, ?>> C tryProperty(

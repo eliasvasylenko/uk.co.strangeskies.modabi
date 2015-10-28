@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, ?, ?>, T>
@@ -32,11 +31,7 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	S outMethodCast(boolean cast);
 
-	S occurrences(Range<Integer> occuranceRange);
-
 	S extensible(boolean extensible);
-
-	S ordered(boolean ordered);
 
 	/*
 	 * TODO 'isOrdered' hint, for ranges above ..2, to help magically minimise

@@ -36,8 +36,6 @@ import uk.co.strangeskies.reflection.TypeToken;
 public class ChoiceNodeConfiguratorImpl
 		extends ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode>
 		implements ChoiceNodeConfigurator {
-	private Boolean mandatory;
-
 	public ChoiceNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super ChildNode<?, ?>> parent) {
 		super(parent);
@@ -119,17 +117,6 @@ public class ChoiceNodeConfiguratorImpl
 						return getOverriddenNodes();
 					}
 				});
-	}
-
-	@Override
-	public ChoiceNodeConfigurator mandatory(boolean mandatory) {
-		this.mandatory = mandatory;
-
-		return this;
-	}
-
-	public Boolean getMandatory() {
-		return mandatory;
 	}
 
 	@Override

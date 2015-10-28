@@ -23,12 +23,11 @@ import java.util.List;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public final class DataNodeWrapper<T>
-		extends
+public final class DataNodeWrapper<T> extends
 		BindingChildNodeWrapper<T, DataType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
 		implements DataNode.Effective<T> {
 	public DataNodeWrapper(DataType.Effective<T> component) {
@@ -44,8 +43,8 @@ public final class DataNodeWrapper<T>
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
-					&& !TypeToken.over(component.getDataType().getType()).isAssignableFrom(
-							providedValue.getClass()))
+					&& !TypeToken.over(component.getDataType().getType())
+							.isAssignableFrom(providedValue.getClass()))
 				throw new SchemaException(message);
 
 		DataType.Effective<? super T> check = component;
@@ -80,11 +79,6 @@ public final class DataNodeWrapper<T>
 	@Override
 	public DataType.Effective<T> type() {
 		return getComponent();
-	}
-
-	@Override
-	public Boolean optional() {
-		return getBase() == null ? null : getBase().optional();
 	}
 
 	@Override

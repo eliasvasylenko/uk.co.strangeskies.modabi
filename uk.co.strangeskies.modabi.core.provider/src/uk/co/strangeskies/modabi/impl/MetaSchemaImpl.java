@@ -131,6 +131,10 @@ public class MetaSchemaImpl implements MetaSchema {
 						.inMethodChained(true)
 						.postInputType(new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
 				.addChild(n -> n.data().name("name"))
+				.addChild(n -> n.data().format(Format.PROPERTY).name("ordered")
+						.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
+				.addChild(n -> n.data().format(Format.PROPERTY).name("occurrences")
+						.type(base.derivedTypes().rangeType()).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY)
 						.type(base.derivedTypes().typeTokenType()).name("postInputType")
 						.optional(true))
@@ -201,10 +205,6 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("name"))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("extensible")
 						.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("ordered")
-						.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("occurrences")
-						.type(base.derivedTypes().rangeType()).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("outMethod")
 						.outMethod("getOutMethodName").optional(true)
 						.type(base.primitiveType(Primitive.STRING)))
@@ -223,10 +223,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.name("choice", namespace).dataType(ChoiceNode.class)
 				.baseModel(childModel)
 				.addChild(c -> c.inputSequence().name("configure").inMethod("choice"))
-				.addChild(n -> n.data().name("name"))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("mandatory")
-						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
-				.create();
+				.addChild(n -> n.data().name("name")).create();
 		modelSet.add(choiceModel);
 
 		Model<SequenceNode> sequenceModel = model.configure(loader)
@@ -359,8 +356,6 @@ public class MetaSchemaImpl implements MetaSchema {
 								.provideValue(
 										new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
 												new QualifiedName("name", namespace)).buffer())))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("optional")
-						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("nullIfOmitted")
 						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("valueResolution")
@@ -452,11 +447,23 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().format(Format.PROPERTY).name("name")
 						.inMethod("qualifiedName").outMethod("getQualifiedName")
 						.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
+				/*- TODO imports for schema
+				.addChild(n -> n.data().format(Format.SIMPLE).name("imports")
+						.occurrences(Range.between(0, 1))
+						.dataType(new TypeToken<@Infer Set<?>>() {})
+						.bindingStrategy(BindingStrategy.PROVIDED)
+						.unbindingStrategy(UnbindingStrategy.SIMPLE)
+						.addChild(c -> c.choice().name("element").isAbstract(true)
+								.occurrences(Range.between(0, null)).outMethodIterable(true)))
+								*/
 				.addChild(
-						n -> n.data()
-								.format(Format.SIMPLE).name("dependencies").occurrences(
-										Range.between(0, 1))
-						.type(base.derivedTypes().setType())
+						n -> n.data().format(Format.SIMPLE).name("dependencies")
+								.occurrences(
+										Range
+												.between(0,
+														1))
+								.type(
+										base.derivedTypes().setType())
 						.addChild(o -> o.data().inMethod("add").name("element")
 								.type(base.derivedTypes().importType()).dataType(Schema.class)
 								.outMethodIterable(true).outMethod("this")

@@ -24,10 +24,10 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 class SequenceNodeImpl
-		extends SchemaNodeImpl<SequenceNode, SequenceNode.Effective>
+		extends ChildNodeImpl<SequenceNode, SequenceNode.Effective>
 		implements SequenceNode {
 	private class Effective
-			extends SchemaNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
+			extends ChildNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
 			implements SequenceNode.Effective {
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;

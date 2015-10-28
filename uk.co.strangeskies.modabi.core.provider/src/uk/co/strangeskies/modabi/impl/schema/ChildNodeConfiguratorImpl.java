@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
@@ -32,13 +33,13 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
 
 public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
-		extends SchemaNodeConfiguratorImpl<S, N> implements
-		ChildNodeConfigurator<S, N> {
+		extends SchemaNodeConfiguratorImpl<S, N>
+		implements ChildNodeConfigurator<S, N> {
 	@SuppressWarnings("rawtypes")
 	protected static final PropertySet<ChildNode> PROPERTY_SET = new PropertySet<>(
-			ChildNode.class).add(SchemaNodeImpl.PROPERTY_SET).add(
-			n -> Optional.ofNullable(n.getPostInputType())
-					.map(TypeToken::getAnnotatedDeclaration).orElse(null));
+			ChildNode.class).add(SchemaNodeImpl.PROPERTY_SET)
+					.add(n -> Optional.ofNullable(n.getPostInputType())
+							.map(TypeToken::getAnnotatedDeclaration).orElse(null));
 
 	protected PropertySet<? super N> propertySet() {
 		return PROPERTY_SET;
@@ -47,8 +48,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	@SuppressWarnings("rawtypes")
 	protected static final PropertySet<ChildNode.Effective> EFFECTIVE_PROPERTY_SET = new PropertySet<>(
 			ChildNode.Effective.class).add(PROPERTY_SET)
-			.add(SchemaNodeImpl.Effective.PROPERTY_SET)
-			.add(ChildNode.Effective::getPreInputType);
+					.add(SchemaNodeImpl.Effective.PROPERTY_SET)
+					.add(ChildNode.Effective::getPreInputType);
 
 	protected PropertySet<? super N> effectivePropertySet() {
 		return PROPERTY_SET;
@@ -56,6 +57,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	private final SchemaNodeConfigurationContext<? super N> context;
 
+	private Range<Integer> occurrences;
+	private Boolean ordered;
 	private TypeToken<?> postInputClass;
 
 	public ChildNodeConfiguratorImpl(
@@ -71,8 +74,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	public List<N> getOverriddenNodes() {
-		return getName() == null ? Collections.emptyList() : getContext()
-				.overrideChild(getName(), getNodeClass());
+		return getName() == null ? Collections.emptyList()
+				: getContext().overrideChild(getName(), getNodeClass());
 	}
 
 	@Override
@@ -82,8 +85,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	protected Namespace getNamespace() {
-		return getName() != null ? getName().getNamespace() : getContext()
-				.namespace();
+		return getName() != null ? getName().getNamespace()
+				: getContext().namespace();
 	}
 
 	@Override
@@ -102,4 +105,28 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	protected TypeToken<?> getPostInputClass() {
 		return postInputClass;
 	}
+
+	@Override
+	public final S occurrences(Range<Integer> range) {
+		assertConfigurable(occurrences);
+		occurrences = range;
+		return getThis();
+	}
+
+	public Range<Integer> getOccurrences() {
+		return occurrences;
+	}
+
+	@Override
+	public final S ordered(boolean ordered) {
+		assertConfigurable(this.ordered);
+		this.ordered = ordered;
+
+		return getThis();
+	}
+
+	public Boolean getOrdered() {
+		return ordered;
+	}
+
 }

@@ -81,7 +81,5 @@ public interface DataNode<T>
 
 	DataType<T> type();
 
-	Boolean optional();
-
 	Boolean nullIfOmitted();
 }

@@ -20,14 +20,13 @@ package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.modabi.SchemaProcessingContext;
 
-public interface ChoiceNode extends ChildNode<ChoiceNode, ChoiceNode.Effective> {
-	interface Effective extends ChoiceNode,
-			ChildNode.Effective<ChoiceNode, Effective> {
+public interface ChoiceNode
+		extends ChildNode<ChoiceNode, ChoiceNode.Effective> {
+	interface Effective
+			extends ChoiceNode, ChildNode.Effective<ChoiceNode, Effective> {
 		@Override
 		default void process(SchemaProcessingContext context) {
 			context.accept(this);
 		}
 	}
-
-	Boolean isMandatory();
 }

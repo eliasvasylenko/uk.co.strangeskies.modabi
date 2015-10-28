@@ -27,8 +27,8 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
@@ -103,7 +103,7 @@ public class DataNodeBinder {
 
 	private void validateResults(DataNode.Effective<?> node, List<?> results,
 			Exception cause) {
-		if (results.isEmpty() && !node.optional()
+		if (results.isEmpty() && !node.occurrences().contains(0)
 				&& !node.occurrences().contains(0)) {
 			String message = "Node '" + node.getName() + "' must be bound data.";
 			if (cause != null)

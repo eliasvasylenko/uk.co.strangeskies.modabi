@@ -20,13 +20,14 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.List;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.PropertySet;
@@ -39,7 +40,6 @@ public class DataNodeImpl<T>
 			implements DataNode.Effective<T> {
 		private final DataType.Effective<T> type;
 		private final Format format;
-		private final Boolean optional;
 		private final Boolean nullIfOmitted;
 		private final DataSource providedBuffer;
 		private final ValueResolution resolution;
@@ -66,14 +66,12 @@ public class DataNodeImpl<T>
 				throw new SchemaException(
 						"Node '" + getName() + "' must not provide a format.");
 
-			optional = overrideMerge.getOverride(DataNode::optional)
-					.validate((n, o) -> o || !n).orDefault(false).get();
-
 			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted)
 					.validate((n, o) -> o || !n).orDefault(false).get();
 
 			if (!isAbstract() && nullIfOmitted
-					&& (!optional || format == Format.SIMPLE
+					&& (!occurrences().equals(Range.between(0, 1))
+							|| format == Format.SIMPLE
 							|| !overrideMerge.configurator().getContext().isInputExpected()))
 				throw new SchemaException(
 						"'Null if omitted' property is not valid for node '" + getName()
@@ -88,7 +86,7 @@ public class DataNodeImpl<T>
 									&& n == ValueResolution.POST_REGISTRATION))
 					.orDefault(ValueResolution.PROCESSING_TIME).get();
 
-			if (providedBuffer == null && !isAbstract() && !optional
+			if (providedBuffer == null && !isAbstract() && !occurrences().contains(0)
 					&& (resolution == ValueResolution.REGISTRATION_TIME
 							|| resolution == ValueResolution.POST_REGISTRATION))
 				throw new SchemaException(
@@ -152,11 +150,6 @@ public class DataNodeImpl<T>
 		}
 
 		@Override
-		public final Boolean optional() {
-			return optional;
-		}
-
-		@Override
 		public final Boolean nullIfOmitted() {
 			return nullIfOmitted;
 		}
@@ -181,7 +174,6 @@ public class DataNodeImpl<T>
 
 	private final DataType<T> type;
 	private final Format format;
-	private final Boolean optional;
 	private final Boolean nullIfOmitted;
 	private final DataSource providedBuffer;
 	private final ValueResolution resolution;
@@ -191,7 +183,6 @@ public class DataNodeImpl<T>
 
 		format = configurator.getFormat();
 		type = configurator.getType();
-		optional = configurator.getOptional();
 		nullIfOmitted = configurator.getNullIfOmitted();
 
 		providedBuffer = configurator.getProvidedBufferedValue();
@@ -206,8 +197,7 @@ public class DataNodeImpl<T>
 			DataNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
 					.add(DataNode::format).add(DataNode::providedValueBuffer)
 					.add(DataNode::valueResolution).add(DataNode::type)
-					.add(DataNode::optional).add(DataNode::isExtensible)
-					.add(DataNode::nullIfOmitted);
+					.add(DataNode::isExtensible).add(DataNode::nullIfOmitted);
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -223,11 +213,6 @@ public class DataNodeImpl<T>
 	@Override
 	public final Format format() {
 		return format;
-	}
-
-	@Override
-	public final Boolean optional() {
-		return optional;
 	}
 
 	@Override

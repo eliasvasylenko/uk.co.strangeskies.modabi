@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
@@ -151,7 +152,27 @@ public class DummyNodes {
 					public TypeToken<?> getPostInputType() {
 						return TypeToken.over(Object.class);
 					}
+
+					@Override
+					public Range<Integer> occurrences() {
+						return Range.between(1, 1);
+					}
+
+					@Override
+					public Boolean isOrdered() {
+						return true;
+					}
 				};
+			}
+
+			@Override
+			public Range<Integer> occurrences() {
+				return Range.between(1, 1);
+			}
+
+			@Override
+			public Boolean isOrdered() {
+				return true;
 			}
 		};
 	}
@@ -208,6 +229,16 @@ public class DummyNodes {
 			@Override
 			public TypeToken<?> getPostInputType() {
 				return TypeToken.over(Object.class);
+			}
+
+			@Override
+			public Range<Integer> occurrences() {
+				return Range.between(1, 1);
+			}
+
+			@Override
+			public Boolean isOrdered() {
+				return true;
 			}
 		};
 	}

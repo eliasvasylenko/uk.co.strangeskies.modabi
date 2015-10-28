@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaProcessingContext;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -29,6 +30,22 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 
 		void process(SchemaProcessingContext context);
 	}
+
+	/**
+	 * Default behaviour is as if 1..1.
+	 *
+	 * @return
+	 */
+	Range<Integer> occurrences();
+
+	/**
+	 * Default behaviour is as if true. If unordered, may input concurrently, and
+	 * semantics of updating existing binding are more flexible. Also note that
+	 * unordered nodes may bind and unbind with less memory-efficiency...
+	 *
+	 * @return
+	 */
+	Boolean isOrdered();
 
 	TypeToken<?> getPostInputType();
 }

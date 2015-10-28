@@ -64,8 +64,6 @@ public interface DataNodeConfigurator<T> extends
 	public DataNodeConfigurator<T> valueResolution(
 			ValueResolution valueResolution);
 
-	public DataNodeConfigurator<T> optional(boolean optional);
-
 	public DataNodeConfigurator<T> nullIfOmitted(boolean nullIfOmitted);
 
 	public DataNodeConfigurator<T> format(Format format);

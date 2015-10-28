@@ -29,8 +29,8 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
@@ -118,7 +118,7 @@ public class DataNodeUnbinder {
 					}
 				}
 			}
-		} else if (!node.optional())
+		} else if (!node.occurrences().contains(0))
 			throw new SchemaException("Non-optional node '" + node.getName()
 					+ "' cannot omit data for unbinding");
 	}

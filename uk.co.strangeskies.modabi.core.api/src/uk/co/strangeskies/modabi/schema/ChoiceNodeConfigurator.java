@@ -18,10 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-
-
-public interface ChoiceNodeConfigurator extends
-		ChildNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode>,
-		SchemaNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode> {
-	public ChoiceNodeConfigurator mandatory(boolean mandatory);
-}
+public interface ChoiceNodeConfigurator
+		extends ChildNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode>,
+		SchemaNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode> {}

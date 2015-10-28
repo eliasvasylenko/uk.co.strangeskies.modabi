@@ -44,6 +44,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			extends BindingNodeImpl.Effective<T, S, E>
 			implements BindingChildNode.Effective<T, S, E> {
 		private final Range<Integer> occurrences;
+		private final Boolean ordered;
 
 		private final Boolean iterable;
 		private String outMethodName;
@@ -58,7 +59,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		private final Boolean inMethodUnchecked;
 
 		private final Boolean extensible;
-		private final Boolean ordered;
 
 		private final TypeToken<?> preInputType;
 		private final TypeToken<?> postInputType;

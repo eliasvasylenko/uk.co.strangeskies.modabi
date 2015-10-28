@@ -201,7 +201,7 @@ public class BindingNodeBinder {
 													+ "' could not be unbound",
 											context, n));
 						} catch (Exception e) {
-							if (node.isMandatory() != null && node.isMandatory())
+							if (!node.occurrences().contains(0))
 								throw e;
 						}
 					}

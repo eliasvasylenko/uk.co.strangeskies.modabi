@@ -20,8 +20,6 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.lang.reflect.Method;
 
-import uk.co.strangeskies.mathematics.Range;
-
 public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNode<T, S, E>, InputNode<S, E> {
 	interface Effective<T, S extends BindingChildNode<T, S, E>, E extends Effective<T, S, E>>
@@ -43,22 +41,6 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	Boolean isOutMethodIterable();
 
 	Boolean isOutMethodCast();
-
-	/**
-	 * Default behaviour is as if 1..1.
-	 *
-	 * @return
-	 */
-	Range<Integer> occurrences();
-
-	/**
-	 * Default behaviour is as if true. If unordered, may input concurrently, and
-	 * semantics of updating existing binding are more flexible. Also note that
-	 * unordered nodes may bind and unbind with less memory-efficiency...
-	 *
-	 * @return
-	 */
-	Boolean isOrdered();
 
 	Boolean isExtensible();
 }

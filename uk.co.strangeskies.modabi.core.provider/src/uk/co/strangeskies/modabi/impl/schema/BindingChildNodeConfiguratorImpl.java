@@ -38,6 +38,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	private TypeToken<?> postInputClass;
 	private Range<Integer> occurrences;
+	private Boolean ordered;
 	private Boolean outMethodIterable;
 	private Boolean outMethodCast;
 	private Boolean outMethodUnchecked;
@@ -47,7 +48,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Boolean inMethodCast;
 	private Boolean inMethodUnchecked;
 	private Boolean extensible;
-	private Boolean ordered;
 
 	public BindingChildNodeConfiguratorImpl(
 			SchemaNodeConfigurationContext<? super N> parent) {

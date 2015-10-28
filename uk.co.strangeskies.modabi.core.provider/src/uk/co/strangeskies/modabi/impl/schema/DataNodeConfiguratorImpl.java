@@ -41,7 +41,6 @@ public class DataNodeConfiguratorImpl<T> extends
 	private DataSource providedBufferedValue;
 	private ValueResolution resolution;
 
-	private Boolean optional;
 	private Boolean nullIfOmitted;
 
 	public DataNodeConfiguratorImpl(
@@ -114,18 +113,6 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	public ValueResolution getResolution() {
 		return resolution;
-	}
-
-	@Override
-	public final DataNodeConfigurator<T> optional(boolean optional) {
-		assertConfigurable(this.optional);
-		this.optional = optional;
-
-		return this;
-	}
-
-	public Boolean getOptional() {
-		return optional;
 	}
 
 	@Override

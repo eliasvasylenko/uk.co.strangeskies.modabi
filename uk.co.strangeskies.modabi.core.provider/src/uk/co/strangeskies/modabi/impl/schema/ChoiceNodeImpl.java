@@ -24,13 +24,11 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
+class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective>
 		implements ChoiceNode {
 	private static class Effective
-			extends SchemaNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
+			extends ChildNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
 			implements ChoiceNode.Effective {
-		private final Boolean mandatory;
-
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;
 
@@ -75,9 +73,6 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 				}
 			}
 			this.postInputClass = postInputClass;
-
-			mandatory = overrideMerge.getOverride(ChoiceNode::isMandatory)
-					.validate((o, p) -> o || !p).orDefault(false).get();
 		}
 
 		@Override
@@ -89,31 +84,19 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 		public TypeToken<?> getPostInputType() {
 			return postInputClass;
 		}
-
-		@Override
-		public Boolean isMandatory() {
-			return mandatory;
-		}
 	}
 
 	private final ChoiceNodeImpl.Effective effective;
 
 	private final TypeToken<?> postInputClass;
-	private final Boolean mandatory;
 
 	public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
 		super(configurator);
 
 		postInputClass = configurator.getPostInputClass();
-		mandatory = configurator.getMandatory();
 
 		effective = new Effective(
 				ChoiceNodeConfiguratorImpl.overrideMerge(this, configurator));
-	}
-
-	@Override
-	public final Boolean isMandatory() {
-		return mandatory;
 	}
 
 	@Override
