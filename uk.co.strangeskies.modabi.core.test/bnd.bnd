@@ -29,8 +29,8 @@ Test-Cases: ${test-cases}
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.runtime)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.json.provider)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.xml.provider)',\
+	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.json)',\
+	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.xml)',\
 	osgi.identity;filter:='(osgi.identity=biz.aQute.tester)',\
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)',\
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.api)'
@@ -53,8 +53,8 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.mathematics;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
-	uk.co.strangeskies.modabi.io.json.provider;version=snapshot,\
-	uk.co.strangeskies.modabi.io.xml.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.io.json;version=snapshot,\
+	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.13,1.0.14)'

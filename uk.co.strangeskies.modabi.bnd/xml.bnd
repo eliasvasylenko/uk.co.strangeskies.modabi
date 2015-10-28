@@ -1,3 +1,9 @@
 Private-Package: \
+	${dependencies.wrapped},\
 	uk.co.strangeskies.modabi.bnd.xml,\
-	uk.co.strangeskies.modabi.io.xml
+	uk.co.strangeskies.modabi.bnd
+
+Import-Package: \
+	java.net,\
+	java.util,\
+	*

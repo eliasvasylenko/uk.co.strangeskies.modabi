@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.utilities.collection.multimap.MultiHashMap;
-import uk.co.strangeskies.utilities.collection.multimap.MultiMap;
+import uk.co.strangeskies.utilities.collection.MultiHashMap;
+import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Bindings {
 	public final Models models;
@@ -41,9 +41,8 @@ public class Bindings {
 
 	public <T> void add(ComplexNode<?> element, T data) {
 		models.addAll(element.source().baseModel());
-		bindings.addToAll(
-				element.source().baseModel().stream().map(n -> n.effective().getName())
-						.collect(Collectors.toSet()), data);
+		bindings.addToAll(element.source().baseModel().stream()
+				.map(n -> n.effective().getName()).collect(Collectors.toSet()), data);
 	}
 
 	public <T> void add(Model<T> model, T data) {

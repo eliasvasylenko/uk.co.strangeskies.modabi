@@ -23,8 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import uk.co.strangeskies.utilities.collection.decorator.SetDecorator;
-import uk.co.strangeskies.utilities.function.collection.SetTransformationView;
+import uk.co.strangeskies.utilities.collection.SetDecorator;
+import uk.co.strangeskies.utilities.function.SetTransformationView;
 
 public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 	private final Function<T, QualifiedName> qualifiedNamingFunction;

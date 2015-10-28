@@ -18,13 +18,11 @@
  */
 package uk.co.strangeskies.modabi.bnd.xml;
 
-import aQute.bnd.annotation.plugin.BndPlugin;
 import aQute.bnd.service.AnalyzerPlugin;
 import uk.co.strangeskies.modabi.bnd.ModabiRegistration;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.xml.XmlInterface;
 
-@BndPlugin(name = "modabi-xml")
 public class ModabiXmlRegistration extends ModabiRegistration
 		implements AnalyzerPlugin {
 	public ModabiXmlRegistration() {

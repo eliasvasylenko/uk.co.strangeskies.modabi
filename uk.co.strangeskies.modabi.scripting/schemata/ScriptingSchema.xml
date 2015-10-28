@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="ScriptingSchema">
+
+	<dependencies>
+		<dependency>BaseSchema</dependency>
+	</dependencies>
+
+	<types />
+
+	<models>
+		<model name="script" abstract="true">
+			<property name="objectType" type="type" abstract="true" />
+
+			<property name="objectName" type="string" optional="true"
+				abstract="true" />
+
+			<choice name="scriptType" abstract="true">
+				<property name="source" type="url" abstract="true" />
+
+				<sequence abstract="true">
+					<property name="language" type="string" abstract="true" />
+					<content name="script" type="string" abstract="true" />
+				</sequence>
+			</choice>
+		</model>
+	</models>
+</schema>

@@ -77,6 +77,18 @@ public interface GeneratedSchema extends Schema {
 	<T> DataType<T> buildDataType(
 			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build);
 
+	default <T> DataType<T> buildDataType(String name,
+			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build) {
+		return buildDataType(m -> build.apply(
+				m.name(new QualifiedName(name, getQualifiedName().getNamespace()))));
+	}
+
 	<T> Model<T> buildModel(
 			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build);
+
+	default <T> Model<T> buildModel(String name,
+			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build) {
+		return buildModel(m -> build.apply(
+				m.name(new QualifiedName(name, getQualifiedName().getNamespace()))));
+	}
 }

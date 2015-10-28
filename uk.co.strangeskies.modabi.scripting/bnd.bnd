@@ -1,0 +1,25 @@
+Bundle-Name: Modabi - FX
+Bundle-Description: \
+	This package provides UI components for manipulating Java \
+	objects by way of a given schema binding, built on JavaFX.\
+\
+	${modabi-description}
+
+-runee: JavaSE-1.8
+
+-buildpath: \
+	osgi.enroute.base.api,\
+	${ss;utilities},\
+	${ss;scripting.management},\
+	uk.co.strangeskies.modabi.core.api;version=project
+
+Export-Package: uk.co.strangeskies.modabi.fx
+
+-pluginpath: \
+	${pluginpath.modabi}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
+
+-includeresource: \
+	META-INF/modabi=schemata

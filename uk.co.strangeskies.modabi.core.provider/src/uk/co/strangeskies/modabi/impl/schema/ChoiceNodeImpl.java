@@ -29,7 +29,7 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 	private static class Effective
 			extends SchemaNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
 			implements ChoiceNode.Effective {
-		private final boolean mandatory;
+		private final Boolean mandatory;
 
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;
@@ -53,24 +53,31 @@ class ChoiceNodeImpl extends SchemaNodeImpl<ChoiceNode, ChoiceNode.Effective>
 			TypeToken<?> postInputClass = overrideMerge
 					.getOverride(ChildNode::getPostInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
-			if (!isAbstract())
-				if (postInputClass == null)
+			if (!isAbstract()) {
+				if (postInputClass == null) {
 					for (ChildNode.Effective<?, ?> child : children()) {
 						TypeToken<?> nextOutputClass = child.getPostInputType();
-						if (postInputClass != null)
-							if (nextOutputClass.isAssignableFrom(postInputClass))
+
+						if (postInputClass != null) {
+							if (nextOutputClass.isAssignableFrom(postInputClass)) {
 								postInputClass = nextOutputClass;
-							else if (!postInputClass.isAssignableFrom(nextOutputClass))
+							} else if (!postInputClass.isAssignableFrom(nextOutputClass)) {
 								postInputClass = TypeToken.over(Object.class);
+							}
+						}
 					}
-				else
-					for (ChildNode.Effective<?, ?> child : children())
-						if (!postInputClass.isAssignableFrom(child.getPostInputType()))
+				} else {
+					for (ChildNode.Effective<?, ?> child : children()) {
+						if (!postInputClass.isAssignableFrom(child.getPostInputType())) {
 							throw new SchemaException();
+						}
+					}
+				}
+			}
 			this.postInputClass = postInputClass;
 
 			mandatory = overrideMerge.getOverride(ChoiceNode::isMandatory)
-					.orDefault(false).get();
+					.validate((o, p) -> o || !p).orDefault(false).get();
 		}
 
 		@Override

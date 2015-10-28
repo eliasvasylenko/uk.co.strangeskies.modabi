@@ -16,8 +16,33 @@ Bundle-Description: \
 	${ss;reflection},\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	uk.co.strangeskies.modabi.core.provider;version=project,\
-	uk.co.strangeskies.modabi.io.xml.provider;version=project,\
+	uk.co.strangeskies.modabi.io.xml;version=project,\
 	biz.aQute.bndlib
 	
-Export-Package: uk.co.strangeskies.modabi.bnd
 -sub: *.bnd
+
+dependencies.wrapped: \
+	uk.co.strangeskies.modabi,\
+	uk.co.strangeskies.modabi.declarative,\
+	uk.co.strangeskies.modabi.impl,\
+	uk.co.strangeskies.modabi.impl.processing,\
+	uk.co.strangeskies.modabi.impl.schema,\
+	uk.co.strangeskies.modabi.impl.schema.building,\
+	uk.co.strangeskies.modabi.impl.schema.utilities,\
+	uk.co.strangeskies.modabi.io,\
+	uk.co.strangeskies.modabi.io.structured,\
+	uk.co.strangeskies.modabi.io.xml,\
+	uk.co.strangeskies.modabi.processing,\
+	uk.co.strangeskies.modabi.processing.providers,\
+	uk.co.strangeskies.modabi.schema,\
+	uk.co.strangeskies.modabi.schema.building,\
+	uk.co.strangeskies.mathematics,\
+	uk.co.strangeskies.reflection,\
+	uk.co.strangeskies.utilities,\
+	uk.co.strangeskies.utilities.collection.computingmap,\
+	uk.co.strangeskies.utilities.collection,\
+	uk.co.strangeskies.utilities.collection,\
+	uk.co.strangeskies.utilities.factory,\
+	uk.co.strangeskies.utilities.function,\
+	uk.co.strangeskies.utilities.text,\
+	uk.co.strangeskies.utilities.tuple

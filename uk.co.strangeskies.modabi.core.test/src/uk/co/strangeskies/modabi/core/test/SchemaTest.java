@@ -80,15 +80,21 @@ public class SchemaTest {
 	}
 
 	@Test
+	public void abstractChoiceNodeTest() {
+		SchemaManager schemaManager = getService(SchemaManager.class);
+		schemaManager.generateSchema(new QualifiedName("choiceNodeTest"))
+				.buildModel("choiceNodeTestModel",
+						m -> m.isAbstract(true).addChild(c -> c.choice().isAbstract(true)));
+	}
+
+	@Test
 	public void schemaManagerServiceTest() {
-		System.out.println("TEST1");
 		Assert.assertNotNull(getService(SchemaManager.class));
 	}
 
 	@Test
 	public void schemaUnbindingTest() {
 		new ContextClassLoaderRunner(getClass().getClassLoader()).run(() -> {
-			System.out.println("TEST2");
 			SchemaManager schemaManager = getService(SchemaManager.class);
 
 			System.out.println("Unbinding BaseSchema...");
@@ -193,7 +199,6 @@ public class SchemaTest {
 
 	@Test
 	public void manualSchemaCreationTest() {
-		System.out.println("TEST3");
 		SchemaManager schemaManager = getService(SchemaManager.class);
 
 		GeneratedSchema generatedSchema = schemaManager.generateSchema(

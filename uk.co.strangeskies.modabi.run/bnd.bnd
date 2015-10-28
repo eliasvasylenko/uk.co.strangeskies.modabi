@@ -9,7 +9,7 @@ Bundle-Name: Modabi :: Run
 	uk.co.strangeskies.modabi.benchmarks;version=project,\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	uk.co.strangeskies.modabi.core.provider;version=project,\
-	uk.co.strangeskies.modabi.io.xml.provider;version=project
+	uk.co.strangeskies.modabi.io.xml;version=project
 
 -includeresource: \
 	META-INF/modabi=schemata
