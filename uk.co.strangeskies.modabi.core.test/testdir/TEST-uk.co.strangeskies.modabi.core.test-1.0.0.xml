@@ -1,5 +1,5 @@
 
-<testsuite name='test.uk.co.strangeskies.modabi.core.test' tests='10' time='3.928' failures='0' skipped='0' target='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' timestamp='2015-10-28T12:21:03' hostname='Elias' framework='org.apache.felix.framework [0]' errors='0' framework-version='5.2.0'>
+<testsuite name='test.uk.co.strangeskies.modabi.core.test' tests='10' time='3.913' failures='0' skipped='0' target='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' timestamp='2015-10-28T16:38:21' hostname='Elias' framework='org.apache.felix.framework [0]' errors='0' framework-version='5.2.0'>
   <properties>
     <property name='java.vendor' value='Oracle Corporation'/>
     <property name='org.osgi.service.http.port' value='8080'/>
@@ -11,8 +11,8 @@
     <property name='java.vm.specification.vendor' value='Oracle Corporation'/>
     <property name='java.runtime.version' value='1.8.0_60-b27'/>
     <property name='launch.services' value='true'/>
-    <property name='launch.notificationPort' value='56714'/>
-    <property name='launcher.properties' value='C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.core.test\generated\launch8046693591775732631.properties'/>
+    <property name='launch.notificationPort' value='63980'/>
+    <property name='launcher.properties' value='C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.core.test\generated\launch1714838412148641095.properties'/>
     <property name='user.name' value='tofuser'/>
     <property name='launch.bundles' value='C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fbiz.aQute.tester\biz.aQute.tester-3.0.0.jar,C:\Users\tofuser\.bnd\shacache\shas\53200A9D80FFF3106DC435DE1350CDD20B757819\net.minidev.json-smart-2.2.0.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.gogo.command\org.apache.felix.gogo.command-0.14.0.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.gogo.runtime\org.apache.felix.gogo.runtime-0.16.2.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.gogo.shell\org.apache.felix.gogo.shell-0.10.0.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.log\org.apache.felix.log-1.0.1.jar,C:\Users\tofuser\.bnd\shacache\shas\E98972F46B0EBF8BE4A10F9C10F0471528DB54D1\org.apache.felix.metatype-1.1.2.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.scr\org.apache.felix.scr-2.0.0.jar,C:\Users\tofuser\.bnd\shacache\shas\3B100EE9FF904F0B63898D796FA47579D010D083\org.apache.servicemix.bundles.stax-utils-20070216.0.0.1.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.hamcrest.wrapper\osgi.enroute.hamcrest.wrapper-1.3.0.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.junit.wrapper\osgi.enroute.junit.wrapper-4.12.0.jar,C:\Users\tofuser\.bnd\cache\https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.logger.simple.provider\osgi.enroute.logger.simple.provider-1.2.1.jar,C:\Users\tofuser\git\uk.co.strangeskies\cnf\release\uk.co.strangeskies.mathematics\uk.co.strangeskies.mathematics-1.0.13.jar,C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.core.api\generated\uk.co.strangeskies.modabi.core.api.jar,C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.core.provider\generated\uk.co.strangeskies.modabi.core.provider.jar,C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.io.json\generated\uk.co.strangeskies.modabi.io.json.jar,C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.io.xml\generated\uk.co.strangeskies.modabi.io.xml.jar,C:\Users\tofuser\git\uk.co.strangeskies\cnf\release\uk.co.strangeskies.reflection\uk.co.strangeskies.reflection-1.0.13.jar,C:\Users\tofuser\git\uk.co.strangeskies\cnf\release\uk.co.strangeskies.utilities\uk.co.strangeskies.utilities-1.0.13.jar,C:\Users\tofuser\git\uk.co.strangeskies\cnf\release\uk.co.strangeskies.utilities.osgi.consolelog\uk.co.strangeskies.utilities.osgi.consolelog-1.0.13.jar,C:\Users\tofuser\git\uk.co.strangeskies.modabi\uk.co.strangeskies.modabi.core.test\generated\uk.co.strangeskies.modabi.core.test.jar'/>
     <property name='tester.trace' value='true'/>
@@ -80,34 +80,34 @@
   </properties>
   <bundles>
     <bundle version='5.2.0' location='System Bundle' bsn='org.apache.felix.framework' modified='1970-01-01T01:00:00' state='32' id='0'/>
-    <bundle version='3.0.0.201508170645' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fbiz.aQute.tester/biz.aQute.tester-3.0.0.jar' bsn='biz.aQute.tester' modified='2015-10-28T12:20:57' state='32' id='1'/>
-    <bundle version='2.2.0' location='file:/C:/Users/tofuser/.bnd/shacache/shas/53200A9D80FFF3106DC435DE1350CDD20B757819/net.minidev.json-smart-2.2.0.jar' bsn='net.minidev.json-smart' modified='2015-10-28T12:20:57' state='32' id='2'/>
-    <bundle version='0.14.0' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.command/org.apache.felix.gogo.command-0.14.0.jar' bsn='org.apache.felix.gogo.command' modified='2015-10-28T12:20:57' state='32' id='3'/>
-    <bundle version='0.16.2' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.runtime/org.apache.felix.gogo.runtime-0.16.2.jar' bsn='org.apache.felix.gogo.runtime' modified='2015-10-28T12:20:57' state='32' id='4'/>
-    <bundle version='0.10.0' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.shell/org.apache.felix.gogo.shell-0.10.0.jar' bsn='org.apache.felix.gogo.shell' modified='2015-10-28T12:20:57' state='32' id='5'/>
-    <bundle version='1.0.1' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.log/org.apache.felix.log-1.0.1.jar' bsn='org.apache.felix.log' modified='2015-10-28T12:20:57' state='32' id='6'/>
-    <bundle version='1.1.2' location='file:/C:/Users/tofuser/.bnd/shacache/shas/E98972F46B0EBF8BE4A10F9C10F0471528DB54D1/org.apache.felix.metatype-1.1.2.jar' bsn='org.apache.felix.metatype' modified='2015-10-28T12:20:57' state='32' id='7'/>
-    <bundle version='2.0.0' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.scr/org.apache.felix.scr-2.0.0.jar' bsn='org.apache.felix.scr' modified='2015-10-28T12:20:57' state='32' id='8'/>
-    <bundle version='20070216.0.0.1' location='file:/C:/Users/tofuser/.bnd/shacache/shas/3B100EE9FF904F0B63898D796FA47579D010D083/org.apache.servicemix.bundles.stax-utils-20070216.0.0.1.jar' bsn='org.apache.servicemix.bundles.stax-utils' modified='2015-10-28T12:20:57' state='32' id='9'/>
-    <bundle version='1.3.0.201509161450' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.hamcrest.wrapper/osgi.enroute.hamcrest.wrapper-1.3.0.jar' bsn='osgi.enroute.hamcrest.wrapper' modified='2015-10-28T12:20:57' state='32' id='10'/>
-    <bundle version='4.12.0.201509161450' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.junit.wrapper/osgi.enroute.junit.wrapper-4.12.0.jar' bsn='osgi.enroute.junit.wrapper' modified='2015-10-28T12:20:57' state='32' id='11'/>
-    <bundle version='1.2.1.201510121300' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.logger.simple.provider/osgi.enroute.logger.simple.provider-1.2.1.jar' bsn='osgi.enroute.logger.simple.provider' modified='2015-10-28T12:20:57' state='32' id='12'/>
-    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.mathematics/uk.co.strangeskies.mathematics-1.0.13.jar' bsn='uk.co.strangeskies.mathematics' modified='2015-10-28T12:20:57' state='32' id='13'/>
-    <bundle version='1.0.0.201510281209' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.api/generated/uk.co.strangeskies.modabi.core.api.jar' bsn='uk.co.strangeskies.modabi.core.api' modified='2015-10-28T12:20:57' state='32' id='14'/>
-    <bundle version='1.0.0.201510281220' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.provider/generated/uk.co.strangeskies.modabi.core.provider.jar' bsn='uk.co.strangeskies.modabi.core.provider' modified='2015-10-28T12:20:57' state='32' id='15'/>
-    <bundle version='1.0.0.201510281209' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.json/generated/uk.co.strangeskies.modabi.io.json.jar' bsn='uk.co.strangeskies.modabi.io.json' modified='2015-10-28T12:20:57' state='32' id='16'/>
-    <bundle version='1.0.0.201510281209' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.xml/generated/uk.co.strangeskies.modabi.io.xml.jar' bsn='uk.co.strangeskies.modabi.io.xml' modified='2015-10-28T12:20:57' state='32' id='17'/>
-    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.reflection/uk.co.strangeskies.reflection-1.0.13.jar' bsn='uk.co.strangeskies.reflection' modified='2015-10-28T12:20:57' state='32' id='18'/>
-    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities/uk.co.strangeskies.utilities-1.0.13.jar' bsn='uk.co.strangeskies.utilities' modified='2015-10-28T12:20:57' state='32' id='19'/>
-    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities.osgi.consolelog/uk.co.strangeskies.utilities.osgi.consolelog-1.0.13.jar' bsn='uk.co.strangeskies.utilities.osgi.consolelog' modified='2015-10-28T12:20:57' state='32' id='20'/>
-    <bundle version='1.0.0.201510281212' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' bsn='uk.co.strangeskies.modabi.core.test' modified='2015-10-28T12:20:57' state='32' target='true' id='21'/>
+    <bundle version='3.0.0.201508170645' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fbiz.aQute.tester/biz.aQute.tester-3.0.0.jar' bsn='biz.aQute.tester' modified='2015-10-28T16:38:15' state='32' id='1'/>
+    <bundle version='2.2.0' location='file:/C:/Users/tofuser/.bnd/shacache/shas/53200A9D80FFF3106DC435DE1350CDD20B757819/net.minidev.json-smart-2.2.0.jar' bsn='net.minidev.json-smart' modified='2015-10-28T16:38:15' state='32' id='2'/>
+    <bundle version='0.14.0' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.command/org.apache.felix.gogo.command-0.14.0.jar' bsn='org.apache.felix.gogo.command' modified='2015-10-28T16:38:15' state='32' id='3'/>
+    <bundle version='0.16.2' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.runtime/org.apache.felix.gogo.runtime-0.16.2.jar' bsn='org.apache.felix.gogo.runtime' modified='2015-10-28T16:38:15' state='32' id='4'/>
+    <bundle version='0.10.0' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.shell/org.apache.felix.gogo.shell-0.10.0.jar' bsn='org.apache.felix.gogo.shell' modified='2015-10-28T16:38:15' state='32' id='5'/>
+    <bundle version='1.0.1' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.log/org.apache.felix.log-1.0.1.jar' bsn='org.apache.felix.log' modified='2015-10-28T16:38:15' state='32' id='6'/>
+    <bundle version='1.1.2' location='file:/C:/Users/tofuser/.bnd/shacache/shas/E98972F46B0EBF8BE4A10F9C10F0471528DB54D1/org.apache.felix.metatype-1.1.2.jar' bsn='org.apache.felix.metatype' modified='2015-10-28T16:38:15' state='32' id='7'/>
+    <bundle version='2.0.0' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.scr/org.apache.felix.scr-2.0.0.jar' bsn='org.apache.felix.scr' modified='2015-10-28T16:38:15' state='32' id='8'/>
+    <bundle version='20070216.0.0.1' location='file:/C:/Users/tofuser/.bnd/shacache/shas/3B100EE9FF904F0B63898D796FA47579D010D083/org.apache.servicemix.bundles.stax-utils-20070216.0.0.1.jar' bsn='org.apache.servicemix.bundles.stax-utils' modified='2015-10-28T16:38:15' state='32' id='9'/>
+    <bundle version='1.3.0.201509161450' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.hamcrest.wrapper/osgi.enroute.hamcrest.wrapper-1.3.0.jar' bsn='osgi.enroute.hamcrest.wrapper' modified='2015-10-28T16:38:15' state='32' id='10'/>
+    <bundle version='4.12.0.201509161450' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.junit.wrapper/osgi.enroute.junit.wrapper-4.12.0.jar' bsn='osgi.enroute.junit.wrapper' modified='2015-10-28T16:38:15' state='32' id='11'/>
+    <bundle version='1.2.1.201510121300' location='file:/C:/Users/tofuser/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.logger.simple.provider/osgi.enroute.logger.simple.provider-1.2.1.jar' bsn='osgi.enroute.logger.simple.provider' modified='2015-10-28T16:38:15' state='32' id='12'/>
+    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.mathematics/uk.co.strangeskies.mathematics-1.0.13.jar' bsn='uk.co.strangeskies.mathematics' modified='2015-10-28T16:38:15' state='32' id='13'/>
+    <bundle version='1.0.0.201510281209' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.api/generated/uk.co.strangeskies.modabi.core.api.jar' bsn='uk.co.strangeskies.modabi.core.api' modified='2015-10-28T16:38:15' state='32' id='14'/>
+    <bundle version='1.0.0.201510281638' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.provider/generated/uk.co.strangeskies.modabi.core.provider.jar' bsn='uk.co.strangeskies.modabi.core.provider' modified='2015-10-28T16:38:15' state='32' id='15'/>
+    <bundle version='1.0.0.201510281209' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.json/generated/uk.co.strangeskies.modabi.io.json.jar' bsn='uk.co.strangeskies.modabi.io.json' modified='2015-10-28T16:38:15' state='32' id='16'/>
+    <bundle version='1.0.0.201510281209' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.xml/generated/uk.co.strangeskies.modabi.io.xml.jar' bsn='uk.co.strangeskies.modabi.io.xml' modified='2015-10-28T16:38:15' state='32' id='17'/>
+    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.reflection/uk.co.strangeskies.reflection-1.0.13.jar' bsn='uk.co.strangeskies.reflection' modified='2015-10-28T16:38:15' state='32' id='18'/>
+    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities/uk.co.strangeskies.utilities-1.0.13.jar' bsn='uk.co.strangeskies.utilities' modified='2015-10-28T16:38:15' state='32' id='19'/>
+    <bundle version='1.0.13.201510281023' location='file:/C:/Users/tofuser/git/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities.osgi.consolelog/uk.co.strangeskies.utilities.osgi.consolelog-1.0.13.jar' bsn='uk.co.strangeskies.utilities.osgi.consolelog' modified='2015-10-28T16:38:15' state='32' id='20'/>
+    <bundle version='1.0.0.201510281240' location='file:/C:/Users/tofuser/git/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' bsn='uk.co.strangeskies.modabi.core.test' modified='2015-10-28T16:38:15' state='32' target='true' id='21'/>
   </bundles>
   <testcase name='schemaManagerServiceTest' time='0.1' classname='uk.co.strangeskies.modabi.core.test.CopyableTest'>
     <system-out>
       copyable
     </system-out>
   </testcase>
-  <testcase name='abstractChoiceNodeTest' time='0.11' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
+  <testcase name='abstractChoiceNodeTest' time='0.8' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
     <system-out>
       testy
 testy2
@@ -119,7 +119,7 @@ testy2
 testy2
     </system-out>
   </testcase>
-  <testcase name='schemaUnbindingTest' time='3.365' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
+  <testcase name='schemaUnbindingTest' time='3.329' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
     <system-out>
       testy
 testy2
@@ -128,11 +128,10 @@ Unbinding BaseSchema...
        ?&amp;gt;
 &amp;lt;schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
        name="BaseSchema"&amp;gt;
-  &amp;lt;dependencies/&amp;gt;
-      
   &amp;lt;types&amp;gt;
-    &amp;lt;type private="true" name="enumerationBase"
-       dataType="@uk.co.strangeskies.reflection.TypeToken.Infer uk.co.strangeskies.utilities.Enumeration&amp;amp;lt;?&amp;amp;gt;"
+    &amp;lt;type
+       private="true" name="enumerationBase" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       uk.co.strangeskies.utilities.Enumeration&amp;amp;lt;?&amp;amp;gt;"
        bindingStrategy="STATIC_FACTORY" unbindingType="uk.co.strangeskies.utilities.Enumeration"
        abstract="true"/&amp;gt;
     &amp;lt;type private="true" name="primitive"
@@ -555,15 +554,12 @@ interface uk.co.strangeskies.modabi.schema.SchemaNode
 &amp;lt;?xml version="1.0" ?&amp;gt;
 &amp;lt;schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
        name="MetaSchema"&amp;gt;
-  &amp;lt;dependencies&amp;gt;
-
-          &amp;lt;dependency&amp;gt;BaseSchema&amp;lt;/dependency&amp;gt;
+  &amp;lt;dependencies&amp;gt;BaseSchema&amp;lt;/dependencies&amp;gt;
       
-  &amp;lt;/dependencies&amp;gt;
   &amp;lt;types/&amp;gt;
-
-        &amp;lt;models&amp;gt;
-    &amp;lt;model name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
+  &amp;lt;models&amp;gt;
+    &amp;lt;model
+       name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
        ?&amp;amp;gt;" unbindingStrategy="SIMPLE" abstract="true"&amp;gt;
       
       &amp;lt;inputSequence name="configure" postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
@@ -853,11 +849,11 @@ interface uk.co.strangeskies.modabi.schema.SchemaNode
       
       &amp;lt;property name="name" type="qualifiedName" outMethod="getQualifiedName"
        inMethod="qualifiedName"/&amp;gt;
-      &amp;lt;complex name="dependencies"
-       occurrences="0..1" dataType="java.util.Set&amp;amp;lt;uk.co.strangeskies.modabi.Schema&amp;amp;gt;"&amp;gt;
-      
-        &amp;lt;simple name="dependency" type="import" occurrences="0.."
-       outMethod="this" outMethodIterable="true" inMethod="add" dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      &amp;lt;simple name="dependencies"
+       type="set" occurrences="0..1"&amp;gt;
+        &amp;lt;data
+       name="element" type="import" occurrences="0.." outMethod="this"
+       outMethodIterable="true" inMethod="add" dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
       
           &amp;lt;data name="import"&amp;gt;
             &amp;lt;data
@@ -882,9 +878,9 @@ interface uk.co.strangeskies.modabi.schema.SchemaNode
             &amp;lt;data name="targetModel" value="model"/&amp;gt;
       
           &amp;lt;/data&amp;gt;
-        &amp;lt;/simple&amp;gt;
+        &amp;lt;/data&amp;gt;
       
-      &amp;lt;/complex&amp;gt;
+      &amp;lt;/simple&amp;gt;
       &amp;lt;complex name="types"
        occurrences="0..1" outMethod="getDataTypes" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
        java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
@@ -921,15 +917,12 @@ Re-unbinding MetaSchema...
 &amp;lt;?xml version="1.0" ?&amp;gt;
 &amp;lt;schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
        name="MetaSchema"&amp;gt;
-  &amp;lt;dependencies&amp;gt;
-
-          &amp;lt;dependency&amp;gt;BaseSchema&amp;lt;/dependency&amp;gt;
+  &amp;lt;dependencies&amp;gt;BaseSchema&amp;lt;/dependencies&amp;gt;
       
-  &amp;lt;/dependencies&amp;gt;
   &amp;lt;types/&amp;gt;
-
-        &amp;lt;models&amp;gt;
-    &amp;lt;model name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
+  &amp;lt;models&amp;gt;
+    &amp;lt;model
+       name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
        ?&amp;amp;gt;" unbindingStrategy="SIMPLE" abstract="true"&amp;gt;
       
       &amp;lt;inputSequence name="configure" postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
@@ -1219,11 +1212,11 @@ Re-unbinding MetaSchema...
       
       &amp;lt;property name="name" type="qualifiedName" outMethod="getQualifiedName"
        inMethod="qualifiedName"/&amp;gt;
-      &amp;lt;complex name="dependencies"
-       occurrences="0..1" dataType="java.util.Set&amp;amp;lt;uk.co.strangeskies.modabi.Schema&amp;amp;gt;"&amp;gt;
-      
-        &amp;lt;simple name="dependency" type="import" occurrences="0.."
-       outMethod="this" outMethodIterable="true" inMethod="add" dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      &amp;lt;simple name="dependencies"
+       type="set" occurrences="0..1"&amp;gt;
+        &amp;lt;data
+       name="element" type="import" occurrences="0.." outMethod="this"
+       outMethodIterable="true" inMethod="add" dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
       
           &amp;lt;data name="import"&amp;gt;
             &amp;lt;data
@@ -1248,9 +1241,9 @@ Re-unbinding MetaSchema...
             &amp;lt;data name="targetModel" value="model"/&amp;gt;
       
           &amp;lt;/data&amp;gt;
-        &amp;lt;/simple&amp;gt;
+        &amp;lt;/data&amp;gt;
       
-      &amp;lt;/complex&amp;gt;
+      &amp;lt;/simple&amp;gt;
       &amp;lt;complex name="types"
        occurrences="0..1" outMethod="getDataTypes" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
        java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
@@ -1286,15 +1279,12 @@ Re-re-unbinding MetaSchema...
        version="1.0" ?&amp;gt;
 &amp;lt;schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
        name="MetaSchema"&amp;gt;
-  &amp;lt;dependencies&amp;gt;
-
-          &amp;lt;dependency&amp;gt;BaseSchema&amp;lt;/dependency&amp;gt;
+  &amp;lt;dependencies&amp;gt;BaseSchema&amp;lt;/dependencies&amp;gt;
       
-  &amp;lt;/dependencies&amp;gt;
   &amp;lt;types/&amp;gt;
-
-        &amp;lt;models&amp;gt;
-    &amp;lt;model name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
+  &amp;lt;models&amp;gt;
+    &amp;lt;model
+       name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
        ?&amp;amp;gt;" unbindingStrategy="SIMPLE" abstract="true"&amp;gt;
       
       &amp;lt;inputSequence name="configure" postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
@@ -1584,11 +1574,11 @@ Re-re-unbinding MetaSchema...
       
       &amp;lt;property name="name" type="qualifiedName" outMethod="getQualifiedName"
        inMethod="qualifiedName"/&amp;gt;
-      &amp;lt;complex name="dependencies"
-       occurrences="0..1" dataType="java.util.Set&amp;amp;lt;uk.co.strangeskies.modabi.Schema&amp;amp;gt;"&amp;gt;
-      
-        &amp;lt;simple name="dependency" type="import" occurrences="0.."
-       outMethod="this" outMethodIterable="true" inMethod="add" dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      &amp;lt;simple name="dependencies"
+       type="set" occurrences="0..1"&amp;gt;
+        &amp;lt;data
+       name="element" type="import" occurrences="0.." outMethod="this"
+       outMethodIterable="true" inMethod="add" dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
       
           &amp;lt;data name="import"&amp;gt;
             &amp;lt;data
@@ -1613,9 +1603,9 @@ Re-re-unbinding MetaSchema...
             &amp;lt;data name="targetModel" value="model"/&amp;gt;
       
           &amp;lt;/data&amp;gt;
-        &amp;lt;/simple&amp;gt;
+        &amp;lt;/data&amp;gt;
       
-      &amp;lt;/complex&amp;gt;
+      &amp;lt;/simple&amp;gt;
       &amp;lt;complex name="types"
        occurrences="0..1" outMethod="getDataTypes" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
        java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
@@ -1642,7 +1632,7 @@ Re-re-unbinding MetaSchema...
 &amp;lt;/schema&amp;gt;
     </system-out>
   </testcase>
-  <testcase name='manualSchemaCreationTest' time='0.528' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
+  <testcase name='manualSchemaCreationTest' time='0.549' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
     <system-out>
       testy
 testy2
@@ -1650,215 +1640,211 @@ java.util.List&amp;lt;java.lang.Integer&amp;gt;
       
 java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;
       
-    ~# { E#41063 = E#41063, E#41063 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#41063 &amp;lt;: java.lang.Object, E#41063
-       &amp;lt;: java.lang.Object, E#40892 = E#40892, E#40892 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40892 &amp;lt;: java.lang.Object, E#40892
-       &amp;lt;: java.lang.Object, E#41065 = E#41065, E#41065 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#41065 &amp;lt;: java.lang.Object, E#41065
-       &amp;lt;: java.lang.Object, K#40911 = K#40911, K#40911 = java.lang.String,
-       K#40911 = K#40896, K#40911 = K#40883, K#40911 = K#40916, K#40911
-       = K#40927, K#40911 = K#40890, K#40911 = K#40906, K#40911 =
-       K#2846, K#40911 &amp;lt;: java.lang.Object, K#40911 &amp;lt;:
-       java.lang.Object, K#40911 &amp;lt;: INF#40926, K#40911 &amp;lt;:
-       java.lang.String, K#40911 &amp;lt;: INF#40881, K#40911 &amp;lt;:
-       INF#40904, INF#40928 = java.lang.Object, INF#40928 = INF#40928,
-       INF#40928 &amp;lt;: java.lang.Object, V#2847 &amp;lt;: INF#40928,
-       V#40895 &amp;lt;: INF#40928, V#40893 &amp;lt;: INF#40928,
-       java.lang.Integer &amp;lt;: INF#40928, V#40915 &amp;lt;: INF#40928,
-       V#40913 &amp;lt;: INF#40928, V#40894 &amp;lt;: INF#40928,
-       V#40914 &amp;lt;: INF#40928, V#40925 &amp;lt;: INF#40928,
-       V#40895 = V#2847, V#40895 = V#40895, V#40895 = V#40893, V#40895
-       = java.lang.Integer, V#40895 = V#40915, V#40895 = V#40913,
-       V#40895 = V#40914, V#40895 = V#40925, V#40895 = V#40894, V#40895
-       &amp;lt;: java.lang.Object, V#40895 &amp;lt;: java.lang.Object,
-       V#40895 &amp;lt;: INF#40928, V#40895 &amp;lt;: java.lang.Integer,
-       V#40895 &amp;lt;: INF#40885, V#40895 &amp;lt;: INF#40908,
-       E#40907 = E#40907, E#40907 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40907 &amp;lt;: java.lang.Object, E#40907
-       &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#40916,
-       V#40913&amp;gt;, E#40907 &amp;lt;: java.lang.Object, E#40907
-       &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#40927,
-       V#40925&amp;gt;, E#40907 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#40906,
-       V#40915&amp;gt;, E#40897 = E#40897, E#40897 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40897 &amp;lt;: java.lang.Object, E#40897
-       &amp;lt;: java.lang.Object, E#2861 = E#2861, E#2861 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2861 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       java.lang.Integer&amp;gt;, E#2861 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       V#2847&amp;gt;, E#2861 &amp;lt;: java.lang.Object, E#2861
-       &amp;lt;: java.lang.Object, E#41064 = E#41064, E#41064 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#41064 &amp;lt;: java.lang.Object, E#41064
-       &amp;lt;: java.lang.Object, K#40927 = K#40911, K#40927 = java.lang.String,
-       K#40927 = K#40896, K#40927 = K#40883, K#40927 = K#40916, K#40927
-       = K#40927, K#40927 = K#40890, K#40927 = K#40906, K#40927 =
-       K#2846, K#40927 &amp;lt;: java.lang.Object, K#40927 &amp;lt;:
-       java.lang.Object, K#40927 &amp;lt;: INF#40926, K#40927 &amp;lt;:
-       java.lang.String, K#40927 &amp;lt;: INF#40881, K#40927 &amp;lt;:
-       INF#40904, K#40906 = K#40911, K#40906 = java.lang.String,
-       K#40906 = K#40896, K#40906 = K#40883, K#40906 = K#40916, K#40906
-       = K#40927, K#40906 = K#40890, K#40906 = K#40906, K#40906 =
-       K#2846, K#40906 &amp;lt;: java.lang.Object, K#40906 &amp;lt;:
-       java.lang.Object, K#40906 &amp;lt;: INF#40926, K#40906 &amp;lt;:
-       java.lang.String, K#40906 &amp;lt;: INF#40881, K#40906 &amp;lt;:
-       INF#40904, E#40909 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#40914&amp;gt;, E#40909 = java.util.Map.java.util.Map.Entry&amp;lt;K#40911,
-       V#40914&amp;gt;, E#40909 = E#40909, E#40909 &amp;lt;: java.lang.Object,
-       E#40909 &amp;lt;: java.lang.Object, E#40910 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#40914&amp;gt;, E#40910 = java.util.Map.java.util.Map.Entry&amp;lt;K#40911,
-       V#40914&amp;gt;, E#40910 = E#40910, E#40910 &amp;lt;: java.lang.Object,
-       E#40910 &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#40916,
-       V#40913&amp;gt; &amp;lt;: E#40910, E#2864 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2864 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       java.lang.Integer&amp;gt;, E#2864 = E#2864, E#2864 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       V#2847&amp;gt;, E#2864 &amp;lt;: java.lang.Object, E#2864
-       &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#40927,
-       V#40925&amp;gt; &amp;lt;: E#2864, V#40894 = V#2847, V#40894
-       = V#40895, V#40894 = V#40893, V#40894 = java.lang.Integer,
-       V#40894 = V#40915, V#40894 = V#40913, V#40894 = V#40914, V#40894
-       = V#40925, V#40894 = V#40894, V#40894 &amp;lt;: java.lang.Object,
-       V#40894 &amp;lt;: java.lang.Object, V#40894 &amp;lt;: INF#40928,
-       V#40894 &amp;lt;: java.lang.Integer, V#40894 &amp;lt;: INF#40885,
-       V#40894 &amp;lt;: INF#40908, V#40914 = V#2847, V#40914 = V#40895,
-       V#40914 = V#40893, V#40914 = java.lang.Integer, V#40914 =
-       V#40915, V#40914 = V#40913, V#40914 = V#40914, V#40914 = V#40925,
-       V#40914 = V#40894, V#40914 &amp;lt;: java.lang.Object, V#40914
-       &amp;lt;: java.lang.Object, V#40914 &amp;lt;: INF#40928, V#40914
-       &amp;lt;: java.lang.Integer, V#40914 &amp;lt;: INF#40885,
-       V#40914 &amp;lt;: INF#40908, E#40917 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#40914&amp;gt;, E#40917 = E#40917, E#40917 = java.util.Map.java.util.Map.Entry&amp;lt;K#40911,
-       V#40914&amp;gt;, E#40917 &amp;lt;: java.lang.Object, E#40917
-       &amp;lt;: java.lang.Object, INF#40881 = java.lang.String,
-       INF#40881 = INF#40881, INF#40881 &amp;lt;: java.lang.Object,
-       K#40911 &amp;lt;: INF#40881, java.lang.String &amp;lt;: INF#40881,
-       K#40896 &amp;lt;: INF#40881, K#40883 &amp;lt;: INF#40881,
-       K#40916 &amp;lt;: INF#40881, K#40927 &amp;lt;: INF#40881,
-       K#40890 &amp;lt;: INF#40881, K#40906 &amp;lt;: INF#40881,
-       K#2846 &amp;lt;: INF#40881, E#40886 = E#40886, E#40886 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40886 &amp;lt;: java.lang.Object, E#40886
-       &amp;lt;: java.lang.Object, E#40889 = E#40889, E#40889 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40889 &amp;lt;: java.lang.Object, E#40889
-       &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#40896,
-       V#40893&amp;gt; &amp;lt;: E#40889, V#2847 = V#2847, V#2847
-       = V#40895, V#2847 = V#40893, V#2847 = java.lang.Integer, V#2847
-       = V#40915, V#2847 = V#40913, V#2847 = V#40914, V#2847 = V#40925,
-       V#2847 = V#40894, V#2847 &amp;lt;: java.lang.Object, V#2847
-       &amp;lt;: java.lang.Object, V#2847 &amp;lt;: INF#40928, V#2847
-       &amp;lt;: java.lang.Integer, V#2847 &amp;lt;: INF#40885, V#2847
-       &amp;lt;: INF#40908, K#40883 = K#40911, K#40883 = java.lang.String,
-       K#40883 = K#40896, K#40883 = K#40883, K#40883 = K#40916, K#40883
-       = K#40927, K#40883 = K#40890, K#40883 = K#40906, K#40883 =
-       K#2846, K#40883 &amp;lt;: java.lang.Object, K#40883 &amp;lt;:
-       java.lang.Object, K#40883 &amp;lt;: INF#40926, K#40883 &amp;lt;:
-       java.lang.String, K#40883 &amp;lt;: INF#40881, K#40883 &amp;lt;:
-       INF#40904, K#40916 = K#40911, K#40916 = java.lang.String,
-       K#40916 = K#40896, K#40916 = K#40883, K#40916 = K#40916, K#40916
-       = K#40927, K#40916 = K#40890, K#40916 = K#40906, K#40916 =
-       K#2846, K#40916 &amp;lt;: java.lang.Object, K#40916 &amp;lt;:
-       java.lang.Object, K#40916 &amp;lt;: INF#40926, K#40916 &amp;lt;:
-       java.lang.String, K#40916 &amp;lt;: INF#40881, K#40916 &amp;lt;:
-       INF#40904, E#41066 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#41066 = E#41066, E#41066 &amp;lt;: java.lang.Object,
-       E#41066 &amp;lt;: java.lang.Object, INF#40904 = java.lang.String,
-       INF#40904 = INF#40904, INF#40904 &amp;lt;: java.lang.Object,
-       K#40911 &amp;lt;: INF#40904, java.lang.String &amp;lt;: INF#40904,
-       K#40896 &amp;lt;: INF#40904, K#40883 &amp;lt;: INF#40904,
-       K#40916 &amp;lt;: INF#40904, K#40927 &amp;lt;: INF#40904,
-       K#40890 &amp;lt;: INF#40904, K#40906 &amp;lt;: INF#40904,
-       K#2846 &amp;lt;: INF#40904, E#40888 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40888 = E#40888, E#40888 &amp;lt;: java.lang.Object,
-       E#40888 &amp;lt;: java.lang.Object, E#40888 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#40896,
-       V#40893&amp;gt;, E#40888 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#40883,
-       V#40895&amp;gt;, INF#40908 = java.lang.Integer, INF#40908
-       = INF#40908, INF#40908 &amp;lt;: java.lang.Object, V#2847
-       &amp;lt;: INF#40908, V#40895 &amp;lt;: INF#40908, V#40893
-       &amp;lt;: INF#40908, java.lang.Integer &amp;lt;: INF#40908,
-       V#40915 &amp;lt;: INF#40908, V#40913 &amp;lt;: INF#40908,
-       V#40914 &amp;lt;: INF#40908, V#40925 &amp;lt;: INF#40908,
-       V#40894 &amp;lt;: INF#40908, V#40925 = V#2847, V#40925 = V#40895,
-       V#40925 = V#40893, V#40925 = java.lang.Integer, V#40925 =
-       V#40915, V#40925 = V#40913, V#40925 = V#40914, V#40925 = V#40925,
-       V#40925 = V#40894, V#40925 &amp;lt;: java.lang.Object, V#40925
-       &amp;lt;: java.lang.Object, V#40925 &amp;lt;: INF#40928, V#40925
-       &amp;lt;: java.lang.Integer, V#40925 &amp;lt;: INF#40885,
-       V#40925 &amp;lt;: INF#40908, INF#40926 = java.lang.Object,
-       INF#40926 = INF#40926, INF#40926 &amp;lt;: java.lang.Object,
-       K#40911 &amp;lt;: INF#40926, java.lang.String &amp;lt;: INF#40926,
-       K#40896 &amp;lt;: INF#40926, K#40883 &amp;lt;: INF#40926,
-       K#40916 &amp;lt;: INF#40926, K#40927 &amp;lt;: INF#40926,
-       K#40890 &amp;lt;: INF#40926, K#40906 &amp;lt;: INF#40926,
-       K#2846 &amp;lt;: INF#40926, K#40896 = K#40911, K#40896 = java.lang.String,
-       K#40896 = K#40896, K#40896 = K#40883, K#40896 = K#40916, K#40896
-       = K#40927, K#40896 = K#40890, K#40896 = K#40906, K#40896 =
-       K#2846, K#40896 &amp;lt;: java.lang.Object, K#40896 &amp;lt;:
-       java.lang.Object, K#40896 &amp;lt;: INF#40926, K#40896 &amp;lt;:
-       java.lang.String, K#40896 &amp;lt;: INF#40881, K#40896 &amp;lt;:
-       INF#40904, E#2863 = E#2863, E#2863 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2863 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       java.lang.Integer&amp;gt;, E#2863 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
+    ~# { E#42001 = E#42001, E#42001 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42001 &amp;lt;: java.lang.Object, E#42001
+       &amp;lt;: java.lang.Object, E#42185 = E#42185, E#42185 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42185 &amp;lt;: java.lang.Object, E#42185
+       &amp;lt;: java.lang.Object, K#42018 = K#42019, K#42018 = K#42018,
+       K#42018 = java.lang.String, K#42018 = K#42039, K#42018 = K#42005,
+       K#42018 = K#42025, K#42018 = K#2846, K#42018 = K#41997, K#42018
+       = K#41998, K#42018 &amp;lt;: java.lang.Object, K#42018 &amp;lt;:
+       java.lang.Object, K#42018 &amp;lt;: java.lang.String, K#42018
+       &amp;lt;: INF#42038, K#42018 &amp;lt;: INF#42024, K#42018
+       &amp;lt;: INF#42003, E#42000 = E#42000, E#42000 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42000 &amp;lt;: java.lang.Object, E#42000
+       &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#41998,
+       V#41993&amp;gt; &amp;lt;: E#42000, E#42009 = E#42009, E#42009
+       = java.util.Map.java.util.Map.Entry&amp;lt;K#41997, V#42002&amp;gt;,
+       E#42009 &amp;lt;: java.lang.Object, E#42009 &amp;lt;: java.lang.Object,
+       E#42011 = E#42011, E#42011 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42011 &amp;lt;: java.lang.Object, E#42011
+       &amp;lt;: java.lang.Object, K#2846 = K#42019, K#2846 = K#42018,
+       K#2846 = java.lang.String, K#2846 = K#42039, K#2846 = K#42005,
+       K#2846 = K#42025, K#2846 = K#2846, K#2846 = K#41997, K#2846
+       = K#41998, K#2846 &amp;lt;: java.lang.Object, K#2846 &amp;lt;:
+       java.lang.Object, K#2846 &amp;lt;: java.lang.String, K#2846
+       &amp;lt;: INF#42038, K#2846 &amp;lt;: INF#42024, K#2846 &amp;lt;:
+       INF#42003, E#42004 = E#42004, E#42004 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42004 &amp;lt;: java.lang.Object, E#42004
+       &amp;lt;: java.lang.Object, INF#42028 = INF#42028, INF#42028
+       = java.lang.Integer, INF#42028 &amp;lt;: java.lang.Object,
+       V#42037 &amp;lt;: INF#42028, V#2847 &amp;lt;: INF#42028, V#42023
+       &amp;lt;: INF#42028, V#41993 &amp;lt;: INF#42028, V#41995
+       &amp;lt;: INF#42028, V#42016 &amp;lt;: INF#42028, V#42002
+       &amp;lt;: INF#42028, java.lang.Integer &amp;lt;: INF#42028,
+       V#42017 &amp;lt;: INF#42028, V#41993 = V#42037, V#41993 =
+       V#2847, V#41993 = V#42023, V#41993 = V#41993, V#41993 = V#42016,
+       V#41993 = V#41995, V#41993 = V#42002, V#41993 = java.lang.Integer,
+       V#41993 = V#42017, V#41993 &amp;lt;: java.lang.Object, V#41993
+       &amp;lt;: java.lang.Object, V#41993 &amp;lt;: INF#42040, V#41993
+       &amp;lt;: INF#42008, V#41993 &amp;lt;: INF#42028, V#41993
+       &amp;lt;: java.lang.Integer, K#41997 = K#42019, K#41997 =
+       K#42018, K#41997 = java.lang.String, K#41997 = K#42039, K#41997
+       = K#42005, K#41997 = K#42025, K#41997 = K#2846, K#41997 =
+       K#41997, K#41997 = K#41998, K#41997 &amp;lt;: java.lang.Object,
+       K#41997 &amp;lt;: java.lang.Object, K#41997 &amp;lt;: java.lang.String,
+       K#41997 &amp;lt;: INF#42038, K#41997 &amp;lt;: INF#42024,
+       K#41997 &amp;lt;: INF#42003, E#41999 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#41999 = E#41999, E#41999 &amp;lt;: java.lang.Object,
+       E#41999 &amp;lt;: java.lang.Object, E#2861 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
+       V#2847&amp;gt;, E#2861 = E#2861, E#2861 &amp;lt;: java.lang.Object,
+       E#2861 &amp;lt;: java.lang.Object, E#2864 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
+       V#2847&amp;gt;, E#2864 = E#2864, E#2864 &amp;lt;: java.lang.Object,
+       E#2864 &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       java.lang.Integer&amp;gt; &amp;lt;: E#2864, java.util.Map.java.util.Map.Entry&amp;lt;K#42039,
+       V#42037&amp;gt; &amp;lt;: E#2864, java.util.Map.java.util.Map.Entry&amp;lt;K#42039,
+       java.lang.Integer&amp;gt; &amp;lt;: E#2864, E#42010 = E#42010,
+       E#42010 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42010 &amp;lt;: java.lang.Object, E#42010
+       &amp;lt;: java.lang.Object, E#42010 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#42005,
+       V#41995&amp;gt;, E#42010 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#41998,
+       V#41993&amp;gt;, E#41994 = E#41994, E#41994 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#41994 &amp;lt;: java.lang.Object, E#41994
+       &amp;lt;: java.lang.Object, E#42184 = E#42184, E#42184 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42184 &amp;lt;: java.lang.Object, E#42184
+       &amp;lt;: java.lang.Object, K#42039 = K#42019, K#42039 = K#42018,
+       K#42039 = java.lang.String, K#42039 = K#42039, K#42039 = K#42005,
+       K#42039 = K#42025, K#42039 = K#2846, K#42039 = K#41997, K#42039
+       = K#41998, K#42039 &amp;lt;: java.lang.Object, K#42039 &amp;lt;:
+       java.lang.Object, K#42039 &amp;lt;: java.lang.String, K#42039
+       &amp;lt;: INF#42038, K#42039 &amp;lt;: INF#42024, K#42039
+       &amp;lt;: INF#42003, E#2863 = E#2863, E#2863 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
        V#2847&amp;gt;, E#2863 &amp;lt;: java.lang.Object, E#2863
-       &amp;lt;: java.lang.Object, E#40891 = E#40891, E#40891 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40891 &amp;lt;: java.lang.Object, E#40891
-       &amp;lt;: java.lang.Object, V#40893 = V#2847, V#40893 = V#40895,
-       V#40893 = V#40893, V#40893 = java.lang.Integer, V#40893 =
-       V#40915, V#40893 = V#40913, V#40893 = V#40914, V#40893 = V#40925,
-       V#40893 = V#40894, V#40893 &amp;lt;: java.lang.Object, V#40893
-       &amp;lt;: java.lang.Object, V#40893 &amp;lt;: INF#40928, V#40893
-       &amp;lt;: java.lang.Integer, V#40893 &amp;lt;: INF#40885,
-       V#40893 &amp;lt;: INF#40908, E#40884 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40884 = E#40884, E#40884 &amp;lt;: java.lang.Object,
-       E#40884 &amp;lt;: java.lang.Object, E#40905 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#40914&amp;gt;, E#40905 = java.util.Map.java.util.Map.Entry&amp;lt;K#40911,
-       V#40914&amp;gt;, E#40905 = E#40905, E#40905 &amp;lt;: java.lang.Object,
-       E#40905 &amp;lt;: java.lang.Object, E#40882 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40882 = E#40882, E#40882 &amp;lt;: java.lang.Object,
-       E#40882 &amp;lt;: java.lang.Object, V#40913 = V#2847, V#40913
-       = V#40895, V#40913 = V#40893, V#40913 = java.lang.Integer,
-       V#40913 = V#40915, V#40913 = V#40913, V#40913 = V#40914, V#40913
-       = V#40925, V#40913 = V#40894, V#40913 &amp;lt;: java.lang.Object,
-       V#40913 &amp;lt;: java.lang.Object, V#40913 &amp;lt;: INF#40928,
-       V#40913 &amp;lt;: java.lang.Integer, V#40913 &amp;lt;: INF#40885,
-       V#40913 &amp;lt;: INF#40908, K#2846 = K#40911, K#2846 = java.lang.String,
-       K#2846 = K#40896, K#2846 = K#40883, K#2846 = K#40916, K#2846
-       = K#40927, K#2846 = K#40890, K#2846 = K#40906, K#2846 = K#2846,
-       K#2846 &amp;lt;: java.lang.Object, K#2846 &amp;lt;: java.lang.Object,
-       K#2846 &amp;lt;: INF#40926, K#2846 &amp;lt;: java.lang.String,
-       K#2846 &amp;lt;: INF#40881, K#2846 &amp;lt;: INF#40904, E#2860
-       = E#2860, E#2860 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2860 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       java.lang.Integer&amp;gt;, E#2860 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       V#2847&amp;gt;, E#2860 &amp;lt;: java.lang.Object, E#2860
-       &amp;lt;: java.lang.Object, E#40898 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40898 = E#40898, E#40898 &amp;lt;: java.lang.Object,
-       E#40898 &amp;lt;: java.lang.Object, E#40912 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#40914&amp;gt;, E#40912 = java.util.Map.java.util.Map.Entry&amp;lt;K#40911,
-       V#40914&amp;gt;, E#40912 = E#40912, E#40912 &amp;lt;: java.lang.Object,
-       E#40912 &amp;lt;: java.lang.Object, E#40887 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40887 = E#40887, E#40887 &amp;lt;: java.lang.Object,
-       E#40887 &amp;lt;: java.lang.Object, K#40890 = K#40911, K#40890
-       = java.lang.String, K#40890 = K#40896, K#40890 = K#40883,
-       K#40890 = K#40916, K#40890 = K#40927, K#40890 = K#40890, K#40890
-       = K#40906, K#40890 = K#2846, K#40890 &amp;lt;: java.lang.Object,
-       K#40890 &amp;lt;: java.lang.Object, K#40890 &amp;lt;: INF#40926,
-       K#40890 &amp;lt;: java.lang.String, K#40890 &amp;lt;: INF#40881,
-       K#40890 &amp;lt;: INF#40904, INF#40885 = java.lang.Integer,
-       INF#40885 = INF#40885, INF#40885 &amp;lt;: java.lang.Object,
-       V#2847 &amp;lt;: INF#40885, V#40895 &amp;lt;: INF#40885, V#40893
-       &amp;lt;: INF#40885, java.lang.Integer &amp;lt;: INF#40885,
-       V#40915 &amp;lt;: INF#40885, V#40913 &amp;lt;: INF#40885,
-       V#40894 &amp;lt;: INF#40885, V#40925 &amp;lt;: INF#40885,
-       V#40914 &amp;lt;: INF#40885, V#40915 = V#2847, V#40915 = V#40895,
-       V#40915 = V#40893, V#40915 = java.lang.Integer, V#40915 =
-       V#40915, V#40915 = V#40913, V#40915 = V#40914, V#40915 = V#40925,
-       V#40915 = V#40894, V#40915 &amp;lt;: java.lang.Object, V#40915
-       &amp;lt;: java.lang.Object, V#40915 &amp;lt;: INF#40928, V#40915
-       &amp;lt;: java.lang.Integer, V#40915 &amp;lt;: INF#40885,
-       V#40915 &amp;lt;: INF#40908, E#40899 = java.util.Map.java.util.Map.Entry&amp;lt;K#40890,
-       V#40894&amp;gt;, E#40899 = E#40899, E#40899 &amp;lt;: java.lang.Object,
-       E#40899 &amp;lt;: java.lang.Object, E#2862 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2862 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
-       java.lang.Integer&amp;gt;, E#2862 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
+       &amp;lt;: java.lang.Object, E#2862 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
        V#2847&amp;gt;, E#2862 = E#2862, E#2862 &amp;lt;: java.lang.Object,
-       E#2862 &amp;lt;: java.lang.Object, true }
+       E#2862 &amp;lt;: java.lang.Object, E#42006 = E#42006, E#42006
+       = java.util.Map.java.util.Map.Entry&amp;lt;K#41997, V#42002&amp;gt;,
+       E#42006 &amp;lt;: java.lang.Object, E#42006 &amp;lt;: java.lang.Object,
+       K#41998 = K#42019, K#41998 = K#42018, K#41998 = java.lang.String,
+       K#41998 = K#42039, K#41998 = K#42005, K#41998 = K#42025, K#41998
+       = K#2846, K#41998 = K#41997, K#41998 = K#41998, K#41998 &amp;lt;:
+       java.lang.Object, K#41998 &amp;lt;: java.lang.Object, K#41998
+       &amp;lt;: java.lang.String, K#41998 &amp;lt;: INF#42038, K#41998
+       &amp;lt;: INF#42024, K#41998 &amp;lt;: INF#42003, INF#42024
+       = java.lang.String, INF#42024 = INF#42024, INF#42024 &amp;lt;:
+       java.lang.Object, K#42019 &amp;lt;: INF#42024, K#42018 &amp;lt;:
+       INF#42024, java.lang.String &amp;lt;: INF#42024, K#42039 &amp;lt;:
+       INF#42024, K#42005 &amp;lt;: INF#42024, K#42025 &amp;lt;:
+       INF#42024, K#2846 &amp;lt;: INF#42024, K#41997 &amp;lt;: INF#42024,
+       K#41998 &amp;lt;: INF#42024, INF#42040 = INF#42040, INF#42040
+       = java.lang.Integer, INF#42040 &amp;lt;: java.lang.Object,
+       V#42037 &amp;lt;: INF#42040, V#2847 &amp;lt;: INF#42040, V#42023
+       &amp;lt;: INF#42040, V#42016 &amp;lt;: INF#42040, V#41993
+       &amp;lt;: INF#42040, V#41995 &amp;lt;: INF#42040, V#42002
+       &amp;lt;: INF#42040, java.lang.Integer &amp;lt;: INF#42040,
+       V#42017 &amp;lt;: INF#42040, E#42007 = E#42007, E#42007 =
+       java.util.Map.java.util.Map.Entry&amp;lt;K#41997, V#42002&amp;gt;,
+       E#42007 &amp;lt;: java.lang.Object, E#42007 &amp;lt;: java.lang.Object,
+       E#42021 = E#42021, E#42021 = java.util.Map.java.util.Map.Entry&amp;lt;K#42018,
+       V#42023&amp;gt;, E#42021 &amp;lt;: java.lang.Object, E#42021
+       &amp;lt;: java.lang.Object, V#42023 = V#42037, V#42023 = V#2847,
+       V#42023 = V#42023, V#42023 = V#41993, V#42023 = V#42016, V#42023
+       = V#41995, V#42023 = V#42002, V#42023 = java.lang.Integer,
+       V#42023 = V#42017, V#42023 &amp;lt;: java.lang.Object, V#42023
+       &amp;lt;: java.lang.Object, V#42023 &amp;lt;: INF#42040, V#42023
+       &amp;lt;: INF#42008, V#42023 &amp;lt;: INF#42028, V#42023
+       &amp;lt;: java.lang.Integer, K#42025 = K#42019, K#42025 =
+       K#42018, K#42025 = java.lang.String, K#42025 = K#42039, K#42025
+       = K#42005, K#42025 = K#42025, K#42025 = K#2846, K#42025 =
+       K#41997, K#42025 = K#41998, K#42025 &amp;lt;: java.lang.Object,
+       K#42025 &amp;lt;: java.lang.Object, K#42025 &amp;lt;: java.lang.String,
+       K#42025 &amp;lt;: INF#42038, K#42025 &amp;lt;: INF#42024,
+       K#42025 &amp;lt;: INF#42003, E#42026 = E#42026, E#42026 =
+       java.util.Map.java.util.Map.Entry&amp;lt;K#42018, V#42023&amp;gt;,
+       E#42026 &amp;lt;: java.lang.Object, E#42026 &amp;lt;: java.lang.Object,
+       E#42027 = E#42027, E#42027 = java.util.Map.java.util.Map.Entry&amp;lt;K#42018,
+       V#42023&amp;gt;, E#42027 &amp;lt;: java.lang.Object, E#42027
+       &amp;lt;: java.lang.Object, INF#42003 = java.lang.String,
+       INF#42003 = INF#42003, INF#42003 &amp;lt;: java.lang.Object,
+       K#42019 &amp;lt;: INF#42003, K#42018 &amp;lt;: INF#42003,
+       java.lang.String &amp;lt;: INF#42003, K#42039 &amp;lt;: INF#42003,
+       K#42005 &amp;lt;: INF#42003, K#42025 &amp;lt;: INF#42003,
+       K#2846 &amp;lt;: INF#42003, K#41997 &amp;lt;: INF#42003, K#41998
+       &amp;lt;: INF#42003, E#2860 = java.util.Map.java.util.Map.Entry&amp;lt;K#2846,
+       V#2847&amp;gt;, E#2860 = E#2860, E#2860 &amp;lt;: java.lang.Object,
+       E#2860 &amp;lt;: java.lang.Object, K#42019 = K#42019, K#42019
+       = K#42018, K#42019 = java.lang.String, K#42019 = K#42039,
+       K#42019 = K#42005, K#42019 = K#42025, K#42019 = K#2846, K#42019
+       = K#41997, K#42019 = K#41998, K#42019 &amp;lt;: java.lang.Object,
+       K#42019 &amp;lt;: java.lang.Object, K#42019 &amp;lt;: java.lang.String,
+       K#42019 &amp;lt;: INF#42038, K#42019 &amp;lt;: INF#42024,
+       K#42019 &amp;lt;: INF#42003, V#42037 = V#42037, V#42037 =
+       V#2847, V#42037 = V#42023, V#42037 = V#41993, V#42037 = V#42016,
+       V#42037 = V#41995, V#42037 = V#42002, V#42037 = java.lang.Integer,
+       V#42037 = V#42017, V#42037 &amp;lt;: java.lang.Object, V#42037
+       &amp;lt;: java.lang.Object, V#42037 &amp;lt;: INF#42040, V#42037
+       &amp;lt;: INF#42008, V#42037 &amp;lt;: INF#42028, V#42037
+       &amp;lt;: java.lang.Integer, E#42029 = E#42029, E#42029 =
+       java.util.Map.java.util.Map.Entry&amp;lt;K#41997, V#42002&amp;gt;,
+       E#42029 &amp;lt;: java.lang.Object, E#42029 &amp;lt;: java.lang.Object,
+       E#42029 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#42025,
+       V#42017&amp;gt;, E#42029 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#42019,
+       V#42016&amp;gt;, E#42029 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       java.lang.Integer&amp;gt;, E#42029 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#42039,
+       V#42037&amp;gt;, E#42029 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#42016&amp;gt;, E#42029 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#42039,
+       java.lang.Integer&amp;gt;, INF#42008 = INF#42008, INF#42008
+       = java.lang.Integer, INF#42008 &amp;lt;: java.lang.Object,
+       V#42037 &amp;lt;: INF#42008, V#2847 &amp;lt;: INF#42008, V#42023
+       &amp;lt;: INF#42008, V#41993 &amp;lt;: INF#42008, V#41995
+       &amp;lt;: INF#42008, V#42016 &amp;lt;: INF#42008, V#42002
+       &amp;lt;: INF#42008, java.lang.Integer &amp;lt;: INF#42008,
+       V#42017 &amp;lt;: INF#42008, V#2847 = V#42037, V#2847 = V#2847,
+       V#2847 = V#42023, V#2847 = V#41993, V#2847 = V#42016, V#2847
+       = V#41995, V#2847 = V#42002, V#2847 = java.lang.Integer, V#2847
+       = V#42017, V#2847 &amp;lt;: java.lang.Object, V#2847 &amp;lt;:
+       java.lang.Object, V#2847 &amp;lt;: INF#42040, V#2847 &amp;lt;:
+       INF#42008, V#2847 &amp;lt;: INF#42028, V#2847 &amp;lt;: java.lang.Integer,
+       E#42020 = E#42020, E#42020 = java.util.Map.java.util.Map.Entry&amp;lt;K#42018,
+       V#42023&amp;gt;, E#42020 &amp;lt;: java.lang.Object, E#42020
+       &amp;lt;: java.lang.Object, K#42005 = K#42019, K#42005 = K#42018,
+       K#42005 = java.lang.String, K#42005 = K#42039, K#42005 = K#42005,
+       K#42005 = K#42025, K#42005 = K#2846, K#42005 = K#41997, K#42005
+       = K#41998, K#42005 &amp;lt;: java.lang.Object, K#42005 &amp;lt;:
+       java.lang.Object, K#42005 &amp;lt;: java.lang.String, K#42005
+       &amp;lt;: INF#42038, K#42005 &amp;lt;: INF#42024, K#42005
+       &amp;lt;: INF#42003, INF#42038 = java.lang.String, INF#42038
+       = INF#42038, INF#42038 &amp;lt;: java.lang.Object, K#42019
+       &amp;lt;: INF#42038, K#42018 &amp;lt;: INF#42038, java.lang.String
+       &amp;lt;: INF#42038, K#42039 &amp;lt;: INF#42038, K#42005
+       &amp;lt;: INF#42038, K#42025 &amp;lt;: INF#42038, K#2846 &amp;lt;:
+       INF#42038, K#41997 &amp;lt;: INF#42038, K#41998 &amp;lt;:
+       INF#42038, E#42022 = E#42022, E#42022 = java.util.Map.java.util.Map.Entry&amp;lt;K#42018,
+       V#42023&amp;gt;, E#42022 &amp;lt;: java.lang.Object, E#42022
+       &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#42019,
+       V#42016&amp;gt; &amp;lt;: E#42022, java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#42016&amp;gt; &amp;lt;: E#42022, V#41995 = V#42037, V#41995
+       = V#2847, V#41995 = V#42023, V#41995 = V#41993, V#41995 =
+       V#42016, V#41995 = V#41995, V#41995 = V#42002, V#41995 = java.lang.Integer,
+       V#41995 = V#42017, V#41995 &amp;lt;: java.lang.Object, V#41995
+       &amp;lt;: java.lang.Object, V#41995 &amp;lt;: INF#42040, V#41995
+       &amp;lt;: INF#42008, V#41995 &amp;lt;: INF#42028, V#41995
+       &amp;lt;: java.lang.Integer, E#41996 = E#41996, E#41996 =
+       java.util.Map.java.util.Map.Entry&amp;lt;K#41997, V#42002&amp;gt;,
+       E#41996 &amp;lt;: java.lang.Object, E#41996 &amp;lt;: java.lang.Object,
+       V#42016 = V#42037, V#42016 = V#2847, V#42016 = V#42023, V#42016
+       = V#41993, V#42016 = V#42016, V#42016 = V#41995, V#42016 =
+       V#42002, V#42016 = java.lang.Integer, V#42016 = V#42017, V#42016
+       &amp;lt;: java.lang.Object, V#42016 &amp;lt;: java.lang.Object,
+       V#42016 &amp;lt;: INF#42040, V#42016 &amp;lt;: INF#42008,
+       V#42016 &amp;lt;: INF#42028, V#42016 &amp;lt;: java.lang.Integer,
+       V#42002 = V#42037, V#42002 = V#2847, V#42002 = V#42023, V#42002
+       = V#41993, V#42002 = V#42016, V#42002 = V#41995, V#42002 =
+       V#42002, V#42002 = java.lang.Integer, V#42002 = V#42017, V#42002
+       &amp;lt;: java.lang.Object, V#42002 &amp;lt;: java.lang.Object,
+       V#42002 &amp;lt;: INF#42040, V#42002 &amp;lt;: INF#42008,
+       V#42002 &amp;lt;: INF#42028, V#42002 &amp;lt;: java.lang.Integer,
+       E#42186 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42186 = E#42186, E#42186 &amp;lt;: java.lang.Object,
+       E#42186 &amp;lt;: java.lang.Object, V#42017 = V#42037, V#42017
+       = V#2847, V#42017 = V#42023, V#42017 = V#41993, V#42017 =
+       V#42016, V#42017 = V#41995, V#42017 = V#42002, V#42017 = java.lang.Integer,
+       V#42017 = V#42017, V#42017 &amp;lt;: java.lang.Object, V#42017
+       &amp;lt;: java.lang.Object, V#42017 &amp;lt;: INF#42040, V#42017
+       &amp;lt;: INF#42008, V#42017 &amp;lt;: INF#42028, V#42017
+       &amp;lt;: java.lang.Integer, E#42183 = java.util.Map.java.util.Map.Entry&amp;lt;K#41997,
+       V#42002&amp;gt;, E#42183 = E#42183, E#42183 &amp;lt;: java.lang.Object,
+       E#42183 &amp;lt;: java.lang.Object, true }
 &amp;lt;?xml version="1.0"
        ?&amp;gt;
 &amp;lt;stringIntMap xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"&amp;gt;
@@ -1878,8 +1864,9 @@ java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;
   &amp;lt;/entry&amp;gt;
 &amp;lt;/stringIntMap&amp;gt;
 
-java.util.Map&amp;lt;java.util.List&amp;lt;byte[]&amp;gt;,
-       CAP#3809 extends java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;&amp;gt;
+java.util.Map&amp;lt;CAP#3821
+       extends java.util.List&amp;lt;byte[]&amp;gt;, CAP#3822 extends
+       java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;&amp;gt;
     </system-out>
   </testcase>
 </testsuite>

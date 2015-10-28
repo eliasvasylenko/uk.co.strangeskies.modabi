@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="MappingSchema">
+
+	<imports>
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.modabi.mapping.Mapping
+	</imports>
+
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
+	<types />
+
+	<models>
+		<model
+			name="mapping"
+			dataType="@Infer Mapping[?\, ?]"
+			bindingStrategy="PROVIDED">
+		</model>
+	</models>
+</schema>

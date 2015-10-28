@@ -1,0 +1,24 @@
+Bundle-Name: Modabi :: Mapping
+Bundle-Description: \
+	Mapping from objects of a certain model to a different model view.\
+\
+	${modabi-description}
+
+-runee: JavaSE-1.8
+
+-buildpath: \
+	osgi.enroute.base.api,\
+	${ss;utilities},\
+	${ss;reflection},\
+	uk.co.strangeskies.modabi.core.api;version=project
+
+Export-Package: uk.co.strangeskies.modabi.mapping
+
+-pluginpath: \
+	${pluginpath.modabi}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
+
+-includeresource: \
+	META-INF/modabi=schemata

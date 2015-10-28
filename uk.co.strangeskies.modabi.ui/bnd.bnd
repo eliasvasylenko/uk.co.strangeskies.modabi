@@ -1,0 +1,17 @@
+Bundle-Name: Modabi - UI
+Bundle-Description: \
+	This package provides tools to facilitate mapping Java objects \
+	to UI components by way of a Modabi model. Also included is a \
+	meta-mapping, from a model to another mapping, from an object \
+	instance of the type of that model to a UI component.\
+\
+	${modabi-description}
+
+-runee: JavaSE-1.8
+
+-buildpath: \
+	osgi.enroute.base.api,\
+	${ss;utilities},\
+	uk.co.strangeskies.modabi.core.api;version=project
+
+Export-Package: uk.co.strangeskies.modabi.ui

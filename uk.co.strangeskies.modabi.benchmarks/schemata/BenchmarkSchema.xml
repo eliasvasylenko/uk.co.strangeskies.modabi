@@ -1,33 +1,62 @@
 <?xml version="1.0" ?>
-<schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="BenchmarkSchema">
 
 	<dependencies>
-		<dependency>BaseSchema</dependency>
+		BaseSchema
 	</dependencies>
 
 	<types />
 
 	<models>
-		<model name="person" dataType="uk.co.strangeskies.modabi.benchmark.PersonType"
+		<model
+			name="person"
+			dataType="uk.co.strangeskies.modabi.benchmark.PersonType"
 			bindingStrategy="CONSTRUCTOR">
+
 			<inputSequence name="constructor" />
-			<property name="active" type="boolean" />
-			<simple name="firstName" type="string" />
-			<simple name="lastName" type="string" />
-			<simple name="address1" type="string" />
-			<simple name="address2" type="string" />
-			<simple name="postCode" type="string" />
-			<simple name="city" type="string" />
-			<simple name="country" type="string" />
+
+			<property
+				name="active"
+				type="boolean" />
+			<simple
+				name="firstName"
+				type="string" />
+			<simple
+				name="lastName"
+				type="string" />
+			<simple
+				name="address1"
+				type="string" />
+			<simple
+				name="address2"
+				type="string" />
+			<simple
+				name="postCode"
+				type="string" />
+			<simple
+				name="city"
+				type="string" />
+			<simple
+				name="country"
+				type="string" />
 		</model>
 
-		<model name="persons" dataType="uk.co.strangeskies.modabi.benchmark.PersonsType"
+		<model
+			name="persons"
+			dataType="uk.co.strangeskies.modabi.benchmark.PersonsType"
 			bindingStrategy="CONSTRUCTOR">
-			<inline name="personList" outMethod="getPerson"
+			<inline
+				name="personList"
+				outMethod="getPerson"
 				dataType="@uk.co.strangeskies.reflection.TypeToken.Infer java.util.List&lt;?&gt;">
-				<complex baseModel="person" outMethod="this" occurrences="0.."
-					inMethod="add" outMethodIterable="true" />
+				<complex
+					baseModel="person"
+					outMethod="this"
+					occurrences="0.."
+					inMethod="add"
+					outMethodIterable="true" />
 			</inline>
 		</model>
 	</models>

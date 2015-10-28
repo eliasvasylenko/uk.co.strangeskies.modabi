@@ -374,9 +374,12 @@ public class MetaSchemaImpl implements MetaSchema {
 		modelSet.add(typedDataModel);
 
 		Model<DataNode<?>> contentModel = model.configure(loader)
-				.name("content", namespace).baseModel(typedDataModel)
-				.addChild(n -> n.data().name("format").optional(false).provideValue(
-						new BufferingDataTarget().put(Primitive.STRING, "CONTENT").buffer()))
+				.name("content",
+						namespace)
+				.baseModel(typedDataModel)
+				.addChild(n -> n.data().name("format").optional(false)
+						.provideValue(new BufferingDataTarget()
+								.put(Primitive.STRING, "CONTENT").buffer()))
 				.create();
 		modelSet.add(contentModel);
 
@@ -415,7 +418,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.outMethod("null")))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("private")
-								.inMethod("isPrivate").optional(true).type(
+								.inMethod("isPrivate")
+								.optional(
+										true)
+								.type(
 										base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("baseType")
@@ -428,10 +434,9 @@ public class MetaSchemaImpl implements MetaSchema {
 										.provideValue(
 												new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
 														new QualifiedName("type", namespace)).buffer()))
-						.addChild(
-								p -> p.data().name("targetId")
-										.provideValue(
-												new BufferingDataTarget()
+								.addChild(
+										p -> p.data().name("targetId")
+												.provideValue(new BufferingDataTarget()
 														.put(Primitive.QUALIFIED_NAME,
 																new QualifiedName("name", namespace))
 														.buffer())))
@@ -447,13 +452,15 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().format(Format.PROPERTY).name("name")
 						.inMethod("qualifiedName").outMethod("getQualifiedName")
 						.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
-				.addChild(n -> n.complex().name("dependencies")
-						.occurrences(Range.between(0, 1))
-						.dataType(new TypeToken<Set<Schema>>() {})
-						.addChild(o -> o.data().format(Format.SIMPLE).inMethod("add")
-								.name("dependency").type(base.derivedTypes().importType())
-								.dataType(Schema.class).outMethodIterable(true)
-								.outMethod("this").occurrences(Range.between(0, null))
+				.addChild(
+						n -> n.data()
+								.format(Format.SIMPLE).name("dependencies").occurrences(
+										Range.between(0, 1))
+						.type(base.derivedTypes().setType())
+						.addChild(o -> o.data().inMethod("add").name("element")
+								.type(base.derivedTypes().importType()).dataType(Schema.class)
+								.outMethodIterable(true).outMethod("this")
+								.occurrences(Range.between(0, null))
 								.addChild(i -> i.data().name("import")
 										.addChild(p -> p.data().name("targetModel")
 												.provideValue(new BufferingDataTarget()
