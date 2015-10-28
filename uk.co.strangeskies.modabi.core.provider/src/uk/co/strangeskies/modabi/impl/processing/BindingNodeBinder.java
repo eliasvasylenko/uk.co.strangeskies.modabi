@@ -57,8 +57,8 @@ public class BindingNodeBinder {
 	@SuppressWarnings("unchecked")
 	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
 		/*
-		 * We need another withBindingNode invocation here as the current one may
-		 * not be overridden in the case that this node is extensible
+		 * We need to replace the current binding node here as it may have been
+		 * overridden in the case that this node is extensible.
 		 */
 		BindingContextImpl childContext = context.withReplacementBindingNode(node)
 				.withProvision(BindingNode.Effective.class, () -> node);
@@ -154,8 +154,8 @@ public class BindingNodeBinder {
 	}
 
 	private Object bindChild(ChildNode.Effective<?, ?> next,
-			BindingContextImpl context2) {
-		BindingContextImpl context = context2.withBindingNode(next);
+			BindingContextImpl parentContext) {
+		BindingContextImpl context = parentContext.withBindingNode(next);
 
 		IdentityProperty<Object> result = new IdentityProperty<>(
 				context.bindingTarget());
