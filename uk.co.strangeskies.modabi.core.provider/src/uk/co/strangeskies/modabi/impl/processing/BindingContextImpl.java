@@ -37,8 +37,8 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class BindingContextImpl
-		extends ProcessingContextImpl<BindingContextImpl>implements BindingContext {
+public class BindingContextImpl extends
+		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<Object> bindingTargetStack;
 	private StructuredDataSource input;
 
@@ -58,8 +58,8 @@ public class BindingContextImpl
 	}
 
 	private BindingContextImpl(BindingContextImpl parent,
-			SchemaNode.Effective<?, ?> node) {
-		super(parent, node);
+			SchemaNode.Effective<?, ?> node, boolean replace) {
+		super(parent, node, replace);
 		this.bindingTargetStack = parent.bindingTargetStack;
 		this.input = parent.input;
 	}
@@ -102,7 +102,12 @@ public class BindingContextImpl
 
 	public <T> BindingContextImpl withBindingNode(
 			SchemaNode.Effective<?, ?> node) {
-		return new BindingContextImpl(this, node);
+		return new BindingContextImpl(this, node, false);
+	}
+
+	public <T> BindingContextImpl withReplacementBindingNode(
+			SchemaNode.Effective<?, ?> node) {
+		return new BindingContextImpl(this, node, true);
 	}
 
 	public BindingContextImpl withInput(StructuredDataSource input) {

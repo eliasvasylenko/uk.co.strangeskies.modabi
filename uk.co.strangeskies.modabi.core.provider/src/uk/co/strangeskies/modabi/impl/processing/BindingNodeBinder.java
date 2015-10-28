@@ -56,7 +56,11 @@ public class BindingNodeBinder {
 
 	@SuppressWarnings("unchecked")
 	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
-		BindingContextImpl childContext = context.withBindingNode(node)
+		/*
+		 * We need another withBindingNode invocation here as the current one may
+		 * not be overridden in the case that this node is extensible
+		 */
+		BindingContextImpl childContext = context.withReplacementBindingNode(node)
 				.withProvision(BindingNode.Effective.class, () -> node);
 
 		Object binding;
@@ -150,7 +154,9 @@ public class BindingNodeBinder {
 	}
 
 	private Object bindChild(ChildNode.Effective<?, ?> next,
-			BindingContextImpl context) {
+			BindingContextImpl context2) {
+		BindingContextImpl context = context2.withBindingNode(next);
+
 		IdentityProperty<Object> result = new IdentityProperty<>(
 				context.bindingTarget());
 
@@ -174,28 +180,25 @@ public class BindingNodeBinder {
 
 				@Override
 				public void accept(InputSequenceNode.Effective node) {
-					List<Object> parameters = getSingleBindingSequence(node,
-							context.withBindingNode(node));
+					List<Object> parameters = getSingleBindingSequence(node, context);
 					result.set(invokeInMethod(node, context, result.get(),
 							parameters.toArray()));
 				}
 
 				@Override
 				public void accept(SequenceNode.Effective node) {
-					BindingContextImpl childContext = context.withBindingNode(node);
 					for (ChildNode.Effective<?, ?> child : node.children())
-						bindChild(child, childContext);
+						bindChild(child, context);
 				}
 
 				@Override
 				public void accept(ChoiceNode.Effective node) {
 					if (node.children().size() == 1) {
-						bindChild(node.children().iterator().next(),
-								context.withBindingNode(node));
+						bindChild(node.children().iterator().next(), context);
 					} else if (!node.children().isEmpty()) {
 						try {
-							context.withBindingNode(node).attemptBindingUntilSuccessful(
-									node.children(), (c, n) -> bindChild(n, c),
+							context.attemptBindingUntilSuccessful(node.children(),
+									(c, n) -> bindChild(n, c),
 									n -> new BindingException(
 											"Option '" + n + "' under choice node '" + node
 													+ "' could not be unbound",
