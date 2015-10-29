@@ -66,7 +66,20 @@ public interface DataNode<T>
 	}
 
 	enum Format {
-		PROPERTY, CONTENT, SIMPLE
+		/**
+		 * 
+		 */
+		PROPERTY,
+
+		/**
+		 * 
+		 */
+		CONTENT,
+
+		/**
+		 * 
+		 */
+		SIMPLE
 	}
 
 	Format format();

@@ -25,20 +25,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.SchemaProcessingContext;
 import uk.co.strangeskies.modabi.impl.PartialSchemaProcessingContext;
+import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
@@ -141,11 +146,99 @@ public class BindingNodeBinder {
 		childContext = rootContext.withBindingTarget(binding);
 
 		for (ChildNode.Effective<?, ?> child : children) {
-			binding = new ChildNodeBinder(childContext).bind(child);
+			binding = bind(childContext, child);
 			childContext = rootContext.withBindingTarget(binding);
 		}
 
 		return (U) binding;
+	}
+
+	public Object bind(BindingContextImpl parentContext,
+			ChildNode.Effective<?, ?> next) {
+		BindingContextImpl context = parentContext.withBindingNode(next);
+
+		IdentityProperty<Object> target = new IdentityProperty<>(
+				context.bindingTarget());
+
+		try {
+			next.process(new SchemaProcessingContext() {
+				@Override
+				public <U> void accept(ComplexNode.Effective<U> node) {
+					process(node, new ComplexNodeBinder(context).bind(node), context);
+				}
+
+				@Override
+				public <U> void accept(DataNode.Effective<U> node) {
+					process(node, new DataNodeBinder(context).bind(node), context);
+				}
+
+				public void process(InputNode.Effective<?, ?> node, List<?> data,
+						BindingContext context) {
+					for (Object item : data)
+						target.set(invokeInMethod(node, context, target.get(), item));
+				}
+
+				@Override
+				public void accept(InputSequenceNode.Effective node) {
+					List<Object> parameters = BindingNodeBinder
+							.getSingleBindingSequence(node, context);
+					target.set(invokeInMethod(node, context, target.get(),
+							parameters.toArray()));
+				}
+
+				@Override
+				public void accept(SequenceNode.Effective node) {
+					for (ChildNode.Effective<?, ?> child : node.children())
+						bind(context, child);
+				}
+
+				@Override
+				public void accept(ChoiceNode.Effective node) {
+					if (node.children().size() == 1) {
+						bind(context, node.children().iterator().next());
+					} else if (!node.children().isEmpty()) {
+						try {
+							context.attemptBindingUntilSuccessful(node.children(),
+									(c, n) -> bind(c, n),
+									n -> new BindingException(
+											"Option '" + n + "' under choice node '" + node
+													+ "' could not be unbound",
+											context, n));
+						} catch (Exception e) {
+							if (!node.occurrences().contains(0))
+								throw e;
+						}
+					}
+				}
+			});
+		} catch (Exception e) {
+			throw new BindingException("Failed to bind node '" + next + "'", context,
+					e);
+		}
+
+		return target.get();
+	}
+
+	private static Object invokeInMethod(InputNode.Effective<?, ?> node,
+			BindingContext context, Object target, Object... parameters) {
+		if (!"null".equals(node.getInMethodName())) {
+			Object object;
+
+			try {
+				object = ((Method) node.getInMethod()).invoke(target, parameters);
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | SecurityException e) {
+				throw new BindingException("Unable to call method '"
+						+ node.getInMethod() + "' with parameters '"
+						+ Arrays.toString(parameters) + "' at node '" + node + "'", context,
+						e);
+			}
+
+			if (node.isInMethodChained())
+				target = object;
+		}
+
+		return target;
 	}
 
 	private static Executable getInputMethod(ChildNode.Effective<?, ?> node) {
@@ -178,7 +271,7 @@ public class BindingNodeBinder {
 		return parameters;
 	}
 
-	private static Object getSingleBinding(ChildNode.Effective<?, ?> node,
+	public static Object getSingleBinding(ChildNode.Effective<?, ?> node,
 			BindingContextImpl context) {
 		IdentityProperty<Object> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessingContext() {

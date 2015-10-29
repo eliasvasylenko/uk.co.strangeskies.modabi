@@ -29,20 +29,19 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
-public class ComplexNodeBinder {
-	private final BindingContextImpl context;
-
+public class ComplexNodeBinder extends ChildNodeBinder {
 	public ComplexNodeBinder(BindingContextImpl context) {
-		this.context = context;
+		super(context);
 	}
 
 	public <U> List<U> bind(ComplexNode.Effective<U> node) {
-		BindingContextImpl context = this.context;
+		BindingContextImpl context = getParentContext();
 		List<U> result = new ArrayList<>();
 
 		int count = 0;
 		do {
-			ComplexNode.Effective<? extends U> exactNode = getExactNode(context, node);
+			ComplexNode.Effective<? extends U> exactNode = getExactNode(context,
+					node);
 			if (exactNode == null)
 				break;
 
@@ -73,16 +72,18 @@ public class ComplexNodeBinder {
 					 */
 					e.printStackTrace();
 					if (node.occurrences().isValueBelow(count))
-						throw new BindingException("Node '" + node.getName()
-								+ "' failed to bind on occurance '" + count + "' of range '"
-								+ node.occurrences() + "'", context, e);
+						throw new BindingException(
+								"Node '" + node.getName() + "' failed to bind on occurance '"
+										+ count + "' of range '" + node.occurrences() + "'",
+								context, e);
 					break;
 				}
-			} else
+			} else {
 				binding = bindExactNode(context, exactNode);
+			}
 
 			if (node.isInMethodChained() != null && node.isInMethodChained())
-				context = this.context.withBindingTarget(binding);
+				context = getParentContext().withBindingTarget(binding);
 
 			result.add(binding);
 			context.bindings().add(node, binding);
@@ -91,8 +92,9 @@ public class ComplexNodeBinder {
 		} while (!node.occurrences().isValueAbove(count + 1));
 
 		if (!node.occurrences().contains(count))
-			throw new BindingException("Node '" + node.getName() + "' occurrences '"
-					+ count + "' should be within range '" + node.occurrences() + "'",
+			throw new BindingException(
+					"Node '" + node.getName() + "' occurrences '" + count
+							+ "' should be within range '" + node.occurrences() + "'",
 					context);
 
 		return result;
@@ -110,18 +112,19 @@ public class ComplexNodeBinder {
 				Model.Effective<?> extension = context.getModel(nextElement);
 
 				if (extension == null) {
-					throw new BindingException("Cannot find model '" + nextElement
-							+ "' to bind to", context);
+					throw new BindingException(
+							"Cannot find model '" + nextElement + "' to bind to", context);
 				}
 
 				if (!node.getDataType().isAssignableFrom(extension.getDataType()))
-					throw new BindingException("Named input node '" + nextElement
-							+ "' of type '" + extension.getDataType()
-							+ "' does not match type '" + node.getDataType()
-							+ "' of extention point", context);
+					throw new BindingException(
+							"Named input node '" + nextElement + "' of type '"
+									+ extension.getDataType() + "' does not match type '"
+									+ node.getDataType() + "' of extention point",
+							context);
 
-				exactNode = context.getComplexNodeOverrides(node).putGet(
-						(Effective<? extends U>) extension);
+				exactNode = context.getComplexNodeOverrides(node)
+						.putGet((Effective<? extends U>) extension);
 			} else if (node.isInline() || Objects.equals(nextElement, node.getName()))
 				exactNode = node;
 			else

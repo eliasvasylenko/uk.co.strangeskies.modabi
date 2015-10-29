@@ -34,69 +34,81 @@ import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinder {
-	private final BindingContextImpl context;
-
+public class DataNodeBinder extends ChildNodeBinder {
 	public DataNodeBinder(BindingContextImpl context) {
-		this.context = context;
+		super(context);
 	}
 
 	public <U> List<U> bind(DataNode.Effective<U> node) {
+		BindingContextImpl context = getParentContext();
 		DataSource dataSource;
 
 		List<U> results = new ArrayList<>();
 
-		if (node.isValueProvided()) {
-			if (node.valueResolution() == ValueResolution.REGISTRATION_TIME
-					|| node.valueResolution() == ValueResolution.POST_REGISTRATION) {
-				results.addAll(node.providedValues());
-			} else {
+		if (node.isValueProvided()
+				&& (node.valueResolution() == ValueResolution.REGISTRATION_TIME
+						|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
+			/*
+			 * Value is already provided and bound
+			 */
+			results.addAll(node.providedValues());
+		} else {
+			/*
+			 * Value is not yet bound, so we must determind the data source
+			 */
+
+			if (node.isValueProvided()) {
+				/*
+				 * Value is already provided, but not bound
+				 */
 				DataSource providedValueBuffer = node.providedValueBuffer();
-				BindingContextImpl context = this.context
-						.withProvision(DataSource.class, () -> providedValueBuffer);
-				results.addAll(bindList(context, node));
-			}
-		} else if (node.format() != null) {
-			switch (node.format()) {
-			case CONTENT:
-				dataSource = context.input().readContent();
-
-				if (dataSource != null || node.nullIfOmitted())
-					results.add(bindWithDataSource(dataSource, context, node));
-				else if (node.nullIfOmitted())
-					results.add(null);
-
-				break;
-			case PROPERTY:
-				dataSource = context.input().readProperty(node.getName());
-
-				if (dataSource != null)
-					results.add(bindWithDataSource(dataSource, context, node));
-				else if (node.nullIfOmitted())
-					results.add(null);
-
-				break;
-			case SIMPLE:
-				BindingContextImpl context = this.context;
-
-				while (node.getName().equals(context.input().peekNextChild())) {
-					context.input().startNextChild(node.getName());
-
+				results.addAll(bindList(
+						context.withProvision(DataSource.class, () -> providedValueBuffer),
+						node));
+			} else if (node.format() != null) {
+				switch (node.format()) {
+				case CONTENT:
 					dataSource = context.input().readContent();
 
-					U result = bindWithDataSource(dataSource, context, node);
-					results.add(result);
+					if (dataSource != null)
+						results.add(bindWithDataSource(dataSource, context, node));
+					else if (node.nullIfOmitted())
+						results.add(null);
 
-					if (node.isInMethodChained())
-						context = this.context.withBindingTarget(result);
+					break;
+				case PROPERTY:
+					dataSource = context.input().readProperty(node.getName());
 
-					context.input().endChild();
+					if (dataSource != null)
+						results.add(bindWithDataSource(dataSource, context, node));
+					else if (node.nullIfOmitted())
+						results.add(null);
+
+					break;
+				case SIMPLE:
+					while (node.getName().equals(context.input().peekNextChild())) {
+						context.input().startNextChild(node.getName());
+
+						dataSource = context.input().readContent();
+
+						U result = bindWithDataSource(dataSource, context, node);
+						results.add(result);
+
+						if (node.isInMethodChained())
+							context = getParentContext().withBindingTarget(result);
+
+						context.input().endChild();
+					}
 				}
-			}
 
-			validateResults(node, results, null);
-		} else
-			results.addAll(bindList(context, node));
+				validateResults(node, results, null);
+			} else {
+				results.addAll(bindList(context, node));
+			}
+		}
+
+		//for (U item : results)
+			//invokeInMethod(node, context.bindingTarget(), item);
 
 		return results;
 	}
@@ -107,9 +119,9 @@ public class DataNodeBinder {
 				&& !node.occurrences().contains(0)) {
 			String message = "Node '" + node.getName() + "' must be bound data.";
 			if (cause != null)
-				throw new BindingException(message, context, cause);
+				throw new BindingException(message, getParentContext(), cause);
 			else
-				throw new BindingException(message, context);
+				throw new BindingException(message, getParentContext());
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
@@ -117,9 +129,9 @@ public class DataNodeBinder {
 					+ results + "' must be bound data within range of '"
 					+ Range.compose(node.occurrences()) + "' occurrences.";
 			if (cause != null)
-				throw new BindingException(message, context, cause);
+				throw new BindingException(message, getParentContext(), cause);
 			else
-				throw new BindingException(message, context);
+				throw new BindingException(message, getParentContext());
 		}
 	}
 

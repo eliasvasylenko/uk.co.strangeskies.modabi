@@ -29,7 +29,8 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public interface PartialSchemaProcessingContext extends SchemaProcessingContext {
+public interface PartialSchemaProcessingContext
+		extends SchemaProcessingContext {
 	@Override
 	default <U> void accept(ComplexNode.Effective<U> node) {
 		accept((BindingChildNode.Effective<U, ?, ?>) node);
@@ -47,12 +48,12 @@ public interface PartialSchemaProcessingContext extends SchemaProcessingContext 
 
 	@Override
 	default void accept(SequenceNode.Effective node) {
-		unexpectedNode(node);
+		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	@Override
 	default void accept(ChoiceNode.Effective node) {
-		unexpectedNode(node);
+		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default <U> void accept(BindingChildNode.Effective<U, ?, ?> node) {
@@ -60,10 +61,10 @@ public interface PartialSchemaProcessingContext extends SchemaProcessingContext 
 	}
 
 	default void accept(InputNode.Effective<?, ?> node) {
-		unexpectedNode(node);
+		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
-	static void unexpectedNode(SchemaNode<?, ?> node) {
+	default void accept(SchemaNode.Effective<?, ?> node) {
 		throw new SchemaException("Unexpected node type '" + node.getClass()
 				+ "' for node '" + node.getName() + "'");
 	}
