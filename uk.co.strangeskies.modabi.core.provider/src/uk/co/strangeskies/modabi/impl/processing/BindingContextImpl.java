@@ -93,8 +93,21 @@ public class BindingContextImpl extends
 	}
 
 	public <T> BindingContextImpl withBindingTarget(Object target) {
+		return withBindingTarget(target, false);
+	}
+
+	public <T> BindingContextImpl withReplacementBindingTarget(Object target) {
+		return withBindingTarget(target, true);
+	}
+
+	public <T> BindingContextImpl withBindingTarget(Object target,
+			boolean replace) {
 		List<Object> bindingTargetStack = new ArrayList<>(bindingTargetStack());
-		bindingTargetStack.add(target);
+		if (replace) {
+			bindingTargetStack.set(bindingTargetStack.size() - 1, target);
+		} else {
+			bindingTargetStack.add(target);
+		}
 
 		return new BindingContextImpl(this,
 				Collections.unmodifiableList(bindingTargetStack), input, getProvider());

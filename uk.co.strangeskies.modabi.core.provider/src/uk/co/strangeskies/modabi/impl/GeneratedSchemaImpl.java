@@ -31,9 +31,9 @@ import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
@@ -105,7 +105,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 				.apply(manager.getDataTypeBuilder().configure(new DataLoader() {
 					@Override
 					public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-						return new DataNodeBinder(context).bind(node.effective());
+						return new DataNodeBinder<>(context, node.effective()).bind();
 					}
 				})).create();
 
@@ -123,7 +123,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 				.apply(manager.getModelBuilder().configure(new DataLoader() {
 					@Override
 					public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-						return new DataNodeBinder(context).bind(node.effective());
+						return new DataNodeBinder<>(context, node.effective()).bind();
 					}
 				})).create();
 

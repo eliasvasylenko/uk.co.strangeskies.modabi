@@ -164,12 +164,12 @@ public class BindingNodeBinder {
 			next.process(new SchemaProcessingContext() {
 				@Override
 				public <U> void accept(ComplexNode.Effective<U> node) {
-					process(node, new ComplexNodeBinder(context).bind(node), context);
+					target.set(new ComplexNodeBinder<>(context, node).getContext().bindingTarget());
 				}
 
 				@Override
 				public <U> void accept(DataNode.Effective<U> node) {
-					process(node, new DataNodeBinder(context).bind(node), context);
+					process(node, new DataNodeBinder<>(context, node).bind(), context);
 				}
 
 				public void process(InputNode.Effective<?, ?> node, List<?> data,
@@ -277,12 +277,12 @@ public class BindingNodeBinder {
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				result.set(new ComplexNodeBinder(context).bind(node).get(0));
+				result.set(new ComplexNodeBinder<>(context, node).getBinding().get(0));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.set(new DataNodeBinder(context).bind(node).get(0));
+				result.set(new DataNodeBinder<>(context, node).bind().get(0));
 			}
 		});
 		return result.get();

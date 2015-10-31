@@ -29,36 +29,51 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
-public class ComplexNodeBinder extends ChildNodeBinder {
-	public ComplexNodeBinder(BindingContextImpl context) {
-		super(context);
+public class ComplexNodeBinder<U>
+		extends ChildNodeBinder<ComplexNode.Effective<U>> {
+	private final List<U> results;
+
+	public ComplexNodeBinder(BindingContextImpl context,
+			ComplexNode.Effective<U> node) {
+		super(context, node);
+
+		results = bind();
 	}
 
-	public <U> List<U> bind(ComplexNode.Effective<U> node) {
-		BindingContextImpl context = getParentContext();
+	public List<U> getBinding() {
+		return results;
+	}
+
+	private List<U> bind() {
+		BindingContextImpl context = getContext();
+		ComplexNode.Effective<U> node = getNode();
+
 		List<U> result = new ArrayList<>();
 
 		int count = 0;
 		do {
 			ComplexNode.Effective<? extends U> exactNode = getExactNode(context,
 					node);
-			if (exactNode == null)
-				break;
-
-			U binding;
 
 			/*
-			 * If the current node is inline we cannot predetermine whether the next
-			 * input element matches by reading the name, so we must attempt to bind
-			 * in a protected context, and revert on failure, then continue on to the
-			 * next node if possible.
-			 * 
 			 * If the current node is not inline, we first determine whether the next
 			 * input element is a match. If it is not, we break, then continue on to
 			 * the next node if possible. If it is, then we must bind the next input
 			 * element to this node.
 			 */
+			if (exactNode == null)
+				break;
+
+			U binding;
+
 			if (node.isInline()) {
+				/*
+				 * If the current node is inline we cannot predetermine whether the next
+				 * input element matches by reading the name, so we must attempt to bind
+				 * in a protected context, and revert on failure, then continue on to
+				 * the next node if possible.
+				 * 
+				 */
 				try {
 					binding = context
 							.attempt((Function<BindingContextImpl, U>) c -> bindExactNode(c,
@@ -82,26 +97,27 @@ public class ComplexNodeBinder extends ChildNodeBinder {
 				binding = bindExactNode(context, exactNode);
 			}
 
-			if (node.isInMethodChained() != null && node.isInMethodChained())
-				context = getParentContext().withBindingTarget(binding);
+			invokeInMethod(exactNode, context.bindingTarget(), binding);
+			context = getContext();
 
 			result.add(binding);
-			context.bindings().add(node, binding);
+			context.bindings().add(exactNode, binding);
 
 			count++;
 		} while (!node.occurrences().isValueAbove(count + 1));
 
-		if (!node.occurrences().contains(count))
+		if (!node.occurrences().contains(count)) {
 			throw new BindingException(
 					"Node '" + node.getName() + "' occurrences '" + count
 							+ "' should be within range '" + node.occurrences() + "'",
 					context);
+		}
 
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <U> ComplexNode.Effective<? extends U> getExactNode(
+	protected ComplexNode.Effective<? extends U> getExactNode(
 			BindingContextImpl context, ComplexNode.Effective<U> node) {
 		QualifiedName nextElement = context.input().peekNextChild();
 
@@ -135,8 +151,8 @@ public class ComplexNodeBinder extends ChildNodeBinder {
 		return exactNode;
 	}
 
-	protected <U> U bindExactNode(BindingContextImpl context,
-			ComplexNode.Effective<U> node) {
+	protected U bindExactNode(BindingContextImpl context,
+			ComplexNode.Effective<? extends U> node) {
 		if (!node.isInline())
 			context.input().startNextChild();
 

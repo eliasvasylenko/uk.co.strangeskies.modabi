@@ -34,13 +34,17 @@ import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinder extends ChildNodeBinder {
-	public DataNodeBinder(BindingContextImpl context) {
-		super(context);
+public class DataNodeBinder<U> extends ChildNodeBinder<DataNode.Effective<U>> {
+	public DataNodeBinder(BindingContextImpl context,
+			DataNode.Effective<U> node) {
+		super(context, node);
 	}
 
-	public <U> List<U> bind(DataNode.Effective<U> node) {
-		BindingContextImpl context = getParentContext();
+	public List<U> bind() {
+		return bind(getContext(), getNode());
+	}
+
+	public List<U> bind(BindingContextImpl context, DataNode.Effective<U> node) {
 		DataSource dataSource;
 
 		List<U> results = new ArrayList<>();
@@ -95,7 +99,7 @@ public class DataNodeBinder extends ChildNodeBinder {
 						results.add(result);
 
 						if (node.isInMethodChained())
-							context = getParentContext().withBindingTarget(result);
+							context = getContext().withBindingTarget(result);
 
 						context.input().endChild();
 					}
@@ -107,8 +111,8 @@ public class DataNodeBinder extends ChildNodeBinder {
 			}
 		}
 
-		//for (U item : results)
-			//invokeInMethod(node, context.bindingTarget(), item);
+		// for (U item : results)
+		// invokeInMethod(node, context.bindingTarget(), item);
 
 		return results;
 	}
@@ -119,9 +123,9 @@ public class DataNodeBinder extends ChildNodeBinder {
 				&& !node.occurrences().contains(0)) {
 			String message = "Node '" + node.getName() + "' must be bound data.";
 			if (cause != null)
-				throw new BindingException(message, getParentContext(), cause);
+				throw new BindingException(message, getContext(), cause);
 			else
-				throw new BindingException(message, getParentContext());
+				throw new BindingException(message, getContext());
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
@@ -129,13 +133,13 @@ public class DataNodeBinder extends ChildNodeBinder {
 					+ results + "' must be bound data within range of '"
 					+ Range.compose(node.occurrences()) + "' occurrences.";
 			if (cause != null)
-				throw new BindingException(message, getParentContext(), cause);
+				throw new BindingException(message, getContext(), cause);
 			else
-				throw new BindingException(message, getParentContext());
+				throw new BindingException(message, getContext());
 		}
 	}
 
-	private <U> List<U> bindList(BindingContextImpl context,
+	private List<U> bindList(BindingContextImpl context,
 			DataNode.Effective<U> node) {
 		context = context.withInput(null);
 
