@@ -29,29 +29,28 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
-public class ComplexNodeBinder<U>
-		extends ChildNodeBinder<ComplexNode.Effective<U>> {
-	private final List<U> results;
+public class ComplexNodeBinding<U>
+		extends InputNodeBinding<ComplexNode.Effective<U>> {
+	private final List<U> binding;
 
-	public ComplexNodeBinder(BindingContextImpl context,
-			ComplexNode.Effective<U> node) {
-		super(context, node);
+	public ComplexNodeBinding(BindingContextImpl context, ComplexNode<U> node) {
+		super(context, node.effective());
 
-		results = bind();
+		binding = bind();
 	}
 
 	public List<U> getBinding() {
-		return results;
+		return binding;
 	}
 
 	private List<U> bind() {
-		BindingContextImpl context = getContext();
 		ComplexNode.Effective<U> node = getNode();
 
 		List<U> result = new ArrayList<>();
 
 		int count = 0;
 		do {
+			BindingContextImpl context = getContext();
 			ComplexNode.Effective<? extends U> exactNode = getExactNode(context,
 					node);
 
@@ -97,8 +96,7 @@ public class ComplexNodeBinder<U>
 				binding = bindExactNode(context, exactNode);
 			}
 
-			invokeInMethod(exactNode, context.bindingTarget(), binding);
-			context = getContext();
+			invokeInMethod(binding);
 
 			result.add(binding);
 			context.bindings().add(exactNode, binding);
@@ -110,7 +108,7 @@ public class ComplexNodeBinder<U>
 			throw new BindingException(
 					"Node '" + node.getName() + "' occurrences '" + count
 							+ "' should be within range '" + node.occurrences() + "'",
-					context);
+					getContext());
 		}
 
 		return result;

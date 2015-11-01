@@ -164,24 +164,19 @@ public class BindingNodeBinder {
 			next.process(new SchemaProcessingContext() {
 				@Override
 				public <U> void accept(ComplexNode.Effective<U> node) {
-					target.set(new ComplexNodeBinder<>(context, node).getContext().bindingTarget());
+					target.set(new ComplexNodeBinding<>(context, node).getContext()
+							.bindingTarget());
 				}
 
 				@Override
 				public <U> void accept(DataNode.Effective<U> node) {
-					process(node, new DataNodeBinder<>(context, node).bind(), context);
-				}
-
-				public void process(InputNode.Effective<?, ?> node, List<?> data,
-						BindingContext context) {
-					for (Object item : data)
-						target.set(invokeInMethod(node, context, target.get(), item));
+					target.set(new DataNodeBinding<>(context, node).bindToTarget()
+							.getContext().bindingTarget());
 				}
 
 				@Override
 				public void accept(InputSequenceNode.Effective node) {
-					List<Object> parameters = BindingNodeBinder
-							.getSingleBindingSequence(node, context);
+					List<Object> parameters = getSingleBindingSequence(node, context);
 					target.set(invokeInMethod(node, context, target.get(),
 							parameters.toArray()));
 				}
@@ -219,7 +214,7 @@ public class BindingNodeBinder {
 		return target.get();
 	}
 
-	private static Object invokeInMethod(InputNode.Effective<?, ?> node,
+	public static Object invokeInMethod(InputNode.Effective<?, ?> node,
 			BindingContext context, Object target, Object... parameters) {
 		if (!"null".equals(node.getInMethodName())) {
 			Object object;
@@ -277,12 +272,12 @@ public class BindingNodeBinder {
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				result.set(new ComplexNodeBinder<>(context, node).getBinding().get(0));
+				result.set(new ComplexNodeBinding<>(context, node).getBinding().get(0));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.set(new DataNodeBinder<>(context, node).bind().get(0));
+				result.set(new DataNodeBinding<>(context, node).getBinding().get(0));
 			}
 		});
 		return result.get();

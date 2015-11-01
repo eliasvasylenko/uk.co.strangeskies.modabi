@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,22 +30,37 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinder<U> extends ChildNodeBinder<DataNode.Effective<U>> {
-	public DataNodeBinder(BindingContextImpl context,
-			DataNode.Effective<U> node) {
-		super(context, node);
+public class DataNodeBinding<U>
+		extends InputNodeBinding<DataNode.Effective<U>> {
+	private final List<U> binding;
+
+	public DataNodeBinding(BindingContextImpl context, DataNode<U> node) {
+		super(context, node.effective());
+
+		binding = Collections.unmodifiableList(bind());
 	}
 
-	public List<U> bind() {
-		return bind(getContext(), getNode());
+	public DataNodeBinding<U> bindToTarget() {
+		for (Object item : getBinding())
+			invokeInMethod(item);
+
+		return this;
 	}
 
-	public List<U> bind(BindingContextImpl context, DataNode.Effective<U> node) {
+	public List<U> getBinding() {
+		return binding;
+	}
+
+	private List<U> bind() {
+		BindingContextImpl context = getContext();
+		DataNode.Effective<U> node = getNode();
+
 		DataSource dataSource;
 
 		List<U> results = new ArrayList<>();
@@ -98,9 +114,6 @@ public class DataNodeBinder<U> extends ChildNodeBinder<DataNode.Effective<U>> {
 						U result = bindWithDataSource(dataSource, context, node);
 						results.add(result);
 
-						if (node.isInMethodChained())
-							context = getContext().withBindingTarget(result);
-
 						context.input().endChild();
 					}
 				}
@@ -110,9 +123,6 @@ public class DataNodeBinder<U> extends ChildNodeBinder<DataNode.Effective<U>> {
 				results.addAll(bindList(context, node));
 			}
 		}
-
-		// for (U item : results)
-		// invokeInMethod(node, context.bindingTarget(), item);
 
 		return results;
 	}
@@ -217,5 +227,14 @@ public class DataNodeBinder<U> extends ChildNodeBinder<DataNode.Effective<U>> {
 			return result.get();
 		} else
 			return new BindingNodeBinder(context).bind(node);
+	}
+
+	public static DataLoader dataLoader(BindingContextImpl context) {
+		return new DataLoader() {
+			@Override
+			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+				return new DataNodeBinding<>(context, node.effective()).getBinding();
+			}
+		};
 	}
 }

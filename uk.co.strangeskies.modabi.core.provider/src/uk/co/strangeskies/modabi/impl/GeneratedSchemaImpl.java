@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.DataTypes;
@@ -29,14 +28,11 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
-import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
-import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.impl.processing.DataNodeBinding;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class GeneratedSchemaImpl implements GeneratedSchema {
@@ -101,13 +97,8 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build) {
 		BindingContextImpl context = manager.getBindingContext();
 
-		DataType<T> type = build
-				.apply(manager.getDataTypeBuilder().configure(new DataLoader() {
-					@Override
-					public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-						return new DataNodeBinder<>(context, node.effective()).bind();
-					}
-				})).create();
+		DataType<T> type = build.apply(manager.getDataTypeBuilder()
+				.configure(DataNodeBinding.dataLoader(context))).create();
 
 		manager.registerDataType(type);
 
@@ -119,13 +110,9 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build) {
 		BindingContextImpl context = manager.getBindingContext();
 
-		Model<T> model = build
-				.apply(manager.getModelBuilder().configure(new DataLoader() {
-					@Override
-					public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-						return new DataNodeBinder<>(context, node.effective()).bind();
-					}
-				})).create();
+		Model<T> model = build.apply(
+				manager.getModelBuilder().configure(DataNodeBinding.dataLoader(context)))
+				.create();
 
 		manager.registerModel(model);
 
