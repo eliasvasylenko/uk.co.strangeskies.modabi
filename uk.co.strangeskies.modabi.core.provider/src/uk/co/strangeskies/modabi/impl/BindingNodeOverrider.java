@@ -27,7 +27,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
@@ -95,7 +95,7 @@ public class BindingNodeOverrider {
 		return node.children().isEmpty(); // TODO is this enough?
 	}
 
-	private class OverridingProcessor implements SchemaProcessingContext {
+	private class OverridingProcessor implements SchemaProcessor {
 		private final Deque<SchemaNodeConfigurator<?, ?>> configuratorStack;
 		private List<?> currentProvidedValue;
 

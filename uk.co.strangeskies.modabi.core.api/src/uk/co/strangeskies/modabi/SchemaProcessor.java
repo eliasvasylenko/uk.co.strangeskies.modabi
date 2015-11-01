@@ -16,17 +16,22 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema;
+package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.schema.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public interface SequenceNode extends
-		ChildNode<SequenceNode, SequenceNode.Effective> {
-	interface Effective extends SequenceNode,
-			ChildNode.Effective<SequenceNode, Effective> {
-		@Override
-		default void process(SchemaProcessor context) {
-			context.accept(this);
-		}
-	}
+public interface SchemaProcessor {
+	public <U> void accept(ComplexNode.Effective<U> node);
+
+	public <U> void accept(DataNode.Effective<U> node);
+
+	public void accept(InputSequenceNode.Effective node);
+
+	public void accept(SequenceNode.Effective node);
+
+	public void accept(ChoiceNode.Effective node);
 }

@@ -24,14 +24,14 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public interface SchemaProcessingContext {
-	public <U> void accept(ComplexNode.Effective<U> node);
+public interface ReturningSchemaProcessor<T> {
+	public <U> T accept(ComplexNode.Effective<U> node);
 
-	public <U> void accept(DataNode.Effective<U> node);
+	public <U> T accept(DataNode.Effective<U> node);
 
-	public void accept(InputSequenceNode.Effective node);
+	public T accept(InputSequenceNode.Effective node);
 
-	public void accept(SequenceNode.Effective node);
+	public T accept(SequenceNode.Effective node);
 
-	public void accept(ChoiceNode.Effective node);
+	public T accept(ChoiceNode.Effective node);
 }

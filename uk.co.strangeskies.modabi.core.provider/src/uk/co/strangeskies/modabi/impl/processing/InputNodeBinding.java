@@ -7,32 +7,10 @@ import java.util.Arrays;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.InputNode;
 
-public class InputNodeBinding<T extends InputNode.Effective<?, ?>> {
-	private BindingContextImpl context;
-	private final T node;
-
+public abstract class InputNodeBinding<T extends InputNode.Effective<?, ?>>
+		extends ChildNodeBinding<T> {
 	public InputNodeBinding(BindingContextImpl context, T node) {
-		this.context = context;
-		this.node = node;
-	}
-
-	public InputNodeBinding(BindingContextImpl context, T node,
-			Object... parameters) {
-		this(context, node);
-
-		invokeInMethod(parameters);
-	}
-
-	protected void setContext(BindingContextImpl context) {
-		this.context = context;
-	}
-
-	public BindingContextImpl getContext() {
-		return context;
-	}
-
-	public T getNode() {
-		return node;
+		super(context, node);
 	}
 
 	protected Object invokeInMethod(Object... parameters) {

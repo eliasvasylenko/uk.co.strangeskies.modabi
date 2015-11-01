@@ -56,10 +56,17 @@ public interface SchemaManager {
 		}
 
 		default BindingFuture<T> from(URL input) {
-			String extension = input.getQuery();
-			int lastDot = extension.lastIndexOf('.');
-			if (lastDot > 0) {
-				extension = extension.substring(lastDot);
+			String extension = input.getPath();
+			int lastSlash = extension.lastIndexOf('/');
+			if (lastSlash > 0) {
+				extension = extension.substring(lastSlash);
+
+				int lastDot = extension.lastIndexOf('.');
+				if (lastDot > 0) {
+					extension = extension.substring(lastDot + 1);
+				} else {
+					extension = null;
+				}
 			} else {
 				extension = null;
 			}

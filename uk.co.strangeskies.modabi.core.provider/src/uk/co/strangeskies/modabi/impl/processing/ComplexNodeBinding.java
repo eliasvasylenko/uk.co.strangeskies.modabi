@@ -39,6 +39,13 @@ public class ComplexNodeBinding<U>
 		binding = bind();
 	}
 
+	public ComplexNodeBinding<U> bindToTarget() {
+		for (Object item : getBinding())
+			invokeInMethod(item);
+
+		return this;
+	}
+
 	public List<U> getBinding() {
 		return binding;
 	}
@@ -84,7 +91,6 @@ public class ComplexNodeBinding<U>
 					 * then we assume the element we attempted to process was intended to
 					 * be bound by the next node and continue.
 					 */
-					e.printStackTrace();
 					if (node.occurrences().isValueBelow(count))
 						throw new BindingException(
 								"Node '" + node.getName() + "' failed to bind on occurance '"
@@ -95,8 +101,6 @@ public class ComplexNodeBinding<U>
 			} else {
 				binding = bindExactNode(context, exactNode);
 			}
-
-			invokeInMethod(binding);
 
 			result.add(binding);
 			context.bindings().add(exactNode, binding);

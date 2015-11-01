@@ -10,3 +10,6 @@ Bundle-Name: Modabi :: Benchmarker
 	META-INF/modabi=schemata
 
 Export-Package: uk.co.strangeskies.modabi.benchmark
+Import-Package: \
+	uk.co.strangeskies.modabi.schema,\
+	*

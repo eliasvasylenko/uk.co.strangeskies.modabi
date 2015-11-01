@@ -7,6 +7,7 @@ public class InputSequenceNodeBinding<T extends InputSequenceNode.Effective>
 	public InputSequenceNodeBinding(BindingContextImpl context, T node) {
 		super(context, node);
 
-		invokeInMethod(BindingNodeBinder.getSingleBindingSequence(node, context));
+		invokeInMethod(
+				BindingNodeBinder.getSingleBindingSequence(node, context).toArray());
 	}
 }

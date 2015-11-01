@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
@@ -108,7 +108,7 @@ public class BindingNodeUnbinder {
 
 	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(
 			UnbindingContextImpl context) {
-		SchemaProcessingContext processor = new SchemaProcessingContext() {
+		SchemaProcessor processor = new SchemaProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
 				new ComplexNodeUnbinder(context).unbind(node, getData(node, context));

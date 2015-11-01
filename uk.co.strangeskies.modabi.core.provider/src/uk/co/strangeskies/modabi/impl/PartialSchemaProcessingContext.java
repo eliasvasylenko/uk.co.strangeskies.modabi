@@ -19,7 +19,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaProcessingContext;
+import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
@@ -30,7 +30,7 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public interface PartialSchemaProcessingContext
-		extends SchemaProcessingContext {
+		extends SchemaProcessor {
 	@Override
 	default <U> void accept(ComplexNode.Effective<U> node) {
 		accept((BindingChildNode.Effective<U, ?, ?>) node);
