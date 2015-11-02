@@ -128,11 +128,6 @@ public class DummyNodes {
 
 					@Override
 					public List<ChildNode.Effective<?, ?>> children() {
-						/*
-						 * TODO Yet another compiler bug to report? Should be able to supply
-						 * SchemaNode::effective as the argument to map, and leave out the
-						 * explicit parametrisation,but javac gets upset.
-						 */
 						return children.stream().<ChildNode
 								.Effective<?, ?>> map(c -> c.effective())
 								.collect(Collectors.toList());

@@ -110,6 +110,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	public final S occurrences(Range<Integer> range) {
 		assertConfigurable(occurrences);
 		occurrences = range;
+
 		return getThis();
 	}
 

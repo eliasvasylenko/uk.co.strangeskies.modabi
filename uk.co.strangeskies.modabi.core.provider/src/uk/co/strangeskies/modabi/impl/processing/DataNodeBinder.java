@@ -36,17 +36,17 @@ import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinding<U>
-		extends InputNodeBinding<DataNode.Effective<U>> {
+public class DataNodeBinder<U>
+		extends InputNodeBinder<DataNode.Effective<U>> {
 	private final List<U> binding;
 
-	public DataNodeBinding(BindingContextImpl context, DataNode<U> node) {
+	public DataNodeBinder(BindingContextImpl context, DataNode<U> node) {
 		super(context, node.effective());
 
 		binding = Collections.unmodifiableList(bind());
 	}
 
-	public DataNodeBinding<U> bindToTarget() {
+	public DataNodeBinder<U> bindToTarget() {
 		for (Object item : getBinding())
 			invokeInMethod(item);
 
@@ -233,7 +233,7 @@ public class DataNodeBinding<U>
 		return new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinding<>(context, node.effective()).getBinding();
+				return new DataNodeBinder<>(context, node.effective()).getBinding();
 			}
 		};
 	}

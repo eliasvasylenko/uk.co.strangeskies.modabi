@@ -33,12 +33,5 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	S extensible(boolean extensible);
 
-	/*
-	 * TODO 'isOrdered' hint, for ranges above ..2, to help magically minimise
-	 * impact of updating a 'ModifiableStructuredDataTarget' (e.g. saving over an
-	 * existing XML document) by not considering it a violation of model equality
-	 * to reorder from outMethod iterator.
-	 */
-
 	TypeToken<T> getExpectedType();
 }

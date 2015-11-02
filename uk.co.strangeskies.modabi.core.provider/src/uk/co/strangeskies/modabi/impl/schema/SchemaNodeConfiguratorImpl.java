@@ -50,7 +50,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected final void assertConfigurable(Object object) {
 		assertConfigurable();
 		if (object != null)
-			throw new InvalidBuildStateException(this);
+			throw new InvalidBuildStateException(this,
+					"Property has already been configured; cannot configure with value '"
+							+ object + "'");
 	}
 
 	protected final void assertConfigurable() {

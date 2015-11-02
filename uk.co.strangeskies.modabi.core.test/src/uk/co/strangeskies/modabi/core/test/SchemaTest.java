@@ -262,7 +262,7 @@ public class SchemaTest {
 								.addChild(s -> s.inputSequence().name("entrySet")
 										.inMethodChained(true))
 						.addChild(
-								f -> f.complex().name("entry").outMethodIterable(true)
+								f -> f.complex().name("entry")
 										.occurrences(Range.between(0, null)).inMethod("add")
 										.outMethod("this")
 										.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)

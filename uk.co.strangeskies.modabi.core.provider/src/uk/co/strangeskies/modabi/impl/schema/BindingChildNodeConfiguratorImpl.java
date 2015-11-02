@@ -82,6 +82,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	public final S occurrences(Range<Integer> range) {
 		assertConfigurable(occurrences);
 		occurrences = range;
+
 		return getThis();
 	}
 

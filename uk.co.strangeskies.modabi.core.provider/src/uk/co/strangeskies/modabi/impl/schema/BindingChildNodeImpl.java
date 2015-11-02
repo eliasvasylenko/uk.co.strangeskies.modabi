@@ -83,9 +83,17 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 					.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1))
 					.get();
 
-			iterable = overrideMerge
-					.getOverride(BindingChildNode::isOutMethodIterable).orDefault(false)
-					.get();
+			iterable = overrideMerge.getOverride(n -> {
+				if (n.isOutMethodIterable() != null) {
+					return n.isOutMethodIterable();
+				}
+
+				if (n.occurrences() != null && !n.occurrences().isValueAbove(2)) {
+					return true;
+				}
+
+				return null;
+			}).orDefault(false).get();
 
 			outMethodUnchecked = overrideMerge
 					.getOverride(BindingChildNode::isOutMethodUnchecked).orDefault(false)

@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.PartialSchemaProcessingContext;
 import uk.co.strangeskies.modabi.processing.BindingContext;
@@ -38,18 +37,13 @@ import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
-import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
-/*
- * TODO inject into class hierarchy between InputNodeBinding and Data/ComplexNodeBinding
- */
 public class BindingNodeBinder {
 	private final BindingContextImpl context;
 
@@ -146,70 +140,11 @@ public class BindingNodeBinder {
 		context = context.withBindingTarget(binding);
 
 		for (ChildNode.Effective<?, ?> child : children) {
-			context = bind(context, child);
+			context = ChildNodeBinder.bind(context, child);
 			binding = context.bindingTarget();
 		}
 
 		return (U) binding;
-	}
-
-	public BindingContextImpl bind(BindingContextImpl parentContext,
-			ChildNode.Effective<?, ?> next) {
-		BindingContextImpl context = parentContext.withBindingNode(next);
-
-		ReturningSchemaProcessor<BindingContextImpl> childProcessor = new ReturningSchemaProcessor<BindingContextImpl>() {
-			@Override
-			public <U> BindingContextImpl accept(ComplexNode.Effective<U> node) {
-				return new ComplexNodeBinding<>(context, node).bindToTarget()
-						.getContext();
-			}
-
-			@Override
-			public <U> BindingContextImpl accept(DataNode.Effective<U> node) {
-				return new DataNodeBinding<>(context, node).bindToTarget().getContext();
-			}
-
-			@Override
-			public BindingContextImpl accept(InputSequenceNode.Effective node) {
-				return new InputSequenceNodeBinding<>(context, node).getContext();
-			}
-
-			@Override
-			public BindingContextImpl accept(SequenceNode.Effective node) {
-				for (ChildNode.Effective<?, ?> child : node.children())
-					bind(context, child);
-
-				return context;
-			}
-
-			@Override
-			public BindingContextImpl accept(ChoiceNode.Effective node) {
-				if (node.children().size() == 1) {
-					bind(context, node.children().iterator().next());
-				} else if (!node.children().isEmpty()) {
-					try {
-						context.attemptBindingUntilSuccessful(node.children(),
-								(c, n) -> bind(c, n),
-								n -> new BindingException("Option '" + n
-										+ "' under choice node '" + node + "' could not be unbound",
-										context, n));
-					} catch (Exception e) {
-						if (!node.occurrences().contains(0))
-							throw e;
-					}
-				}
-
-				return context;
-			}
-		};
-
-		try {
-			return parentContext.withReplacementBindingTarget(
-					next.process(childProcessor).bindingTarget());
-		} catch (Exception e) {
-			throw new BindingException("Failed to bind node '" + next + "'", context,
-					e);
-		}
 	}
 
 	public static Object invokeInMethod(InputNode.Effective<?, ?> node,
@@ -270,12 +205,12 @@ public class BindingNodeBinder {
 		node.process(new PartialSchemaProcessingContext() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				result.set(new ComplexNodeBinding<>(context, node).getBinding().get(0));
+				result.set(new ComplexNodeBinder<>(context, node).getBinding().get(0));
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.set(new DataNodeBinding<>(context, node).getBinding().get(0));
+				result.set(new DataNodeBinder<>(context, node).getBinding().get(0));
 			}
 		});
 		return result.get();

@@ -27,6 +27,8 @@ import uk.co.strangeskies.utilities.factory.Factory;
 public interface SchemaConfigurator extends Factory<Schema> {
 	public SchemaConfigurator qualifiedName(QualifiedName name);
 
+	public SchemaConfigurator imports(Collection<? extends Class<?>> imports);
+
 	public SchemaConfigurator dependencies(
 			Collection<? extends Schema> dependencies);
 

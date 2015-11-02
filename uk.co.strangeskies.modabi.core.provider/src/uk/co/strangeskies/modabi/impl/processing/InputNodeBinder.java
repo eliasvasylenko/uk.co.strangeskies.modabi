@@ -7,9 +7,9 @@ import java.util.Arrays;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.InputNode;
 
-public abstract class InputNodeBinding<T extends InputNode.Effective<?, ?>>
-		extends ChildNodeBinding<T> {
-	public InputNodeBinding(BindingContextImpl context, T node) {
+public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
+		extends ChildNodeBinder<T> {
+	public InputNodeBinder(BindingContextImpl context, T node) {
 		super(context, node);
 	}
 

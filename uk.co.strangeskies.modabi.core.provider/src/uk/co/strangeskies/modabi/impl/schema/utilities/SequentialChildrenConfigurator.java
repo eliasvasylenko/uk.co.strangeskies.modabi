@@ -104,13 +104,17 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		public boolean addChild(ChildNode.Effective<?, ?> child) {
 			if (overridden)
-				throw new SchemaException(""); // TODO ################
+				throw new SchemaException("Cannot add contributing node '" + child
+						+ "' to override group, as override '" + children.iterator().next()
+						+ "' already found");
 			return children.add(child);
 		}
 
 		public void override(ChildNode.Effective<?, ?> result) {
 			if (overridden)
-				throw new SchemaException(""); // TODO ################
+				throw new SchemaException("Cannot specify override '" + result
+						+ "' for override group, as override '" + children.iterator().next()
+						+ "' already found");
 			children.clear();
 			addChild(result);
 			overridden = true;

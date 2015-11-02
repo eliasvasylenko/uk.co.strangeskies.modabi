@@ -66,6 +66,7 @@ import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
 import uk.co.strangeskies.reflection.Annotations;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
@@ -115,8 +116,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingFactoryType(Arrays.class).unbindingMethod("asList")
 							.addChild(c -> c.data().name("element").inMethod("add")
 									.outMethod("this").isAbstract(true)
-									.occurrences(Range.between(0, null)).inMethodChained(false)
-									.outMethodIterable(true))
+									.occurrences(Range.between(0, null)).inMethodChained(false))
 					.addChild(c -> c.inputSequence().name("toArray").inMethodChained(true)
 							.inMethodCast(true)).create());
 
@@ -126,8 +126,8 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingStrategy(UnbindingStrategy.SIMPLE)
 							.addChild(c -> c.data().name("element").inMethod("add")
 									.outMethod("this").isAbstract(true).extensible(true)
-									.occurrences(Range.between(0, null)).outMethodIterable(true))
-					.create());
+									.occurrences(Range.between(0, null)))
+							.create());
 
 			listType = factory.apply("list",
 					t -> t.dataType(new TypeToken<@Infer List<?>>() {})
@@ -678,7 +678,6 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(s -> s.inputSequence().name("entrySet")
 											.inMethodChained(true))
 									.addChild(f -> f.complex().name("entry")
-											.outMethodIterable(true)
 											.occurrences(Range.between(0, null)).inMethod("add")
 											.outMethod("this")
 											.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
@@ -850,5 +849,10 @@ public class BaseSchemaImpl implements BaseSchema {
 	@Override
 	public int hashCode() {
 		return baseSchema.hashCode();
+	}
+
+	@Override
+	public Imports getImports() {
+		return Imports.empty();
 	}
 }

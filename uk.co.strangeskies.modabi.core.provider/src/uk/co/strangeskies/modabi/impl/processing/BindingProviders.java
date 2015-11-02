@@ -82,7 +82,7 @@ public class BindingProviders {
 		return context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinding<>(context, node.effective()).getBinding();
+				return new DataNodeBinder<>(context, node.effective()).getBinding();
 			}
 		};
 	}

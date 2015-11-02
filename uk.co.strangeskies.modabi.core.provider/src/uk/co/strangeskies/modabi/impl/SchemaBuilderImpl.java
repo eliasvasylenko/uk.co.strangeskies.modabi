@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.Imports;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
@@ -41,6 +42,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		private QualifiedName qualifiedName;
 		private final Set<Model<?>> modelSet;
 		private final Schemata dependencySet;
+		private Imports imports;
 
 		public SchemaConfiguratorImpl() {
 			typeSet = new LinkedHashSet<>();
@@ -77,6 +79,11 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 				@Override
 				public Schemata getDependencies() {
 					return dependencies;
+				}
+
+				@Override
+				public Imports getImports() {
+					return imports;
 				}
 
 				@Override
@@ -131,6 +138,13 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 				Collection<? extends Schema> dependencies) {
 			dependencySet.clear();
 			dependencySet.addAll(dependencies);
+
+			return this;
+		}
+
+		@Override
+		public SchemaConfigurator imports(Collection<? extends Class<?>> imports) {
+			this.imports = Imports.empty().withImports(imports);
 
 			return this;
 		}

@@ -18,8 +18,12 @@
  */
 package uk.co.strangeskies.modabi;
 
+import uk.co.strangeskies.reflection.Imports;
+
 public interface Schema {
 	public QualifiedName getQualifiedName();
+
+	public Imports getImports();
 
 	public Schemata getDependencies();
 

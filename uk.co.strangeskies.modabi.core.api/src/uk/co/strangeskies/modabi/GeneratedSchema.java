@@ -27,6 +27,7 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface GeneratedSchema extends Schema {
@@ -91,4 +92,6 @@ public interface GeneratedSchema extends Schema {
 		return buildModel(m -> build.apply(
 				m.name(new QualifiedName(name, getQualifiedName().getNamespace()))));
 	}
+
+	void addImports(Imports imports);
 }

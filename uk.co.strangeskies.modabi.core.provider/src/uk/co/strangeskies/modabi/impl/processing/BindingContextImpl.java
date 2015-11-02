@@ -128,17 +128,15 @@ public class BindingContextImpl extends
 				getProvider());
 	}
 
-	public void attempt(Consumer<BindingContextImpl> bindingMethod) {
-		bindingMethod.accept(this);
-	}
-
-	public <U> U attempt(Function<BindingContextImpl, U> bindingMethod) {
-		return bindingMethod.apply(this);
-	}
-
 	public void attemptBinding(Consumer<BindingContextImpl> bindingMethod) {
-		BindingContextImpl context = this;
+		attemptBinding(c -> {
+			bindingMethod.accept(c);
+			return null;
+		});
+	}
 
+	public <U> U attemptBinding(Function<BindingContextImpl, U> bindingMethod) {
+		BindingContextImpl context = this;
 		DataSource dataSource = null;
 
 		/*
@@ -157,7 +155,7 @@ public class BindingContextImpl extends
 		 * Make unbinding attempt! (Reset output to mark on failure by discarding
 		 * buffer, via exception.)
 		 */
-		bindingMethod.accept(context);
+		U result = bindingMethod.apply(context);
 
 		/*
 		 * Remove mark! (by flushing buffer into output)
@@ -169,6 +167,8 @@ public class BindingContextImpl extends
 		}
 
 		this.input = input;
+
+		return result;
 	}
 
 	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems,

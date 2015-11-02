@@ -29,17 +29,17 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
-public class ComplexNodeBinding<U>
-		extends InputNodeBinding<ComplexNode.Effective<U>> {
+public class ComplexNodeBinder<U>
+		extends InputNodeBinder<ComplexNode.Effective<U>> {
 	private final List<U> binding;
 
-	public ComplexNodeBinding(BindingContextImpl context, ComplexNode<U> node) {
+	public ComplexNodeBinder(BindingContextImpl context, ComplexNode<U> node) {
 		super(context, node.effective());
 
 		binding = bind();
 	}
 
-	public ComplexNodeBinding<U> bindToTarget() {
+	public ComplexNodeBinder<U> bindToTarget() {
 		for (Object item : getBinding())
 			invokeInMethod(item);
 
@@ -55,8 +55,7 @@ public class ComplexNodeBinding<U>
 
 		List<U> result = new ArrayList<>();
 
-		int count = 0;
-		do {
+		repeatNode(count -> {
 			BindingContextImpl context = getContext();
 			ComplexNode.Effective<? extends U> exactNode = getExactNode(context,
 					node);
@@ -68,52 +67,37 @@ public class ComplexNodeBinding<U>
 			 * element to this node.
 			 */
 			if (exactNode == null)
-				break;
+				return false;
 
+			Function<BindingContextImpl, U> bind = c -> bindExactNode(c, exactNode);
 			U binding;
 
-			if (node.isInline()) {
+			if (node.isInline() && !node.occurrences().isValueBelow(count)) {
 				/*
 				 * If the current node is inline we cannot predetermine whether the next
 				 * input element matches by reading the name, so we must attempt to bind
 				 * in a protected context, and revert on failure, then continue on to
 				 * the next node if possible.
 				 * 
+				 * If we have not processed the minimum number of occurrences required
+				 * for this node, we assume this binding to be a failure. If we have,
+				 * then we assume the element we attempted to process was intended to be
+				 * bound by the next node and continue.
 				 */
 				try {
-					binding = context
-							.attempt((Function<BindingContextImpl, U>) c -> bindExactNode(c,
-									exactNode));
+					binding = context.attemptBinding(bind);
 				} catch (Exception e) {
-					/*
-					 * If we have not processed the minimum number of occurrences required
-					 * for this node, we assume this binding to be a failure. If we have,
-					 * then we assume the element we attempted to process was intended to
-					 * be bound by the next node and continue.
-					 */
-					if (node.occurrences().isValueBelow(count))
-						throw new BindingException(
-								"Node '" + node.getName() + "' failed to bind on occurance '"
-										+ count + "' of range '" + node.occurrences() + "'",
-								context, e);
-					break;
+					return false;
 				}
 			} else {
-				binding = bindExactNode(context, exactNode);
+				binding = bind.apply(context);
 			}
 
 			result.add(binding);
 			context.bindings().add(exactNode, binding);
 
-			count++;
-		} while (!node.occurrences().isValueAbove(count + 1));
-
-		if (!node.occurrences().contains(count)) {
-			throw new BindingException(
-					"Node '" + node.getName() + "' occurrences '" + count
-							+ "' should be within range '" + node.occurrences() + "'",
-					getContext());
-		}
+			return true;
+		});
 
 		return result;
 	}

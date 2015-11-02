@@ -28,11 +28,12 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
-import uk.co.strangeskies.modabi.impl.processing.DataNodeBinding;
+import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class GeneratedSchemaImpl implements GeneratedSchema {
@@ -44,6 +45,8 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 
 	private final DataTypes types;
 	private final Models models;
+
+	private Imports imports;
 
 	public GeneratedSchemaImpl(SchemaManagerImpl schemaManager,
 			QualifiedName name, Collection<? extends Schema> dependencies) {
@@ -58,6 +61,8 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 
 		types = new DataTypes();
 		models = new Models();
+
+		imports = Imports.empty();
 	}
 
 	@Override
@@ -81,6 +86,17 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	}
 
 	@Override
+	public Imports getImports() {
+		return imports;
+	}
+
+	@Override
+	public void addImports(Imports imports) {
+		this.imports = this.imports.withImports(imports.getImportedClasses())
+				.withPackageImports(imports.getImportedPackages());
+	}
+
+	@Override
 	public <T> Model<T> generateModel(TypeToken<T> type) {
 		// TODO Auto-generated method stub
 		return null;
@@ -98,7 +114,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 		BindingContextImpl context = manager.getBindingContext();
 
 		DataType<T> type = build.apply(manager.getDataTypeBuilder()
-				.configure(DataNodeBinding.dataLoader(context))).create();
+				.configure(DataNodeBinder.dataLoader(context))).create();
 
 		manager.registerDataType(type);
 
@@ -111,7 +127,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 		BindingContextImpl context = manager.getBindingContext();
 
 		Model<T> model = build.apply(
-				manager.getModelBuilder().configure(DataNodeBinding.dataLoader(context)))
+				manager.getModelBuilder().configure(DataNodeBinder.dataLoader(context)))
 				.create();
 
 		manager.registerModel(model);

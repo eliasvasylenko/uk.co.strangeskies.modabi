@@ -52,24 +52,20 @@ public class DataTypes extends QualifiedNamedSet<DataType<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<DataType<? extends T>> getDerivedTypes(
-			DataType<T> type) {
+	public <T> List<DataType<? extends T>> getDerivedTypes(DataType<T> type) {
 		/*
-		 * TODO This extra cast is needed by javac but not JDT... Is it valid
-		 * without?
+		 * This extra cast is needed by javac but not JDT... Is it valid without?
 		 */
-		LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type
-				.effective().getName());
+		LinkedHashSet<DataType<?>> subTypeList = derivedTypes
+				.get(type.effective().getName());
 		return subTypeList == null ? new ArrayList<>()
 				: new ArrayList<DataType<? extends T>>(subTypeList.stream()
-						.map(m -> (DataType<? extends T>) m)
-						.collect(Collectors.toList()));
+						.map(m -> (DataType<? extends T>) m).collect(Collectors.toList()));
 	}
 
-	public <T> List<DataType<? extends T>> getTypesWithBase(
-			DataNode<T> node) {
-		List<DataType<? extends T>> subTypes = getDerivedTypes(node
-				.effective().type());
+	public <T> List<DataType<? extends T>> getTypesWithBase(DataNode<T> node) {
+		List<DataType<? extends T>> subTypes = getDerivedTypes(
+				node.effective().type());
 
 		subTypes = subTypes.stream().filter(m -> !m.effective().isAbstract())
 				.collect(Collectors.toList());

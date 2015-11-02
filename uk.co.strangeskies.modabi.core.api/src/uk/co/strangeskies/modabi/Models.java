@@ -56,9 +56,8 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	private void mapModel(Model<?> model) {
 		model = model.source();
 
-		derivedModels.addToAll(
-				model.effective().baseModel().stream().map(Model::getName)
-						.collect(Collectors.toSet()), model);
+		derivedModels.addToAll(model.effective().baseModel().stream()
+				.map(Model::getName).collect(Collectors.toSet()), model);
 
 		if (!model.effective().isAbstract())
 			classModels.add(model.effective().getDataType().getType(), model);
@@ -67,21 +66,20 @@ public class Models extends QualifiedNamedSet<Model<?>> {
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getDerivedModels(Model<T> model) {
 		/*
-		 * TODO This extra cast is needed by javac but not JDT... Is it valid
-		 * without?
+		 * This extra cast is needed by javac but not JDT... Is it valid without?
 		 */
-		LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.effective()
-				.getName());
-		return subModelList == null ? new ArrayList<>() : subModelList.stream()
-				.map(m -> (Model<? extends T>) m)
-				.collect(Collectors.toCollection(ArrayList::new));
+		LinkedHashSet<Model<?>> subModelList = derivedModels
+				.get(model.effective().getName());
+		return subModelList == null ? new ArrayList<>()
+				: subModelList.stream().map(m -> (Model<? extends T>) m)
+						.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<T>> getModelsWithClass(TypeToken<T> dataClass) {
 		Set<Model<?>> models = classModels.get(dataClass.getType());
-		return models == null ? Collections.emptyList() : models.stream()
-				.map(m -> (Model<T>) m).collect(Collectors.toList());
+		return models == null ? Collections.emptyList()
+				: models.stream().map(m -> (Model<T>) m).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")

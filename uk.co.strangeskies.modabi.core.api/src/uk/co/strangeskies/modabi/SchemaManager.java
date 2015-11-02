@@ -88,6 +88,13 @@ public interface SchemaManager {
 	}
 
 	interface Unbinder {
+		/*
+		 * TODO If errors are rethrown, deal with as normal. Otherwise. best effort
+		 * at unbinding, outputting comments on errors instead of throwing
+		 * exceptions.
+		 */
+		// Unbinder with(Consumer<Exception> errorHandler);
+
 		<U extends StructuredDataTarget> U to(U output);
 
 		default void to(File output) {
@@ -221,13 +228,6 @@ public interface SchemaManager {
 
 	Unbinder unbind(Object data);
 
-	/*-
-	 * TODO Best effort at unbinding, outputting comments on errors instead of
-	 * throwing exceptions
-	 *
-	 * <T> Set<Exception> unbind(Model<T> model, StructuredDataTarget output, T
-	 * data);
-	 */
 	MetaSchema getMetaSchema();
 
 	BaseSchema getBaseSchema();

@@ -63,6 +63,7 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 
@@ -115,8 +116,7 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().name("abstract"))
 				.addChild(n -> n.complex().name("child").outMethod("children")
 						.inMethod("null").isAbstract(true).extensible(true)
-						.baseModel(childBaseModel).outMethodIterable(true)
-						.occurrences(Range.between(0, null)))
+						.baseModel(childBaseModel).occurrences(Range.between(0, null)))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(branchModel);
@@ -447,27 +447,26 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(n -> n.data().format(Format.PROPERTY).name("name")
 						.inMethod("qualifiedName").outMethod("getQualifiedName")
 						.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
-				/*- TODO imports for schema
-				.addChild(n -> n.data().format(Format.SIMPLE).name("imports")
-						.occurrences(Range.between(0, 1))
-						.dataType(new TypeToken<@Infer Set<?>>() {})
-						.bindingStrategy(BindingStrategy.PROVIDED)
-						.unbindingStrategy(UnbindingStrategy.SIMPLE)
-						.addChild(c -> c.choice().name("element").isAbstract(true)
-								.occurrences(Range.between(0, null)).outMethodIterable(true)))
-								*/
+				.addChild(n -> n.data().format(Format.SIMPLE).name("importsIn")
+						.occurrences(Range.between(0, 1)).inMethod("imports")
+						.outMethod("null").type(base.derivedTypes().setType())
+						.addChild(e -> e.data().name("element")
+								.type(base.derivedTypes().classType())))
 				.addChild(
-						n -> n.data().format(Format.SIMPLE).name("dependencies")
-								.occurrences(
-										Range
-												.between(0,
-														1))
-								.type(
-										base.derivedTypes().setType())
+						n -> n.data().format(Format.SIMPLE).name("importsOut")
+								.inMethod("null").outMethod("getImports")
+								.occurrences(Range.between(0, 1)).dataType(Imports.class)
+								.addChild(s -> s.data().name("imports")
+										.outMethod("getImportedClasses").inMethod("null")
+										.type(base.derivedTypes().setType())
+										.addChild(e -> e.data().name("element")
+												.type(base.derivedTypes().classType()))))
+				.addChild(n -> n.data().format(Format.SIMPLE).name("dependencies")
+						.occurrences(Range.between(0, 1))
+						.type(base.derivedTypes().setType())
 						.addChild(o -> o.data().inMethod("add").name("element")
 								.type(base.derivedTypes().importType()).dataType(Schema.class)
-								.outMethodIterable(true).outMethod("this")
-								.occurrences(Range.between(0, null))
+								.outMethod("this").occurrences(Range.between(0, null))
 								.addChild(i -> i.data().name("import")
 										.addChild(p -> p.data().name("targetModel")
 												.provideValue(new BufferingDataTarget()
@@ -502,21 +501,21 @@ public class MetaSchemaImpl implements MetaSchema {
 																.put(Primitive.QUALIFIED_NAME,
 																		new QualifiedName("model", namespace))
 																.buffer())))))
-				.addChild(n -> n.complex().name("types").outMethod("getDataTypes")
-						.occurrences(Range.between(0, 1))
-						.dataType(new TypeToken<@Infer Set<?>>() {})
+				.addChild(
+						n -> n.complex().name("types").outMethod("getDataTypes")
+								.occurrences(Range.between(0, 1))
+								.dataType(
+										new TypeToken<@Infer Set<?>>() {})
 						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
 						.addChild(o -> o.complex().baseModel(typeModel).outMethod("this")
-								.name("type").outMethodIterable(true)
-								.dataType(new TypeToken<DataType<?>>() {})
+								.name("type").dataType(new TypeToken<DataType<?>>() {})
 								.occurrences(Range.between(0, null))))
 				.addChild(
 						n -> n.complex().name("models").occurrences(Range.between(0, 1))
 								.dataType(new TypeToken<@Infer Set<?>>() {})
 								.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
 								.addChild(o -> o.complex().baseModel(modelModel).inMethod("add")
-										.outMethodIterable(true).outMethod("this")
-										.occurrences(Range.between(0, null))))
+										.outMethod("this").occurrences(Range.between(0, null))))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
 				.create();
 		modelSet.add(schemaModel);
@@ -562,5 +561,10 @@ public class MetaSchemaImpl implements MetaSchema {
 	@Override
 	public int hashCode() {
 		return metaSchema.hashCode();
+	}
+
+	@Override
+	public Imports getImports() {
+		return Imports.empty().withImport(Schema.class);
 	}
 }
