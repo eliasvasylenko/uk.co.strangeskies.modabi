@@ -18,8 +18,11 @@
  */
 package uk.co.strangeskies.modabi.processing.providers;
 
-import java.lang.reflect.ParameterizedType;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.schema.Model;
 
-public interface TypeComposer {
-	String compose(ParameterizedType type);
+public interface ImportTarget {
+	<T> DataSource dereferenceImport(Model<T> model, QualifiedName idDomain,
+			T object);
 }

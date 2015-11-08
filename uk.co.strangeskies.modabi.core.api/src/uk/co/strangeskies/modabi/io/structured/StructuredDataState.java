@@ -28,41 +28,45 @@ public enum StructuredDataState {
 	public StructuredDataState enterState(StructuredDataState next) {
 		switch (this) {
 		case UNSTARTED:
-			checkExitStateValid(next, ELEMENT_START);
+			assertExitStateValid(next, ELEMENT_START);
 			break;
 		case ELEMENT_START:
-			checkExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, PROPERTY,
+			assertExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, PROPERTY,
 					CONTENT, FINISHED);
 			break;
 		case POPULATED_ELEMENT:
-			checkExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, FINISHED);
+			assertExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, FINISHED);
 			break;
 		case ELEMENT_WITH_CONTENT:
-			checkExitStateValid(next, POPULATED_ELEMENT, FINISHED);
+			assertExitStateValid(next, POPULATED_ELEMENT, FINISHED);
 			break;
 		case PROPERTY:
-			checkExitStateValid(next, ELEMENT_START);
+			assertExitStateValid(next, ELEMENT_START);
 			break;
 		case CONTENT:
-			checkExitStateValid(next, ELEMENT_WITH_CONTENT);
+			assertExitStateValid(next, ELEMENT_WITH_CONTENT);
 			break;
 		case FINISHED:
-			checkExitStateValid(next);
+			assertExitStateValid(next);
 			break;
 		}
 
 		return next;
 	}
 
-	private void checkExitStateValid(StructuredDataState exitState,
+	private void assertExitStateValid(StructuredDataState exitState,
 			StructuredDataState... validExitState) {
 		if (!Arrays.asList(validExitState).contains(exitState))
-			throw new IOException("Cannot move to state '" + exitState
-					+ "' from state '" + this + "'");
+			throw new IOException(
+					"Cannot move to state '" + exitState + "' from state '" + this + "'");
 	}
 
-	public void checkValid(StructuredDataState... validState) {
-		if (!Arrays.asList(validState).contains(this))
+	public void assertValid(StructuredDataState... validState) {
+		if (!checkValid(validState))
 			throw new IOException("Cannot perform action in state '" + this + "'");
+	}
+
+	public boolean checkValid(StructuredDataState... validState) {
+		return Arrays.asList(validState).contains(this);
 	}
 }

@@ -44,12 +44,9 @@ import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
@@ -113,31 +110,6 @@ public class SchemaTest {
 			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(),
 					schemaManager.getMetaSchema()).to(out);
 
-			SchemaNode<?, ?> s = new SchemaNode<ChoiceNode, ChoiceNode.Effective>() {
-				@Override
-				public Boolean isAbstract() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-
-				@Override
-				public QualifiedName getName() {
-					return new QualifiedName("successful name get...");
-				}
-
-				@Override
-				public List<? extends ChildNode<?, ?>> children() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-
-				@Override
-				public uk.co.strangeskies.modabi.schema.ChoiceNode.Effective effective() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-			};
-			System.out.println(s.getName());
 			try {
 				System.out.println(
 						Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode"));

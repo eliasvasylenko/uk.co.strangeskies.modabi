@@ -17,7 +17,7 @@
 	<models>
 		<model
 			name="mapping"
-			dataType="@Infer Mapping{?\, ?}"
+			dataType="@Infer Mapping(?\, ?)"
 			bindingStrategy="PROVIDED">
 		</model>
 	</models>

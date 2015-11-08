@@ -6,6 +6,8 @@ import java.util.Arrays;
 
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
 		extends ChildNodeBinder<T> {
@@ -14,13 +16,15 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
 	}
 
 	protected Object invokeInMethod(Object... parameters) {
-		Object target = getContext().bindingTarget();
+		TypedObject<?> target = getContext().bindingTarget();
 
-		Object result;
+		TypedObject<?> result;
 
 		if (!"null".equals(getNode().getInMethodName())) {
 			try {
-				result = ((Method) getNode().getInMethod()).invoke(target, parameters);
+				result = newTypedObject(getNode().getPostInputType(),
+						((Method) getNode().getInMethod()).invoke(target.getObject(),
+								parameters));
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
 				throw new BindingException("Unable to call method '"
@@ -38,5 +42,10 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
 		}
 
 		return target;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <U> TypedObject<U> newTypedObject(TypeToken<U> type, Object object) {
+		return new TypedObject<>(type, (U) object);
 	}
 }

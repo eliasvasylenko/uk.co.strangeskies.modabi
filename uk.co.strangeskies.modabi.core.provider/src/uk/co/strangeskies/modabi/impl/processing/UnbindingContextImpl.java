@@ -41,10 +41,11 @@ import uk.co.strangeskies.modabi.processing.UnbindingException;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public class UnbindingContextImpl extends
 		ProcessingContextImpl<UnbindingContextImpl> implements UnbindingContext {
-	private final List<Object> unbindingSourceStack;
+	private final List<TypedObject<?>> unbindingSourceStack;
 	private final StructuredDataTarget output;
 
 	public UnbindingContextImpl(SchemaManager manager) {
@@ -55,7 +56,7 @@ public class UnbindingContextImpl extends
 	}
 
 	private UnbindingContextImpl(UnbindingContextImpl parent,
-			List<Object> unbindingSourceStack, StructuredDataTarget output,
+			List<TypedObject<?>> unbindingSourceStack, StructuredDataTarget output,
 			ProcessingProvisions provider) {
 		super(parent, provider);
 		this.unbindingSourceStack = unbindingSourceStack;
@@ -70,7 +71,7 @@ public class UnbindingContextImpl extends
 	}
 
 	@Override
-	public List<Object> unbindingSourceStack() {
+	public List<TypedObject<?>> unbindingSourceStack() {
 		return unbindingSourceStack;
 	}
 
@@ -98,8 +99,9 @@ public class UnbindingContextImpl extends
 				provisions);
 	}
 
-	public <T> UnbindingContextImpl withUnbindingSource(Object target) {
-		List<Object> unbindingSourceStack = new ArrayList<>(unbindingSourceStack());
+	public <T> UnbindingContextImpl withUnbindingSource(TypedObject<?> target) {
+		List<TypedObject<?>> unbindingSourceStack = new ArrayList<>(
+				unbindingSourceStack());
 		unbindingSourceStack.add(target);
 
 		return new UnbindingContextImpl(this,
@@ -146,7 +148,8 @@ public class UnbindingContextImpl extends
 		 * Remove mark! (by flushing buffer into output)
 		 */
 		if (dataTarget != null)
-			dataTarget.buffer().pipe(provisions().provide(DataTarget.class));
+			dataTarget.buffer()
+					.pipe(provisions().provide(DataTarget.class).getObject());
 
 		NavigableStructuredDataSource bufferedData = output.endChild().getBuffer();
 		bufferedData.startNextChild();

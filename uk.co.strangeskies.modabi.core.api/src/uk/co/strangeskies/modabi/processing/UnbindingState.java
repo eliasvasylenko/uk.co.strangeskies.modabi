@@ -22,6 +22,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public interface UnbindingState {
 	List<SchemaNode.Effective<?, ?>> unbindingNodeStack();
@@ -35,13 +36,13 @@ public interface UnbindingState {
 		return index >= 0 ? unbindingNodeStack().get(index) : null;
 	}
 
-	List<Object> unbindingSourceStack();
+	List<TypedObject<?>> unbindingSourceStack();
 
-	default Object unbindingSource() {
+	default TypedObject<?> unbindingSource() {
 		return unbindingSource(0);
 	}
 
-	default Object unbindingSource(int parent) {
+	default TypedObject<?> unbindingSource(int parent) {
 		int index = unbindingSourceStack().size() - (1 + parent);
 		return index >= 0 ? unbindingSourceStack().get(index) : null;
 	}

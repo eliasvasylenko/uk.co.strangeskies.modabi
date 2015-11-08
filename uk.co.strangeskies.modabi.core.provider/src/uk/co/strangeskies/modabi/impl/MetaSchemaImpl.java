@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
@@ -31,6 +32,7 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
@@ -52,11 +54,13 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
@@ -68,12 +72,21 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 
 public class MetaSchemaImpl implements MetaSchema {
+	private interface TypeFactory {
+		<T> DataType<T> apply(String name,
+				Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> type);
+	}
+
+	private interface ModelFactory {
+		<T> Model<T> apply(String name,
+				Function<ModelConfigurator<Object>, ModelConfigurator<T>> type);
+	}
+
 	private final Schema metaSchema;
 	private final Model<Schema> schemaModel;
 
-	@SuppressWarnings("unchecked")
-	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder model,
-			DataTypeBuilder dataType, DataLoader loader, BaseSchema base) {
+	public MetaSchemaImpl(SchemaBuilder schema, ModelBuilder modelBuilder,
+			DataTypeBuilder dataTypeBuilder, DataLoader loader, BaseSchema base) {
 		QualifiedName name = MetaSchema.QUALIFIED_NAME;
 		Namespace namespace = name.getNamespace();
 
@@ -82,16 +95,72 @@ public class MetaSchemaImpl implements MetaSchema {
 		 */
 		Set<DataType<?>> typeSet = new LinkedHashSet<>();
 
+		buildTypes(new TypeFactory() {
+			@Override
+			public <T> DataType<T> apply(String name,
+					Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> typeFunction) {
+				DataType<T> type = typeFunction
+						.apply(dataTypeBuilder.configure(loader).name(name, namespace))
+						.create();
+				typeSet.add(type);
+				return type;
+			}
+		}, base, namespace);
+
 		/*
 		 * Models
 		 */
 		Set<Model<?>> modelSet = new LinkedHashSet<>();
 
+		schemaModel = buildModels(new ModelFactory() {
+			@Override
+			public <T> Model<T> apply(String name,
+					Function<ModelConfigurator<Object>, ModelConfigurator<T>> modelFunction) {
+				Model<T> model = modelFunction
+						.apply(modelBuilder.configure(loader).name(name, namespace))
+						.create();
+				modelSet.add(model);
+				return model;
+			}
+		}, base, namespace);
+
+		/*
+		 * Schema
+		 */
+		metaSchema = schema.configure().qualifiedName(name)
+				.dependencies(Arrays.asList(base)).types(typeSet).models(modelSet)
+				.create();
+	}
+
+	private void buildTypes(TypeFactory factory, BaseSchema base,
+			Namespace namespace) {
+		/*-
+		 * TODO Here an extension is something which can appear
+		 * anywhere, such as a generic "id" tag. The problem is
+		 * in determining where and when they should be included
+		 * during the UNbinding phase.
+		 * 
+		 * Could be easier to make useful for provided values?
+		 * 
+		DataType<?> extensionData = factory.apply("extensionData",
+				t -> t.isAbstract(true).dataType(
+						AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))));
+		
+		DataType<?> id = factory.apply("id",
+				t -> t.isAbstract(true)
+						.dataType(new TypeToken<ReferenceId<@Infer ?>>() {})
+						.bindingStrategy(BindingStrategy.CONSTRUCTOR)
+						.baseType(extensionData));
+		 */
+	}
+
+	private Model<Schema> buildModels(ModelFactory factory, BaseSchema base,
+			Namespace namespace) {
 		/* Node Models */
 
-		Model<SchemaNode<?, ?>> nodeModel = model.configure(loader)
-				.name("node", namespace).isAbstract(true)
-				.dataType(new TypeToken<SchemaNode<?, ?>>() {})
+		Model<SchemaNode<?, ?>> nodeModel = factory.apply("node",
+				m -> m.isAbstract(true).dataType(
+						new TypeToken<SchemaNode<?, ?>>() {})
 				.unbindingStrategy(UnbindingStrategy.SIMPLE)
 				.addChild(n -> n.inputSequence().name("configure").isAbstract(true)
 						.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
@@ -100,32 +169,30 @@ public class MetaSchemaImpl implements MetaSchema {
 						.inMethod("name").optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY)
 						.type(base.primitiveType(Primitive.BOOLEAN)).name("abstract")
-						.inMethod("isAbstract").optional(true))
-				.create();
-		modelSet.add(nodeModel);
+						.inMethod("isAbstract").optional(true)));
 
-		Model<ChildNode<?, ?>> childBaseModel = model.configure(loader)
-				.name("childBase", namespace).isAbstract(true)
-				.dataType(new TypeToken<ChildNode<?, ?>>() {})
-				.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}).create();
-		modelSet.add(childBaseModel);
+		Model<ChildNode<?, ?>> childBaseModel = factory
+				.apply("childBase",
+						m -> m.isAbstract(true)
+								.dataType(new TypeToken<ChildNode<?, ?>>() {})
+								.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
 
-		Model<SchemaNode<?, ?>> branchModel = model.configure(loader)
-				.name("branch", namespace).isAbstract(true).baseModel(nodeModel)
-				.addChild(n -> n.data().name("name"))
-				.addChild(n -> n.data().name("abstract"))
-				.addChild(n -> n.complex().name("child").outMethod("children")
-						.inMethod("null").isAbstract(true).extensible(true)
-						.baseModel(childBaseModel).occurrences(Range.between(0, null)))
-				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
-				.create();
-		modelSet.add(branchModel);
+		Model<SchemaNode<?, ?>> branchModel = factory.apply("branch",
+				m -> m.isAbstract(true).baseModel(nodeModel)
+						.addChild(n -> n.data().name("name"))
+						.addChild(n -> n.data().name("abstract"))
+						.addChild(n -> n.complex().name("child").outMethod("children")
+								.inMethod("null").isAbstract(true).extensible(true)
+								.baseModel(childBaseModel).occurrences(Range.between(0, null)))
+				.addChild(n -> n.inputSequence().name("create").inMethodChained(true)));
 
-		Model<ChildNode<?, ?>> childModel = model.configure(loader)
-				.name("child", namespace).baseModel(branchModel, childBaseModel)
-				.isAbstract(true).dataType(new TypeToken<ChildNode<?, ?>>() {})
-				.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-				.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
+		@SuppressWarnings("unchecked")
+		Model<ChildNode<?, ?>> childModel = factory.apply("child",
+				m -> m.baseModel(branchModel, childBaseModel).isAbstract(true)
+						.dataType(new TypeToken<ChildNode<?, ?>>() {})
+						.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+						.bindingType(
+								new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
 				.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
 				.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
 						.inMethodChained(true)
@@ -137,47 +204,46 @@ public class MetaSchemaImpl implements MetaSchema {
 						.type(base.derivedTypes().rangeType()).optional(true))
 				.addChild(n -> n.data().format(Format.PROPERTY)
 						.type(base.derivedTypes().typeTokenType()).name("postInputType")
-						.optional(true))
-				.create();
-		modelSet.add(childModel);
+						.optional(true)));
 
-		Model<BindingNode<?, ?, ?>> bindingNodeModel = model.configure(loader)
-				.name("binding", namespace).baseModel(branchModel).isAbstract(true)
-				.dataType(new TypeToken<BindingNode<?, ?, ?>>() {})
-				.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
-						.postInputType(
-								new TypeToken<BindingNodeConfigurator<?, ?, Object>>() {}))
-				.addChild(n -> n.data().name("name"))
-				.addChild(o -> o.data().format(Format.PROPERTY).name("dataType")
-						.optional(true).type(base.derivedTypes().typeTokenType()))
-				.addChild(o -> o.data().format(Format.PROPERTY).name("bindingStrategy")
-						.type(base.derivedTypes().enumType())
-						.dataType(BindingStrategy.class).optional(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("bindingType")
-						.optional(true).type(base.derivedTypes().typeTokenType()))
-				.addChild(o -> o.data().format(Format.PROPERTY)
-						.name("unbindingStrategy").type(base.derivedTypes().enumType())
-						.dataType(UnbindingStrategy.class).optional(true))
-				.addChild(o -> o.data().format(Format.PROPERTY).name("unbindingMethod")
-						.outMethod("getUnbindingMethodName")
-						.type(base.primitiveType(Primitive.STRING)).optional(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("unbindingType")
-						.optional(true).type(base.derivedTypes().typeTokenType()))
-				.addChild(n -> n.data().format(Format.PROPERTY)
-						.name("providedUnbindingMethodParameters").optional(true)
-						.outMethod("getProvidedUnbindingMethodParameterNames")
-						.inMethod("providedUnbindingMethodParameters")
-						.type(base.derivedTypes().listType())
-						.addChild(o -> o.data().name("element")
-								.type(base.primitiveType(Primitive.QUALIFIED_NAME))))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("unbindingFactoryType")
+		Model<BindingNode<?, ?, ?>> bindingNodeModel = factory.apply("binding",
+				m -> m.baseModel(branchModel).isAbstract(true)
+						.dataType(new TypeToken<BindingNode<?, ?, ?>>() {})
+						.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputType(
+										new TypeToken<BindingNodeConfigurator<?, ?, Object>>() {}))
+						.addChild(n -> n.data().name("name"))
+						.addChild(o -> o.data().format(Format.PROPERTY).name("dataType")
 								.optional(true).type(base.derivedTypes().typeTokenType()))
-				.create();
-		modelSet.add(bindingNodeModel);
+						.addChild(o -> o.data().format(Format.PROPERTY)
+								.name("bindingStrategy").type(base.derivedTypes().enumType())
+								.dataType(BindingStrategy.class).optional(true))
+						.addChild(n -> n.data().format(Format.PROPERTY).name("bindingType")
+								.optional(true).type(base.derivedTypes().typeTokenType()))
+						.addChild(o -> o.data().format(Format.PROPERTY)
+								.name("unbindingStrategy").type(base.derivedTypes().enumType())
+								.dataType(UnbindingStrategy.class).optional(true))
+						.addChild(o -> o.data().format(Format.PROPERTY)
+								.name("unbindingMethod").outMethod("getUnbindingMethodName")
+								.type(base.primitiveType(Primitive.STRING)).optional(true))
+						.addChild(
+								n -> n.data().format(Format.PROPERTY).name("unbindingType")
+										.optional(true).type(base.derivedTypes().typeTokenType()))
+						.addChild(n -> n.data().format(Format.PROPERTY)
+								.name("providedUnbindingMethodParameters").optional(true)
+								.outMethod("getProvidedUnbindingMethodParameterNames")
+								.inMethod("providedUnbindingMethodParameters")
+								.type(base.derivedTypes().listType())
+								.addChild(o -> o.data().name("element")
+										.type(base.primitiveType(Primitive.QUALIFIED_NAME))))
+						.addChild(n -> n.data().format(Format.PROPERTY)
+								.name("unbindingFactoryType").optional(true)
+								.type(base.derivedTypes().typeTokenType())));
 
-		Model<InputNode<?, ?>> inputModel = model.configure(loader)
-				.name("input", namespace).isAbstract(true).baseModel(childModel)
+		Model<InputNode<?, ?>> inputModel = factory
+				.apply("input",
+						m -> m.isAbstract(true).baseModel(
+								childModel)
 				.dataType(new TypeToken<InputNode<?, ?>>() {})
 				.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
 						.postInputType(new TypeToken<InputNodeConfigurator<?, ?>>() {}))
@@ -191,171 +257,155 @@ public class MetaSchemaImpl implements MetaSchema {
 						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(
 						n -> n.data().format(Format.PROPERTY).name("inMethodUnchecked")
-								.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
-				.create();
-		modelSet.add(inputModel);
+								.optional(true).type(base.primitiveType(Primitive.BOOLEAN))));
 
-		Model<BindingChildNode<?, ?, ?>> bindingChildNodeModel = model
-				.configure(loader).name("bindingChild", namespace).isAbstract(true)
-				.dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {})
-				.baseModel(inputModel, bindingNodeModel)
-				.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
-						.postInputType(
-								new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}))
-				.addChild(n -> n.data().name("name"))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("extensible")
-						.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("outMethod")
-						.outMethod("getOutMethodName").optional(true)
-						.type(base.primitiveType(Primitive.STRING)))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("outMethodIterable")
-								.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("outMethodCast")
-						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("outMethodUnchecked")
-								.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
-				.create();
-		modelSet.add(bindingChildNodeModel);
+		@SuppressWarnings("unchecked")
+		Model<BindingChildNode<?, ?, ?>> bindingChildNodeModel = factory.apply(
+				"bindingChild",
+				m -> m.isAbstract(true)
+						.dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {})
+						.baseModel(inputModel, bindingNodeModel)
+						.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputType(
+										new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}))
+						.addChild(n -> n.data().name("name"))
+						.addChild(n -> n.data().format(Format.PROPERTY).name("extensible")
+								.type(base.primitiveType(Primitive.BOOLEAN)).optional(true))
+						.addChild(n -> n.data().format(Format.PROPERTY).name("outMethod")
+								.outMethod("getOutMethodName").optional(true)
+								.type(base.primitiveType(Primitive.STRING)))
+						.addChild(
+								n -> n.data().format(Format.PROPERTY).name("outMethodIterable")
+										.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
+						.addChild(
+								n -> n.data().format(Format.PROPERTY).name("outMethodCast")
+										.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
+						.addChild(n -> n.data().format(Format.PROPERTY)
+								.name("outMethodUnchecked").optional(true)
+								.type(base.primitiveType(Primitive.BOOLEAN))));
 
-		Model<ChoiceNode> choiceModel = model.configure(loader)
-				.name("choice", namespace).dataType(ChoiceNode.class)
-				.baseModel(childModel)
-				.addChild(c -> c.inputSequence().name("configure").inMethod("choice"))
-				.addChild(n -> n.data().name("name")).create();
-		modelSet.add(choiceModel);
+		factory.apply("choice",
+				m -> m.dataType(ChoiceNode.class).baseModel(childModel)
+						.addChild(
+								c -> c.inputSequence().name("configure").inMethod("choice"))
+				.addChild(n -> n.data().name("name")));
 
-		Model<SequenceNode> sequenceModel = model.configure(loader)
-				.name("sequence", namespace).dataType(SequenceNode.class)
-				.baseModel(childModel)
-				.addChild(c -> c.inputSequence().name("configure").inMethod("sequence"))
-				.create();
-		modelSet.add(sequenceModel);
+		factory.apply("sequence",
+				m -> m.dataType(SequenceNode.class).baseModel(childModel).addChild(
+						c -> c.inputSequence().name("configure").inMethod("sequence")));
 
-		Model<InputSequenceNode> inputSequenceModel = model.configure(loader)
-				.name("inputSequence", namespace).dataType(InputSequenceNode.class)
-				.baseModel(inputModel, childModel)
-				.addChild(
-						c -> c.inputSequence().name("configure").inMethod("inputSequence")
+		@SuppressWarnings({ "unchecked", "unused" })
+		Model<InputSequenceNode> inputSequenceModel = factory.apply("inputSequence",
+				m -> m.dataType(InputSequenceNode.class)
+						.baseModel(inputModel, childModel)
+						.addChild(c -> c.inputSequence().name("configure")
+								.inMethod("inputSequence")
 								.postInputType(InputSequenceNodeConfigurator.class))
-				.addChild(n -> n.data().name("name")).create();
-		modelSet.add(inputSequenceModel);
+						.addChild(n -> n.data().name("name")));
 
-		Model<AbstractComplexNode<?, ?, ?>> abstractModelModel = model
-				.configure(loader).name("abstractModel", namespace)
-				.baseModel(bindingNodeModel).isAbstract(true)
-				.dataType(new TypeToken<AbstractComplexNode<?, ?, ?>>() {})
-				.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
-						.postInputType(
-								new TypeToken<AbstractComplexNodeConfigurator<?, ?, Object>>() {}))
-				.addChild(
-						n -> n.data()
-								.name(
-										"name"))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("baseModel")
-								.optional(true)
-								.type(
-										base.derivedTypes().listType())
-								.outMethodUnchecked(
-										true)
-								.inMethodUnchecked(
-										true)
-								.addChild(
-										o -> o.data().name("element")
+		Model<AbstractComplexNode<?, ?, ?>> abstractModelModel = factory.apply(
+				"abstractModel",
+				m -> m.baseModel(bindingNodeModel).isAbstract(true)
+						.dataType(new TypeToken<AbstractComplexNode<?, ?, ?>>() {})
+						.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
+								.postInputType(
+										new TypeToken<AbstractComplexNodeConfigurator<?, ?, Object>>() {}))
+						.addChild(
+								n -> n.data()
+										.name("name"))
+						.addChild(
+								n -> n.data().format(Format.PROPERTY).name("baseModel")
+										.optional(true).type(base.derivedTypes().listType())
+										.outMethodUnchecked(
+												true)
+										.inMethodUnchecked(true)
+										.addChild(o -> o.data().name("element")
 												.type(base.derivedTypes().referenceType())
 												.dataType(new TypeToken<Model<?>>() {})
-												.addChild(
-														p -> p.data().name("targetModel")
-																.dataType(new TypeToken<Model<Model<?>>>() {})
-																.provideValue(
-																		new BufferingDataTarget()
-																				.put(Primitive.QUALIFIED_NAME,
-																						new QualifiedName("model",
-																								namespace))
-																				.buffer()))
+												.addChild(p -> p.data().name("targetModel")
+														.dataType(new TypeToken<Model<Model<?>>>() {})
+														.provideValue(new BufferingDataTarget()
+																.put(Primitive.QUALIFIED_NAME,
+																		new QualifiedName("model", namespace))
+																.buffer()))
 												.addChild(p -> p.data().name("targetId")
 														.provideValue(new BufferingDataTarget()
 																.put(Primitive.QUALIFIED_NAME,
 																		new QualifiedName("name", namespace))
-																.buffer()))))
-				.create();
-		modelSet.add(abstractModelModel);
+																.buffer())))));
 
-		Model<Model<?>> modelModel = model.configure(loader)
-				.name("model", namespace).baseModel(abstractModelModel)
-				.dataType(new TypeToken<Model<?>>() {}).bindingType(ModelBuilder.class)
+		Model<Model<?>> modelModel = factory.apply("model", m -> m
+				.baseModel(abstractModelModel).dataType(new TypeToken<Model<?>>() {})
+				.bindingType(ModelBuilder.class)
 				.addChild(c -> c.inputSequence().name("configure").inMethodChained(true)
 						.addChild(d -> d.data().dataType(DataLoader.class)
 								.bindingStrategy(BindingStrategy.PROVIDED).name("configure")
 								.outMethod("null")))
-				.addChild(n -> n.data().name("name").optional(false)).create();
-		modelSet.add(modelModel);
+				.addChild(n -> n.data().name("name").optional(false)));
 
-		Model<ComplexNode<?>> abstractComplexModel = model.configure(loader)
-				.name("abstractComplex", namespace).isAbstract(true)
-				.dataType(new TypeToken<ComplexNode<?>>() {})
-				.baseModel(abstractModelModel, bindingChildNodeModel)
-				.addChild(c -> c.inputSequence().name("addChild"))
-				.addChild(c -> c.inputSequence().name("configure").inMethod("complex")
-						.inMethodChained(true)
-						.postInputType(new TypeToken<ComplexNodeConfigurator<Object>>() {}))
-				.addChild(n -> n.data().name("name"))
-				.addChild(c -> c.data().name("inline").isAbstract(true).optional(true)
-						.valueResolution(ValueResolution.REGISTRATION_TIME)
-						.type(base.primitiveType(Primitive.BOOLEAN)))
-				.create();
-		modelSet.add(abstractComplexModel);
+		@SuppressWarnings("unchecked")
+		Model<ComplexNode<?>> abstractComplexModel = factory.apply(
+				"abstractComplex",
+				m -> m.isAbstract(true).dataType(new TypeToken<ComplexNode<?>>() {})
+						.baseModel(abstractModelModel, bindingChildNodeModel)
+						.addChild(c -> c.inputSequence().name("addChild"))
+						.addChild(c -> c.inputSequence().name("configure")
+								.inMethod("complex").inMethodChained(true).postInputType(
+										new TypeToken<ComplexNodeConfigurator<Object>>() {}))
+						.addChild(n -> n.data().name("name")).addChild(
+								c -> c.data().name("inline").isAbstract(true).optional(true)
+										.valueResolution(ValueResolution.REGISTRATION_TIME)
+										.type(base.primitiveType(Primitive.BOOLEAN))));
 
-		Model<ComplexNode<?>> complexModel = model.configure(loader)
-				.name("complex", namespace).baseModel(abstractComplexModel)
+		factory.apply("complex",
+				m -> m.baseModel(
+						abstractComplexModel)
 				.addChild(c -> c.data().name("inline").optional(true).provideValue(
-						new BufferingDataTarget().put(Primitive.BOOLEAN, false).buffer()))
-				.create();
-		modelSet.add(complexModel);
+						new BufferingDataTarget().put(Primitive.BOOLEAN, false).buffer())));
 
-		Model<ComplexNode<?>> inlineModel = model.configure(loader)
-				.name("inline", namespace).baseModel(abstractComplexModel)
+		factory.apply("inline",
+				m -> m.baseModel(
+						abstractComplexModel)
 				.addChild(c -> c.data().name("inline").optional(false).provideValue(
-						new BufferingDataTarget().put(Primitive.BOOLEAN, true).buffer()))
-				.create();
-		modelSet.add(inlineModel);
+						new BufferingDataTarget().put(Primitive.BOOLEAN, true).buffer())));
 
-		Model<DataNode<?>> typedDataModel = model.configure(loader)
-				.baseModel(bindingChildNodeModel).name("typedData", namespace)
-				.dataType(new TypeToken<DataNode<?>>() {}).isAbstract(true)
-				.addChild(c -> c.inputSequence().name("addChild"))
-				.addChild(c -> c.inputSequence().name("configure").inMethod("data")
-						.inMethodChained(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("format")
-						.optional(true).valueResolution(ValueResolution.REGISTRATION_TIME)
-						.isAbstract(true).type(base.derivedTypes().enumType())
-						.dataType(Format.class).postInputType(DataNodeConfigurator.class))
+		Model<DataNode<?>> typedDataModel = factory
+				.apply("typedData",
+						m -> m.baseModel(bindingChildNodeModel)
+								.dataType(new TypeToken<DataNode<?>>() {})
+								.isAbstract(
+										true)
+								.addChild(c -> c.inputSequence().name("addChild"))
+								.addChild(
+										c -> c.inputSequence().name("configure").inMethod("data")
+												.inMethodChained(true))
+								.addChild(n -> n.data().format(Format.PROPERTY).name("format")
+										.optional(true)
+										.valueResolution(ValueResolution.REGISTRATION_TIME)
+										.isAbstract(true).type(base.derivedTypes().enumType())
+										.dataType(Format.class)
+										.postInputType(DataNodeConfigurator.class))
 				.addChild(
 						n -> n.data()
-								.name("name"))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("type").optional(true)
-								.type(base.derivedTypes().referenceType())
-								.dataType(
-										new TypeToken<DataType<?>>() {})
-								.addChild(
-										p -> p.data()
-												.name(
-														"targetModel")
-												.valueResolution(ValueResolution.REGISTRATION_TIME)
-												.provideValue(
-														new BufferingDataTarget()
+								.name("name")).addChild(
+										n -> n.data().format(Format.PROPERTY).name("type")
+												.optional(true)
+												.type(base.derivedTypes().referenceType())
+												.dataType(new TypeToken<DataType<?>>() {})
+												.addChild(p -> p.data().name("targetModel")
+														.valueResolution(
+																ValueResolution.REGISTRATION_TIME)
+														.provideValue(
+																new BufferingDataTarget()
+																		.put(Primitive.QUALIFIED_NAME,
+																				new QualifiedName("type", namespace))
+																		.buffer()))
+												.addChild(p -> p.data().name("targetId")
+														.valueResolution(ValueResolution.REGISTRATION_TIME)
+														.provideValue(new BufferingDataTarget()
 																.put(Primitive.QUALIFIED_NAME,
-																		new QualifiedName("type", namespace))
-																.buffer()))
-						.addChild(p -> p.data().name("targetId")
-								.valueResolution(
-										ValueResolution.REGISTRATION_TIME)
-								.provideValue(
-										new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
-												new QualifiedName("name", namespace)).buffer())))
+																		new QualifiedName("name", namespace))
+																.buffer())))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("nullIfOmitted")
 						.optional(true).type(base.primitiveType(Primitive.BOOLEAN)))
 				.addChild(n -> n.data().format(Format.PROPERTY).name("valueResolution")
@@ -364,103 +414,98 @@ public class MetaSchemaImpl implements MetaSchema {
 				.addChild(
 						o -> o.data().format(Format.PROPERTY).name("value").optional(true)
 								.inMethod("provideValue").outMethod("providedValueBuffer")
-								.type(base.derivedTypes().bufferedDataType()))
-				.create();
-		modelSet.add(typedDataModel);
+								.type(base.derivedTypes().bufferedDataType())));
 
-		Model<DataNode<?>> contentModel = model.configure(loader)
-				.name("content",
-						namespace)
-				.baseModel(typedDataModel)
-				.addChild(n -> n.data().name("format").optional(false)
-						.provideValue(new BufferingDataTarget()
-								.put(Primitive.STRING, "CONTENT").buffer()))
-				.create();
-		modelSet.add(contentModel);
+		factory.apply("content",
+				m -> m.baseModel(typedDataModel)
+						.addChild(n -> n.data().name("format").optional(false)
+								.provideValue(new BufferingDataTarget()
+										.put(Primitive.STRING, "CONTENT").buffer())));
 
-		Model<DataNode<?>> propertyModel = model.configure(loader)
-				.name("property",
-						namespace)
-				.baseModel(typedDataModel)
-				.addChild(n -> n.data().name("format").optional(false)
-						.provideValue(new BufferingDataTarget()
-								.put(Primitive.STRING, "PROPERTY").buffer()))
-				.create();
-		modelSet.add(propertyModel);
+		factory.apply("property",
+				m -> m.baseModel(typedDataModel)
+						.addChild(n -> n.data().name("format").optional(false)
+								.provideValue(new BufferingDataTarget()
+										.put(Primitive.STRING, "PROPERTY").buffer())));
 
-		Model<DataNode<?>> simpleModel = model.configure(loader)
-				.name("simple", namespace).baseModel(typedDataModel)
-				.addChild(n -> n.data().name("format").optional(false).provideValue(
-						new BufferingDataTarget().put(Primitive.STRING, "SIMPLE").buffer()))
-				.create();
-		modelSet.add(simpleModel);
+		factory.apply("simple",
+				m -> m.baseModel(typedDataModel)
+						.addChild(n -> n.data().name("format").optional(false)
+								.provideValue(new BufferingDataTarget()
+										.put(Primitive.STRING, "SIMPLE").buffer())));
 
-		Model<DataNode<?>> dataModel = model.configure(loader)
-				.name("data", namespace).baseModel(typedDataModel)
-				.addChild(n -> n.data().name("format").occurrences(Range.between(0, 0)))
-				.create();
-		modelSet.add(dataModel);
+		factory.apply("data", m -> m.baseModel(typedDataModel).addChild(
+				n -> n.data().name("format").occurrences(Range.between(0, 0))));
 
 		/* Type Models */
 
-		Model<DataType<?>> typeModel = model.configure(loader)
-				.baseModel(bindingNodeModel).name("type", namespace)
-				.dataType(new TypeToken<DataType<?>>() {})
+		Model<DataType<?>> typeModel = factory.apply("type",
+				m -> m.baseModel(bindingNodeModel)
+						.dataType(
+								new TypeToken<DataType<?>>() {})
 				.bindingType(DataTypeBuilder.class)
 				.addChild(c -> c.inputSequence().name("configure").inMethodChained(true)
 						.addChild(d -> d.data().dataType(DataLoader.class)
 								.bindingStrategy(BindingStrategy.PROVIDED).name("configure")
 								.outMethod("null")))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("private")
-								.inMethod("isPrivate")
-								.optional(
-										true)
-								.type(
-										base.primitiveType(Primitive.BOOLEAN)))
-				.addChild(
-						n -> n.data().format(Format.PROPERTY).name("baseType")
-								.optional(true).type(base.derivedTypes().referenceType())
-								.dataType(
-										new TypeToken<DataType<?>>() {})
-								.addChild(p -> p.data()
-										.name(
-												"targetModel")
-										.provideValue(
-												new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
-														new QualifiedName("type", namespace)).buffer()))
-								.addChild(
-										p -> p.data().name("targetId")
+						.addChild(
+								n -> n.data().format(Format.PROPERTY).name("private")
+										.inMethod("isPrivate").optional(true).type(
+												base.primitiveType(Primitive.BOOLEAN)))
+						.addChild(
+								n -> n.data().format(Format.PROPERTY).name("baseType")
+										.optional(true)
+										.type(
+												base.derivedTypes().referenceType())
+										.dataType(new TypeToken<DataType<?>>() {})
+										.addChild(
+												p -> p.data()
+														.name(
+																"targetModel")
+														.provideValue(new BufferingDataTarget()
+																.put(Primitive.QUALIFIED_NAME,
+																		new QualifiedName("type", namespace))
+																.buffer()))
+										.addChild(p -> p.data().name("targetId")
 												.provideValue(new BufferingDataTarget()
 														.put(Primitive.QUALIFIED_NAME,
 																new QualifiedName("name", namespace))
-														.buffer())))
-				.create();
-		modelSet.add(typeModel);
+														.buffer()))));
 
 		/* Schema Models */
 
-		schemaModel = model.configure(loader).name("schema", namespace)
-				.dataType(Schema.class).bindingType(SchemaBuilder.class)
-				.addChild(
-						c -> c.inputSequence().name("configure").inMethodChained(true))
-				.addChild(n -> n.data().format(Format.PROPERTY).name("name")
-						.inMethod("qualifiedName").outMethod("getQualifiedName")
-						.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
-				.addChild(n -> n.data().format(Format.SIMPLE).name("importsIn")
-						.occurrences(Range.between(0, 1)).inMethod("imports")
-						.outMethod("null").type(base.derivedTypes().setType())
-						.addChild(e -> e.data().name("element")
-								.type(base.derivedTypes().classType())))
-				.addChild(
-						n -> n.data().format(Format.SIMPLE).name("importsOut")
-								.inMethod("null").outMethod("getImports")
-								.occurrences(Range.between(0, 1)).dataType(Imports.class)
-								.addChild(s -> s.data().name("imports")
-										.outMethod("getImportedClasses").inMethod("null")
-										.type(base.derivedTypes().setType())
-										.addChild(e -> e.data().name("element")
-												.type(base.derivedTypes().classType()))))
+		return factory
+				.apply("schema",
+						m -> m.dataType(Schema.class).bindingType(SchemaBuilder.class)
+								.addChild(c -> c.inputSequence().name("configure")
+										.inMethodChained(true))
+								.addChild(
+										n -> n.data().format(Format.PROPERTY).name("name")
+												.inMethod("qualifiedName")
+												.outMethod("getQualifiedName").type(base
+														.primitiveType(Primitive.QUALIFIED_NAME)))
+								.addChild(
+										i -> i.data().format(Format.SIMPLE).name("imports")
+												.optional(true)
+												.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+												.outMethod("this").dataType(Schema.class)
+												.bindingType(SchemaConfigurator.class).inMethod("null")
+												.addChild(n -> n.data().name("importsIn")
+														.inMethod("imports").outMethod("null")
+														.type(base.derivedTypes().setType())
+														.addChild(e -> e.data().name("element")
+																.type(base.derivedTypes().classType())
+																.occurrences(Range.between(1, 1))))
+												.addChild(
+														n -> n.data().name("importsOut").inMethod("null")
+																.optional(true).outMethod("getImports")
+																.dataType(Imports.class)
+																.addChild(s -> s.data().name("imports")
+																		.outMethod("getImportedClasses").inMethod(
+																				"null")
+																.type(base.derivedTypes().setType())
+																.addChild(e -> e.data().name("element")
+																		.type(base.derivedTypes().classType())))))
 				.addChild(n -> n.data().format(Format.SIMPLE).name("dependencies")
 						.occurrences(Range.between(0, 1))
 						.type(base.derivedTypes().setType())
@@ -509,23 +554,14 @@ public class MetaSchemaImpl implements MetaSchema {
 						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
 						.addChild(o -> o.complex().baseModel(typeModel).outMethod("this")
 								.name("type").dataType(new TypeToken<DataType<?>>() {})
-								.occurrences(Range.between(0, null))))
-				.addChild(
-						n -> n.complex().name("models").occurrences(Range.between(0, 1))
-								.dataType(new TypeToken<@Infer Set<?>>() {})
-								.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
-								.addChild(o -> o.complex().baseModel(modelModel).inMethod("add")
-										.outMethod("this").occurrences(Range.between(0, null))))
-				.addChild(n -> n.inputSequence().name("create").inMethodChained(true))
-				.create();
-		modelSet.add(schemaModel);
-
-		/*
-		 * Schema
-		 */
-		metaSchema = schema.configure().qualifiedName(name)
-				.dependencies(Arrays.asList(base)).types(typeSet).models(modelSet)
-				.create();
+								.occurrences(Range.between(0, null)))).addChild(
+										n -> n.complex().name("models")
+												.occurrences(Range.between(0, 1)).dataType(
+														new TypeToken<@Infer Set<?>>() {})
+						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
+						.addChild(o -> o.complex().baseModel(modelModel).inMethod("add")
+								.outMethod("this").occurrences(Range.between(0, null))))
+				.addChild(n -> n.inputSequence().name("create").inMethodChained(true)));
 	}
 
 	@Override

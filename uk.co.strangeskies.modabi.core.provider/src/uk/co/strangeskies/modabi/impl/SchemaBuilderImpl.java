@@ -48,6 +48,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 			typeSet = new LinkedHashSet<>();
 			modelSet = new LinkedHashSet<>();
 			dependencySet = new Schemata();
+			imports = Imports.empty();
 		}
 
 		@Override
@@ -99,13 +100,15 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 					return getQualifiedName().equals(other.getQualifiedName())
 							&& getModels().equals(other.getModels())
 							&& getDataTypes().equals(other.getDataTypes())
-							&& getDependencies().equals(other.getDependencies());
+							&& getDependencies().equals(other.getDependencies())
+							&& getImports().equals(other.getImports());
 				}
 
 				@Override
 				public int hashCode() {
 					return getDataTypes().hashCode() ^ getQualifiedName().hashCode()
-							^ getModels().hashCode() ^ getDependencies().hashCode();
+							^ getModels().hashCode() ^ getDependencies().hashCode()
+							^ getImports().hashCode();
 				}
 			};
 		}

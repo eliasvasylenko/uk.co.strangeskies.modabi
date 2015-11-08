@@ -26,18 +26,18 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
-import uk.co.strangeskies.modabi.processing.providers.ImportReferenceTarget;
+import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
-import uk.co.strangeskies.modabi.processing.providers.TypeComposer;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public class UnbindingProviders {
-	private final BiFunction<DataNode.Effective<?>, Object, DataSource> unbindDataNode;
+	private final BiFunction<DataNode.Effective<?>, TypedObject<?>, DataSource> unbindDataNode;
 
 	public UnbindingProviders(
-			BiFunction<DataNode.Effective<?>, Object, DataSource> unbindDataNode) {
+			BiFunction<DataNode.Effective<?>, TypedObject<?>, DataSource> unbindDataNode) {
 		this.unbindDataNode = unbindDataNode;
 	}
 
@@ -53,8 +53,8 @@ public class UnbindingProviders {
 		};
 	}
 
-	public Function<UnbindingContext, ImportReferenceTarget> importTarget() {
-		return context -> new ImportReferenceTarget() {
+	public Function<UnbindingContext, ImportTarget> importTarget() {
+		return context -> new ImportTarget() {
 			@Override
 			public <U> DataSource dereferenceImport(Model<U> model,
 					QualifiedName idDomain, U object) {
@@ -66,7 +66,8 @@ public class UnbindingProviders {
 						.orElseThrow(() -> new SchemaException("Can't fine child '"
 								+ idDomain + "' to target for model '" + model + "'"));
 
-				return unbindDataNode.apply(node, object);
+				return unbindDataNode.apply(node,
+						new TypedObject<>(model.getDataType(), object));
 			}
 		};
 	}
@@ -85,9 +86,5 @@ public class UnbindingProviders {
 						object);
 			}
 		};
-	}
-
-	public Function<UnbindingContext, TypeComposer> typeComposer() {
-		return context -> Object::toString;
 	}
 }

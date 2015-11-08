@@ -18,15 +18,28 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
+import java.util.List;
+
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public interface BindingContext extends BindingState {
+	List<TypedObject<?>> boundObjectStack();
+
+	default TypedObject<?> boundObject() {
+		return boundObject(0);
+	}
+
+	default TypedObject<?> boundObject(int parent) {
+		return boundObjectStack().get(bindingNodeStack().size() - (1 + parent));
+	}
+
 	Provisions provisions();
 
 	Model.Effective<?> getModel(QualifiedName nextElement);

@@ -69,7 +69,7 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 
 	@Override
 	public S registerDefaultNamespaceHint(Namespace namespace) {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
+		currentState().assertValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
 		registerDefaultNamespaceHintImpl(namespace);
 
@@ -80,9 +80,10 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 
 	@Override
 	public S registerNamespaceHint(Namespace namespace) {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
-				StructuredDataState.ELEMENT_START);
-		registerNamespaceHintImpl(namespace);
+		if (currentState().checkValid(StructuredDataState.UNSTARTED,
+				StructuredDataState.ELEMENT_START)) {
+			registerNamespaceHintImpl(namespace);
+		}
 
 		return getThis();
 	}
@@ -91,7 +92,7 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 
 	@Override
 	public S comment(String comment) {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
+		currentState().assertValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START,
 				StructuredDataState.POPULATED_ELEMENT);
 		commentImpl(comment);

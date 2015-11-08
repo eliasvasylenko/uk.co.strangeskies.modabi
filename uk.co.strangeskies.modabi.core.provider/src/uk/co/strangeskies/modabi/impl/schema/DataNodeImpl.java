@@ -111,15 +111,13 @@ public class DataNodeImpl<T>
 								.getThisType();
 						System.out.println(providedType);
 						/*
-						 * Should be possible to just replace the current dataType with the
-						 * providedType here. No need to worry too much about output or
-						 * extensibility given that it only applies to the specific
-						 * circumstance of provided data.
+						 * TODO Incorporate 
 						 */
 					} else {
 						/*
-						 * Only a check is useful here, since the actual type may be too
-						 * specific to consider for inference.
+						 * Only a simple check is possible here as the actual reified type
+						 * may not be available, or may not yet be properly proxied in the
+						 * case of a post registration provision..
 						 */
 						TypeToken.over(rawType).withLooseCompatibility(getDataType());
 					}

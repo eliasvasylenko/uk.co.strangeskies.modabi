@@ -25,13 +25,13 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
-import uk.co.strangeskies.modabi.processing.providers.ImportReferenceTarget;
+import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
-import uk.co.strangeskies.modabi.processing.providers.TypeComposer;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public class SchemaUnbinder {
 	private final UnbindingContextImpl context;
@@ -43,16 +43,15 @@ public class SchemaUnbinder {
 		context = new UnbindingContextImpl(manager)
 				.withProvision(new TypeToken<ReferenceTarget>() {},
 						providers.referenceTarget())
-				.withProvision(new TypeToken<ImportReferenceTarget>() {},
+				.withProvision(new TypeToken<ImportTarget>() {},
 						providers.importTarget())
 				.withProvision(new TypeToken<IncludeTarget>() {},
 						providers.includeTarget())
-				.withProvision(new TypeToken<TypeComposer>() {},
-						providers.typeComposer())
 				.withProvision(new TypeToken<UnbindingContext>() {}, c -> c);
 	}
 
-	public <U> DataSource unbindData(DataNode.Effective<U> node, Object source) {
+	public <U> DataSource unbindData(DataNode.Effective<U> node,
+			TypedObject<?> source) {
 		UnbindingContextImpl finalContext = context.withUnbindingSource(source);
 		return new DataNodeUnbinder(finalContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, finalContext));

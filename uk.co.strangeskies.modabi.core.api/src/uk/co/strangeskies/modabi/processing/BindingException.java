@@ -57,9 +57,9 @@ public class BindingException extends SchemaException {
 	}
 
 	private static String getBindingStateString(BindingState state) {
-		return state.bindingNodeStack().isEmpty() ? " at root" : " at node '"
-				+ state.bindingNode().getName() + "' with binding target object '"
-				+ state.bindingTarget() + "'";
+		return state.bindingNodeStack().isEmpty() ? " at root"
+				: " at node '" + state.bindingNode().getName()
+						+ "' with binding target object '" + state.bindingTarget() + "'";
 	}
 
 	public BindingState getState() {

@@ -60,3 +60,6 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.13,1.0.14)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000
+Import-Package: \
+	uk.co.strangeskies.modabi.processing.providers,\
+	*

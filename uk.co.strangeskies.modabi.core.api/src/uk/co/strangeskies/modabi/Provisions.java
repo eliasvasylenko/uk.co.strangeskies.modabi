@@ -19,12 +19,13 @@
 package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public interface Provisions {
-	<T> T provide(TypeToken<T> type);
+	<T> TypedObject<T> provide(TypeToken<T> type);
 
-	default <T> T provide(Class<T> clazz) {
-		return (T) provide(TypeToken.over(clazz));
+	default <T> TypedObject<T> provide(Class<T> clazz) {
+		return provide(TypeToken.over(clazz));
 	}
 
 	boolean isProvided(TypeToken<?> type);

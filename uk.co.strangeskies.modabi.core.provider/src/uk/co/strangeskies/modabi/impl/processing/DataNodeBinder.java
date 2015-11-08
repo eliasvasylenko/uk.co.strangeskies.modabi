@@ -36,8 +36,7 @@ import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinder<U>
-		extends InputNodeBinder<DataNode.Effective<U>> {
+public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	private final List<U> binding;
 
 	public DataNodeBinder(BindingContextImpl context, DataNode<U> node) {
@@ -163,7 +162,7 @@ public class DataNodeBinder<U>
 		try {
 			if (context.provisions().isProvided(DataSource.class))
 				dataSource = context.provisions()
-						.provide(TypeToken.over(DataSource.class));
+						.provide(TypeToken.over(DataSource.class)).getObject();
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();

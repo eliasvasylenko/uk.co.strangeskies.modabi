@@ -22,6 +22,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public interface BindingState {
 	List<SchemaNode.Effective<?, ?>> bindingNodeStack();
@@ -34,13 +35,13 @@ public interface BindingState {
 		return bindingNodeStack().get(bindingNodeStack().size() - (1 + parent));
 	}
 
-	List<Object> bindingTargetStack();
+	List<TypedObject<?>> bindingTargetStack();
 
-	default Object bindingTarget() {
+	default TypedObject<?> bindingTarget() {
 		return bindingTarget(0);
 	}
 
-	default Object bindingTarget(int parent) {
+	default TypedObject<?> bindingTarget(int parent) {
 		return bindingTargetStack().get(bindingTargetStack().size() - (1 + parent));
 	}
 

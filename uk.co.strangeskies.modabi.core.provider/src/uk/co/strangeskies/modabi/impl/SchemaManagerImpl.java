@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -68,14 +70,15 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
+import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -108,8 +111,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		this.dataTypeBuilder = dataTypeBuilder;
 
 		providers = new ArrayList<>();
-		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make
-																												// synchronous
+		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
 
 		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
 				dataTypeBuilder);
@@ -125,6 +127,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
+		registerProvider(new TypeToken<@Infer SortedSet<?>>() {}, TreeSet::new);
 		registerProvider(new TypeToken<@Infer Set<?>>() {}, HashSet::new);
 		registerProvider(new TypeToken<@Infer LinkedHashSet<?>>() {},
 				LinkedHashSet::new);
@@ -147,7 +150,7 @@ public class SchemaManagerImpl implements SchemaManager {
 				.withProvision(IncludeTarget.class, bindingProviders.includeTarget())
 				.withProvision(ImportSource.class, bindingProviders.importSource())
 				.withProvision(DataLoader.class, bindingProviders.dataLoader())
-				.withProvision(TypeParser.class, bindingProviders.typeParser())
+				.withProvision(Imports.class, bindingProviders.imports())
 				.withProvision(BindingContext.class, c -> c);
 	}
 
@@ -372,11 +375,12 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new Provisions() {
 			@Override
 			@SuppressWarnings("unchecked")
-			public <T> T provide(TypeToken<T> type) {
-				return (T) providers.stream().map(p -> p.apply(type))
-						.filter(Objects::nonNull).findFirst()
-						.orElseThrow(() -> new SchemaException(
-								"No provider exists for the type '" + type + "'"));
+			public <T> TypedObject<T> provide(TypeToken<T> type) {
+				return new TypedObject<>(type,
+						(T) providers.stream().map(p -> p.apply(type))
+								.filter(Objects::nonNull).findFirst()
+								.orElseThrow(() -> new SchemaException(
+										"No provider exists for the type '" + type + "'")));
 			}
 
 			@Override

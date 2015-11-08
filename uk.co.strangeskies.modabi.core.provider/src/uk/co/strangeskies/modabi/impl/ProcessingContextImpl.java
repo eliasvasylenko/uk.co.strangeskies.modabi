@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.Self;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.DeferredComputingMap;
@@ -48,10 +49,6 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 		public abstract <U> U provide(TypeToken<U> clazz, S headContext);
 
 		public abstract boolean isProvided(TypeToken<?> clazz);
-	}
-
-	public enum CacheScope {
-		MANAGER_GLOBAL, PROCESSING_CONTEXT
 	}
 
 	private final SchemaManager manager;
@@ -79,7 +76,7 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 		provider = new ProcessingProvisions() {
 			@Override
 			public <U> U provide(TypeToken<U> clazz, S headContext) {
-				return manager.provisions().provide(clazz);
+				return manager.provisions().provide(clazz).getObject();
 			}
 
 			@Override
@@ -142,8 +139,8 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 
 	private <T> DataNode.Effective<T> getDataNodeOverride(
 			DataNode.Effective<? super T> node, DataType.Effective<T> type) {
-		return new BindingNodeOverrider()
-				.override(provisions().provide(DataTypeBuilder.class), node, type);
+		return new BindingNodeOverrider().override(
+				provisions().provide(DataTypeBuilder.class).getObject(), node, type);
 
 	}
 
@@ -175,8 +172,8 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 
 	private <T> ComplexNode.Effective<T> getComplexNodeOverride(
 			ComplexNode.Effective<? super T> node, Model.Effective<T> model) {
-		return new BindingNodeOverrider()
-				.override(provisions().provide(ModelBuilder.class), node, model);
+		return new BindingNodeOverrider().override(
+				provisions().provide(ModelBuilder.class).getObject(), node, model);
 	}
 
 	protected List<SchemaNode.Effective<?, ?>> nodeStack() {
@@ -191,11 +188,11 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 		return provider;
 	}
 
-	protected <U> U provide(TypeToken<U> clazz, S state) {
+	protected <U> TypedObject<U> provide(TypeToken<U> clazz, S state) {
 		if (!provider.isProvided(clazz))
 			throw processingException("Requested type '" + clazz
 					+ "' is not provided by the unbinding context", state);
-		return provider.provide(clazz, state);
+		return new TypedObject<>(clazz, provider.provide(clazz, state));
 	}
 
 	protected abstract RuntimeException processingException(String message,
@@ -204,7 +201,7 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 	public Provisions provisions() {
 		return new Provisions() {
 			@Override
-			public <U> U provide(TypeToken<U> clazz) {
+			public <U> TypedObject<U> provide(TypeToken<U> clazz) {
 				return ProcessingContextImpl.this.provide(clazz, getThis());
 			}
 
@@ -244,7 +241,7 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 				if (canEqual)
 					return (U) provider.apply(headContext);
 
-				return getThis().provide(type, headContext);
+				return getThis().provide(type, headContext).getObject();
 			}
 
 			@Override

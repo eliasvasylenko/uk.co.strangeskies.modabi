@@ -45,6 +45,7 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.reflection.Types;
 
 public class BindingNodeUnbinder {
@@ -59,42 +60,49 @@ public class BindingNodeUnbinder {
 				.withProvision(new TypeToken<BindingNode.Effective<?, ?, ?>>() {},
 						() -> node);
 
-		Function<Object, Object> supplier = Function.identity();
+		Function<Object, TypedObject<?>> supplier = u -> new TypedObject(
+				node.getUnbindingType(), u);
 		if (node.getUnbindingStrategy() != null) {
 			switch (node.getUnbindingStrategy()) {
 			case SIMPLE:
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
-					Object o = context.provisions().provide(node.getUnbindingType());
-					invokeMethod((Method) node.getUnbindingMethod(), context, o,
-							prepareUnbingingParameterList(node, u));
+					TypedObject<?> o = context.provisions()
+							.provide(node.getUnbindingType());
+					invokeMethod((Method) node.getUnbindingMethod(), context,
+							o.getObject(), prepareUnbingingParameterList(node, u));
 					return o;
 				};
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
-					Object o = context.provisions().provide(node.getUnbindingType());
+					TypedObject<?> o = context.provisions()
+							.provide(node.getUnbindingType());
 					invokeMethod((Method) node.getUnbindingMethod(), context, u,
-							prepareUnbingingParameterList(node, o));
+							prepareUnbingingParameterList(node, o.getObject()));
 					return o;
 				};
 				break;
 			case CONSTRUCTOR:
-				supplier = u -> invokeConstructor(
-						(Constructor<?>) node.getUnbindingMethod(), context,
-						prepareUnbingingParameterList(node, u));
+				supplier = u -> new TypedObject(node.getUnbindingType(),
+						invokeConstructor((Constructor<?>) node.getUnbindingMethod(),
+								context, prepareUnbingingParameterList(node, u)));
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> invokeMethod((Method) node.getUnbindingMethod(),
-						context, null, prepareUnbingingParameterList(node, u));
+				supplier = u -> new TypedObject(node.getUnbindingFactoryType(),
+						invokeMethod((Method) node.getUnbindingMethod(), context, null,
+								prepareUnbingingParameterList(node, u)));
 				break;
 			case PROVIDED_FACTORY:
-				supplier = u -> invokeMethod((Method) node.getUnbindingMethod(),
-						context,
-						context.provisions().provide(node.getUnbindingFactoryType()),
-						prepareUnbingingParameterList(node, u));
+				supplier = u -> new TypedObject(node.getUnbindingFactoryType(),
+						invokeMethod((Method) node.getUnbindingMethod(),
+								context, context.provisions()
+										.provide(node.getUnbindingFactoryType()).getObject(),
+								prepareUnbingingParameterList(node, u)));
 				break;
+			default:
+				throw new AssertionError();
 			}
 		}
 
@@ -227,7 +235,7 @@ public class BindingNodeUnbinder {
 			UnbindingContext context) {
 		List<U> itemList;
 
-		Object parent = context.unbindingSource();
+		Object parent = context.unbindingSource().getObject();
 
 		if (node.getDataType() == null)
 			throw new UnbindingException("Cannot unbind node '" + node.getName()

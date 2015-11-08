@@ -61,21 +61,21 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 
 	@Override
 	public Namespace getDefaultNamespaceHint() {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
+		currentState().assertValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
 		return getComponent().getDefaultNamespaceHint();
 	}
 
 	@Override
 	public Set<Namespace> getNamespaceHints() {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
+		currentState().assertValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START);
 		return getComponent().getNamespaceHints();
 	}
 
 	@Override
 	public List<String> getComments() {
-		currentState().checkValid(StructuredDataState.UNSTARTED,
+		currentState().assertValid(StructuredDataState.UNSTARTED,
 				StructuredDataState.ELEMENT_START,
 				StructuredDataState.POPULATED_ELEMENT);
 		return getComponent().getComments();

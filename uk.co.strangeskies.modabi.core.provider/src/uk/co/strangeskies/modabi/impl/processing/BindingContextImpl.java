@@ -36,10 +36,11 @@ import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public class BindingContextImpl extends
 		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
-	private final List<Object> bindingTargetStack;
+	private final List<TypedObject<?>> bindingTargetStack;
 	private StructuredDataSource input;
 
 	public BindingContextImpl(SchemaManager manager) {
@@ -50,7 +51,7 @@ public class BindingContextImpl extends
 	}
 
 	private BindingContextImpl(BindingContextImpl parent,
-			List<Object> bindingTargetStack, StructuredDataSource input,
+			List<TypedObject<?>> bindingTargetStack, StructuredDataSource input,
 			ProcessingProvisions provider) {
 		super(parent, provider);
 		this.bindingTargetStack = bindingTargetStack;
@@ -70,7 +71,7 @@ public class BindingContextImpl extends
 	}
 
 	@Override
-	public List<Object> bindingTargetStack() {
+	public List<TypedObject<?>> bindingTargetStack() {
 		return bindingTargetStack;
 	}
 
@@ -92,17 +93,19 @@ public class BindingContextImpl extends
 		return new BindingContextImpl(this, bindingTargetStack, input, provisions);
 	}
 
-	public <T> BindingContextImpl withBindingTarget(Object target) {
+	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target) {
 		return withBindingTarget(target, false);
 	}
 
-	public <T> BindingContextImpl withReplacementBindingTarget(Object target) {
+	public <T> BindingContextImpl withReplacementBindingTarget(
+			TypedObject<?> target) {
 		return withBindingTarget(target, true);
 	}
 
-	public <T> BindingContextImpl withBindingTarget(Object target,
+	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target,
 			boolean replace) {
-		List<Object> bindingTargetStack = new ArrayList<>(bindingTargetStack());
+		List<TypedObject<?>> bindingTargetStack = new ArrayList<>(
+				bindingTargetStack());
 		if (replace) {
 			bindingTargetStack.set(bindingTargetStack.size() - 1, target);
 		} else {
@@ -143,7 +146,8 @@ public class BindingContextImpl extends
 		 * Mark output! (by redirecting to a new buffer)
 		 */
 		if (context.provisions().isProvided(DataSource.class)) {
-			dataSource = context.provisions().provide(DataSource.class).copy();
+			dataSource = context.provisions().provide(DataSource.class).getObject()
+					.copy();
 			DataSource finalSource = dataSource;
 			context = context.withProvision(new TypeToken<DataSource>() {},
 					() -> finalSource);
@@ -161,7 +165,8 @@ public class BindingContextImpl extends
 		 * Remove mark! (by flushing buffer into output)
 		 */
 		if (dataSource != null) {
-			DataSource originalDataSource = provisions().provide(DataSource.class);
+			DataSource originalDataSource = provisions().provide(DataSource.class)
+					.getObject();
 			while (originalDataSource.index() < dataSource.index())
 				originalDataSource.get();
 		}
@@ -190,5 +195,11 @@ public class BindingContextImpl extends
 			}
 
 		throw onFailure.apply(failures);
+	}
+
+	@Override
+	public List<TypedObject<?>> boundObjectStack() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

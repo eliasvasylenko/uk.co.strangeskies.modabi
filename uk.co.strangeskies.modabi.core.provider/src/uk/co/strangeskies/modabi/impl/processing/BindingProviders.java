@@ -39,12 +39,13 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.TypeParser;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Effective;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.Imports;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public class BindingProviders {
 	private interface ModelBindingProvider {
@@ -73,6 +74,10 @@ public class BindingProviders {
 				}, idDomain, id);
 			}
 		};
+	}
+
+	public Function<BindingContext, Imports> imports() {
+		return context -> Imports.empty();
 	}
 
 	/*
@@ -108,18 +113,6 @@ public class BindingProviders {
 		};
 	}
 
-	public Function<BindingContext, TypeParser> typeParser() {
-		return context -> string -> null;
-		/*-{
-			Class<?> raw = null;
-			List<Class<?>> parameters = null;
-		
-			return TypeUtils.parameterize(raw,
-					parameters.toArray(new Type[parameters.size()]));
-		};
-		 */
-	}
-
 	@SuppressWarnings("unchecked")
 	private static <U> U matchBinding(SchemaManager manager,
 			BindingContext context, Model<U> model, ModelBindingProvider bindings,
@@ -141,7 +134,7 @@ public class BindingProviders {
 
 			for (U bindingCandidate : bindingCandidates) {
 				DataSource candidateId = unbindDataNode(manager, node,
-						bindingCandidate);
+						new TypedObject<>(model.getDataType(), bindingCandidate));
 
 				if (candidateId.size() != 1)
 					continue;
@@ -153,6 +146,7 @@ public class BindingProviders {
 				}
 			}
 
+			System.out.println(bindingCandidates);
 			throw new BindingException("Can't find any bindings matching id '" + id
 					+ "' in domain '" + idDomain + "' for model '" + model + "'",
 					context);
@@ -177,7 +171,7 @@ public class BindingProviders {
 	}
 
 	private static <V> DataSource unbindDataNode(SchemaManager manager,
-			DataNode.Effective<V> node, Object source) {
+			DataNode.Effective<V> node, TypedObject<?> source) {
 		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager)
 				.withUnbindingSource(source);
 
