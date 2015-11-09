@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
@@ -30,7 +29,6 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public class DataNodeImpl<T>
 		extends BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>>
@@ -111,7 +109,7 @@ public class DataNodeImpl<T>
 								.getThisType();
 						System.out.println(providedType);
 						/*
-						 * TODO Incorporate 
+						 * TODO Incorporate
 						 */
 					} else {
 						/*
@@ -127,14 +125,6 @@ public class DataNodeImpl<T>
 			}
 
 			this.resolution = resolution;
-		}
-
-		@Override
-		protected QualifiedName defaultName(
-				OverrideMerge<DataNode<T>, ? extends SchemaNodeConfiguratorImpl<?, DataNode<T>>> overrideMerge) {
-			DataType<T> type = overrideMerge.getOverride(DataNode::type)
-					.validate((o, n) -> true).tryGet();
-			return type == null ? null : type.getName();
 		}
 
 		@Override
@@ -188,19 +178,6 @@ public class DataNodeImpl<T>
 
 		effective = new Effective<>(
 				DataNodeConfiguratorImpl.overrideMerge(this, configurator));
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected static final PropertySet<DataNode> PROPERTY_SET = new PropertySet<>(
-			DataNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
-					.add(DataNode::format).add(DataNode::providedValueBuffer)
-					.add(DataNode::valueResolution).add(DataNode::type)
-					.add(DataNode::isExtensible).add(DataNode::nullIfOmitted);
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected PropertySet<DataNode<T>> propertySet() {
-		return (PropertySet<DataNode<T>>) (Object) PROPERTY_SET;
 	}
 
 	@Override

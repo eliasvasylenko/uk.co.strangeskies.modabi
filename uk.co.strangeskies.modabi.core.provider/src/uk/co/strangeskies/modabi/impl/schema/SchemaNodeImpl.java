@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -37,7 +38,6 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
 		implements SchemaNode<S, E> {
@@ -54,7 +54,8 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 			source = overrideMerge.node().source();
 
 			name = overrideMerge.getOverride(SchemaNode::getName)
-					.orDefault(defaultName(overrideMerge)).validate((n, o) -> true).get();
+					.orDefault(overrideMerge.configurator().defaultName())
+					.validate((n, o) -> true).get();
 
 			isAbstract = overrideMerge.node().isAbstract() == null ? false
 					: overrideMerge.node().isAbstract();
@@ -75,11 +76,6 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 			}
 
 			return false;
-		}
-
-		protected QualifiedName defaultName(
-				OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
-			return null;
 		}
 
 		protected void requireNonAbstractDescendents(
@@ -151,26 +147,19 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 		}
 
 		@Override
-		public final boolean equals(Object object) {
-			return effectivePropertySet().testEquality(effective(), object);
+		public boolean equals(Object that) {
+			return that instanceof SchemaNode.Effective && Objects.equals(getName(),
+					((SchemaNode.Effective<?, ?>) that).getName());
 		}
 
 		@Override
-		public final int hashCode() {
-			return effectivePropertySet().generateHashCode(effective());
+		public int hashCode() {
+			return Objects.hashCode(getName());
 		}
 
 		@Override
 		public String toString() {
 			return getName() != null ? getName().toString() : "[Unnamed Node]";
-		}
-
-		@SuppressWarnings("rawtypes")
-		protected static final PropertySet<SchemaNode.Effective> PROPERTY_SET = new PropertySet<SchemaNode.Effective>(
-				SchemaNode.Effective.class).add(SchemaNodeImpl.PROPERTY_SET);
-
-		protected PropertySet<? super E> effectivePropertySet() {
-			return PROPERTY_SET;
 		}
 	}
 
@@ -190,15 +179,6 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 				new ArrayList<>(configurator.getChildrenContainer().getChildren()));
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected static final PropertySet<SchemaNode> PROPERTY_SET = new PropertySet<>(
-			SchemaNode.class).add(SchemaNode::children).add(SchemaNode::getName)
-					.add(SchemaNode::isAbstract);
-
-	protected PropertySet<? super S> propertySet() {
-		return PROPERTY_SET;
-	}
-
 	@Override
 	public final QualifiedName getName() {
 		return name;
@@ -215,13 +195,14 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 	}
 
 	@Override
-	public final boolean equals(Object object) {
-		return propertySet().testEquality(source(), object);
+	public boolean equals(Object that) {
+		return that instanceof SchemaNode
+				&& Objects.equals(getName(), ((SchemaNode<?, ?>) that).getName());
 	}
 
 	@Override
-	public final int hashCode() {
-		return propertySet().generateHashCode(source());
+	public int hashCode() {
+		return Objects.hashCode(getName());
 	}
 
 	@Override

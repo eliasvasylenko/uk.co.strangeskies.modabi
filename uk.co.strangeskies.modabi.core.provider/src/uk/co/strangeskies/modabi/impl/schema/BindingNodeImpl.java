@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,10 +40,9 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeException;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.PropertySet;
 
 abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
-		extends SchemaNodeImpl<S, E>implements BindingNode<T, S, E> {
+		extends SchemaNodeImpl<S, E> implements BindingNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 			extends SchemaNodeImpl.Effective<S, E>
 			implements BindingNode.Effective<T, S, E> {
@@ -386,18 +384,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			return names;
 		}
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<BindingNode.Effective> PROPERTY_SET = new PropertySet<>(
-				BindingNode.Effective.class).add(BindingNodeImpl.PROPERTY_SET)
-						.add(SchemaNodeImpl.Effective.PROPERTY_SET)
-						.add(BindingNode.Effective::getUnbindingMethod)
-						.add(BindingNode.Effective::getProvidedUnbindingMethodParameters);
-
-		@Override
-		protected PropertySet<? super E> effectivePropertySet() {
-			return PROPERTY_SET;
-		}
 	}
 
 	private final TypeToken<T> dataType;
@@ -428,29 +414,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 				? null
 				: Collections.unmodifiableList(
 						new ArrayList<>(configurator.getUnbindingParameterNames()));
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected static final PropertySet<BindingNode> PROPERTY_SET = new PropertySet<>(
-			BindingNode.class)
-					.add(SchemaNodeImpl.PROPERTY_SET)
-					.add(n -> Optional.ofNullable(n.getDataType())
-							.map(TypeToken::getAnnotatedDeclaration).orElse(null))
-					.add(BindingNode::isAbstract).add(BindingNode::getBindingStrategy)
-					.add(n -> Optional.ofNullable(n.getBindingType())
-							.map(TypeToken::getAnnotatedDeclaration).orElse(null))
-					.add(BindingNode::getUnbindingStrategy)
-					.add(n -> Optional.ofNullable(n.getUnbindingType())
-							.map(TypeToken::getAnnotatedDeclaration).orElse(null))
-					.add(BindingNode::isUnbindingMethodUnchecked)
-					.add(BindingNode::getUnbindingMethodName)
-					.add(n -> Optional.ofNullable(n.getUnbindingFactoryType())
-							.map(TypeToken::getAnnotatedDeclaration).orElse(null))
-					.add(BindingNode::getProvidedUnbindingMethodParameterNames);
-
-	@Override
-	protected PropertySet<? super S> propertySet() {
-		return PROPERTY_SET;
 	}
 
 	@Override

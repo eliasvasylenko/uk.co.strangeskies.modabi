@@ -42,7 +42,7 @@ public class SequenceNodeConfiguratorImpl
 	}
 
 	@Override
-	public SequenceNode tryCreate() {
+	public SequenceNode tryCreateImpl() {
 		return new SequenceNodeImpl(this);
 	}
 
@@ -58,6 +58,11 @@ public class SequenceNodeConfiguratorImpl
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public SchemaNode<?, ?> parentNodeProxy() {
+						return getSchemaNodeProxy();
+					}
+
 					@Override
 					public BoundSet boundSet() {
 						return getContext().boundSet();

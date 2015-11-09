@@ -22,13 +22,15 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.ConstraintFormula;
 import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
@@ -36,13 +38,14 @@ import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.PropertySet;
 
 abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNodeImpl<T, S, E> implements BindingChildNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 			extends BindingNodeImpl.Effective<T, S, E>
 			implements BindingChildNode.Effective<T, S, E> {
+		private final SchemaNode.Effective<?, ?> parent;
+
 		private final Range<Integer> occurrences;
 		private final Boolean ordered;
 
@@ -66,6 +69,9 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		protected Effective(
 				OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			super(overrideMerge);
+
+			parent = overrideMerge.configurator().getContext().parentNodeProxy()
+					.effective();
 
 			extensible = overrideMerge.node().isExtensible() == null ? false
 					: overrideMerge.node().isExtensible();
@@ -136,6 +142,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputType = inputNodeHelper.getPreInputType();
 			postInputType = inputNodeHelper.getPostInputType();
+		}
+
+		@Override
+		public SchemaNode.Effective<?, ?> parent() {
+			return parent;
 		}
 
 		private boolean hasOutMethod(
@@ -320,18 +331,20 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			return names;
 		}
 
-		@SuppressWarnings("rawtypes")
-		protected static final PropertySet<BindingChildNode.Effective> PROPERTY_SET = new PropertySet<>(
-				BindingChildNode.Effective.class).add(BindingChildNodeImpl.PROPERTY_SET)
-						.add(BindingNodeImpl.Effective.PROPERTY_SET)
-						.add(BindingChildNode.Effective::getOutMethod)
-						.add(InputNode.Effective::getInMethod);
+		@Override
+		public boolean equals(Object that) {
+			return super.equals(that) && that instanceof ChildNode.Effective
+					&& Objects.equals(parent(),
+							((ChildNode.Effective<?, ?>) that).parent());
+		}
 
 		@Override
-		protected PropertySet<? super E> effectivePropertySet() {
-			return PROPERTY_SET;
+		public final int hashCode() {
+			return super.hashCode() ^ Objects.hashCode(parent());
 		}
 	}
+
+	private final SchemaNode<?, ?> parent;
 
 	private final TypeToken<?> postInputClass;
 
@@ -353,6 +366,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 	BindingChildNodeImpl(BindingChildNodeConfiguratorImpl<?, ?, T> configurator) {
 		super(configurator);
 
+		parent = configurator.getContext().parentNodeProxy();
+
 		postInputClass = configurator.getPostInputClass();
 
 		extensible = configurator.getExtensible();
@@ -369,20 +384,9 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		inMethodUnchecked = configurator.getInMethodUnchecked();
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected static final PropertySet<BindingChildNode> PROPERTY_SET = new PropertySet<>(
-			BindingChildNode.class).add(BindingNodeImpl.PROPERTY_SET)
-					.add(BindingChildNode::getOutMethodName)
-					.add(BindingChildNode::isOutMethodIterable)
-					.add(BindingChildNode::isOutMethodUnchecked)
-					.add(BindingChildNode::isOutMethodCast)
-					.add(BindingChildNode::occurrences).add(BindingChildNode::isOrdered)
-					.add(BindingChildNode::isExtensible).add(InputNode::getInMethodName)
-					.add(InputNode::isInMethodChained).add(InputNode::isInMethodCast);
-
 	@Override
-	protected PropertySet<? super S> propertySet() {
-		return PROPERTY_SET;
+	public SchemaNode<?, ?> parent() {
+		return parent;
 	}
 
 	@Override
@@ -443,5 +447,16 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 	@Override
 	public TypeToken<?> getPostInputType() {
 		return postInputClass;
+	}
+
+	@Override
+	public boolean equals(Object that) {
+		return super.equals(that) && that instanceof ChildNode
+				&& Objects.equals(parent(), ((ChildNode<?, ?>) that).parent());
+	}
+
+	@Override
+	public final int hashCode() {
+		return super.hashCode() ^ Objects.hashCode(parent());
 	}
 }

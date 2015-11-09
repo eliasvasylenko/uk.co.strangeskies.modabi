@@ -321,6 +321,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			public void addChild(ChildNode<?, ?> result) {
 				SequentialChildrenConfigurator.this.addChild(result);
 			}
+
+			@Override
+			public SchemaNode<?, ?> parentNodeProxy() {
+				return SequentialChildrenConfigurator.this.context.parentNodeProxy();
+			}
 		};
 
 		return new ChildBuilder() {

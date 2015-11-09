@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -157,6 +158,11 @@ public class DummyNodes {
 					public Boolean isOrdered() {
 						return true;
 					}
+
+					@Override
+					public SchemaNode.Effective<?, ?> parent() {
+						return null;
+					}
 				};
 			}
 
@@ -168,6 +174,11 @@ public class DummyNodes {
 			@Override
 			public Boolean isOrdered() {
 				return true;
+			}
+
+			@Override
+			public SchemaNode<?, ?> parent() {
+				return null;
 			}
 		};
 	}
@@ -234,6 +245,11 @@ public class DummyNodes {
 			@Override
 			public Boolean isOrdered() {
 				return true;
+			}
+
+			@Override
+			public SchemaNode.Effective<?, ?> parent() {
+				return null;
 			}
 		};
 	}

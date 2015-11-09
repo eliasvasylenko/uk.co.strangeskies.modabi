@@ -24,20 +24,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ModelConfiguratorImpl<T> extends
-		BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T> implements
-		ModelConfigurator<T> {
+public class ModelConfiguratorImpl<T>
+		extends BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T>
+		implements ModelConfigurator<T> {
 	private final DataLoader loader;
 
 	private List<Model<? super T>> baseModel;
 
 	public ModelConfiguratorImpl(DataLoader loader) {
 		this.loader = loader;
+	}
+
+	@Override
+	public QualifiedName defaultName() {
+		return (baseModel == null || baseModel.size() != 1) ? null
+				: baseModel.get(0).getName();
 	}
 
 	@Override
@@ -64,7 +71,7 @@ public class ModelConfiguratorImpl<T> extends
 
 		return (ModelConfigurator<V>) this;
 	}
-	
+
 	public List<Model<? super T>> getBaseModel() {
 		return baseModel;
 	}
@@ -85,7 +92,7 @@ public class ModelConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public Model<T> tryCreate() {
+	public Model<T> tryCreateImpl() {
 		return new ModelImpl<>(this);
 	}
 

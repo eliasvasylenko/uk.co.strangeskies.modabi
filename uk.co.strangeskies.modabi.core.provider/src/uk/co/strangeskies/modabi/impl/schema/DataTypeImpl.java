@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public class DataTypeImpl<T>
 		extends BindingNodeImpl<T, DataType<T>, DataType.Effective<T>>
@@ -52,18 +51,6 @@ public class DataTypeImpl<T>
 		public DataType.Effective<? super T> baseType() {
 			return baseType;
 		}
-
-		@SuppressWarnings("rawtypes")
-		protected static final PropertySet<DataType.Effective> PROPERTY_SET = new PropertySet<>(
-				DataType.Effective.class).add(BindingNodeImpl.Effective.PROPERTY_SET)
-						.add(DataTypeImpl.PROPERTY_SET).add(DataType::isPrivate)
-						.add(DataType::baseType);
-
-		@SuppressWarnings("unchecked")
-		@Override
-		protected PropertySet<DataType.Effective<T>> effectivePropertySet() {
-			return (PropertySet<DataType.Effective<T>>) (Object) PROPERTY_SET;
-		}
 	}
 
 	private final DataTypeImpl.Effective<T> effective;
@@ -81,17 +68,6 @@ public class DataTypeImpl<T>
 
 		effective = new DataTypeImpl.Effective<>(
 				DataTypeConfiguratorImpl.overrideMerge(this, configurator));
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected static final PropertySet<DataType> PROPERTY_SET = new PropertySet<>(
-			DataType.class).add(BindingNodeImpl.PROPERTY_SET).add(DataType::isPrivate)
-					.add(DataType::baseType);
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected PropertySet<DataType<T>> propertySet() {
-		return (PropertySet<DataType<T>>) (Object) PROPERTY_SET;
 	}
 
 	@Override

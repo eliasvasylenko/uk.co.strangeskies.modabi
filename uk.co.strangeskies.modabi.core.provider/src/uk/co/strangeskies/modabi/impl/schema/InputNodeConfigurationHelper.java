@@ -35,7 +35,6 @@ import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
-import uk.co.strangeskies.utilities.PropertySet;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final QualifiedName name;
@@ -74,26 +73,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		inMethodName = inMethodName();
 		preInputType = preInputType();
 		postInputType = postInputType();
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<InputNode> PROPERTY_SET = new PropertySet<>(
-			InputNode.class).add(ChildNodeConfiguratorImpl.PROPERTY_SET)
-					.add(InputNode::getInMethodName).add(InputNode::isInMethodChained)
-					.add(InputNode::isInMethodUnchecked).add(InputNode::isInMethodCast);
-
-	PropertySet<? super N> propertySet() {
-		return PROPERTY_SET;
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<InputNode.Effective> EFFECTIVE_PROPERTY_SET = new PropertySet<>(
-			InputNode.Effective.class).add(PROPERTY_SET)
-					.add(ChildNodeConfiguratorImpl.EFFECTIVE_PROPERTY_SET)
-					.add(InputNode.Effective::getInMethod);
-
-	PropertySet<? super E> effectivePropertySet() {
-		return PROPERTY_SET;
 	}
 
 	public Boolean isInMethodChained() {

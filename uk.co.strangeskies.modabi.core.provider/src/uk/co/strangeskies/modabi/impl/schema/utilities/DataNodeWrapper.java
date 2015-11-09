@@ -25,6 +25,7 @@ import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public final class DataNodeWrapper<T> extends
@@ -84,5 +85,10 @@ public final class DataNodeWrapper<T> extends
 	@Override
 	public Boolean nullIfOmitted() {
 		return getBase() == null ? null : getBase().nullIfOmitted();
+	}
+
+	@Override
+	public SchemaNode.Effective<?, ?> parent() {
+		return getBase() == null ? null : getBase().parent();
 	}
 }

@@ -53,6 +53,11 @@ public class DataNodeConfiguratorImpl<T> extends
 		return name(new QualifiedName(name, getContext().namespace()));
 	}
 
+	@Override
+	public QualifiedName defaultName() {
+		return type == null ? null : type.effective().getName();
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <U extends T> DataNodeConfigurator<U> dataType(
@@ -145,7 +150,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	protected final DataNode<T> tryCreate() {
+	protected final DataNode<T> tryCreateImpl() {
 		return new DataNodeImpl<>(this);
 	}
 }

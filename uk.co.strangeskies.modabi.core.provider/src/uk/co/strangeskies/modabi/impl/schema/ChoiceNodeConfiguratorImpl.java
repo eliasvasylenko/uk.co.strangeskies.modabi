@@ -42,7 +42,7 @@ public class ChoiceNodeConfiguratorImpl
 	}
 
 	@Override
-	public ChoiceNode tryCreate() {
+	public ChoiceNode tryCreateImpl() {
 		return new ChoiceNodeImpl(this);
 	}
 
@@ -53,6 +53,11 @@ public class ChoiceNodeConfiguratorImpl
 
 		return new HidingChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public SchemaNode<?, ?> parentNodeProxy() {
+						return getSchemaNodeProxy();
+					}
+
 					@Override
 					public BoundSet boundSet() {
 						return getContext().boundSet();

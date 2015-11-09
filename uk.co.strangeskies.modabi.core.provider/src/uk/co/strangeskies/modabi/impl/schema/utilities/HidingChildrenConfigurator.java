@@ -314,6 +314,11 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			public void addChild(ChildNode<?, ?> result) {
 				HidingChildrenConfigurator.this.addChild(result);
 			}
+
+			@Override
+			public SchemaNode<?, ?> parentNodeProxy() {
+				return HidingChildrenConfigurator.this.context.parentNodeProxy();
+			}
 		};
 
 		return new ChildBuilder() {

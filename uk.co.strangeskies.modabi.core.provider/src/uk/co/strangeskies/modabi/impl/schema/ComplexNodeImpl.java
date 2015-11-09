@@ -25,11 +25,9 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
-import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.utilities.PropertySet;
 
 class ComplexNodeImpl<T>
 		extends BindingChildNodeImpl<T, ComplexNode<T>, ComplexNode.Effective<T>>
@@ -70,25 +68,6 @@ class ComplexNodeImpl<T>
 		public Boolean isInline() {
 			return inline;
 		}
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<AbstractComplexNode.Effective> ABSTRACT_PROPERTY_SET = new PropertySet<>(
-				AbstractComplexNode.Effective.class)
-						.add(BindingNodeImpl.Effective.PROPERTY_SET)
-						.add(ComplexNodeImpl.ABSTRACT_PROPERTY_SET)
-						.add(AbstractComplexNode::baseModel);
-
-		@SuppressWarnings("rawtypes")
-		static final PropertySet<ComplexNode.Effective> PROPERTY_SET = new PropertySet<>(
-				ComplexNode.Effective.class).add(ABSTRACT_PROPERTY_SET)
-						.add(ComplexNodeImpl.PROPERTY_SET)
-						.add(BindingChildNodeImpl.Effective.PROPERTY_SET);
-
-		@SuppressWarnings("unchecked")
-		@Override
-		protected PropertySet<ComplexNode.Effective<T>> effectivePropertySet() {
-			return (PropertySet<ComplexNode.Effective<T>>) (Object) PROPERTY_SET;
-		}
 	}
 
 	private final ComplexNodeImpl.Effective<T> effective;
@@ -108,22 +87,6 @@ class ComplexNodeImpl<T>
 
 		effective = new ComplexNodeImpl.Effective<>(
 				ComplexNodeConfiguratorImpl.overrideMerge(this, configurator));
-	}
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<AbstractComplexNode> ABSTRACT_PROPERTY_SET = new PropertySet<>(
-			AbstractComplexNode.class).add(BindingNodeImpl.PROPERTY_SET)
-					.add(AbstractComplexNode::baseModel);
-
-	@SuppressWarnings("rawtypes")
-	static final PropertySet<ComplexNode> PROPERTY_SET = new PropertySet<>(
-			ComplexNode.class).add(BindingChildNodeImpl.PROPERTY_SET)
-					.add(ABSTRACT_PROPERTY_SET).add(AbstractComplexNode::baseModel);
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected PropertySet<ComplexNode<T>> propertySet() {
-		return (PropertySet<ComplexNode<T>>) (Object) PROPERTY_SET;
 	}
 
 	@Override

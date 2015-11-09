@@ -92,7 +92,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected ComplexNode<T> tryCreate() {
+	protected ComplexNode<T> tryCreateImpl() {
 		return new ComplexNodeImpl<>(this);
 	}
 

@@ -53,7 +53,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public InputSequenceNode tryCreate() {
+	public InputSequenceNode tryCreateImpl() {
 		return new InputSequenceNodeImpl(this);
 	}
 
@@ -122,6 +122,11 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+					@Override
+					public SchemaNode<?, ?> parentNodeProxy() {
+						return getSchemaNodeProxy();
+					}
+
 					@Override
 					public BoundSet boundSet() {
 						return getContext().boundSet();

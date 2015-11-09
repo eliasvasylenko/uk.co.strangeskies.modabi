@@ -44,7 +44,7 @@ public class DataTypeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected DataType<T> tryCreate() {
+	protected DataType<T> tryCreateImpl() {
 		return new DataTypeImpl<>(this);
 	}
 

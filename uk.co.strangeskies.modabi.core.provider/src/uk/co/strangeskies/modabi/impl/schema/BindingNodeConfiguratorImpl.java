@@ -191,6 +191,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return new SequentialChildrenConfigurator(
 				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
 					@Override
+					public SchemaNode<?, ?> parentNodeProxy() {
+						return getSchemaNodeProxy();
+					}
+
+					@Override
 					public BoundSet boundSet() {
 						return inferenceBounds;
 					}

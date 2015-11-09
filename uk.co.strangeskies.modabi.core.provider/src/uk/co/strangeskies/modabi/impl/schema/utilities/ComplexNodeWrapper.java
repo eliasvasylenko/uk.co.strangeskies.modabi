@@ -25,9 +25,9 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-public class ComplexNodeWrapper<T>
-		extends
+public class ComplexNodeWrapper<T> extends
 		BindingChildNodeWrapper<T, AbstractComplexNode.Effective<? super T, ?, ?>, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
 		implements ComplexNode.Effective<T> {
 	public ComplexNodeWrapper(
@@ -54,5 +54,10 @@ public class ComplexNodeWrapper<T>
 	@Override
 	public Boolean isInline() {
 		return getBase() == null ? false : getBase().isInline();
+	}
+
+	@Override
+	public SchemaNode.Effective<?, ?> parent() {
+		return getBase() == null ? null : getBase().parent();
 	}
 }

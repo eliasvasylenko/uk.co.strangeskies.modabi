@@ -18,21 +18,29 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.Objects;
+
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
 		extends SchemaNodeImpl<S, E> implements ChildNode<S, E> {
 	protected static abstract class Effective<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
 			extends SchemaNodeImpl.Effective<S, E>
 			implements ChildNode.Effective<S, E> {
+		private final SchemaNode.Effective<?, ?> parent;
+
 		private final Range<Integer> occurrences;
 		private final Boolean ordered;
 
 		public Effective(
 				OverrideMerge<S, ? extends ChildNodeConfiguratorImpl<?, S>> overrideMerge) {
 			super(overrideMerge);
+
+			parent = overrideMerge.configurator().getContext().parentNodeProxy()
+					.effective();
 
 			ordered = overrideMerge.getOverride(ChildNode::isOrdered).orDefault(true)
 					.get();
@@ -44,6 +52,11 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 		}
 
 		@Override
+		public SchemaNode.Effective<?, ?> parent() {
+			return parent;
+		}
+
+		@Override
 		public Range<Integer> occurrences() {
 			return occurrences;
 		}
@@ -52,7 +65,21 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 		public Boolean isOrdered() {
 			return ordered;
 		}
+
+		@Override
+		public boolean equals(Object that) {
+			return super.equals(that) && that instanceof ChildNode.Effective
+					&& Objects.equals(parent(),
+							((ChildNode.Effective<?, ?>) that).parent());
+		}
+
+		@Override
+		public final int hashCode() {
+			return super.hashCode() ^ Objects.hashCode(parent());
+		}
 	}
+
+	private final SchemaNode<?, ?> parent;
 
 	private final Range<Integer> occurrences;
 	private final Boolean ordered;
@@ -60,8 +87,15 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 	public ChildNodeImpl(ChildNodeConfiguratorImpl<?, ?> configurator) {
 		super(configurator);
 
+		parent = configurator.getContext().parentNodeProxy();
+
 		ordered = configurator.getOrdered();
 		occurrences = configurator.getOccurrences();
+	}
+
+	@Override
+	public SchemaNode<?, ?> parent() {
+		return parent;
 	}
 
 	@Override
@@ -72,5 +106,16 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 	@Override
 	public final Range<Integer> occurrences() {
 		return occurrences;
+	}
+
+	@Override
+	public boolean equals(Object that) {
+		return super.equals(that) && that instanceof ChildNode
+				&& Objects.equals(parent(), ((ChildNode<?, ?>) that).parent());
+	}
+
+	@Override
+	public final int hashCode() {
+		return super.hashCode() ^ Objects.hashCode(parent());
 	}
 }

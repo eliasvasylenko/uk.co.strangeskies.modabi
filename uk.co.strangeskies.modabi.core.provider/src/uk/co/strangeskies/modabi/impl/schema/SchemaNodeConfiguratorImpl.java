@@ -18,7 +18,13 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -30,11 +36,14 @@ import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.factory.Configurator;
 import uk.co.strangeskies.utilities.factory.InvalidBuildStateException;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?, ?>>
 		extends Configurator<N> implements SchemaNodeConfigurator<S, N> {
+	private final IdentityProperty<N> finalNode;
+
 	private ChildrenConfigurator childrenConfigurator;
 	private ChildrenContainer childrenContainer;
 
@@ -44,6 +53,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private Boolean isAbstract;
 
 	public SchemaNodeConfiguratorImpl() {
+		finalNode = new IdentityProperty<>();
+
 		finalised = false;
 	}
 
@@ -80,6 +91,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return childrenConfigurator;
 	}
 
+	@Override
+	protected final N tryCreate() {
+		finalNode.set(tryCreateImpl());
+		return finalNode.get();
+	}
+
+	protected abstract N tryCreateImpl();
+
 	@SuppressWarnings("unchecked")
 	protected final S getThis() {
 		return (S) this;
@@ -95,6 +114,55 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	public final QualifiedName getName() {
 		return name;
+	}
+
+	@SuppressWarnings("unchecked")
+	public N getSchemaNodeProxy() {
+		Set<Class<? super N>> types = getNodeClass().getRawTypes();
+
+		return (N) Proxy.newProxyInstance(getClass().getClassLoader(),
+				types.toArray(new Class<?>[types.size()]), new InvocationHandler() {
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args)
+							throws Throwable {
+						N node = finalNode.get();
+						if (node != null) {
+							return method.invoke(node, args);
+						} else {
+							Type[] parameters = method.getParameterTypes();
+
+							if (method.getName().equals("equals") && parameters.length == 1
+									&& parameters[0].equals(Object.class)) {
+								if (!(args[0] instanceof SchemaNode)) {
+									return false;
+								} else {
+									return Objects.equals(getFinalName(),
+											((SchemaNode<?, ?>) args[0]).getName());
+								}
+							}
+
+							if (method.getName().equals("hashCode")
+									&& parameters.length == 0) {
+								return Objects.hashCode(getFinalName());
+							}
+
+							if (method.getName().equals("getName")
+									&& parameters.length == 0) {
+								return getFinalName();
+							}
+
+							return null;
+						}
+					}
+
+					private Object getFinalName() {
+						return getName() != null ? getName() : defaultName();
+					}
+				});
+	}
+
+	public QualifiedName defaultName() {
+		return null;
 	}
 
 	@Override

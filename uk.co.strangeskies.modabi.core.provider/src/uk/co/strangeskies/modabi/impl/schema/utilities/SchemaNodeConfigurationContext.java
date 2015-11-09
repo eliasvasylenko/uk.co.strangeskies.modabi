@@ -29,6 +29,8 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
+	SchemaNode<?, ?> parentNodeProxy();
+
 	DataLoader dataLoader();
 
 	boolean isAbstract();

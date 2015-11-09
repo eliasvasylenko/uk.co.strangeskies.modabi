@@ -64,6 +64,9 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 
 			return result.get();
 		}
+
+		@Override
+		SchemaNode.Effective<?, ?> parent();
 	}
 
 	/**
@@ -83,4 +86,6 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 	Boolean isOrdered();
 
 	TypeToken<?> getPostInputType();
+
+	SchemaNode<?, ?> parent();
 }
