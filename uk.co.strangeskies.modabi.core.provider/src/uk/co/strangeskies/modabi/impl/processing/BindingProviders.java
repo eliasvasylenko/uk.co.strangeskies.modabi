@@ -63,8 +63,7 @@ public class BindingProviders {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(manager, context, model,
-						new ModelBindingProvider() {
+				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> get(Model<T> model) {
 						return manager.bindingFutures(model).stream()
@@ -97,8 +96,8 @@ public class BindingProviders {
 			@Override
 			public <U> U dereference(Model<U> model, QualifiedName idDomain,
 					DataSource id) {
-				return matchBinding(manager, context, model, context.bindings()::get,
-						idDomain, id);
+				return matchBinding(context, model, context.bindings()::get, idDomain,
+						id);
 			}
 		};
 	}
@@ -107,16 +106,17 @@ public class BindingProviders {
 		return context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, Collection<? extends U> objects) {
-				for (U object : objects)
+				for (U object : objects) {
 					context.bindings().add(model, object);
+				}
 			}
 		};
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <U> U matchBinding(SchemaManager manager,
-			BindingContext context, Model<U> model, ModelBindingProvider bindings,
-			QualifiedName idDomain, DataSource idSource) {
+	private <U> U matchBinding(BindingContext context, Model<U> model,
+			ModelBindingProvider bindings, QualifiedName idDomain,
+			DataSource idSource) {
 		if (idSource.currentState() == DataStreamState.TERMINATED)
 			throw new BindingException("No further id data to match in domain '"
 					+ idDomain + "' for model '" + model + "'", context);
@@ -133,7 +133,7 @@ public class BindingProviders {
 			DataNode.Effective<?> node = (Effective<?>) child;
 
 			for (U bindingCandidate : bindingCandidates) {
-				DataSource candidateId = unbindDataNode(manager, node,
+				DataSource candidateId = unbindDataNode(node,
 						new TypedObject<>(model.getDataType(), bindingCandidate));
 
 				if (candidateId.size() != 1)
@@ -155,7 +155,8 @@ public class BindingProviders {
 		Set<? extends Class<?>> classes = model.effective().getDataType()
 				.getRawTypes();
 
-		return (U) Proxy.newProxyInstance(manager.getClass().getClassLoader(),
+		return (U) Proxy.newProxyInstance(
+				Thread.currentThread().getContextClassLoader(),
 				classes.toArray(new Class<?>[classes.size()]), new InvocationHandler() {
 					private U object;
 
@@ -170,8 +171,8 @@ public class BindingProviders {
 				});
 	}
 
-	private static <V> DataSource unbindDataNode(SchemaManager manager,
-			DataNode.Effective<V> node, TypedObject<?> source) {
+	private <V> DataSource unbindDataNode(DataNode.Effective<V> node,
+			TypedObject<?> source) {
 		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager)
 				.withUnbindingSource(source);
 

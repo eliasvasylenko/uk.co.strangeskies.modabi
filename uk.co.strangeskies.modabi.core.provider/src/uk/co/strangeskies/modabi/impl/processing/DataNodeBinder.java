@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
@@ -82,7 +83,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				 */
 				DataSource providedValueBuffer = node.providedValueBuffer();
 				results.addAll(bindList(
-						context.withProvision(DataSource.class, () -> providedValueBuffer),
+						context.withProvision(DataSource.class, () -> providedValueBuffer)
+								.forceExhausting(),
 						node));
 			} else if (node.format() != null) {
 				switch (node.format()) {
@@ -105,6 +107,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 					break;
 				case SIMPLE:
+					dataSource = null;
 					while (node.getName().equals(context.input().peekNextChild())) {
 						context.input().startNextChild(node.getName());
 
@@ -115,6 +118,9 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 						context.input().endChild();
 					}
+					break;
+				default:
+					throw new AssertionError();
 				}
 
 				validateResults(node, results, null);
@@ -179,7 +185,14 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					dataSource.get();
 			}
 
-			optionalException = e;
+			if (context.isExhaustive() && !dataSource.isComplete()) {
+				throw new BindingException("Failed to bind all of data source, with ["
+						+ dataSource.stream().map(Objects::toString)
+								.collect(Collectors.joining(", "))
+						+ "] remaining", context, e);
+			} else {
+				optionalException = e;
+			}
 		}
 
 		validateResults(node, results, optionalException);
@@ -189,9 +202,12 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 	private static <U> U bindWithDataSource(DataSource dataSource,
 			BindingContextImpl context, DataNode.Effective<U> node) {
-		context = context.withProvision(DataSource.class, () -> dataSource);
+		context = context.withProvision(DataSource.class, () -> dataSource)
+				.forceExhausting();
 
-		return bindExactNode(context, node);
+		U binding = bindExactNode(context, node);
+
+		return binding;
 	}
 
 	private static <U> U bindExactNode(BindingContextImpl context,
@@ -232,7 +248,9 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context, node.effective()).getBinding();
+				return new DataNodeBinder<>(context
+						.withProvision(DataSource.class, () -> data).forceExhausting(),
+						node.effective()).getBinding();
 			}
 		};
 	}

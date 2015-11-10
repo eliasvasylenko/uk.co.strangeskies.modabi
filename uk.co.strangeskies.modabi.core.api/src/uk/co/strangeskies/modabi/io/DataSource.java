@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Copyable;
@@ -33,11 +34,20 @@ public interface DataSource extends Copyable<DataSource> {
 
 	int index();
 
+	default boolean isComplete() {
+		return index() == size();
+	}
+
 	default <T> T get(Primitive<T> type) {
 		return get().data(type);
 	}
 
 	DataItem<?> get();
+
+	default Stream<DataItem<?>> stream() {
+		return Stream.generate(this::get).limit(size() - index())
+				.map(i -> (DataItem<?>) i);
+	}
 
 	default <T> T peek(Primitive<T> type) {
 		return peek().data(type);
@@ -74,8 +84,8 @@ public interface DataSource extends Copyable<DataSource> {
 	}
 
 	static DataSource forDataItems(List<DataItem<?>> dataItemList) {
-		return new DataSourceDecorator(new RepeatingDataSource(dataItemList, 0,
-				dataItemList.size()));
+		return new DataSourceDecorator(
+				new RepeatingDataSource(dataItemList, 0, dataItemList.size()));
 	}
 
 	static <T> DataSource repeating(Primitive<T> type, T data, int times) {

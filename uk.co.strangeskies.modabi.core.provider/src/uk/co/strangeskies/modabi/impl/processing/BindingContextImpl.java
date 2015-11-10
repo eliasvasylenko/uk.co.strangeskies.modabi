@@ -42,20 +42,23 @@ public class BindingContextImpl extends
 		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<TypedObject<?>> bindingTargetStack;
 	private StructuredDataSource input;
+	private final boolean exhaustive;
 
 	public BindingContextImpl(SchemaManager manager) {
 		super(manager);
 
 		this.bindingTargetStack = Collections.emptyList();
 		this.input = null;
+		exhaustive = true;
 	}
 
 	private BindingContextImpl(BindingContextImpl parent,
 			List<TypedObject<?>> bindingTargetStack, StructuredDataSource input,
-			ProcessingProvisions provider) {
+			ProcessingProvisions provider, boolean exhaustive) {
 		super(parent, provider);
 		this.bindingTargetStack = bindingTargetStack;
 		this.input = input;
+		this.exhaustive = exhaustive;
 	}
 
 	private BindingContextImpl(BindingContextImpl parent,
@@ -63,6 +66,7 @@ public class BindingContextImpl extends
 		super(parent, node, replace);
 		this.bindingTargetStack = parent.bindingTargetStack;
 		this.input = parent.input;
+		exhaustive = parent.exhaustive;
 	}
 
 	@Override
@@ -90,7 +94,8 @@ public class BindingContextImpl extends
 	protected <T> BindingContextImpl withProvision(TypeToken<T> providedClass,
 			Function<? super BindingContextImpl, T> provider,
 			ProcessingContextImpl<BindingContextImpl>.ProcessingProvisions provisions) {
-		return new BindingContextImpl(this, bindingTargetStack, input, provisions);
+		return new BindingContextImpl(this, bindingTargetStack, input, provisions,
+				isExhaustive());
 	}
 
 	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target) {
@@ -113,7 +118,8 @@ public class BindingContextImpl extends
 		}
 
 		return new BindingContextImpl(this,
-				Collections.unmodifiableList(bindingTargetStack), input, getProvider());
+				Collections.unmodifiableList(bindingTargetStack), input, getProvider(),
+				isExhaustive());
 	}
 
 	public <T> BindingContextImpl withBindingNode(
@@ -128,7 +134,7 @@ public class BindingContextImpl extends
 
 	public BindingContextImpl withInput(StructuredDataSource input) {
 		return new BindingContextImpl(this, bindingTargetStack, input,
-				getProvider());
+				getProvider(), isExhaustive());
 	}
 
 	public void attemptBinding(Consumer<BindingContextImpl> bindingMethod) {
@@ -201,5 +207,22 @@ public class BindingContextImpl extends
 	public List<TypedObject<?>> boundObjectStack() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public boolean isExhaustive() {
+		return exhaustive;
+	}
+
+	public BindingContextImpl exhausting(boolean exhaustive) {
+		/*
+		 * TODO actually make non-exhausting nodes non-exhausting...
+		 */
+		return new BindingContextImpl(this, bindingTargetStack, input,
+				getProvider(), isExhaustive() && exhaustive);
+	}
+
+	public BindingContextImpl forceExhausting() {
+		return new BindingContextImpl(this, bindingTargetStack, input,
+				getProvider(), true);
 	}
 }

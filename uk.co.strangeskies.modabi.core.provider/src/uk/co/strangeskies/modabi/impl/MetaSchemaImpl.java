@@ -39,7 +39,6 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
-import uk.co.strangeskies.modabi.processing.providers.ReferenceId;
 import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.AbstractComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -68,8 +67,6 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
-import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
-import uk.co.strangeskies.reflection.Annotations;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
@@ -136,25 +133,7 @@ public class MetaSchemaImpl implements MetaSchema {
 	}
 
 	private void buildTypes(TypeFactory factory, BaseSchema base,
-			Namespace namespace) {
-		/*-
-		 * TODO Here an extension is something which can appear
-		 * anywhere, such as a generic "id" tag. The problem is
-		 * in determining where and when they should be included
-		 * during the UNbinding phase.
-		 * 
-		 * Could be easier to make useful for provided values?
-		 */
-		DataType<?> extensionData = factory.apply("extensionData",
-				t -> t.isAbstract(true).dataType(
-						AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))));
-
-		DataType<?> id = factory.apply("id",
-				t -> t.isAbstract(true)
-						.dataType(new TypeToken<ReferenceId<@Infer ?>>() {})
-						.bindingStrategy(BindingStrategy.CONSTRUCTOR)
-						.baseType(extensionData));
-	}
+			Namespace namespace) {}
 
 	private Model<Schema> buildModels(ModelFactory factory, BaseSchema base,
 			Namespace namespace) {

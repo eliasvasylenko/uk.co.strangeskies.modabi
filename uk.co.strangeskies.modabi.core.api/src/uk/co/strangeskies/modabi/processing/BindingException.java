@@ -57,9 +57,19 @@ public class BindingException extends SchemaException {
 	}
 
 	private static String getBindingStateString(BindingState state) {
+		/*
+		 * binding target may be proxied, and so throw an exception...
+		 */
+		String bindingTarget;
+		try {
+			bindingTarget = state.bindingTarget().toString();
+		} catch (Exception e) {
+			bindingTarget = "Unknown";
+		}
+
 		return state.bindingNodeStack().isEmpty() ? " at root"
 				: " at node '" + state.bindingNode().getName()
-						+ "' with binding target object '" + state.bindingTarget() + "'";
+						+ "' with binding target object '" + bindingTarget + "'";
 	}
 
 	public BindingState getState() {

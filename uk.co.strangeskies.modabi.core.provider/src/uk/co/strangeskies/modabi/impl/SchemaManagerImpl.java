@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -301,10 +302,10 @@ public class SchemaManagerImpl implements SchemaManager {
 				.get(model.effective().getName());
 
 		if (modelBindings == null)
-			return new HashSet<>();
+			return Collections.emptySet();
 		else
-			return new HashSet<>(modelBindings.stream().map(t -> (BindingFuture<T>) t)
-					.collect(Collectors.toSet()));
+			return modelBindings.stream().map(t -> (BindingFuture<T>) t)
+					.collect(Collectors.toSet());
 	}
 
 	private Unbinder createUnbinder(
