@@ -22,12 +22,16 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenContainer;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
@@ -120,12 +124,17 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	public N getSchemaNodeProxy() {
 		Set<Class<? super N>> types = getNodeClass().getRawTypes();
 
-		return (N) Proxy.newProxyInstance(getClass().getClassLoader(),
+		return (N) proxyNode(finalNode::get, types);
+	}
+
+	private Object proxyNode(Supplier<?> supplier,
+			Set<? extends Class<?>> types) {
+		return Proxy.newProxyInstance(getClass().getClassLoader(),
 				types.toArray(new Class<?>[types.size()]), new InvocationHandler() {
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args)
 							throws Throwable {
-						N node = finalNode.get();
+						Object node = supplier.get();
 						if (node != null) {
 							return method.invoke(node, args);
 						} else {
@@ -151,7 +160,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 								return getFinalName();
 							}
 
-							return null;
+							if (method.getName().equals("effective")
+									&& parameters.length == 0) {
+								return proxyNode(
+										() -> finalNode.get() == null ? null
+												: finalNode.get().effective(),
+										new HashSet<>(Arrays.asList(method.getReturnType())));
+							}
+
+							throw new SchemaException("Cannot invoke method '" + method
+									+ "' on node '" + getFinalName() + "' before instantiation");
 						}
 					}
 
