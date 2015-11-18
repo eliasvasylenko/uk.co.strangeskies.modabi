@@ -33,6 +33,7 @@ public class ComplexNodeUnbinder {
 		this.context = context;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <U> void unbind(ComplexNode.Effective<U> node, List<U> data) {
 		if (node.isExtensible()) {
 			for (U item : data) {
@@ -59,7 +60,8 @@ public class ComplexNodeUnbinder {
 					context
 							.attemptUnbindingUntilSuccessful(
 									validOverrides, (c,
-											n) -> unbindExactNode(c, overrides.putGet(n),
+											n) -> unbindExactNode(c,
+													(ComplexNode.Effective<U>) overrides.putGet(n),
 													item),
 									l -> new UnbindingException(
 											"Unable to unbind complex node '" + node.getName()
@@ -84,15 +86,13 @@ public class ComplexNodeUnbinder {
 				unbindExactNode(context, node, item);
 	}
 
-	@SuppressWarnings("unchecked")
-	private <U extends V, V> void unbindExactNode(UnbindingContextImpl context,
-			ComplexNode.Effective<U> element, V data) {
+	private <U> void unbindExactNode(UnbindingContextImpl context,
+			ComplexNode.Effective<U> element, U data) {
 		try {
 			if (!element.isInline())
 				context.output().nextChild(element.getName());
 
-			new BindingNodeUnbinder(context).unbind(element,
-					(U) element.getDataType().getRawType().cast(data));
+			new BindingNodeUnbinder(context).unbind(element, data);
 
 			if (!element.isInline())
 				context.output().endChild();

@@ -50,6 +50,7 @@ public class ComplexNodeBinder<U>
 		return binding;
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<U> bind() {
 		ComplexNode.Effective<U> node = getNode();
 
@@ -94,7 +95,7 @@ public class ComplexNodeBinder<U>
 			}
 
 			result.add(binding);
-			context.bindings().add(exactNode, binding);
+			context.bindings().add((ComplexNode.Effective<U>) exactNode, binding);
 
 			return true;
 		});

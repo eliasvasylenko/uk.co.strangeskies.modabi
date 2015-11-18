@@ -173,4 +173,9 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	public S source() {
 		return (S) this;
 	}
+
+	@Override
+	public String toString() {
+		return getName().toString();
+	}
 }

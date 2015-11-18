@@ -25,29 +25,35 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Bindings {
-	public final Models models;
-	public final MultiMap<QualifiedName, Object, Set<Object>> bindings;
+	public final MultiMap<Model.Effective<?>, BindingNode<?, ?, ?>, Set<BindingNode<?, ?, ?>>> boundNodes;
+	public final MultiMap<BindingNode<?, ?, ?>, Object, Set<Object>> bindings;
 
 	public Bindings() {
-		models = new Models();
+		boundNodes = new MultiHashMap<>(HashSet::new);
 		bindings = new MultiHashMap<>(HashSet::new);
 	}
 
-	public <T> void add(ComplexNode<?> element, T data) {
-		models.addAll(element.source().baseModel());
-		bindings.addToAll(element.source().baseModel().stream()
-				.map(n -> n.effective().getName()).collect(Collectors.toSet()), data);
+	public <T> void add(ComplexNode<T> element, T data) {
+		element = element.source();
+
+		boundNodes.addToAll(element.effective().baseModel(), element);
+		bindings.add(element, data);
 	}
 
 	public <T> void add(Model<T> model, T data) {
-		models.add(model);
-		bindings.add(model.effective().getName(), data);
+		model = model.source();
+
+		if (boundNodes.add(model.effective(), model)) {
+			boundNodes.addToAll(model.effective().baseModel(), model);
+		}
+		bindings.add(model, data);
 	}
 
 	public void add(Binding<?>... bindings) {
@@ -56,30 +62,20 @@ public class Bindings {
 
 	public void add(Collection<? extends Binding<?>> bindings) {
 		for (Binding<?> binding : bindings)
-			addGeneric(binding);
+			addCapture(binding);
 	}
 
-	private <T> void addGeneric(Binding<T> binding) {
+	private <T> void addCapture(Binding<T> binding) {
 		add(binding.getModel(), binding.getData());
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> Set<T> get(Model<T> model) {
-		Set<Object> all = bindings.get(model.effective().getName());
+		model = model.effective();
 
-		if (all == null)
-			all = new HashSet<>();
-
-		all.addAll(models.getDerivedModels(model).stream()
-				.map(m -> bindings.get(m.effective().getName()))
-				.reduce(Collections.emptySet(), (s, t) -> {
-					Set<Object> set = new HashSet<>();
-					set.addAll(s);
-					set.addAll(t);
-					return set;
-				}));
-
-		return (Set<T>) all;
+		return boundNodes.getOrDefault(model, Collections.emptySet()).stream()
+				.flatMap(b -> bindings.getOrDefault(b, Collections.emptySet()).stream())
+				.map(t -> (T) t).collect(Collectors.toSet());
 	}
 
 	@Override
