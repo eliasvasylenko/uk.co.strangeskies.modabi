@@ -37,6 +37,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaManager {
@@ -224,6 +225,10 @@ public interface SchemaManager {
 
 	default <T> Unbinder unbind(Class<T> dataClass, T data) {
 		return unbind(TypeToken.over(dataClass), data);
+	}
+
+	default <T extends Reified<T>> Unbinder unbind(T data) {
+		return unbind(data.getThisType(), data);
 	}
 
 	Unbinder unbind(Object data);
