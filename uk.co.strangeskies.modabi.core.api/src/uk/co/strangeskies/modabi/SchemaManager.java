@@ -29,13 +29,19 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.io.structured.DataInterface;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -129,6 +135,24 @@ public interface SchemaManager {
 		}
 
 		<U extends OutputStream> U to(String extension, U output);
+
+		Unbinder filter(ReturningSchemaProcessor<Boolean> filter);
+
+		<T> Unbinder filter(TypeToken<T> type, Predicate<T> action);
+
+		<T> Unbinder filterComplex(TypeToken<T> type,
+				BiPredicate<ComplexNode<T>, T> action);
+
+		<T> Unbinder filterData(TypeToken<T> type,
+				BiPredicate<DataNode<T>, T> action);
+
+		<T> Unbinder consume(TypeToken<T> type, Consumer<T> action);
+
+		<T> Unbinder consumeComplex(TypeToken<T> type,
+				BiConsumer<ComplexNode<T>, T> action);
+
+		<T> Unbinder consumeData(TypeToken<T> type,
+				BiConsumer<DataNode<T>, T> action);
 	}
 
 	void registerDataInterface(DataInterface handler);

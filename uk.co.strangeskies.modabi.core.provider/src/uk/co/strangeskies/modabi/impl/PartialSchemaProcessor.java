@@ -29,8 +29,7 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public interface PartialSchemaProcessingContext
-		extends SchemaProcessor {
+public interface PartialSchemaProcessor extends SchemaProcessor {
 	@Override
 	default <U> void accept(ComplexNode.Effective<U> node) {
 		accept((BindingChildNode.Effective<U, ?, ?>) node);
@@ -57,7 +56,7 @@ public interface PartialSchemaProcessingContext
 	}
 
 	default <U> void accept(BindingChildNode.Effective<U, ?, ?> node) {
-		accept((InputNode.Effective<?, ?>) node);
+		accept(node);
 	}
 
 	default void accept(InputNode.Effective<?, ?> node) {
