@@ -119,21 +119,25 @@ public class ComplexNodeBinder<U>
 							"Cannot find model '" + nextElement + "' to bind to", context);
 				}
 
-				if (!node.getDataType().isAssignableFrom(extension.getDataType()))
+				if (!node.getDataType().isAssignableFrom(extension.getDataType())) {
 					throw new BindingException(
 							"Named input node '" + nextElement + "' of type '"
 									+ extension.getDataType() + "' does not match type '"
 									+ node.getDataType() + "' of extention point",
 							context);
+				}
 
 				exactNode = context.getComplexNodeOverrides(node)
 						.putGet((Effective<? extends U>) extension);
-			} else if (node.isInline() || Objects.equals(nextElement, node.getName()))
+			} else if (node.isInline()
+					|| Objects.equals(nextElement, node.getName())) {
 				exactNode = node;
-			else
+			} else {
 				exactNode = null;
-		} else
+			}
+		} else {
 			exactNode = null;
+		}
 
 		return exactNode;
 	}

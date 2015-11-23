@@ -36,15 +36,21 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.DataInterface;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.BindingState;
+import uk.co.strangeskies.modabi.processing.UnbindingState;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypedObject;
 
 public interface SchemaManager {
 	interface Binder<T> {
@@ -92,16 +98,22 @@ public interface SchemaManager {
 		BindingFuture<T> from(InputStream input);
 
 		BindingFuture<T> from(String extension, InputStream input);
+
+		<U> Binder<T> supply(TypeToken<U> type,
+				Supplier<TypedObject<? extends U>> action);
+
+		<U> Binder<T> supply(TypeToken<U> type,
+				Function<BindingState, TypedObject<? extends U>> action);
+
+		/*
+		 * Errors which are rethrown will be passed to the next error handler if
+		 * present, or dealt with as normal. Otherwise, a best effort is made at
+		 * binding.
+		 */
+		Binder<T> with(Consumer<Exception> errorHandler);
 	}
 
 	interface Unbinder {
-		/*
-		 * TODO If errors are rethrown, deal with as normal. Otherwise. best effort
-		 * at unbinding, outputting comments on errors instead of throwing
-		 * exceptions.
-		 */
-		// Unbinder with(Consumer<Exception> errorHandler);
-
 		<U extends StructuredDataTarget> U to(U output);
 
 		default void to(File output) {
@@ -136,23 +148,16 @@ public interface SchemaManager {
 
 		<U extends OutputStream> U to(String extension, U output);
 
-		Unbinder filter(ReturningSchemaProcessor<Boolean> filter);
+		Unbinder consume(Predicate<UnbindingState> filter);
 
-		<T> Unbinder filter(TypeToken<T> type, Predicate<T> action);
+		Unbinder consume(BiPredicate<UnbindingState, TypedObject<?>> filter);
 
-		<T> Unbinder filterComplex(TypeToken<T> type,
-				BiPredicate<ComplexNode<T>, T> action);
-
-		<T> Unbinder filterData(TypeToken<T> type,
-				BiPredicate<DataNode<T>, T> action);
-
-		<T> Unbinder consume(TypeToken<T> type, Consumer<T> action);
-
-		<T> Unbinder consumeComplex(TypeToken<T> type,
-				BiConsumer<ComplexNode<T>, T> action);
-
-		<T> Unbinder consumeData(TypeToken<T> type,
-				BiConsumer<DataNode<T>, T> action);
+		/*
+		 * Errors which are rethrown will be passed to the next error handler if
+		 * present, or dealt with as normal. Otherwise, a best effort is made at
+		 * unbinding.
+		 */
+		Unbinder with(Consumer<Exception> errorHandler);
 	}
 
 	void registerDataInterface(DataInterface handler);
