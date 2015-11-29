@@ -21,4 +21,5 @@ Export-Package: uk.co.strangeskies.modabi.mapping
 	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
 
 -includeresource: \
-	META-INF/modabi=schemata
+	META-INF/modabi=modabi/schemata, \
+	META-INF/modabi=modabi/mappings

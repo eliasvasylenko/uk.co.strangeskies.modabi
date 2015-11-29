@@ -18,22 +18,17 @@
  */
 package uk.co.strangeskies.modabi;
 
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
-public class Binding<T> {
-	private final Model<T> model;
-	private final T data;
+public interface Binding<T> {
+	public Model<T> getModel();
 
-	public Binding(Model<T> model, T data) {
-		this.model = model;
-		this.data = data;
-	}
+	public T getData();
 
-	public Model<T> getModel() {
-		return model;
-	}
+	public void updateBinding();
 
-	public T getData() {
-		return data;
-	}
+	public NavigableStructuredDataSource getSource();
+
+	public void updateSource();
 }

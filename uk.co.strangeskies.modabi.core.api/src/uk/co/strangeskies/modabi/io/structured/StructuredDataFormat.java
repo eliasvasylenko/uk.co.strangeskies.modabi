@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
-public interface DataInterface {
+public interface StructuredDataFormat {
 	String getFormatId();
 
 	Set<String> getFileExtensions();

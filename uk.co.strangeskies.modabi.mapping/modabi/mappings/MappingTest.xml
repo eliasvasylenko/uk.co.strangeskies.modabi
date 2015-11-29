@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<mapping
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="MappingTest">
+
+	<nodes>
+		<node
+			from="schema"
+			to="ui">
+			<element name="component">
+				<property name="type" map="" />
+			</element>
+		</node>
+	</nodes>
+</mapping>

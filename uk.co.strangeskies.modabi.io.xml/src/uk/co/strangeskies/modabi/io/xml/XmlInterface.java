@@ -26,12 +26,12 @@ import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.io.structured.DataInterface;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 
 @Component(property = "formatId=" + XmlInterface.XML_ID)
-public class XmlInterface implements DataInterface {
+public class XmlInterface implements StructuredDataFormat {
 	public static final String XML_ID = "xml";
 
 	@Override

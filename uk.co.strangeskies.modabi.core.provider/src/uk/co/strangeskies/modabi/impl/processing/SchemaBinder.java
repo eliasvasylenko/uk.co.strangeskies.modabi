@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -34,7 +35,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 
 public class SchemaBinder {
 	private static interface TryGet<T> {
-		T tryGet()
+		Binding<T> tryGet()
 				throws InterruptedException, ExecutionException, TimeoutException;
 	}
 
@@ -63,11 +64,41 @@ public class SchemaBinder {
 			throw new BindingException("Model '" + model.getName()
 					+ "' does not match root input node '" + inputRoot + "'", context);
 
-		FutureTask<T> future = new FutureTask<>(() -> {
+		FutureTask<Binding<T>> future = new FutureTask<Binding<T>>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoader);
 
 			try {
-				return new BindingNodeBinder(context).bind(model);
+				return new Binding<T>() {
+					private T data = new BindingNodeBinder(context).bind(model);
+
+					@Override
+					public Model<T> getModel() {
+						return model;
+					}
+
+					@Override
+					public T getData() {
+						return data;
+					}
+
+					@Override
+					public void updateBinding() {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public NavigableStructuredDataSource getSource() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public void updateSource() {
+						// TODO Auto-generated method stub
+
+					}
+				};
 			} catch (SchemaException e) {
 				throw e;
 			} catch (Exception e) {
@@ -106,7 +137,7 @@ public class SchemaBinder {
 
 			private Binding<T> tryGet(TryGet<T> get) {
 				try {
-					return new Binding<T>(getModel(), get.tryGet());
+					return get.tryGet();
 				} catch (InterruptedException e) {
 					throw new SchemaException("Unexpected interrupt during binding of '"
 							+ getName() + "' with model '" + getModel().getName() + "'", e);

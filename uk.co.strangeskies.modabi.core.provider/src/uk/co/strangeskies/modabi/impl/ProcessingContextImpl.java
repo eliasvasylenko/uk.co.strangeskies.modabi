@@ -266,6 +266,10 @@ public abstract class ProcessingContextImpl<S extends ProcessingContextImpl<S>>
 				.map(n -> n.effective()).collect(Collectors.toList());
 	}
 
+	public SchemaManager getSchemaManager() {
+		return manager;
+	}
+
 	@SuppressWarnings("unchecked")
 	public <T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
 			DataNode<T> node) {

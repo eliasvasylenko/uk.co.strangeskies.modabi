@@ -22,6 +22,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,8 +35,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -63,11 +66,13 @@ import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
 import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.io.structured.DataInterface;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.BindingState;
+import uk.co.strangeskies.modabi.processing.UnbindingState;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
@@ -99,7 +104,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private final BindingProviders bindingProviders;
 
-	private final Map<String, DataInterface> dataInterfaces;
+	private final Map<String, StructuredDataFormat> dataInterfaces;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
@@ -163,8 +168,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		return dataTypeBuilder;
 	}
 
-	@Override
-	public void registerSchema(Schema schema) {
+	private boolean registerSchemaImpl(Schema schema) {
 		if (registeredSchemata.add(schema)) {
 			for (Schema dependency : schema.getDependencies())
 				registerSchema(dependency);
@@ -175,10 +179,73 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (DataType<?> type : schema.getDataTypes())
 				registerDataType(type);
 
-			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(),
-					BindingFuture.forBinding(new Binding<>(
-							coreSchemata.metaSchema().getSchemaModel(), schema)));
+			return true;
+		} else {
+			return false;
 		}
+	}
+
+	@Override
+	public boolean registerSchema(Schema schema) {
+		if (registerSchemaImpl(schema)) {
+			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(),
+					registerBinding(coreSchemata.metaSchema().getSchemaModel(), schema));
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public Binder<Schema> bindSchema() {
+		Binder<Schema> binder = bind(getMetaSchema().getSchemaModel());
+
+		return new Binder<Schema>() {
+			@Override
+			public BindingFuture<Schema> from(StructuredDataSource input) {
+				return registerFuture(binder.from(input));
+			}
+
+			@Override
+			public BindingFuture<Schema> from(URL input) {
+				return registerFuture(binder.from(input));
+			}
+
+			@Override
+			public BindingFuture<Schema> from(InputStream input) {
+				return registerFuture(binder.from(input));
+			}
+
+			@Override
+			public BindingFuture<Schema> from(String extension, InputStream input) {
+				return registerFuture(binder.from(extension, input));
+			}
+
+			private BindingFuture<Schema> registerFuture(
+					BindingFuture<Schema> schema) {
+				new Thread(() -> {
+					registerSchemaImpl(schema.resolve());
+					bindingFutures.add(
+							coreSchemata.metaSchema().getSchemaModel().getName(), schema);
+				}).start();
+
+				return schema;
+			}
+
+			@Override
+			public Binder<Schema> with(Consumer<Exception> errorHandler) {
+				binder.with(errorHandler);
+				return this;
+			}
+
+			@Override
+			public Binder<Schema> supply(
+					Function<BindingState, TypedObject<?>> action) {
+				binder.supply(action);
+				return this;
+			}
+		};
 	}
 
 	void registerModel(Model<?> model) {
@@ -189,8 +256,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		registeredTypes.add(type);
 	}
 
-	@Override
-	public void registerBinding(Binding<?> binding) {
+	protected void registerBindingImpl(Binding<?> binding) {
 		bindingFutures.add(binding.getModel().getName(),
 				BindingFuture.forBinding(binding));
 	}
@@ -224,7 +290,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			}
 
 			private BindingFuture<T> from(InputStream input,
-					Collection<DataInterface> loaders) {
+					Collection<? extends StructuredDataFormat> loaders) {
 				BufferedInputStream bufferedInput = new BufferedInputStream(input);
 				bufferedInput.mark(4096);
 
@@ -234,7 +300,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 				Exception exception = null;
 
-				for (DataInterface loader : loaders) {
+				for (StructuredDataFormat loader : loaders) {
 					try {
 						return from(loader.loadData(bufferedInput));
 					} catch (Exception e) {
@@ -250,6 +316,18 @@ public class SchemaManagerImpl implements SchemaManager {
 
 				throw new IllegalArgumentException(
 						"Could not bind input with any registered file loaders", exception);
+			}
+
+			@Override
+			public Binder<T> supply(Function<BindingState, TypedObject<?>> action) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public Binder<T> with(Consumer<Exception> errorHandler) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		};
 	}
@@ -308,39 +386,58 @@ public class SchemaManagerImpl implements SchemaManager {
 					.collect(Collectors.toSet());
 	}
 
-	private Unbinder createUnbinder(
+	private <T> Unbinder<T> createUnbinder(
 			Consumer<StructuredDataTarget> unbindingFunction) {
-		return new Unbinder() {
+		return new Unbinder<T>() {
 			@Override
-			public <U extends OutputStream> U to(String extension, U output) {
+			public BindingFuture<T> to(String extension, OutputStream output) {
 				unbindingFunction.accept(getDataInterface(extension).saveData(output));
 
-				return output;
+				return null;
 			}
 
 			@Override
-			public <U extends StructuredDataTarget> U to(U output) {
+			public BindingFuture<T> to(StructuredDataTarget output) {
 				unbindingFunction.accept(output);
 
-				return output;
+				return null;
+			}
+
+			@Override
+			public Unbinder<T> consume(Predicate<UnbindingState> filter) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public <U> Unbinder<T> consume(TypeToken<U> type,
+					BiPredicate<UnbindingState, TypedObject<? extends U>> filter) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public Unbinder<T> with(Consumer<Exception> errorHandler) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		};
 	}
 
 	@Override
-	public <T> Unbinder unbind(Model<T> model, T data) {
+	public <T> Unbinder<T> unbind(Model<T> model, T data) {
 		return createUnbinder(output -> new SchemaUnbinder(this)
 				.unbind(model.effective(), output, data));
 	}
 
 	@Override
-	public Unbinder unbind(Object data) {
+	public <T> Unbinder<T> unbind(T data) {
 		return createUnbinder(
 				output -> new SchemaUnbinder(this).unbind(output, data));
 	}
 
 	@Override
-	public <T> Unbinder unbind(TypeToken<T> dataType, T data) {
+	public <T> Unbinder<T> unbind(TypeToken<T> dataType, T data) {
 		return createUnbinder(
 				output -> new SchemaUnbinder(this).unbind(output, dataType, data));
 	}
@@ -418,27 +515,27 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
-	public void registerDataInterface(DataInterface loader) {
+	public void registerDataInterface(StructuredDataFormat loader) {
 		dataInterfaces.put(loader.getFormatId(), loader);
 	}
 
 	@Override
-	public void unregisterDataInterface(DataInterface loader) {
+	public void unregisterDataInterface(StructuredDataFormat loader) {
 		dataInterfaces.remove(loader.getFormatId(), loader);
 	}
 
 	@Override
-	public Set<DataInterface> getRegisteredDataInterfaces() {
+	public Set<StructuredDataFormat> getRegisteredDataInterfaces() {
 		return new HashSet<>(dataInterfaces.values());
 	}
 
 	@Override
-	public DataInterface getDataInterface(String id) {
+	public StructuredDataFormat getDataInterface(String id) {
 		return dataInterfaces.get(id);
 	}
 
 	@Override
-	public Set<DataInterface> getDataInterfaces(String extension) {
+	public Set<StructuredDataFormat> getDataInterfaces(String extension) {
 		return getRegisteredDataInterfaces().stream()
 				.filter(l -> l.getFileExtensions().contains(extension))
 				.collect(Collectors.toCollection(LinkedHashSet::new));

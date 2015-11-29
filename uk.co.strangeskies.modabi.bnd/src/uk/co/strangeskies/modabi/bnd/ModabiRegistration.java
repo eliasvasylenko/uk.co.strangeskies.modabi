@@ -29,14 +29,14 @@ import aQute.bnd.service.AnalyzerPlugin;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.structured.DataInterface;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 public abstract class ModabiRegistration implements AnalyzerPlugin {
-	private final DataInterface handler;
+	private final StructuredDataFormat handler;
 	private final SchemaManager manager;
 
-	public ModabiRegistration(SchemaManager manager, DataInterface handler) {
+	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
 		this.handler = handler;
 		this.manager = manager;
 		manager.registerDataInterface(handler);
@@ -87,7 +87,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 			if (newCapabilities != null) {
 				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
 						"osgi.service;" + "filter:=\"(&(objectClass="
-								+ DataInterface.class.getTypeName() + ")(formatId="
+								+ StructuredDataFormat.class.getTypeName() + ")(formatId="
 								+ handler.getFormatId()
 								+ "))\";resolution:=mandatory;effective:=active");
 

@@ -56,7 +56,7 @@ public interface PartialSchemaProcessor extends SchemaProcessor {
 	}
 
 	default <U> void accept(BindingChildNode.Effective<U, ?, ?> node) {
-		accept(node);
+		accept((InputNode.Effective<?, ?>) node);
 	}
 
 	default void accept(InputNode.Effective<?, ?> node) {

@@ -29,25 +29,21 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.structured.DataInterface;
+import uk.co.strangeskies.modabi.io.structured.DiscardingStructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.BindingState;
 import uk.co.strangeskies.modabi.processing.UnbindingState;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
@@ -99,11 +95,21 @@ public interface SchemaManager {
 
 		BindingFuture<T> from(String extension, InputStream input);
 
-		<U> Binder<T> supply(TypeToken<U> type,
-				Supplier<TypedObject<? extends U>> action);
+		default <U> Binder<T> supply(TypeToken<U> type,
+				Supplier<TypedObject<? extends U>> action) {
+			return supply(type, s -> action.get());
+		}
 
-		<U> Binder<T> supply(TypeToken<U> type,
-				Function<BindingState, TypedObject<? extends U>> action);
+		default <U> Binder<T> supply(TypeToken<U> type,
+				Function<BindingState, TypedObject<? extends U>> action) {
+			return supply(s -> {
+				return (s instanceof BindingNode<?, ?, ?> && type.isAssignableFrom(
+						((BindingNode.Effective<?, ?, ?>) s.bindingNode()).getDataType()))
+								? action.apply(s) : null;
+			});
+		}
+
+		Binder<T> supply(Function<BindingState, TypedObject<?>> action);
 
 		/*
 		 * Errors which are rethrown will be passed to the next error handler if
@@ -113,22 +119,22 @@ public interface SchemaManager {
 		Binder<T> with(Consumer<Exception> errorHandler);
 	}
 
-	interface Unbinder {
-		<U extends StructuredDataTarget> U to(U output);
+	interface Unbinder<T> {
+		BindingFuture<T> to(StructuredDataTarget output);
 
-		default void to(File output) {
-			to(output.toURI());
+		default BindingFuture<T> to(File output) {
+			return to(output.toURI());
 		}
 
-		default void to(URI output) {
+		default BindingFuture<T> to(URI output) {
 			try {
-				to(output.toURL());
+				return to(output.toURL());
 			} catch (MalformedURLException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
 
-		default void to(URL output) {
+		default BindingFuture<T> to(URL output) {
 			String extension = output.getQuery();
 			int lastDot = extension.lastIndexOf('.');
 			if (lastDot > 0) {
@@ -140,35 +146,43 @@ public interface SchemaManager {
 
 			try (
 					OutputStream fileStream = output.openConnection().getOutputStream()) {
-				to(extension, fileStream).flush();
+				BindingFuture<T> binding = to(extension, fileStream);
+				fileStream.flush();
+				return binding;
 			} catch (IOException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
 
-		<U extends OutputStream> U to(String extension, U output);
+		BindingFuture<T> to(String extension, OutputStream output);
 
-		Unbinder consume(Predicate<UnbindingState> filter);
+		Unbinder<T> consume(Predicate<UnbindingState> filter);
 
-		Unbinder consume(BiPredicate<UnbindingState, TypedObject<?>> filter);
+		default <U> Unbinder<T> consume(TypeToken<U> type,
+				Predicate<TypedObject<? extends U>> filter) {
+			return consume(type, (s, o) -> filter.test(o));
+		}
+
+		<U> Unbinder<T> consume(TypeToken<U> type,
+				BiPredicate<UnbindingState, TypedObject<? extends U>> filter);
 
 		/*
 		 * Errors which are rethrown will be passed to the next error handler if
 		 * present, or dealt with as normal. Otherwise, a best effort is made at
-		 * unbinding.
+		 * unbinding, and the exception information will be serialised as a comment.
 		 */
-		Unbinder with(Consumer<Exception> errorHandler);
+		Unbinder<T> with(Consumer<Exception> errorHandler);
 	}
 
-	void registerDataInterface(DataInterface handler);
+	void registerDataInterface(StructuredDataFormat handler);
 
-	void unregisterDataInterface(DataInterface handler);
+	void unregisterDataInterface(StructuredDataFormat handler);
 
-	Set<DataInterface> getRegisteredDataInterfaces();
+	Set<StructuredDataFormat> getRegisteredDataInterfaces();
 
-	DataInterface getDataInterface(String id);
+	StructuredDataFormat getDataInterface(String id);
 
-	Set<DataInterface> getDataInterfaces(String extension);
+	Set<StructuredDataFormat> getDataInterfaces(String extension);
 
 	default GeneratedSchema generateSchema(QualifiedName name) {
 		return generateSchema(name, Collections.emptySet());
@@ -191,13 +205,10 @@ public interface SchemaManager {
 		registerProvider(TypeToken.over(providedClass), provider);
 	}
 
-	void registerSchema(Schema schema);
+	boolean registerSchema(Schema schema);
 
-	// So we can import from manually added data.
-	void registerBinding(Binding<?> binding);
-
-	default <T> void registerBinding(Model<T> model, T data) {
-		registerBinding(new Binding<T>(model, data));
+	default <T> BindingFuture<T> registerBinding(Model<T> model, T data) {
+		return unbind(model, data).to(new DiscardingStructuredDataTarget());
 	}
 
 	// Blocks until all possible processing is done other than waiting imports:
@@ -214,53 +225,21 @@ public interface SchemaManager {
 
 	<T> Set<BindingFuture<T>> bindingFutures(Model<T> model);
 
-	default Binder<Schema> bindSchema() {
-		Binder<Schema> binder = bind(getMetaSchema().getSchemaModel());
+	Binder<Schema> bindSchema();
 
-		return new Binder<Schema>() {
-			@Override
-			public BindingFuture<Schema> from(StructuredDataSource input) {
-				return registerFuture(binder.from(input));
-			}
+	<T> Unbinder<T> unbind(Model<T> model, T data);
 
-			@Override
-			public BindingFuture<Schema> from(URL input) {
-				return registerFuture(binder.from(input));
-			}
+	<T> Unbinder<T> unbind(TypeToken<T> dataClass, T data);
 
-			@Override
-			public BindingFuture<Schema> from(InputStream input) {
-				return registerFuture(binder.from(input));
-			}
-
-			@Override
-			public BindingFuture<Schema> from(String extension, InputStream input) {
-				return registerFuture(binder.from(extension, input));
-			}
-
-			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> from) {
-				new Thread(() -> {
-					registerSchema(from.resolve());
-				}).start();
-
-				return from;
-			}
-		};
-	}
-
-	<T> Unbinder unbind(Model<T> model, T data);
-
-	<T> Unbinder unbind(TypeToken<T> dataClass, T data);
-
-	default <T> Unbinder unbind(Class<T> dataClass, T data) {
+	default <T> Unbinder<T> unbind(Class<T> dataClass, T data) {
 		return unbind(TypeToken.over(dataClass), data);
 	}
 
-	default <T extends Reified<T>> Unbinder unbind(T data) {
+	default <T extends Reified<T>> Unbinder<T> unbind(T data) {
 		return unbind(data.getThisType(), data);
 	}
 
-	Unbinder unbind(Object data);
+	<T> Unbinder<T> unbind(T data);
 
 	MetaSchema getMetaSchema();
 
