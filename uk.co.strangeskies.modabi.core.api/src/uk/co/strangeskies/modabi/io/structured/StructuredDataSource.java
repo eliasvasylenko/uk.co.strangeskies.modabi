@@ -39,12 +39,14 @@ public interface StructuredDataSource {
 
 	public QualifiedName peekNextChild();
 
-	public default void startNextChild(QualifiedName name) {
-		QualifiedName nextName = startNextChild();
+	public default StructuredDataSource startNextChild(QualifiedName name) {
+		QualifiedName nextName = peekNextChild();
 		if (!nextName.equals(name)) {
 			throw new SchemaException("Next child '" + nextName
 					+ "' does not match expected name '" + name + "'");
 		}
+		startNextChild();
+		return this;
 	}
 
 	public Set<QualifiedName> getProperties();
@@ -65,21 +67,17 @@ public interface StructuredDataSource {
 		return hasNext;
 	}
 
-	public default void skipChildren() {
+	public default StructuredDataSource skipChildren() {
 		while (skipNextChild())
 			;
+		return this;
 	}
 
 	/**
 	 * throws an exception if there are more children, so call skipChildren()
 	 * first, or call endChildEarly, if you want to ignore them.
 	 */
-	public void endChild();
-
-	public default void endChildEarly() {
-		skipChildren();
-		endChild();
-	}
+	public StructuredDataSource endChild();
 
 	public List<Integer> index();
 
@@ -96,7 +94,7 @@ public interface StructuredDataSource {
 		do {
 			while (output.currentState() != StructuredDataState.ELEMENT_WITH_CONTENT
 					&& (childElement = startNextChild()) != null) {
-				output.nextChild(childElement);
+				output.addChild(childElement);
 
 				pipeDataAtChild(output);
 

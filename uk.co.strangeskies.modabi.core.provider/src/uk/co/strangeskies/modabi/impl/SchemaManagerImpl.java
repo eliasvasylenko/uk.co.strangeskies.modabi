@@ -66,6 +66,7 @@ import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
 import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
 import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.io.structured.RewritableStructuredData;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
@@ -126,9 +127,6 @@ public class SchemaManagerImpl implements SchemaManager {
 		registeredModels = new Models();
 		registeredTypes = new DataTypes();
 
-		registerSchema(coreSchemata.baseSchema());
-		registerSchema(coreSchemata.metaSchema());
-
 		registerProvider(DataTypeBuilder.class, () -> dataTypeBuilder);
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
@@ -143,6 +141,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		bindingProviders = new BindingProviders(this);
 
 		dataInterfaces = new HashMap<>();
+
+		registerSchema(coreSchemata.metaSchema());
 	}
 
 	SchemaBinder getSchemaBinder() {
@@ -170,14 +170,14 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private boolean registerSchemaImpl(Schema schema) {
 		if (registeredSchemata.add(schema)) {
-			for (Schema dependency : schema.getDependencies())
-				registerSchema(dependency);
-
 			for (Model<?> model : schema.getModels())
 				registerModel(model);
 
 			for (DataType<?> type : schema.getDataTypes())
 				registerDataType(type);
+
+			for (Schema dependency : schema.getDependencies())
+				registerSchema(dependency);
 
 			return true;
 		} else {
@@ -277,6 +277,40 @@ public class SchemaManagerImpl implements SchemaManager {
 			@Override
 			public BindingFuture<T> from(StructuredDataSource input) {
 				return bindingFunction.apply(input);
+			}
+
+			@Override
+			public BindingFuture<T> from(RewritableStructuredData input) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public BindingFuture<T> from(URL input) {
+				String extension = input.getPath();
+				int lastSlash = extension.lastIndexOf('/');
+				if (lastSlash > 0) {
+					extension = extension.substring(lastSlash);
+
+					int lastDot = extension.lastIndexOf('.');
+					if (lastDot > 0) {
+						extension = extension.substring(lastDot + 1);
+					} else {
+						extension = null;
+					}
+				} else {
+					extension = null;
+				}
+
+				try (InputStream fileStream = input.openStream()) {
+					if (extension != null) {
+						return from(extension, fileStream);
+					} else {
+						return from(fileStream);
+					}
+				} catch (IOException e) {
+					throw new IllegalArgumentException(e);
+				}
 			}
 
 			@Override

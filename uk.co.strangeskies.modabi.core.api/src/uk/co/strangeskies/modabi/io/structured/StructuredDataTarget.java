@@ -49,7 +49,7 @@ public interface StructuredDataTarget {
 
 	public StructuredDataTarget registerNamespaceHint(Namespace namespace);
 
-	public StructuredDataTarget nextChild(QualifiedName name);
+	public StructuredDataTarget addChild(QualifiedName name);
 
 	public DataTarget writeProperty(QualifiedName name);
 

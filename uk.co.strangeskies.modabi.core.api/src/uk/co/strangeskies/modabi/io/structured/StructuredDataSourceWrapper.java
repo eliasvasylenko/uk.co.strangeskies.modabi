@@ -100,12 +100,14 @@ public class StructuredDataSourceWrapper implements StructuredDataSource {
 	}
 
 	@Override
-	public void endChild() {
+	public StructuredDataSource endChild() {
 		if (index().isEmpty())
 			enterState(StructuredDataState.FINISHED);
 		else
 			enterState(StructuredDataState.POPULATED_ELEMENT);
 		getComponent().endChild();
+		
+		return this;
 	}
 
 	@Override

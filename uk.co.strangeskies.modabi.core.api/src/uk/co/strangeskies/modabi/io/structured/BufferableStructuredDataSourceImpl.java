@@ -58,7 +58,7 @@ public class BufferableStructuredDataSourceImpl extends
 				if (buffer.index().equals(component.index())) {
 					QualifiedName child = component.startNextChild();
 					if (child != null) {
-						buffers.nextChild(child);
+						buffers.addChild(child);
 						component.pipeDataAtChild(buffers);
 					}
 				}
@@ -135,13 +135,15 @@ public class BufferableStructuredDataSourceImpl extends
 			}
 
 			@Override
-			public void endChild() {
+			public StructuredDataSource endChild() {
 				if (buffer.index().equals(component.index())) {
 					component.endChild();
 					buffers.endChild();
 				}
 
 				buffer.endChild();
+				
+				return this;
 			}
 		};
 	}

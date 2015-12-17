@@ -30,4 +30,9 @@ public interface StructuredDataFormat {
 	StructuredDataSource loadData(InputStream in);
 
 	StructuredDataTarget saveData(OutputStream out);
+
+	RewritableStructuredData modifyData(/*
+																			 * Some sort of generic rewritable &
+																			 * navigable byte data interface...
+																			 */);
 }

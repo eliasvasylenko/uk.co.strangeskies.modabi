@@ -457,7 +457,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
 		}
 
 		@Override
-		public void endChild() {
+		public StructuredDataSource endChild() {
 			if (!peekTail().isEnded())
 				throw new IllegalStateException();
 
@@ -469,6 +469,8 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
 			if (consumable) {
 				peekTail().children.remove(0);
 			}
+			
+			return this;
 		}
 
 		private int getActualTailIndex() {

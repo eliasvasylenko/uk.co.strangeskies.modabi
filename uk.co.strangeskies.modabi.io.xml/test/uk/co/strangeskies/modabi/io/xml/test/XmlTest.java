@@ -29,14 +29,14 @@ public class XmlTest {
 		StructuredDataTarget output = new XmlTarget(System.out);
 
 		output.registerDefaultNamespaceHint(Namespace.getDefault());
-		output.nextChild(new QualifiedName("root"));
-		output.nextChild(new QualifiedName("poot"));
+		output.addChild(new QualifiedName("root"));
+		output.addChild(new QualifiedName("poot"));
 		output.writeProperty(new QualifiedName("groot")).put(Primitive.BOOLEAN, true)
 				.terminate();
 		output.writeContent().put(Primitive.DOUBLE, 2d).put(Primitive.STRING, "coot")
 				.terminate();
 		output.endChild();
-		output.nextChild(new QualifiedName("joot"));
+		output.addChild(new QualifiedName("joot"));
 		output.endChild();
 		output.endChild();
 	}

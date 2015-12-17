@@ -106,7 +106,7 @@ public class DataNodeUnbinder {
 										.terminate();
 								break;
 							case SIMPLE:
-								context.output().nextChild(node.getName());
+								context.output().addChild(node.getName());
 								bufferedTarget.pipe(context.output().writeContent())
 										.terminate();
 								context.output().endChild();

@@ -90,9 +90,9 @@ public class JsonSource implements StructuredDataSource {
 	}
 
 	@Override
-	public void endChild() {
+	public StructuredDataSource endChild() {
 		// TODO Auto-generated method stub
-
+		return this;
 	}
 
 	@Override

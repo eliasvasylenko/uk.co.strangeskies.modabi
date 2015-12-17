@@ -103,7 +103,7 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 	protected abstract void commentImpl(String comment);
 
 	@Override
-	public S nextChild(QualifiedName name) {
+	public S addChild(QualifiedName name) {
 		index.push(0);
 		enterState(StructuredDataState.ELEMENT_START);
 		nextChildImpl(name);

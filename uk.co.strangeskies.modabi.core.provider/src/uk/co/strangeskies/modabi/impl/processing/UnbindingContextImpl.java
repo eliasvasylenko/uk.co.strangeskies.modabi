@@ -125,7 +125,7 @@ public class UnbindingContextImpl extends
 		BufferingDataTarget dataTarget = null;
 
 		Navigable output = StructuredDataBuffer.singleBuffer(this.output.index())
-				.nextChild(new QualifiedName(""));
+				.addChild(new QualifiedName(""));
 
 		/*
 		 * Mark output! (by redirecting to a new buffer)

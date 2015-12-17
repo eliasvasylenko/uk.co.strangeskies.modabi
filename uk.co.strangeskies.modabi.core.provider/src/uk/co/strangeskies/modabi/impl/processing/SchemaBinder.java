@@ -82,7 +82,7 @@ public class SchemaBinder {
 					}
 
 					@Override
-					public void updateBinding() {
+					public void updateData() {
 						// TODO Auto-generated method stub
 
 					}

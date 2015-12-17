@@ -29,28 +29,25 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.io.structured.DiscardingStructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.RewritableStructuredData;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.processing.BindingState;
-import uk.co.strangeskies.modabi.processing.UnbindingState;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
 
 public interface SchemaManager {
 	interface Binder<T> {
 		BindingFuture<T> from(StructuredDataSource input);
+
+		BindingFuture<T> from(RewritableStructuredData input);
 
 		default BindingFuture<T> from(File input) {
 			return from(input.toURI());
@@ -64,52 +61,13 @@ public interface SchemaManager {
 			}
 		}
 
-		default BindingFuture<T> from(URL input) {
-			String extension = input.getPath();
-			int lastSlash = extension.lastIndexOf('/');
-			if (lastSlash > 0) {
-				extension = extension.substring(lastSlash);
-
-				int lastDot = extension.lastIndexOf('.');
-				if (lastDot > 0) {
-					extension = extension.substring(lastDot + 1);
-				} else {
-					extension = null;
-				}
-			} else {
-				extension = null;
-			}
-
-			try (InputStream fileStream = input.openStream()) {
-				if (extension != null) {
-					return from(extension, fileStream);
-				} else {
-					return from(fileStream);
-				}
-			} catch (IOException e) {
-				throw new IllegalArgumentException(e);
-			}
-		}
+		BindingFuture<T> from(URL input);
 
 		BindingFuture<T> from(InputStream input);
 
 		BindingFuture<T> from(String extension, InputStream input);
 
-		default <U> Binder<T> supply(TypeToken<U> type,
-				Supplier<TypedObject<? extends U>> action) {
-			return supply(type, s -> action.get());
-		}
-
-		default <U> Binder<T> supply(TypeToken<U> type,
-				Function<BindingState, TypedObject<? extends U>> action) {
-			return supply(s -> {
-				return (s instanceof BindingNode<?, ?, ?> && type.isAssignableFrom(
-						((BindingNode.Effective<?, ?, ?>) s.bindingNode()).getDataType()))
-								? action.apply(s) : null;
-			});
-		}
-
-		Binder<T> supply(Function<BindingState, TypedObject<?>> action);
+		Binder<T> updatable();
 
 		/*
 		 * Errors which are rethrown will be passed to the next error handler if
@@ -120,7 +78,9 @@ public interface SchemaManager {
 	}
 
 	interface Unbinder<T> {
-		BindingFuture<T> to(StructuredDataTarget output);
+		<U extends StructuredDataTarget> U to(U output);
+
+		BindingFuture<T> to(RewritableStructuredData output);
 
 		default BindingFuture<T> to(File output) {
 			return to(output.toURI());
@@ -156,15 +116,7 @@ public interface SchemaManager {
 
 		BindingFuture<T> to(String extension, OutputStream output);
 
-		Unbinder<T> consume(Predicate<UnbindingState> filter);
-
-		default <U> Unbinder<T> consume(TypeToken<U> type,
-				Predicate<TypedObject<? extends U>> filter) {
-			return consume(type, (s, o) -> filter.test(o));
-		}
-
-		<U> Unbinder<T> consume(TypeToken<U> type,
-				BiPredicate<UnbindingState, TypedObject<? extends U>> filter);
+		Unbinder<T> updatable();
 
 		/*
 		 * Errors which are rethrown will be passed to the next error handler if
@@ -208,7 +160,10 @@ public interface SchemaManager {
 	boolean registerSchema(Schema schema);
 
 	default <T> BindingFuture<T> registerBinding(Model<T> model, T data) {
-		return unbind(model, data).to(new DiscardingStructuredDataTarget());
+		BindingFuture<T> binding = unbind(model, data)
+				.to(new DiscardingStructuredDataTarget());
+		binding.resolve();
+		return binding;
 	}
 
 	// Blocks until all possible processing is done other than waiting imports:

@@ -90,7 +90,7 @@ public class ComplexNodeUnbinder {
 			ComplexNode.Effective<U> element, U data) {
 		try {
 			if (!element.isInline())
-				context.output().nextChild(element.getName());
+				context.output().addChild(element.getName());
 
 			new BindingNodeUnbinder(context).unbind(element, data);
 

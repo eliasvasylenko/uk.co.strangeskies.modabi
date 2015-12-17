@@ -64,7 +64,7 @@ public class SchemaUnbinder {
 		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
 		try {
-			context.output().nextChild(model.getName());
+			context.output().addChild(model.getName());
 			new BindingNodeUnbinder(context).unbind(model, data);
 			context.output().endChild();
 		} catch (UnbindingException e) {
@@ -96,7 +96,7 @@ public class SchemaUnbinder {
 			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
 
 			try {
-				c.output().nextChild(m.getName());
+				c.output().addChild(m.getName());
 
 				U castData = (U) data;
 

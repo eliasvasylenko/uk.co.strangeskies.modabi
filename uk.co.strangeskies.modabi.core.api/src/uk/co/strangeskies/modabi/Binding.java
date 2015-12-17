@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface Binding<T> {
@@ -26,9 +26,9 @@ public interface Binding<T> {
 
 	public T getData();
 
-	public void updateBinding();
+	public void updateData();
 
-	public NavigableStructuredDataSource getSource();
+	public StructuredDataSource getSource();
 
 	public void updateSource();
 }

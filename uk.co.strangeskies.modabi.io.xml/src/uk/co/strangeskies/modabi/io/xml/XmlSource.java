@@ -234,7 +234,7 @@ public class XmlSource implements StructuredDataSource {
 	}
 
 	@Override
-	public void endChild() {
+	public StructuredDataSource endChild() {
 		if (nextChild != null)
 			while (pumpEvents() != null)
 				;
@@ -247,6 +247,8 @@ public class XmlSource implements StructuredDataSource {
 		pumpEvents();
 
 		namespaceStack.pop();
+		
+		return this;
 	}
 
 	@Override
