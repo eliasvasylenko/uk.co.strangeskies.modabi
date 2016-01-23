@@ -47,7 +47,7 @@ public interface SchemaManager {
 	interface Binder<T> {
 		BindingFuture<T> from(StructuredDataSource input);
 
-		BindingFuture<T> from(RewritableStructuredData input);
+		// BindingFuture<T> from(RewritableStructuredData input);
 
 		default BindingFuture<T> from(File input) {
 			return from(input.toURI());
@@ -67,7 +67,7 @@ public interface SchemaManager {
 
 		BindingFuture<T> from(String extension, InputStream input);
 
-		Binder<T> updatable();
+		// Binder<T> updatable();
 
 		/*
 		 * Errors which are rethrown will be passed to the next error handler if
@@ -80,7 +80,7 @@ public interface SchemaManager {
 	interface Unbinder<T> {
 		<U extends StructuredDataTarget> U to(U output);
 
-		BindingFuture<T> to(RewritableStructuredData output);
+		// BindingFuture<T> to(RewritableStructuredData output);
 
 		default BindingFuture<T> to(File output) {
 			return to(output.toURI());
@@ -100,12 +100,11 @@ public interface SchemaManager {
 			if (lastDot > 0) {
 				extension = extension.substring(lastDot);
 			} else {
-				throw new IllegalArgumentException("No recognisable extension for file'"
-						+ output + "', data interface cannot be selected");
+				throw new IllegalArgumentException(
+						"No recognisable extension for file'" + output + "', data interface cannot be selected");
 			}
 
-			try (
-					OutputStream fileStream = output.openConnection().getOutputStream()) {
+			try (OutputStream fileStream = output.openConnection().getOutputStream()) {
 				BindingFuture<T> binding = to(extension, fileStream);
 				fileStream.flush();
 				return binding;
@@ -116,7 +115,7 @@ public interface SchemaManager {
 
 		BindingFuture<T> to(String extension, OutputStream output);
 
-		Unbinder<T> updatable();
+		// Unbinder<T> updatable();
 
 		/*
 		 * Errors which are rethrown will be passed to the next error handler if
@@ -140,31 +139,23 @@ public interface SchemaManager {
 		return generateSchema(name, Collections.emptySet());
 	}
 
-	default GeneratedSchema generateSchema(QualifiedName name,
-			Schema... dependencies) {
+	default GeneratedSchema generateSchema(QualifiedName name, Schema... dependencies) {
 		return generateSchema(name, Arrays.asList(dependencies));
 	}
 
-	GeneratedSchema generateSchema(QualifiedName name,
-			Collection<? extends Schema> dependencies);
+	GeneratedSchema generateSchema(QualifiedName name, Collection<? extends Schema> dependencies);
 
 	<T> void registerProvider(TypeToken<T> providedClass, Supplier<T> provider);
 
 	void registerProvider(Function<TypeToken<?>, ?> provider);
 
-	default <T> void registerProvider(Class<T> providedClass,
-			Supplier<T> provider) {
+	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
 		registerProvider(TypeToken.over(providedClass), provider);
 	}
 
 	boolean registerSchema(Schema schema);
 
-	default <T> BindingFuture<T> registerBinding(Model<T> model, T data) {
-		BindingFuture<T> binding = unbind(model, data)
-				.to(new DiscardingStructuredDataTarget());
-		binding.resolve();
-		return binding;
-	}
+	<T> BindingFuture<T> registerBinding(Model<T> model, T data);
 
 	// Blocks until all possible processing is done other than waiting imports:
 	<T> Binder<T> bind(Model<T> model);

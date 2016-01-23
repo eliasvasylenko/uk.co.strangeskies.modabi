@@ -1,5 +1,5 @@
 
-<testsuite name='test.uk.co.strangeskies.modabi.core.test' tests='10' time='1.190' failures='0' skipped='0' target='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' timestamp='2015-11-08T01:12:35' hostname='eli-desktop' framework='org.apache.felix.framework [0]' errors='1' framework-version='5.2.0'>
+<testsuite name='test.uk.co.strangeskies.modabi.core.test' tests='10' time='3.376' failures='0' skipped='0' target='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' timestamp='2016-01-23T12:31:23' hostname='eli-desktop' framework='org.apache.felix.framework [0]' errors='0' framework-version='5.2.0'>
   <properties>
     <property name='java.vendor' value='Oracle Corporation'/>
     <property name='org.osgi.service.http.port' value='8080'/>
@@ -11,8 +11,8 @@
     <property name='java.vm.specification.vendor' value='Oracle Corporation'/>
     <property name='java.runtime.version' value='1.8.0_60-b27'/>
     <property name='launch.services' value='true'/>
-    <property name='launch.notificationPort' value='57964'/>
-    <property name='launcher.properties' value='/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/launch3024640718439824922.properties'/>
+    <property name='launch.notificationPort' value='53613'/>
+    <property name='launcher.properties' value='/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/launch6410726710967517257.properties'/>
     <property name='user.name' value='eli'/>
     <property name='launch.bundles' value='/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fbiz.aQute.tester/biz.aQute.tester-3.0.0.jar,/home/eli/.bnd/shacache/shas/53200A9D80FFF3106DC435DE1350CDD20B757819/net.minidev.json-smart-2.2.0.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.gogo.command/org.apache.felix.gogo.command-0.14.0.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.gogo.runtime/org.apache.felix.gogo.runtime-0.16.2.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.gogo.shell/org.apache.felix.gogo.shell-0.10.0.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.log/org.apache.felix.log-1.0.1.jar,/home/eli/.bnd/shacache/shas/E98972F46B0EBF8BE4A10F9C10F0471528DB54D1/org.apache.felix.metatype-1.1.2.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Forg.apache.felix.scr/org.apache.felix.scr-2.0.0.jar,/home/eli/.bnd/shacache/shas/3B100EE9FF904F0B63898D796FA47579D010D083/org.apache.servicemix.bundles.stax-utils-20070216.0.0.1.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.hamcrest.wrapper/osgi.enroute.hamcrest.wrapper-1.3.0.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.junit.wrapper/osgi.enroute.junit.wrapper-4.12.0.jar,/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.logger.simple.provider/osgi.enroute.logger.simple.provider-1.2.1.jar,/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.mathematics/uk.co.strangeskies.mathematics-1.0.13.jar,/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.api/generated/uk.co.strangeskies.modabi.core.api.jar,/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.provider/generated/uk.co.strangeskies.modabi.core.provider.jar,/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.json/generated/uk.co.strangeskies.modabi.io.json.jar,/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.xml/generated/uk.co.strangeskies.modabi.io.xml.jar,/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.reflection/uk.co.strangeskies.reflection-1.0.13.jar,/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities/uk.co.strangeskies.utilities-1.0.13.jar,/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities.osgi.consolelog/uk.co.strangeskies.utilities.osgi.consolelog-1.0.13.jar,/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar'/>
     <property name='tester.trace' value='true'/>
@@ -34,7 +34,7 @@
     <property name='user.country' value='GB'/>
     <property name='java.home' value='/usr/lib/jvm/java-8-oracle/jre'/>
     <property name='java.vm.info' value='mixed mode'/>
-    <property name='os.version' value='4.2.0-17-generic'/>
+    <property name='os.version' value='4.3.0-5-generic'/>
     <property name='path.separator' value=':'/>
     <property name='java.vm.version' value='25.60-b23'/>
     <property name='osgi.console' value=''/>
@@ -49,7 +49,7 @@
     <property name='java.runtime.name' value='Java(TM) SE Runtime Environment'/>
     <property name='sun.java.command' value='aQute.launcher.Launcher'/>
     <property name='java.class.path' value='/home/eli/.bnd/cache/https%3A%2F%2Fraw.githubusercontent.com%2Fosgi%2Fosgi.enroute%2Fmaster%2Fcnf%2Fdistro%2Fosgi.enroute.equinox.log.adapter/osgi.enroute.equinox.log.adapter-1.0.1.jar:/home/eli/.bnd/shacache/shas/670079DB885BAF139E7781E132448B6877D8D624/org.apache.felix.framework-5.2.0.jar:/home/eli/workspaces/uk.co.strangeskies.modabi/cnf/cache/3.1.0/biz.aQute.launcher/biz.aQute.launcher-3.1.0.jar'/>
-    <property name='launch.system.capabilities' value='osgi.native;osgi.native.osname:List&lt;String&gt;=Linux;osgi.native.osversion:Version="4.2.0.-17-generic";osgi.native.processor:List&lt;String&gt;="x86-64,amd64,em64t,x86_64"'/>
+    <property name='launch.system.capabilities' value='osgi.native;osgi.native.osname:List&lt;String&gt;=Linux;osgi.native.osversion:Version="4.3.0.-5-generic";osgi.native.processor:List&lt;String&gt;="x86-64,amd64,em64t,x86_64"'/>
     <property name='launch.name' value='uk.co.strangeskies.modabi.core.test'/>
     <property name='launch.timeout' value='0'/>
     <property name='launch.storage.dir' value='/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/fw'/>
@@ -78,34 +78,34 @@
   </properties>
   <bundles>
     <bundle version='5.2.0' location='System Bundle' bsn='org.apache.felix.framework' modified='1970-01-01T01:00:00' state='32' id='0'/>
-    <bundle version='3.0.0.201508170645' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fbiz.aQute.tester/biz.aQute.tester-3.0.0.jar' bsn='biz.aQute.tester' modified='2015-11-08T01:12:32' state='32' id='1'/>
-    <bundle version='2.2.0' location='reference:file:/home/eli/.bnd/shacache/shas/53200A9D80FFF3106DC435DE1350CDD20B757819/net.minidev.json-smart-2.2.0.jar' bsn='net.minidev.json-smart' modified='2015-11-08T01:12:32' state='32' id='2'/>
-    <bundle version='0.14.0' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.command/org.apache.felix.gogo.command-0.14.0.jar' bsn='org.apache.felix.gogo.command' modified='2015-11-08T01:12:32' state='32' id='3'/>
-    <bundle version='0.16.2' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.runtime/org.apache.felix.gogo.runtime-0.16.2.jar' bsn='org.apache.felix.gogo.runtime' modified='2015-11-08T01:12:32' state='32' id='4'/>
-    <bundle version='0.10.0' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.shell/org.apache.felix.gogo.shell-0.10.0.jar' bsn='org.apache.felix.gogo.shell' modified='2015-11-08T01:12:32' state='32' id='5'/>
-    <bundle version='1.0.1' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.log/org.apache.felix.log-1.0.1.jar' bsn='org.apache.felix.log' modified='2015-11-08T01:12:32' state='32' id='6'/>
-    <bundle version='1.1.2' location='reference:file:/home/eli/.bnd/shacache/shas/E98972F46B0EBF8BE4A10F9C10F0471528DB54D1/org.apache.felix.metatype-1.1.2.jar' bsn='org.apache.felix.metatype' modified='2015-11-08T01:12:32' state='32' id='7'/>
-    <bundle version='2.0.0' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.scr/org.apache.felix.scr-2.0.0.jar' bsn='org.apache.felix.scr' modified='2015-11-08T01:12:32' state='32' id='8'/>
-    <bundle version='20070216.0.0.1' location='reference:file:/home/eli/.bnd/shacache/shas/3B100EE9FF904F0B63898D796FA47579D010D083/org.apache.servicemix.bundles.stax-utils-20070216.0.0.1.jar' bsn='org.apache.servicemix.bundles.stax-utils' modified='2015-11-08T01:12:32' state='32' id='9'/>
-    <bundle version='1.3.0.201509161450' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.hamcrest.wrapper/osgi.enroute.hamcrest.wrapper-1.3.0.jar' bsn='osgi.enroute.hamcrest.wrapper' modified='2015-11-08T01:12:32' state='32' id='10'/>
-    <bundle version='4.12.0.201509161450' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.junit.wrapper/osgi.enroute.junit.wrapper-4.12.0.jar' bsn='osgi.enroute.junit.wrapper' modified='2015-11-08T01:12:32' state='32' id='11'/>
-    <bundle version='1.2.1.201510121300' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.logger.simple.provider/osgi.enroute.logger.simple.provider-1.2.1.jar' bsn='osgi.enroute.logger.simple.provider' modified='2015-11-08T01:12:32' state='32' id='12'/>
-    <bundle version='1.0.13.201510281754' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.mathematics/uk.co.strangeskies.mathematics-1.0.13.jar' bsn='uk.co.strangeskies.mathematics' modified='2015-11-08T01:12:32' state='32' id='13'/>
-    <bundle version='1.0.0.201511072153' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.api/generated/uk.co.strangeskies.modabi.core.api.jar' bsn='uk.co.strangeskies.modabi.core.api' modified='2015-11-08T01:12:32' state='32' id='14'/>
-    <bundle version='1.0.0.201511080100' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.provider/generated/uk.co.strangeskies.modabi.core.provider.jar' bsn='uk.co.strangeskies.modabi.core.provider' modified='2015-11-08T01:12:32' state='32' id='15'/>
-    <bundle version='1.0.0.201511072153' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.json/generated/uk.co.strangeskies.modabi.io.json.jar' bsn='uk.co.strangeskies.modabi.io.json' modified='2015-11-08T01:12:32' state='32' id='16'/>
-    <bundle version='1.0.0.201511072153' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.xml/generated/uk.co.strangeskies.modabi.io.xml.jar' bsn='uk.co.strangeskies.modabi.io.xml' modified='2015-11-08T01:12:32' state='32' id='17'/>
-    <bundle version='1.0.13.201511062356' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.reflection/uk.co.strangeskies.reflection-1.0.13.jar' bsn='uk.co.strangeskies.reflection' modified='2015-11-08T01:12:32' state='32' id='18'/>
-    <bundle version='1.0.13.201511062157' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities/uk.co.strangeskies.utilities-1.0.13.jar' bsn='uk.co.strangeskies.utilities' modified='2015-11-08T01:12:32' state='32' id='19'/>
-    <bundle version='1.0.13.201510281754' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities.osgi.consolelog/uk.co.strangeskies.utilities.osgi.consolelog-1.0.13.jar' bsn='uk.co.strangeskies.utilities.osgi.consolelog' modified='2015-11-08T01:12:32' state='32' id='20'/>
-    <bundle version='1.0.0.201511072153' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' bsn='uk.co.strangeskies.modabi.core.test' modified='2015-11-08T01:12:32' state='32' target='true' id='21'/>
+    <bundle version='3.0.0.201508170645' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fbiz.aQute.tester/biz.aQute.tester-3.0.0.jar' bsn='biz.aQute.tester' modified='2016-01-23T12:31:17' state='32' id='1'/>
+    <bundle version='2.2.0' location='reference:file:/home/eli/.bnd/shacache/shas/53200A9D80FFF3106DC435DE1350CDD20B757819/net.minidev.json-smart-2.2.0.jar' bsn='net.minidev.json-smart' modified='2016-01-23T12:31:17' state='32' id='2'/>
+    <bundle version='0.14.0' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.command/org.apache.felix.gogo.command-0.14.0.jar' bsn='org.apache.felix.gogo.command' modified='2016-01-23T12:31:17' state='32' id='3'/>
+    <bundle version='0.16.2' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.runtime/org.apache.felix.gogo.runtime-0.16.2.jar' bsn='org.apache.felix.gogo.runtime' modified='2016-01-23T12:31:17' state='32' id='4'/>
+    <bundle version='0.10.0' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.gogo.shell/org.apache.felix.gogo.shell-0.10.0.jar' bsn='org.apache.felix.gogo.shell' modified='2016-01-23T12:31:17' state='32' id='5'/>
+    <bundle version='1.0.1' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.log/org.apache.felix.log-1.0.1.jar' bsn='org.apache.felix.log' modified='2016-01-23T12:31:17' state='32' id='6'/>
+    <bundle version='1.1.2' location='reference:file:/home/eli/.bnd/shacache/shas/E98972F46B0EBF8BE4A10F9C10F0471528DB54D1/org.apache.felix.metatype-1.1.2.jar' bsn='org.apache.felix.metatype' modified='2016-01-23T12:31:17' state='32' id='7'/>
+    <bundle version='2.0.0' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Forg.apache.felix.scr/org.apache.felix.scr-2.0.0.jar' bsn='org.apache.felix.scr' modified='2016-01-23T12:31:17' state='32' id='8'/>
+    <bundle version='20070216.0.0.1' location='reference:file:/home/eli/.bnd/shacache/shas/3B100EE9FF904F0B63898D796FA47579D010D083/org.apache.servicemix.bundles.stax-utils-20070216.0.0.1.jar' bsn='org.apache.servicemix.bundles.stax-utils' modified='2016-01-23T12:31:17' state='32' id='9'/>
+    <bundle version='1.3.0.201509161450' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.hamcrest.wrapper/osgi.enroute.hamcrest.wrapper-1.3.0.jar' bsn='osgi.enroute.hamcrest.wrapper' modified='2016-01-23T12:31:17' state='32' id='10'/>
+    <bundle version='4.12.0.201509161450' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.junit.wrapper/osgi.enroute.junit.wrapper-4.12.0.jar' bsn='osgi.enroute.junit.wrapper' modified='2016-01-23T12:31:17' state='32' id='11'/>
+    <bundle version='1.2.1.201510121300' location='reference:file:/home/eli/.bnd/cache/https%253A%252F%252Fraw.githubusercontent.com%252Fosgi%252Fosgi.enroute%252Fmaster%252Fcnf%252Fdistro%252Fosgi.enroute.logger.simple.provider/osgi.enroute.logger.simple.provider-1.2.1.jar' bsn='osgi.enroute.logger.simple.provider' modified='2016-01-23T12:31:17' state='32' id='12'/>
+    <bundle version='1.0.13.201601222324' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.mathematics/uk.co.strangeskies.mathematics-1.0.13.jar' bsn='uk.co.strangeskies.mathematics' modified='2016-01-23T12:31:17' state='32' id='13'/>
+    <bundle version='1.0.0.201601231228' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.api/generated/uk.co.strangeskies.modabi.core.api.jar' bsn='uk.co.strangeskies.modabi.core.api' modified='2016-01-23T12:31:17' state='32' id='14'/>
+    <bundle version='1.0.0.201601231230' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.provider/generated/uk.co.strangeskies.modabi.core.provider.jar' bsn='uk.co.strangeskies.modabi.core.provider' modified='2016-01-23T12:31:17' state='32' id='15'/>
+    <bundle version='1.0.0.201601231228' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.json/generated/uk.co.strangeskies.modabi.io.json.jar' bsn='uk.co.strangeskies.modabi.io.json' modified='2016-01-23T12:31:17' state='32' id='16'/>
+    <bundle version='1.0.0.201601231228' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.io.xml/generated/uk.co.strangeskies.modabi.io.xml.jar' bsn='uk.co.strangeskies.modabi.io.xml' modified='2016-01-23T12:31:17' state='32' id='17'/>
+    <bundle version='1.0.13.201601222256' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.reflection/uk.co.strangeskies.reflection-1.0.13.jar' bsn='uk.co.strangeskies.reflection' modified='2016-01-23T12:31:17' state='32' id='18'/>
+    <bundle version='1.0.13.201601222256' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities/uk.co.strangeskies.utilities-1.0.13.jar' bsn='uk.co.strangeskies.utilities' modified='2016-01-23T12:31:17' state='32' id='19'/>
+    <bundle version='1.0.13.201601222256' location='reference:file:/home/eli/workspaces/uk.co.strangeskies/cnf/release/uk.co.strangeskies.utilities.osgi.consolelog/uk.co.strangeskies.utilities.osgi.consolelog-1.0.13.jar' bsn='uk.co.strangeskies.utilities.osgi.consolelog' modified='2016-01-23T12:31:17' state='32' id='20'/>
+    <bundle version='1.0.0.201601231228' location='reference:file:/home/eli/workspaces/uk.co.strangeskies.modabi/uk.co.strangeskies.modabi.core.test/generated/uk.co.strangeskies.modabi.core.test.jar' bsn='uk.co.strangeskies.modabi.core.test' modified='2016-01-23T12:31:17' state='32' target='true' id='21'/>
   </bundles>
-  <testcase name='schemaManagerServiceTest' time='0.0' classname='uk.co.strangeskies.modabi.core.test.CopyableTest'>
+  <testcase name='schemaManagerServiceTest' time='0.1' classname='uk.co.strangeskies.modabi.core.test.CopyableTest'>
     <system-out>
       copyable
     </system-out>
   </testcase>
-  <testcase name='abstractChoiceNodeTest' time='0.7' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
+  <testcase name='abstractChoiceNodeTest' time='0.21' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
     <system-out>
       testy
 testy2
@@ -117,161 +117,7 @@ testy2
 testy2
     </system-out>
   </testcase>
-  <testcase name='schemaUnbindingTest' time='0.706' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
-    <error type='uk.co.strangeskies.modabi.SchemaException'><![CDATA[uk.co.strangeskies.modabi.SchemaException: Exception during binding of 'uk.co.strangeskies.modabi:2014-01-01:schema' with model 'uk.co.strangeskies.modabi:2014-01-01:schema'
- at uk.co.strangeskies.modabi.impl.processing.SchemaBinder$1.tryGet(SchemaBinder.java:114)
- at uk.co.strangeskies.modabi.impl.processing.SchemaBinder$1.get(SchemaBinder.java:99)
- at uk.co.strangeskies.modabi.processing.BindingFuture.resolve(BindingFuture.java:45)
- at uk.co.strangeskies.modabi.core.test.SchemaTest.lambda$1(SchemaTest.java:157)
- at uk.co.strangeskies.utilities.ContextClassLoaderRunner.run(ContextClassLoaderRunner.java:60)
- at uk.co.strangeskies.modabi.core.test.SchemaTest.schemaUnbindingTest(SchemaTest.java:97)
- at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
- at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
- at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
- at java.lang.reflect.Method.invoke(Method.java:497)
- at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
- at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
- at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
- at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
- at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
- at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
- at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
- at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
- at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
- at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
- at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
- at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
- at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
- at junit.framework.JUnit4TestAdapter.run(JUnit4TestAdapter.java:38)
- at junit.framework.TestSuite.runTest(TestSuite.java:252)
- at junit.framework.TestSuite.run(TestSuite.java:247)
- at aQute.junit.Activator.test(Activator.java:325)
- at aQute.junit.Activator.automatic(Activator.java:208)
- at aQute.junit.Activator.run(Activator.java:142)
- at aQute.launcher.Launcher$5.call(Launcher.java:1186)
- at aQute.launcher.Launcher$5.call(Launcher.java:1184)
- at aQute.launcher.Launcher.run(Launcher.java:277)
- at aQute.launcher.Launcher.main(Launcher.java:87)
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Failed to bind node 'uk.co.strangeskies.modabi:2014-01-01:types' at node 'uk.co.strangeskies.modabi:2014-01-01:types' with binding target object 'uk.co.strangeskies.modabi.impl.SchemaBuilderImpl$SchemaConfiguratorImpl@48da5106'
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.bind(ChildNodeBinder.java:95)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.bind(BindingNodeBinder.java:141)
- at uk.co.strangeskies.modabi.impl.processing.SchemaBinder.lambda$0(SchemaBinder.java:70)
- at java.util.concurrent.FutureTask.run(FutureTask.java:266)
- at uk.co.strangeskies.modabi.impl.processing.SchemaBinder.bind(SchemaBinder.java:78)
- at uk.co.strangeskies.modabi.impl.SchemaManagerImpl.lambda$4(SchemaManagerImpl.java:258)
- at uk.co.strangeskies.modabi.impl.SchemaManagerImpl$6.from(SchemaManagerImpl.java:211)
- at uk.co.strangeskies.modabi.core.test.SchemaTest.lambda$1(SchemaTest.java:156)
- ... 29 more
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Node 'uk.co.strangeskies.modabi:2014-01-01:types' failed to bind on occurance '0' of range '[0,1]' at node 'uk.co.strangeskies.modabi:2014-01-01:types' with binding target object 'uk.co.strangeskies.modabi.impl.SchemaBuilderImpl$SchemaConfiguratorImpl@48da5106'
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.repeatNode(ChildNodeBinder.java:46)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.bind(ComplexNodeBinder.java:58)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.<init>(ComplexNodeBinder.java:39)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder$1.accept(ChildNodeBinder.java:67)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder$1.accept(ChildNodeBinder.java:1)
- at uk.co.strangeskies.modabi.schema.ChildNode$Effective$1.accept(ChildNode.java:61)
- at uk.co.strangeskies.modabi.schema.ComplexNode$Effective.process(ComplexNode.java:31)
- at uk.co.strangeskies.modabi.schema.ChildNode$Effective.process(ChildNode.java:38)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.bind(ChildNodeBinder.java:93)
- ... 36 more
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Failed to bind node 'uk.co.strangeskies.modabi:2014-01-01:type' at node 'uk.co.strangeskies.modabi:2014-01-01:type' with binding target object '[]'
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.bind(ChildNodeBinder.java:95)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.bind(BindingNodeBinder.java:141)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.bindExactNode(ComplexNodeBinder.java:145)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.lambda$1(ComplexNodeBinder.java:72)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.lambda$0(ComplexNodeBinder.java:93)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.repeatNode(ChildNodeBinder.java:39)
- ... 44 more
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Node 'uk.co.strangeskies.modabi:2014-01-01:type' failed to bind on occurance '1' of range '[0,]' at node 'uk.co.strangeskies.modabi:2014-01-01:type' with binding target object '[]'
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.repeatNode(ChildNodeBinder.java:46)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.bind(ComplexNodeBinder.java:58)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.<init>(ComplexNodeBinder.java:39)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder$1.accept(ChildNodeBinder.java:67)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder$1.accept(ChildNodeBinder.java:1)
- at uk.co.strangeskies.modabi.schema.ChildNode$Effective$1.accept(ChildNode.java:61)
- at uk.co.strangeskies.modabi.schema.ComplexNode$Effective.process(ComplexNode.java:31)
- at uk.co.strangeskies.modabi.schema.ChildNode$Effective.process(ChildNode.java:38)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.bind(ChildNodeBinder.java:93)
- ... 49 more
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Failed to bind node 'uk.co.strangeskies.modabi:2014-01-01:dataType' at node 'uk.co.strangeskies.modabi:2014-01-01:dataType' with binding target object 'DataType configurator: uk.co.strangeskies.modabi:2014-01-01:id'
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.bind(ChildNodeBinder.java:95)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.bind(BindingNodeBinder.java:141)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.bindExactNode(ComplexNodeBinder.java:145)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.lambda$1(ComplexNodeBinder.java:72)
- at uk.co.strangeskies.modabi.impl.processing.ComplexNodeBinder.lambda$0(ComplexNodeBinder.java:93)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.repeatNode(ChildNodeBinder.java:39)
- ... 57 more
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Node 'uk.co.strangeskies.modabi:2014-01-01:annotatedType' must be bound data. at node 'uk.co.strangeskies.modabi:2014-01-01:dataType' with binding target object 'DataType configurator: uk.co.strangeskies.modabi:2014-01-01:id'
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.validateResults(DataNodeBinder.java:136)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bindList(DataNodeBinder.java:186)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bind(DataNodeBinder.java:123)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.<init>(DataNodeBinder.java:46)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder$4.accept(BindingNodeBinder.java:189)
- at uk.co.strangeskies.modabi.schema.DataNode$Effective.process(DataNode.java:39)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.getSingleBinding(BindingNodeBinder.java:181)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder$3.accept(BindingNodeBinder.java:171)
- at uk.co.strangeskies.modabi.impl.PartialSchemaProcessingContext.accept(PartialSchemaProcessingContext.java:41)
- at uk.co.strangeskies.modabi.schema.DataNode$Effective.process(DataNode.java:39)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.getSingleBindingSequence(BindingNodeBinder.java:162)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.bind(BindingNodeBinder.java:121)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bindExactNode(DataNodeBinder.java:229)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bindWithDataSource(DataNodeBinder.java:195)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bind(DataNodeBinder.java:103)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.<init>(DataNodeBinder.java:46)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder$1.accept(ChildNodeBinder.java:72)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder$1.accept(ChildNodeBinder.java:1)
- at uk.co.strangeskies.modabi.schema.ChildNode$Effective$1.accept(ChildNode.java:56)
- at uk.co.strangeskies.modabi.schema.DataNode$Effective.process(DataNode.java:39)
- at uk.co.strangeskies.modabi.schema.ChildNode$Effective.process(ChildNode.java:38)
- at uk.co.strangeskies.modabi.impl.processing.ChildNodeBinder.bind(ChildNodeBinder.java:93)
- ... 62 more
-Caused by: uk.co.strangeskies.modabi.processing.BindingException: Cannot invoke static factory method 'public static java.lang.reflect.AnnotatedType uk.co.strangeskies.reflection.AnnotatedTypes.fromString(java.lang.String)' on class 'null' with parameters '[uk.co.strangeskies.modabi.processing.providers.ReferenceId<@uk.co.strangeskies.reflection.TypeToken.Infer ?>]' at node 'uk.co.strangeskies.modabi:2014-01-01:annotatedType' with binding target object 'DataType configurator: uk.co.strangeskies.modabi:2014-01-01:id'
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.bind(BindingNodeBinder.java:126)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bindExactNode(DataNodeBinder.java:229)
- at uk.co.strangeskies.modabi.impl.processing.DataNodeBinder.bindList(DataNodeBinder.java:172)
- ... 82 more
-Caused by: java.lang.reflect.InvocationTargetException
- at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
- at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
- at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
- at java.lang.reflect.Method.invoke(Method.java:497)
- at uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder.bind(BindingNodeBinder.java:123)
- ... 84 more
-Caused by: uk.co.strangeskies.utilities.text.ParseException: Cannot apply transformation to parse result
-uk.co.strangeskies.modabi.processing.providers.ReferenceId<@uk.co.strangeskies.reflection.TypeToken.Infer ?>
-^..........................................................^
- at uk.co.strangeskies.utilities.text.ParseState.addException(ParseState.java:98)
- at uk.co.strangeskies.utilities.text.ParseResult.mapResult(ParseResult.java:58)
- at uk.co.strangeskies.utilities.text.ParserProxy.parseSubstringImpl(ParserProxy.java:54)
- at uk.co.strangeskies.utilities.text.AbstractParser.parseSubstring(AbstractParser.java:86)
- at uk.co.strangeskies.utilities.text.JoiningParser.parseSubstringImpl(JoiningParser.java:42)
- at uk.co.strangeskies.utilities.text.AbstractParser.parseSubstring(AbstractParser.java:86)
- at uk.co.strangeskies.utilities.text.AppendingParser.parseSubstringImpl(AppendingParser.java:39)
- at uk.co.strangeskies.utilities.text.AbstractParser.parseSubstring(AbstractParser.java:86)
- at uk.co.strangeskies.utilities.text.JoiningParser.parseSubstringImpl(JoiningParser.java:40)
- at uk.co.strangeskies.utilities.text.AbstractParser.parseSubstring(AbstractParser.java:86)
- at uk.co.strangeskies.utilities.text.ParserProxy.parseSubstringImpl(ParserProxy.java:54)
- at uk.co.strangeskies.utilities.text.ChoiceParser.parseSubstringImpl(ChoiceParser.java:46)
- at uk.co.strangeskies.utilities.text.AbstractParser.parseSubstring(AbstractParser.java:86)
- at uk.co.strangeskies.utilities.text.AbstractParser.parse(AbstractParser.java:81)
- at uk.co.strangeskies.reflection.AnnotatedTypes.fromString(AnnotatedTypes.java:468)
- at uk.co.strangeskies.reflection.AnnotatedTypes.fromString(AnnotatedTypes.java:452)
- ... 89 more
-Caused by: java.lang.IllegalArgumentException: Cannot load class 'uk.co.strangeskies.modabi.processing.providers.ReferenceId'
- at uk.co.strangeskies.reflection.Imports.getNamedClass(Imports.java:215)
- at uk.co.strangeskies.reflection.Imports.getNamedClass(Imports.java:165)
- at uk.co.strangeskies.utilities.text.ParseResult.mapResult(ParseResult.java:54)
- ... 103 more
-Caused by: java.lang.ClassNotFoundException: uk.co.strangeskies.modabi.processing.providers.ReferenceId not found by uk.co.strangeskies.modabi.core.test [21]
- at org.apache.felix.framework.BundleWiringImpl.findClassOrResourceByDelegation(BundleWiringImpl.java:1558)
- at org.apache.felix.framework.BundleWiringImpl.access$400(BundleWiringImpl.java:79)
- at org.apache.felix.framework.BundleWiringImpl$BundleClassLoader.loadClass(BundleWiringImpl.java:1998)
- at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
- at java.lang.Class.forName0(Native Method)
- at java.lang.Class.forName(Class.java:348)
- at uk.co.strangeskies.reflection.Imports.getNamedClass(Imports.java:194)
- ... 105 more
-]]>
-    </error>
+  <testcase name='schemaUnbindingTest' time='2.826' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
     <system-out>
       testy
 testy2
@@ -591,7 +437,9 @@ Unbinding BaseSchema...
             &amp;lt;data name="bindingTarget" type="int" value="1"
        outMethod="null" inMethodChained="true"/&amp;gt;
         
-        &amp;lt;/data&amp;gt;
+          &amp;lt;inputSequence name="getObject" inMethodChained="true"/&amp;gt;
+      
+          &amp;lt;/data&amp;gt;
         &amp;lt;/inputSequence&amp;gt;
       
       &amp;lt;/data&amp;gt;
@@ -697,8 +545,6 @@ Unbinding BaseSchema...
 
 Unbinding
        MetaSchema...
-uk.co.strangeskies.modabi:2014-01-01:successful
-       name get...
 interface uk.co.strangeskies.modabi.schema.SchemaNode
       
 &amp;lt;?xml version="1.0" ?&amp;gt;
@@ -708,15 +554,7 @@ interface uk.co.strangeskies.modabi.schema.SchemaNode
       
   &amp;lt;dependencies&amp;gt;BaseSchema&amp;lt;/dependencies&amp;gt;
       
-  &amp;lt;types&amp;gt;
-    &amp;lt;type name="extensionData"
-       dataType="@uk.co.strangeskies.reflection.TypeToken.Infer ?"
-       abstract="true"/&amp;gt;
-    &amp;lt;type baseType="extensionData"
-       name="id" dataType="uk.co.strangeskies.modabi.processing.providers.ReferenceId&amp;amp;lt;@uk.co.strangeskies.reflection.TypeToken.Infer
-       ?&amp;amp;gt;" bindingStrategy="CONSTRUCTOR" abstract="true"/&amp;gt;
-      
-  &amp;lt;/types&amp;gt;
+  &amp;lt;types/&amp;gt;
   &amp;lt;models&amp;gt;
     &amp;lt;model
        name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
@@ -1083,9 +921,762 @@ interface uk.co.strangeskies.modabi.schema.SchemaNode
 
 
 Re-binding MetaSchema...
+Success: true
+
+
+Re-unbinding MetaSchema...
+      
+&amp;lt;?xml version="1.0" ?&amp;gt;
+&amp;lt;schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+       name="MetaSchema"&amp;gt;
+  &amp;lt;imports&amp;gt;uk.co.strangeskies.modabi.Schema&amp;lt;/imports&amp;gt;
+      
+  &amp;lt;dependencies&amp;gt;BaseSchema&amp;lt;/dependencies&amp;gt;
+      
+  &amp;lt;types/&amp;gt;
+  &amp;lt;models&amp;gt;
+    &amp;lt;model
+       name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" unbindingStrategy="SIMPLE" abstract="true"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+      &amp;lt;property
+       name="name" type="qualifiedName" inMethod="name" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="abstract" type="boolean" inMethod="isAbstract"
+       occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+  
+        &amp;lt;model name="childBase" dataType="uk.co.strangeskies.modabi.schema.ChildNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" bindingType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+    &amp;lt;model
+       name="branch" baseModel="node" abstract="true"&amp;gt;
+  
+          &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;data name="abstract"/&amp;gt;
+      
+      &amp;lt;complex name="child" baseModel="childBase" extensible="true"
+       outMethod="children" inMethod="null" occurrences="0.." abstract="true"/&amp;gt;
+      
+      &amp;lt;inputSequence name="create" inMethodChained="true"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="child"
+       baseModel="branch, childBase" dataType="uk.co.strangeskies.modabi.schema.ChildNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" bindingStrategy="TARGET_ADAPTOR" bindingType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="addChild" inMethodChained="true"/&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" inMethodChained="true" postInputType="uk.co.strangeskies.modabi.schema.ChildNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+      &amp;lt;data
+       name="name"/&amp;gt;
+      &amp;lt;property name="ordered"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="occurrences" type="range" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="postInputType" type="typeToken"
+       occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+  
+        &amp;lt;model name="binding" baseModel="branch" dataType="uk.co.strangeskies.modabi.schema.BindingNode&amp;amp;lt;?,
+       ?, ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.BindingNodeConfigurator&amp;amp;lt;?,
+       ?, java.lang.Object&amp;amp;gt;" abstract="true"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;property
+       name="dataType" type="typeToken" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="bindingStrategy" type="enum"
+       occurrences="0..1" dataType="uk.co.strangeskies.modabi.processing.BindingStrategy"/&amp;gt;
+      
+      &amp;lt;property name="bindingType" type="typeToken"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="unbindingStrategy"
+       type="enum" occurrences="0..1" dataType="uk.co.strangeskies.modabi.processing.UnbindingStrategy"/&amp;gt;
+      
+      &amp;lt;property name="unbindingMethod" type="string"
+       outMethod="getUnbindingMethodName" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="unbindingType" type="typeToken"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="providedUnbindingMethodParameters"
+       type="list" outMethod="getProvidedUnbindingMethodParameterNames"
+       inMethod="providedUnbindingMethodParameters" occurrences="0..1"&amp;gt;
+      
+        &amp;lt;data name="element" type="qualifiedName"/&amp;gt;
+      
+      &amp;lt;/property&amp;gt;
+      &amp;lt;property name="unbindingFactoryType"
+       type="typeToken" occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="input" baseModel="child" dataType="uk.co.strangeskies.modabi.schema.InputNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.InputNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+      &amp;lt;data
+       name="name"/&amp;gt;
+      &amp;lt;property name="inMethod"
+       type="string" outMethod="getInMethodName" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="inMethodChained" type="boolean"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="inMethodCast"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="inMethodUnchecked" type="boolean" occurrences="0..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="bindingChild"
+       baseModel="input, binding" dataType="uk.co.strangeskies.modabi.schema.BindingChildNode&amp;amp;lt;?,
+       ?, ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator&amp;amp;lt;?,
+       ?, java.lang.Object&amp;amp;gt;" abstract="true"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;property
+       name="extensible" type="boolean" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="outMethod" type="string" outMethod="getOutMethodName"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="outMethodIterable"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="outMethodCast" type="boolean" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="outMethodUnchecked" type="boolean"
+       occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+  
+        &amp;lt;model name="choice" baseModel="child" dataType="uk.co.strangeskies.modabi.schema.ChoiceNode"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="choice"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="sequence" baseModel="child" dataType="uk.co.strangeskies.modabi.schema.SequenceNode"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="sequence"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="inputSequence"
+       baseModel="input, child" dataType="uk.co.strangeskies.modabi.schema.InputSequenceNode"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="inputSequence"
+       postInputType="uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="abstractModel" baseModel="binding"
+       dataType="uk.co.strangeskies.modabi.schema.AbstractComplexNode&amp;amp;lt;?,
+       ?, ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.AbstractComplexNodeConfigurator&amp;amp;lt;?,
+       ?, java.lang.Object&amp;amp;gt;" abstract="true"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;property
+       name="baseModel" type="list" outMethodUnchecked="true" inMethodUnchecked="true"
+       occurrences="0..1"&amp;gt;
+        &amp;lt;data name="element"
+       type="reference" dataType="uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+          &amp;lt;data name="targetModel" value="model" dataType="uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;?&amp;amp;gt;&amp;amp;gt;"/&amp;gt;
+      
+          &amp;lt;data name="targetId" value="name"/&amp;gt;
+      
+        &amp;lt;/data&amp;gt;
+      &amp;lt;/property&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="model"
+       baseModel="abstractModel" dataType="uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;?&amp;amp;gt;"
+       bindingType="uk.co.strangeskies.modabi.schema.building.ModelBuilder"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethodChained="true"&amp;gt;
+      
+        &amp;lt;data name="configure" outMethod="null" dataType="uk.co.strangeskies.modabi.schema.building.DataLoader"
+       bindingStrategy="PROVIDED"/&amp;gt;
+      &amp;lt;/inputSequence&amp;gt;
+      
+      &amp;lt;data name="name" occurrences="1..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="abstractComplex"
+       baseModel="abstractModel, bindingChild" dataType="uk.co.strangeskies.modabi.schema.ComplexNode&amp;amp;lt;?&amp;amp;gt;"
+       abstract="true"&amp;gt;
+      &amp;lt;inputSequence name="addChild"/&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="complex"
+       inMethodChained="true" postInputType="uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator&amp;amp;lt;java.lang.Object&amp;amp;gt;"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;data
+       name="inline" type="boolean" valueResolution="REGISTRATION_TIME"
+       occurrences="0..1" abstract="true"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="complex" baseModel="abstractComplex"&amp;gt;
+      
+      &amp;lt;data name="inline" value="false" occurrences="0..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="inline"
+       baseModel="abstractComplex"&amp;gt;
+      &amp;lt;data name="inline"
+       value="true" occurrences="1..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="typedData" baseModel="bindingChild"
+       dataType="uk.co.strangeskies.modabi.schema.DataNode&amp;amp;lt;?&amp;amp;gt;"
+       abstract="true"&amp;gt;
+      &amp;lt;inputSequence name="addChild"/&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="data"
+       inMethodChained="true"/&amp;gt;
+      &amp;lt;property name="format"
+       type="enum" valueResolution="REGISTRATION_TIME" occurrences="0..1"
+       postInputType="uk.co.strangeskies.modabi.schema.DataNodeConfigurator"
+       dataType="uk.co.strangeskies.modabi.schema.DataNode.Format"
+       abstract="true"/&amp;gt;
+      &amp;lt;data name="name"/&amp;gt;
+      
+      &amp;lt;property name="type" type="reference" occurrences="0..1"
+       dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;data name="targetModel" valueResolution="REGISTRATION_TIME"
+       value="type"/&amp;gt;
+        &amp;lt;data name="targetId"
+       valueResolution="REGISTRATION_TIME" value="name"/&amp;gt;
+      
+      &amp;lt;/property&amp;gt;
+      &amp;lt;property name="nullIfOmitted"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="valueResolution" type="enum" occurrences="0..1" dataType="uk.co.strangeskies.modabi.ValueResolution"/&amp;gt;
+      
+      &amp;lt;property name="value" type="bufferedData" outMethod="providedValueBuffer"
+       inMethod="provideValue" occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="content" baseModel="typedData"&amp;gt;
+      
+      &amp;lt;data name="format" value="CONTENT" occurrences="1..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="property"
+       baseModel="typedData"&amp;gt;
+      &amp;lt;data name="format"
+       value="PROPERTY" occurrences="1..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="simple" baseModel="typedData"&amp;gt;
+      
+      &amp;lt;data name="format" value="SIMPLE" occurrences="1..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="data" baseModel="typedData"&amp;gt;
+      
+      &amp;lt;data name="format" occurrences="0..0"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="type" baseModel="binding"
+       dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"
+       bindingType="uk.co.strangeskies.modabi.schema.building.DataTypeBuilder"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethodChained="true"&amp;gt;
+      
+        &amp;lt;data name="configure" outMethod="null" dataType="uk.co.strangeskies.modabi.schema.building.DataLoader"
+       bindingStrategy="PROVIDED"/&amp;gt;
+      &amp;lt;/inputSequence&amp;gt;
+      
+      &amp;lt;property name="private" type="boolean" inMethod="isPrivate"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="baseType"
+       type="reference" occurrences="0..1" dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;data name="targetModel" value="type"/&amp;gt;
+      
+        &amp;lt;data name="targetId" value="name"/&amp;gt;
+      
+      &amp;lt;/property&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="schema" dataType="uk.co.strangeskies.modabi.Schema"
+       bindingType="uk.co.strangeskies.modabi.SchemaBuilder"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethodChained="true"/&amp;gt;
+      
+      &amp;lt;property name="name" type="qualifiedName" outMethod="getQualifiedName"
+       inMethod="qualifiedName"/&amp;gt;
+      &amp;lt;simple name="imports"
+       outMethod="this" inMethod="null" occurrences="0..1" dataType="uk.co.strangeskies.modabi.Schema"
+       bindingStrategy="TARGET_ADAPTOR" bindingType="uk.co.strangeskies.modabi.SchemaConfigurator"&amp;gt;
+      
+        &amp;lt;data name="importsIn" type="set" outMethod="null"
+       inMethod="imports"&amp;gt;
+          &amp;lt;data name="element"
+       type="class" occurrences="1..1"/&amp;gt;
+        &amp;lt;/data&amp;gt;
+      
+        &amp;lt;data name="importsOut" outMethod="getImports"
+       inMethod="null" occurrences="0..1" dataType="uk.co.strangeskies.reflection.Imports"&amp;gt;
+      
+          &amp;lt;data name="imports" type="set" outMethod="getImportedClasses"
+       inMethod="null"&amp;gt;
+            &amp;lt;data name="element"
+       type="class"/&amp;gt;
+          &amp;lt;/data&amp;gt;
+   
+           &amp;lt;/data&amp;gt;
+      &amp;lt;/simple&amp;gt;
+ 
+           &amp;lt;simple name="dependencies" type="set" occurrences="0..1"&amp;gt;
+      
+        &amp;lt;data name="element" type="import" outMethod="this"
+       inMethod="add" occurrences="0.." dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      
+          &amp;lt;data name="import"&amp;gt;
+            &amp;lt;data
+       name="targetModel" value="schema"/&amp;gt;
+            &amp;lt;data
+       name="targetId" value="name"/&amp;gt;
+          &amp;lt;/data&amp;gt;
+      
+          &amp;lt;data name="dataTypes" type="include" inMethod="null"
+       bindingType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+  
+                &amp;lt;inputSequence name="getDataTypes" inMethodChained="true"/&amp;gt;
+      
+            &amp;lt;data name="targetModel" value="type"/&amp;gt;
+      
+          &amp;lt;/data&amp;gt;
+          &amp;lt;data name="models"
+       type="include" inMethod="null" bindingType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      
+            &amp;lt;inputSequence name="getModels" inMethodChained="true"/&amp;gt;
+      
+            &amp;lt;data name="targetModel" value="model"/&amp;gt;
+      
+          &amp;lt;/data&amp;gt;
+        &amp;lt;/data&amp;gt;
+      
+      &amp;lt;/simple&amp;gt;
+      &amp;lt;complex name="types"
+       outMethod="getDataTypes" occurrences="0..1" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.LinkedHashSet&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;complex name="type" baseModel="type" outMethod="this"
+       occurrences="0.." dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"/&amp;gt;
+      
+      &amp;lt;/complex&amp;gt;
+      &amp;lt;complex name="models"
+       occurrences="0..1" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.LinkedHashSet&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;complex baseModel="model" outMethod="this"
+       inMethod="add" occurrences="0.."/&amp;gt;
+      &amp;lt;/complex&amp;gt;
+      
+      &amp;lt;inputSequence name="create" inMethodChained="true"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+  &amp;lt;/models&amp;gt;
+&amp;lt;/schema&amp;gt;
+      
+
+
+Re-re-binding MetaSchema...
+
+
+Re-re-unbinding MetaSchema...
+      
+&amp;lt;?xml version="1.0" ?&amp;gt;
+&amp;lt;schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+       name="MetaSchema"&amp;gt;
+  &amp;lt;imports&amp;gt;uk.co.strangeskies.modabi.Schema&amp;lt;/imports&amp;gt;
+      
+  &amp;lt;dependencies&amp;gt;BaseSchema&amp;lt;/dependencies&amp;gt;
+      
+  &amp;lt;types/&amp;gt;
+  &amp;lt;models&amp;gt;
+    &amp;lt;model
+       name="node" dataType="uk.co.strangeskies.modabi.schema.SchemaNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" unbindingStrategy="SIMPLE" abstract="true"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" postInputType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+      &amp;lt;property
+       name="name" type="qualifiedName" inMethod="name" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="abstract" type="boolean" inMethod="isAbstract"
+       occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+  
+        &amp;lt;model name="childBase" dataType="uk.co.strangeskies.modabi.schema.ChildNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" bindingType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+    &amp;lt;model
+       name="branch" baseModel="node" abstract="true"&amp;gt;
+  
+          &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;data name="abstract"/&amp;gt;
+      
+      &amp;lt;complex name="child" baseModel="childBase" extensible="true"
+       outMethod="children" inMethod="null" occurrences="0.." abstract="true"/&amp;gt;
+      
+      &amp;lt;inputSequence name="create" inMethodChained="true"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="child"
+       baseModel="branch, childBase" dataType="uk.co.strangeskies.modabi.schema.ChildNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" bindingStrategy="TARGET_ADAPTOR" bindingType="uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="addChild" inMethodChained="true"/&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" inMethodChained="true" postInputType="uk.co.strangeskies.modabi.schema.ChildNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+      &amp;lt;data
+       name="name"/&amp;gt;
+      &amp;lt;property name="ordered"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="occurrences" type="range" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="postInputType" type="typeToken"
+       occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+  
+        &amp;lt;model name="binding" baseModel="branch" dataType="uk.co.strangeskies.modabi.schema.BindingNode&amp;amp;lt;?,
+       ?, ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.BindingNodeConfigurator&amp;amp;lt;?,
+       ?, java.lang.Object&amp;amp;gt;" abstract="true"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;property
+       name="dataType" type="typeToken" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="bindingStrategy" type="enum"
+       occurrences="0..1" dataType="uk.co.strangeskies.modabi.processing.BindingStrategy"/&amp;gt;
+      
+      &amp;lt;property name="bindingType" type="typeToken"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="unbindingStrategy"
+       type="enum" occurrences="0..1" dataType="uk.co.strangeskies.modabi.processing.UnbindingStrategy"/&amp;gt;
+      
+      &amp;lt;property name="unbindingMethod" type="string"
+       outMethod="getUnbindingMethodName" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="unbindingType" type="typeToken"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="providedUnbindingMethodParameters"
+       type="list" outMethod="getProvidedUnbindingMethodParameterNames"
+       inMethod="providedUnbindingMethodParameters" occurrences="0..1"&amp;gt;
+      
+        &amp;lt;data name="element" type="qualifiedName"/&amp;gt;
+      
+      &amp;lt;/property&amp;gt;
+      &amp;lt;property name="unbindingFactoryType"
+       type="typeToken" occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="input" baseModel="child" dataType="uk.co.strangeskies.modabi.schema.InputNode&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.InputNodeConfigurator&amp;amp;lt;?,
+       ?&amp;amp;gt;" abstract="true"/&amp;gt;
+      &amp;lt;data
+       name="name"/&amp;gt;
+      &amp;lt;property name="inMethod"
+       type="string" outMethod="getInMethodName" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="inMethodChained" type="boolean"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="inMethodCast"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="inMethodUnchecked" type="boolean" occurrences="0..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="bindingChild"
+       baseModel="input, binding" dataType="uk.co.strangeskies.modabi.schema.BindingChildNode&amp;amp;lt;?,
+       ?, ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator&amp;amp;lt;?,
+       ?, java.lang.Object&amp;amp;gt;" abstract="true"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;property
+       name="extensible" type="boolean" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="outMethod" type="string" outMethod="getOutMethodName"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="outMethodIterable"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="outMethodCast" type="boolean" occurrences="0..1"/&amp;gt;
+      
+      &amp;lt;property name="outMethodUnchecked" type="boolean"
+       occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+  
+        &amp;lt;model name="choice" baseModel="child" dataType="uk.co.strangeskies.modabi.schema.ChoiceNode"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="choice"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="sequence" baseModel="child" dataType="uk.co.strangeskies.modabi.schema.SequenceNode"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="sequence"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="inputSequence"
+       baseModel="input, child" dataType="uk.co.strangeskies.modabi.schema.InputSequenceNode"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="inputSequence"
+       postInputType="uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="abstractModel" baseModel="binding"
+       dataType="uk.co.strangeskies.modabi.schema.AbstractComplexNode&amp;amp;lt;?,
+       ?, ?&amp;amp;gt;" abstract="true"&amp;gt;
+      &amp;lt;inputSequence
+       name="configure" postInputType="uk.co.strangeskies.modabi.schema.AbstractComplexNodeConfigurator&amp;amp;lt;?,
+       ?, java.lang.Object&amp;amp;gt;" abstract="true"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;property
+       name="baseModel" type="list" outMethodUnchecked="true" inMethodUnchecked="true"
+       occurrences="0..1"&amp;gt;
+        &amp;lt;data name="element"
+       type="reference" dataType="uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+          &amp;lt;data name="targetModel" value="model" dataType="uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;?&amp;amp;gt;&amp;amp;gt;"/&amp;gt;
+      
+          &amp;lt;data name="targetId" value="name"/&amp;gt;
+      
+        &amp;lt;/data&amp;gt;
+      &amp;lt;/property&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="model"
+       baseModel="abstractModel" dataType="uk.co.strangeskies.modabi.schema.Model&amp;amp;lt;?&amp;amp;gt;"
+       bindingType="uk.co.strangeskies.modabi.schema.building.ModelBuilder"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethodChained="true"&amp;gt;
+      
+        &amp;lt;data name="configure" outMethod="null" dataType="uk.co.strangeskies.modabi.schema.building.DataLoader"
+       bindingStrategy="PROVIDED"/&amp;gt;
+      &amp;lt;/inputSequence&amp;gt;
+      
+      &amp;lt;data name="name" occurrences="1..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="abstractComplex"
+       baseModel="abstractModel, bindingChild" dataType="uk.co.strangeskies.modabi.schema.ComplexNode&amp;amp;lt;?&amp;amp;gt;"
+       abstract="true"&amp;gt;
+      &amp;lt;inputSequence name="addChild"/&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="complex"
+       inMethodChained="true" postInputType="uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator&amp;amp;lt;java.lang.Object&amp;amp;gt;"/&amp;gt;
+      
+      &amp;lt;data name="name"/&amp;gt;
+      &amp;lt;data
+       name="inline" type="boolean" valueResolution="REGISTRATION_TIME"
+       occurrences="0..1" abstract="true"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="complex" baseModel="abstractComplex"&amp;gt;
+      
+      &amp;lt;data name="inline" value="false" occurrences="0..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="inline"
+       baseModel="abstractComplex"&amp;gt;
+      &amp;lt;data name="inline"
+       value="true" occurrences="1..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="typedData" baseModel="bindingChild"
+       dataType="uk.co.strangeskies.modabi.schema.DataNode&amp;amp;lt;?&amp;amp;gt;"
+       abstract="true"&amp;gt;
+      &amp;lt;inputSequence name="addChild"/&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethod="data"
+       inMethodChained="true"/&amp;gt;
+      &amp;lt;property name="format"
+       type="enum" valueResolution="REGISTRATION_TIME" occurrences="0..1"
+       postInputType="uk.co.strangeskies.modabi.schema.DataNodeConfigurator"
+       dataType="uk.co.strangeskies.modabi.schema.DataNode.Format"
+       abstract="true"/&amp;gt;
+      &amp;lt;data name="name"/&amp;gt;
+      
+      &amp;lt;property name="type" type="reference" occurrences="0..1"
+       dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;data name="targetModel" valueResolution="REGISTRATION_TIME"
+       value="type"/&amp;gt;
+        &amp;lt;data name="targetId"
+       valueResolution="REGISTRATION_TIME" value="name"/&amp;gt;
+      
+      &amp;lt;/property&amp;gt;
+      &amp;lt;property name="nullIfOmitted"
+       type="boolean" occurrences="0..1"/&amp;gt;
+      &amp;lt;property
+       name="valueResolution" type="enum" occurrences="0..1" dataType="uk.co.strangeskies.modabi.ValueResolution"/&amp;gt;
+      
+      &amp;lt;property name="value" type="bufferedData" outMethod="providedValueBuffer"
+       inMethod="provideValue" occurrences="0..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="content" baseModel="typedData"&amp;gt;
+      
+      &amp;lt;data name="format" value="CONTENT" occurrences="1..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="property"
+       baseModel="typedData"&amp;gt;
+      &amp;lt;data name="format"
+       value="PROPERTY" occurrences="1..1"/&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="simple" baseModel="typedData"&amp;gt;
+      
+      &amp;lt;data name="format" value="SIMPLE" occurrences="1..1"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="data" baseModel="typedData"&amp;gt;
+      
+      &amp;lt;data name="format" occurrences="0..0"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+    &amp;lt;model name="type" baseModel="binding"
+       dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"
+       bindingType="uk.co.strangeskies.modabi.schema.building.DataTypeBuilder"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethodChained="true"&amp;gt;
+      
+        &amp;lt;data name="configure" outMethod="null" dataType="uk.co.strangeskies.modabi.schema.building.DataLoader"
+       bindingStrategy="PROVIDED"/&amp;gt;
+      &amp;lt;/inputSequence&amp;gt;
+      
+      &amp;lt;property name="private" type="boolean" inMethod="isPrivate"
+       occurrences="0..1"/&amp;gt;
+      &amp;lt;property name="baseType"
+       type="reference" occurrences="0..1" dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;data name="targetModel" value="type"/&amp;gt;
+      
+        &amp;lt;data name="targetId" value="name"/&amp;gt;
+      
+      &amp;lt;/property&amp;gt;
+    &amp;lt;/model&amp;gt;
+      
+    &amp;lt;model name="schema" dataType="uk.co.strangeskies.modabi.Schema"
+       bindingType="uk.co.strangeskies.modabi.SchemaBuilder"&amp;gt;
+      
+      &amp;lt;inputSequence name="configure" inMethodChained="true"/&amp;gt;
+      
+      &amp;lt;property name="name" type="qualifiedName" outMethod="getQualifiedName"
+       inMethod="qualifiedName"/&amp;gt;
+      &amp;lt;simple name="imports"
+       outMethod="this" inMethod="null" occurrences="0..1" dataType="uk.co.strangeskies.modabi.Schema"
+       bindingStrategy="TARGET_ADAPTOR" bindingType="uk.co.strangeskies.modabi.SchemaConfigurator"&amp;gt;
+      
+        &amp;lt;data name="importsIn" type="set" outMethod="null"
+       inMethod="imports"&amp;gt;
+          &amp;lt;data name="element"
+       type="class" occurrences="1..1"/&amp;gt;
+        &amp;lt;/data&amp;gt;
+      
+        &amp;lt;data name="importsOut" outMethod="getImports"
+       inMethod="null" occurrences="0..1" dataType="uk.co.strangeskies.reflection.Imports"&amp;gt;
+      
+          &amp;lt;data name="imports" type="set" outMethod="getImportedClasses"
+       inMethod="null"&amp;gt;
+            &amp;lt;data name="element"
+       type="class"/&amp;gt;
+          &amp;lt;/data&amp;gt;
+   
+           &amp;lt;/data&amp;gt;
+      &amp;lt;/simple&amp;gt;
+ 
+           &amp;lt;simple name="dependencies" type="set" occurrences="0..1"&amp;gt;
+      
+        &amp;lt;data name="element" type="import" outMethod="this"
+       inMethod="add" occurrences="0.." dataType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      
+          &amp;lt;data name="import"&amp;gt;
+            &amp;lt;data
+       name="targetModel" value="schema"/&amp;gt;
+            &amp;lt;data
+       name="targetId" value="name"/&amp;gt;
+          &amp;lt;/data&amp;gt;
+      
+          &amp;lt;data name="dataTypes" type="include" inMethod="null"
+       bindingType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+  
+                &amp;lt;inputSequence name="getDataTypes" inMethodChained="true"/&amp;gt;
+      
+            &amp;lt;data name="targetModel" value="type"/&amp;gt;
+      
+          &amp;lt;/data&amp;gt;
+          &amp;lt;data name="models"
+       type="include" inMethod="null" bindingType="uk.co.strangeskies.modabi.Schema"&amp;gt;
+      
+            &amp;lt;inputSequence name="getModels" inMethodChained="true"/&amp;gt;
+      
+            &amp;lt;data name="targetModel" value="model"/&amp;gt;
+      
+          &amp;lt;/data&amp;gt;
+        &amp;lt;/data&amp;gt;
+      
+      &amp;lt;/simple&amp;gt;
+      &amp;lt;complex name="types"
+       outMethod="getDataTypes" occurrences="0..1" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.LinkedHashSet&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;complex name="type" baseModel="type" outMethod="this"
+       occurrences="0.." dataType="uk.co.strangeskies.modabi.schema.DataType&amp;amp;lt;?&amp;amp;gt;"/&amp;gt;
+      
+      &amp;lt;/complex&amp;gt;
+      &amp;lt;complex name="models"
+       occurrences="0..1" dataType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.Set&amp;amp;lt;?&amp;amp;gt;" bindingType="@uk.co.strangeskies.reflection.TypeToken.Infer
+       java.util.LinkedHashSet&amp;amp;lt;?&amp;amp;gt;"&amp;gt;
+      
+        &amp;lt;complex baseModel="model" outMethod="this"
+       inMethod="add" occurrences="0.."/&amp;gt;
+      &amp;lt;/complex&amp;gt;
+      
+      &amp;lt;inputSequence name="create" inMethodChained="true"/&amp;gt;
+      
+    &amp;lt;/model&amp;gt;
+  &amp;lt;/models&amp;gt;
+&amp;lt;/schema&amp;gt;
     </system-out>
   </testcase>
-  <testcase name='manualSchemaCreationTest' time='0.459' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
+  <testcase name='manualSchemaCreationTest' time='0.506' classname='uk.co.strangeskies.modabi.core.test.SchemaTest'>
     <system-out>
       testy
 testy2
@@ -1093,223 +1684,212 @@ java.util.List&amp;lt;java.lang.Integer&amp;gt;
       
 java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;
       
-    ~# { E#13589 = E#13589, E#13589 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#13592&amp;gt;, E#13589 = java.util.Map.java.util.Map.Entry&amp;lt;K#13597,
-       V#13592&amp;gt;, E#13589 &amp;lt;: java.lang.Object, E#13589
-       &amp;lt;: java.lang.Object, K#13597 = K#13597, K#13597 = K#13578,
-       K#13597 = java.lang.String, K#13597 = K#13579, K#13597 = K#13606,
-       K#13597 = K#13574, K#13597 = K#13596, K#13597 = K#13593, K#13597
-       = K#2787, K#13597 &amp;lt;: java.lang.Object, K#13597 &amp;lt;:
-       INF#13605, K#13597 &amp;lt;: java.lang.String, K#13597 &amp;lt;:
-       INF#13564, K#13597 &amp;lt;: java.lang.Object, K#13597 &amp;lt;:
-       INF#13586, E#13590 = E#13590, E#13590 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#13592&amp;gt;, E#13590 = java.util.Map.java.util.Map.Entry&amp;lt;K#13597,
-       V#13592&amp;gt;, E#13590 &amp;lt;: java.lang.Object, E#13590
-       &amp;lt;: java.lang.Object, E#2801 = E#2801, E#2801 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2801 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       V#2788&amp;gt;, E#2801 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       java.lang.Integer&amp;gt;, E#2801 &amp;lt;: java.lang.Object,
-       E#2801 &amp;lt;: java.lang.Object, E#13595 = E#13595, E#13595
-       = java.util.Map.java.util.Map.Entry&amp;lt;K#13579, V#13573&amp;gt;,
-       E#13595 &amp;lt;: java.lang.Object, E#13595 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#13596,
-       V#13585&amp;gt;, E#13595 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#13606,
-       V#13608&amp;gt;, E#13595 &amp;lt;: java.lang.Object, E#13595
-       &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#13593,
-       V#13588&amp;gt;, E#13561 = E#13561, E#13561 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13561 &amp;lt;: java.lang.Object, E#13561
-       &amp;lt;: java.lang.Object, K#13606 = K#13597, K#13606 = K#13578,
-       K#13606 = java.lang.String, K#13606 = K#13579, K#13606 = K#13606,
-       K#13606 = K#13574, K#13606 = K#13596, K#13606 = K#13593, K#13606
-       = K#2787, K#13606 &amp;lt;: java.lang.Object, K#13606 &amp;lt;:
-       INF#13605, K#13606 &amp;lt;: java.lang.String, K#13606 &amp;lt;:
-       INF#13564, K#13606 &amp;lt;: java.lang.Object, K#13606 &amp;lt;:
-       INF#13586, V#13588 = V#2788, V#13588 = V#13585, V#13588 =
-       V#13563, V#13588 = V#13567, V#13588 = V#13588, V#13588 = V#13592,
-       V#13588 = V#13573, V#13588 = V#13608, V#13588 = java.lang.Integer,
-       V#13588 &amp;lt;: java.lang.Object, V#13588 &amp;lt;: INF#13607,
-       V#13588 &amp;lt;: java.lang.Object, V#13588 &amp;lt;: INF#13566,
-       V#13588 &amp;lt;: INF#13587, V#13588 &amp;lt;: java.lang.Integer,
-       V#13592 = V#2788, V#13592 = V#13585, V#13592 = V#13563, V#13592
-       = V#13567, V#13592 = V#13588, V#13592 = V#13592, V#13592 =
-       V#13573, V#13592 = V#13608, V#13592 = java.lang.Integer, V#13592
-       &amp;lt;: java.lang.Object, V#13592 &amp;lt;: INF#13607, V#13592
-       &amp;lt;: java.lang.Object, V#13592 &amp;lt;: INF#13566, V#13592
-       &amp;lt;: INF#13587, V#13592 &amp;lt;: java.lang.Integer,
-       E#13750 = E#13750, E#13750 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13750 &amp;lt;: java.lang.Object, E#13750
-       &amp;lt;: java.lang.Object, INF#13587 = INF#13587, INF#13587
-       = java.lang.Integer, INF#13587 &amp;lt;: java.lang.Object,
-       V#2788 &amp;lt;: INF#13587, V#13585 &amp;lt;: INF#13587, V#13563
-       &amp;lt;: INF#13587, V#13567 &amp;lt;: INF#13587, V#13588
-       &amp;lt;: INF#13587, V#13592 &amp;lt;: INF#13587, V#13573
-       &amp;lt;: INF#13587, V#13608 &amp;lt;: INF#13587, java.lang.Integer
-       &amp;lt;: INF#13587, E#13562 = E#13562, E#13562 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13562 &amp;lt;: java.lang.Object, E#13562
-       &amp;lt;: java.lang.Object, E#13576 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13576 = E#13576, E#13576 &amp;lt;: java.lang.Object,
-       E#13576 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#13578,
-       V#13563&amp;gt;, E#13576 &amp;lt;: java.lang.Object, E#13576
-       &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#13574,
-       V#13567&amp;gt;, E#2803 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2803 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       V#2788&amp;gt;, E#2803 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       java.lang.Integer&amp;gt;, E#2803 = E#2803, E#2803 &amp;lt;:
-       java.lang.Object, E#2803 &amp;lt;: java.lang.Object, E#13572
-       = E#13572, E#13572 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13572 &amp;lt;: java.lang.Object, E#13572
-       &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#13574,
-       V#13567&amp;gt; &amp;lt;: E#13572, V#2788 = V#2788, V#2788
-       = V#13585, V#2788 = V#13563, V#2788 = V#13567, V#2788 = V#13588,
-       V#2788 = V#13592, V#2788 = V#13573, V#2788 = V#13608, V#2788
-       = java.lang.Integer, V#2788 &amp;lt;: java.lang.Object, V#2788
-       &amp;lt;: INF#13607, V#2788 &amp;lt;: java.lang.Object, V#2788
-       &amp;lt;: INF#13566, V#2788 &amp;lt;: INF#13587, V#2788 &amp;lt;:
-       java.lang.Integer, K#13578 = K#13597, K#13578 = K#13578, K#13578
-       = java.lang.String, K#13578 = K#13579, K#13578 = K#13606,
-       K#13578 = K#13574, K#13578 = K#13596, K#13578 = K#13593, K#13578
-       = K#2787, K#13578 &amp;lt;: java.lang.Object, K#13578 &amp;lt;:
-       INF#13605, K#13578 &amp;lt;: java.lang.String, K#13578 &amp;lt;:
-       INF#13564, K#13578 &amp;lt;: java.lang.Object, K#13578 &amp;lt;:
-       INF#13586, INF#13605 = INF#13605, INF#13605 = java.lang.String,
-       INF#13605 &amp;lt;: java.lang.Object, K#13597 &amp;lt;: INF#13605,
-       K#13578 &amp;lt;: INF#13605, java.lang.String &amp;lt;: INF#13605,
-       K#13579 &amp;lt;: INF#13605, K#13606 &amp;lt;: INF#13605,
-       K#13574 &amp;lt;: INF#13605, K#13596 &amp;lt;: INF#13605,
-       K#13593 &amp;lt;: INF#13605, K#2787 &amp;lt;: INF#13605, V#13585
-       = V#2788, V#13585 = V#13585, V#13585 = V#13563, V#13585 =
-       V#13567, V#13585 = V#13588, V#13585 = V#13592, V#13585 = V#13573,
-       V#13585 = V#13608, V#13585 = java.lang.Integer, V#13585 &amp;lt;:
-       java.lang.Object, V#13585 &amp;lt;: INF#13607, V#13585 &amp;lt;:
-       java.lang.Object, V#13585 &amp;lt;: INF#13566, V#13585 &amp;lt;:
-       INF#13587, V#13585 &amp;lt;: java.lang.Integer, E#13749 =
-       E#13749, E#13749 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13749 &amp;lt;: java.lang.Object, E#13749
-       &amp;lt;: java.lang.Object, E#13748 = E#13748, E#13748 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13748 &amp;lt;: java.lang.Object, E#13748
-       &amp;lt;: java.lang.Object, K#13579 = K#13597, K#13579 = K#13578,
-       K#13579 = java.lang.String, K#13579 = K#13579, K#13579 = K#13606,
-       K#13579 = K#13574, K#13579 = K#13596, K#13579 = K#13593, K#13579
-       = K#2787, K#13579 &amp;lt;: java.lang.Object, K#13579 &amp;lt;:
-       INF#13605, K#13579 &amp;lt;: java.lang.String, K#13579 &amp;lt;:
-       INF#13564, K#13579 &amp;lt;: java.lang.Object, K#13579 &amp;lt;:
-       INF#13586, K#13574 = K#13597, K#13574 = K#13578, K#13574 =
-       java.lang.String, K#13574 = K#13579, K#13574 = K#13606, K#13574
-       = K#13574, K#13574 = K#13596, K#13574 = K#13593, K#13574 =
-       K#2787, K#13574 &amp;lt;: java.lang.Object, K#13574 &amp;lt;:
-       INF#13605, K#13574 &amp;lt;: java.lang.String, K#13574 &amp;lt;:
-       INF#13564, K#13574 &amp;lt;: java.lang.Object, K#13574 &amp;lt;:
-       INF#13586, E#2804 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2804 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       V#2788&amp;gt;, E#2804 = E#2804, E#2804 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       java.lang.Integer&amp;gt;, E#2804 &amp;lt;: java.lang.Object,
-       E#2804 &amp;lt;: java.lang.Object, E#13569 = E#13569, E#13569
-       = java.util.Map.java.util.Map.Entry&amp;lt;K#13579, V#13573&amp;gt;,
-       E#13569 &amp;lt;: java.lang.Object, E#13569 &amp;lt;: java.lang.Object,
-       E#13584 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#13592&amp;gt;, E#13584 = E#13584, E#13584 = java.util.Map.java.util.Map.Entry&amp;lt;K#13597,
-       V#13592&amp;gt;, E#13584 &amp;lt;: java.lang.Object, E#13584
-       &amp;lt;: java.lang.Object, K#2787 = K#13597, K#2787 = K#13578,
-       K#2787 = java.lang.String, K#2787 = K#13579, K#2787 = K#13606,
-       K#2787 = K#13574, K#2787 = K#13596, K#2787 = K#13593, K#2787
-       = K#2787, K#2787 &amp;lt;: java.lang.Object, K#2787 &amp;lt;:
-       INF#13605, K#2787 &amp;lt;: java.lang.String, K#2787 &amp;lt;:
-       INF#13564, K#2787 &amp;lt;: java.lang.Object, K#2787 &amp;lt;:
-       INF#13586, E#13568 = E#13568, E#13568 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13568 &amp;lt;: java.lang.Object, E#13568
-       &amp;lt;: java.lang.Object, V#13563 = V#2788, V#13563 = V#13585,
-       V#13563 = V#13563, V#13563 = V#13567, V#13563 = V#13588, V#13563
-       = V#13592, V#13563 = V#13573, V#13563 = V#13608, V#13563 =
-       java.lang.Integer, V#13563 &amp;lt;: java.lang.Object, V#13563
-       &amp;lt;: INF#13607, V#13563 &amp;lt;: java.lang.Object, V#13563
-       &amp;lt;: INF#13566, V#13563 &amp;lt;: INF#13587, V#13563
-       &amp;lt;: java.lang.Integer, INF#13564 = java.lang.String,
-       INF#13564 = INF#13564, INF#13564 &amp;lt;: java.lang.Object,
-       K#13597 &amp;lt;: INF#13564, K#13578 &amp;lt;: INF#13564,
-       java.lang.String &amp;lt;: INF#13564, K#13579 &amp;lt;: INF#13564,
-       K#13606 &amp;lt;: INF#13564, K#13574 &amp;lt;: INF#13564,
-       K#13593 &amp;lt;: INF#13564, K#13596 &amp;lt;: INF#13564,
-       K#2787 &amp;lt;: INF#13564, E#13575 = E#13575, E#13575 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13575 &amp;lt;: java.lang.Object, E#13575
-       &amp;lt;: java.lang.Object, INF#13607 = INF#13607, INF#13607
-       = java.lang.Integer, INF#13607 &amp;lt;: java.lang.Object,
-       V#2788 &amp;lt;: INF#13607, V#13585 &amp;lt;: INF#13607, V#13563
-       &amp;lt;: INF#13607, V#13567 &amp;lt;: INF#13607, V#13588
-       &amp;lt;: INF#13607, V#13592 &amp;lt;: INF#13607, V#13573
-       &amp;lt;: INF#13607, V#13608 &amp;lt;: INF#13607, java.lang.Integer
-       &amp;lt;: INF#13607, E#13594 = E#13594, E#13594 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#13592&amp;gt;, E#13594 = java.util.Map.java.util.Map.Entry&amp;lt;K#13597,
-       V#13592&amp;gt;, E#13594 &amp;lt;: java.lang.Object, E#13594
-       &amp;lt;: java.lang.Object, INF#13566 = INF#13566, INF#13566
-       = java.lang.Integer, INF#13566 &amp;lt;: java.lang.Object,
-       V#2788 &amp;lt;: INF#13566, V#13585 &amp;lt;: INF#13566, V#13563
-       &amp;lt;: INF#13566, V#13567 &amp;lt;: INF#13566, V#13588
-       &amp;lt;: INF#13566, V#13592 &amp;lt;: INF#13566, V#13573
-       &amp;lt;: INF#13566, V#13608 &amp;lt;: INF#13566, java.lang.Integer
-       &amp;lt;: INF#13566, E#13751 = E#13751, E#13751 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13751 &amp;lt;: java.lang.Object, E#13751
-       &amp;lt;: java.lang.Object, E#13570 = E#13570, E#13570 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13570 &amp;lt;: java.lang.Object, E#13570
-       &amp;lt;: java.lang.Object, E#2802 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2802 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       V#2788&amp;gt;, E#2802 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       java.lang.Integer&amp;gt;, E#2802 = E#2802, E#2802 &amp;lt;:
-       java.lang.Object, E#2802 &amp;lt;: java.lang.Object, E#2805
-       = E#2805, E#2805 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       java.lang.Integer&amp;gt;, E#2805 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       V#2788&amp;gt;, E#2805 = java.util.Map.java.util.Map.Entry&amp;lt;K#2787,
-       java.lang.Integer&amp;gt;, E#2805 &amp;lt;: java.lang.Object,
-       E#2805 &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#13606,
-       V#13608&amp;gt; &amp;lt;: E#2805, E#13565 = E#13565, E#13565
-       = java.util.Map.java.util.Map.Entry&amp;lt;K#13579, V#13573&amp;gt;,
-       E#13565 &amp;lt;: java.lang.Object, E#13565 &amp;lt;: java.lang.Object,
-       V#13567 = V#2788, V#13567 = V#13585, V#13567 = V#13563, V#13567
-       = V#13567, V#13567 = V#13588, V#13567 = V#13592, V#13567 =
-       V#13573, V#13567 = V#13608, V#13567 = java.lang.Integer, V#13567
-       &amp;lt;: java.lang.Object, V#13567 &amp;lt;: INF#13607, V#13567
-       &amp;lt;: java.lang.Object, V#13567 &amp;lt;: INF#13566, V#13567
-       &amp;lt;: INF#13587, V#13567 &amp;lt;: java.lang.Integer,
-       E#13577 = E#13577, E#13577 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13577 &amp;lt;: java.lang.Object, E#13577
-       &amp;lt;: java.lang.Object, E#13571 = E#13571, E#13571 = java.util.Map.java.util.Map.Entry&amp;lt;K#13579,
-       V#13573&amp;gt;, E#13571 &amp;lt;: java.lang.Object, E#13571
-       &amp;lt;: java.lang.Object, INF#13586 = java.lang.String,
-       INF#13586 = INF#13586, INF#13586 &amp;lt;: java.lang.Object,
-       K#13597 &amp;lt;: INF#13586, K#13578 &amp;lt;: INF#13586,
-       java.lang.String &amp;lt;: INF#13586, K#13579 &amp;lt;: INF#13586,
-       K#13606 &amp;lt;: INF#13586, K#13574 &amp;lt;: INF#13586,
-       K#13596 &amp;lt;: INF#13586, K#13593 &amp;lt;: INF#13586,
-       K#2787 &amp;lt;: INF#13586, V#13573 = V#2788, V#13573 = V#13585,
-       V#13573 = V#13563, V#13573 = V#13567, V#13573 = V#13588, V#13573
-       = V#13592, V#13573 = V#13573, V#13573 = V#13608, V#13573 =
-       java.lang.Integer, V#13573 &amp;lt;: java.lang.Object, V#13573
-       &amp;lt;: INF#13607, V#13573 &amp;lt;: java.lang.Object, V#13573
-       &amp;lt;: INF#13566, V#13573 &amp;lt;: INF#13587, V#13573
-       &amp;lt;: java.lang.Integer, K#13596 = K#13597, K#13596 =
-       K#13578, K#13596 = java.lang.String, K#13596 = K#13579, K#13596
-       = K#13606, K#13596 = K#13574, K#13596 = K#13596, K#13596 =
-       K#13593, K#13596 = K#2787, K#13596 &amp;lt;: java.lang.Object,
-       K#13596 &amp;lt;: INF#13605, K#13596 &amp;lt;: java.lang.String,
-       K#13596 &amp;lt;: INF#13564, K#13596 &amp;lt;: java.lang.Object,
-       K#13596 &amp;lt;: INF#13586, K#13593 = K#13597, K#13593 =
-       K#13578, K#13593 = java.lang.String, K#13593 = K#13579, K#13593
-       = K#13606, K#13593 = K#13574, K#13593 = K#13596, K#13593 =
-       K#13593, K#13593 = K#2787, K#13593 &amp;lt;: java.lang.Object,
-       K#13593 &amp;lt;: INF#13605, K#13593 &amp;lt;: java.lang.String,
-       K#13593 &amp;lt;: INF#13564, K#13593 &amp;lt;: java.lang.Object,
-       K#13593 &amp;lt;: INF#13586, E#13591 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
-       V#13592&amp;gt;, E#13591 = java.util.Map.java.util.Map.Entry&amp;lt;K#13597,
-       V#13592&amp;gt;, E#13591 = E#13591, E#13591 &amp;lt;: java.lang.Object,
-       E#13591 &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#13593,
-       V#13588&amp;gt; &amp;lt;: E#13591, V#13608 = V#2788, V#13608
-       = V#13585, V#13608 = V#13563, V#13608 = V#13567, V#13608 =
-       V#13588, V#13608 = V#13592, V#13608 = V#13573, V#13608 = V#13608,
-       V#13608 = java.lang.Integer, V#13608 &amp;lt;: java.lang.Object,
-       V#13608 &amp;lt;: INF#13607, V#13608 &amp;lt;: java.lang.Object,
-       V#13608 &amp;lt;: INF#13566, V#13608 &amp;lt;: INF#13587,
-       V#13608 &amp;lt;: java.lang.Integer, true }
-&amp;lt;?xml version="1.0"
-       ?&amp;gt;
-&amp;lt;stringIntMap xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"&amp;gt;
+    ~# { E#2888 = java.util.Map.java.util.Map.Entry&amp;lt;K#2871,
+       V#2870&amp;gt;, E#2888 = E#2888, E#2888 &amp;lt;: java.lang.Object,
+       E#2888 &amp;lt;: java.lang.Object, E#33532 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33532 = E#33532, E#33532 &amp;lt;: java.lang.Object,
+       E#33532 &amp;lt;: java.lang.Object, E#33709 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33709 = E#33709, E#33709 &amp;lt;: java.lang.Object,
+       E#33709 &amp;lt;: java.lang.Object, E#33522 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33522 = E#33522, E#33522 &amp;lt;: java.lang.Object,
+       E#33522 &amp;lt;: java.lang.Object, E#2889 = java.util.Map.java.util.Map.Entry&amp;lt;K#2871,
+       V#2870&amp;gt;, E#2889 = E#2889, E#2889 &amp;lt;: java.lang.Object,
+       E#2889 &amp;lt;: java.lang.Object, E#33524 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33524 = E#33524, E#33524 &amp;lt;: java.lang.Object,
+       E#33524 &amp;lt;: java.lang.Object, INF#33550 = INF#33550,
+       INF#33550 = java.lang.Integer, INF#33550 &amp;lt;: java.lang.Object,
+       V#33563 &amp;lt;: INF#33550, V#33543 &amp;lt;: INF#33550,
+       V#33552 &amp;lt;: INF#33550, V#33526 &amp;lt;: INF#33550,
+       V#2870 &amp;lt;: INF#33550, V#33533 &amp;lt;: INF#33550, V#33548
+       &amp;lt;: INF#33550, V#33520 &amp;lt;: INF#33550, java.lang.Integer
+       &amp;lt;: INF#33550, E#2886 = java.util.Map.java.util.Map.Entry&amp;lt;K#2871,
+       V#2870&amp;gt;, E#2886 = E#2886, E#2886 &amp;lt;: java.lang.Object,
+       E#2886 &amp;lt;: java.lang.Object, E#33530 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33530 = E#33530, E#33530 &amp;lt;: java.lang.Object,
+       E#33530 &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#33521,
+       V#33520&amp;gt; &amp;lt;: E#33530, INF#33527 = INF#33527,
+       INF#33527 = java.lang.Integer, INF#33527 &amp;lt;: java.lang.Object,
+       V#33563 &amp;lt;: INF#33527, V#33552 &amp;lt;: INF#33527,
+       V#33543 &amp;lt;: INF#33527, V#33526 &amp;lt;: INF#33527,
+       V#2870 &amp;lt;: INF#33527, V#33533 &amp;lt;: INF#33527, V#33548
+       &amp;lt;: INF#33527, V#33520 &amp;lt;: INF#33527, java.lang.Integer
+       &amp;lt;: INF#33527, E#33542 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#33552&amp;gt;, E#33542 = java.util.Map.java.util.Map.Entry&amp;lt;K#33554,
+       V#33552&amp;gt;, E#33542 = E#33542, E#33542 &amp;lt;: java.lang.Object,
+       E#33542 &amp;lt;: java.lang.Object, E#33712 = E#33712, E#33712
+       = java.util.Map.java.util.Map.Entry&amp;lt;K#33536, V#33533&amp;gt;,
+       E#33712 &amp;lt;: java.lang.Object, E#33712 &amp;lt;: java.lang.Object,
+       E#33710 = E#33710, E#33710 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33710 &amp;lt;: java.lang.Object, E#33710
+       &amp;lt;: java.lang.Object, E#33549 = E#33549, E#33549 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#33552&amp;gt;, E#33549 = java.util.Map.java.util.Map.Entry&amp;lt;K#33554,
+       V#33552&amp;gt;, E#33549 &amp;lt;: java.lang.Object, E#33549
+       &amp;lt;: java.lang.Object, E#2890 = java.util.Map.java.util.Map.Entry&amp;lt;K#2871,
+       V#2870&amp;gt;, E#2890 = E#2890, E#2890 &amp;lt;: java.lang.Object,
+       E#2890 &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       java.lang.Integer&amp;gt; &amp;lt;: E#2890, java.util.Map.java.util.Map.Entry&amp;lt;K#33565,
+       java.lang.Integer&amp;gt; &amp;lt;: E#2890, java.util.Map.java.util.Map.Entry&amp;lt;K#33565,
+       V#33563&amp;gt; &amp;lt;: E#2890, V#33552 = V#33563, V#33552
+       = V#33552, V#33552 = V#33543, V#33552 = V#33526, V#33552 =
+       V#2870, V#33552 = V#33533, V#33552 = V#33548, V#33552 = V#33520,
+       V#33552 = java.lang.Integer, V#33552 &amp;lt;: java.lang.Object,
+       V#33552 &amp;lt;: java.lang.Object, V#33552 &amp;lt;: INF#33564,
+       V#33552 &amp;lt;: INF#33550, V#33552 &amp;lt;: INF#33527,
+       V#33552 &amp;lt;: java.lang.Integer, K#33536 = K#33554, K#33536
+       = java.lang.String, K#33536 = K#33536, K#33536 = K#33544,
+       K#33536 = K#33521, K#33536 = K#33525, K#33536 = K#2871, K#33536
+       = K#33565, K#33536 = K#33547, K#33536 &amp;lt;: INF#33535,
+       K#33536 &amp;lt;: java.lang.Object, K#33536 &amp;lt;: java.lang.Object,
+       K#33536 &amp;lt;: java.lang.String, K#33536 &amp;lt;: INF#33553,
+       K#33536 &amp;lt;: INF#33566, INF#33553 = java.lang.String,
+       INF#33553 = INF#33553, INF#33553 &amp;lt;: java.lang.Object,
+       K#33554 &amp;lt;: INF#33553, java.lang.String &amp;lt;: INF#33553,
+       K#33536 &amp;lt;: INF#33553, K#33544 &amp;lt;: INF#33553,
+       K#33521 &amp;lt;: INF#33553, K#33525 &amp;lt;: INF#33553,
+       K#2871 &amp;lt;: INF#33553, K#33547 &amp;lt;: INF#33553, K#33565
+       &amp;lt;: INF#33553, K#33544 = K#33554, K#33544 = java.lang.String,
+       K#33544 = K#33536, K#33544 = K#33544, K#33544 = K#33521, K#33544
+       = K#33525, K#33544 = K#2871, K#33544 = K#33565, K#33544 =
+       K#33547, K#33544 &amp;lt;: INF#33535, K#33544 &amp;lt;: java.lang.Object,
+       K#33544 &amp;lt;: java.lang.Object, K#33544 &amp;lt;: java.lang.String,
+       K#33544 &amp;lt;: INF#33553, K#33544 &amp;lt;: INF#33566,
+       V#2870 = V#33563, V#2870 = V#33552, V#2870 = V#33543, V#2870
+       = V#33526, V#2870 = V#2870, V#2870 = V#33533, V#2870 = V#33548,
+       V#2870 = V#33520, V#2870 = java.lang.Integer, V#2870 &amp;lt;:
+       java.lang.Object, V#2870 &amp;lt;: java.lang.Object, V#2870
+       &amp;lt;: INF#33564, V#2870 &amp;lt;: INF#33550, V#2870 &amp;lt;:
+       INF#33527, V#2870 &amp;lt;: java.lang.Integer, K#33525 = K#33554,
+       K#33525 = java.lang.String, K#33525 = K#33536, K#33525 = K#33544,
+       K#33525 = K#33521, K#33525 = K#33525, K#33525 = K#2871, K#33525
+       = K#33565, K#33525 = K#33547, K#33525 &amp;lt;: INF#33535,
+       K#33525 &amp;lt;: java.lang.Object, K#33525 &amp;lt;: java.lang.Object,
+       K#33525 &amp;lt;: java.lang.String, K#33525 &amp;lt;: INF#33553,
+       K#33525 &amp;lt;: INF#33566, E#33528 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33528 = E#33528, E#33528 &amp;lt;: java.lang.Object,
+       E#33528 &amp;lt;: java.lang.Object, E#33555 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33555 = E#33555, E#33555 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       java.lang.Integer&amp;gt;, E#33555 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#33565,
+       java.lang.Integer&amp;gt;, E#33555 &amp;lt;: java.lang.Object,
+       E#33555 &amp;lt;: java.lang.Object, E#33555 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#33547,
+       V#33548&amp;gt;, E#33555 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#33565,
+       V#33563&amp;gt;, E#33555 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#33544,
+       V#33543&amp;gt;, V#33520 = V#33563, V#33520 = V#33552, V#33520
+       = V#33543, V#33520 = V#33526, V#33520 = V#2870, V#33520 =
+       V#33533, V#33520 = V#33548, V#33520 = V#33520, V#33520 = java.lang.Integer,
+       V#33520 &amp;lt;: java.lang.Object, V#33520 &amp;lt;: java.lang.Object,
+       V#33520 &amp;lt;: INF#33564, V#33520 &amp;lt;: INF#33550,
+       V#33520 &amp;lt;: INF#33527, V#33520 &amp;lt;: java.lang.Integer,
+       INF#33535 = INF#33535, INF#33535 = java.lang.Object, INF#33535
+       &amp;lt;: java.lang.Object, K#33554 &amp;lt;: INF#33535, java.lang.String
+       &amp;lt;: INF#33535, K#33536 &amp;lt;: INF#33535, K#33544
+       &amp;lt;: INF#33535, K#33521 &amp;lt;: INF#33535, K#33525
+       &amp;lt;: INF#33535, K#2871 &amp;lt;: INF#33535, K#33565 &amp;lt;:
+       INF#33535, K#33547 &amp;lt;: INF#33535, E#33546 = E#33546,
+       E#33546 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#33552&amp;gt;, E#33546 = java.util.Map.java.util.Map.Entry&amp;lt;K#33554,
+       V#33552&amp;gt;, E#33546 &amp;lt;: java.lang.Object, E#33546
+       &amp;lt;: java.lang.Object, E#33551 = E#33551, E#33551 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#33552&amp;gt;, E#33551 = java.util.Map.java.util.Map.Entry&amp;lt;K#33554,
+       V#33552&amp;gt;, E#33551 &amp;lt;: java.lang.Object, E#33551
+       &amp;lt;: java.lang.Object, java.util.Map.java.util.Map.Entry&amp;lt;K#33544,
+       V#33543&amp;gt; &amp;lt;: E#33551, E#33531 = E#33531, E#33531
+       = java.util.Map.java.util.Map.Entry&amp;lt;K#33536, V#33533&amp;gt;,
+       E#33531 &amp;lt;: java.lang.Object, E#33531 &amp;lt;: java.lang.Object,
+       K#33554 = K#33554, K#33554 = java.lang.String, K#33554 = K#33536,
+       K#33554 = K#33544, K#33554 = K#33521, K#33554 = K#33525, K#33554
+       = K#2871, K#33554 = K#33565, K#33554 = K#33547, K#33554 &amp;lt;:
+       INF#33535, K#33554 &amp;lt;: java.lang.Object, K#33554 &amp;lt;:
+       java.lang.Object, K#33554 &amp;lt;: java.lang.String, K#33554
+       &amp;lt;: INF#33553, K#33554 &amp;lt;: INF#33566, E#33545
+       = E#33545, E#33545 = java.util.Map.java.util.Map.Entry&amp;lt;java.lang.String,
+       V#33552&amp;gt;, E#33545 = java.util.Map.java.util.Map.Entry&amp;lt;K#33554,
+       V#33552&amp;gt;, E#33545 &amp;lt;: java.lang.Object, E#33545
+       &amp;lt;: java.lang.Object, V#33563 = V#33563, V#33563 = V#33552,
+       V#33563 = V#33543, V#33563 = V#33526, V#33563 = V#2870, V#33563
+       = V#33533, V#33563 = V#33548, V#33563 = V#33520, V#33563 =
+       java.lang.Integer, V#33563 &amp;lt;: java.lang.Object, V#33563
+       &amp;lt;: java.lang.Object, V#33563 &amp;lt;: INF#33564, V#33563
+       &amp;lt;: INF#33550, V#33563 &amp;lt;: INF#33527, V#33563
+       &amp;lt;: java.lang.Integer, E#33534 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33534 = E#33534, E#33534 &amp;lt;: java.lang.Object,
+       E#33534 &amp;lt;: java.lang.Object, E#33523 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33523 = E#33523, E#33523 &amp;lt;: java.lang.Object,
+       E#33523 &amp;lt;: java.lang.Object, INF#33564 = INF#33564,
+       INF#33564 = java.lang.Integer, INF#33564 &amp;lt;: java.lang.Object,
+       V#33563 &amp;lt;: INF#33564, V#33552 &amp;lt;: INF#33564,
+       V#33543 &amp;lt;: INF#33564, V#33526 &amp;lt;: INF#33564,
+       V#2870 &amp;lt;: INF#33564, V#33533 &amp;lt;: INF#33564, V#33548
+       &amp;lt;: INF#33564, V#33520 &amp;lt;: INF#33564, java.lang.Integer
+       &amp;lt;: INF#33564, V#33543 = V#33563, V#33543 = V#33552,
+       V#33543 = V#33543, V#33543 = V#33526, V#33543 = V#2870, V#33543
+       = V#33533, V#33543 = V#33548, V#33543 = V#33520, V#33543 =
+       java.lang.Integer, V#33543 &amp;lt;: java.lang.Object, V#33543
+       &amp;lt;: java.lang.Object, V#33543 &amp;lt;: INF#33564, V#33543
+       &amp;lt;: INF#33550, V#33543 &amp;lt;: INF#33527, V#33543
+       &amp;lt;: java.lang.Integer, V#33526 = V#33563, V#33526 =
+       V#33552, V#33526 = V#33543, V#33526 = V#33526, V#33526 = V#2870,
+       V#33526 = V#33533, V#33526 = V#33548, V#33526 = V#33520, V#33526
+       = java.lang.Integer, V#33526 &amp;lt;: java.lang.Object, V#33526
+       &amp;lt;: java.lang.Object, V#33526 &amp;lt;: INF#33564, V#33526
+       &amp;lt;: INF#33550, V#33526 &amp;lt;: INF#33527, V#33526
+       &amp;lt;: java.lang.Integer, E#33711 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33711 = E#33711, E#33711 &amp;lt;: java.lang.Object,
+       E#33711 &amp;lt;: java.lang.Object, E#33519 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33519 = E#33519, E#33519 &amp;lt;: java.lang.Object,
+       E#33519 &amp;lt;: java.lang.Object, K#33521 = K#33554, K#33521
+       = java.lang.String, K#33521 = K#33536, K#33521 = K#33544,
+       K#33521 = K#33521, K#33521 = K#33525, K#33521 = K#2871, K#33521
+       = K#33565, K#33521 = K#33547, K#33521 &amp;lt;: INF#33535,
+       K#33521 &amp;lt;: java.lang.Object, K#33521 &amp;lt;: java.lang.Object,
+       K#33521 &amp;lt;: java.lang.String, K#33521 &amp;lt;: INF#33553,
+       K#33521 &amp;lt;: INF#33566, INF#33566 = java.lang.String,
+       INF#33566 = INF#33566, INF#33566 &amp;lt;: java.lang.Object,
+       K#33554 &amp;lt;: INF#33566, java.lang.String &amp;lt;: INF#33566,
+       K#33536 &amp;lt;: INF#33566, K#33544 &amp;lt;: INF#33566,
+       K#33521 &amp;lt;: INF#33566, K#2871 &amp;lt;: INF#33566, K#33525
+       &amp;lt;: INF#33566, K#33547 &amp;lt;: INF#33566, K#33565
+       &amp;lt;: INF#33566, V#33548 = V#33563, V#33548 = V#33552,
+       V#33548 = V#33543, V#33548 = V#33526, V#33548 = V#2870, V#33548
+       = V#33533, V#33548 = V#33548, V#33548 = V#33520, V#33548 =
+       java.lang.Integer, V#33548 &amp;lt;: java.lang.Object, V#33548
+       &amp;lt;: java.lang.Object, V#33548 &amp;lt;: INF#33564, V#33548
+       &amp;lt;: INF#33550, V#33548 &amp;lt;: INF#33527, V#33548
+       &amp;lt;: java.lang.Integer, K#33565 = K#33554, K#33565 =
+       java.lang.String, K#33565 = K#33536, K#33565 = K#33544, K#33565
+       = K#33521, K#33565 = K#33525, K#33565 = K#2871, K#33565 =
+       K#33565, K#33565 = K#33547, K#33565 &amp;lt;: INF#33535, K#33565
+       &amp;lt;: java.lang.Object, K#33565 &amp;lt;: java.lang.Object,
+       K#33565 &amp;lt;: java.lang.String, K#33565 &amp;lt;: INF#33553,
+       K#33565 &amp;lt;: INF#33566, E#2887 = java.util.Map.java.util.Map.Entry&amp;lt;K#2871,
+       V#2870&amp;gt;, E#2887 = E#2887, E#2887 &amp;lt;: java.lang.Object,
+       E#2887 &amp;lt;: java.lang.Object, E#33537 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33537 = E#33537, E#33537 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#33521,
+       V#33520&amp;gt;, E#33537 &amp;lt;: java.lang.Object, E#33537
+       &amp;lt;: java.lang.Object, E#33537 &amp;lt;: java.util.Map.java.util.Map.Entry&amp;lt;K#33525,
+       V#33526&amp;gt;, E#33529 = java.util.Map.java.util.Map.Entry&amp;lt;K#33536,
+       V#33533&amp;gt;, E#33529 = E#33529, E#33529 &amp;lt;: java.lang.Object,
+       E#33529 &amp;lt;: java.lang.Object, V#33533 = V#33563, V#33533
+       = V#33552, V#33533 = V#33543, V#33533 = V#33526, V#33533 =
+       V#2870, V#33533 = V#33533, V#33533 = V#33548, V#33533 = V#33520,
+       V#33533 = java.lang.Integer, V#33533 &amp;lt;: java.lang.Object,
+       V#33533 &amp;lt;: java.lang.Object, V#33533 &amp;lt;: INF#33564,
+       V#33533 &amp;lt;: INF#33550, V#33533 &amp;lt;: INF#33527,
+       V#33533 &amp;lt;: java.lang.Integer, K#2871 = K#33554, K#2871
+       = java.lang.String, K#2871 = K#33536, K#2871 = K#33544, K#2871
+       = K#33521, K#2871 = K#33525, K#2871 = K#2871, K#2871 = K#33565,
+       K#2871 = K#33547, K#2871 &amp;lt;: INF#33535, K#2871 &amp;lt;:
+       java.lang.Object, K#2871 &amp;lt;: java.lang.Object, K#2871
+       &amp;lt;: java.lang.String, K#2871 &amp;lt;: INF#33553, K#2871
+       &amp;lt;: INF#33566, K#33547 = K#33554, K#33547 = java.lang.String,
+       K#33547 = K#33536, K#33547 = K#33544, K#33547 = K#33521, K#33547
+       = K#33525, K#33547 = K#2871, K#33547 = K#33565, K#33547 =
+       K#33547, K#33547 &amp;lt;: INF#33535, K#33547 &amp;lt;: java.lang.Object,
+       K#33547 &amp;lt;: java.lang.Object, K#33547 &amp;lt;: java.lang.String,
+       K#33547 &amp;lt;: INF#33553, K#33547 &amp;lt;: INF#33566,
+       true }
+&amp;lt;?xml version="1.0" ?&amp;gt;
+&amp;lt;stringIntMap
+       xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"&amp;gt;
       
   &amp;lt;entry key="third"&amp;gt;
     &amp;lt;value&amp;gt;3&amp;lt;/value&amp;gt;
@@ -1326,8 +1906,8 @@ java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;
   &amp;lt;/entry&amp;gt;
 &amp;lt;/stringIntMap&amp;gt;
 
-java.util.Map&amp;lt;CAP#1720
-       extends java.util.List&amp;lt;byte[]&amp;gt;, CAP#1721 extends
+java.util.Map&amp;lt;CAP#3816
+       extends java.util.List&amp;lt;byte[]&amp;gt;, CAP#3817 extends
        java.util.Map&amp;lt;java.lang.String, java.lang.Integer&amp;gt;&amp;gt;
     </system-out>
   </testcase>

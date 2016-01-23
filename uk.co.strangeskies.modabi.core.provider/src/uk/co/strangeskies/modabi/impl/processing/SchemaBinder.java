@@ -35,8 +35,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 
 public class SchemaBinder {
 	private static interface TryGet<T> {
-		Binding<T> tryGet()
-				throws InterruptedException, ExecutionException, TimeoutException;
+		Binding<T> tryGet() throws InterruptedException, ExecutionException, TimeoutException;
 	}
 
 	private final BindingContextImpl context;
@@ -45,8 +44,7 @@ public class SchemaBinder {
 		this.context = context;
 	}
 
-	public <T> BindingFuture<T> bind(Model.Effective<T> model,
-			StructuredDataSource input) {
+	public <T> BindingFuture<T> bind(Model.Effective<T> model, StructuredDataSource input) {
 		try {
 			Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode");
 			Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode", true,
@@ -61,8 +59,8 @@ public class SchemaBinder {
 
 		QualifiedName inputRoot = input.startNextChild();
 		if (!inputRoot.equals(model.getName()))
-			throw new BindingException("Model '" + model.getName()
-					+ "' does not match root input node '" + inputRoot + "'", context);
+			throw new BindingException("Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'",
+					context);
 
 		FutureTask<Binding<T>> future = new FutureTask<Binding<T>>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoader);
@@ -80,30 +78,11 @@ public class SchemaBinder {
 					public T getData() {
 						return data;
 					}
-
-					@Override
-					public void updateData() {
-						// TODO Auto-generated method stub
-
-					}
-
-					@Override
-					public NavigableStructuredDataSource getSource() {
-						// TODO Auto-generated method stub
-						return null;
-					}
-
-					@Override
-					public void updateSource() {
-						// TODO Auto-generated method stub
-
-					}
 				};
 			} catch (SchemaException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new BindingException("Unexpected problem during binding.",
-						context, e);
+				throw new BindingException("Unexpected problem during binding.", context, e);
 			}
 		});
 		future.run();
@@ -139,15 +118,16 @@ public class SchemaBinder {
 				try {
 					return get.tryGet();
 				} catch (InterruptedException e) {
-					throw new SchemaException("Unexpected interrupt during binding of '"
-							+ getName() + "' with model '" + getModel().getName() + "'", e);
+					throw new SchemaException(
+							"Unexpected interrupt during binding of '" + getName() + "' with model '" + getModel().getName() + "'",
+							e);
 				} catch (ExecutionException e) {
-					throw new SchemaException("Exception during binding of '" + getName()
-							+ "' with model '" + getModel().getName() + "'", e.getCause());
+					throw new SchemaException(
+							"Exception during binding of '" + getName() + "' with model '" + getModel().getName() + "'",
+							e.getCause());
 				} catch (TimeoutException e) {
 					throw new SchemaException(
-							"Timed out waiting for binding of '" + getName()
-									+ "' with model '" + getModel().getName() + "'",
+							"Timed out waiting for binding of '" + getName() + "' with model '" + getModel().getName() + "'",
 							e.getCause());
 				}
 			}

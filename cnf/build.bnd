@@ -94,7 +94,7 @@ runreq.felix.web=\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.webconsole.plugins.useradmin)'
 
 runreq.eclipselink.jpa=\,\
-	osgi.identity;filter:='(osgi.identity=org.apache.aries.jpa.eclipselink.adapter)'
+	osgi.identity;filter:='(osgi.identity=org.apache.aries.jpa.eclipselink.adapter)',\
 	osgi.identity;filter:='(osgi.identity=javax.persistence)'
 
 # Build path groups:

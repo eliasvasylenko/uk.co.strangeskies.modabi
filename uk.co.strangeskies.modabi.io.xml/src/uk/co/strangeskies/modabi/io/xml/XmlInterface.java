@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 
+import uk.co.strangeskies.modabi.io.structured.RewritableStructuredData;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
@@ -52,5 +53,11 @@ public class XmlInterface implements StructuredDataFormat {
 	@Override
 	public StructuredDataTarget saveData(OutputStream out) {
 		return new XmlTarget(out);
+	}
+
+	@Override
+	public RewritableStructuredData modifyData() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
