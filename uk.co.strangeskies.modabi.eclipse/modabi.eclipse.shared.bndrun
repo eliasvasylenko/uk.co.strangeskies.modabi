@@ -8,6 +8,7 @@ runreq.modabi:\
 	${runreq.eclipse.${platform}},\
 	${req;osgi.enroute.logger.simple.provider},\
 	${req;uk.co.strangeskies.modabi.eclipse},\
+	${req;uk.co.strangeskies.modabi.eclipse.xml},\
 	${req;uk.co.strangeskies.modabi.core.provider},\
 	${req;uk.co.strangeskies.modabi.io.xml}
 

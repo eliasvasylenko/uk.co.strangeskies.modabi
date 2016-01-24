@@ -1,0 +1,21 @@
+Bundle-Name: Modabi :: Eclipse :: XML
+Bundle-Description: \
+	Eclipse tooling for development with Modabi schemata, providing \
+	validation of source files during editing, as well as UI editing \
+	of files according to their schemata.\
+\
+	${modabi-description}
+
+Bundle-SymbolicName: ${p};singleton:=true
+
+-buildpath: \
+	${buildpath.eclipse},\
+	${ss;fx},\
+	${ss;eclipse}
+
+Export-Package:\
+	uk.co.strangeskies.modabi.eclipse.xml
+
+Include-Resource:\
+	plugin.xml,\
+	fragment.e4xmi
