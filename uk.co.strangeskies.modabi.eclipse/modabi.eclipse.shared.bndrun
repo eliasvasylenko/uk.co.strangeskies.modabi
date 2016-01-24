@@ -1,0 +1,32 @@
+# This run file contains all the cross-platform bundle and settings to run Bndtools.
+
+# Do not run this, use the platform-specific bndrun files (which "-include" this)
+
+runreq.modabi:\
+	${runreq.felix.shell},\
+	${runreq.eclipse.p2},\
+	${runreq.eclipse.${platform}},\
+	${req;osgi.enroute.logger.simple.provider},\
+	${req;uk.co.strangeskies.modabi.eclipse},\
+	${req;uk.co.strangeskies.modabi.core.provider},\
+	${req;uk.co.strangeskies.modabi.io.xml}
+
+runvm.modabi:\
+	-Xmx1024m
+
+runfw.modabi:\
+	org.eclipse.osgi
+
+runee.modabi:\
+	JavaSE-1.8
+
+runpath.modabi:\
+	${runpath.eclipse.${platform}}
+
+runprops.modabi:\
+	${runprops.eclipse},\
+	eclipse.application=org.eclipse.ui.ide.workbench,\
+	eclipse.product=org.eclipse.sdk.ide
+
+systempath.modabi:\
+	${systempath.eclipse}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ASCII"?>
+<fragment:ModelFragments xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/descriptor/basic" xmlns:commands="http://www.eclipse.org/ui/2010/UIModel/application/commands" xmlns:fragment="http://www.eclipse.org/ui/2010/UIModel/fragment" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_c8CZsFVoEeWXIM1iTwboYg">
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_ylQWEFYyEeWz-PkqHRIpVg" featurename="commands" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="commands:Command" xmi:id="_CqXYcFYzEeWz-PkqHRIpVg" elementId="test_emf_project.command.sample" commandName="Sample"/>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_HPsk0FYzEeWz-PkqHRIpVg" featurename="handlers" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="commands:Handler" xmi:id="_KcOLMFYzEeWz-PkqHRIpVg" elementId="test_emf_project.handler.0" contributionURI="bundleclass://Test_EMF_Project/com.ami.launch.HandlerImplementation" command="_CqXYcFYzEeWz-PkqHRIpVg"/>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_Q9KvsFYzEeWz-PkqHRIpVg" featurename="menuContributions" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="menu:MenuContribution" xmi:id="_VRqDsFYzEeWz-PkqHRIpVg" elementId="uk.co.strangeskies.modabi.eclipse.menucontribution.0" parentId="org.eclipse.ui.main.menu">
+      <children xsi:type="menu:Menu" xmi:id="_gzz4QFYzEeWz-PkqHRIpVg" elementId="uk.co.strangeskies.modabi.eclipse.menu.custommenu" label="Custommenu">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_vHCtUFYzEeWz-PkqHRIpVg" elementId="test_emf_project.handledmenuitem.openDialog" label="Open Dialog" iconURI="" command="_CqXYcFYzEeWz-PkqHRIpVg"/>
+      </children>
+    </elements>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_tL2gMMKVEeWczLmLZxL8kA" featurename="descriptors" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="basic:PartDescriptor" xmi:id="_ztt_0MKXEeWczLmLZxL8kA" elementId="uk.co.strangeskies.modabi.eclipse.partdescriptor.test" label="Test" allowMultiple="true" category="Modabi" closeable="true" contributionURI="bundleclass://uk.co.strangeskies.modabi.eclipse/uk.co.strangeskies.modabi.eclipse.TestPart">
+      <tags>View</tags>
+      <toolbar xmi:id="_mZ91UMKYEeWczLmLZxL8kA" elementId="uk.co.strangeskies.modabi.eclipse.toolbar.0"/>
+    </elements>
+  </fragments>
+</fragment:ModelFragments>

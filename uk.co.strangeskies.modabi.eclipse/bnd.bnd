@@ -6,9 +6,17 @@ Bundle-Description: \
 \
 	${modabi-description}
 
--runee: JavaSE-1.8
+Bundle-SymbolicName: ${p};singleton:=true
 
 -buildpath: \
-	osgi.enroute.base.api,\
-	${ss;utilities},\
-	uk.co.strangeskies.modabi.core.api;version=project
+	${buildpath.eclipse},\
+	${ss;fx},\
+	${ss;eclipse}
+
+Export-Package:\
+	uk.co.strangeskies.modabi.eclipse
+
+Include-Resource:\
+	plugin.xml,\
+	fragment.e4xmi,\
+	css=css

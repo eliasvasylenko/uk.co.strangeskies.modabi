@@ -52,6 +52,7 @@ test-output/
 .e4css/
 reports/
 release/
+testdir/
 
 # Local configuration file (sdk path, etc) #
 ############################################

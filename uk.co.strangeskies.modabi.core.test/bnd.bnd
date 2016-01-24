@@ -24,16 +24,16 @@ Test-Cases: ${test-cases}
 	tester.dir=testdir
 
 -runrequires: \
-	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.utilities.osgi.consolelog)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.runtime)',\
-	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.json)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.io.xml)',\
-	osgi.identity;filter:='(osgi.identity=biz.aQute.tester)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.api)'
+	${req;osgi.enroute.logger.simple.provider},\
+	${req;uk.co.strangeskies.osgi.consolelog},\
+	${req;org.apache.felix.gogo.command},\
+	${req;org.apache.felix.gogo.runtime},\
+	${req;org.apache.felix.gogo.shell},\
+	${req;uk.co.strangeskies.modabi.io.json},\
+	${req;uk.co.strangeskies.modabi.io.xml},\
+	${req;biz.aQute.tester},\
+	${req;uk.co.strangeskies.modabi.core.provider},\
+	${req;uk.co.strangeskies.modabi.core.api}
 
 -runfw: org.apache.felix.framework;version='[5.2.0,5.2.0]'
 
@@ -55,9 +55,9 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
 	uk.co.strangeskies.modabi.io.json;version=snapshot,\
 	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
+	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
-	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)',\
-	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.13,1.0.14)'
+	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000
 Import-Package: \
