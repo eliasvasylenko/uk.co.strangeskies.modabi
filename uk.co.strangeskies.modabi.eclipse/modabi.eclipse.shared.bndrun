@@ -5,6 +5,8 @@
 runreq.modabi:\
 	${runreq.felix.shell},\
 	${runreq.eclipse.p2},\
+	${runreq.eclipse.help},\
+	${runreq.eclipse.sdk},\
 	${runreq.eclipse.${platform}},\
 	${req;osgi.enroute.logger.simple.provider},\
 	${req;uk.co.strangeskies.modabi.eclipse},\

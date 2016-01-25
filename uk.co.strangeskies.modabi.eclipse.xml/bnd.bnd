@@ -13,8 +13,9 @@ Bundle-SymbolicName: ${p};singleton:=true
 	${ss;fx},\
 	${ss;eclipse}
 
-Export-Package:\
-	uk.co.strangeskies.modabi.eclipse.xml
+Export-Package: \
+	uk.co.strangeskies.modabi.eclipse.xml,\
+	uk.co.strangeskies.modabi.eclipse.xml.editors
 
 Include-Resource:\
 	plugin.xml,\

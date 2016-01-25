@@ -143,13 +143,11 @@ runreq.eclipse.help:\
 	${req;org.eclipse.ui.cheatsheets},\
 	${req;org.eclipse.ui.net}
 
-runreq.eclipse.sdk: \
+runreq.eclipse.sdk:\
 	${req;org.eclipse.pde.runtime},\
 	${req;org.eclipse.sdk}
 
 runreq.eclipse:\
-	${runreq.eclipse.help},\
-	${runreq.eclipse.sdk},\
 	${req;bndtools.runtime.eclipse.applaunch},\
 	${req;org.eclipse.equinox.launcher},\
 	${req;org.eclipse.equinox.console},\
@@ -157,6 +155,7 @@ runreq.eclipse:\
 	${req;org.eclipse.core.databinding.beans},\
 	${req;org.eclipse.equinox.concurrent},\
 	${req;org.eclipse.equinox.event},\
+	${req;org.eclipse.equinox.log},\
 	${req;org.eclipse.fx.ui.databinding},\
 	${req;org.eclipse.fx.ui.workbench.fx},\
 	${req;org.eclipse.fx.ui.workbench.renderers.fx},\
@@ -167,9 +166,35 @@ runreq.eclipse:\
 	${req;org.eclipse.fx.core.di.context},\
 	${req;org.eclipse.ui.ide},\
 	${req;org.eclipse.jdt.core},\
+	${req;org.eclipse.jdt.annotation},\
+	${req;org.eclipse.jdt.compiler.apt},\
+	${req;org.eclipse.jdt.compiler.tool},\
+	${req;org.eclipse.jdt.apt.core},\
+	${req;org.eclipse.jdt.apt.ui},\
+	${req;org.eclipse.jdt.debug.ui},\
 	${req;org.eclipse.jdt.ui},\
 	${req;org.eclipse.platform},\
-	${req;org.eclipse.ui.ide.application}
+	${req;org.eclipse.ui.ide.application},\
+	${req;org.eclipse.ecf},\
+	${req;org.eclipse.ecf.filetransfer},\
+	${req;org.eclipse.ecf.identity},\
+	${req;org.eclipse.ecf.provider.filetransfer},\
+	${req;org.eclipse.equinox.frameworkadmin},\
+	${req;org.eclipse.equinox.p2.artifact.repository},\
+	${req;org.eclipse.jetty.continuation},\
+	${req;org.eclipse.rcp},\
+	${req;org.eclipse.ui.browser},\
+	${req;org.eclipse.ui.views.log},\
+	${req;org.eclipse.update.configurator},\
+	${req;org.hamcrest.core},\
+	${req;org.junit}
+
+
+#	${req;org.eclipse.jdt.junit},\
+#	${req;org.eclipse.jdt.junit.core},\
+#	${req;org.eclipse.jdt.junit.runtime}
+#	${req;org.eclipse.equinox.frameworkadmin.equinox},\
+#	${req;org.eclipse.equinox.simpleconfigurator.manipulator},\
 
 runreq.eclipse.win64:\
 	${runreq.eclipse},\
@@ -222,6 +247,7 @@ buildpath.eclipse:\
 	javax.inject,\
 	org.eclipse.equinox.common,\
 	org.eclipse.core.runtime,\
+	org.eclipse.core.contenttype,\
 	org.eclipse.e4.ui.model.workbench,\
 	org.eclipse.jface,\
 	org.eclipse.e4.ui.services,\
@@ -235,7 +261,9 @@ buildpath.eclipse:\
 	org.eclipse.fx.core.di,\
 	org.eclipse.fx.ui.di,\
 	org.eclipse.fx.ui.theme,\
-	org.eclipse.fx.ui.services
+	org.eclipse.fx.ui.services,\
+	org.eclipse.osgi.compatibility.state,\
+	org.eclipse.osgi
 
 ## Run properties groups:
 runprops.eclipse:\

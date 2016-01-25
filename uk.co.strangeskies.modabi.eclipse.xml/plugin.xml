@@ -41,6 +41,13 @@
             id="uk.co.strangeskies.modabi.eclipse.xml.file"
             name="Modabi XML"
             priority="normal">
+         <describer
+               class="uk.co.strangeskies.modabi.eclipse.xml.editors.ModabiXmlContentTypeDescriber">
+            <parameter
+                  name="element"
+                  value="apples">
+            </parameter>
+         </describer>
       </content-type>
    </extension>
    <extension
