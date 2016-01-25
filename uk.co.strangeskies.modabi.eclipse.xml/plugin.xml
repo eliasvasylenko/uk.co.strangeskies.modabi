@@ -42,12 +42,7 @@
             name="Modabi XML"
             priority="normal">
          <describer
-               class="uk.co.strangeskies.modabi.eclipse.xml.editors.ModabiXmlContentTypeDescriber">
-            <parameter
-                  name="element"
-                  value="apples">
-            </parameter>
-         </describer>
+               class="uk.co.strangeskies.modabi.eclipse.xml.editors.ModabiXmlContentTypeDescriber" />
       </content-type>
    </extension>
    <extension
