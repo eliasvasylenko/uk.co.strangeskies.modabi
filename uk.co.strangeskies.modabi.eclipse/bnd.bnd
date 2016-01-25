@@ -22,4 +22,4 @@ Include-Resource:\
 	css=css
 
 Import-Package: \
-	*
+	*;ui.workbench=!;common=!;registry=!;texteditor=!;text=!

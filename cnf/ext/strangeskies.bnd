@@ -1,0 +1,44 @@
+## StrangeSkies
+ss: ${def;ss.override;uk.co.strangeskies:uk.co.strangeskies.${1}\\\;version=latest}
+plugin.strangeskies.default: \
+\
+		aQute.bnd.deployer.repository.aether.AetherRepository\; \
+			name				=		StrangeSkies\; \
+			url					=		http://oss.jfrog.org/libs-snapshot/
+
+plugin.strangeskies: ${def;plugin.strangeskies.override;\\\$\{plugin.strangeskies.default\}}
+
+## Modabi
+mdb: ${def;mdb.override;uk.co.strangeskies.modabi:uk.co.strangeskies.modabi.${1}\\\;version=latest}
+plugin.strangeskies.modabi.default: \
+\
+		aQute.bnd.deployer.repository.aether.AetherRepository\; \
+			name				=		Modabi\; \
+			url					=		http://oss.jfrog.org/libs-snapshot/
+
+plugin.strangeskies.modabi: ${def;plugin.strangeskies.modabi.override;\\\$\{plugin.strangeskies.modabi.default\}}
+
+# For users with a copy of the uk.co.strangeskies or uk.co.strangeskies.modabi
+#  project checked out from git locally, they can redirect dependencies on
+# bundles in that project to local releases from the snapshots on OJO.
+#
+# The following can be added to a local.bnd file in cnf/ext/, which is
+# excluded from git via .gitignore. The path specified by "local = ..."
+# should point to the cnf/release/ repository for the local
+# uk.co.strangeskies project.
+#
+#ss.override: uk.co.strangeskies.${1}\;version=latest
+#plugin.strangeskies.override: \
+#\
+#		aQute.bnd.deployer.repository.LocalIndexedRepo;\
+#			name                =       StrangeSkies;\
+#			pretty              =       true;\
+#			local               =       ${user.home}[/git-location]/uk.co.strangeskies/cnf/release
+#
+#mdb.override: uk.co.strangeskies.modabi.${1}\;version=latest
+#plugin.strangeskies.modabi.override: \
+#\
+#		aQute.bnd.deployer.repository.LocalIndexedRepo;\
+#			name                =       Modabi;\
+#			pretty              =       true;\
+#			local               =       ${user.home}[/git-location]/uk.co.strangeskies.modabi/cnf/release

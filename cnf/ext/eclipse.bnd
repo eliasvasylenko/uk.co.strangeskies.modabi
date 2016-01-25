@@ -1,0 +1,245 @@
+## Repository Plugins:
+repository.eclipse.platform: https://dl.bintray.com/strangeskies/org.eclipse/org.eclipse.platform/4.5.1/index.xml
+repository.eclipse.jdt: https://dl.bintray.com/strangeskies/org.eclipse/org.eclipse.jdt/4.5.1/index.xml
+repository.eclipse.pde: https://dl.bintray.com/strangeskies/org.eclipse/org.eclipse.pde/4.5.1/index.xml
+repository.eclipse.sdk: https://dl.bintray.com/strangeskies/org.eclipse/org.eclipse.sdk/4.5.1/index.xml
+repository.eclipse.wtp: https://dl.bintray.com/strangeskies/org.eclipse/org.eclipse.wtp/3.7.1/index.xml
+repository.eclipse.fx: http://download.eclipse.org/efxclipse/runtime-nightly/site/repository.xml.gz
+
+plugin.eclipse.platform:\
+		aQute.bnd.deployer.repository.FixedIndexedRepo;\
+			name				=		"Eclipse Platform 4.5.1";\
+			locations			=		${repository.eclipse.platform}
+
+plugin.eclipse.sdk:\
+		aQute.bnd.deployer.repository.FixedIndexedRepo;\
+			name				=		"Eclipse SDK 4.5.1";\
+			locations			=		'\
+										${repository.eclipse.platform},\
+										${repository.eclipse.jdt},\
+										${repository.eclipse.pde},\
+										${repository.eclipse.sdk}'
+
+plugin.eclipse.wtp:\
+		aQute.bnd.deployer.repository.FixedIndexedRepo;\
+			name				=		"Eclipse WTP 3.7.1";\
+			locations			=		${repository.eclipse.wtp}
+
+plugin.eclipse.fx: \
+\
+		aQute.bnd.deployer.repository.FixedIndexedRepo;\
+			name				=		"E(fx)clipse Runtime 2.2.0";\
+			locations			=       ${repository.eclipse.fx}
+
+## Build path groups:
+-buildpath.base=\
+	osgi.enroute.base.api;version=latest
+
+-testpath.base=\
+	osgi.enroute.junit.wrapper,\
+	osgi.enroute.hamcrest.wrapper,\
+	org.hamcrest__java-hamcrest
+
+buildpath.eclipse:\
+	javax.inject,\
+	org.eclipse.equinox.common,\
+	org.eclipse.jface,\
+	org.eclipse.jface.databinding,\
+	org.eclipse.jface.text,\
+	org.eclipse.jdt.core,\
+	org.eclipse.jdt.ui,\
+	org.eclipse.emf.common,\
+	org.eclipse.equinox.registry,\
+	org.eclipse.core.runtime,\
+	org.eclipse.core.expressions,\
+	org.eclipse.core.contenttype,\
+	org.eclipse.core.commands,\
+	org.eclipse.core.resources,\
+	org.eclipse.core.databinding,\
+	org.eclipse.core.databinding.beans,\
+	org.eclipse.core.databinding.property,\
+	org.eclipse.ui,\
+	org.eclipse.ui.ide,\
+	org.eclipse.ui.editors,\
+	org.eclipse.ui.workbench,\
+	org.eclipse.ui.workbench.texteditor,\
+	org.eclipse.e4.core.di,\
+	org.eclipse.e4.core.di.annotations,\
+	org.eclipse.e4.core.services,\
+	org.eclipse.e4.core.contexts,\
+	org.eclipse.e4.ui.model.workbench,\
+	org.eclipse.e4.ui.services,\
+	org.eclipse.e4.ui.workbench,\
+	org.eclipse.e4.ui.di,\
+	org.eclipse.fx.core,\
+	org.eclipse.fx.core.di,\
+	org.eclipse.fx.ui.di,\
+	org.eclipse.fx.ui.theme,\
+	org.eclipse.fx.ui.services,\
+	org.eclipse.wst.sse.ui,\
+	org.eclipse.wst.sse.core,\
+	org.eclipse.swt,\
+	org.eclipse.swt.gtk.linux.x86_64,\
+	org.eclipse.text
+
+## Run path groups:
+runpath.eclipse:\
+	org.eclipse.osgi,\
+	org.eclipse.osgi.compatibility.state,\
+	org.eclipse.fx.osgi
+
+runpath.eclipse.win64:\
+	${runpath.eclipse},\
+	org.eclipse.equinox.launcher.win32.win32.x86_64
+
+runpath.eclipse.linux64:\
+	${runpath.eclipse},\
+	org.eclipse.equinox.launcher.gtk.linux.x86_64
+
+## Run requirement groups:
+
+# e4 base
+runreq.eclipse.help:\
+	${req;javax.el},\
+	${req;javax.servlet},\
+	${req;javax.servlet.jsp},\
+	${req;org.apache.commons.logging},\
+	${req;org.apache.lucene.analysis},\
+	${req;org.apache.lucene.core},\
+	${req;org.eclipse.ant.core},\
+	${req;org.eclipse.equinox.http.jetty},\
+	${req;org.eclipse.equinox.http.registry},\
+	${req;org.eclipse.equinox.http.servlet},\
+	${req;org.eclipse.equinox.jsp.jasper},\
+	${req;org.eclipse.equinox.jsp.jasper.registry},\
+	${req;org.eclipse.help},\
+	${req;org.eclipse.help.base},\
+	${req;org.eclipse.help.ui},\
+	${req;org.eclipse.help.webapp},\
+	${req;org.eclipse.platform.doc.user},\
+	${req;org.eclipse.search},\
+	${req;org.eclipse.ui.cheatsheets},\
+	${req;org.eclipse.ui.net}
+
+runreq.eclipse.sdk:\
+	${req;org.eclipse.pde.runtime},\
+	${req;org.eclipse.sdk}
+
+runreq.eclipse:\
+	${req;bndtools.runtime.eclipse.applaunch},\
+	${req;org.eclipse.equinox.launcher},\
+	${req;org.eclipse.equinox.console},\
+	${req;org.eclipse.emf.databinding},\
+	${req;org.eclipse.core.databinding.beans},\
+	${req;org.eclipse.equinox.concurrent},\
+	${req;org.eclipse.equinox.event},\
+	${req;org.eclipse.equinox.log},\
+	${req;org.eclipse.fx.ui.databinding},\
+	${req;org.eclipse.fx.ui.workbench.fx},\
+	${req;org.eclipse.fx.ui.workbench.renderers.fx},\
+	${req;org.eclipse.fx.ui.theme},\
+	${req;org.eclipse.fx.ui.di},\
+	${req;org.eclipse.fx.ui.di.interopt},\
+	${req;org.eclipse.fx.core},\
+	${req;org.eclipse.fx.core.di},\
+	${req;org.eclipse.fx.core.di.context},\
+	${req;org.eclipse.ui.ide},\
+	${req;org.eclipse.jdt.core},\
+	${req;org.eclipse.jdt.annotation},\
+	${req;org.eclipse.jdt.compiler.apt},\
+	${req;org.eclipse.jdt.compiler.tool},\
+	${req;org.eclipse.jdt.apt.core},\
+	${req;org.eclipse.jdt.apt.ui},\
+	${req;org.eclipse.jdt.debug.ui},\
+	${req;org.eclipse.jdt.ui},\
+	${req;org.eclipse.platform},\
+	${req;org.eclipse.ui.ide.application},\
+	${req;org.eclipse.ecf},\
+	${req;org.eclipse.ecf.filetransfer},\
+	${req;org.eclipse.ecf.identity},\
+	${req;org.eclipse.ecf.provider.filetransfer},\
+	${req;org.eclipse.equinox.frameworkadmin},\
+	${req;org.eclipse.equinox.p2.artifact.repository},\
+	${req;org.eclipse.jetty.continuation},\
+	${req;org.eclipse.rcp},\
+	${req;org.eclipse.ui.browser},\
+	${req;org.eclipse.ui.views.log},\
+	${req;org.eclipse.update.configurator},\
+	${req;org.eclipse.jdt.junit}
+
+runreq.eclipse.win64:\
+	${runreq.eclipse},\
+	${req;org.eclipse.core.filesystem.win32.x86_64},\
+	${req;org.eclipse.core.resources.win32.x86_64},\
+	${req;org.eclipse.equinox.security.win32.x86_64},\
+	${req;org.eclipse.equinox.launcher.win32.win32.x86_64},\
+	${req;org.eclipse.swt.win32.win32.x86_64}
+
+runreq.eclipse.linux64:\
+	${runreq.eclipse},\
+	${req;org.eclipse.core.filesystem.linux.x86_64},\
+	${req;org.eclipse.core.net.linux.x86_64},\
+	${req;org.eclipse.equinox.launcher.gtk.linux.x86_64},\
+	${req;org.eclipse.swt.gtk.linux.x86_64}
+
+# p2
+runreq.eclipse.p2:\
+	${req;org.eclipse.equinox.p2.core},\
+	${req;org.eclipse.equinox.p2.engine},\
+	${req;org.eclipse.equinox.p2.jarprocessor},\
+	${req;org.eclipse.equinox.p2.metadata},\
+	${req;org.eclipse.equinox.p2.metadata.repository},\
+	${req;org.eclipse.equinox.p2.repository},\
+	${req;org.eclipse.fx.core.p2}
+
+## Run properties groups:
+runprops.eclipse:\
+	osgi.console=,\
+	eclipse.consoleLog=true,\
+	equinox.use.ds=true,\
+	osgi.instance.area.default=./workspace,\
+	osgi.console.enable.builtin=true
+
+runprops.eclipse.fx:\
+	osgi.framework.extensions=\
+		org.eclipse.fx.osgi
+
+runprops.eclipse.clean:\
+	osgi.clean=true,\
+	clearPersistedState=true
+
+## Run system packages groups:
+systempath.eclipse.fx:\
+    javafx.animation,\
+    javafx.application,\
+    javafx.beans,\
+    javafx.beans.binding,\
+    javafx.beans.property,\
+    javafx.beans.property.adapter,\
+    javafx.beans.value,\
+    javafx.collections,\
+    javafx.concurrent,\
+    javafx.embed.swing,\
+    javafx.embed.swt,\
+    javafx.event,\
+    javafx.fxml,\
+    javafx.geometry,\
+    javafx.scene,\
+    javafx.scene.canvas,\
+    javafx.scene.chart,\
+    javafx.scene.control,\
+    javafx.scene.control.cell,\
+    javafx.scene.effect,\
+    javafx.scene.image,\
+    javafx.scene.input,\
+    javafx.scene.layout,\
+    javafx.scene.media,\
+    javafx.scene.paint,\
+    javafx.scene.shape,\
+    javafx.scene.text,\
+    javafx.scene.transform,\
+    javafx.scene.web,\
+    javafx.stage,\
+    javafx.util,\
+    javafx.util.converter,\
+    netscape.javascript

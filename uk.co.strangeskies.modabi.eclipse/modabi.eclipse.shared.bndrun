@@ -28,8 +28,10 @@ runpath.modabi:\
 
 runprops.modabi:\
 	${runprops.eclipse},\
+	${runprops.eclipse.fx},\
+	${runprops.eclipse.clean},\
 	eclipse.application=org.eclipse.ui.ide.workbench,\
 	eclipse.product=org.eclipse.sdk.ide
 
 systempath.modabi:\
-	${systempath.eclipse}
+	${systempath.eclipse.fx}
