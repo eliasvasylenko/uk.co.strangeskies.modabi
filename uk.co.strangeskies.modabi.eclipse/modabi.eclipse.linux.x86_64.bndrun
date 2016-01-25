@@ -8,6 +8,8 @@ platform: linux64
 
 -runfw: ${runfw.modabi}
 
+-runee: ${runee.modabi}
+
 -runpath: ${runpath.modabi}
 
 -runsystempackages: ${systempath.modabi}
