@@ -25,6 +25,7 @@ import java.io.Reader;
 
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.XMLContentDescriber;
+import org.eclipse.wst.sse.ui.StructuredTextEditor;
 
 public class ModabiXmlContentTypeDescriber extends XMLContentDescriber {
 	@Override

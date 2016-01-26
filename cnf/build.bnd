@@ -41,6 +41,9 @@ Bundle-Version: ${modabi-version}.${tstamp}
 	${plugin.eclipse.wtp},\
 	${plugin.eclipse.fx}
 
+mdb.override: uk.co.strangeskies.modabi.${1}\;version=project
+plugin.strangeskies.modabi.override:
+
 modabi-bnd-plugin: ${build}/release/uk.co.strangeskies.modabi.bnd.${1}/uk.co.strangeskies.modabi.bnd.${1}-${modabi-version}.jar
 
 pluginpath.modabi: \
