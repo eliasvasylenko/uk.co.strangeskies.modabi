@@ -39,7 +39,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
 		this.handler = handler;
 		this.manager = manager;
-		manager.registerDataInterface(handler);
+		manager.dataInterfaces().registerDataInterface(handler);
 	}
 
 	public SchemaManager getManager() {
@@ -61,22 +61,19 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 
 	private void registerSchemata(Jar jar, Analyzer analyzer) {
 		withJarOnBuildPath(analyzer, jar, "buildpath", () -> {
-			Map<String, Resource> resources = jar.getDirectories()
-					.get("META-INF/modabi");
+			Map<String, Resource> resources = jar.getDirectories().get("META-INF/modabi");
 
 			String newCapabilities = null;
 
 			for (String resourceName : resources.keySet()) {
 				Schema schema;
 				try {
-					schema = manager.bindSchema()
-							.from(resources.get(resourceName).openInputStream()).resolve();
+					schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
 				} catch (Exception e) {
 					throw new SchemaException(e);
 				}
 
-				String capability = "uk.co.strangeskies.modabi;schema:String=\""
-						+ schema.getQualifiedName() + "\"";
+				String capability = "uk.co.strangeskies.modabi;schema:String=\"" + schema.getQualifiedName() + "\"";
 
 				if (newCapabilities != null)
 					newCapabilities += "," + capability;
@@ -86,30 +83,23 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 
 			if (newCapabilities != null) {
 				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-						"osgi.service;" + "filter:=\"(&(objectClass="
-								+ StructuredDataFormat.class.getTypeName() + ")(formatId="
-								+ handler.getFormatId()
-								+ "))\";resolution:=mandatory;effective:=active");
+						"osgi.service;" + "filter:=\"(&(objectClass=" + StructuredDataFormat.class.getTypeName() + ")(formatId="
+								+ handler.getFormatId() + "))\";resolution:=mandatory;effective:=active");
 
-				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY,
-						newCapabilities);
+				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
 			}
 		});
 	}
 
-	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName,
-			Runnable run) {
+	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName, Runnable run) {
 		try {
-			File tempJar = createDirs(
-					analyzer.getBase() + File.separator + "generated", "tmp", "jar");
+			File tempJar = createDirs(analyzer.getBase() + File.separator + "generated", "tmp", "jar");
 
 			if (tempJar == null)
 				throw new RuntimeException(
-						"Cannot create temporary build path jar, location '"
-								+ analyzer.getBase() + "' does not exist");
+						"Cannot create temporary build path jar, location '" + analyzer.getBase() + "' does not exist");
 
-			tempJar = new File(
-					tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
+			tempJar = new File(tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
 			jar.write(tempJar);
 			new ContextClassLoaderRunner(tempJar.toURI().toURL()).run(run);
@@ -141,8 +131,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 		return file;
 	}
 
-	private void appendProperties(Analyzer analyzer, String property,
-			String append) {
+	private void appendProperties(Analyzer analyzer, String property, String append) {
 		String capabilities = analyzer.getProperty(property);
 
 		if (capabilities != null && !"".equals(capabilities.trim()))

@@ -38,8 +38,8 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.utilities.Enumeration;
 
