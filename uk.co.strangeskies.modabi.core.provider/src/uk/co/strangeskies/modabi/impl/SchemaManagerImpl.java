@@ -19,9 +19,9 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,7 +68,6 @@ import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
@@ -326,19 +325,15 @@ public class SchemaManagerImpl implements SchemaManager {
 		return binding;
 	}
 
-	private <T> Binder<T> createBinder(Function<StructuredDataSource, Model<T>> bindingFunction) {
-		return new BinderImpl<>(this, bindingFunction);
-	}
-
 	@Override
 	public <T> Binder<T> bind(Model<T> model) {
-		return createBinder(input -> model.effective());
+		return new BinderImpl<>(this, input -> model.effective());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Binder<T> bind(TypeToken<T> dataClass) {
-		return createBinder(input -> {
+		return new BinderImpl<>(this, input -> {
 			Model<?> model = registeredModels.get(input.peekNextChild());
 
 			if (model == null) {
@@ -358,7 +353,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public Binder<?> bind() {
-		return createBinder(input -> registeredModels.get(input.peekNextChild()).effective());
+		return new BinderImpl<>(this, input -> registeredModels.get(input.peekNextChild()).effective());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -372,43 +367,20 @@ public class SchemaManagerImpl implements SchemaManager {
 			return modelBindings.stream().map(t -> (BindingFuture<T>) t).collect(Collectors.toSet());
 	}
 
-	private <T> Unbinder<T> createUnbinder(Consumer<StructuredDataTarget> unbindingFunction) {
-		return new Unbinder<T>() {
-			@Override
-			public BindingFuture<T> to(String extension, OutputStream output) {
-				unbindingFunction.accept(dataInterfaces().getDataInterface(extension).saveData(output));
-
-				return null;
-			}
-
-			@Override
-			public <U extends StructuredDataTarget> U to(U output) {
-				unbindingFunction.accept(output);
-
-				return null;
-			}
-
-			@Override
-			public Unbinder<T> with(Consumer<Exception> errorHandler) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
-	}
-
 	@Override
 	public <T> Unbinder<T> unbind(Model<T> model, T data) {
-		return createUnbinder(output -> new SchemaUnbinder(this).unbind(model.effective(), output, data));
+		return new UnbinderImpl<>(this, data, context -> Arrays.asList(model.effective()));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Unbinder<T> unbind(T data) {
-		return createUnbinder(output -> new SchemaUnbinder(this).unbind(output, data));
+		return unbind((TypeToken<T>) TypeToken.over(data.getClass()), data);
 	}
 
 	@Override
 	public <T> Unbinder<T> unbind(TypeToken<T> dataType, T data) {
-		return createUnbinder(output -> new SchemaUnbinder(this).unbind(output, dataType, data));
+		return new UnbinderImpl<>(this, data, context -> context.getMatchingModels(dataType));
 	}
 
 	@Override

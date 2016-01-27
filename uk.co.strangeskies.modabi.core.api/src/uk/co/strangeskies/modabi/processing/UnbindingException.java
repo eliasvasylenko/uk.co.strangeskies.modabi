@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public class UnbindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
