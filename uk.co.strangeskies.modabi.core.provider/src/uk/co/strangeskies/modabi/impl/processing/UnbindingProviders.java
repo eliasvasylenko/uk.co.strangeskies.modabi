@@ -19,11 +19,11 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.Collection;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
@@ -34,11 +34,10 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypedObject;
 
 public class UnbindingProviders {
-	private final BiFunction<DataNode.Effective<?>, TypedObject<?>, DataSource> unbindDataNode;
+	private final SchemaManager manager;
 
-	public UnbindingProviders(
-			BiFunction<DataNode.Effective<?>, TypedObject<?>, DataSource> unbindDataNode) {
-		this.unbindDataNode = unbindDataNode;
+	public UnbindingProviders(SchemaManager manager) {
+		this.manager = manager;
 	}
 
 	public Function<UnbindingContext, IncludeTarget> includeTarget() {
@@ -56,18 +55,12 @@ public class UnbindingProviders {
 	public Function<UnbindingContext, ImportTarget> importTarget() {
 		return context -> new ImportTarget() {
 			@Override
-			public <U> DataSource dereferenceImport(Model<U> model,
-					QualifiedName idDomain, U object) {
-				DataNode.Effective<?> node = (DataNode.Effective<?>) model.effective()
-						.children().stream()
-						.filter(c -> c.getName().equals(idDomain)
-								&& c instanceof DataNode.Effective<?>)
-						.findAny()
-						.orElseThrow(() -> new SchemaException("Can't fine child '"
-								+ idDomain + "' to target for model '" + model + "'"));
+			public <U> DataSource dereferenceImport(Model<U> model, QualifiedName idDomain, U object) {
+				DataNode.Effective<?> node = (DataNode.Effective<?>) model.effective().children().stream()
+						.filter(c -> c.getName().equals(idDomain) && c instanceof DataNode.Effective<?>).findAny().orElseThrow(
+								() -> new SchemaException("Can't fine child '" + idDomain + "' to target for model '" + model + "'"));
 
-				return unbindDataNode.apply(node,
-						new TypedObject<>(model.getDataType(), object));
+				return unbindDataNode(node, new TypedObject<>(model.getDataType(), object));
 			}
 		};
 	}
@@ -75,16 +68,20 @@ public class UnbindingProviders {
 	public Function<UnbindingContext, ReferenceTarget> referenceTarget() {
 		return context -> new ReferenceTarget() {
 			@Override
-			public <U> DataSource reference(Model<U> model, QualifiedName idDomain,
-					U object) {
+			public <U> DataSource reference(Model<U> model, QualifiedName idDomain, U object) {
 				if (!context.bindings().get(model).contains(object))
-					throw new SchemaException("Cannot find any instance '" + object
-							+ "' bound to model '" + model.getName() + "' from '"
-							+ context.bindings().get(model) + "'");
+					throw new SchemaException("Cannot find any instance '" + object + "' bound to model '" + model.getName()
+							+ "' from '" + context.bindings().get(model) + "'");
 
-				return importTarget().apply(context).dereferenceImport(model, idDomain,
-						object);
+				return importTarget().apply(context).dereferenceImport(model, idDomain, object);
 			}
 		};
+	}
+
+	private <V> DataSource unbindDataNode(DataNode.Effective<V> node, TypedObject<?> source) {
+		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager).withUnbindingSource(source);
+
+		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
+				BindingNodeUnbinder.getData(node, unbindingContext));
 	}
 }

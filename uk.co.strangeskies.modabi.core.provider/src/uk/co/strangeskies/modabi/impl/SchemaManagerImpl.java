@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -64,6 +62,8 @@ import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
+import uk.co.strangeskies.modabi.impl.processing.UnbindingContextImpl;
+import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
 import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
@@ -71,9 +71,12 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
+import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
+import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
@@ -101,6 +104,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final DataTypeBuilder dataTypeBuilder;
 
 	private final BindingProviders bindingProviders;
+	private final UnbindingProviders unbindingProviders;
 
 	private final Map<String, StructuredDataFormat> dataInterfaces;
 
@@ -132,6 +136,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(new TypeToken<@Infer Map<?, ?>>() {}, HashMap::new);
 
 		bindingProviders = new BindingProviders(this);
+		unbindingProviders = new UnbindingProviders(this);
 
 		dataInterfaces = new HashMap<>();
 
@@ -144,6 +149,14 @@ public class SchemaManagerImpl implements SchemaManager {
 				.withProvision(ImportSource.class, bindingProviders.importSource())
 				.withProvision(DataLoader.class, bindingProviders.dataLoader())
 				.withProvision(Imports.class, bindingProviders.imports()).withProvision(BindingContext.class, c -> c);
+	}
+
+	UnbindingContextImpl getUnbindingContext() {
+		return new UnbindingContextImpl(this)
+				.withProvision(new TypeToken<ReferenceTarget>() {}, unbindingProviders.referenceTarget())
+				.withProvision(new TypeToken<ImportTarget>() {}, unbindingProviders.importTarget())
+				.withProvision(new TypeToken<IncludeTarget>() {}, unbindingProviders.includeTarget())
+				.withProvision(new TypeToken<UnbindingContext>() {}, c -> c);
 	}
 
 	ModelBuilder getModelBuilder() {

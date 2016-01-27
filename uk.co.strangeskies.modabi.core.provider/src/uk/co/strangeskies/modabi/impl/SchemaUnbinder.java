@@ -20,50 +20,22 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
-import uk.co.strangeskies.modabi.impl.processing.DataNodeUnbinder;
 import uk.co.strangeskies.modabi.impl.processing.UnbindingContextImpl;
-import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.UnbindingException;
-import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
-import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
 
 public class SchemaUnbinder {
-	private final UnbindingContextImpl context;
+	private final SchemaManagerImpl manager;
 
-	public SchemaUnbinder(SchemaManager manager) {
-		UnbindingProviders providers = new UnbindingProviders(
-				(n, s) -> unbindData(n, s));
-
-		context = new UnbindingContextImpl(manager)
-				.withProvision(new TypeToken<ReferenceTarget>() {},
-						providers.referenceTarget())
-				.withProvision(new TypeToken<ImportTarget>() {},
-						providers.importTarget())
-				.withProvision(new TypeToken<IncludeTarget>() {},
-						providers.includeTarget())
-				.withProvision(new TypeToken<UnbindingContext>() {}, c -> c);
+	public SchemaUnbinder(SchemaManagerImpl manager) {
+		this.manager = manager;
 	}
 
-	public <U> DataSource unbindData(DataNode.Effective<U> node,
-			TypedObject<?> source) {
-		UnbindingContextImpl finalContext = context.withUnbindingSource(source);
-		return new DataNodeUnbinder(finalContext).unbindToDataBuffer(node,
-				BindingNodeUnbinder.getData(node, finalContext));
-	}
-
-	public <T> void unbind(Model.Effective<T> model, StructuredDataTarget output,
-			T data) {
-		UnbindingContextImpl context = this.context.withOutput(output);
+	public <T> void unbind(Model.Effective<T> model, StructuredDataTarget output, T data) {
+		UnbindingContextImpl context = manager.getUnbindingContext().withOutput(output);
 
 		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
@@ -74,27 +46,24 @@ public class SchemaUnbinder {
 		} catch (UnbindingException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new UnbindingException("Unexpected problem during uninding of '"
-					+ data + "' according to '" + model + "'", context, e);
+			throw new UnbindingException("Unexpected problem during uninding of '" + data + "' according to '" + model + "'",
+					context, e);
 		}
 	}
 
-	public <T> void unbind(StructuredDataTarget output,
-			TypeToken<? extends T> dataClass, T data) {
+	public <T> void unbind(StructuredDataTarget output, TypeToken<? extends T> dataClass, T data) {
 		castingUnbind(output, dataClass, data);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T, U extends T> void castingUnbind(StructuredDataTarget output,
-			TypeToken<U> dataClass, T data) {
-		UnbindingContextImpl context = this.context.withOutput(output);
+	private <T, U extends T> void castingUnbind(StructuredDataTarget output, TypeToken<U> dataClass, T data) {
+		UnbindingContextImpl context = manager.getUnbindingContext().withOutput(output);
 
-		List<? extends Model.Effective<U>> models = context
-				.getMatchingModels(dataClass);
+		List<? extends Model.Effective<U>> models = context.getMatchingModels(dataClass);
 
 		if (models.isEmpty())
-			throw new UnbindingException("Cannot find any model of type '" + dataClass
-					+ "' to unbind '" + data + "'", context);
+			throw new UnbindingException("Cannot find any model of type '" + dataClass + "' to unbind '" + data + "'",
+					context);
 
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
@@ -109,12 +78,10 @@ public class SchemaUnbinder {
 			} catch (UnbindingException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new UnbindingException("Unexpected problem during uninding.", c,
-						e);
+				throw new UnbindingException("Unexpected problem during uninding.", c, e);
 			}
-		} , e -> new UnbindingException("Cannot unbind data '" + data
-				+ "' of class '" + dataClass + "' with models '" + models + "'",
-				context, e));
+		}, e -> new UnbindingException(
+				"Cannot unbind data '" + data + "' of class '" + dataClass + "' with models '" + models + "'", context, e));
 	}
 
 	public <T> void unbind(StructuredDataTarget output, T data) {
