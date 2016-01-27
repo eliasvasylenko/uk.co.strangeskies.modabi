@@ -31,7 +31,7 @@ public class QualifiedName {
 
 	public QualifiedName(Class<?> name, LocalDate date) {
 		this.name = name.getSimpleName();
-		this.namespace = new Namespace(name.getPackage(), date);
+		this.namespace = new Namespace(name.getPackage().getName(), date);
 	}
 
 	public QualifiedName(String name) {

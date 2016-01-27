@@ -113,7 +113,7 @@ class NamespaceStack implements NamespaceContext, Copyable<NamespaceStack> {
 		} else if (getNamespaceAlias(namespace) != null) {
 			return false;
 		} else {
-			aliasSet.addNamespace(namespace);
+			aliasSet.addNamespace(namespace, alias);
 
 			return true;
 		}

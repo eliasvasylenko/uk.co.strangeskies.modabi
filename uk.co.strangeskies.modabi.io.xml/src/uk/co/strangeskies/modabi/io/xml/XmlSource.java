@@ -211,7 +211,7 @@ public class XmlSource implements StructuredDataSource {
 
 			if (namespace == null)
 				throw new IllegalArgumentException("Cannot find namespace with prefix '"
-						+ prefix + "' in current context");
+						+ prefix + "' for name '" + name + "' in current context");
 
 			return new QualifiedName(splitName[splitName.length - 1], namespace);
 		};
@@ -247,7 +247,7 @@ public class XmlSource implements StructuredDataSource {
 		pumpEvents();
 
 		namespaceStack.pop();
-		
+
 		return this;
 	}
 

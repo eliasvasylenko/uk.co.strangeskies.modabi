@@ -67,9 +67,25 @@ public class BindingException extends SchemaException {
 			bindingTarget = "Unknown";
 		}
 
-		return state.bindingNodeStack().isEmpty() ? " at root"
-				: " at node '" + state.bindingNode().getName()
-						+ "' with binding target object '" + bindingTarget + "'";
+		return getNodeContext(state) + " with binding target object '"
+				+ bindingTarget + "'";
+	}
+
+	private static String getNodeContext(BindingState state) {
+		String nodeContext;
+
+		if (state.bindingNodeStack().isEmpty()) {
+			nodeContext = " at root";
+		} else {
+			nodeContext = " at node '" + state.bindingNode().getName() + "'";
+
+			if (state.bindingNodeStack().size() > 1) {
+				nodeContext = nodeContext + " at node '" + (state.bindingNodeStack()
+						.get(state.bindingNodeStack().size() - 2)).getName() + "'";
+			}
+		}
+
+		return nodeContext;
 	}
 
 	public BindingState getState() {

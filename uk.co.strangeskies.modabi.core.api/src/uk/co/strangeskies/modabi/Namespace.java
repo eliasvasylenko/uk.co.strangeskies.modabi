@@ -26,18 +26,32 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Namespace {
-	private final Package namespace;
+	private final String namespace;
 	private final LocalDate date;
 
 	private final static Namespace DEFAULT = new Namespace(
-			Namespace.class.getPackage(), LocalDate.of(2014, 1, 1));
+			Namespace.class.getPackage().getName(), LocalDate.of(2014, 1, 1));
+
+	public Namespace(String namespace, LocalDate date) {
+		this.namespace = namespace;
+		this.date = date;
+
+		if (!namespace.matches("[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*")) {
+			throw new IllegalArgumentException(
+					"Namespace is not valid package name: " + namespace);
+		}
+	}
 
 	public Namespace(Package namespace, LocalDate date) {
-		this.namespace = namespace;
+		this.namespace = namespace.getName();
 		this.date = date;
 	}
 
 	public Package getPackage() {
+		return Package.getPackage(namespace);
+	}
+
+	public String getPackageString() {
 		return namespace;
 	}
 
@@ -47,12 +61,11 @@ public class Namespace {
 
 	@Override
 	public String toString() {
-		return namespace.getName() + ":"
-				+ date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+		return namespace + ":" + date.format(DateTimeFormatter.ISO_LOCAL_DATE);
 	}
 
 	public String toHttpString() {
-		List<String> packages = Arrays.asList(namespace.getName().split("\\."));
+		List<String> packages = Arrays.asList(namespace.split("\\."));
 		Collections.reverse(packages);
 		return "http://" + packages.stream().collect(Collectors.joining(".")) + "/"
 				+ date.format(DateTimeFormatter.ISO_LOCAL_DATE) + "/";
@@ -65,7 +78,8 @@ public class Namespace {
 		Package packageObject = Package.getPackage(packageString);
 
 		if (packageObject == null)
-			throw new IllegalArgumentException("Cannot find package " + packageString);
+			throw new IllegalArgumentException(
+					"Cannot find package " + packageString);
 
 		return new Namespace(packageObject, LocalDate.parse(
 				string.substring(splitIndex + 1), DateTimeFormatter.ISO_LOCAL_DATE));
@@ -88,14 +102,10 @@ public class Namespace {
 		List<String> packages = Arrays.asList(namespace.split("\\."));
 		Collections.reverse(packages);
 
-		Package packageObject = Package.getPackage(packages.stream().collect(
-				Collectors.joining(".")));
+		String packageName = packages.stream().collect(Collectors.joining("."));
 
-		if (packageObject == null)
-			throw new IllegalArgumentException();
-
-		return new Namespace(packageObject, LocalDate.parse(date,
-				DateTimeFormatter.ISO_LOCAL_DATE));
+		return new Namespace(packageName,
+				LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE));
 	}
 
 	@Override

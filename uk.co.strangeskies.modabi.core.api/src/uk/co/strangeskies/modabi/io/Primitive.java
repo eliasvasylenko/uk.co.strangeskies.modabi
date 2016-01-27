@@ -34,25 +34,25 @@ public class Primitive<T> extends Enumeration<Primitive<T>> {
 			String.class, Function.identity());
 
 	public static final Primitive<BigInteger> INTEGER = new Primitive<>("integer",
-			BigInteger.class, s -> null);
+			BigInteger.class, BigInteger::new);
 
 	public static final Primitive<BigDecimal> DECIMAL = new Primitive<>("decimal",
-			BigDecimal.class, s -> null);
+			BigDecimal.class, BigDecimal::new);
 
 	public static final Primitive<Integer> INT = new Primitive<>("int", int.class,
-			s -> null);
+			Integer::parseInt);
 
 	public static final Primitive<Long> LONG = new Primitive<>("long", long.class,
-			s -> null);
+			Long::parseLong);
 
 	public static final Primitive<Float> FLOAT = new Primitive<>("float",
-			float.class, s -> null);
+			float.class, Float::parseFloat);
 
 	public static final Primitive<Double> DOUBLE = new Primitive<>("double",
-			double.class, s -> null);
+			double.class, Double::parseDouble);
 
 	public static final Primitive<Boolean> BOOLEAN = new Primitive<>("boolean",
-			boolean.class, s -> Boolean.parseBoolean(s));
+			boolean.class, Boolean::parseBoolean);
 
 	public static final Primitive<QualifiedName> QUALIFIED_NAME = new Primitive<>(
 			"qualifiedName", QualifiedName.class, s -> null);

@@ -71,8 +71,8 @@ class TypedDataItem<T> extends AbstractDataItem<T> {
 			return conversion;
 		}
 
-		throw new ClassCastException("Cannot convert type '" + type()
-				+ "' to type '" + to + "'");
+		throw new ClassCastException(
+				"Cannot convert type '" + type() + "' to type '" + to + "'");
 	}
 }
 
@@ -103,8 +103,8 @@ class StringDataItem extends AbstractDataItem<String> {
 		try {
 			return DataItem.forDataOfType(to, to.parse(data));
 		} catch (ParseException e) {
-			throw new IllegalArgumentException("Cannot convert type '" + type()
-					+ "' to type '" + to + "'", e);
+			throw new IllegalArgumentException(
+					"Cannot convert type '" + type() + "' to type '" + to + "'", e);
 		}
 	}
 }
@@ -121,9 +121,7 @@ public interface DataItem<T> {
 		for (Primitive<?> type : Enumeration.getConstants(Primitive.class))
 			try {
 				forStringStrict(type, data);
-			} catch (ParseException e) {}
-
-		;
+			} catch (Exception e) {}
 
 		return new StringDataItem(data, qualifiedNameParser);
 	}

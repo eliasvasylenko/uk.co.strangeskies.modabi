@@ -57,11 +57,9 @@ import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
 public class SchemaTest {
 	private <T> T getService(Class<T> clazz) {
-		System.out.println("testy");
 		try {
 			BundleContext context = FrameworkUtil.getBundle(this.getClass())
 					.getBundleContext();
-			System.out.println("testy2");
 
 			ServiceTracker<T, T> st = new ServiceTracker<>(context, clazz, null);
 			st.open();

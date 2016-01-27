@@ -35,6 +35,7 @@ import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNode.Effective;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputNode;
@@ -184,14 +185,27 @@ public class BindingNodeBinder {
 		node.process(new PartialSchemaProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				result.set(new TypedObject<>(node.getDataType(),
-						new ComplexNodeBinder<>(context, node).getBinding().get(0)));
+				List<U> results = new ComplexNodeBinder<>(context, node).getBinding();
+
+				check(node, results);
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.set(new TypedObject<>(node.getDataType(),
-						new DataNodeBinder<>(context, node).getBinding().get(0)));
+				List<U> results = new DataNodeBinder<>(context, node).getBinding();
+
+				check(node, results);
+			}
+
+			private <U> void check(BindingChildNode.Effective<U, ?, ?> node,
+					List<U> results) {
+				if (!results.isEmpty()) {
+					result.set(new TypedObject<>(node.getDataType(), results.get(0)));
+				} else if (!node.occurrences().contains(0)) {
+					throw new BindingException("Node must be bound data", context);
+				} else {
+					result.set(new TypedObject<>(node.getDataType(), null));
+				}
 			}
 		});
 		return result.get();

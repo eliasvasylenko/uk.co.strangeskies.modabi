@@ -58,9 +58,25 @@ public class UnbindingException extends SchemaException {
 	}
 
 	private static String getUnbindingStateString(UnbindingState state) {
-		SchemaNode<?, ?> node = state.unbindingNode();
-		return " at node '" + (node != null ? node.getName() : null)
-				+ "' from unbinding source object '" + state.unbindingSource() + "'";
+		return getNodeContext(state) + " from unbinding source object '"
+				+ state.unbindingSource() + "'";
+	}
+
+	private static String getNodeContext(UnbindingState state) {
+		String nodeContext;
+
+		if (state.unbindingNodeStack().isEmpty()) {
+			nodeContext = " at root";
+		} else {
+			nodeContext = " at node '" + state.unbindingNode().getName() + "'";
+
+			if (state.unbindingNodeStack().size() > 1) {
+				nodeContext = nodeContext + " at node '" + (state.unbindingNodeStack()
+						.get(state.unbindingNodeStack().size() - 2)).getName() + "'";
+			}
+		}
+
+		return nodeContext;
 	}
 
 	public UnbindingState getState() {

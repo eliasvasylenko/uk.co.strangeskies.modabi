@@ -45,9 +45,9 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
 								parameters));
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | SecurityException e) {
-				throw new BindingException("Unable to call method '"
-						+ getNode().getInMethod() + "' with parameters '"
-						+ Arrays.toString(parameters) + "' at node '" + getNode() + "'",
+				throw new BindingException(
+						"Unable to call method '" + getNode().getInMethod()
+								+ "' with parameters '" + Arrays.toString(parameters),
 						getContext(), e);
 			}
 
