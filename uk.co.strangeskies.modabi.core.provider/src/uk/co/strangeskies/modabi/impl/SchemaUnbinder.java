@@ -37,11 +37,39 @@ public class SchemaUnbinder {
 	public <T> void unbind(Model.Effective<T> model, StructuredDataTarget output, T data) {
 		UnbindingContextImpl context = manager.getUnbindingContext().withOutput(output);
 
+		unbindImpl(context, model, output, data);
+	}
+
+	public <T> void unbind(StructuredDataTarget output, T data) {
+		unbind(output, TypeToken.over(data.getClass()), data);
+	}
+
+	public <T> void unbind(StructuredDataTarget output, TypeToken<? extends T> dataClass, T data) {
+		UnbindingContextImpl context = manager.getUnbindingContext().withOutput(output);
+
+		List<? extends Model.Effective<? extends T>> models = context.getMatchingModels(dataClass);
+
+		if (models.isEmpty()) {
+			throw new UnbindingException("Cannot find any model of type '" + dataClass + "' to unbind '" + data + "'",
+					context);
+		}
+
+		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
+			unbindImpl(c, m, output, data);
+		}, e -> new UnbindingException(
+				"Cannot unbind data '" + data + "' of class '" + dataClass + "' with models '" + models + "'", context, e));
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T, U extends T> void unbindImpl(UnbindingContextImpl context, Model.Effective<U> model,
+			StructuredDataTarget output, T data) {
 		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
 		try {
 			context.output().addChild(model.getName());
-			new BindingNodeUnbinder(context).unbind(model, data);
+
+			new BindingNodeUnbinder(context).unbind(model, (U) data);
+
 			context.output().endChild();
 		} catch (UnbindingException e) {
 			throw e;
@@ -49,42 +77,5 @@ public class SchemaUnbinder {
 			throw new UnbindingException("Unexpected problem during uninding of '" + data + "' according to '" + model + "'",
 					context, e);
 		}
-	}
-
-	public <T> void unbind(StructuredDataTarget output, TypeToken<? extends T> dataClass, T data) {
-		castingUnbind(output, dataClass, data);
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T, U extends T> void castingUnbind(StructuredDataTarget output, TypeToken<U> dataClass, T data) {
-		UnbindingContextImpl context = manager.getUnbindingContext().withOutput(output);
-
-		List<? extends Model.Effective<U>> models = context.getMatchingModels(dataClass);
-
-		if (models.isEmpty())
-			throw new UnbindingException("Cannot find any model of type '" + dataClass + "' to unbind '" + data + "'",
-					context);
-
-		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
-			c.output().registerDefaultNamespaceHint(m.getName().getNamespace());
-
-			try {
-				c.output().addChild(m.getName());
-
-				U castData = (U) data;
-
-				new BindingNodeUnbinder(c).unbind(m, castData);
-				c.output().endChild();
-			} catch (UnbindingException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new UnbindingException("Unexpected problem during uninding.", c, e);
-			}
-		}, e -> new UnbindingException(
-				"Cannot unbind data '" + data + "' of class '" + dataClass + "' with models '" + models + "'", context, e));
-	}
-
-	public <T> void unbind(StructuredDataTarget output, T data) {
-		unbind(output, TypeToken.over(data.getClass()), data);
 	}
 }
