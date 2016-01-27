@@ -40,7 +40,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.utilities.EqualityComparator;
 
 /**
@@ -623,7 +623,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
 				throw new IllegalStateException();
 
 			if (defaultNamespaceHint != null)
-				throw new IOException(
+				throw new ModabiIOException(
 						"Cannot register multiple default namespace hints at any given location.");
 			defaultNamespaceHint = namespace;
 		}

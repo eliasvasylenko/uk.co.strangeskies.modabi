@@ -33,7 +33,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 
 public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
@@ -59,7 +59,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			out.setNamespaceContext(namespaces);
 			out.writeStartDocument();
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new IOException(e);
+			throw new ModabiIOException(e);
 		}
 	}
 
@@ -76,7 +76,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				writer = new IndentingXMLStreamWriter(writer);
 			return writer;
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new IOException(e);
+			throw new ModabiIOException(e);
 		}
 	}
 
@@ -138,7 +138,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 
 			return done;
 		} catch (XMLStreamException e) {
-			throw new IOException(e);
+			throw new ModabiIOException(e);
 		}
 	}
 
@@ -154,7 +154,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			if (!outputCurrentChild(true))
 				out.writeEndElement();
 		} catch (XMLStreamException e) {
-			throw new IOException(e);
+			throw new ModabiIOException(e);
 		}
 
 		namespaces.pop();
@@ -163,7 +163,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				out.writeEndDocument();
 				out.flush();
 			} catch (XMLStreamException e) {
-				throw new IOException(e);
+				throw new ModabiIOException(e);
 			}
 	}
 
@@ -181,7 +181,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			try {
 				out.writeCharacters(s);
 			} catch (XMLStreamException e) {
-				throw new IOException(e);
+				throw new ModabiIOException(e);
 			}
 		} , this::composeName);
 	}
@@ -198,7 +198,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 		try {
 			out.writeComment(comment);
 		} catch (XMLStreamException e) {
-			throw new IOException(e);
+			throw new ModabiIOException(e);
 		}
 	}
 }

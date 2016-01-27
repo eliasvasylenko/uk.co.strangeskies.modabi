@@ -38,7 +38,7 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.BufferableStructuredDataSourceImpl;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
@@ -130,7 +130,7 @@ public class XmlSource implements StructuredDataSource {
 			try {
 				code = in.next();
 			} catch (XMLStreamException e) {
-				throw new IOException(e);
+				throw new ModabiIOException(e);
 			}
 
 			switch (code) {

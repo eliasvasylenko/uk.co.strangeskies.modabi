@@ -64,8 +64,6 @@ import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
-import uk.co.strangeskies.modabi.impl.processing.SchemaBinder;
-import uk.co.strangeskies.modabi.impl.processing.SchemaUnbinder;
 import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
@@ -140,10 +138,6 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerSchema(coreSchemata.metaSchema());
 	}
 
-	SchemaBinder getSchemaBinder() {
-		return new SchemaBinder(getBindingContext());
-	}
-
 	BindingContextImpl getBindingContext() {
 		return new BindingContextImpl(this).withProvision(DereferenceSource.class, bindingProviders.dereferenceSource())
 				.withProvision(IncludeTarget.class, bindingProviders.includeTarget())
@@ -214,51 +208,45 @@ public class SchemaManagerImpl implements SchemaManager {
 				return registerFuture(binder.from(extension, input));
 			}
 
-			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> schema) {
+			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> future) {
 				return new BindingFuture<Schema>() {
 					@Override
 					public boolean cancel(boolean mayInterruptIfRunning) {
-						return schema.cancel(mayInterruptIfRunning);
+						return future.cancel(mayInterruptIfRunning);
 					}
 
 					@Override
 					public boolean isCancelled() {
-						return schema.isCancelled();
+						return future.isCancelled();
 					}
 
 					@Override
 					public boolean isDone() {
-						return schema.isDone();
-					}
-
-					@Override
-					public QualifiedName getName() {
-						return schema.getName();
+						return future.isDone();
 					}
 
 					@Override
 					public Model<Schema> getModel() {
-						return schema.getModel();
+						return future.getModel();
 					}
 
 					@Override
 					public Set<BindingFuture<?>> getBlockingBindings() {
-						return schema.getBlockingBindings();
+						return future.getBlockingBindings();
 					}
 
 					@Override
 					public Binding<Schema> get() {
-						return register(schema.get());
+						return register(future.get());
 					}
 
 					@Override
 					public Binding<Schema> get(long timeout, TimeUnit unit) {
-						return register(schema.get(timeout, unit));
+						return register(future.get(timeout, unit));
 					}
 
 					private Binding<Schema> register(Binding<Schema> binding) {
-						registerSchemaImpl(schema.resolve());
-						bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(), schema);
+						registerSchemaImpl(future.resolve());
 						return binding;
 					}
 				};
@@ -311,87 +299,27 @@ public class SchemaManagerImpl implements SchemaManager {
 		return coreSchemata.baseSchema();
 	}
 
-	private <T> Binder<T> createBinder(Function<StructuredDataSource, BindingFuture<T>> bindingFunction) {
-		return new Binder<T>() {
-			@Override
-			public BindingFuture<T> from(StructuredDataSource input) {
-				return bindingFunction.apply(input);
+	<T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
+		bindingFutures.add(binding.getModel().effective().getName(), binding);
+
+		new Thread(() -> {
+			try {
+				binding.get();
+			} catch (Exception e) {
+				bindingFutures.remove(binding.getModel().effective().getName());
 			}
+		}).start();
 
-			@Override
-			public BindingFuture<T> from(URL input) {
-				String extension = input.getPath();
-				int lastSlash = extension.lastIndexOf('/');
-				if (lastSlash > 0) {
-					extension = extension.substring(lastSlash);
+		return binding;
+	}
 
-					int lastDot = extension.lastIndexOf('.');
-					if (lastDot > 0) {
-						extension = extension.substring(lastDot + 1);
-					} else {
-						extension = null;
-					}
-				} else {
-					extension = null;
-				}
-
-				try (InputStream fileStream = input.openStream()) {
-					if (extension != null) {
-						return from(extension, fileStream);
-					} else {
-						return from(fileStream);
-					}
-				} catch (IOException e) {
-					throw new IllegalArgumentException(e);
-				}
-			}
-
-			@Override
-			public BindingFuture<T> from(InputStream input) {
-				return from(input, dataInterfaces().getRegisteredDataInterfaces());
-			}
-
-			@Override
-			public BindingFuture<T> from(String extension, InputStream input) {
-				return from(input, dataInterfaces().getDataInterfaces(extension));
-			}
-
-			private BindingFuture<T> from(InputStream input, Collection<? extends StructuredDataFormat> loaders) {
-				BufferedInputStream bufferedInput = new BufferedInputStream(input);
-				bufferedInput.mark(4096);
-
-				if (loaders.isEmpty())
-					throw new IllegalArgumentException("No valid file loader registered for input");
-
-				Exception exception = null;
-
-				for (StructuredDataFormat loader : loaders) {
-					try {
-						return from(loader.loadData(bufferedInput));
-					} catch (Exception e) {
-						exception = e;
-					}
-					try {
-						bufferedInput.reset();
-					} catch (IOException e) {
-						throw new IllegalArgumentException("Problem buffering input for binding", e);
-					}
-				}
-
-				throw new IllegalArgumentException("Could not bind input with any registered file loaders", exception);
-			}
-
-			@Override
-			public Binder<T> with(Consumer<Exception> errorHandler) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
+	private <T> Binder<T> createBinder(Function<StructuredDataSource, Model<T>> bindingFunction) {
+		return new BinderImpl<>(this, bindingFunction);
 	}
 
 	@Override
 	public <T> Binder<T> bind(Model<T> model) {
-		return createBinder(input -> addBindingFuture(getSchemaBinder().bind(model.effective(), input)));
+		return createBinder(input -> model.effective());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -411,28 +339,13 @@ public class SchemaManagerImpl implements SchemaManager {
 						+ "' match the root element '" + input.peekNextChild() + "'");
 			}
 
-			return (BindingFuture<T>) addBindingFuture(getSchemaBinder().bind(model.effective(), input));
+			return (Model<T>) model;
 		});
 	}
 
 	@Override
 	public Binder<?> bind() {
-		return createBinder(input -> addBindingFuture(
-				getSchemaBinder().bind(registeredModels.get(input.peekNextChild()).effective(), input)));
-	}
-
-	private <T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
-		bindingFutures.add(binding.getModel().effective().getName(), binding);
-
-		new Thread(() -> {
-			try {
-				binding.get();
-			} catch (Exception e) {
-				bindingFutures.remove(binding.getModel().effective().getName());
-			}
-		}).start();
-
-		return binding;
+		return createBinder(input -> registeredModels.get(input.peekNextChild()).effective());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -552,7 +465,6 @@ public class SchemaManagerImpl implements SchemaManager {
 	public DataInterfaces dataInterfaces() {
 		return new DataInterfaces() {
 			@Override
-			@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
 			public void registerDataInterface(StructuredDataFormat loader) {
 				dataInterfaces.put(loader.getFormatId(), loader);
 			}
@@ -578,5 +490,14 @@ public class SchemaManagerImpl implements SchemaManager {
 						.collect(Collectors.toCollection(LinkedHashSet::new));
 			}
 		};
+	}
+
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
+	void registerDataInterface(StructuredDataFormat loader) {
+		dataInterfaces().registerDataInterface(loader);
+	}
+
+	void unregisterDataInterface(StructuredDataFormat loader) {
+		dataInterfaces().unregisterDataInterface(loader);
 	}
 }

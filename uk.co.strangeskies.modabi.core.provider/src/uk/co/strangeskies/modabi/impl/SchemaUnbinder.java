@@ -16,11 +16,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.impl.processing;
+package uk.co.strangeskies.modabi.impl;
 
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
+import uk.co.strangeskies.modabi.impl.processing.DataNodeUnbinder;
+import uk.co.strangeskies.modabi.impl.processing.UnbindingContextImpl;
+import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;

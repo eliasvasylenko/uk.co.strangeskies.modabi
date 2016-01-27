@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.io.structured;
 
 import java.util.Arrays;
 
-import uk.co.strangeskies.modabi.io.IOException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 
 public enum StructuredDataState {
 	UNSTARTED, ELEMENT_START, POPULATED_ELEMENT, ELEMENT_WITH_CONTENT, PROPERTY, CONTENT, FINISHED;
@@ -57,13 +57,13 @@ public enum StructuredDataState {
 	private void assertExitStateValid(StructuredDataState exitState,
 			StructuredDataState... validExitState) {
 		if (!Arrays.asList(validExitState).contains(exitState))
-			throw new IOException(
+			throw new ModabiIOException(
 					"Cannot move to state '" + exitState + "' from state '" + this + "'");
 	}
 
 	public void assertValid(StructuredDataState... validState) {
 		if (!checkValid(validState))
-			throw new IOException("Cannot perform action in state '" + this + "'");
+			throw new ModabiIOException("Cannot perform action in state '" + this + "'");
 	}
 
 	public boolean checkValid(StructuredDataState... validState) {

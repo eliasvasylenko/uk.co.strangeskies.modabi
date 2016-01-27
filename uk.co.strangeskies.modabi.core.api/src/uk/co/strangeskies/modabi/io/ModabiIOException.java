@@ -18,21 +18,20 @@
  */
 package uk.co.strangeskies.modabi.io;
 
-public class IOException extends RuntimeException {
+public class ModabiIOException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
-	public IOException() {
-	}
+	public ModabiIOException() {}
 
-	public IOException(String message, Throwable cause) {
+	public ModabiIOException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public IOException(String message) {
+	public ModabiIOException(String message) {
 		super(message);
 	}
 
-	public IOException(Throwable cause) {
+	public ModabiIOException(Throwable cause) {
 		super(cause);
 	}
 }
