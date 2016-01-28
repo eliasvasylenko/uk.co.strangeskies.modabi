@@ -32,11 +32,17 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 
+/**
+ * TODO replace all the magic string literals...
+ * 
+ * @author Elias N Vasylenko
+ */
 public abstract class ModabiRegistration implements AnalyzerPlugin {
 	private final StructuredDataFormat handler;
 	private final SchemaManager manager;
 
-	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
+	public ModabiRegistration(SchemaManager manager,
+			StructuredDataFormat handler) {
 		this.handler = handler;
 		this.manager = manager;
 		manager.dataInterfaces().registerDataInterface(handler);
@@ -61,19 +67,22 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 
 	private void registerSchemata(Jar jar, Analyzer analyzer) {
 		withJarOnBuildPath(analyzer, jar, "buildpath", () -> {
-			Map<String, Resource> resources = jar.getDirectories().get("META-INF/modabi");
+			Map<String, Resource> resources = jar.getDirectories()
+					.get("META-INF/schemata");
 
 			String newCapabilities = null;
 
 			for (String resourceName : resources.keySet()) {
 				Schema schema;
 				try {
-					schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
+					schema = manager.bindSchema()
+							.from(resources.get(resourceName).openInputStream()).resolve();
 				} catch (Exception e) {
 					throw new SchemaException(e);
 				}
 
-				String capability = "uk.co.strangeskies.modabi;schema:String=\"" + schema.getQualifiedName() + "\"";
+				String capability = Schema.class.getPackage().getName()
+						+ ";schema:String=\"" + schema.getQualifiedName() + "\"";
 
 				if (newCapabilities != null)
 					newCapabilities += "," + capability;
@@ -83,23 +92,38 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 
 			if (newCapabilities != null) {
 				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-						"osgi.service;" + "filter:=\"(&(objectClass=" + StructuredDataFormat.class.getTypeName() + ")(formatId="
-								+ handler.getFormatId() + "))\";resolution:=mandatory;effective:=active");
+						"osgi.service;" + "filter:=\"(&(objectClass="
+								+ StructuredDataFormat.class.getTypeName() + ")(formatId="
+								+ handler.getFormatId()
+								+ "))\";resolution:=mandatory;effective:=active");
+				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+						"osgi.service;" + "filter:=\"(objectClass="
+								+ SchemaManager.class.getTypeName()
+								+ ")\";resolution:=mandatory;effective:=active");
+				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+						"osgi.extender;" + "filter:=\"(osgi.extender="
+								+ Schema.class.getPackage().getName()
+								+ ")\";resolution:=mandatory;effective:=resolve");
 
-				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
+				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY,
+						newCapabilities);
 			}
 		});
 	}
 
-	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName, Runnable run) {
+	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName,
+			Runnable run) {
 		try {
-			File tempJar = createDirs(analyzer.getBase() + File.separator + "generated", "tmp", "jar");
+			File tempJar = createDirs(
+					analyzer.getBase() + File.separator + "generated", "tmp", "jar");
 
 			if (tempJar == null)
 				throw new RuntimeException(
-						"Cannot create temporary build path jar, location '" + analyzer.getBase() + "' does not exist");
+						"Cannot create temporary build path jar, location '"
+								+ analyzer.getBase() + "' does not exist");
 
-			tempJar = new File(tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
+			tempJar = new File(
+					tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
 			jar.write(tempJar);
 			new ContextClassLoaderRunner(tempJar.toURI().toURL()).run(run);
@@ -131,7 +155,8 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 		return file;
 	}
 
-	private void appendProperties(Analyzer analyzer, String property, String append) {
+	private void appendProperties(Analyzer analyzer, String property,
+			String append) {
 		String capabilities = analyzer.getProperty(property);
 
 		if (capabilities != null && !"".equals(capabilities.trim()))

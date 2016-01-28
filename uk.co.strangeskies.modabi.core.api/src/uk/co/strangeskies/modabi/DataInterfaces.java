@@ -1,6 +1,8 @@
 package uk.co.strangeskies.modabi;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 
@@ -13,5 +15,9 @@ public interface DataInterfaces {
 
 	StructuredDataFormat getDataInterface(String id);
 
-	Set<StructuredDataFormat> getDataInterfaces(String extension);
+	default Set<StructuredDataFormat> getDataInterfaces(String extension) {
+		return getRegisteredDataInterfaces().stream()
+				.filter(l -> l.getFileExtensions().contains(extension))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+	}
 }

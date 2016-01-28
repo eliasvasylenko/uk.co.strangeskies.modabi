@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -85,6 +86,7 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.utilities.ObservableImpl;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -106,19 +108,23 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final UnbindingProviders unbindingProviders;
 
 	private final Map<String, StructuredDataFormat> dataInterfaces;
+	private final ObservableImpl<StructuredDataFormat> dataInterfaceObservers;
 
 	public SchemaManagerImpl() {
-		this(new SchemaBuilderImpl(), new ModelBuilderImpl(), new DataTypeBuilderImpl());
+		this(new SchemaBuilderImpl(), new ModelBuilderImpl(),
+				new DataTypeBuilderImpl());
 	}
 
-	public SchemaManagerImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
+	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
+			ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
 		this.modelBuilder = modelBuilder;
 		this.dataTypeBuilder = dataTypeBuilder;
 
 		providers = new ArrayList<>();
 		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
 
-		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder, dataTypeBuilder);
+		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder,
+				dataTypeBuilder);
 
 		registeredSchemata = new Schemata();
 		registeredModels = new Models();
@@ -130,7 +136,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 		registerProvider(new TypeToken<@Infer SortedSet<?>>() {}, TreeSet::new);
 		registerProvider(new TypeToken<@Infer Set<?>>() {}, HashSet::new);
-		registerProvider(new TypeToken<@Infer LinkedHashSet<?>>() {}, LinkedHashSet::new);
+		registerProvider(new TypeToken<@Infer LinkedHashSet<?>>() {},
+				LinkedHashSet::new);
 		registerProvider(new TypeToken<@Infer List<?>>() {}, ArrayList::new);
 		registerProvider(new TypeToken<@Infer Map<?, ?>>() {}, HashMap::new);
 
@@ -138,23 +145,30 @@ public class SchemaManagerImpl implements SchemaManager {
 		unbindingProviders = new UnbindingProviders(this);
 
 		dataInterfaces = new HashMap<>();
+		dataInterfaceObservers = new ObservableImpl<>();
 
 		registerSchema(coreSchemata.metaSchema());
 	}
 
 	BindingContextImpl getBindingContext() {
-		return new BindingContextImpl(this).withProvision(DereferenceSource.class, bindingProviders.dereferenceSource())
+		return new BindingContextImpl(this)
+				.withProvision(DereferenceSource.class,
+						bindingProviders.dereferenceSource())
 				.withProvision(IncludeTarget.class, bindingProviders.includeTarget())
 				.withProvision(ImportSource.class, bindingProviders.importSource())
 				.withProvision(DataLoader.class, bindingProviders.dataLoader())
-				.withProvision(Imports.class, bindingProviders.imports()).withProvision(BindingContext.class, c -> c);
+				.withProvision(Imports.class, bindingProviders.imports())
+				.withProvision(BindingContext.class, c -> c);
 	}
 
 	UnbindingContextImpl getUnbindingContext() {
 		return new UnbindingContextImpl(this)
-				.withProvision(new TypeToken<ReferenceTarget>() {}, unbindingProviders.referenceTarget())
-				.withProvision(new TypeToken<ImportTarget>() {}, unbindingProviders.importTarget())
-				.withProvision(new TypeToken<IncludeTarget>() {}, unbindingProviders.includeTarget())
+				.withProvision(new TypeToken<ReferenceTarget>() {},
+						unbindingProviders.referenceTarget())
+				.withProvision(new TypeToken<ImportTarget>() {},
+						unbindingProviders.importTarget())
+				.withProvision(new TypeToken<IncludeTarget>() {},
+						unbindingProviders.includeTarget())
 				.withProvision(new TypeToken<UnbindingContext>() {}, c -> c);
 	}
 
@@ -220,7 +234,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				return registerFuture(binder.from(extension, input));
 			}
 
-			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> future) {
+			private BindingFuture<Schema> registerFuture(
+					BindingFuture<Schema> future) {
 				return new BindingFuture<Schema>() {
 					@Override
 					public boolean cancel(boolean mayInterruptIfRunning) {
@@ -238,8 +253,8 @@ public class SchemaManagerImpl implements SchemaManager {
 					}
 
 					@Override
-					public Model<Schema> getModel() {
-						return future.getModel();
+					public Future<Model<Schema>> getModelFuture() {
+						return future.getModelFuture();
 					}
 
 					@Override
@@ -267,6 +282,12 @@ public class SchemaManagerImpl implements SchemaManager {
 			@Override
 			public Binder<Schema> with(Consumer<Exception> errorHandler) {
 				binder.with(errorHandler);
+				return this;
+			}
+
+			@Override
+			public Binder<Schema> with(ClassLoader classLoader) {
+				binder.with(classLoader);
 				return this;
 			}
 		};
@@ -312,14 +333,18 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	<T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
-		bindingFutures.add(binding.getModel().effective().getName(), binding);
-
 		new Thread(() -> {
 			try {
-				binding.get();
-			} catch (Exception e) {
-				bindingFutures.remove(binding.getModel().effective().getName());
-			}
+				QualifiedName modelName = binding.getModelFuture().get().effective()
+						.getName();
+				bindingFutures.add(modelName, binding);
+
+				try {
+					binding.get();
+				} catch (Exception e) {
+					bindingFutures.remove(modelName);
+				}
+			} catch (Exception e) {}
 		}).start();
 
 		return binding;
@@ -337,13 +362,16 @@ public class SchemaManagerImpl implements SchemaManager {
 			Model<?> model = registeredModels.get(input.peekNextChild());
 
 			if (model == null) {
-				throw new IllegalArgumentException("No model found to match the root element '" + input.peekNextChild() + "'");
+				throw new IllegalArgumentException(
+						"No model found to match the root element '" + input.peekNextChild()
+								+ "'");
 			}
 
 			List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
 
 			if (!models.contains(model)) {
-				throw new IllegalArgumentException("None of the models '" + models + "' compatible with the class '" + dataClass
+				throw new IllegalArgumentException("None of the models '" + models
+						+ "' compatible with the class '" + dataClass
 						+ "' match the root element '" + input.peekNextChild() + "'");
 			}
 
@@ -353,23 +381,27 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public Binder<?> bind() {
-		return new BinderImpl<>(this, input -> registeredModels.get(input.peekNextChild()).effective());
+		return new BinderImpl<>(this,
+				input -> registeredModels.get(input.peekNextChild()).effective());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Set<BindingFuture<T>> bindingFutures(Model<T> model) {
-		Set<BindingFuture<?>> modelBindings = bindingFutures.get(model.effective().getName());
+		Set<BindingFuture<?>> modelBindings = bindingFutures
+				.get(model.effective().getName());
 
 		if (modelBindings == null)
 			return Collections.emptySet();
 		else
-			return modelBindings.stream().map(t -> (BindingFuture<T>) t).collect(Collectors.toSet());
+			return modelBindings.stream().map(t -> (BindingFuture<T>) t)
+					.collect(Collectors.toSet());
 	}
 
 	@Override
 	public <T> Unbinder<T> unbind(Model<T> model, T data) {
-		return new UnbinderImpl<>(this, data, context -> Arrays.asList(model.effective()));
+		return new UnbinderImpl<>(this, data,
+				context -> Arrays.asList(model.effective()));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -380,11 +412,13 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public <T> Unbinder<T> unbind(TypeToken<T> dataType, T data) {
-		return new UnbinderImpl<>(this, data, context -> context.getMatchingModels(dataType));
+		return new UnbinderImpl<>(this, data,
+				context -> context.getMatchingModels(dataType));
 	}
 
 	@Override
-	public <T> void registerProvider(TypeToken<T> providedType, Supplier<T> provider) {
+	public <T> void registerProvider(TypeToken<T> providedType,
+			Supplier<T> provider) {
 		registerProvider(c -> canEqual(c, providedType) ? provider.get() : null);
 	}
 
@@ -402,7 +436,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		providers.add(c -> {
 			Object provided = provider.apply(c);
 			if (provided != null && !c.isAssignableFrom(provided.getClass()))
-				throw new SchemaException("Invalid object provided for the class [" + c + "] by provider [" + provider + "]");
+				throw new SchemaException("Invalid object provided for the class [" + c
+						+ "] by provider [" + provider + "]");
 			return provided;
 		});
 	}
@@ -413,13 +448,17 @@ public class SchemaManagerImpl implements SchemaManager {
 			@Override
 			@SuppressWarnings("unchecked")
 			public <T> TypedObject<T> provide(TypeToken<T> type) {
-				return new TypedObject<>(type, (T) providers.stream().map(p -> p.apply(type)).filter(Objects::nonNull)
-						.findFirst().orElseThrow(() -> new SchemaException("No provider exists for the type '" + type + "'")));
+				return new TypedObject<>(type,
+						(T) providers.stream().map(p -> p.apply(type))
+								.filter(Objects::nonNull).findFirst()
+								.orElseThrow(() -> new SchemaException(
+										"No provider exists for the type '" + type + "'")));
 			}
 
 			@Override
 			public boolean isProvided(TypeToken<?> type) {
-				return providers.stream().map(p -> p.apply(type)).anyMatch(Objects::nonNull);
+				return providers.stream().map(p -> p.apply(type))
+						.anyMatch(Objects::nonNull);
 			}
 		};
 	}
@@ -440,8 +479,10 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public GeneratedSchema generateSchema(QualifiedName name, Collection<? extends Schema> dependencies) {
-		GeneratedSchemaImpl schema = new GeneratedSchemaImpl(this, name, dependencies);
+	public GeneratedSchema generateSchema(QualifiedName name,
+			Collection<? extends Schema> dependencies) {
+		GeneratedSchemaImpl schema = new GeneratedSchemaImpl(this, name,
+				dependencies);
 		registerSchema(schema);
 		return schema;
 	}
@@ -451,7 +492,10 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new DataInterfaces() {
 			@Override
 			public void registerDataInterface(StructuredDataFormat loader) {
-				dataInterfaces.put(loader.getFormatId(), loader);
+				synchronized (dataInterfaces) {
+					dataInterfaces.put(loader.getFormatId(), loader);
+					dataInterfaceObservers.fire(loader);
+				}
 			}
 
 			@Override
@@ -468,12 +512,6 @@ public class SchemaManagerImpl implements SchemaManager {
 			public StructuredDataFormat getDataInterface(String id) {
 				return dataInterfaces.get(id);
 			}
-
-			@Override
-			public Set<StructuredDataFormat> getDataInterfaces(String extension) {
-				return getRegisteredDataInterfaces().stream().filter(l -> l.getFileExtensions().contains(extension))
-						.collect(Collectors.toCollection(LinkedHashSet::new));
-			}
 		};
 	}
 
@@ -484,5 +522,15 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	void unregisterDataInterface(StructuredDataFormat loader) {
 		dataInterfaces().unregisterDataInterface(loader);
+	}
+
+	void registerDataInterfaceObserver(
+			Consumer<? super StructuredDataFormat> listener) {
+		synchronized (dataInterfaces) {
+			dataInterfaceObservers.addWeakObserver(listener);
+			for (StructuredDataFormat format : dataInterfaces.values()) {
+				listener.accept(format);
+			}
+		}
 	}
 }

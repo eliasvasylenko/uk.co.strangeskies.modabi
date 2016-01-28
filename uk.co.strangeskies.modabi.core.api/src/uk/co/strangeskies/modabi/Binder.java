@@ -35,6 +35,8 @@ public interface Binder<T> {
 
 	// Binder<T> updatable();
 
+	Binder<T> with(ClassLoader classLoader);
+
 	/*
 	 * Errors which are rethrown will be passed to the next error handler if
 	 * present, or dealt with as normal. Otherwise, a best effort is made at

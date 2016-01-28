@@ -22,4 +22,4 @@ Export-Package: uk.co.strangeskies.modabi.fx
 	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
 
 -includeresource: \
-	META-INF/modabi=schemata
+	META-INF/schemata=schemata

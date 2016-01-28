@@ -34,8 +34,8 @@ public interface Unbinder<T> {
 		if (lastDot > 0) {
 			extension = extension.substring(lastDot);
 		} else {
-			throw new IllegalArgumentException(
-					"No recognisable extension for file'" + output + "', data interface cannot be selected");
+			throw new IllegalArgumentException("No recognisable extension for file'"
+					+ output + "', data interface cannot be selected");
 		}
 
 		try (OutputStream fileStream = output.openConnection().getOutputStream()) {

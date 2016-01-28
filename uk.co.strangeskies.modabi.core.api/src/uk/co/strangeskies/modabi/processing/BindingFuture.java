@@ -20,17 +20,16 @@ package uk.co.strangeskies.modabi.processing;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface BindingFuture<T> extends Future<Binding<T>> {
-	Model<T> getModel();
+	Future<Model<T>> getModelFuture();
 
 	Set<BindingFuture<?>> getBlockingBindings();
 
@@ -52,7 +51,9 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 		Set<BindingFuture<?>> blockingBindings = getBlockingBindings();
 
 		if (!isDone() && cancel(true))
-			throw new SchemaException("Binding has been blocked by the following missing dependencies: " + blockingBindings);
+			throw new SchemaException(
+					"Binding has been blocked by the following missing dependencies: "
+							+ blockingBindings);
 
 		return get();
 	}
@@ -89,8 +90,10 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 			}
 
 			@Override
-			public Model<U> getModel() {
-				return binding.getModel();
+			public Future<Model<U>> getModelFuture() {
+				FutureTask<Model<U>> modelFuture = new FutureTask<>(binding::getModel);
+				modelFuture.run();
+				return modelFuture;
 			}
 
 			@Override
@@ -98,80 +101,5 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 				return new HashSet<>();
 			}
 		};
-	}
-
-	static <T> BindingFuture<T> forFuture(Model<T> model, Future<T> future) {
-		return new BindingFuture<T>() {
-			@Override
-			public boolean cancel(boolean mayInterruptIfRunning) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public boolean isCancelled() {
-				return future.isCancelled();
-			}
-
-			@Override
-			public boolean isDone() {
-				return future.isDone();
-			}
-
-			@Override
-			public Binding<T> get() {
-				return tryGet(future::get);
-			}
-
-			@Override
-			public Binding<T> get(long timeout, TimeUnit unit) {
-				return tryGet(() -> future.get(timeout, unit));
-			}
-
-			private Binding<T> tryGet(TryGet<T> get) {
-				String input = "TEMP"; // TODO
-
-				try {
-					return new Binding<T>() {
-						private T data = get.tryGet();
-
-						@Override
-						public Model<T> getModel() {
-							return model;
-						}
-
-						@Override
-						public T getData() {
-							return data;
-						}
-					};
-				} catch (InterruptedException e) {
-					throw new SchemaException(
-							"Unexpected interrupt during binding of '" + input + "' with model '" + getModel().getName() + "'", e);
-				} catch (ExecutionException e) {
-					throw new SchemaException(
-							"Exception during binding of '" + input + "' with model '" + getModel().getName() + "'", e.getCause());
-				} catch (TimeoutException e) {
-					throw new SchemaException(
-							"Timed out waiting for binding of '" + input + "' with model '" + getModel().getName() + "'",
-							e.getCause());
-				}
-			}
-
-			@Override
-			public Model<T> getModel() {
-				return model;
-			}
-
-			@Override
-			public Set<BindingFuture<?>> getBlockingBindings() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
-	}
-
-	interface TryGet<T> {
-		T tryGet() throws InterruptedException, ExecutionException, TimeoutException;
 	}
 }
