@@ -7,7 +7,7 @@ Bundle-Name: Modabi :: Benchmarker
 	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
 
 -includeresource: \
-	META-INF/modabi=schemata
+	META-INF/schemata=schemata
 
 Export-Package: uk.co.strangeskies.modabi.benchmark
 Import-Package: \

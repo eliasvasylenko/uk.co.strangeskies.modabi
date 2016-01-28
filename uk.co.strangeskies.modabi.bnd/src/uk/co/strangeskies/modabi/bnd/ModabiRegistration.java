@@ -26,6 +26,8 @@ import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
+import aQute.bnd.service.Plugin;
+import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
@@ -37,15 +39,24 @@ import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
  * 
  * @author Elias N Vasylenko
  */
-public abstract class ModabiRegistration implements AnalyzerPlugin {
+public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 	private final StructuredDataFormat handler;
 	private final SchemaManager manager;
 
-	public ModabiRegistration(SchemaManager manager,
-			StructuredDataFormat handler) {
+	private Reporter reporter;
+
+	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
 		this.handler = handler;
 		this.manager = manager;
 		manager.dataInterfaces().registerDataInterface(handler);
+	}
+
+	public void setProperties(Map<String, String> map) {
+		String logLevel = map.get("log");
+	}
+
+	public void setReporter(Reporter reporter) {
+		this.reporter = reporter;
 	}
 
 	public SchemaManager getManager() {
@@ -54,78 +65,66 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 
 	@Override
 	public boolean analyzeJar(Analyzer analyzer) throws Exception {
-		Jar jar = analyzer.getJar();
+		scanSchemaAnnotations(analyzer);
 
-		scanSchemaAnnotations(jar, analyzer);
-
-		registerSchemata(jar, analyzer);
+		registerSchemata(analyzer);
 
 		return false;
 	}
 
-	private void scanSchemaAnnotations(Jar jar, Analyzer analyzer) {}
+	private void scanSchemaAnnotations(Analyzer analyzer) {}
 
-	private void registerSchemata(Jar jar, Analyzer analyzer) {
-		withJarOnBuildPath(analyzer, jar, "buildpath", () -> {
-			Map<String, Resource> resources = jar.getDirectories()
-					.get("META-INF/schemata");
+	private void registerSchemata(Analyzer analyzer) {
+		Map<String, Resource> resources = analyzer.getJar().getDirectories().get("META-INF/schemata");
 
-			String newCapabilities = null;
+		if (resources != null) {
+			withJarOnBuildPath(analyzer, "buildpath", () -> {
+				String newCapabilities = null;
 
-			for (String resourceName : resources.keySet()) {
-				Schema schema;
-				try {
-					schema = manager.bindSchema()
-							.from(resources.get(resourceName).openInputStream()).resolve();
-				} catch (Exception e) {
-					throw new SchemaException(e);
+				for (String resourceName : resources.keySet()) {
+					Schema schema;
+					try {
+						schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
+					} catch (Exception e) {
+						reporter.exception(e, "Format?");
+						throw new SchemaException("why?", e);
+					}
+
+					String capability = Schema.class.getPackage().getName() + ";schema:String=\"" + schema.getQualifiedName()
+							+ "\"";
+
+					if (newCapabilities != null)
+						newCapabilities += "," + capability;
+					else
+						newCapabilities = capability;
 				}
 
-				String capability = Schema.class.getPackage().getName()
-						+ ";schema:String=\"" + schema.getQualifiedName() + "\"";
+				if (newCapabilities != null) {
+					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+							"osgi.service;" + "filter:=\"(&(objectClass=" + StructuredDataFormat.class.getTypeName() + ")(formatId="
+									+ handler.getFormatId() + "))\";resolution:=mandatory;effective:=active");
+					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.service;" + "filter:=\"(objectClass="
+							+ SchemaManager.class.getTypeName() + ")\";resolution:=mandatory;effective:=active");
+					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.extender;" + "filter:=\"(osgi.extender="
+							+ Schema.class.getPackage().getName() + ")\";resolution:=mandatory;effective:=resolve");
 
-				if (newCapabilities != null)
-					newCapabilities += "," + capability;
-				else
-					newCapabilities = capability;
-			}
-
-			if (newCapabilities != null) {
-				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-						"osgi.service;" + "filter:=\"(&(objectClass="
-								+ StructuredDataFormat.class.getTypeName() + ")(formatId="
-								+ handler.getFormatId()
-								+ "))\";resolution:=mandatory;effective:=active");
-				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-						"osgi.service;" + "filter:=\"(objectClass="
-								+ SchemaManager.class.getTypeName()
-								+ ")\";resolution:=mandatory;effective:=active");
-				appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-						"osgi.extender;" + "filter:=\"(osgi.extender="
-								+ Schema.class.getPackage().getName()
-								+ ")\";resolution:=mandatory;effective:=resolve");
-
-				appendProperties(analyzer, Constants.PROVIDE_CAPABILITY,
-						newCapabilities);
-			}
-		});
+					appendProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
+				}
+			});
+		}
 	}
 
-	private void withJarOnBuildPath(Analyzer analyzer, Jar jar, String jarName,
-			Runnable run) {
+	private void withJarOnBuildPath(Analyzer analyzer, String jarName, Runnable run) {
 		try {
-			File tempJar = createDirs(
-					analyzer.getBase() + File.separator + "generated", "tmp", "jar");
+			File tempJar = createDirs(analyzer.getBase() + File.separator + "generated", "tmp", "jar");
 
 			if (tempJar == null)
 				throw new RuntimeException(
-						"Cannot create temporary build path jar, location '"
-								+ analyzer.getBase() + "' does not exist");
+						"Cannot create temporary build path jar, location '" + analyzer.getBase() + "' does not exist");
 
-			tempJar = new File(
-					tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
+			tempJar = new File(tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
-			jar.write(tempJar);
+			analyzer.getJar().write(tempJar);
 			new ContextClassLoaderRunner(tempJar.toURI().toURL()).run(run);
 		} catch (Exception e) {
 			throw flattenMessage(e);
@@ -139,6 +138,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 			message += ": " + e.getMessage();
 		}
 
+		reporter.exception(e, "Format!! " + message);
 		return new SchemaException(message, e);
 	}
 
@@ -155,8 +155,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 		return file;
 	}
 
-	private void appendProperties(Analyzer analyzer, String property,
-			String append) {
+	private void appendProperties(Analyzer analyzer, String property, String append) {
 		String capabilities = analyzer.getProperty(property);
 
 		if (capabilities != null && !"".equals(capabilities.trim()))
