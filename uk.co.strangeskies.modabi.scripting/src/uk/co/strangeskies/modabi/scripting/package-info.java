@@ -17,4 +17,4 @@
  * along with uk.co.strangeskies.modabi.scripting.  If not, see <http://www.gnu.org/licenses/>.
  */
 @org.osgi.annotation.versioning.Version("1.0.0")
-package uk.co.strangeskies.modabi.fx;
+package uk.co.strangeskies.modabi.scripting;

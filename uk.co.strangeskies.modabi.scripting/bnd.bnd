@@ -13,7 +13,7 @@ Bundle-Description: \
 	${ss;scripting.management},\
 	uk.co.strangeskies.modabi.core.api;version=project
 
-Export-Package: uk.co.strangeskies.modabi.fx
+Export-Package: uk.co.strangeskies.modabi.scripting
 
 -pluginpath: \
 	${pluginpath.modabi}

@@ -294,7 +294,10 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	void registerModel(Model<?> model) {
-		registeredModels.add(model);
+		synchronized (registeredModels) {
+			registeredModels.add(model);
+			registeredModels.notifyAll();
+		}
 	}
 
 	void registerDataType(DataType<?> type) {
@@ -355,17 +358,27 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new BinderImpl<>(this, input -> model.effective());
 	}
 
+	private Model<?> waitForModel(QualifiedName modelName) {
+		synchronized (registeredModels) {
+			Model<?> model;
+			while ((model = registeredModels.get(modelName)) == null) {
+				try {
+					registeredModels.wait();
+				} catch (InterruptedException e) {
+					throw new SchemaException(
+							"No model found to match the root element '" + modelName + "'",
+							e);
+				}
+			}
+			return model;
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Binder<T> bind(TypeToken<T> dataClass) {
 		return new BinderImpl<>(this, input -> {
-			Model<?> model = registeredModels.get(input.peekNextChild());
-
-			if (model == null) {
-				throw new IllegalArgumentException(
-						"No model found to match the root element '" + input.peekNextChild()
-								+ "'");
-			}
+			Model<?> model = waitForModel(input.peekNextChild());
 
 			List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
 
@@ -375,6 +388,10 @@ public class SchemaManagerImpl implements SchemaManager {
 						+ "' match the root element '" + input.peekNextChild() + "'");
 			}
 
+			/*
+			 * TODO model adapter to enforce possibly more specific generic type.
+			 */
+
 			return (Model<T>) model;
 		});
 	}
@@ -382,7 +399,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public Binder<?> bind() {
 		return new BinderImpl<>(this,
-				input -> registeredModels.get(input.peekNextChild()).effective());
+				input -> waitForModel(input.peekNextChild()).effective());
 	}
 
 	@SuppressWarnings("unchecked")

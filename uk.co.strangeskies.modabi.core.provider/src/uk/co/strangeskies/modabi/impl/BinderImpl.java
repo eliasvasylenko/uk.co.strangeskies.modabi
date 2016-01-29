@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.BindingFutureImpl.BindingSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;

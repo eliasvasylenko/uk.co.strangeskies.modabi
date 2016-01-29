@@ -18,16 +18,24 @@
  */
 package uk.co.strangeskies.modabi.extender;
 
+import java.net.URL;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.namespace.extender.ExtenderNamespace;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import aQute.bnd.annotation.headers.ProvideCapability;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.osgi.ExtenderManager;
+import uk.co.strangeskies.utilities.Log;
 
 @ProvideCapability(ns = ExtenderNamespace.EXTENDER_NAMESPACE, name = ModabiExtender.MODABI_EXTENDER_NAME, version = "1.0.0")
 @Component(immediate = true)
@@ -39,18 +47,57 @@ public class ModabiExtender extends ExtenderManager {
 
 	@Override
 	protected boolean register(Bundle bundle) {
-		System.out.println(bundle.getSymbolicName());
+		log(Level.INFO, "Registering bundle '" + bundle.getSymbolicName()
+				+ "' in Modabi extender");
 
-		for (BundleCapability capability : bundle.adapt(BundleWiring.class).getCapabilities(MODABI_EXTENDER_NAME)) {
-			System.out.println(capability.getAttributes());
+		for (BundleCapability capability : bundle.adapt(BundleWiring.class)
+				.getCapabilities(MODABI_EXTENDER_NAME)) {
+			QualifiedName schemaName = QualifiedName
+					.parseString((String) capability.getAttributes().get("schema"));
+
+			URL resource = bundle
+					.getResource("/" + capability.getAttributes().get("resource"));
+
+			log(Level.INFO, "Registering schema capability '" + schemaName
+					+ "' at resource '" + resource + "'");
+
+			new Thread(() -> {
+				try {
+					Schema schema = manager.bindSchema()
+							.with(bundle.adapt(BundleWiring.class).getClassLoader())
+							.from(resource).resolve();
+
+					if (!schema.getQualifiedName().equals(schemaName)) {
+						throw new SchemaException(
+								"Schema bound '" + schema.getQualifiedName()
+										+ "' does not match declared name '" + schemaName + "'");
+					}
+
+					log(Level.INFO, "Successfully bound schema '" + schemaName
+							+ "' in Modabi extender");
+				} catch (Exception e) {
+					log(Level.ERROR,
+							"Failed to bind schema '" + schemaName + "' in Modabi extender",
+							e);
+					throw e;
+				}
+			}).start();
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
-	protected void unregister(Bundle bundle) {
-		// TODO Auto-generated method stub
+	protected void unregister(Bundle bundle) {}
 
+	@Override
+	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
+	protected void setLog(Log log) {
+		super.setLog(log);
+	}
+
+	@Override
+	protected void unsetLog(Log log) {
+		super.unsetLog(log);
 	}
 }
