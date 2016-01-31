@@ -1,10 +1,10 @@
 Bundle-Name: Modabi :: Benchmarker
 
--pluginpath: \
-	${pluginpath.modabi}
+#-pluginpath: \
+#	${pluginpath.modabi}
 
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
+#-plugin: \
+#	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
 
 -includeresource: \
 	META-INF/schemata=schemata

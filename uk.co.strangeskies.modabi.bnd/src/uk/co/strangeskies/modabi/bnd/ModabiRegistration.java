@@ -25,8 +25,6 @@ import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
-import aQute.bnd.service.Plugin;
-import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
@@ -38,25 +36,14 @@ import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
  * 
  * @author Elias N Vasylenko
  */
-public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
+public abstract class ModabiRegistration implements AnalyzerPlugin {
 	private final StructuredDataFormat handler;
 	private final SchemaManager manager;
 
-	private Reporter reporter;
-
-	public ModabiRegistration(SchemaManager manager,
-			StructuredDataFormat handler) {
+	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
 		this.handler = handler;
 		this.manager = manager;
 		manager.dataInterfaces().registerDataInterface(handler);
-	}
-
-	public void setProperties(Map<String, String> map) {
-		// String logLevel = map.get("log");
-	}
-
-	public void setReporter(Reporter reporter) {
-		this.reporter = reporter;
 	}
 
 	public SchemaManager getManager() {
@@ -75,8 +62,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 	private void scanSchemaAnnotations(Analyzer analyzer) {}
 
 	private void registerSchemata(Analyzer analyzer) {
-		Map<String, Resource> resources = analyzer.getJar().getDirectories()
-				.get("META-INF/schemata");
+		Map<String, Resource> resources = analyzer.getJar().getDirectories().get("META-INF/schemata");
 
 		if (resources != null) {
 			withJarOnBuildPath(analyzer, "buildpath", () -> {
@@ -85,15 +71,12 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 				for (String resourceName : resources.keySet()) {
 					Schema schema;
 					try {
-						schema = manager.bindSchema()
-								.from(resources.get(resourceName).openInputStream()).resolve();
+						schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
 					} catch (Exception e) {
-						reporter.exception(e, "Format?");
-						throw new SchemaException("why?", e);
+						throw new SchemaException(e);
 					}
 
-					String capability = Schema.class.getPackage().getName()
-							+ ";schema:String=\"" + schema.getQualifiedName()
+					String capability = Schema.class.getPackage().getName() + ";schema:String=\"" + schema.getQualifiedName()
 							+ "\";resource:String=\"" + resourceName + "\"";
 
 					if (newCapabilities != null)
@@ -104,39 +87,31 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 
 				if (newCapabilities != null) {
 					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-							"osgi.service;" + "filter:=\"(&(objectClass="
-									+ StructuredDataFormat.class.getTypeName() + ")(formatId="
-									+ handler.getFormatId()
-									+ "))\";resolution:=mandatory;effective:=active");
-					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-							"osgi.service;" + "filter:=\"(objectClass="
-									+ SchemaManager.class.getTypeName()
-									+ ")\";resolution:=mandatory;effective:=active");
-					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-							"osgi.extender;" + "filter:=\"(osgi.extender="
-									+ Schema.class.getPackage().getName()
-									+ ")\";resolution:=mandatory;effective:=resolve");
+							"osgi.service;" + "filter:=\"(&(objectClass=" + StructuredDataFormat.class.getTypeName() + ")(formatId="
+									+ handler.getFormatId() + "))\";resolution:=mandatory;effective:=active");
+					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.service;" + "filter:=\"(objectClass="
+							+ SchemaManager.class.getTypeName() + ")\";resolution:=mandatory;effective:=active");
+					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.extender;" + "filter:=\"(osgi.extender="
+							+ Schema.class.getPackage().getName() + ")\";resolution:=mandatory;effective:=resolve");
 
-					appendProperties(analyzer, Constants.PROVIDE_CAPABILITY,
-							newCapabilities);
+					appendProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
+
+					appendProperties(analyzer, Constants.IMPORT_PACKAGE,
+							"uk.co.strangeskies.modabi," + "uk.co.strangeskies.modabi.schema");
 				}
 			});
 		}
 	}
 
-	private void withJarOnBuildPath(Analyzer analyzer, String jarName,
-			Runnable run) {
+	private void withJarOnBuildPath(Analyzer analyzer, String jarName, Runnable run) {
 		try {
-			File tempJar = createDirs(
-					analyzer.getBase() + File.separator + "generated", "tmp", "jar");
+			File tempJar = createDirs(analyzer.getBase() + File.separator + "generated", "tmp", "jar");
 
 			if (tempJar == null)
 				throw new RuntimeException(
-						"Cannot create temporary build path jar, location '"
-								+ analyzer.getBase() + "' does not exist");
+						"Cannot create temporary build path jar, location '" + analyzer.getBase() + "' does not exist");
 
-			tempJar = new File(
-					tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
+			tempJar = new File(tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
 			analyzer.getJar().write(tempJar);
 			new ContextClassLoaderRunner(tempJar.toURI().toURL()).run(run);
@@ -152,7 +127,6 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 			message += ": " + e.getMessage();
 		}
 
-		reporter.exception(e, "Format!! " + message);
 		return new SchemaException(message, e);
 	}
 
@@ -169,14 +143,14 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		return file;
 	}
 
-	private void appendProperties(Analyzer analyzer, String property,
-			String append) {
+	private void appendProperties(Analyzer analyzer, String property, String append) {
 		String capabilities = analyzer.getProperty(property);
 
-		if (capabilities != null && !"".equals(capabilities.trim()))
+		if (capabilities != null && !"".equals(capabilities.trim())) {
 			capabilities += "," + append;
-		else
+		} else {
 			capabilities = append;
+		}
 
 		analyzer.setProperty(property, capabilities);
 	}

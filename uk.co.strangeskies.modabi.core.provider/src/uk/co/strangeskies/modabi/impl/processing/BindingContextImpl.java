@@ -38,8 +38,7 @@ import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public class BindingContextImpl extends
-		ProcessingContextImpl<BindingContextImpl> implements BindingContext {
+public class BindingContextImpl extends ProcessingContextImpl<BindingContextImpl> implements BindingContext {
 	private final List<TypedObject<?>> bindingTargetStack;
 	private StructuredDataSource input;
 	private final boolean exhaustive;
@@ -52,17 +51,15 @@ public class BindingContextImpl extends
 		exhaustive = true;
 	}
 
-	private BindingContextImpl(BindingContextImpl parent,
-			List<TypedObject<?>> bindingTargetStack, StructuredDataSource input,
-			ProcessingProvisions provider, boolean exhaustive) {
+	private BindingContextImpl(BindingContextImpl parent, List<TypedObject<?>> bindingTargetStack,
+			StructuredDataSource input, ProcessingProvisions provider, boolean exhaustive) {
 		super(parent, provider);
 		this.bindingTargetStack = bindingTargetStack;
 		this.input = input;
 		this.exhaustive = exhaustive;
 	}
 
-	private BindingContextImpl(BindingContextImpl parent,
-			SchemaNode.Effective<?, ?> node, boolean replace) {
+	private BindingContextImpl(BindingContextImpl parent, SchemaNode.Effective<?, ?> node, boolean replace) {
 		super(parent, node, replace);
 		this.bindingTargetStack = parent.bindingTargetStack;
 		this.input = parent.input;
@@ -85,8 +82,7 @@ public class BindingContextImpl extends
 	}
 
 	@Override
-	protected RuntimeException processingException(String message,
-			BindingContextImpl state) {
+	protected RuntimeException processingException(String message, BindingContextImpl state) {
 		throw new BindingException(message, state);
 	}
 
@@ -94,51 +90,43 @@ public class BindingContextImpl extends
 	protected <T> BindingContextImpl withProvision(TypeToken<T> providedClass,
 			Function<? super BindingContextImpl, T> provider,
 			ProcessingContextImpl<BindingContextImpl>.ProcessingProvisions provisions) {
-		return new BindingContextImpl(this, bindingTargetStack, input, provisions,
-				isExhaustive());
+		return new BindingContextImpl(this, bindingTargetStack, input, provisions, isExhaustive());
 	}
 
 	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target) {
 		return withBindingTarget(target, false);
 	}
 
-	public <T> BindingContextImpl withReplacementBindingTarget(
-			TypedObject<?> target) {
+	public <T> BindingContextImpl withReplacementBindingTarget(TypedObject<?> target) {
 		return withBindingTarget(target, true);
 	}
 
-	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target,
-			boolean replace) {
-		List<TypedObject<?>> bindingTargetStack = new ArrayList<>(
-				bindingTargetStack());
+	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target, boolean replace) {
+		List<TypedObject<?>> bindingTargetStack = new ArrayList<>(bindingTargetStack());
 		if (replace) {
 			bindingTargetStack.set(bindingTargetStack.size() - 1, target);
 		} else {
 			bindingTargetStack.add(target);
 		}
 
-		return new BindingContextImpl(this,
-				Collections.unmodifiableList(bindingTargetStack), input, getProvider(),
+		return new BindingContextImpl(this, Collections.unmodifiableList(bindingTargetStack), input, getProvider(),
 				isExhaustive());
 	}
 
-	public <T> BindingContextImpl withBindingNode(
-			SchemaNode.Effective<?, ?> node) {
+	public <T> BindingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
 		return new BindingContextImpl(this, node, false);
 	}
 
-	public <T> BindingContextImpl withReplacementBindingNode(
-			SchemaNode.Effective<?, ?> node) {
+	public <T> BindingContextImpl withReplacementBindingNode(SchemaNode.Effective<?, ?> node) {
 		return new BindingContextImpl(this, node, true);
 	}
 
 	public BindingContextImpl withInput(StructuredDataSource input) {
-		return new BindingContextImpl(this, bindingTargetStack, input,
-				getProvider(), isExhaustive());
+		return new BindingContextImpl(this, bindingTargetStack, input, getProvider(), isExhaustive());
 	}
 
 	public void attemptBinding(Consumer<BindingContextImpl> bindingMethod) {
-		attemptBinding(c -> {
+		attemptBinding((Function<BindingContextImpl, Void>) c -> {
 			bindingMethod.accept(c);
 			return null;
 		});
@@ -152,11 +140,9 @@ public class BindingContextImpl extends
 		 * Mark output! (by redirecting to a new buffer)
 		 */
 		if (context.provisions().isProvided(DataSource.class)) {
-			dataSource = context.provisions().provide(DataSource.class).getObject()
-					.copy();
+			dataSource = context.provisions().provide(DataSource.class).getObject().copy();
 			DataSource finalSource = dataSource;
-			context = context.withProvision(new TypeToken<DataSource>() {},
-					() -> finalSource);
+			context = context.withProvision(new TypeToken<DataSource>() {}, () -> finalSource);
 		}
 		StructuredDataSource input = this.input.split();
 		context = context.withInput(input);
@@ -171,8 +157,7 @@ public class BindingContextImpl extends
 		 * Remove mark! (by flushing buffer into output)
 		 */
 		if (dataSource != null) {
-			DataSource originalDataSource = provisions().provide(DataSource.class)
-					.getObject();
+			DataSource originalDataSource = provisions().provide(DataSource.class).getObject();
 			while (originalDataSource.index() < dataSource.index())
 				originalDataSource.get();
 		}
@@ -182,18 +167,16 @@ public class BindingContextImpl extends
 		return result;
 	}
 
-	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems,
-			BiConsumer<BindingContextImpl, I> bindingMethod,
+	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems, BiConsumer<BindingContextImpl, I> bindingMethod,
 			Function<Set<Exception>, BindingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new BindingException("Must supply items for binding attempt.",
-					this);
+			throw new BindingException("Must supply items for binding attempt.", this);
 
 		Set<Exception> failures = new HashSet<>();
 
 		for (I item : attemptItems)
 			try {
-				attemptBinding(c -> bindingMethod.accept(c, item));
+				attemptBinding((Consumer<BindingContextImpl>) c -> bindingMethod.accept(c, item));
 
 				return item;
 			} catch (Exception e) {
@@ -217,12 +200,10 @@ public class BindingContextImpl extends
 		/*
 		 * TODO actually make non-exhausting nodes non-exhausting...
 		 */
-		return new BindingContextImpl(this, bindingTargetStack, input,
-				getProvider(), isExhaustive() && exhaustive);
+		return new BindingContextImpl(this, bindingTargetStack, input, getProvider(), isExhaustive() && exhaustive);
 	}
 
 	public BindingContextImpl forceExhausting() {
-		return new BindingContextImpl(this, bindingTargetStack, input,
-				getProvider(), true);
+		return new BindingContextImpl(this, bindingTargetStack, input, getProvider(), true);
 	}
 }

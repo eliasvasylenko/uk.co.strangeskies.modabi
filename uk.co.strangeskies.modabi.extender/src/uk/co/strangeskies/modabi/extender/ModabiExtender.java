@@ -43,42 +43,32 @@ public class ModabiExtender extends ExtenderManager {
 	public static final String MODABI_EXTENDER_NAME = "uk.co.strangeskies.modabi";
 
 	@Reference
-	SchemaManager manager;
+	private SchemaManager manager;
 
 	@Override
 	protected boolean register(Bundle bundle) {
-		log(Level.INFO, "Registering bundle '" + bundle.getSymbolicName()
-				+ "' in Modabi extender");
+		log(Level.INFO, "Registering bundle '" + bundle.getSymbolicName() + "' in Modabi extender");
 
-		for (BundleCapability capability : bundle.adapt(BundleWiring.class)
-				.getCapabilities(MODABI_EXTENDER_NAME)) {
-			QualifiedName schemaName = QualifiedName
-					.parseString((String) capability.getAttributes().get("schema"));
+		for (BundleCapability capability : bundle.adapt(BundleWiring.class).getCapabilities(MODABI_EXTENDER_NAME)) {
+			QualifiedName schemaName = QualifiedName.parseString((String) capability.getAttributes().get("schema"));
 
-			URL resource = bundle
-					.getResource("/" + capability.getAttributes().get("resource"));
+			URL resource = bundle.getResource("/" + capability.getAttributes().get("resource"));
 
-			log(Level.INFO, "Registering schema capability '" + schemaName
-					+ "' at resource '" + resource + "'");
+			log(Level.INFO, "Registering schema capability '" + schemaName + "' at resource '" + resource + "'");
 
 			new Thread(() -> {
 				try {
-					Schema schema = manager.bindSchema()
-							.with(bundle.adapt(BundleWiring.class).getClassLoader())
-							.from(resource).resolve();
+					Schema schema = manager.bindSchema().with(bundle.adapt(BundleWiring.class).getClassLoader()).from(resource)
+							.resolve();
 
 					if (!schema.getQualifiedName().equals(schemaName)) {
 						throw new SchemaException(
-								"Schema bound '" + schema.getQualifiedName()
-										+ "' does not match declared name '" + schemaName + "'");
+								"Schema bound '" + schema.getQualifiedName() + "' does not match declared name '" + schemaName + "'");
 					}
 
-					log(Level.INFO, "Successfully bound schema '" + schemaName
-							+ "' in Modabi extender");
+					log(Level.INFO, "Successfully bound schema '" + schemaName + "' in Modabi extender");
 				} catch (Exception e) {
-					log(Level.ERROR,
-							"Failed to bind schema '" + schemaName + "' in Modabi extender",
-							e);
+					log(Level.ERROR, "Failed to bind schema '" + schemaName + "' in Modabi extender", e);
 					throw e;
 				}
 			}).start();

@@ -10,8 +10,7 @@ Bundle-Description: \
 -buildpath: \
 	osgi.enroute.base.api,\
 	${ss;utilities},\
-	${ss;scripting.management},\
-	uk.co.strangeskies.modabi.core.api;version=project
+	${ss;scripting.management}
 
 Export-Package: uk.co.strangeskies.modabi.scripting
 

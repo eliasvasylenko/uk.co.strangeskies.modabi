@@ -22,4 +22,4 @@ Export-Package: uk.co.strangeskies.modabi.mapping
 
 -includeresource: \
 	META-INF/schemata=schemata, \
-	META-INF/mappings=mappings
+	res

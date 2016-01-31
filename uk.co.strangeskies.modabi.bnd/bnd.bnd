@@ -18,7 +18,7 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.core.provider;version=project,\
 	uk.co.strangeskies.modabi.io.xml;version=project,\
 	biz.aQute.bndlib
-	
+
 -sub: *.bnd
 
 dependencies.wrapped: \
