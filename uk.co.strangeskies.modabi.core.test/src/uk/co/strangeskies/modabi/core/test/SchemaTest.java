@@ -53,7 +53,7 @@ import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
 import uk.co.strangeskies.reflection.Annotations;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
-import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classloader.ContextClassLoaderRunner;
 
 public class SchemaTest {
 	private <T> T getService(Class<T> clazz) {

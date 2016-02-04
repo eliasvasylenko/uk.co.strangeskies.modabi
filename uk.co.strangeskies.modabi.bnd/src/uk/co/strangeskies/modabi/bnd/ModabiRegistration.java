@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classloader.ContextClassLoaderRunner;
 
 /**
  * TODO replace all the magic string literals...

@@ -30,9 +30,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
-import uk.co.strangeskies.utilities.ContextClassLoaderRunner;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
+import uk.co.strangeskies.utilities.classloader.ContextClassLoaderRunner;
 
 @Component
 public class Profiler {
