@@ -1,5 +1,9 @@
+shaded.projects: \
+	uk.co.strangeskies.modabi.core.api,\
+	uk.co.strangeskies.modabi.core.provider,\
+	uk.co.strangeskies.modabi.io.xml
+
 Private-Package: \
-	${dependencies.wrapped},\
 	uk.co.strangeskies.modabi.bnd.xml,\
 	uk.co.strangeskies.modabi.bnd
 

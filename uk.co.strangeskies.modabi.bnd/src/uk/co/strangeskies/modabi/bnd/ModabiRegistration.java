@@ -19,31 +19,59 @@
 package uk.co.strangeskies.modabi.bnd;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.jar.Manifest;
 
+import aQute.bnd.header.Attrs;
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
+import aQute.bnd.service.Plugin;
+import aQute.bnd.version.Version;
+import aQute.bnd.version.VersionRange;
+import aQute.service.reporter.Reporter;
+import uk.co.strangeskies.bnd.ReporterLog;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.utilities.classloader.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.Log;
+import uk.co.strangeskies.utilities.Log.Level;
+import uk.co.strangeskies.utilities.classpath.Classpath;
+import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 /**
  * TODO replace all the magic string literals...
  * 
  * @author Elias N Vasylenko
  */
-public abstract class ModabiRegistration implements AnalyzerPlugin {
+public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
+	private static final String VERSION = "version";
+
+	private static final Object SOURCES_PROPERTY = "sources";
+	private static final String DEFAULT_SOURCE = "META-INF/schemata/*";
+
 	private final StructuredDataFormat handler;
 	private final SchemaManager manager;
+
+	private final Set<String> sources;
+
+	private Log log = (l, m) -> {};
 
 	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
 		this.handler = handler;
 		this.manager = manager;
 		manager.dataInterfaces().registerDataInterface(handler);
+
+		sources = new HashSet<>();
+		sources.add(DEFAULT_SOURCE);
 	}
 
 	public SchemaManager getManager() {
@@ -54,18 +82,60 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 	public boolean analyzeJar(Analyzer analyzer) throws Exception {
 		scanSchemaAnnotations(analyzer);
 
-		registerSchemata(analyzer);
+		return registerSchemata(analyzer);
+	}
 
-		return false;
+	private Attrs getPackageImportAttributes(String packageName) {
+		Manifest manifest = Classpath.getManifest(getClass());
+		Map<String, Map<String, String>> privatePackages = Classpath
+				.parseManifestEntry(manifest.getMainAttributes().getValue(Constants.PRIVATE_PACKAGE));
+
+		Version versionFrom = Version.parseVersion(privatePackages.get(packageName).get("version"));
+
+		Attrs attributes = new Attrs();
+		attributes.put(VERSION,
+				new VersionRange(true, versionFrom, new Version(versionFrom.getMajor() + 1, 0, 0), false).toString());
+
+		return attributes;
 	}
 
 	private void scanSchemaAnnotations(Analyzer analyzer) {}
 
-	private void registerSchemata(Analyzer analyzer) {
-		Map<String, Resource> resources = analyzer.getJar().getDirectories().get("META-INF/schemata");
+	private boolean registerSchemata(Analyzer analyzer) throws Exception {
+		Map<String, Resource> resources = new HashMap<>();
+		for (String source : sources) {
+			source = source.trim();
+
+			String directorySource = null;
+			if (source.equals("*")) {
+				directorySource = "";
+			} else if (source.endsWith("/*")) {
+				directorySource = source.substring(0, source.length() - 2);
+			}
+
+			if (directorySource != null) {
+				Map<String, Resource> directoryResources = analyzer.getJar().getDirectories().get(directorySource);
+
+				if (directoryResources == null || directoryResources.isEmpty()) {
+					log.log(Level.WARN, "Cannot find Modabi documents in source directory " + source);
+				} else {
+					resources.putAll(directoryResources);
+				}
+			} else {
+				Resource resource = analyzer.getJar().getResource(source);
+
+				if (resource == null) {
+					log.log(Level.WARN, "Cannot find Modabi document at source location" + source);
+				} else {
+					resources.put(source, resource);
+				}
+			}
+		}
+
+		boolean changed = false;
 
 		if (resources != null) {
-			withJarOnBuildPath(analyzer, "buildpath", () -> {
+			changed = withJarOnBuildPath(analyzer, "buildpath", () -> {
 				String newCapabilities = null;
 
 				for (String resourceName : resources.keySet()) {
@@ -86,24 +156,34 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 				}
 
 				if (newCapabilities != null) {
-					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+					prependProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
+
+					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
 							"osgi.service;" + "filter:=\"(&(objectClass=" + StructuredDataFormat.class.getTypeName() + ")(formatId="
 									+ handler.getFormatId() + "))\";resolution:=mandatory;effective:=active");
-					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.service;" + "filter:=\"(objectClass="
+					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.service;" + "filter:=\"(objectClass="
 							+ SchemaManager.class.getTypeName() + ")\";resolution:=mandatory;effective:=active");
-					appendProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.extender;" + "filter:=\"(osgi.extender="
+					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.extender;" + "filter:=\"(osgi.extender="
 							+ Schema.class.getPackage().getName() + ")\";resolution:=mandatory;effective:=resolve");
 
-					appendProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
+					List<String> packages = Arrays.asList("uk.co.strangeskies.modabi", "uk.co.strangeskies.modabi.schema");
+					for (String packageName : packages) {
+						prependProperties(analyzer, Constants.IMPORT_PACKAGE,
+								packageName + ";" + getPackageImportAttributes(packageName));
+					}
 
-					appendProperties(analyzer, Constants.IMPORT_PACKAGE,
-							"uk.co.strangeskies.modabi," + "uk.co.strangeskies.modabi.schema");
+					return true;
+				} else {
+					return false;
 				}
 			});
 		}
+
+		return changed;
 	}
 
-	private void withJarOnBuildPath(Analyzer analyzer, String jarName, Runnable run) {
+	private boolean withJarOnBuildPath(Analyzer analyzer, String jarName, ThrowingSupplier<Boolean, ?> run)
+			throws Exception {
 		try {
 			File tempJar = createDirs(analyzer.getBase() + File.separator + "generated", "tmp", "jar");
 
@@ -114,20 +194,12 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 			tempJar = new File(tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
 
 			analyzer.getJar().write(tempJar);
-			new ContextClassLoaderRunner(tempJar.toURI().toURL()).run(run);
+
+			return new ContextClassLoaderRunner(tempJar.toURI().toURL()).runThrowing(run);
 		} catch (Exception e) {
-			throw flattenMessage(e);
+			log.log(Level.ERROR, "Failed to process bundle", e);
+			throw e;
 		}
-	}
-
-	private SchemaException flattenMessage(Throwable e) {
-		String message = e.getMessage();
-
-		while ((e = e.getCause()) != null) {
-			message += ": " + e.getMessage();
-		}
-
-		return new SchemaException(message, e);
 	}
 
 	private File createDirs(String baseDirectory, String... directories) {
@@ -143,15 +215,31 @@ public abstract class ModabiRegistration implements AnalyzerPlugin {
 		return file;
 	}
 
-	private void appendProperties(Analyzer analyzer, String property, String append) {
+	private void prependProperties(Analyzer analyzer, String property, String append) {
 		String capabilities = analyzer.getProperty(property);
 
-		if (capabilities != null && !"".equals(capabilities.trim())) {
-			capabilities += "," + append;
-		} else {
+		if (capabilities == null || "".equals(capabilities.trim())) {
 			capabilities = append;
+		} else if (!Arrays.stream(capabilities.split(",")).anyMatch(c -> c.trim().equals(append.trim()))) {
+			capabilities = append + "," + capabilities;
 		}
 
 		analyzer.setProperty(property, capabilities);
+	}
+
+	@Override
+	public void setProperties(Map<String, String> map) throws Exception {
+		sources.clear();
+		if (map.containsKey(SOURCES_PROPERTY)) {
+			String sourcesString = map.get(SOURCES_PROPERTY);
+			sources.addAll(Arrays.asList(sourcesString.split(",")));
+		} else {
+			sources.add(DEFAULT_SOURCE);
+		}
+	}
+
+	@Override
+	public void setReporter(Reporter processor) {
+		log = new ReporterLog(processor);
 	}
 }
