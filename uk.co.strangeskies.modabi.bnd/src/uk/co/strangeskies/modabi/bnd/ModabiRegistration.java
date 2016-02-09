@@ -117,7 +117,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 				Map<String, Resource> directoryResources = analyzer.getJar().getDirectories().get(directorySource);
 
 				if (directoryResources == null || directoryResources.isEmpty()) {
-					log.log(Level.WARN, "Cannot find Modabi documents in source directory " + source);
+					log.log(Level.WARN, "Cannot find Modabi documents in source directory: " + source);
 				} else {
 					resources.putAll(directoryResources);
 				}
@@ -125,7 +125,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 				Resource resource = analyzer.getJar().getResource(source);
 
 				if (resource == null) {
-					log.log(Level.WARN, "Cannot find Modabi document at source location" + source);
+					log.log(Level.WARN, "Cannot find Modabi document at source location: " + source);
 				} else {
 					resources.put(source, resource);
 				}
