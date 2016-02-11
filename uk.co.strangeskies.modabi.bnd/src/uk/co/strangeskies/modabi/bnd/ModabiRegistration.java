@@ -19,22 +19,20 @@
 package uk.co.strangeskies.modabi.bnd;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.Manifest;
 
-import aQute.bnd.header.Attrs;
+import org.osgi.framework.Constants;
+
 import aQute.bnd.osgi.Analyzer;
-import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
 import aQute.bnd.service.Plugin;
-import aQute.bnd.version.Version;
-import aQute.bnd.version.VersionRange;
 import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.bnd.ReporterLog;
 import uk.co.strangeskies.modabi.Schema;
@@ -43,22 +41,32 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
-import uk.co.strangeskies.utilities.classpath.Classpath;
+import uk.co.strangeskies.utilities.classpath.Attribute;
+import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
+import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 /**
- * TODO replace all the magic string literals...
- * 
  * @author Elias N Vasylenko
  */
 public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
-	private static final String VERSION = "version";
-
 	private static final Object SOURCES_PROPERTY = "sources";
 	private static final String DEFAULT_SOURCE = "META-INF/schemata/*";
 
-	private final StructuredDataFormat handler;
+	private static final String SCHEMA = "schema";
+	private static final String RESOURCE = "resource";
+
+	private static final String EXTENDER = "osgi.extender";
+	private static final String EXTENDER_FILTER = "(" + EXTENDER + "=" + Schema.class.getPackage().getName() + ")";
+
+	private static final String SERVICE = "osgi.service";
+	private static final String STRUCTUREDDATAFORMAT_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
+			+ StructuredDataFormat.class.getTypeName() + ")";
+	private static final String SCHEMAMANAGER_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
+			+ SchemaManager.class.getTypeName() + ")";
+
 	private final SchemaManager manager;
 
 	private final Set<String> sources;
@@ -66,7 +74,6 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 	private Log log = (l, m) -> {};
 
 	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
-		this.handler = handler;
 		this.manager = manager;
 		manager.dataInterfaces().registerDataInterface(handler);
 
@@ -83,20 +90,6 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		scanSchemaAnnotations(analyzer);
 
 		return registerSchemata(analyzer);
-	}
-
-	private Attrs getPackageImportAttributes(String packageName) {
-		Manifest manifest = Classpath.getManifest(getClass());
-		Map<String, Map<String, String>> privatePackages = Classpath
-				.parseManifestEntry(manifest.getMainAttributes().getValue(Constants.PRIVATE_PACKAGE));
-
-		Version versionFrom = Version.parseVersion(privatePackages.get(packageName).get("version"));
-
-		Attrs attributes = new Attrs();
-		attributes.put(VERSION,
-				new VersionRange(true, versionFrom, new Version(versionFrom.getMajor() + 1, 0, 0), false).toString());
-
-		return attributes;
 	}
 
 	private void scanSchemaAnnotations(Analyzer analyzer) {}
@@ -136,7 +129,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 
 		if (resources != null) {
 			changed = withJarOnBuildPath(analyzer, "buildpath", () -> {
-				String newCapabilities = null;
+				List<Attribute> newCapabilities = new ArrayList<>();
 
 				for (String resourceName : resources.keySet()) {
 					Schema schema;
@@ -146,31 +139,47 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 						throw new SchemaException(e);
 					}
 
-					String capability = Schema.class.getPackage().getName() + ";schema:String=\"" + schema.getQualifiedName()
-							+ "\";resource:String=\"" + resourceName + "\"";
+					List<AttributeProperty<?>> properties = new ArrayList<>();
 
-					if (newCapabilities != null)
-						newCapabilities += "," + capability;
-					else
-						newCapabilities = capability;
+					properties.add(new AttributeProperty<>(SCHEMA, PropertyType.STRING, schema.getQualifiedName().toString()));
+					properties.add(new AttributeProperty<>(RESOURCE, PropertyType.STRING, resourceName));
+
+					newCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
 				}
 
-				if (newCapabilities != null) {
+				if (!newCapabilities.isEmpty()) {
 					prependProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
 
-					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-							"osgi.service;" + "filter:=\"(&(objectClass=" + StructuredDataFormat.class.getTypeName() + ")(formatId="
-									+ handler.getFormatId() + "))\";resolution:=mandatory;effective:=active");
-					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.service;" + "filter:=\"(objectClass="
-							+ SchemaManager.class.getTypeName() + ")\";resolution:=mandatory;effective:=active");
-					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY, "osgi.extender;" + "filter:=\"(osgi.extender="
-							+ Schema.class.getPackage().getName() + ")\";resolution:=mandatory;effective:=resolve");
+					AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(Constants.RESOLUTION_DIRECTIVE,
+							PropertyType.STRING, Constants.MANDATORY_DIRECTIVE);
 
-					List<String> packages = Arrays.asList("uk.co.strangeskies.modabi", "uk.co.strangeskies.modabi.schema");
-					for (String packageName : packages) {
-						prependProperties(analyzer, Constants.IMPORT_PACKAGE,
-								packageName + ";" + getPackageImportAttributes(packageName));
-					}
+					AttributeProperty<?> resolveEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
+							PropertyType.STRING, Constants.EFFECTIVE_RESOLVE);
+
+					AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
+							PropertyType.STRING, Constants.EFFECTIVE_RESOLVE);
+
+					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+							/*
+							 * StructuredDataFormat service requirement attribute
+							 */
+							new Attribute(SERVICE, new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.STRING,
+									STRUCTUREDDATAFORMAT_SERVICE_FILTER), mandatoryResolution, activeEffective));
+
+					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+							/*
+							 * SchemaManager service requirement attribute
+							 */
+							new Attribute(SERVICE, new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.STRING,
+									SCHEMAMANAGER_SERVICE_FILTER), mandatoryResolution, activeEffective));
+
+					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+							/*
+							 * Modabi extender attribute
+							 */
+							new Attribute(EXTENDER,
+									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.STRING, EXTENDER_FILTER),
+									mandatoryResolution, resolveEffective));
 
 					return true;
 				} else {
@@ -215,13 +224,22 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		return file;
 	}
 
-	private void prependProperties(Analyzer analyzer, String property, String append) {
+	private void prependProperties(Analyzer analyzer, String property, Attribute prepend) {
+		prependProperties(analyzer, property, Arrays.asList(prepend));
+	}
+
+	private void prependProperties(Analyzer analyzer, String property, List<Attribute> prepend) {
 		String capabilities = analyzer.getProperty(property);
 
-		if (capabilities == null || "".equals(capabilities.trim())) {
-			capabilities = append;
-		} else if (!Arrays.stream(capabilities.split(",")).anyMatch(c -> c.trim().equals(append.trim()))) {
-			capabilities = append + "," + capabilities;
+		Attribute existingAttribute = capabilities == null ? null : ManifestUtilities.parseAttribute(capabilities);
+
+		for (Attribute attribute : prepend) {
+			if (capabilities == null || "".equals(capabilities.trim())) {
+				capabilities = attribute.toString();
+			} else if (existingAttribute == null
+					|| !existingAttribute.properties().values().stream().anyMatch(c -> c.equals(attribute))) {
+				capabilities = attribute + "," + capabilities;
+			}
 		}
 
 		analyzer.setProperty(property, capabilities);
