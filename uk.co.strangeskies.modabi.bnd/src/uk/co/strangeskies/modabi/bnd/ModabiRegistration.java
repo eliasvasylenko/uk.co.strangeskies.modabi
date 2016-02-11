@@ -176,7 +176,8 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 							/*
 							 * Modabi extender attribute
 							 */
-							new Attribute(EXTENDER, AttributeProperty.untyped(Constants.FILTER_DIRECTIVE, EXTENDER_FILTER),
+							new Attribute(EXTENDER,
+									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, EXTENDER_FILTER),
 									mandatoryResolution, resolveEffective));
 
 					return true;
