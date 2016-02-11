@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.osgi.ExtenderManager;
 import uk.co.strangeskies.utilities.Log;
+import uk.co.strangeskies.utilities.classpath.DelegatingClassloader;
 
 @ProvideCapability(ns = ExtenderNamespace.EXTENDER_NAMESPACE, name = ModabiExtender.MODABI_EXTENDER_NAME, version = "1.0.0")
 @Component(immediate = true)
@@ -58,8 +59,11 @@ public class ModabiExtender extends ExtenderManager {
 
 			new Thread(() -> {
 				try {
-					Schema schema = manager.bindSchema().with(bundle.adapt(BundleWiring.class).getClassLoader()).from(resource)
-							.resolve();
+					ClassLoader targetClassloader = bundle.adapt(BundleWiring.class).getClassLoader();
+					targetClassloader = new DelegatingClassloader(targetClassloader,
+							Thread.currentThread().getContextClassLoader());
+
+					Schema schema = manager.bindSchema().with(targetClassloader).from(resource).resolve();
 
 					if (!schema.getQualifiedName().equals(schemaName)) {
 						throw new SchemaException(

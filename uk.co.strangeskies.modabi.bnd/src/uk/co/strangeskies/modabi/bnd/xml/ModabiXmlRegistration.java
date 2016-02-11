@@ -18,10 +18,7 @@
  */
 package uk.co.strangeskies.modabi.bnd.xml;
 
-import java.util.Map;
-
 import aQute.bnd.service.AnalyzerPlugin;
-import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.modabi.bnd.ModabiRegistration;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.xml.XmlInterface;

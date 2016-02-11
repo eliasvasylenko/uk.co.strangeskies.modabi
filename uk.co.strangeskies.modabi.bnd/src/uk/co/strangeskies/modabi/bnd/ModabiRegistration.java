@@ -44,7 +44,6 @@ import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
-import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
@@ -131,54 +130,53 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 			changed = withJarOnBuildPath(analyzer, "buildpath", () -> {
 				List<Attribute> newCapabilities = new ArrayList<>();
 
-				for (String resourceName : resources.keySet()) {
-					Schema schema;
-					try {
-						schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
-					} catch (Exception e) {
-						throw new SchemaException(e);
+				if (!resources.keySet().isEmpty()) {
+					for (String resourceName : resources.keySet()) {
+						Schema schema;
+						try {
+							schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
+						} catch (Exception e) {
+							throw new SchemaException(e);
+						}
+
+						List<AttributeProperty<?>> properties = new ArrayList<>();
+
+						properties.add(AttributeProperty.untyped(SCHEMA, schema.getQualifiedName().toString()));
+						properties.add(AttributeProperty.untyped(RESOURCE, resourceName));
+
+						newCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
 					}
 
-					List<AttributeProperty<?>> properties = new ArrayList<>();
-
-					properties.add(new AttributeProperty<>(SCHEMA, PropertyType.STRING, schema.getQualifiedName().toString()));
-					properties.add(new AttributeProperty<>(RESOURCE, PropertyType.STRING, resourceName));
-
-					newCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
-				}
-
-				if (!newCapabilities.isEmpty()) {
 					prependProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
 
 					AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(Constants.RESOLUTION_DIRECTIVE,
-							PropertyType.STRING, Constants.MANDATORY_DIRECTIVE);
+							PropertyType.DIRECTIVE, Constants.MANDATORY_DIRECTIVE);
 
 					AttributeProperty<?> resolveEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-							PropertyType.STRING, Constants.EFFECTIVE_RESOLVE);
+							PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
 
 					AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-							PropertyType.STRING, Constants.EFFECTIVE_RESOLVE);
+							PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
 
 					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
 							/*
 							 * StructuredDataFormat service requirement attribute
 							 */
-							new Attribute(SERVICE, new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.STRING,
-									STRUCTUREDDATAFORMAT_SERVICE_FILTER), mandatoryResolution, activeEffective));
+							new Attribute(SERVICE,
+									AttributeProperty.untyped(Constants.FILTER_DIRECTIVE, STRUCTUREDDATAFORMAT_SERVICE_FILTER),
+									mandatoryResolution, activeEffective),
 
-					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
 							/*
 							 * SchemaManager service requirement attribute
 							 */
-							new Attribute(SERVICE, new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.STRING,
-									SCHEMAMANAGER_SERVICE_FILTER), mandatoryResolution, activeEffective));
+							new Attribute(SERVICE,
+									AttributeProperty.untyped(Constants.FILTER_DIRECTIVE, SCHEMAMANAGER_SERVICE_FILTER),
+									mandatoryResolution, activeEffective),
 
-					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
 							/*
 							 * Modabi extender attribute
 							 */
-							new Attribute(EXTENDER,
-									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.STRING, EXTENDER_FILTER),
+							new Attribute(EXTENDER, AttributeProperty.untyped(Constants.FILTER_DIRECTIVE, EXTENDER_FILTER),
 									mandatoryResolution, resolveEffective));
 
 					return true;
@@ -224,23 +222,27 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		return file;
 	}
 
-	private void prependProperties(Analyzer analyzer, String property, Attribute prepend) {
+	private void prependProperties(Analyzer analyzer, String property, Attribute... prepend) {
 		prependProperties(analyzer, property, Arrays.asList(prepend));
 	}
 
 	private void prependProperties(Analyzer analyzer, String property, List<Attribute> prepend) {
 		String capabilities = analyzer.getProperty(property);
 
-		Attribute existingAttribute = capabilities == null ? null : ManifestUtilities.parseAttribute(capabilities);
-
 		for (Attribute attribute : prepend) {
 			if (capabilities == null || "".equals(capabilities.trim())) {
 				capabilities = attribute.toString();
-			} else if (existingAttribute == null
-					|| !existingAttribute.properties().values().stream().anyMatch(c -> c.equals(attribute))) {
-				capabilities = attribute + "," + capabilities;
+			} else {
+				// if
+				// (!ManifestUtilities.parseAttributes(capabilities).stream().anyMatch(c
+				// -> c.equals(attribute))) {
+				capabilities = attribute.toString() + "," + capabilities;
+				// }
 			}
 		}
+
+		log.log(Level.WARN, "ADDED... " + property + " : " + prepend);
+		log.log(Level.WARN, "NOW is " + capabilities);
 
 		analyzer.setProperty(property, capabilities);
 	}
