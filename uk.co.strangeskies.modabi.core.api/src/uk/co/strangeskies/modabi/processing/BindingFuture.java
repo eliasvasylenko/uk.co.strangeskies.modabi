@@ -51,9 +51,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 		Set<BindingFuture<?>> blockingBindings = getBlockingBindings();
 
 		if (!isDone() && cancel(true))
-			throw new SchemaException(
-					"Binding has been blocked by the following missing dependencies: "
-							+ blockingBindings);
+			throw new SchemaException("Binding has been blocked by the following missing dependencies: " + blockingBindings);
 
 		return get();
 	}

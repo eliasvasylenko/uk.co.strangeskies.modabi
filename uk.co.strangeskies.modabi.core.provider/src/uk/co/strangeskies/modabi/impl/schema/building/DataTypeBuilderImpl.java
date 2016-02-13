@@ -22,8 +22,8 @@ import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.impl.schema.DataTypeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 
 @Component
 public class DataTypeBuilderImpl implements DataTypeBuilder {

@@ -55,9 +55,9 @@ public class ModabiExtender extends ExtenderManager {
 
 			URL resource = bundle.getResource("/" + capability.getAttributes().get("resource"));
 
-			log(Level.INFO, "Registering schema capability '" + schemaName + "' at resource '" + resource + "'");
-
 			new Thread(() -> {
+				log(Level.INFO, "Registering schema capability '" + schemaName + "' at resource '" + resource + "'");
+
 				try {
 					ClassLoader targetClassloader = bundle.adapt(BundleWiring.class).getClassLoader();
 					targetClassloader = new DelegatingClassloader(targetClassloader,
@@ -71,7 +71,7 @@ public class ModabiExtender extends ExtenderManager {
 					}
 
 					log(Level.INFO, "Successfully bound schema '" + schemaName + "' in Modabi extender");
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					log(Level.ERROR, "Failed to bind schema '" + schemaName + "' in Modabi extender", e);
 					throw e;
 				}

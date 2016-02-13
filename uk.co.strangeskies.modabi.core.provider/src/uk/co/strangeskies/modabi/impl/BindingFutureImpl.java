@@ -38,8 +38,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 
 public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private interface TryGet<T> {
-		T tryGet()
-				throws InterruptedException, ExecutionException, TimeoutException;
+		T tryGet() throws InterruptedException, ExecutionException, TimeoutException;
 	}
 
 	public static class BindingSource<T> {
@@ -64,30 +63,28 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private final FutureTask<BindingSource<T>> sourceFuture;
 	private final FutureTask<T> dataFuture;
 
-	public BindingFutureImpl(SchemaManagerImpl manager,
-			Supplier<BindingSource<T>> modelSupplier, ClassLoader classLoader) {
+	public BindingFutureImpl(SchemaManagerImpl manager, Supplier<BindingSource<T>> modelSupplier,
+			ClassLoader classLoader) {
 		this.manager = manager;
 
 		sourceFuture = new FutureTask<>(modelSupplier::get);
-		sourceFuture.run();
+		new Thread(() -> sourceFuture.run()).start();
 
-		ClassLoader classLoaderFinal = classLoader != null ? classLoader
-				: Thread.currentThread().getContextClassLoader();
+		ClassLoader classLoaderFinal = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
 
 		dataFuture = new FutureTask<>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoaderFinal);
 
 			return bind(sourceFuture.get());
 		});
-		dataFuture.run();
+		new Thread(() -> dataFuture.run()).start();
 
 		manager.addBindingFuture(this);
 	}
 
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
-		return sourceFuture.cancel(mayInterruptIfRunning)
-				| dataFuture.cancel(mayInterruptIfRunning);
+		return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning);
 	}
 
 	@Override
@@ -107,8 +104,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public Binding<T> get(long timeout, TimeUnit unit) {
-		return tryGet(() -> sourceFuture.get(timeout, unit).getModel(),
-				() -> dataFuture.get(timeout, unit));
+		return tryGet(() -> sourceFuture.get(timeout, unit).getModel(), () -> dataFuture.get(timeout, unit));
 	}
 
 	private Binding<T> tryGet(TryGet<Model<T>> getModel, TryGet<T> getData) {
@@ -120,7 +116,10 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			modelString = " with model '" + model.getName() + "'";
 
+			System.out.println("TESTESTE");
+			System.out.println("TESTESTE");
 			T data = getData.tryGet();
+			System.out.println("TESTESTEROOOOOOOOOO");
 
 			return new Binding<T>() {
 				@Override
@@ -134,14 +133,11 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 				}
 			};
 		} catch (InterruptedException e) {
-			throw new SchemaException("Unexpected interrupt during binding of '"
-					+ input + "'" + modelString, e);
+			throw new SchemaException("Unexpected interrupt during binding of '" + input + "'" + modelString, e);
 		} catch (ExecutionException e) {
-			throw new SchemaException(
-					"Exception during binding of '" + input + "'" + modelString, e);
+			throw new SchemaException("Exception during binding of '" + input + "'" + modelString, e);
 		} catch (TimeoutException e) {
-			throw new SchemaException(
-					"Timed out waiting for binding of '" + input + "'" + modelString, e);
+			throw new SchemaException("Timed out waiting for binding of '" + input + "'" + modelString, e);
 		}
 	}
 
@@ -163,16 +159,15 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 		QualifiedName inputRoot = input.startNextChild();
 		if (!inputRoot.equals(model.getName()))
-			throw new BindingException("Model '" + model.getName()
-					+ "' does not match root input node '" + inputRoot + "'", context);
+			throw new BindingException("Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'",
+					context);
 
 		try {
 			return new BindingNodeBinder(context).bind(model);
 		} catch (SchemaException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new BindingException("Unexpected problem during binding", context,
-					e);
+			throw new BindingException("Unexpected problem during binding", context, e);
 		}
 	}
 }

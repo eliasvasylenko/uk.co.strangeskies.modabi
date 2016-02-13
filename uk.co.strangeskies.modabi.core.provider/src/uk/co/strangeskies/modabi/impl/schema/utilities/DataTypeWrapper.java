@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 
 public class DataTypeWrapper<T> extends
 		BindingNodeWrapper<T, DataNode.Effective<T>, DataType.Effective<? super T>, DataType<T>, DataType.Effective<T>>

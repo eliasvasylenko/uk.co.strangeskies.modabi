@@ -67,6 +67,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 			+ SchemaManager.class.getTypeName() + ")";
 
 	private final SchemaManager manager;
+	private final StructuredDataFormat handler;
 
 	private final Set<String> sources;
 
@@ -74,6 +75,8 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 
 	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
 		this.manager = manager;
+		this.handler = handler;
+
 		manager.dataInterfaces().registerDataInterface(handler);
 
 		sources = new HashSet<>();
@@ -156,21 +159,23 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 							PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
 
 					AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-							PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+							PropertyType.DIRECTIVE, Constants.EFFECTIVE_ACTIVE);
 
 					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
 							/*
 							 * StructuredDataFormat service requirement attribute
 							 */
 							new Attribute(SERVICE,
-									AttributeProperty.untyped(Constants.FILTER_DIRECTIVE, STRUCTUREDDATAFORMAT_SERVICE_FILTER),
+									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
+											"(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + handler.getFormatId() + "))"),
 									mandatoryResolution, activeEffective),
 
 							/*
 							 * SchemaManager service requirement attribute
 							 */
 							new Attribute(SERVICE,
-									AttributeProperty.untyped(Constants.FILTER_DIRECTIVE, SCHEMAMANAGER_SERVICE_FILTER),
+									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
+											SCHEMAMANAGER_SERVICE_FILTER),
 									mandatoryResolution, activeEffective),
 
 							/*
@@ -241,9 +246,6 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 				// }
 			}
 		}
-
-		log.log(Level.WARN, "ADDED... " + property + " : " + prepend);
-		log.log(Level.WARN, "NOW is " + capabilities);
 
 		analyzer.setProperty(property, capabilities);
 	}
