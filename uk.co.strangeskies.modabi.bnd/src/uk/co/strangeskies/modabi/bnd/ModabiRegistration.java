@@ -36,7 +36,6 @@ import aQute.bnd.service.Plugin;
 import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.bnd.ReporterLog;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.utilities.Log;
@@ -136,11 +135,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 				if (!resources.keySet().isEmpty()) {
 					for (String resourceName : resources.keySet()) {
 						Schema schema;
-						try {
-							schema = manager.bindSchema().from(resources.get(resourceName).openInputStream()).resolve();
-						} catch (Exception e) {
-							throw new SchemaException(e);
-						}
+						schema = manager.bindSchema().from(resources.get(resourceName)::openInputStream).resolve();
 
 						List<AttributeProperty<?>> properties = new ArrayList<>();
 

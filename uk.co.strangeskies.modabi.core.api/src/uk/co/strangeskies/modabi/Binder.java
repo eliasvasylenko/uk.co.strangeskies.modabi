@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public interface Binder<T> {
 	BindingFuture<T> from(StructuredDataSource input);
@@ -47,9 +48,9 @@ public interface Binder<T> {
 
 	BindingFuture<T> from(URL input);
 
-	BindingFuture<T> from(InputStream input);
+	BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input);
 
-	BindingFuture<T> from(String extension, InputStream input);
+	BindingFuture<T> from(String extension, ThrowingSupplier<InputStream, ?> input);
 
 	// Binder<T> updatable();
 

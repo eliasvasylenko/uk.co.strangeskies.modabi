@@ -18,12 +18,15 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Binding;
@@ -31,10 +34,14 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.utilities.IdentityProperty;
+import uk.co.strangeskies.utilities.Property;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private interface TryGet<T> {
@@ -43,19 +50,38 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	public static class BindingSource<T> {
 		private final Model<T> model;
-		private final StructuredDataSource data;
+		private final Consumer<Consumer<StructuredDataSource>> data;
 
 		public BindingSource(Model<T> model, StructuredDataSource data) {
 			this.model = model;
-			this.data = data;
+			this.data = c -> c.accept(data);
+		}
+
+		public BindingSource(Model<T> model, ThrowingSupplier<InputStream, ?> input, StructuredDataFormat format) {
+			this.model = model;
+			this.data = c -> {
+				try (InputStream stream = input.get()) {
+					c.accept(format.loadData(stream));
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			};
 		}
 
 		public Model.Effective<T> getModel() {
 			return model.effective();
 		}
 
-		public StructuredDataSource getData() {
-			return data;
+		public void withData(Consumer<StructuredDataSource> runnable) {
+			data.accept(runnable);
+		}
+
+		public <U> U withData(Function<StructuredDataSource, U> runnable) {
+			Property<U, U> result = new IdentityProperty<>();
+			data.accept(input -> {
+				result.set(runnable.apply(input));
+			});
+			return result.get();
 		}
 	}
 
@@ -116,10 +142,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			modelString = " with model '" + model.getName() + "'";
 
-			System.out.println("TESTESTE");
-			System.out.println("TESTESTE");
 			T data = getData.tryGet();
-			System.out.println("TESTESTEROOOOOOOOOO");
 
 			return new Binding<T>() {
 				@Override
@@ -154,20 +177,21 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	private T bind(BindingSource<T> source) {
 		Model.Effective<T> model = source.getModel();
-		StructuredDataSource input = source.getData();
-		BindingContextImpl context = manager.getBindingContext().withInput(input);
+		return source.withData((StructuredDataSource input) -> {
+			BindingContextImpl context = manager.getBindingContext().withInput(input);
 
-		QualifiedName inputRoot = input.startNextChild();
-		if (!inputRoot.equals(model.getName()))
-			throw new BindingException("Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'",
-					context);
+			QualifiedName inputRoot = input.startNextChild();
+			if (!inputRoot.equals(model.getName()))
+				throw new BindingException("Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'",
+						context);
 
-		try {
-			return new BindingNodeBinder(context).bind(model);
-		} catch (SchemaException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new BindingException("Unexpected problem during binding", context, e);
-		}
+			try {
+				return new BindingNodeBinder(context).bind(model);
+			} catch (SchemaException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new BindingException("Unexpected problem during binding", context, e);
+			}
+		});
 	}
 }

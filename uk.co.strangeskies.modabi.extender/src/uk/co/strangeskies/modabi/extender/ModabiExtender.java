@@ -60,8 +60,7 @@ public class ModabiExtender extends ExtenderManager {
 
 				try {
 					ClassLoader targetClassloader = bundle.adapt(BundleWiring.class).getClassLoader();
-					targetClassloader = new DelegatingClassloader(targetClassloader,
-							Thread.currentThread().getContextClassLoader());
+					targetClassloader = new DelegatingClassloader(targetClassloader, Schema.class.getClassLoader());
 
 					Schema schema = manager.bindSchema().with(targetClassloader).from(resource).resolve();
 

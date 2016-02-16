@@ -89,6 +89,7 @@ import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.ObservableImpl;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 @Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
@@ -215,12 +216,12 @@ public class SchemaManagerImpl implements SchemaManager {
 			}
 
 			@Override
-			public BindingFuture<Schema> from(InputStream input) {
+			public BindingFuture<Schema> from(ThrowingSupplier<InputStream, ?> input) {
 				return registerFuture(binder.from(input));
 			}
 
 			@Override
-			public BindingFuture<Schema> from(String extension, InputStream input) {
+			public BindingFuture<Schema> from(String extension, ThrowingSupplier<InputStream, ?> input) {
 				return registerFuture(binder.from(extension, input));
 			}
 

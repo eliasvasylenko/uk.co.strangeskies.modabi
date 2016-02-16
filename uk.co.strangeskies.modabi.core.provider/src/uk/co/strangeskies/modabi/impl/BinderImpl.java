@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.function.Consumer;
@@ -32,6 +30,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class BinderImpl<T> implements Binder<T> {
 	private final SchemaManagerImpl manager;
@@ -60,14 +59,10 @@ public class BinderImpl<T> implements Binder<T> {
 			extension = null;
 		}
 
-		try (InputStream fileStream = input.openStream()) {
-			if (extension != null) {
-				return from(extension, fileStream);
-			} else {
-				return from(fileStream);
-			}
-		} catch (IOException e) {
-			throw new IllegalArgumentException(e);
+		if (extension != null) {
+			return from(extension, input::openStream);
+		} else {
+			return from(input::openStream);
 		}
 	}
 
@@ -75,23 +70,20 @@ public class BinderImpl<T> implements Binder<T> {
 	public BindingFuture<T> from(StructuredDataSource input) {
 		return new BindingFutureImpl<>(manager, () -> {
 			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
-		}, classLoader);
+		} , classLoader);
 	}
 
 	@Override
-	public BindingFuture<T> from(InputStream input) {
+	public BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input) {
 		return new BindingFutureImpl<>(manager, () -> getBindingSource(input, null), classLoader);
 	}
 
 	@Override
-	public BindingFuture<T> from(String extension, InputStream input) {
+	public BindingFuture<T> from(String extension, ThrowingSupplier<InputStream, ?> input) {
 		return new BindingFutureImpl<>(manager, () -> getBindingSource(input, extension), classLoader);
 	}
 
-	private BindingSource<T> getBindingSource(InputStream input, String extension) {
-		BufferedInputStream bufferedInput = new BufferedInputStream(input);
-		bufferedInput.mark(4096);
-
+	private BindingSource<T> getBindingSource(ThrowingSupplier<InputStream, ?> input, String extension) {
 		Exception exception = null;
 
 		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
@@ -102,20 +94,14 @@ public class BinderImpl<T> implements Binder<T> {
 				StructuredDataFormat format = queue.get();
 
 				if (extension == null || format.getFileExtensions().contains(extension)) {
-					System.out.println("with... " + format.getFormatId());
-					try {
-						StructuredDataSource source = format.loadData(bufferedInput);
+					try (InputStream inputStream = input.get()) {
+						StructuredDataSource source = format.loadData(inputStream);
 						Model.Effective<T> model = bindingFunction.apply(source).effective();
 
-						return new BindingSource<>(model, source);
+						return new BindingSource<>(model, input, format);
 					} catch (Exception e) {
 						e.printStackTrace();
 						exception = e;
-					}
-					try {
-						bufferedInput.reset();
-					} catch (IOException e) {
-						throw new IllegalArgumentException("Problem buffering input for binding", e);
 					}
 				}
 			}
