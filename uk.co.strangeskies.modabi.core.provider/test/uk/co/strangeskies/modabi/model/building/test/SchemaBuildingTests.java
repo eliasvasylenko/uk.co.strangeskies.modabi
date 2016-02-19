@@ -18,13 +18,31 @@
  */
 package uk.co.strangeskies.modabi.model.building.test;
 
+import java.util.Set;
+import java.util.SortedSet;
+
 import org.junit.Test;
 
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
+import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 
 public class SchemaBuildingTests {
 	@Test
 	public void buildBaseSchemataTest() {
 		new SchemaManagerImpl();
+	}
+
+	/*
+	 * TODO This won't work until JDK-8146167 is fixed.
+	 */
+	// @Test
+	public void fixMeUp() {
+		System.out.println(
+				new @Infer TypeToken<SortedSet<?>>() {}.withLooseCompatibility(new TypeToken<Set<String>>() {}).infer());
+		System.out.println(
+				new TypeToken<@Infer SortedSet<?>>() {}.withLooseCompatibility(new TypeToken<Set<String>>() {}).infer());
+		System.out.println(
+				new TypeToken<SortedSet<@Infer ?>>() {}.withLooseCompatibility(new TypeToken<Set<String>>() {}).infer());
 	}
 }

@@ -109,10 +109,10 @@ public class BaseSchemaImpl implements BaseSchema {
 			Namespace namespace = BaseSchema.QUALIFIED_NAME.getNamespace();
 
 			arrayType = factory.apply("array",
-					t -> t.dataType(new TypeToken<@Infer Object[]>() {}).isAbstract(true)
+					t -> t.dataType(new @Infer TypeToken<Object[]>() {}).isAbstract(true)
 							.bindingStrategy(BindingStrategy.PROVIDED).bindingType(List.class)
 							.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY)
-							.unbindingType(new TypeToken<@Infer List<?>>() {})
+							.unbindingType(new @Infer TypeToken<List<?>>() {})
 							.unbindingFactoryType(Arrays.class).unbindingMethod("asList")
 							.addChild(c -> c.data().name("element").inMethod("add")
 									.outMethod("this").isAbstract(true)
@@ -121,7 +121,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.inMethodCast(true)));
 
 			collectionType = factory.apply("collection",
-					t -> t.dataType(new TypeToken<@Infer Collection<?>>() {})
+					t -> t.dataType(new @Infer TypeToken<Collection<?>>() {})
 							.bindingStrategy(BindingStrategy.PROVIDED)
 							.unbindingStrategy(UnbindingStrategy.SIMPLE)
 							.addChild(c -> c.data().name("element").inMethod("add")
@@ -129,11 +129,11 @@ public class BaseSchemaImpl implements BaseSchema {
 									.occurrences(Range.between(0, null))));
 
 			listType = factory.apply("list",
-					t -> t.dataType(new TypeToken<@Infer List<?>>() {})
+					t -> t.dataType(new @Infer TypeToken<List<?>>() {})
 							.baseType(collectionType));
 
 			setType = factory.apply("set",
-					t -> t.dataType(new TypeToken<@Infer Set<?>>() {})
+					t -> t.dataType(new @Infer TypeToken<Set<?>>() {})
 							.baseType(collectionType));
 
 			uriType = factory.apply("uri",
@@ -170,7 +170,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingStrategy(
 									UnbindingStrategy.PROVIDED_FACTORY)
 					.providedUnbindingMethodParameters("targetModel", "targetId", "this")
-					.addChild(d -> d.data().dataType(new TypeToken<@Infer Model<?>>() {})
+					.addChild(d -> d.data().dataType(new @Infer TypeToken<Model<?>>() {})
 							.name("targetModel").isAbstract(true)
 							.valueResolution(ValueResolution.REGISTRATION_TIME)
 							.inMethod("null").outMethod("null"))
@@ -665,7 +665,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 
 			mapModel = factory.apply("map",
-					c -> c.dataType(new TypeToken<@Infer Map<?, ?>>() {})
+					c -> c.dataType(new @Infer TypeToken<Map<?, ?>>() {})
 							.addChild(e -> e.complex().name("entrySet").inline(true)
 									.inMethod("null").dataType(inferredMapEntrySet)
 									.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
@@ -737,7 +737,7 @@ public class BaseSchemaImpl implements BaseSchema {
 				c -> c.unbindingType(Enumeration.class)
 						.bindingStrategy(BindingStrategy.STATIC_FACTORY).isAbstract(true)
 						.isPrivate(true)
-						.dataType(new TypeToken<@Infer Enumeration<?>>() {}));
+						.dataType(new @Infer TypeToken<Enumeration<?>>() {}));
 
 		DataType<Object> primitive = typeFactory.apply("primitive",
 				p -> p.isAbstract(true).isPrivate(true)
@@ -751,7 +751,7 @@ public class BaseSchemaImpl implements BaseSchema {
 								.inMethod("get").isAbstract(true).extensible(true)
 								.inMethodChained(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME)
-								.dataType(new TypeToken<@Infer Primitive<?>>() {})
+								.dataType(new @Infer TypeToken<Primitive<?>>() {})
 								.outMethod("null")));
 
 		primitives = new HashMap<>();

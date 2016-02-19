@@ -132,11 +132,11 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerProvider(ModelBuilder.class, () -> modelBuilder);
 		registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
-		registerProvider(new TypeToken<@Infer SortedSet<?>>() {}, TreeSet::new);
-		registerProvider(new TypeToken<@Infer Set<?>>() {}, HashSet::new);
-		registerProvider(new TypeToken<@Infer LinkedHashSet<?>>() {}, LinkedHashSet::new);
-		registerProvider(new TypeToken<@Infer List<?>>() {}, ArrayList::new);
-		registerProvider(new TypeToken<@Infer Map<?, ?>>() {}, HashMap::new);
+		registerProvider(new @Infer TypeToken<SortedSet<?>>() {}, TreeSet::new);
+		registerProvider(new @Infer TypeToken<Set<?>>() {}, HashSet::new);
+		registerProvider(new @Infer TypeToken<LinkedHashSet<?>>() {}, LinkedHashSet::new);
+		registerProvider(new @Infer TypeToken<List<?>>() {}, ArrayList::new);
+		registerProvider(new @Infer TypeToken<Map<?, ?>>() {}, HashMap::new);
 
 		bindingProviders = new BindingProviders(this);
 		unbindingProviders = new UnbindingProviders(this);

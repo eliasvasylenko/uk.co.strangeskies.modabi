@@ -205,7 +205,7 @@ public class SchemaTest {
 								.name("map3",
 										Namespace
 												.getDefault())
-								.dataType(new TypeToken<@Infer Map<?, ?>>() {})
+								.dataType(new @Infer TypeToken<Map<?, ?>>() {})
 								.addChild(e -> e.complex().name("entrySet").inline(true).inMethod("null").dataType(inferredMapEntrySet)
 										.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 										.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))

@@ -531,15 +531,15 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.complex().name("types").outMethod("getDataTypes")
 								.occurrences(Range.between(0, 1))
 								.dataType(
-										new TypeToken<@Infer Set<?>>() {})
-						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
+										new @Infer TypeToken<Set<?>>() {})
+						.bindingType(new @Infer TypeToken<LinkedHashSet<?>>() {})
 						.addChild(o -> o.complex().baseModel(typeModel).outMethod("this")
 								.name("type").dataType(new TypeToken<DataType<?>>() {})
 								.occurrences(Range.between(0, null)))).addChild(
 										n -> n.complex().name("models")
 												.occurrences(Range.between(0, 1)).dataType(
-														new TypeToken<@Infer Set<?>>() {})
-						.bindingType(new TypeToken<@Infer LinkedHashSet<?>>() {})
+														new @Infer TypeToken<Set<?>>() {})
+						.bindingType(new @Infer TypeToken<LinkedHashSet<?>>() {})
 						.addChild(o -> o.complex().baseModel(modelModel).inMethod("add")
 								.outMethod("this").occurrences(Range.between(0, null))))
 				.addChild(n -> n.inputSequence().name("create").inMethodChained(true)));
