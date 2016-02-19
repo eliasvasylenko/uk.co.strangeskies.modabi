@@ -62,10 +62,13 @@ runreq.base:\
 -buildpath.base=\
 	osgi.enroute.base.api;version=latest
 
--testpath.base=\
+testpath.base=\
 	osgi.enroute.junit.wrapper,\
 	osgi.enroute.hamcrest.wrapper,\
 	org.hamcrest__java-hamcrest
+	
+
+-testpath.base=${testpath.base}
 
 ## General configuration
 modabi-description: \

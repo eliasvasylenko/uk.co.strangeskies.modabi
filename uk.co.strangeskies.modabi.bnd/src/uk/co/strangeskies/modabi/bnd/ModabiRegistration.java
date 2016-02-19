@@ -19,6 +19,8 @@
 package uk.co.strangeskies.modabi.bnd;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.wiring.BundleWiring;
 
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Resource;
@@ -43,6 +46,7 @@ import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classpath.DelegatingClassloader;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
@@ -203,7 +207,10 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 
 			analyzer.getJar().write(tempJar);
 
-			return new ContextClassLoaderRunner(tempJar.toURI().toURL()).runThrowing(run);
+			ClassLoader targetClassloader = new URLClassLoader(new URL[] { tempJar.toURI().toURL() });
+			targetClassloader = new DelegatingClassloader(targetClassloader, Schema.class.getClassLoader());
+
+			return new ContextClassLoaderRunner(targetClassloader).runThrowing(run);
 		} catch (Exception e) {
 			log.log(Level.ERROR, "Failed to process bundle", e);
 			throw e;

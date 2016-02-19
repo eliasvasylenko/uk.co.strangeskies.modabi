@@ -11,7 +11,8 @@ Bundle-Description: \
 	${ss;reflection},\
 	${ss;mathematics},\
 	uk.co.strangeskies.modabi.core.api;version=project,\
-	org.apache.commons.lang3
+	org.apache.commons.lang3,\
+	${testpath.base}
 
 Private-Package: uk.co.strangeskies.modabi.core.test
 

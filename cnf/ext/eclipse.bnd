@@ -32,14 +32,6 @@ plugin.eclipse.fx: \
 			locations			=       ${repository.eclipse.fx}
 
 ## Build path groups:
--buildpath.base=\
-	osgi.enroute.base.api;version=latest
-
--testpath.base=\
-	osgi.enroute.junit.wrapper,\
-	osgi.enroute.hamcrest.wrapper,\
-	org.hamcrest__java-hamcrest
-
 buildpath.eclipse:\
 	javax.inject,\
 	org.eclipse.equinox.common,\
