@@ -44,7 +44,7 @@ Bundle-Version: ${modabi-version}.${tstamp}
 mdb.override: uk.co.strangeskies.modabi.${1}\;version=project
 plugin.strangeskies.modabi.override:
 
-modabi-bnd-plugin: ${build}/release/uk.co.strangeskies.modabi.bnd.${1}/uk.co.strangeskies.modabi.bnd.${1}-${modabi-version}.jar
+modabi-bnd-plugin: ${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar
 
 pluginpath.modabi: \
 	${modabi-bnd-plugin;xml}

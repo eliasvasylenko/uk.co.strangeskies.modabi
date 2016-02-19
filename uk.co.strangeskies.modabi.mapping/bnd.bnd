@@ -14,11 +14,14 @@ Bundle-Description: \
 
 Export-Package: uk.co.strangeskies.modabi.mapping
 
+-dependson: \
+	uk.co.strangeskies.modabi.bnd
+
 -pluginpath: \
 	${pluginpath.modabi}
 
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
+#-plugin: \
+#	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
 
 -includeresource: \
 	META-INF/schemata=schemata, \

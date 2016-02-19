@@ -15,6 +15,9 @@ Bundle-Description: \
 
 Export-Package: uk.co.strangeskies.modabi.scripting
 
+-dependson: \
+	uk.co.strangeskies.modabi.bnd
+
 -pluginpath: \
 	${pluginpath.modabi}
 
