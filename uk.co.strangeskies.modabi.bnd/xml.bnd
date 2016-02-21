@@ -4,8 +4,7 @@ shaded.projects: \
 	uk.co.strangeskies.modabi.io.xml
 
 Private-Package: \
-	uk.co.strangeskies.modabi.bnd.xml,\
-	uk.co.strangeskies.modabi.bnd
+	uk.co.strangeskies.*
 
 Import-Package: \
 	java.net,\

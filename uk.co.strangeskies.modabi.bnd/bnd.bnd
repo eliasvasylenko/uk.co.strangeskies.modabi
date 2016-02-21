@@ -21,9 +21,3 @@ Bundle-Description: \
 	biz.aQute.bndlib
 
 -sub: *.bnd
-
-shaded.bundles: \
-	uk.co.strangeskies.mathematics,\
-	uk.co.strangeskies.reflection,\
-	uk.co.strangeskies.utilities,\
-	uk.co.strangeskies.bnd
