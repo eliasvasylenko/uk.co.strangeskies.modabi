@@ -17,8 +17,8 @@ Export-Package: uk.co.strangeskies.modabi.mapping
 -dependson: \
 	uk.co.strangeskies.modabi.bnd
 
--pluginpath: \
-	${pluginpath.modabi}
+#-pluginpath: \
+#	${pluginpath.modabi}
 
 #-plugin: \
 #	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration
