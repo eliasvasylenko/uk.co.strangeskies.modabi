@@ -169,15 +169,13 @@ public class SchemaTest {
 		stringIntMap.put("second", 2);
 		stringIntMap.put("third", 3);
 
-		Model<Map<?, ?>> stringIntMapModel = generatedSchema
-				.buildModel(n -> n
-						.name("stringIntMap", Namespace
-								.getDefault())
+		@SuppressWarnings("unchecked")
+		Model<Map<?, ?>> stringIntMapModel = generatedSchema.buildModel(n -> n.name("stringIntMap", Namespace.getDefault())
 				.baseModel(schemaManager.getBaseSchema().models().mapModel())
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
-						.addChild(
-								v -> v.complex().name("value").baseModel(schemaManager.getBaseSchema().models().simpleModel()).addChild(
+						.addChild(v -> v.complex().name("value")
+								.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))));
 		System.out.println(stringIntMapModel.effective().getDataType());
 		System.out.println("    ~# " + stringIntMapModel.effective().getDataType().getResolver().getBounds());
@@ -199,33 +197,36 @@ public class SchemaTest {
 		TypeToken<?> inferredMapEntrySet = TypeToken
 				.over(AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
 						Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
+		@SuppressWarnings("unchecked")
 		Model<Map<?, ?>> mapModel3 = generatedSchema
 				.buildModel(
-						n -> n
-								.name("map3",
-										Namespace
-												.getDefault())
-								.dataType(new @Infer TypeToken<Map<?, ?>>() {})
-								.addChild(e -> e.complex().name("entrySet").inline(true).inMethod("null").dataType(inferredMapEntrySet)
-										.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-										.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
-										.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
-												.outMethod("this").bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
-												.bindingType(BaseSchema.class).unbindingMethod("mapEntry").dataType(inferredMapEntry)
-												.addChild(k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
-														.type(schemaManager.getBaseSchema().derivedTypes().listType())
-														.addChild(l -> l.data().name("element")
-																.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
-										.addChild(v -> v.complex().name("value").inMethod("null")
-												.baseModel(schemaManager.getBaseSchema().models().mapModel())
-												.addChild(s -> s.complex().name("entrySet")
-														.addChild(ee -> ee.complex().name("entry")
-																.addChild(k -> k.data().name("key")
-																		.type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
-														.addChild(vv -> vv.complex().name("value")
-																.baseModel(schemaManager.getBaseSchema().models().simpleModel())
-																.addChild(cc -> cc.data().name("content")
-																		.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))))));
+						n -> n.name("map3", Namespace.getDefault())
+								.dataType(
+										new @Infer TypeToken<Map<?, ?>>() {})
+								.addChild(
+										e -> e.complex().name("entrySet").inline(true).inMethod("null").dataType(inferredMapEntrySet)
+												.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+												.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
+												.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
+														.outMethod("this").bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE).bindingType(
+																BaseSchema.class)
+														.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+														.addChild(k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
+																.type(schemaManager.getBaseSchema().derivedTypes().listType())
+																.addChild(l -> l.data().name("element")
+																		.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
+														.addChild(
+																v -> v.complex().name("value").inMethod("null")
+																		.baseModel(schemaManager.getBaseSchema().models().mapModel())
+																		.addChild(s -> s.complex().name("entrySet")
+																				.addChild(ee -> ee.complex().name("entry")
+																						.addChild(k -> k.data().name("key")
+																								.type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
+																						.addChild(vv -> vv.complex().name("value")
+																								.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema()
+																										.models().simpleModel())
+																								.addChild(cc -> cc.data().name("content").type(
+																										schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))))));
 		System.out.println(mapModel3.effective().getDataType());
 	}
 }
