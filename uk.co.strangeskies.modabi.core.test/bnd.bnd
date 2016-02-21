@@ -31,6 +31,12 @@ Test-Cases: ${test-cases}
 	tester.trace=true,\
 	tester.dir=testdir
 
+-dependson: \
+	uk.co.strangeskies.modabi.io.json,\
+	uk.co.strangeskies.modabi.io.xml,\
+	uk.co.strangeskies.modabi.core.api,\
+	uk.co.strangeskies.modabi.core.provider
+
 -runrequires: \
 	${req;osgi.enroute.logger.simple.provider},\
 	${req;uk.co.strangeskies.osgi.consolelog},\
