@@ -1,7 +1,11 @@
 /*
  * cnf Gradle build script
  */
-def bndProject = project
+def modabiPluginProjects() {
+  return rootProject.subprojects.findAll {
+    it.hasProperty('bnd') && it.bnd.project.getDependson().contains(owner.bnd.project)
+  }
+}
 
 /* After building, we need to refresh the bnd Projects to pickup the bnd plugins built in cnf. */
 task('refresh') {
@@ -14,28 +18,25 @@ task('refresh') {
     bndWorkspace.clear()
     bndWorkspace.refresh()
 
-    rootProject.subprojects {
-      if (project != bndProject) {
-        println "Refreshing: ${bnd.project.name}"
+    configure(modabiPluginProjects()) {
+      logger.info "Refreshing: ${project.bnd.project.name}"
 
-        bnd.project.clear()
-        bnd.project.refresh()
-      }
+      project.bnd.project.clear()
+      project.bnd.project.refresh()
     }
   }
 }
 build.finalizedBy(refresh)
 
 /* Bnd plugins influence bundle contents, so add cnf output to jar inputs. */
+def bndProject = project
 def generated = project.file("generated")
-rootProject.subprojects {
-  if (project.hasProperty('bnd') && project.bnd.project.getDependson().contains(bndProject)) {
-    jar {
-      println "Add output: ${generated}"
+configure(modabiPluginProjects()) {
+  jar {
+    logger.info "Add output: ${generated} to ${project}"
 
-      inputs.files generated
-      dependsOn ":${bndProject.name}:build"
-    }
+    inputs.files generated
+    dependsOn ":${bndProject.name}:build"
   }
 }
 
