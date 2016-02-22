@@ -1,0 +1,41 @@
+/*
+ * cnf Gradle build script
+ */
+def bndProject = project
+
+/* After building, we need to refresh the bnd Projects to pickup the bnd plugins built in cnf. */
+task('refresh') {
+  onlyIf {
+    compileJava.didWork || processResources.didWork
+  }
+  doLast {
+    logger.info "Refresh bnd Projects after building bnd plugins in ${project.name}"
+
+    bndWorkspace.clear()
+    bndWorkspace.refresh()
+
+    rootProject.subprojects {
+      if (project != bndProject) {
+        println "Refreshing: ${bnd.project.name}"
+
+        bnd.project.clear()
+        bnd.project.refresh()
+      }
+    }
+  }
+}
+build.finalizedBy(refresh)
+
+/* Bnd plugins influence bundle contents, so add cnf output to jar inputs. */
+def generated = project.file("generated")
+rootProject.subprojects {
+  if (project.hasProperty('bnd') && project.bnd.project.getDependson().contains(bndProject)) {
+    jar {
+      println "Add output: ${generated}"
+
+      inputs.files generated
+      dependsOn ":${bndProject.name}:build"
+    }
+  }
+}
+
