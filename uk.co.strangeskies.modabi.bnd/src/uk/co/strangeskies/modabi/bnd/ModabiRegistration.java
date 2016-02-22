@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.osgi.framework.Constants;
-import org.osgi.framework.wiring.BundleWiring;
 
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Resource;
