@@ -57,7 +57,6 @@ import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
-import uk.co.strangeskies.reflection.TypeToken;
 
 public class BindingNodeOverrider {
 	public <T> ComplexNode.Effective<T> override(ModelBuilder builder, ComplexNode.Effective<? super T> node,

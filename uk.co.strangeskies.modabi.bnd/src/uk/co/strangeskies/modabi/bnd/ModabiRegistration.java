@@ -39,12 +39,14 @@ import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.bnd.ReporterLog;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
@@ -74,8 +76,8 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 
 	private Log log = (l, m) -> {};
 
-	public ModabiRegistration(SchemaManager manager, StructuredDataFormat handler) {
-		this.manager = manager;
+	public ModabiRegistration(StructuredDataFormat handler) {
+		this.manager = new SchemaManagerImpl();
 		this.handler = handler;
 
 		manager.dataInterfaces().registerDataInterface(handler);
@@ -229,11 +231,9 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 			if (capabilities == null || "".equals(capabilities.trim())) {
 				capabilities = attribute.toString();
 			} else {
-				// if
-				// (!ManifestUtilities.parseAttributes(capabilities).stream().anyMatch(c
-				// -> c.equals(attribute))) {
-				capabilities = attribute.toString() + "," + capabilities;
-				// }
+				if (!ManifestUtilities.parseAttributes(capabilities).stream().anyMatch(c -> c.equals(attribute))) {
+					capabilities = attribute.toString() + "," + capabilities;
+				}
 			}
 		}
 

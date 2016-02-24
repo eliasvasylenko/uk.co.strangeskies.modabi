@@ -20,12 +20,10 @@ package uk.co.strangeskies.modabi.bnd.xml;
 
 import aQute.bnd.service.AnalyzerPlugin;
 import uk.co.strangeskies.modabi.bnd.ModabiRegistration;
-import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.xml.XmlInterface;
 
-public class ModabiXmlRegistration extends ModabiRegistration
-		implements AnalyzerPlugin {
+public class ModabiXmlRegistration extends ModabiRegistration implements AnalyzerPlugin {
 	public ModabiXmlRegistration() {
-		super(new SchemaManagerImpl(), new XmlInterface());
+		super(new XmlInterface());
 	}
 }
