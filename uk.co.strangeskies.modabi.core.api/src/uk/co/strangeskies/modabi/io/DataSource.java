@@ -45,8 +45,7 @@ public interface DataSource extends Copyable<DataSource> {
 	DataItem<?> get();
 
 	default Stream<DataItem<?>> stream() {
-		return Stream.generate(this::get).limit(size() - index())
-				.map(i -> (DataItem<?>) i);
+		return Stream.generate(this::get).limit(size() - index()).map(i -> (DataItem<?>) i);
 	}
 
 	default <T> T peek(Primitive<T> type) {
@@ -67,16 +66,12 @@ public interface DataSource extends Copyable<DataSource> {
 		return pipe(target, size() - index());
 	}
 
-	static DataSource parseString(String string,
-			Function<String, QualifiedName> qualifiedNameParser) {
+	static DataSource parseString(String string, Function<String, QualifiedName> qualifiedNameParser) {
 		List<DataItem<?>> dataItemList = new ArrayList<>();
 
-		String[] strings = string.split(",");
-		for (int i = 0; i < strings.length; i++) {
-			String item = strings[i];
-			if (item.charAt(item.length() - 1) == '\\')
-				item += strings[i++];
-
+		String[] strings = string.split("^,|[^\\\\],");
+		for (String item : strings) {
+			item = item.trim().replaceAll("\\\\,", ",");
 			dataItemList.add(DataItem.forString(item, qualifiedNameParser));
 		}
 
@@ -84,8 +79,7 @@ public interface DataSource extends Copyable<DataSource> {
 	}
 
 	static DataSource forDataItems(List<DataItem<?>> dataItemList) {
-		return new DataSourceDecorator(
-				new RepeatingDataSource(dataItemList, 0, dataItemList.size()));
+		return new DataSourceDecorator(new RepeatingDataSource(dataItemList, 0, dataItemList.size()));
 	}
 
 	static <T> DataSource repeating(Primitive<T> type, T data, int times) {

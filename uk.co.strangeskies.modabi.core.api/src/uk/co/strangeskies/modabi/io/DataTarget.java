@@ -49,7 +49,7 @@ public interface DataTarget {
 					stringBuilder.append(", ");
 				else
 					compound = true;
-				stringBuilder.append(value);
+				stringBuilder.append(value.toString().replaceAll(",", "\\,"));
 			}
 
 			@Override
