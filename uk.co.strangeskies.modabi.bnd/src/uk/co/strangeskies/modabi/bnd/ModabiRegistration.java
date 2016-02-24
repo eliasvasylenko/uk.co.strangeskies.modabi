@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.bnd;
 
-import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ import java.util.Set;
 import org.osgi.framework.Constants;
 
 import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.AnalyzerPlugin;
 import aQute.bnd.service.Plugin;
@@ -45,7 +45,6 @@ import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
-import uk.co.strangeskies.utilities.classpath.DelegatingClassloader;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
@@ -132,7 +131,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		boolean changed = false;
 
 		if (resources != null) {
-			changed = withJarOnBuildPath(analyzer, "buildpath", () -> {
+			changed = withJarOnBuildPath(analyzer, () -> {
 				List<Attribute> newCapabilities = new ArrayList<>();
 
 				if (!resources.keySet().isEmpty()) {
@@ -193,21 +192,12 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		return changed;
 	}
 
-	private boolean withJarOnBuildPath(Analyzer analyzer, String jarName, ThrowingSupplier<Boolean, ?> run)
-			throws Exception {
+	private boolean withJarOnBuildPath(Analyzer analyzer, ThrowingSupplier<Boolean, ?> run) throws Exception {
 		try {
-			File tempJar = createDirs(analyzer.getBase() + File.separator + "generated", "tmp", "jar");
+			List<URL> jarPaths = getJarPaths(analyzer);
 
-			if (tempJar == null)
-				throw new RuntimeException(
-						"Cannot create temporary build path jar, location '" + analyzer.getBase() + "' does not exist");
-
-			tempJar = new File(tempJar.getAbsolutePath() + File.separator + jarName + ".jar");
-
-			analyzer.getJar().write(tempJar);
-
-			ClassLoader targetClassloader = new URLClassLoader(new URL[] { tempJar.toURI().toURL() });
-			targetClassloader = new DelegatingClassloader(targetClassloader, Schema.class.getClassLoader());
+			ClassLoader targetClassloader = new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]),
+					Schema.class.getClassLoader());
 
 			return new ContextClassLoaderRunner(targetClassloader).runThrowing(run);
 		} catch (Exception e) {
@@ -216,17 +206,16 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		}
 	}
 
-	private File createDirs(String baseDirectory, String... directories) {
-		File file = new File(baseDirectory);
-		if (!file.exists() || !file.isDirectory())
-			return null;
+	private List<URL> getJarPaths(Analyzer analyzer) throws Exception {
+		List<URL> jarPaths = new ArrayList<>();
 
-		for (String directory : directories) {
-			file = new File(file.getAbsolutePath() + File.separator + directory);
-			file.mkdir();
+		for (Jar jar : analyzer.getClasspath()) {
+			if (jar.getSource() != null) {
+				jarPaths.add(jar.getSource().toURI().toURL());
+			}
 		}
 
-		return file;
+		return jarPaths;
 	}
 
 	private void prependProperties(Analyzer analyzer, String property, Attribute... prepend) {

@@ -1,5 +1,5 @@
 /*
- * cnf Gradle build script
+ * Modabi Bnd plugin Gradle build script
  */
 def modabiPluginProjects() {
   return rootProject.subprojects.findAll {
@@ -7,7 +7,7 @@ def modabiPluginProjects() {
   }
 }
 
-/* After building, we need to refresh the bnd Projects to pickup the bnd plugins built in cnf. */
+/* After building, we need to refresh the bnd Projects to pickup the bnd plugins built. */
 task('refresh') {
   onlyIf {
     compileJava.didWork || processResources.didWork
@@ -28,7 +28,7 @@ task('refresh') {
 }
 build.finalizedBy(refresh)
 
-/* Bnd plugins influence bundle contents, so add cnf output to jar inputs. */
+/* Bnd plugins influence bundle contents, so add generated output to jar inputs. */
 def bndProject = project
 def generated = project.file("generated")
 configure(modabiPluginProjects()) {
@@ -39,4 +39,3 @@ configure(modabiPluginProjects()) {
     dependsOn ":${bndProject.name}:build"
   }
 }
-
