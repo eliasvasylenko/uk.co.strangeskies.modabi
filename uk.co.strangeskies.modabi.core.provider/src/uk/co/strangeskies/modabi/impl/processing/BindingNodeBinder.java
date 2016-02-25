@@ -67,8 +67,7 @@ public class BindingNodeBinder {
 
 		switch (strategy) {
 		case PROVIDED:
-			TypeToken<?> providedType = node.getBindingType() != null
-					? node.getBindingType() : node.getDataType();
+			TypeToken<?> providedType = node.getBindingType() != null ? node.getBindingType() : node.getDataType();
 			binding = this.context.provisions().provide(providedType);
 
 			break;
@@ -79,13 +78,11 @@ public class BindingNodeBinder {
 			Executable inputMethod = getInputMethod(firstChild);
 			List<Object> parameters = getSingleBindingSequence(firstChild, context);
 			try {
-				binding = new TypedObject(node.getBindingType(),
+				binding = TypedObject.castInto(node.getBindingType(),
 						((Constructor<?>) inputMethod).newInstance(parameters.toArray()));
-			} catch (IllegalAccessException | InvocationTargetException
-					| InstantiationException e) {
-				throw new BindingException("Cannot invoke static factory method '"
-						+ inputMethod + "' on class '" + node.getUnbindingType()
-						+ "' with parameters '" + parameters + "'", context, e);
+			} catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+				throw new BindingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
+						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
 		case IMPLEMENT_IN_PLACE:
@@ -95,16 +92,13 @@ public class BindingNodeBinder {
 			 */
 			Set<? extends Class<?>> classes = node.getDataType().getRawTypes();
 
-			binding = new TypedObject<>(node.getDataType(),
-					(U) Proxy.newProxyInstance(getClass().getClassLoader(),
-							classes.toArray(new Class<?>[classes.size()]),
-							new InvocationHandler() {
-								@Override
-								public Object invoke(Object proxy, Method method, Object[] args)
-										throws Throwable {
-									return null;
-								}
-							}));
+			binding = new TypedObject<>(node.getDataType(), (U) Proxy.newProxyInstance(getClass().getClassLoader(),
+					classes.toArray(new Class<?>[classes.size()]), new InvocationHandler() {
+						@Override
+						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+							return null;
+						}
+					}));
 
 			break;
 		case SOURCE_ADAPTOR:
@@ -113,22 +107,19 @@ public class BindingNodeBinder {
 			break;
 		case STATIC_FACTORY:
 			if (children.isEmpty())
-				throw new SchemaException("Node '" + node.getName()
-						+ "' with binding strategy '" + BindingStrategy.STATIC_FACTORY
-						+ "' should contain at least one child");
+				throw new SchemaException("Node '" + node.getName() + "' with binding strategy '"
+						+ BindingStrategy.STATIC_FACTORY + "' should contain at least one child");
 			firstChild = children.get(0);
 			children = children.subList(1, children.size());
 
 			inputMethod = getInputMethod(firstChild);
 			parameters = getSingleBindingSequence(firstChild, context);
 			try {
-				binding = new TypedObject(node.getBindingType(),
+				binding = TypedObject.castInto(node.getBindingType(),
 						((Method) inputMethod).invoke(null, parameters.toArray()));
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | SecurityException e) {
-				throw new BindingException("Cannot invoke static factory method '"
-						+ inputMethod + "' on class '" + node.getUnbindingType()
-						+ "' with parameters '" + parameters + "'", context, e);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+				throw new BindingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
+						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
 		case TARGET_ADAPTOR:
@@ -159,8 +150,7 @@ public class BindingNodeBinder {
 		return result.get();
 	}
 
-	public static List<Object> getSingleBindingSequence(
-			ChildNode.Effective<?, ?> node, BindingContextImpl context) {
+	public static List<Object> getSingleBindingSequence(ChildNode.Effective<?, ?> node, BindingContextImpl context) {
 		List<Object> parameters = new ArrayList<>();
 		node.process(new PartialSchemaProcessor() {
 			@Override
@@ -178,8 +168,7 @@ public class BindingNodeBinder {
 		return parameters;
 	}
 
-	public static TypedObject<?> getSingleBinding(ChildNode.Effective<?, ?> node,
-			BindingContextImpl context) {
+	public static TypedObject<?> getSingleBinding(ChildNode.Effective<?, ?> node, BindingContextImpl context) {
 		IdentityProperty<TypedObject<?>> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessor() {
 			@Override
@@ -196,8 +185,7 @@ public class BindingNodeBinder {
 				check(node, results);
 			}
 
-			private <U> void check(BindingChildNode.Effective<U, ?, ?> node,
-					List<U> results) {
+			private <U> void check(BindingChildNode.Effective<U, ?, ?> node, List<U> results) {
 				if (!results.isEmpty()) {
 					result.set(new TypedObject<>(node.getDataType(), results.get(0)));
 				} else if (!node.occurrences().contains(0)) {
