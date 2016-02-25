@@ -19,7 +19,7 @@ Export-Package: uk.co.strangeskies.modabi.scripting
 	uk.co.strangeskies.modabi.bnd
 
 -pluginpath: \
-	${pluginpath.modabi}
+	${pluginpath.modabi;xml}
 
 -plugin: \
 	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlRegistration

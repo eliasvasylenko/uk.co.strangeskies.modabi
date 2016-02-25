@@ -94,7 +94,7 @@ public class SchemaTest {
 			Navigable out = StructuredDataBuffer.singleBuffer();
 			NavigableStructuredDataSource buffered = out.getBuffer();
 			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), schemaManager.getBaseSchema()).to(out);
-			buffered.pipeNextChild(schemaManager.dataInterfaces().getDataInterface("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
 
 			System.out.println();
 			System.out.println();
@@ -109,7 +109,7 @@ public class SchemaTest {
 				throw new RuntimeException(e);
 			}
 
-			buffered.pipeNextChild(schemaManager.dataInterfaces().getDataInterface("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
 			buffered.reset();
 
 			System.out.println();
@@ -130,7 +130,7 @@ public class SchemaTest {
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
 			schemaManager.unbind(schemaModel, metaSchema).to(out);
-			buffered.pipeNextChild(schemaManager.dataInterfaces().getDataInterface("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
 			buffered.reset();
 
 			System.out.println();
@@ -148,7 +148,7 @@ public class SchemaTest {
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
 			schemaManager.unbind(schemaModel2, metaSchema).to(out);
-			buffered.pipeNextChild(schemaManager.dataInterfaces().getDataInterface("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
 		});
 	}
 
@@ -181,7 +181,7 @@ public class SchemaTest {
 		System.out.println("    ~# " + stringIntMapModel.effective().getDataType().getResolver().getBounds());
 
 		schemaManager.unbind(stringIntMapModel, stringIntMap)
-				.to(schemaManager.dataInterfaces().getDataInterface("xml").saveData(System.out));
+				.to(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
 		System.out.println();
 
 		/*-

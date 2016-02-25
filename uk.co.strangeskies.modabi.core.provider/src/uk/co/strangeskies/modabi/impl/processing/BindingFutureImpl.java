@@ -16,10 +16,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.impl;
+package uk.co.strangeskies.modabi.impl.processing;
 
 import java.io.InputStream;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -32,12 +31,12 @@ import java.util.function.Supplier;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
-import uk.co.strangeskies.modabi.impl.processing.BindingNodeBinder;
+import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
@@ -104,8 +103,6 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			return bind(sourceFuture.get());
 		});
 		new Thread(() -> dataFuture.run()).start();
-
-		manager.addBindingFuture(this);
 	}
 
 	@Override
@@ -170,7 +167,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	@Override
-	public Set<BindingFuture<?>> getBlockingBindings() {
+	public BindingFutureBlocks getBlocks() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -20,11 +20,15 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import uk.co.strangeskies.modabi.Binder;
-import uk.co.strangeskies.modabi.impl.BindingFutureImpl.BindingSource;
+import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
+import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -35,11 +39,14 @@ import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 public class BinderImpl<T> implements Binder<T> {
 	private final SchemaManagerImpl manager;
 	private final Function<StructuredDataSource, Model<T>> bindingFunction;
+	private final Consumer<BindingFuture<?>> addFuture;
 	private ClassLoader classLoader;
 
-	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingFunction) {
+	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingFunction,
+			Consumer<BindingFuture<?>> addFuture) {
 		this.manager = manager;
 		this.bindingFunction = bindingFunction;
+		this.addFuture = addFuture;
 	}
 
 	@Override
@@ -60,7 +67,7 @@ public class BinderImpl<T> implements Binder<T> {
 		}
 
 		if (extension != null) {
-			return from(extension, input::openStream);
+			return fromExtension(extension, input::openStream);
 		} else {
 			return from(input::openStream);
 		}
@@ -68,32 +75,51 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public BindingFuture<T> from(StructuredDataSource input) {
-		return new BindingFutureImpl<>(manager, () -> {
+		return add(new BindingFutureImpl<>(manager, () -> {
 			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
-		} , classLoader);
+		} , classLoader));
 	}
 
 	@Override
 	public BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input) {
-		return new BindingFutureImpl<>(manager, () -> getBindingSource(input, null), classLoader);
+		return add(new BindingFutureImpl<>(manager, () -> getBindingSource(input, f -> true, true), classLoader));
 	}
 
 	@Override
-	public BindingFuture<T> from(String extension, ThrowingSupplier<InputStream, ?> input) {
-		return new BindingFutureImpl<>(manager, () -> getBindingSource(input, extension), classLoader);
+	public BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input) {
+		return add(new BindingFutureImpl<>(manager,
+				() -> getBindingSource(input, f -> f.getFormatId().equals(formatId), false), classLoader));
 	}
 
-	private BindingSource<T> getBindingSource(ThrowingSupplier<InputStream, ?> input, String extension) {
+	private BindingFuture<T> fromExtension(String extension, ThrowingSupplier<InputStream, ?> input) {
+		return add(new BindingFutureImpl<>(manager,
+				() -> getBindingSource(input, f -> f.getFileExtensions().contains(extension), true), classLoader));
+	}
+
+	private BindingFuture<T> add(BindingFuture<T> bindingFuture) {
+		addFuture.accept(bindingFuture);
+		return bindingFuture;
+	}
+
+	private BindingSource<T> getBindingSource(ThrowingSupplier<InputStream, ?> input,
+			Predicate<StructuredDataFormat> formatPredicate, boolean canRetry) {
 		Exception exception = null;
 
 		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
-		manager.registerDataInterfaceObserver(queue);
+		Iterator<StructuredDataFormat> formatIterator = manager.dataFormats().registerObserver(queue).iterator();
 
 		try {
 			while (true) {
-				StructuredDataFormat format = queue.get();
+				StructuredDataFormat format;
+				if (formatIterator.hasNext()) {
+					format = formatIterator.next();
+					formatIterator.remove();
+				} else {
+					// TODO set waiting for format flag
+					format = queue.get();
+				}
 
-				if (extension == null || format.getFileExtensions().contains(extension)) {
+				if (formatPredicate.test(format)) {
 					try (InputStream inputStream = input.get()) {
 						StructuredDataSource source = format.loadData(inputStream);
 						Model.Effective<T> model = bindingFunction.apply(source).effective();
@@ -102,6 +128,11 @@ public class BinderImpl<T> implements Binder<T> {
 					} catch (Exception e) {
 						e.printStackTrace();
 						exception = e;
+
+						if (!canRetry) {
+							// TODO
+							throw new SchemaException("Could not bind input with file loader registered for ${ID}" + null, exception);
+						}
 					}
 				}
 			}
@@ -109,7 +140,7 @@ public class BinderImpl<T> implements Binder<T> {
 			if (exception == null)
 				exception = e;
 
-			throw new IllegalArgumentException("Could not bind input with any registered file loaders", exception);
+			throw new SchemaException("Could not bind input with any registered file loaders", exception);
 		}
 	}
 

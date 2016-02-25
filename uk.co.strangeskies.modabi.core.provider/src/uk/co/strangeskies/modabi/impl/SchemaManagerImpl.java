@@ -48,7 +48,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.Binder;
 import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.DataInterfaces;
+import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
@@ -71,6 +71,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
@@ -147,7 +148,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerSchema(coreSchemata.metaSchema());
 	}
 
-	BindingContextImpl getBindingContext() {
+	public BindingContextImpl getBindingContext() {
 		return new BindingContextImpl(this).withProvision(DereferenceSource.class, bindingProviders.dereferenceSource())
 				.withProvision(IncludeTarget.class, bindingProviders.includeTarget())
 				.withProvision(ImportSource.class, bindingProviders.importSource())
@@ -155,7 +156,7 @@ public class SchemaManagerImpl implements SchemaManager {
 				.withProvision(Imports.class, bindingProviders.imports()).withProvision(BindingContext.class, c -> c);
 	}
 
-	UnbindingContextImpl getUnbindingContext() {
+	public UnbindingContextImpl getUnbindingContext() {
 		return new UnbindingContextImpl(this)
 				.withProvision(new TypeToken<ReferenceTarget>() {}, unbindingProviders.referenceTarget())
 				.withProvision(new TypeToken<ImportTarget>() {}, unbindingProviders.importTarget())
@@ -248,8 +249,8 @@ public class SchemaManagerImpl implements SchemaManager {
 					}
 
 					@Override
-					public Set<BindingFuture<?>> getBlockingBindings() {
-						return future.getBlockingBindings();
+					public BindingFutureBlocks getBlocks() {
+						return future.getBlocks();
 					}
 
 					@Override
@@ -348,7 +349,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public <T> Binder<T> bind(Model<T> model) {
-		return new BinderImpl<>(this, input -> model.effective());
+		return new BinderImpl<>(this, input -> model.effective(), this::addBindingFuture);
 	}
 
 	private Model<?> waitForModel(QualifiedName modelName) {
@@ -383,12 +384,12 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		});
+		} , this::addBindingFuture);
 	}
 
 	@Override
 	public Binder<?> bind() {
-		return new BinderImpl<>(this, input -> waitForModel(input.peekNextChild()).effective());
+		return new BinderImpl<>(this, input -> waitForModel(input.peekNextChild()).effective(), this::addBindingFuture);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -482,10 +483,10 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public DataInterfaces dataInterfaces() {
-		return new DataInterfaces() {
+	public DataFormats dataFormats() {
+		return new DataFormats() {
 			@Override
-			public void registerDataInterface(StructuredDataFormat loader) {
+			public void registerDataFormat(StructuredDataFormat loader) {
 				synchronized (dataInterfaces) {
 					dataInterfaces.put(loader.getFormatId(), loader);
 					dataInterfaceObservers.fire(loader);
@@ -493,37 +494,42 @@ public class SchemaManagerImpl implements SchemaManager {
 			}
 
 			@Override
-			public void unregisterDataInterface(StructuredDataFormat loader) {
-				dataInterfaces.remove(loader.getFormatId(), loader);
+			public void unregisterDataFormat(StructuredDataFormat loader) {
+				synchronized (dataInterfaces) {
+					dataInterfaces.remove(loader.getFormatId(), loader);
+				}
 			}
 
 			@Override
-			public Set<StructuredDataFormat> getRegisteredDataInterfaces() {
-				return new HashSet<>(dataInterfaces.values());
+			public Set<StructuredDataFormat> getRegistered() {
+				synchronized (dataInterfaces) {
+					return new HashSet<>(dataInterfaces.values());
+				}
 			}
 
 			@Override
-			public StructuredDataFormat getDataInterface(String id) {
-				return dataInterfaces.get(id);
+			public StructuredDataFormat getDataFormat(String id) {
+				synchronized (dataInterfaces) {
+					return dataInterfaces.get(id);
+				}
+			}
+
+			@Override
+			public Set<StructuredDataFormat> registerObserver(Consumer<? super StructuredDataFormat> listener) {
+				synchronized (dataInterfaces) {
+					dataInterfaceObservers.addWeakObserver(listener);
+					return getRegistered();
+				}
 			}
 		};
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
 	void registerDataInterface(StructuredDataFormat loader) {
-		dataInterfaces().registerDataInterface(loader);
+		dataFormats().registerDataFormat(loader);
 	}
 
 	void unregisterDataInterface(StructuredDataFormat loader) {
-		dataInterfaces().unregisterDataInterface(loader);
-	}
-
-	void registerDataInterfaceObserver(Consumer<? super StructuredDataFormat> listener) {
-		synchronized (dataInterfaces) {
-			dataInterfaceObservers.addWeakObserver(listener);
-			for (StructuredDataFormat format : dataInterfaces.values()) {
-				listener.accept(format);
-			}
-		}
+		dataFormats().unregisterDataFormat(loader);
 	}
 }

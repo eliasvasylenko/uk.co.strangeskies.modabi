@@ -18,10 +18,12 @@
  */
 package uk.co.strangeskies.modabi.bnd;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,10 +39,13 @@ import aQute.bnd.service.AnalyzerPlugin;
 import aQute.bnd.service.Plugin;
 import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.bnd.ReporterLog;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
@@ -48,7 +53,7 @@ import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
 import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
-import uk.co.strangeskies.utilities.function.ThrowingSupplier;
+import uk.co.strangeskies.utilities.function.ThrowingRunnable;
 
 /**
  * @author Elias N Vasylenko
@@ -80,10 +85,26 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		this.manager = new SchemaManagerImpl();
 		this.handler = handler;
 
-		manager.dataInterfaces().registerDataInterface(handler);
+		manager.dataFormats().registerDataFormat(handler);
 
 		sources = new HashSet<>();
 		sources.add(DEFAULT_SOURCE);
+	}
+
+	@Override
+	public void setProperties(Map<String, String> map) throws Exception {
+		sources.clear();
+		if (map.containsKey(SOURCES_PROPERTY)) {
+			String sourcesString = map.get(SOURCES_PROPERTY);
+			sources.addAll(Arrays.asList(sourcesString.split(",")));
+		} else {
+			sources.add(DEFAULT_SOURCE);
+		}
+	}
+
+	@Override
+	public void setReporter(Reporter processor) {
+		log = new ReporterLog(processor);
 	}
 
 	public SchemaManager getManager() {
@@ -100,7 +121,98 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 	private void scanSchemaAnnotations(Analyzer analyzer) {}
 
 	private boolean registerSchemata(Analyzer analyzer) throws Exception {
+		Map<String, Resource> resources = collectSchemaResources(analyzer.getJar(), sources);
+
+		if (!resources.isEmpty()) {
+			withBuildPath(analyzer, () -> registerSchemaResources(analyzer, resources));
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private void registerSchemaResources(Analyzer analyzer, Map<String, Resource> resources) {
+		List<Attribute> newCapabilities = new ArrayList<>();
+
+		/*
+		 * Begin binding schemata concurrently
+		 */
+		Map<String, BindingFuture<Schema>> schemaFutures = new HashMap<>();
+		for (String resourceName : resources.keySet()) {
+			schemaFutures.put(resourceName,
+					manager.bindSchema().from(handler.getFormatId(), resources.get(resourceName)::openInputStream));
+		}
+
+		Map<QualifiedName, Resource> dependencyResources = collectSchemaResources(analyzer.getClasspath());
+
+		/*
+		 * Resolve all schemata
+		 * 
+		 * TODO resolve schema dependencies from jars on build path, and terminate
+		 * on dependencies which cannot be resolved.
+		 */
+		for (String resourceName : schemaFutures.keySet()) {
+			Schema schema = schemaFutures.get(resourceName).resolve();
+
+			List<AttributeProperty<?>> properties = new ArrayList<>();
+
+			properties.add(AttributeProperty.untyped(SCHEMA, schema.getQualifiedName().toString()));
+			properties.add(AttributeProperty.untyped(RESOURCE, resourceName));
+
+			newCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
+		}
+
+		prependProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
+
+		addGeneralRequirements(analyzer);
+	}
+
+	private void addGeneralRequirements(Analyzer analyzer) {
+		AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(Constants.RESOLUTION_DIRECTIVE,
+				PropertyType.DIRECTIVE, Constants.MANDATORY_DIRECTIVE);
+
+		AttributeProperty<?> resolveEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
+				PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+		AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
+				PropertyType.DIRECTIVE, Constants.EFFECTIVE_ACTIVE);
+
+		prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
+				/*
+				 * StructuredDataFormat service requirement attribute
+				 */
+				new Attribute(SERVICE,
+						new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
+								"(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + handler.getFormatId() + "))"),
+						mandatoryResolution, activeEffective),
+
+				/*
+				 * SchemaManager service requirement attribute
+				 */
+				new Attribute(SERVICE,
+						new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, SCHEMAMANAGER_SERVICE_FILTER),
+						mandatoryResolution, activeEffective),
+
+				/*
+				 * Modabi extender attribute
+				 */
+				new Attribute(EXTENDER,
+						new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, EXTENDER_FILTER),
+						mandatoryResolution, resolveEffective));
+	}
+
+	private Map<QualifiedName, Resource> collectSchemaResources(Collection<? extends Jar> jar) {
+		/*
+		 * TODO get sources from jar manifests, then call:
+		 * 
+		 * #collectSchemaResources(Jar jar, Set<String> sources)
+		 */
+		return null;
+	}
+
+	private Map<String, Resource> collectSchemaResources(Jar jar, Set<String> sources) {
 		Map<String, Resource> resources = new HashMap<>();
+
 		for (String source : sources) {
 			source = source.trim();
 
@@ -112,7 +224,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 			}
 
 			if (directorySource != null) {
-				Map<String, Resource> directoryResources = analyzer.getJar().getDirectories().get(directorySource);
+				Map<String, Resource> directoryResources = jar.getDirectories().get(directorySource);
 
 				if (directoryResources == null || directoryResources.isEmpty()) {
 					log.log(Level.WARN, "Cannot find Modabi documents in source directory: " + source);
@@ -120,7 +232,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 					resources.putAll(directoryResources);
 				}
 			} else {
-				Resource resource = analyzer.getJar().getResource(source);
+				Resource resource = jar.getResource(source);
 
 				if (resource == null) {
 					log.log(Level.WARN, "Cannot find Modabi document at source location: " + source);
@@ -129,86 +241,25 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 				}
 			}
 		}
-
-		boolean changed = false;
-
-		if (resources != null) {
-			changed = withJarOnBuildPath(analyzer, () -> {
-				List<Attribute> newCapabilities = new ArrayList<>();
-
-				if (!resources.keySet().isEmpty()) {
-					for (String resourceName : resources.keySet()) {
-						Schema schema;
-						schema = manager.bindSchema().from(resources.get(resourceName)::openInputStream).resolve();
-
-						List<AttributeProperty<?>> properties = new ArrayList<>();
-
-						properties.add(AttributeProperty.untyped(SCHEMA, schema.getQualifiedName().toString()));
-						properties.add(AttributeProperty.untyped(RESOURCE, resourceName));
-
-						newCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
-					}
-
-					prependProperties(analyzer, Constants.PROVIDE_CAPABILITY, newCapabilities);
-
-					AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(Constants.RESOLUTION_DIRECTIVE,
-							PropertyType.DIRECTIVE, Constants.MANDATORY_DIRECTIVE);
-
-					AttributeProperty<?> resolveEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-							PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
-
-					AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-							PropertyType.DIRECTIVE, Constants.EFFECTIVE_ACTIVE);
-
-					prependProperties(analyzer, Constants.REQUIRE_CAPABILITY,
-							/*
-							 * StructuredDataFormat service requirement attribute
-							 */
-							new Attribute(SERVICE,
-									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
-											"(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + handler.getFormatId() + "))"),
-									mandatoryResolution, activeEffective),
-
-							/*
-							 * SchemaManager service requirement attribute
-							 */
-							new Attribute(SERVICE,
-									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
-											SCHEMAMANAGER_SERVICE_FILTER),
-									mandatoryResolution, activeEffective),
-
-							/*
-							 * Modabi extender attribute
-							 */
-							new Attribute(EXTENDER,
-									new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, EXTENDER_FILTER),
-									mandatoryResolution, resolveEffective));
-
-					return true;
-				} else {
-					return false;
-				}
-			});
-		}
-
-		return changed;
+		return resources;
 	}
 
-	private boolean withJarOnBuildPath(Analyzer analyzer, ThrowingSupplier<Boolean, ?> run) throws Exception {
+	private <E extends Exception> void withBuildPath(Analyzer analyzer, ThrowingRunnable<E> run) throws E {
+		List<URL> jarPaths;
 		try {
-			List<URL> jarPaths = getJarPaths(analyzer);
-
-			ClassLoader targetClassloader = new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]),
-					Schema.class.getClassLoader());
-
-			return new ContextClassLoaderRunner(targetClassloader).runThrowing(run);
-		} catch (Exception e) {
-			log.log(Level.ERROR, "Failed to process bundle", e);
-			throw e;
+			jarPaths = getJarPaths(analyzer);
+		} catch (MalformedURLException e) {
+			log.log(Level.ERROR, "Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
+			throw new SchemaException("Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
 		}
+
+		ClassLoader targetClassloader = new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]),
+				Schema.class.getClassLoader());
+
+		new ContextClassLoaderRunner(targetClassloader).runThrowing(run);
 	}
 
-	private List<URL> getJarPaths(Analyzer analyzer) throws Exception {
+	private List<URL> getJarPaths(Analyzer analyzer) throws MalformedURLException {
 		List<URL> jarPaths = new ArrayList<>();
 
 		for (Jar jar : analyzer.getClasspath()) {
@@ -238,21 +289,5 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		}
 
 		analyzer.setProperty(property, capabilities);
-	}
-
-	@Override
-	public void setProperties(Map<String, String> map) throws Exception {
-		sources.clear();
-		if (map.containsKey(SOURCES_PROPERTY)) {
-			String sourcesString = map.get(SOURCES_PROPERTY);
-			sources.addAll(Arrays.asList(sourcesString.split(",")));
-		} else {
-			sources.add(DEFAULT_SOURCE);
-		}
-	}
-
-	@Override
-	public void setReporter(Reporter processor) {
-		log = new ReporterLog(processor);
 	}
 }

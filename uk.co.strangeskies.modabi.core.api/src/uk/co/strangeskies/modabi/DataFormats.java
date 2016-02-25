@@ -20,22 +20,24 @@ package uk.co.strangeskies.modabi;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 
-public interface DataInterfaces {
-	void registerDataInterface(StructuredDataFormat handler);
+public interface DataFormats {
+	void registerDataFormat(StructuredDataFormat handler);
 
-	void unregisterDataInterface(StructuredDataFormat handler);
+	void unregisterDataFormat(StructuredDataFormat handler);
 
-	Set<StructuredDataFormat> getRegisteredDataInterfaces();
+	Set<StructuredDataFormat> getRegistered();
 
-	StructuredDataFormat getDataInterface(String id);
+	StructuredDataFormat getDataFormat(String id);
 
-	default Set<StructuredDataFormat> getDataInterfaces(String extension) {
-		return getRegisteredDataInterfaces().stream()
-				.filter(l -> l.getFileExtensions().contains(extension))
+	default Set<StructuredDataFormat> getDataFormats(String extension) {
+		return getRegistered().stream().filter(l -> l.getFileExtensions().contains(extension))
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
+
+	Set<StructuredDataFormat> registerObserver(Consumer<? super StructuredDataFormat> listener);
 }

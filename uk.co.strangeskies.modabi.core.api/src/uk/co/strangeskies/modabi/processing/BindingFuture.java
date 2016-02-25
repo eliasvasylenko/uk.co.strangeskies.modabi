@@ -18,20 +18,25 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.utilities.tuple.Pair;
 
 public interface BindingFuture<T> extends Future<Binding<T>> {
 	Future<Model<T>> getModelFuture();
 
-	Set<BindingFuture<?>> getBlockingBindings();
+	BindingFutureBlocks getBlocks();
 
 	@Override
 	Binding<T> get();
@@ -48,7 +53,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 	}
 
 	default Binding<T> getNow() {
-		Set<BindingFuture<?>> blockingBindings = getBlockingBindings();
+		BindingFutureBlocks blockingBindings = getBlocks();
 
 		if (!isDone() && cancel(true))
 			throw new SchemaException("Binding has been blocked by the following missing dependencies: " + blockingBindings);
@@ -95,8 +100,45 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 			}
 
 			@Override
-			public Set<BindingFuture<?>> getBlockingBindings() {
-				return new HashSet<>();
+			public BindingFutureBlocks getBlocks() {
+				return new BindingFutureBlocks() {
+					@Override
+					public boolean removeObserver(Consumer<? super Pair<QualifiedName, DataSource>> observer) {
+						return true;
+					}
+
+					@Override
+					public boolean addObserver(Consumer<? super Pair<QualifiedName, DataSource>> observer) {
+						return true;
+					}
+
+					@Override
+					public Set<QualifiedName> waitingForNamespaces() {
+						return Collections.emptySet();
+					}
+
+					@Override
+					public List<DataSource> waitingForIds(QualifiedName namespace) {
+						return Collections.emptyList();
+					}
+
+					@Override
+					public void waitForAll(QualifiedName namespace, long timeoutMilliseconds) {}
+
+					@Override
+					public void waitForAll(QualifiedName namespace) {}
+
+					@Override
+					public void waitFor(QualifiedName namespace, DataSource id, long timeoutMilliseconds) {}
+
+					@Override
+					public void waitFor(QualifiedName namespace, DataSource id) {}
+
+					@Override
+					public boolean isBlocked() {
+						return false;
+					}
+				};
 			}
 		};
 	}

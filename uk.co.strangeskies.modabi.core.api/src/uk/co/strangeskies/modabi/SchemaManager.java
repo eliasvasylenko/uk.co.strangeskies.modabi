@@ -31,7 +31,7 @@ import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaManager {
-	DataInterfaces dataInterfaces();
+	DataFormats dataFormats();
 
 	default GeneratedSchema generateSchema(QualifiedName name) {
 		return generateSchema(name, Collections.emptySet());

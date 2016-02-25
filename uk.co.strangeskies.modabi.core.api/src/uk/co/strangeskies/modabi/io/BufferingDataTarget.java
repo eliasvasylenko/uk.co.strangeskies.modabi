@@ -91,10 +91,8 @@ class BufferingDataTargetImpl implements DataTarget {
 
 			DataSource thatDataSource = (DataSource) that;
 
-			return thatDataSource.index() == index()
-					&& thatDataSource.size() == size()
-					&& dataSequence.equals(thatDataSource.copy().reset()
-							.pipe(new BufferingDataTargetImpl()).buffer().dataSequence);
+			return thatDataSource.index() == index() && thatDataSource.size() == size() && dataSequence
+					.equals(thatDataSource.copy().reset().pipe(new BufferingDataTargetImpl()).buffer().dataSequence);
 		}
 
 		@Override

@@ -50,7 +50,7 @@ public interface Binder<T> {
 
 	BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input);
 
-	BindingFuture<T> from(String extension, ThrowingSupplier<InputStream, ?> input);
+	BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input);
 
 	// Binder<T> updatable();
 

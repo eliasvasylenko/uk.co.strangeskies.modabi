@@ -47,7 +47,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 	@Override
 	public BindingFuture<T> to(String extension, OutputStream output) {
-		to(manager.dataInterfaces().getDataInterface(extension).saveData(output));
+		to(manager.dataFormats().getDataFormat(extension).saveData(output));
 
 		return null;
 	}

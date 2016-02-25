@@ -44,10 +44,8 @@ Bundle-Version: ${modabi-version}.${tstamp}
 mdb.override: uk.co.strangeskies.modabi.${1}\;version=snapshot
 plugin.strangeskies.modabi.override:
 
-modabi-bnd-plugin: ${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar
-
 pluginpath.modabi: \
-	${modabi-bnd-plugin;xml}
+	${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar
 
 ## If you use git, you might want to uncomment the following lines:
 Git-Descriptor: ${system-allow-fail;git describe --dirty --always}
@@ -81,3 +79,6 @@ modabi-description: \
 	Type safety is provided beyond the current best in class - to the \
 	level of full generic input/output method invocation type \
 	inference.
+
+## Fix warnings
+-fixupmessages.res: "Bndtools: Found source folder 'res' that is not on bnd's source path 'src'"
