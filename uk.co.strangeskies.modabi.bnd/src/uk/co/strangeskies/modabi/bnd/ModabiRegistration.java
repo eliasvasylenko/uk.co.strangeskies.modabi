@@ -144,6 +144,7 @@ public abstract class ModabiRegistration implements AnalyzerPlugin, Plugin {
 		}
 
 		Map<QualifiedName, Resource> dependencyResources = collectSchemaResources(analyzer.getClasspath());
+		Map<QualifiedName, BindingFuture<?>> dependencySchemata = new HashMap<>();
 
 		/*
 		 * Resolve all schemata
