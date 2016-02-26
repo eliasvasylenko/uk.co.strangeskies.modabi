@@ -20,26 +20,37 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.impl.processing.BindingFutureBlocksImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
+import uk.co.strangeskies.modabi.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
+import uk.co.strangeskies.utilities.IdentityProperty;
+import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class BinderImpl<T> implements Binder<T> {
+	private static final QualifiedName FORMAT_BLOCK_NAMESPACE = new QualifiedName("structuredDataFormat",
+			Schema.MODABI_NAMESPACE);
+
 	private final SchemaManagerImpl manager;
 	private final Function<StructuredDataSource, Model<T>> bindingFunction;
 	private final Consumer<BindingFuture<?>> addFuture;
+	private final BindingFutureBlocksImpl blocks;
 	private ClassLoader classLoader;
 
 	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingFunction,
@@ -47,6 +58,7 @@ public class BinderImpl<T> implements Binder<T> {
 		this.manager = manager;
 		this.bindingFunction = bindingFunction;
 		this.addFuture = addFuture;
+		blocks = new BindingFutureBlocksImpl();
 	}
 
 	@Override
@@ -75,25 +87,26 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public BindingFuture<T> from(StructuredDataSource input) {
-		return add(new BindingFutureImpl<>(manager, () -> {
+		return add(new BindingFutureImpl<>(manager, blocks, () -> {
 			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
 		} , classLoader));
 	}
 
 	@Override
 	public BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input) {
-		return add(new BindingFutureImpl<>(manager, () -> getBindingSource(input, f -> true, true), classLoader));
+		return add(
+				new BindingFutureImpl<>(manager, blocks, () -> getBindingSource("", input, f -> true, true), classLoader));
 	}
 
 	@Override
 	public BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input) {
-		return add(new BindingFutureImpl<>(manager,
-				() -> getBindingSource(input, f -> f.getFormatId().equals(formatId), false), classLoader));
+		return add(new BindingFutureImpl<>(manager, blocks,
+				() -> getBindingSource(formatId, input, f -> f.getFormatId().equals(formatId), false), classLoader));
 	}
 
 	private BindingFuture<T> fromExtension(String extension, ThrowingSupplier<InputStream, ?> input) {
-		return add(new BindingFutureImpl<>(manager,
-				() -> getBindingSource(input, f -> f.getFileExtensions().contains(extension), true), classLoader));
+		return add(new BindingFutureImpl<>(manager, blocks,
+				() -> getBindingSource(extension, input, f -> f.getFileExtensions().contains(extension), true), classLoader));
 	}
 
 	private BindingFuture<T> add(BindingFuture<T> bindingFuture) {
@@ -101,24 +114,15 @@ public class BinderImpl<T> implements Binder<T> {
 		return bindingFuture;
 	}
 
-	private BindingSource<T> getBindingSource(ThrowingSupplier<InputStream, ?> input,
+	private BindingSource<T> getBindingSource(String formatId, ThrowingSupplier<InputStream, ?> input,
 			Predicate<StructuredDataFormat> formatPredicate, boolean canRetry) {
-		Exception exception = null;
+		Property<Exception, Exception> exception = new IdentityProperty<>();
 
 		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
-		Iterator<StructuredDataFormat> formatIterator = manager.dataFormats().registerObserver(queue).iterator();
+		Set<StructuredDataFormat> registeredFormats = manager.dataFormats().registerObserver(queue);
 
-		try {
-			while (true) {
-				StructuredDataFormat format;
-				if (formatIterator.hasNext()) {
-					format = formatIterator.next();
-					formatIterator.remove();
-				} else {
-					// TODO set waiting for format flag
-					format = queue.get();
-				}
-
+		Function<Iterable<StructuredDataFormat>, BindingSource<T>> getBindingSource = formats -> {
+			for (StructuredDataFormat format : formats) {
 				if (formatPredicate.test(format)) {
 					try (InputStream inputStream = input.get()) {
 						StructuredDataSource source = format.loadData(inputStream);
@@ -127,20 +131,33 @@ public class BinderImpl<T> implements Binder<T> {
 						return new BindingSource<>(model, input, format);
 					} catch (Exception e) {
 						e.printStackTrace();
-						exception = e;
+						exception.set(e);
 
 						if (!canRetry) {
-							// TODO
-							throw new SchemaException("Could not bind input with file loader registered for ${ID}" + null, exception);
+							throw new SchemaException("Could not bind input with file loader registered for " + formatId,
+									exception.get());
 						}
 					}
 				}
 			}
-		} catch (Exception e) {
-			if (exception == null)
-				exception = e;
 
-			throw new SchemaException("Could not bind input with any registered file loaders", exception);
+			return null;
+		};
+
+		try {
+			BindingSource<T> source = getBindingSource.apply(registeredFormats);
+
+			if (source == null) {
+				source = blocks.blockAndWaitFor(() -> getBindingSource.apply(queue), FORMAT_BLOCK_NAMESPACE,
+						new BufferingDataTarget().put(Primitive.STRING, formatId).buffer());
+			}
+
+			return source;
+		} catch (Exception e) {
+			if (exception.get() == null)
+				exception.set(e);
+
+			throw new SchemaException("Could not bind input with any registered file loaders", exception.get());
 		}
 	}
 

@@ -116,7 +116,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		this(new SchemaBuilderImpl(), new ModelBuilderImpl(), new DataTypeBuilderImpl());
 	}
 
-	public SchemaManagerImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
+	public SchemaManagerImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
+			DataTypeBuilder dataTypeBuilder /* TODO , Log log */) {
 		this.modelBuilder = modelBuilder;
 		this.dataTypeBuilder = dataTypeBuilder;
 

@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2016 Elias N Vasylenko <eliasvasylenko@gmail.com>
+ *
+ * This file is part of uk.co.strangeskies.modabi.core.provider.
+ *
+ * uk.co.strangeskies.modabi.core.provider is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * uk.co.strangeskies.modabi.core.provider is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.ArrayList;
@@ -30,18 +48,28 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 		return observable.removeObserver(observer);
 	}
 
-	public <T> T blockAndWaitFor(Supplier<T> blockingSupplier, QualifiedName namespace, DataSource id) {
+	public <T> T blockAndWaitFor(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
 		synchronized (blocks) {
 			blocks.add(namespace, id);
 			observable.fire(new Pair<>(namespace, id));
 		}
 
-		T result = blockingSupplier.get();
+		try {
+			T result = blockingSupplier.get();
 
-		synchronized (blocks) {
-			blocks.remove(namespace, id);
-			blocks.notifyAll();
-			return result;
+			synchronized (blocks) {
+				blocks.remove(namespace, id);
+				blocks.notifyAll();
+				return result;
+			}
+		} catch (Exception e) {
+			synchronized (blocks) {
+				blocks.notifyAll();
+
+				// TODO fail properly, cancel bindingfuture etc.
+
+				throw e;
+			}
 		}
 	}
 

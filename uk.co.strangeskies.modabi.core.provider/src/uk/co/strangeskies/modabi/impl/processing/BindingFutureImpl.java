@@ -85,12 +85,14 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	private final SchemaManagerImpl manager;
+	private final BindingFutureBlocksImpl blocks;
 	private final FutureTask<BindingSource<T>> sourceFuture;
 	private final FutureTask<T> dataFuture;
 
-	public BindingFutureImpl(SchemaManagerImpl manager, Supplier<BindingSource<T>> modelSupplier,
+	public BindingFutureImpl(SchemaManagerImpl manager, BindingFutureBlocksImpl blocks, Supplier<BindingSource<T>> modelSupplier,
 			ClassLoader classLoader) {
 		this.manager = manager;
+		this.blocks=blocks;
 
 		sourceFuture = new FutureTask<>(modelSupplier::get);
 		new Thread(() -> sourceFuture.run()).start();
@@ -168,8 +170,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public BindingFutureBlocks getBlocks() {
-		// TODO Auto-generated method stub
-		return null;
+		return blocks;
 	}
 
 	private T bind(BindingSource<T> source) {

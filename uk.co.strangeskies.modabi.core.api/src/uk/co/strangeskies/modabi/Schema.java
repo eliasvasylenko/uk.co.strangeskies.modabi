@@ -18,9 +18,13 @@
  */
 package uk.co.strangeskies.modabi;
 
+import java.time.LocalDate;
+
 import uk.co.strangeskies.reflection.Imports;
 
 public interface Schema {
+	public static final Namespace MODABI_NAMESPACE = new Namespace(Schema.class.getPackage(), LocalDate.of(2014, 1, 1));
+
 	public QualifiedName getQualifiedName();
 
 	public Imports getImports();

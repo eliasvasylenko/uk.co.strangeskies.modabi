@@ -22,7 +22,6 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +36,8 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
-	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
-			BaseSchema.class, LocalDate.of(2014, 1, 1));
+	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(BaseSchema.class.getSimpleName(),
+			MODABI_NAMESPACE);
 
 	public interface DerivedTypes {
 		DataType<Object[]> arrayType();
