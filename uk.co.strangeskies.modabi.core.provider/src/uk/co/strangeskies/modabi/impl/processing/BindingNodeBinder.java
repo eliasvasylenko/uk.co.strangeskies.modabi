@@ -123,7 +123,7 @@ public class BindingNodeBinder {
 			}
 			break;
 		case TARGET_ADAPTOR:
-			binding = context.bindingTarget();
+			binding = context.bindingObject();
 			break;
 		default:
 			throw new AssertionError();
@@ -133,7 +133,7 @@ public class BindingNodeBinder {
 
 		for (ChildNode.Effective<?, ?> child : children) {
 			context = ChildNodeBinder.bind(context, child);
-			binding = context.bindingTarget();
+			binding = context.bindingObject();
 		}
 
 		return (U) binding.getObject();

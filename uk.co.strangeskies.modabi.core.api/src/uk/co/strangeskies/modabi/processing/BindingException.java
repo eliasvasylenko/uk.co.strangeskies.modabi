@@ -26,26 +26,25 @@ import uk.co.strangeskies.modabi.SchemaException;
 public class BindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
 
-	private final BindingState state;
+	private final ProcessingState state;
 
 	private final Collection<? extends Exception> multiCause;
 
-	public BindingException(String message, BindingState state,
-			Collection<? extends Exception> cause) {
+	public BindingException(String message, ProcessingState state, Collection<? extends Exception> cause) {
 		super(message + getBindingStateString(state), cause.iterator().next());
 
 		multiCause = cause;
 		this.state = state;
 	}
 
-	public BindingException(String message, BindingState state, Exception cause) {
+	public BindingException(String message, ProcessingState state, Exception cause) {
 		super(message + getBindingStateString(state), cause);
 
 		multiCause = Arrays.asList(cause);
 		this.state = state;
 	}
 
-	public BindingException(String message, BindingState state) {
+	public BindingException(String message, ProcessingState state) {
 		super(message + getBindingStateString(state));
 
 		multiCause = null;
@@ -56,22 +55,21 @@ public class BindingException extends SchemaException {
 		return multiCause;
 	}
 
-	private static String getBindingStateString(BindingState state) {
+	private static String getBindingStateString(ProcessingState state) {
 		/*
 		 * binding target may be proxied, and so throw an exception...
 		 */
 		String bindingTarget;
 		try {
-			bindingTarget = state.bindingTarget().toString();
+			bindingTarget = state.bindingObject().toString();
 		} catch (Exception e) {
 			bindingTarget = "Unknown";
 		}
 
-		return getNodeContext(state) + " with binding target object '"
-				+ bindingTarget + "'";
+		return getNodeContext(state) + " with binding object '" + bindingTarget + "'";
 	}
 
-	private static String getNodeContext(BindingState state) {
+	private static String getNodeContext(ProcessingState state) {
 		String nodeContext;
 
 		if (state.bindingNodeStack().isEmpty()) {
@@ -80,15 +78,15 @@ public class BindingException extends SchemaException {
 			nodeContext = " at node '" + state.bindingNode().getName() + "'";
 
 			if (state.bindingNodeStack().size() > 1) {
-				nodeContext = nodeContext + " at node '" + (state.bindingNodeStack()
-						.get(state.bindingNodeStack().size() - 2)).getName() + "'";
+				nodeContext = nodeContext + " at node '"
+						+ (state.bindingNodeStack().get(state.bindingNodeStack().size() - 2)).getName() + "'";
 			}
 		}
 
 		return nodeContext;
 	}
 
-	public BindingState getState() {
+	public ProcessingState getState() {
 		return state;
 	}
 }

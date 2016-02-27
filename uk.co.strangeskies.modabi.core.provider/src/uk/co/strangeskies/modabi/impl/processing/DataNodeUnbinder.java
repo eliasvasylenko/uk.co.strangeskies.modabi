@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.processing.UnbindingException;
+import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -150,17 +150,17 @@ public class DataNodeUnbinder {
 												.putGet(
 														n),
 										data),
-								l -> new UnbindingException("Unable to unbind data node '"
+								l -> new BindingException("Unable to unbind data node '"
 										+ node.getName() + "' with type candidates '"
 										+ overrides.keySet().stream()
 												.map(m -> m.effective().getName().toString())
 												.collect(Collectors.joining(", "))
 										+ "' for object '" + data + "' to be unbound", context, l));
-			} catch (UnbindingException e) {
+			} catch (BindingException e) {
 				if (!node.isAbstract()) {
 					new BindingNodeUnbinder(context).unbind(node, data);
 				} else {
-					throw new UnbindingException("Could not unbind without extension",
+					throw new BindingException("Could not unbind without extension",
 							context, e);
 				}
 			}
@@ -175,7 +175,7 @@ public class DataNodeUnbinder {
 			new BindingNodeUnbinder(context).unbind(element,
 					(U) element.getDataType().getRawType().cast(data));
 		} catch (ClassCastException e) {
-			throw new UnbindingException("Cannot unbind data at this node.", context,
+			throw new BindingException("Cannot unbind data at this node.", context,
 					e);
 		}
 	}

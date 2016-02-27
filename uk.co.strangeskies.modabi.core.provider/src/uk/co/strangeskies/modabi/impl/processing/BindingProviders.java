@@ -61,13 +61,11 @@ public class BindingProviders {
 	public Function<BindingContext, ImportSource> importSource() {
 		return context -> new ImportSource() {
 			@Override
-			public <U> U importObject(Model<U> model, QualifiedName idDomain,
-					DataSource id) {
+			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> get(Model<T> model) {
-						return manager.bindingFutures(model).stream()
-								.filter(BindingFuture::isDone).map(BindingFuture::resolve)
+						return manager.bindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 								.collect(Collectors.toSet());
 					}
 				}, idDomain, id);
@@ -94,10 +92,8 @@ public class BindingProviders {
 	public Function<BindingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
-			public <U> U dereference(Model<U> model, QualifiedName idDomain,
-					DataSource id) {
-				return matchBinding(context, model, context.bindings()::get, idDomain,
-						id);
+			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id) {
+				return matchBinding(context, model, context.bindings()::get, idDomain, id);
 			}
 		};
 	}
@@ -114,27 +110,36 @@ public class BindingProviders {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U> U matchBinding(BindingContext context, Model<U> model,
-			ModelBindingProvider bindings, QualifiedName idDomain,
-			DataSource idSource) {
+	private <U> U matchBinding(BindingContext context, Model<U> model, ModelBindingProvider bindings,
+			QualifiedName idDomain, DataSource idSource) {
 		if (idSource.currentState() == DataStreamState.TERMINATED)
-			throw new BindingException("No further id data to match in domain '"
-					+ idDomain + "' for model '" + model + "'", context);
+			throw new BindingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
+					context);
 
 		DataItem<?> id = idSource.get();
+
+		/*
+		 * TODO object provider begins trying to find straight away, blocking if
+		 * nothing is found in immediately available selection (though perhaps only
+		 * if import is flagged to allow such blocks / waits)
+		 * 
+		 * throw exception when we try to invoke a method which isn't proxied yet?
+		 * Or continue to block if this is allowed?
+		 * 
+		 * Make sure thread safe, this could be a cool way to support forward
+		 * dependencies etc. when threading is supported in binding.
+		 */
 
 		Supplier<U> objectProvider = () -> {
 			Set<U> bindingCandidates = bindings.get(model);
 
 			ChildNode<?, ?> child = model.effective().child(idDomain);
 			if (!(child instanceof DataNode.Effective<?>))
-				throw new BindingException("Can't find child '" + idDomain
-						+ "' to target for model '" + model + "'", context);
+				throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
 			DataNode.Effective<?> node = (Effective<?>) child;
 
 			for (U bindingCandidate : bindingCandidates) {
-				DataSource candidateId = unbindDataNode(node,
-						new TypedObject<>(model.getDataType(), bindingCandidate));
+				DataSource candidateId = unbindDataNode(node, new TypedObject<>(model.getDataType(), bindingCandidate));
 
 				if (candidateId.size() != 1)
 					continue;
@@ -146,34 +151,40 @@ public class BindingProviders {
 				}
 			}
 
-			throw new BindingException("Can't find any bindings matching id '" + id
-					+ "' in domain '" + idDomain + "' for model '" + model + "'",
+			throw new BindingException(
+					"Can't find any bindings matching id '" + id + "' in domain '" + idDomain + "' for model '" + model + "'",
 					context);
 		};
 
-		Set<? extends Class<?>> classes = model.effective().getDataType()
-				.getRawTypes();
+		/*
+		 * Should only have one raw type. Non-abstract models shouldn't be
+		 * intersection types.
+		 */
+		Class<?> rawType = model.effective().getDataType().getRawType();
 
-		return (U) Proxy.newProxyInstance(
-				Thread.currentThread().getContextClassLoader(),
-				classes.toArray(new Class<?>[classes.size()]), new InvocationHandler() {
+		/*
+		 * TODO check if raw type is actually proxiable...
+		 */
+
+		return (U) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { rawType },
+				new InvocationHandler() {
+					private Supplier<U> objectSupplier = objectProvider;
 					private U object;
 
 					@Override
-					public Object invoke(Object proxy, Method method, Object[] args)
-							throws Throwable {
-						if (object == null)
-							object = objectProvider.get();
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						if (object == null) {
+							object = objectSupplier.get();
+							objectSupplier = null;
+						}
 
 						return method.invoke(object, args);
 					}
 				});
 	}
 
-	private <V> DataSource unbindDataNode(DataNode.Effective<V> node,
-			TypedObject<?> source) {
-		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager)
-				.withUnbindingSource(source);
+	private <V> DataSource unbindDataNode(DataNode.Effective<V> node, TypedObject<?> source) {
+		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager).withUnbindingSource(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));

@@ -26,6 +26,9 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.tuple.Pair;
 
+/*
+ * TODO binding future actually waits for blocks before it can complete, rather than assuming blocks must be released if it reaches completion...
+ */
 public interface BindingFutureBlocks extends Observable<Pair<QualifiedName, DataSource>> {
 	Set<QualifiedName> waitingForNamespaces();
 

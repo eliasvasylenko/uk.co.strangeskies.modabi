@@ -18,27 +18,8 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
-import java.util.List;
-
-import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public interface UnbindingContext extends UnbindingState {
-	Provisions provisions();
-
-	<T> List<Model.Effective<T>> getMatchingModels(TypeToken<T> dataClass);
-
-	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
-			ComplexNode<T> element);
-
-	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
-			DataNode<T> node);
-
+public interface UnbindingContext extends ProcessingState {
 	StructuredDataTarget output();
 }

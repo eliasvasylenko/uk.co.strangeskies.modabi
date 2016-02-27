@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.impl.processing.UnbindingContextImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
-import uk.co.strangeskies.modabi.processing.UnbindingException;
+import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public class UnbinderImpl<T> implements Unbinder<T> {
@@ -59,12 +59,12 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 		List<? extends Model.Effective<? extends T>> models = unbindingFunction.apply(context);
 
 		if (models.isEmpty()) {
-			throw new UnbindingException("Cannot find any model to unbind '" + data + "'", context);
+			throw new BindingException("Cannot find any model to unbind '" + data + "'", context);
 		}
 
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			unbindImpl(c, m, output);
-		}, e -> new UnbindingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
+		}, e -> new BindingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
 
 		return output;
 	}
@@ -80,10 +80,10 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 			new BindingNodeUnbinder(context).unbind(model, (U) data);
 
 			context.output().endChild();
-		} catch (UnbindingException e) {
+		} catch (BindingException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new UnbindingException("Unexpected problem during uninding of '" + data + "' according to '" + model + "'",
+			throw new BindingException("Unexpected problem during uninding of '" + data + "' according to '" + model + "'",
 					context, e);
 		}
 	}

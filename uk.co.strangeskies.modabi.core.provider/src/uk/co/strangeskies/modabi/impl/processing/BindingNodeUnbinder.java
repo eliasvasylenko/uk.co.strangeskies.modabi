@@ -34,7 +34,7 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
-import uk.co.strangeskies.modabi.processing.UnbindingException;
+import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -148,7 +148,7 @@ public class BindingNodeUnbinder {
 				try {
 					context.withUnbindingNode(node).attemptUnbindingUntilSuccessful(node.children(),
 							(c, n) -> getChildProcessor(c).accept(n),
-							n -> new UnbindingException("Option '" + n + "' under choice node '" + node + "' could not be unbound",
+							n -> new BindingException("Option '" + n + "' under choice node '" + node + "' could not be unbound",
 									context, n));
 				} catch (Exception e) {
 					if (!node.occurrences().contains(0))
@@ -161,7 +161,7 @@ public class BindingNodeUnbinder {
 			try {
 				node.process(processor);
 			} catch (Exception e) {
-				throw new UnbindingException("Failed to unbind node '" + node + "'", context, e);
+				throw new BindingException("Failed to unbind node '" + node + "'", context, e);
 			}
 		};
 	}
@@ -190,7 +190,7 @@ public class BindingNodeUnbinder {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException
 				| NullPointerException e) {
-			throw new UnbindingException(
+			throw new BindingException(
 					"Cannot invoke method '" + method + "' on '" + receiver + "' with arguments '["
 							+ Arrays.asList(parameters).stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]'",
 					context, e);
@@ -202,7 +202,7 @@ public class BindingNodeUnbinder {
 			return method.newInstance(parameters);
 		} catch (NullPointerException | InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
-			throw new UnbindingException(
+			throw new BindingException(
 					"Cannot invoke method '" + method + "' with arguments '["
 							+ Arrays.asList(parameters).stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]'",
 					context, e);
@@ -213,14 +213,14 @@ public class BindingNodeUnbinder {
 	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node, UnbindingContext context) {
 		List<U> itemList;
 
-		Object parent = context.unbindingSource().getObject();
+		Object parent = context.bindingObject().getObject();
 
 		if (node.getDataType() == null)
-			throw new UnbindingException(
+			throw new BindingException(
 					"Cannot unbind node '" + node.getName() + "' from object '" + parent + "' with no data class.", context);
 
 		if (node.getOutMethod() == null && (node.getOutMethodName() == null || !node.getOutMethodName().equals("this")))
-			throw new UnbindingException(
+			throw new BindingException(
 					"Cannot unbind node '" + node.getName() + "' from object '" + parent + "' with no out method.", context);
 
 		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
@@ -248,14 +248,14 @@ public class BindingNodeUnbinder {
 				itemList = null;
 			else {
 				if (!Types.isLooseInvocationContextCompatible(item.getClass(), node.getDataType().getRawType()))
-					throw new UnbindingException("Cannot unbind node '" + node + "'", context,
+					throw new BindingException("Cannot unbind node '" + node + "'", context,
 							new ClassCastException("Cannot cast " + item.getClass() + " to " + node.getDataType()));
 				itemList = Arrays.asList(item);
 			}
 		}
 
 		if (itemList != null && node.occurrences() != null && !node.occurrences().contains(itemList.size()))
-			throw new UnbindingException("Output list '" + itemList + "' must contain a number of items within range '"
+			throw new BindingException("Output list '" + itemList + "' must contain a number of items within range '"
 					+ Range.compose(node.occurrences()) + "' to be unbound by node '" + node + "'", context);
 
 		return itemList;

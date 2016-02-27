@@ -28,7 +28,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingContext;
@@ -38,7 +37,7 @@ import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public class BindingContextImpl extends ProcessingContextImpl<BindingContextImpl> implements BindingContext {
+public class BindingContextImpl extends ProcessingStateImpl<BindingContextImpl> implements BindingContext {
 	private final List<TypedObject<?>> bindingTargetStack;
 	private StructuredDataSource input;
 	private final boolean exhaustive;
@@ -72,7 +71,7 @@ public class BindingContextImpl extends ProcessingContextImpl<BindingContextImpl
 	}
 
 	@Override
-	public List<TypedObject<?>> bindingTargetStack() {
+	public List<TypedObject<?>> bindingObjectStack() {
 		return bindingTargetStack;
 	}
 
@@ -89,7 +88,7 @@ public class BindingContextImpl extends ProcessingContextImpl<BindingContextImpl
 	@Override
 	protected <T> BindingContextImpl withProvision(TypeToken<T> providedClass,
 			Function<? super BindingContextImpl, T> provider,
-			ProcessingContextImpl<BindingContextImpl>.ProcessingProvisions provisions) {
+			ProcessingStateImpl<BindingContextImpl>.ProcessingProvisions provisions) {
 		return new BindingContextImpl(this, bindingTargetStack, input, provisions, isExhaustive());
 	}
 
@@ -102,7 +101,7 @@ public class BindingContextImpl extends ProcessingContextImpl<BindingContextImpl
 	}
 
 	public <T> BindingContextImpl withBindingTarget(TypedObject<?> target, boolean replace) {
-		List<TypedObject<?>> bindingTargetStack = new ArrayList<>(bindingTargetStack());
+		List<TypedObject<?>> bindingTargetStack = new ArrayList<>(bindingObjectStack());
 		if (replace) {
 			bindingTargetStack.set(bindingTargetStack.size() - 1, target);
 		} else {
@@ -184,12 +183,6 @@ public class BindingContextImpl extends ProcessingContextImpl<BindingContextImpl
 			}
 
 		throw onFailure.apply(failures);
-	}
-
-	@Override
-	public List<TypedObject<?>> boundObjectStack() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public boolean isExhaustive() {

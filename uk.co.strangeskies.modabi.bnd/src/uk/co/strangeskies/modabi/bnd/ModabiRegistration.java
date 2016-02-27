@@ -56,14 +56,19 @@ public class ModabiRegistration {
 			+ SchemaManager.class.getTypeName() + ")";
 
 	private final RegistrationContext context;
-	private final Set<QualifiedName> loadingDependencies;
+	private final Map<BindingFuture<Schema>, String> providedSchemata;
+	private final Set<QualifiedName> requiredSchemata;
 
 	public ModabiRegistration(RegistrationContext context) {
 		this.context = context;
-		loadingDependencies = new HashSet<>();
+		requiredSchemata = new HashSet<>();
+		providedSchemata = new HashMap<>();
 	}
 
 	public synchronized boolean registerSchemata() throws Exception {
+		requiredSchemata.clear();
+		providedSchemata.clear();
+
 		if (!context.sources().isEmpty()) {
 			new ContextClassLoaderRunner(context.classLoader()).run(() -> registerSchemaResources());
 			return true;
@@ -76,29 +81,19 @@ public class ModabiRegistration {
 		/*
 		 * Begin binding schemata concurrently
 		 */
-		Map<String, BindingFuture<Schema>> schemaFutures = new HashMap<>();
 		for (String resourceName : context.sources()) {
-			schemaFutures.put(resourceName, registerSchemaResource(() -> context.openSource(resourceName)));
+			providedSchemata.put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName);
 		}
 
 		/*
 		 * Resolve schemata
 		 */
-		List<Attribute> newCapabilities = new ArrayList<>();
-		for (String resourceName : schemaFutures.keySet()) {
-			Schema schema = schemaFutures.get(resourceName).resolve();
-
-			List<AttributeProperty<?>> properties = new ArrayList<>();
-
-			properties.add(AttributeProperty.untyped(SCHEMA, schema.getQualifiedName().toString()));
-			properties.add(AttributeProperty.untyped(RESOURCE, resourceName));
-
-			newCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
+		for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
+			schemaFuture.resolve();
 		}
 
-		context.addAttributes(Constants.PROVIDE_CAPABILITY, newCapabilities);
-
-		addGeneralRequirements();
+		addProvisions();
+		addRequirements();
 	}
 
 	private BindingFuture<Schema> registerSchemaResource(ThrowingSupplier<InputStream, ?> inputStream) {
@@ -133,8 +128,8 @@ public class ModabiRegistration {
 
 		if (context.availableDependencies().contains(dependency)) {
 			boolean added;
-			synchronized (loadingDependencies) {
-				added = loadingDependencies.add(dependency);
+			synchronized (requiredSchemata) {
+				added = requiredSchemata.add(dependency);
 			}
 			if (added) {
 				registerSchemaResource(() -> context.openDependency(dependency));
@@ -142,7 +137,35 @@ public class ModabiRegistration {
 		}
 	}
 
-	private void addGeneralRequirements() {
+	private void addProvisions() {
+		List<Attribute> providedCapabilities = new ArrayList<>();
+
+		for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
+			List<AttributeProperty<?>> properties = new ArrayList<>();
+
+			properties.add(AttributeProperty.untyped(SCHEMA, schemaFuture.resolve().getQualifiedName().toString()));
+			properties.add(AttributeProperty.untyped(RESOURCE, providedSchemata.get(schemaFuture)));
+
+			providedCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
+		}
+
+		context.addAttributes(Constants.PROVIDE_CAPABILITY, providedCapabilities);
+	}
+
+	private void addRequirements() {
+		List<Attribute> requiredCapabilities = new ArrayList<>();
+
+		for (QualifiedName schema : requiredSchemata) {
+			List<AttributeProperty<?>> properties = new ArrayList<>();
+
+			properties.add(AttributeProperty.untyped(SCHEMA, schema.toString()));
+
+			/*
+			 * Modabi schema requirement attributes
+			 */
+			requiredCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
+		}
+
 		AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(Constants.RESOLUTION_DIRECTIVE,
 				PropertyType.DIRECTIVE, Constants.MANDATORY_DIRECTIVE);
 
@@ -152,29 +175,28 @@ public class ModabiRegistration {
 		AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
 				PropertyType.DIRECTIVE, Constants.EFFECTIVE_ACTIVE);
 
-		context
-				.addAttributes(Constants.REQUIRE_CAPABILITY,
-						/*
-						 * StructuredDataFormat service requirement attribute
-						 */
-						new Attribute(SERVICE,
-								new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
-										"(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + context.formatId() + "))"),
-								mandatoryResolution, activeEffective),
+		/*
+		 * StructuredDataFormat service requirement attribute
+		 */
+		requiredCapabilities.add(new Attribute(SERVICE,
+				new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
+						"(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + context.formatId() + "))"),
+				mandatoryResolution, activeEffective));
 
-						/*
-						 * SchemaManager service requirement attribute
-						 */
-						new Attribute(SERVICE,
-								new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
-										SCHEMAMANAGER_SERVICE_FILTER),
-								mandatoryResolution, activeEffective),
+		/*
+		 * SchemaManager service requirement attribute
+		 */
+		requiredCapabilities.add(new Attribute(SERVICE,
+				new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, SCHEMAMANAGER_SERVICE_FILTER),
+				mandatoryResolution, activeEffective));
 
-						/*
-						 * Modabi extender attribute
-						 */
-						new Attribute(EXTENDER,
-								new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, EXTENDER_FILTER),
-								mandatoryResolution, resolveEffective));
+		/*
+		 * Modabi extender attribute
+		 */
+		requiredCapabilities.add(new Attribute(EXTENDER,
+				new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, EXTENDER_FILTER),
+				mandatoryResolution, resolveEffective));
+
+		context.addAttributes(Constants.REQUIRE_CAPABILITY, requiredCapabilities);
 	}
 }

@@ -385,7 +385,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		} , this::addBindingFuture);
+		}, this::addBindingFuture);
 	}
 
 	@Override
@@ -417,7 +417,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public <T> Unbinder<T> unbind(TypeToken<T> dataType, T data) {
-		return new UnbinderImpl<>(this, data, context -> context.getMatchingModels(dataType));
+		return new UnbinderImpl<>(this, data, context -> registeredModels().getModelsWithClass(dataType).stream()
+				.map(n -> n.effective()).collect(Collectors.toList()));
 	}
 
 	@Override

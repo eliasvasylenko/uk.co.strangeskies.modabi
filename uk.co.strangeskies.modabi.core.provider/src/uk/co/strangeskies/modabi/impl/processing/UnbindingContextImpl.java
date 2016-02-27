@@ -29,7 +29,6 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.impl.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
@@ -37,14 +36,13 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.UnbindingContext;
-import uk.co.strangeskies.modabi.processing.UnbindingException;
+import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public class UnbindingContextImpl extends
-		ProcessingContextImpl<UnbindingContextImpl> implements UnbindingContext {
+public class UnbindingContextImpl extends ProcessingStateImpl<UnbindingContextImpl> implements UnbindingContext {
 	private final List<TypedObject<?>> unbindingSourceStack;
 	private final StructuredDataTarget output;
 
@@ -55,28 +53,26 @@ public class UnbindingContextImpl extends
 		output = null;
 	}
 
-	private UnbindingContextImpl(UnbindingContextImpl parent,
-			List<TypedObject<?>> unbindingSourceStack, StructuredDataTarget output,
-			ProcessingProvisions provider) {
+	private UnbindingContextImpl(UnbindingContextImpl parent, List<TypedObject<?>> unbindingSourceStack,
+			StructuredDataTarget output, ProcessingProvisions provider) {
 		super(parent, provider);
 		this.unbindingSourceStack = unbindingSourceStack;
 		this.output = output;
 	}
 
-	private UnbindingContextImpl(UnbindingContextImpl parent,
-			SchemaNode.Effective<?, ?> unbindingNode) {
+	private UnbindingContextImpl(UnbindingContextImpl parent, SchemaNode.Effective<?, ?> unbindingNode) {
 		super(parent, unbindingNode, false);
 		this.unbindingSourceStack = parent.unbindingSourceStack;
 		this.output = parent.output;
 	}
 
 	@Override
-	public List<TypedObject<?>> unbindingSourceStack() {
+	public List<TypedObject<?>> bindingObjectStack() {
 		return unbindingSourceStack;
 	}
 
 	@Override
-	public List<Effective<?, ?>> unbindingNodeStack() {
+	public List<Effective<?, ?>> bindingNodeStack() {
 		return nodeStack();
 	}
 
@@ -86,37 +82,29 @@ public class UnbindingContextImpl extends
 	}
 
 	@Override
-	protected RuntimeException processingException(String message,
-			UnbindingContextImpl state) {
-		throw new UnbindingException(message, state);
+	protected RuntimeException processingException(String message, UnbindingContextImpl state) {
+		throw new BindingException(message, state);
 	}
 
 	@Override
 	protected <T> UnbindingContextImpl withProvision(TypeToken<T> providedClass,
-			Function<? super UnbindingContextImpl, T> provider,
-			ProcessingProvisions provisions) {
-		return new UnbindingContextImpl(this, unbindingSourceStack, output,
-				provisions);
+			Function<? super UnbindingContextImpl, T> provider, ProcessingProvisions provisions) {
+		return new UnbindingContextImpl(this, unbindingSourceStack, output, provisions);
 	}
 
 	public <T> UnbindingContextImpl withUnbindingSource(TypedObject<?> target) {
-		List<TypedObject<?>> unbindingSourceStack = new ArrayList<>(
-				unbindingSourceStack());
+		List<TypedObject<?>> unbindingSourceStack = new ArrayList<>(bindingObjectStack());
 		unbindingSourceStack.add(target);
 
-		return new UnbindingContextImpl(this,
-				Collections.unmodifiableList(unbindingSourceStack), output,
-				getProvider());
+		return new UnbindingContextImpl(this, Collections.unmodifiableList(unbindingSourceStack), output, getProvider());
 	}
 
-	public <T> UnbindingContextImpl withUnbindingNode(
-			SchemaNode.Effective<?, ?> node) {
+	public <T> UnbindingContextImpl withUnbindingNode(SchemaNode.Effective<?, ?> node) {
 		return new UnbindingContextImpl(this, node);
 	}
 
 	public UnbindingContextImpl withOutput(StructuredDataTarget output) {
-		return new UnbindingContextImpl(this, unbindingSourceStack, output,
-				getProvider());
+		return new UnbindingContextImpl(this, unbindingSourceStack, output, getProvider());
 	}
 
 	public void attemptUnbinding(Consumer<UnbindingContextImpl> unbindingMethod) {
@@ -124,8 +112,7 @@ public class UnbindingContextImpl extends
 
 		BufferingDataTarget dataTarget = null;
 
-		Navigable output = StructuredDataBuffer.singleBuffer(this.output.index())
-				.addChild(new QualifiedName(""));
+		Navigable output = StructuredDataBuffer.singleBuffer(this.output.index()).addChild(new QualifiedName(""));
 
 		/*
 		 * Mark output! (by redirecting to a new buffer)
@@ -133,8 +120,7 @@ public class UnbindingContextImpl extends
 		if (context.provisions().isProvided(DataTarget.class)) {
 			dataTarget = new BufferingDataTarget();
 			DataTarget finalTarget = dataTarget;
-			context = context.withProvision(new TypeToken<DataTarget>() {},
-					() -> finalTarget);
+			context = context.withProvision(new TypeToken<DataTarget>() {}, () -> finalTarget);
 		}
 		context = context.withOutput(output);
 
@@ -148,8 +134,7 @@ public class UnbindingContextImpl extends
 		 * Remove mark! (by flushing buffer into output)
 		 */
 		if (dataTarget != null)
-			dataTarget.buffer()
-					.pipe(provisions().provide(DataTarget.class).getObject());
+			dataTarget.buffer().pipe(provisions().provide(DataTarget.class).getObject());
 
 		NavigableStructuredDataSource bufferedData = output.endChild().getBuffer();
 		bufferedData.startNextChild();
@@ -158,11 +143,9 @@ public class UnbindingContextImpl extends
 	}
 
 	public <I> I attemptUnbindingUntilSuccessful(Iterable<I> attemptItems,
-			BiConsumer<UnbindingContextImpl, I> unbindingMethod,
-			Function<Set<Exception>, UnbindingException> onFailure) {
+			BiConsumer<UnbindingContextImpl, I> unbindingMethod, Function<Set<Exception>, BindingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new UnbindingException("Must supply items for unbinding attempt",
-					this);
+			throw new BindingException("Must supply items for unbinding attempt", this);
 
 		Set<Exception> failures = new HashSet<>();
 

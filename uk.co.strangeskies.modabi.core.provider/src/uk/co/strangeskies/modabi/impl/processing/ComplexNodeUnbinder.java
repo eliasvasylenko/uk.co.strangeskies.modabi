@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.processing.UnbindingException;
+import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -46,7 +46,7 @@ public class ComplexNodeUnbinder {
 						.collect(Collectors.toList());
 
 				if (node.isAbstract() && validOverrides.isEmpty()) {
-					throw new UnbindingException(
+					throw new BindingException(
 							"Unable to find model to satisfy complex node '" + node.getName()
 									+ "' with base model '"
 									+ node.baseModel().stream()
@@ -63,7 +63,7 @@ public class ComplexNodeUnbinder {
 											n) -> unbindExactNode(c,
 													(ComplexNode.Effective<U>) overrides.putGet(n),
 													item),
-									l -> new UnbindingException(
+									l -> new BindingException(
 											"Unable to unbind complex node '" + node.getName()
 													+ "' with model candidates '"
 													+ validOverrides.stream()
@@ -71,12 +71,12 @@ public class ComplexNodeUnbinder {
 															.collect(Collectors.joining(", "))
 													+ "' for object '" + item + "' to be unbound",
 											context, l));
-				} catch (UnbindingException e) {
+				} catch (BindingException e) {
 					if (!node.isAbstract()) {
 						for (U i : data)
 							unbindExactNode(context, node, i);
 					} else {
-						throw new UnbindingException("Could not unbind without extension",
+						throw new BindingException("Could not unbind without extension",
 								context, e);
 					}
 				}
@@ -99,7 +99,7 @@ public class ComplexNodeUnbinder {
 
 			context.bindings().add(element, data);
 		} catch (ClassCastException e) {
-			throw new UnbindingException("Cannot unbind data at this node.", context,
+			throw new BindingException("Cannot unbind data at this node.", context,
 					e);
 		}
 	}

@@ -440,7 +440,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.dataType(Collection.class).outMethod("null")
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingType(BindingContext.class)
-													.addChild(f -> f.data().name("bindingTarget")
+													.addChild(f -> f.data().name("bindingObject")
 															.type(primitives.get(Primitive.INT))
 															.inMethodChained(true).outMethod("null")
 															.provideValue(new BufferingDataTarget()
