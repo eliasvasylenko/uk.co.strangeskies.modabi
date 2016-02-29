@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -42,14 +40,6 @@ public interface SchemaManager {
 	}
 
 	GeneratedSchema generateSchema(QualifiedName name, Collection<? extends Schema> dependencies);
-
-	<T> void registerProvider(TypeToken<T> providedClass, Supplier<T> provider);
-
-	void registerProvider(Function<TypeToken<?>, ?> provider);
-
-	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
-		registerProvider(TypeToken.over(providedClass), provider);
-	}
 
 	boolean registerSchema(Schema schema);
 

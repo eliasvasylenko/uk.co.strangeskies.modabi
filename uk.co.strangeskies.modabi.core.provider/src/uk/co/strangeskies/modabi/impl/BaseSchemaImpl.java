@@ -45,7 +45,7 @@ import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.processing.BindingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
@@ -192,7 +192,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.provideValue(new BufferingDataTarget().buffer())
 											.outMethod("null")
 											.bindingStrategy(BindingStrategy.PROVIDED)
-											.bindingType(BindingContext.class)
+											.bindingType(ProcessingContext.class)
 											.addChild(e -> e.data().name("bindingNode")
 													.inMethodChained(true)
 													.postInputType(
@@ -221,7 +221,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.name("targetIdInput").outMethod("null")
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingType(BindingContext.class)
+													.bindingType(ProcessingContext.class)
 													.addChild(e -> e.data().name("bindingNode")
 															.inMethodChained(true)
 															.postInputType(
@@ -326,7 +326,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.provideValue(
 																			new BufferingDataTarget().buffer())
 											.bindingStrategy(BindingStrategy.PROVIDED)
-											.bindingType(BindingContext.class)
+											.bindingType(ProcessingContext.class)
 											.addChild(e -> e.inputSequence().name("bindingNode")
 													.inMethodChained(true)
 													.postInputType(
@@ -354,7 +354,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.provideValue(
 																			new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingType(BindingContext.class)
+													.bindingType(ProcessingContext.class)
 													.addChild(e -> e.inputSequence().name("bindingNode")
 															.inMethodChained(true)
 															.postInputType(
@@ -414,7 +414,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.name("targetModel").outMethod("null")
 																	.bindingStrategy(BindingStrategy.PROVIDED)
 																	.bindingType(
-																			BindingContext.class)
+																			ProcessingContext.class)
 													.addChild(f -> f.data().name("bindingNode")
 															.type(primitives.get(Primitive.INT))
 															.outMethod("null").inMethodChained(true)
@@ -439,7 +439,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.addChild(e -> e.data().name("object")
 													.dataType(Collection.class).outMethod("null")
 													.bindingStrategy(BindingStrategy.PROVIDED)
-													.bindingType(BindingContext.class)
+													.bindingType(ProcessingContext.class)
 													.addChild(f -> f.data().name("bindingObject")
 															.type(primitives.get(Primitive.INT))
 															.inMethodChained(true).outMethod("null")
@@ -501,7 +501,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.dataType(new TypeToken<Model<?>>() {})
 																	.name("targetModel").outMethod("null")
 																	.bindingStrategy(BindingStrategy.PROVIDED)
-																	.bindingType(BindingContext.class)
+																	.bindingType(ProcessingContext.class)
 																	.provideValue(
 																			new BufferingDataTarget().buffer())
 											.addChild(f -> f.data().name("bindingNode")
@@ -527,7 +527,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(d -> d.data().dataType(QualifiedName.class)
 											.name("targetId").outMethod("null")
 											.bindingStrategy(BindingStrategy.PROVIDED)
-											.bindingType(BindingContext.class)
+											.bindingType(ProcessingContext.class)
 											.provideValue(new BufferingDataTarget().buffer())
 											.addChild(f -> f.data().name("bindingNode")
 													.type(primitives.get(Primitive.INT)).outMethod("null")

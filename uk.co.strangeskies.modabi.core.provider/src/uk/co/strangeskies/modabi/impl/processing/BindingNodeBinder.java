@@ -44,9 +44,9 @@ import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeBinder {
-	private final BindingContextImpl context;
+	private final ProcessingContextImpl context;
 
-	public BindingNodeBinder(BindingContextImpl context) {
+	public BindingNodeBinder(ProcessingContextImpl context) {
 		this.context = context;
 	}
 
@@ -56,7 +56,7 @@ public class BindingNodeBinder {
 		 * We need to replace the current binding node here as it may have been
 		 * overridden in the case that this node is extensible.
 		 */
-		BindingContextImpl context = this.context.withReplacementBindingNode(node);
+		ProcessingContextImpl context = this.context.withReplacementBindingNode(node);
 
 		TypedObject<?> binding;
 		List<ChildNode.Effective<?, ?>> children = node.children();
@@ -65,10 +65,11 @@ public class BindingNodeBinder {
 		if (strategy == null)
 			strategy = BindingStrategy.PROVIDED;
 
+		TypeToken<?> bindingType = node.getBindingType() != null ? node.getBindingType() : node.getDataType();
+
 		switch (strategy) {
 		case PROVIDED:
-			TypeToken<?> providedType = node.getBindingType() != null ? node.getBindingType() : node.getDataType();
-			binding = this.context.provisions().provide(providedType);
+			binding = this.context.provide(bindingType);
 
 			break;
 		case CONSTRUCTOR:
@@ -78,8 +79,7 @@ public class BindingNodeBinder {
 			Executable inputMethod = getInputMethod(firstChild);
 			List<Object> parameters = getSingleBindingSequence(firstChild, context);
 			try {
-				binding = TypedObject.castInto(node.getBindingType(),
-						((Constructor<?>) inputMethod).newInstance(parameters.toArray()));
+				binding = TypedObject.castInto(bindingType, ((Constructor<?>) inputMethod).newInstance(parameters.toArray()));
 			} catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
 				throw new BindingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
 						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
@@ -115,8 +115,7 @@ public class BindingNodeBinder {
 			inputMethod = getInputMethod(firstChild);
 			parameters = getSingleBindingSequence(firstChild, context);
 			try {
-				binding = TypedObject.castInto(node.getBindingType(),
-						((Method) inputMethod).invoke(null, parameters.toArray()));
+				binding = TypedObject.castInto(bindingType, ((Method) inputMethod).invoke(null, parameters.toArray()));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
 				throw new BindingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
 						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
@@ -129,7 +128,7 @@ public class BindingNodeBinder {
 			throw new AssertionError();
 		}
 
-		context = context.withBindingTarget(binding);
+		context = context.withBindingObject(binding);
 
 		for (ChildNode.Effective<?, ?> child : children) {
 			context = ChildNodeBinder.bind(context, child);
@@ -150,7 +149,7 @@ public class BindingNodeBinder {
 		return result.get();
 	}
 
-	public static List<Object> getSingleBindingSequence(ChildNode.Effective<?, ?> node, BindingContextImpl context) {
+	public static List<Object> getSingleBindingSequence(ChildNode.Effective<?, ?> node, ProcessingContextImpl context) {
 		List<Object> parameters = new ArrayList<>();
 		node.process(new PartialSchemaProcessor() {
 			@Override
@@ -168,7 +167,7 @@ public class BindingNodeBinder {
 		return parameters;
 	}
 
-	public static TypedObject<?> getSingleBinding(ChildNode.Effective<?, ?> node, BindingContextImpl context) {
+	public static TypedObject<?> getSingleBinding(ChildNode.Effective<?, ?> node, ProcessingContextImpl context) {
 		IdentityProperty<TypedObject<?>> result = new IdentityProperty<>();
 		node.process(new PartialSchemaProcessor() {
 			@Override

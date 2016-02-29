@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
 import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
@@ -30,20 +31,20 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
-	private BindingContextImpl context;
+	private ProcessingContext context;
 	private final T node;
 
-	public ChildNodeBinder(BindingContextImpl context, T node) {
+	public ChildNodeBinder(ProcessingContext context, T node) {
 		this.context = context;
 		this.node = node;
 	}
 
-	protected void setContext(BindingContextImpl context) {
+	protected void setContext(ProcessingContextImpl context) {
 		this.context = context;
 	}
 
-	public BindingContextImpl getContext() {
-		return context;
+	public ProcessingContextImpl getContext() {
+		return new ProcessingContextImpl(context);
 	}
 
 	public T getNode() {
@@ -61,23 +62,18 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 				count++;
 			} while (!node.occurrences().isValueAbove(count + 1));
 		} catch (Exception e) {
-			throw new BindingException(
-					"Node '" + node.getName() + "' failed to bind on occurance '" + count
-							+ "' of range '" + node.occurrences() + "'",
-					context, e);
+			throw new BindingException("Node '" + node.getName() + "' failed to bind on occurance '" + count + "' of range '"
+					+ node.occurrences() + "'", context, e);
 		}
 
 		if (!node.occurrences().contains(count)) {
-			throw new BindingException(
-					"Node '" + node.getName() + "' occurrences '" + count
-							+ "' should be within range '" + node.occurrences() + "'",
-					getContext());
+			throw new BindingException("Node '" + node.getName() + "' occurrences '" + count + "' should be within range '"
+					+ node.occurrences() + "'", getContext());
 		}
 	}
 
-	public static BindingContextImpl bind(BindingContextImpl parentContext,
-			ChildNode.Effective<?, ?> next) {
-		BindingContextImpl context = parentContext.withBindingNode(next);
+	public static ProcessingContextImpl bind(ProcessingContextImpl parentContext, ChildNode.Effective<?, ?> next) {
+		ProcessingContextImpl context = parentContext.withBindingNode(next);
 
 		ReturningSchemaProcessor<ChildNodeBinder<?>> childProcessor = new ReturningSchemaProcessor<ChildNodeBinder<?>>() {
 			@Override
@@ -107,11 +103,9 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 		};
 
 		try {
-			return parentContext.withReplacementBindingTarget(
-					next.process(childProcessor).getContext().bindingObject());
+			return parentContext.withReplacementBindingObject(next.process(childProcessor).getContext().bindingObject());
 		} catch (Exception e) {
-			throw new BindingException("Failed to bind node '" + next + "'", context,
-					e);
+			throw new BindingException("Failed to bind node '" + next + "'", context, e);
 		}
 	}
 }

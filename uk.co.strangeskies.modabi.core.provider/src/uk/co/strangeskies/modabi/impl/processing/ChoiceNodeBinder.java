@@ -24,11 +24,11 @@ import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 
 public class ChoiceNodeBinder extends ChildNodeBinder<ChoiceNode.Effective> {
-	public ChoiceNodeBinder(BindingContextImpl parentContext,
+	public ChoiceNodeBinder(ProcessingContextImpl parentContext,
 			ChoiceNode.Effective node) {
 		super(parentContext, node);
 
-		Consumer<BindingContextImpl> bind = context -> {
+		Consumer<ProcessingContextImpl> bind = context -> {
 			if (node.children().size() == 1) {
 				bind(context, node.children().iterator().next());
 			} else if (!node.children().isEmpty()) {

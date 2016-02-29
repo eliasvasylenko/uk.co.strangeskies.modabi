@@ -23,13 +23,14 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
-		extends ChildNodeBinder<T> {
-	public InputNodeBinder(BindingContextImpl context, T node) {
+public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> extends ChildNodeBinder<T> {
+	public InputNodeBinder(ProcessingContext context, T node) {
 		super(context, node);
 	}
 
@@ -40,19 +41,25 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
 
 		if (!"null".equals(getNode().getInMethodName())) {
 			try {
-				result = newTypedObject(getNode().getPostInputType(),
-						((Method) getNode().getInMethod()).invoke(target.getObject(),
-								parameters));
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | SecurityException e) {
+				TypeToken<?> postInputType = getNode().getPostInputType();
+				if (postInputType == null) {
+					if (getNode().isInMethodChained()) {
+						postInputType = Invokable.over(getNode().getInMethod()).withTargetType(target.getType()).getReturnType();
+					} else {
+						postInputType = target.getType();
+					}
+				}
+
+				result = TypedObject.castInto(postInputType,
+						((Method) getNode().getInMethod()).invoke(target.getObject(), parameters));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
 				throw new BindingException(
-						"Unable to call method '" + getNode().getInMethod()
-								+ "' with parameters '" + Arrays.toString(parameters),
+						"Unable to call method '" + getNode().getInMethod() + "' with parameters '" + Arrays.toString(parameters),
 						getContext(), e);
 			}
 
 			if (getNode().isInMethodChained()) {
-				setContext(getContext().withReplacementBindingTarget(result));
+				setContext(getContext().withReplacementBindingObject(result));
 				target = result;
 			}
 		} else {
@@ -60,10 +67,5 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>>
 		}
 
 		return target;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <U> TypedObject<U> newTypedObject(TypeToken<U> type, Object object) {
-		return new TypedObject<>(type, (U) object);
 	}
 }

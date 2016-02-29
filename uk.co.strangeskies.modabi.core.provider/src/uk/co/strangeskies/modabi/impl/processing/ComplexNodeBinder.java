@@ -29,11 +29,10 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
-public class ComplexNodeBinder<U>
-		extends InputNodeBinder<ComplexNode.Effective<U>> {
+public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<U>> {
 	private final List<U> binding;
 
-	public ComplexNodeBinder(BindingContextImpl context, ComplexNode<U> node) {
+	public ComplexNodeBinder(ProcessingContextImpl context, ComplexNode<U> node) {
 		super(context, node.effective());
 
 		binding = bind();
@@ -57,9 +56,8 @@ public class ComplexNodeBinder<U>
 		List<U> result = new ArrayList<>();
 
 		repeatNode(count -> {
-			BindingContextImpl context = getContext();
-			ComplexNode.Effective<? extends U> exactNode = getExactNode(context,
-					node);
+			ProcessingContextImpl context = getContext();
+			ComplexNode.Effective<? extends U> exactNode = getExactNode(context, node);
 
 			/*
 			 * If the current node is not inline, we first determine whether the next
@@ -70,7 +68,7 @@ public class ComplexNodeBinder<U>
 			if (exactNode == null)
 				return false;
 
-			Function<BindingContextImpl, U> bind = c -> bindExactNode(c, exactNode);
+			Function<ProcessingContextImpl, U> bind = c -> bindExactNode(c, exactNode);
 			U binding;
 
 			if (node.isInline() && !node.occurrences().isValueBelow(count)) {
@@ -104,9 +102,9 @@ public class ComplexNodeBinder<U>
 	}
 
 	@SuppressWarnings("unchecked")
-	protected ComplexNode.Effective<? extends U> getExactNode(
-			BindingContextImpl context, ComplexNode.Effective<U> node) {
-		QualifiedName nextElement = context.input().peekNextChild();
+	protected ComplexNode.Effective<? extends U> getExactNode(ProcessingContextImpl context,
+			ComplexNode.Effective<U> node) {
+		QualifiedName nextElement = context.input().get().peekNextChild();
 
 		ComplexNode.Effective<? extends U> exactNode;
 
@@ -115,22 +113,16 @@ public class ComplexNodeBinder<U>
 				Model.Effective<?> extension = context.getModel(nextElement);
 
 				if (extension == null) {
-					throw new BindingException(
-							"Cannot find model '" + nextElement + "' to bind to", context);
+					throw new BindingException("Cannot find model '" + nextElement + "' to bind to", context);
 				}
 
 				if (!node.getDataType().isAssignableFrom(extension.getDataType())) {
-					throw new BindingException(
-							"Named input node '" + nextElement + "' of type '"
-									+ extension.getDataType() + "' does not match type '"
-									+ node.getDataType() + "' of extention point",
-							context);
+					throw new BindingException("Named input node '" + nextElement + "' of type '" + extension.getDataType()
+							+ "' does not match type '" + node.getDataType() + "' of extention point", context);
 				}
 
-				exactNode = context.getComplexNodeOverrides(node)
-						.putGet((Effective<? extends U>) extension);
-			} else if (node.isInline()
-					|| Objects.equals(nextElement, node.getName())) {
+				exactNode = context.getComplexNodeOverrides(node).putGet((Effective<? extends U>) extension);
+			} else if (node.isInline() || Objects.equals(nextElement, node.getName())) {
 				exactNode = node;
 			} else {
 				exactNode = null;
@@ -142,15 +134,14 @@ public class ComplexNodeBinder<U>
 		return exactNode;
 	}
 
-	protected U bindExactNode(BindingContextImpl context,
-			ComplexNode.Effective<? extends U> node) {
+	protected U bindExactNode(ProcessingContextImpl context, ComplexNode.Effective<? extends U> node) {
 		if (!node.isInline())
-			context.input().startNextChild();
+			context.input().get().startNextChild();
 
 		U binding = new BindingNodeBinder(context).bind(node);
 
 		if (!node.isInline())
-			context.input().endChild();
+			context.input().get().endChild();
 
 		return binding;
 	}

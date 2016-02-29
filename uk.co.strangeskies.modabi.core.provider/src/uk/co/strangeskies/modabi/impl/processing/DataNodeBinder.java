@@ -29,6 +29,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
@@ -40,7 +41,7 @@ import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	private final List<U> binding;
 
-	public DataNodeBinder(BindingContextImpl context, DataNode<U> node) {
+	public DataNodeBinder(ProcessingContext context, DataNode<U> node) {
 		super(context, node.effective());
 
 		binding = Collections.unmodifiableList(bind());
@@ -58,16 +59,15 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	}
 
 	private List<U> bind() {
-		BindingContextImpl context = getContext();
+		ProcessingContextImpl context = getContext();
 		DataNode.Effective<U> node = getNode();
 
 		DataSource dataSource;
 
 		List<U> results = new ArrayList<>();
 
-		if (node.isValueProvided()
-				&& (node.valueResolution() == ValueResolution.REGISTRATION_TIME
-						|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
+		if (node.isValueProvided() && (node.valueResolution() == ValueResolution.REGISTRATION_TIME
+				|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
 			/*
 			 * Value is already provided and bound
 			 */
@@ -82,14 +82,12 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				 * Value is already provided, but not bound
 				 */
 				DataSource providedValueBuffer = node.providedValueBuffer();
-				results.addAll(bindList(
-						context.withProvision(DataSource.class, () -> providedValueBuffer)
-								.forceExhausting(),
-						node));
+				results.addAll(
+						bindList(context.withProvision(DataSource.class, () -> providedValueBuffer).forceExhausting(), node));
 			} else if (node.format() != null) {
 				switch (node.format()) {
 				case CONTENT:
-					dataSource = context.input().readContent();
+					dataSource = context.input().get().readContent();
 
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
@@ -98,7 +96,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 					break;
 				case PROPERTY:
-					dataSource = context.input().readProperty(node.getName());
+					dataSource = context.input().get().readProperty(node.getName());
 
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
@@ -108,15 +106,15 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					break;
 				case SIMPLE:
 					dataSource = null;
-					while (node.getName().equals(context.input().peekNextChild())) {
-						context.input().startNextChild(node.getName());
+					while (node.getName().equals(context.input().get().peekNextChild())) {
+						context.input().get().startNextChild(node.getName());
 
-						dataSource = context.input().readContent();
+						dataSource = context.input().get().readContent();
 
 						U result = bindWithDataSource(dataSource, context, node);
 						results.add(result);
 
-						context.input().endChild();
+						context.input().get().endChild();
 					}
 					break;
 				default:
@@ -132,10 +130,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private void validateResults(DataNode.Effective<?> node, List<?> results,
-			Exception cause) {
-		if (results.isEmpty() && !node.occurrences().contains(0)
-				&& !node.occurrences().contains(0)) {
+	private void validateResults(DataNode.Effective<?> node, List<?> results, Exception cause) {
+		if (results.isEmpty() && !node.occurrences().contains(0) && !node.occurrences().contains(0)) {
 			String message = "Node '" + node.getName() + "' must be bound data.";
 			if (cause != null)
 				throw new BindingException(message, getContext(), cause);
@@ -144,9 +140,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
-			String message = "Node '" + node.getName() + "' binding results '"
-					+ results + "' must be bound data within range of '"
-					+ Range.compose(node.occurrences()) + "' occurrences.";
+			String message = "Node '" + node.getName() + "' binding results '" + results
+					+ "' must be bound data within range of '" + Range.compose(node.occurrences()) + "' occurrences.";
 			if (cause != null)
 				throw new BindingException(message, getContext(), cause);
 			else
@@ -154,8 +149,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		}
 	}
 
-	private List<U> bindList(BindingContextImpl context,
-			DataNode.Effective<U> node) {
+	private List<U> bindList(ProcessingContextImpl context, DataNode.Effective<U> node) {
 		context = context.withInput(null);
 
 		List<U> results = new ArrayList<>();
@@ -166,9 +160,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		DataSource dataSource = null;
 		int successfulIndex = 0;
 		try {
-			if (context.provisions().isProvided(DataSource.class))
-				dataSource = context.provisions()
-						.provide(TypeToken.over(DataSource.class)).getObject();
+			if (context.isProvided(DataSource.class))
+				dataSource = context.provide(TypeToken.over(DataSource.class)).getObject();
 
 			if (dataSource != null)
 				successfulIndex = dataSource.index();
@@ -186,10 +179,10 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			}
 
 			if (context.isExhaustive() && !dataSource.isComplete()) {
-				throw new BindingException("Failed to bind all of data source, with ["
-						+ dataSource.stream().map(Objects::toString)
-								.collect(Collectors.joining(", "))
-						+ "] remaining", context, e);
+				throw new BindingException(
+						"Failed to bind all of data source, with ["
+								+ dataSource.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "] remaining",
+						context, e);
 			} else {
 				optionalException = e;
 			}
@@ -200,56 +193,45 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private static <U> U bindWithDataSource(DataSource dataSource,
-			BindingContextImpl context, DataNode.Effective<U> node) {
-		context = context.withProvision(DataSource.class, () -> dataSource)
-				.forceExhausting();
+	private static <U> U bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
+			DataNode.Effective<U> node) {
+		context = context.withProvision(DataSource.class, () -> dataSource).forceExhausting();
 
 		U binding = bindExactNode(context, node);
 
 		return binding;
 	}
 
-	private static <U> U bindExactNode(BindingContextImpl context,
-			DataNode.Effective<U> node) {
+	private static <U> U bindExactNode(ProcessingContextImpl context, DataNode.Effective<U> node) {
 		if (node.isExtensible()) {
 			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
-				throw new SchemaException("Unable to find type to satisfy data node '"
-						+ node.getName() + "' with type '" + node.effective().type() + "'");
+				throw new SchemaException("Unable to find type to satisfy data node '" + node.getName() + "' with type '"
+						+ node.effective().type() + "'");
 
 			Property<U, U> result = new IdentityProperty<U>();
 
-			context
-					.attemptBindingUntilSuccessful(
-							overrides
-									.keySet(),
-							(c, n) -> result
-									.set(
-											new BindingNodeBinder(c).bind(
-													overrides.putGet(n))),
-							l -> new BindingException(
-									"Unable to bind data node '" + node.getName()
-											+ "' with type candidates '"
-											+ overrides.keySet().stream()
-													.map(m -> m.effective().getName().toString())
-													.collect(Collectors.joining(", "))
-											+ "'",
-									context, l));
+			context.attemptBindingUntilSuccessful(overrides.keySet(),
+					(c, n) -> result.set(new BindingNodeBinder(c).bind(overrides.putGet(n))),
+					l -> new BindingException(
+							"Unable to bind data node '" + node.getName()
+									+ "' with type candidates '" + overrides.keySet().stream()
+											.map(m -> m.effective().getName().toString()).collect(Collectors.joining(", "))
+									+ "'",
+							context, l));
 
 			return result.get();
 		} else
 			return new BindingNodeBinder(context).bind(node);
 	}
 
-	public static DataLoader dataLoader(BindingContextImpl context) {
+	public static DataLoader dataLoader(ProcessingContextImpl context) {
 		return new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context
-						.withProvision(DataSource.class, () -> data).forceExhausting(),
+				return new DataNodeBinder<>(context.withProvision(DataSource.class, () -> data).forceExhausting(),
 						node.effective()).getBinding();
 			}
 		};

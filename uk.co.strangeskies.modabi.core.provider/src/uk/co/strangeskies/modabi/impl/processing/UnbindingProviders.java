@@ -25,7 +25,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
@@ -40,19 +40,19 @@ public class UnbindingProviders {
 		this.manager = manager;
 	}
 
-	public Function<UnbindingContext, IncludeTarget> includeTarget() {
+	public Function<ProcessingContext, IncludeTarget> includeTarget() {
 		return context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, Collection<? extends U> objects) {
 				for (U object : objects)
 					context.bindings().add(model, object);
 
-				context.output().registerNamespaceHint(model.getName().getNamespace());
+				context.output().get().registerNamespaceHint(model.getName().getNamespace());
 			}
 		};
 	}
 
-	public Function<UnbindingContext, ImportTarget> importTarget() {
+	public Function<ProcessingContext, ImportTarget> importTarget() {
 		return context -> new ImportTarget() {
 			@Override
 			public <U> DataSource dereferenceImport(Model<U> model, QualifiedName idDomain, U object) {
@@ -65,7 +65,7 @@ public class UnbindingProviders {
 		};
 	}
 
-	public Function<UnbindingContext, ReferenceTarget> referenceTarget() {
+	public Function<ProcessingContext, ReferenceTarget> referenceTarget() {
 		return context -> new ReferenceTarget() {
 			@Override
 			public <U> DataSource reference(Model<U> model, QualifiedName idDomain, U object) {
@@ -79,7 +79,7 @@ public class UnbindingProviders {
 	}
 
 	private <V> DataSource unbindDataNode(DataNode.Effective<V> node, TypedObject<?> source) {
-		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager).withUnbindingSource(source);
+		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(manager).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));

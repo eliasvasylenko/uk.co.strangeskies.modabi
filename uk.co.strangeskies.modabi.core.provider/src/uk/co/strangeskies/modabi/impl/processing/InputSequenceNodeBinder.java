@@ -24,11 +24,11 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
 public class InputSequenceNodeBinder
 		extends InputNodeBinder<InputSequenceNode.Effective> {
-	public InputSequenceNodeBinder(BindingContextImpl context,
+	public InputSequenceNodeBinder(ProcessingContextImpl context,
 			InputSequenceNode.Effective node) {
 		super(context, node);
 
-		Consumer<BindingContextImpl> bind = c -> invokeInMethod(
+		Consumer<ProcessingContextImpl> bind = c -> invokeInMethod(
 				BindingNodeBinder.getSingleBindingSequence(node, c).toArray());
 
 		repeatNode(count -> {

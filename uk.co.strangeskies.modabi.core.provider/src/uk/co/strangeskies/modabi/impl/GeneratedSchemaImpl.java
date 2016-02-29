@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.impl.processing.BindingContextImpl;
+import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
@@ -111,7 +111,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	@Override
 	public <T> DataType<T> buildDataType(
 			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build) {
-		BindingContextImpl context = manager.getBindingContext();
+		ProcessingContextImpl context = manager.getBindingContext();
 
 		DataType<T> type = build.apply(manager.getDataTypeBuilder()
 				.configure(DataNodeBinder.dataLoader(context))).create();
@@ -124,7 +124,7 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	@Override
 	public <T> Model<T> buildModel(
 			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build) {
-		BindingContextImpl context = manager.getBindingContext();
+		ProcessingContextImpl context = manager.getBindingContext();
 
 		Model<T> model = build.apply(
 				manager.getModelBuilder().configure(DataNodeBinder.dataLoader(context)))

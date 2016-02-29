@@ -25,21 +25,21 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
-import uk.co.strangeskies.modabi.impl.processing.UnbindingContextImpl;
+import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public class UnbinderImpl<T> implements Unbinder<T> {
 	private final SchemaManagerImpl manager;
 	private final T data;
 
-	private final Function<UnbindingContext, List<Model.Effective<T>>> unbindingFunction;
+	private final Function<ProcessingContext, List<Model.Effective<T>>> unbindingFunction;
 
 	public UnbinderImpl(SchemaManagerImpl manager, T data,
-			Function<UnbindingContext, List<Model.Effective<T>>> unbindingFunction) {
+			Function<ProcessingContext, List<Model.Effective<T>>> unbindingFunction) {
 		this.manager = manager;
 		this.data = data;
 		this.unbindingFunction = unbindingFunction;
@@ -54,7 +54,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 	@Override
 	public <U extends StructuredDataTarget> U to(U output) {
-		UnbindingContextImpl context = manager.getUnbindingContext().withOutput(output);
+		ProcessingContextImpl context = manager.getProcessingContext().withOutput(output);
 
 		List<? extends Model.Effective<? extends T>> models = unbindingFunction.apply(context);
 
@@ -70,16 +70,16 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends T> void unbindImpl(UnbindingContextImpl context, Model.Effective<U> model,
+	private <U extends T> void unbindImpl(ProcessingContext context, Model.Effective<U> model,
 			StructuredDataTarget output) {
 		output.registerDefaultNamespaceHint(model.getName().getNamespace());
 
 		try {
-			context.output().addChild(model.getName());
+			context.output().get().addChild(model.getName());
 
 			new BindingNodeUnbinder(context).unbind(model, (U) data);
 
-			context.output().endChild();
+			context.output().get().endChild();
 		} catch (BindingException e) {
 			throw e;
 		} catch (Exception e) {

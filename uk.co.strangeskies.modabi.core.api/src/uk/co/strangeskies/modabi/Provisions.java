@@ -18,19 +18,44 @@
  */
 package uk.co.strangeskies.modabi;
 
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
 public interface Provisions {
-	<T> TypedObject<T> provide(TypeToken<T> type);
-
-	default <T> TypedObject<T> provide(Class<T> clazz) {
-		return provide(TypeToken.over(clazz));
+	default <T> void registerProvider(TypeToken<T> providedClass, Supplier<T> provider) {
+		registerProvider(providedClass, s -> provider.get());
 	}
 
-	boolean isProvided(TypeToken<?> type);
+	default void registerProvider(Function<TypeToken<?>, ?> provider) {
+		registerProvider((t, s) -> provider.apply(t));
+	}
 
-	default boolean isProvided(Class<?> clazz) {
-		return isProvided(TypeToken.over(clazz));
+	default <T> void registerProvider(Class<T> providedClass, Supplier<T> provider) {
+		registerProvider(TypeToken.over(providedClass), provider);
+	}
+
+	<T> void registerProvider(TypeToken<T> providedClass, Function<ProcessingContext, T> provider);
+
+	void registerProvider(BiFunction<TypeToken<?>, ProcessingContext, ?> provider);
+
+	default <T> void registerProvider(Class<T> providedClass, Function<ProcessingContext, T> provider) {
+		registerProvider(TypeToken.over(providedClass), provider);
+	}
+
+	<T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state);
+
+	default <T> TypedObject<T> provide(Class<T> clazz, ProcessingContext state) {
+		return provide(TypeToken.over(clazz), state);
+	}
+
+	boolean isProvided(TypeToken<?> type, ProcessingContext state);
+
+	default boolean isProvided(Class<?> clazz, ProcessingContext state) {
+		return isProvided(TypeToken.over(clazz), state);
 	}
 }

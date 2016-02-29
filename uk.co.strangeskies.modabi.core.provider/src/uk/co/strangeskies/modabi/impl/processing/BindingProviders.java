@@ -33,9 +33,9 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
-import uk.co.strangeskies.modabi.processing.BindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
@@ -58,7 +58,7 @@ public class BindingProviders {
 		this.manager = manager;
 	}
 
-	public Function<BindingContext, ImportSource> importSource() {
+	public Function<ProcessingContext, ImportSource> importSource() {
 		return context -> new ImportSource() {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
@@ -73,14 +73,14 @@ public class BindingProviders {
 		};
 	}
 
-	public Function<BindingContext, Imports> imports() {
+	public Function<ProcessingContext, Imports> imports() {
 		return context -> Imports.empty();
 	}
 
 	/*
-	 * TODO from BindingContext not BindingContextImpl
+	 * TODO from BindingContext not ProcessingContextImpl
 	 */
-	public Function<BindingContextImpl, DataLoader> dataLoader() {
+	public Function<ProcessingContext, DataLoader> dataLoader() {
 		return context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
@@ -89,7 +89,7 @@ public class BindingProviders {
 		};
 	}
 
-	public Function<BindingContext, DereferenceSource> dereferenceSource() {
+	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
 			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id) {
@@ -98,7 +98,7 @@ public class BindingProviders {
 		};
 	}
 
-	public Function<BindingContext, IncludeTarget> includeTarget() {
+	public Function<ProcessingContext, IncludeTarget> includeTarget() {
 		return context -> new IncludeTarget() {
 			@Override
 			public <U> void include(Model<U> model, Collection<? extends U> objects) {
@@ -110,7 +110,7 @@ public class BindingProviders {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U> U matchBinding(BindingContext context, Model<U> model, ModelBindingProvider bindings,
+	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
 			QualifiedName idDomain, DataSource idSource) {
 		if (idSource.currentState() == DataStreamState.TERMINATED)
 			throw new BindingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
@@ -184,7 +184,7 @@ public class BindingProviders {
 	}
 
 	private <V> DataSource unbindDataNode(DataNode.Effective<V> node, TypedObject<?> source) {
-		UnbindingContextImpl unbindingContext = new UnbindingContextImpl(manager).withUnbindingSource(source);
+		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(manager).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));

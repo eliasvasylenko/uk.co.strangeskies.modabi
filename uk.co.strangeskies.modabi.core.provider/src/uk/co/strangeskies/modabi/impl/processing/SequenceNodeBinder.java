@@ -25,11 +25,11 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public class SequenceNodeBinder
 		extends ChildNodeBinder<SequenceNode.Effective> {
-	public SequenceNodeBinder(BindingContextImpl context,
+	public SequenceNodeBinder(ProcessingContextImpl context,
 			SequenceNode.Effective node) {
 		super(context, node);
 
-		Consumer<BindingContextImpl> bind = c -> {
+		Consumer<ProcessingContextImpl> bind = c -> {
 			for (ChildNode.Effective<?, ?> child : node.children())
 				bind(context, child);
 		};

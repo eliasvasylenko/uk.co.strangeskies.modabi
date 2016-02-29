@@ -26,25 +26,25 @@ import uk.co.strangeskies.modabi.SchemaException;
 public class BindingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
 
-	private final ProcessingState state;
+	private final ProcessingContext state;
 
 	private final Collection<? extends Exception> multiCause;
 
-	public BindingException(String message, ProcessingState state, Collection<? extends Exception> cause) {
+	public BindingException(String message, ProcessingContext state, Collection<? extends Exception> cause) {
 		super(message + getBindingStateString(state), cause.iterator().next());
 
 		multiCause = cause;
 		this.state = state;
 	}
 
-	public BindingException(String message, ProcessingState state, Exception cause) {
+	public BindingException(String message, ProcessingContext state, Exception cause) {
 		super(message + getBindingStateString(state), cause);
 
 		multiCause = Arrays.asList(cause);
 		this.state = state;
 	}
 
-	public BindingException(String message, ProcessingState state) {
+	public BindingException(String message, ProcessingContext state) {
 		super(message + getBindingStateString(state));
 
 		multiCause = null;
@@ -55,7 +55,7 @@ public class BindingException extends SchemaException {
 		return multiCause;
 	}
 
-	private static String getBindingStateString(ProcessingState state) {
+	private static String getBindingStateString(ProcessingContext state) {
 		/*
 		 * binding target may be proxied, and so throw an exception...
 		 */
@@ -69,7 +69,7 @@ public class BindingException extends SchemaException {
 		return getNodeContext(state) + " with binding object '" + bindingTarget + "'";
 	}
 
-	private static String getNodeContext(ProcessingState state) {
+	private static String getNodeContext(ProcessingContext state) {
 		String nodeContext;
 
 		if (state.bindingNodeStack().isEmpty()) {
@@ -86,7 +86,7 @@ public class BindingException extends SchemaException {
 		return nodeContext;
 	}
 
-	public ProcessingState getState() {
+	public ProcessingContext getState() {
 		return state;
 	}
 }

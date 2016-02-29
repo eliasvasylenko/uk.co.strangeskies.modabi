@@ -176,7 +176,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private T bind(BindingSource<T> source) {
 		Model.Effective<T> model = source.getModel();
 		return source.withData((StructuredDataSource input) -> {
-			BindingContextImpl context = manager.getBindingContext().withInput(input);
+			ProcessingContextImpl context = manager.getBindingContext().withInput(input);
 
 			QualifiedName inputRoot = input.startNextChild();
 			if (!inputRoot.equals(model.getName()))

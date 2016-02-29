@@ -19,27 +19,56 @@
 package uk.co.strangeskies.modabi.processing;
 
 import java.util.List;
+import java.util.Optional;
 
 import uk.co.strangeskies.modabi.Bindings;
+import uk.co.strangeskies.modabi.DataTypes;
+import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public interface ProcessingState {
-	/*
-	 * Access to models and data data types
+public interface ProcessingContext {
+	/**
+	 * Get the model of the given name registered in the {@link SchemaManager}
+	 * backing this context.
+	 * 
+	 * @param name
+	 *          The name of the model to fetch
+	 * @return The model of the given name, or null if no such model exists
 	 */
-	Model.Effective<?> getModel(QualifiedName nextElement);
+	Model.Effective<?> getModel(QualifiedName name);
 
-	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
-			ComplexNode<T> element);
+	/**
+	 * For a given extensible complex node, get a map from possible overriding
+	 * models to the nodes resulting from the application of those overrides. The
+	 * values of the map are lazily computed, then cached for further use.
+	 * 
+	 * @param node
+	 *          The element to override with a model
+	 * @return A mapping from possible overrides to override results
+	 */
+	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(ComplexNode<T> node);
 
+	/**
+	 * For a given extensible data node, get a map from possible overriding data
+	 * types to the nodes resulting from the application of those overrides. The
+	 * values of the map are lazily computed, then cached for further use.
+	 * 
+	 * @param node
+	 *          The element to override with a model
+	 * @return A mapping from possible overrides to override results
+	 */
 	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(DataNode<T> node);
 
 	/*
@@ -79,4 +108,33 @@ public interface ProcessingState {
 	 * Access to bindings encountered so far
 	 */
 	Bindings bindings();
+
+	/*
+	 * Input and or output, where available
+	 */
+	Optional<StructuredDataSource> input();
+
+	Optional<StructuredDataTarget> output();
+
+	boolean isExhaustive();
+
+	default <T> TypedObject<T> provide(TypeToken<T> type) {
+		return provisions().provide(type, this);
+	}
+
+	default <T> TypedObject<T> provide(Class<T> type) {
+		return provisions().provide(type, this);
+	}
+
+	default boolean isProvided(TypeToken<?> type) {
+		return provisions().isProvided(type, this);
+	}
+
+	default boolean isProvided(Class<?> type) {
+		return provisions().isProvided(type, this);
+	}
+
+	Models registeredModels();
+
+	DataTypes registeredTypes();
 }

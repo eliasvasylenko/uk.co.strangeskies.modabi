@@ -33,8 +33,8 @@ import java.util.stream.StreamSupport;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.ValueResolution;
-import uk.co.strangeskies.modabi.processing.UnbindingContext;
 import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -49,24 +49,28 @@ import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.reflection.Types;
 
 public class BindingNodeUnbinder {
-	private final UnbindingContextImpl context;
+	private final ProcessingContext context;
 
-	public BindingNodeUnbinder(UnbindingContextImpl context) {
+	public BindingNodeUnbinder(ProcessingContext context) {
 		this.context = context;
 	}
 
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
-		UnbindingContextImpl context = this.context.withUnbindingNode(node)
+		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node)
 				.withProvision(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node);
 
-		Function<Object, TypedObject<?>> supplier = u -> TypedObject.castInto(node.getUnbindingType(), u);
+		TypeToken<?> unbindingType = node.getUnbindingType() != null ? node.getUnbindingType() : node.getDataType();
+		TypeToken<?> unbindingFactoryType = node.getUnbindingFactoryType() != null ? node.getUnbindingFactoryType()
+				: unbindingType;
+
+		Function<Object, TypedObject<?>> supplier = u -> TypedObject.castInto(unbindingType, u);
 		if (node.getUnbindingStrategy() != null) {
 			switch (node.getUnbindingStrategy()) {
 			case SIMPLE:
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
-					TypedObject<?> o = context.provisions().provide(node.getUnbindingType());
+					TypedObject<?> o = context.provide(unbindingType);
 					invokeMethod((Method) node.getUnbindingMethod(), context, o.getObject(),
 							prepareUnbingingParameterList(node, u));
 					return o;
@@ -74,25 +78,23 @@ public class BindingNodeUnbinder {
 				break;
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
-					TypedObject<?> o = context.provisions().provide(node.getUnbindingType());
+					TypedObject<?> o = context.provide(unbindingType);
 					invokeMethod((Method) node.getUnbindingMethod(), context, u,
 							prepareUnbingingParameterList(node, o.getObject()));
 					return o;
 				};
 				break;
 			case CONSTRUCTOR:
-				supplier = u -> TypedObject.castInto(node.getUnbindingType(), invokeConstructor(
+				supplier = u -> TypedObject.castInto(unbindingType, invokeConstructor(
 						(Constructor<?>) node.getUnbindingMethod(), context, prepareUnbingingParameterList(node, u)));
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> TypedObject.castInto(node.getUnbindingFactoryType(),
+				supplier = u -> TypedObject.castInto(unbindingFactoryType,
 						invokeMethod((Method) node.getUnbindingMethod(), context, null, prepareUnbingingParameterList(node, u)));
 				break;
 			case PROVIDED_FACTORY:
-				supplier = u -> TypedObject.castInto(node.getUnbindingFactoryType(),
-						invokeMethod((Method) node.getUnbindingMethod(), context,
-								context.provisions().provide(node.getUnbindingFactoryType()).getObject(),
-								prepareUnbingingParameterList(node, u)));
+				supplier = u -> TypedObject.castInto(unbindingFactoryType, invokeMethod((Method) node.getUnbindingMethod(),
+						context, context.provide(unbindingFactoryType).getObject(), prepareUnbingingParameterList(node, u)));
 				break;
 			default:
 				throw new AssertionError();
@@ -100,14 +102,14 @@ public class BindingNodeUnbinder {
 		}
 
 		Consumer<ChildNode.Effective<?, ?>> processingContext = getChildProcessor(
-				context.withUnbindingSource(supplier.apply(data)));
+				context.withBindingObject(supplier.apply(data)));
 
 		for (ChildNode.Effective<?, ?> child : node.children()) {
 			processingContext.accept(child);
 		}
 	}
 
-	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(UnbindingContextImpl context) {
+	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(ProcessingContextImpl context) {
 		SchemaProcessor processor = new SchemaProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
@@ -137,7 +139,7 @@ public class BindingNodeUnbinder {
 			}
 
 			public void acceptSequence(SchemaNode.Effective<?, ?> node) {
-				Consumer<ChildNode.Effective<?, ?>> childProcessor = getChildProcessor(context.withUnbindingNode(node));
+				Consumer<ChildNode.Effective<?, ?>> childProcessor = getChildProcessor(context.withBindingNode(node));
 
 				for (ChildNode.Effective<?, ?> child : node.children())
 					childProcessor.accept(child);
@@ -146,7 +148,7 @@ public class BindingNodeUnbinder {
 			@Override
 			public void accept(ChoiceNode.Effective node) {
 				try {
-					context.withUnbindingNode(node).attemptUnbindingUntilSuccessful(node.children(),
+					context.withBindingNode(node).attemptUnbindingUntilSuccessful(node.children(),
 							(c, n) -> getChildProcessor(c).accept(n),
 							n -> new BindingException("Option '" + n + "' under choice node '" + node + "' could not be unbound",
 									context, n));
@@ -185,7 +187,7 @@ public class BindingNodeUnbinder {
 		return parameters.toArray();
 	}
 
-	private static Object invokeMethod(Method method, UnbindingContext context, Object receiver, Object... parameters) {
+	private static Object invokeMethod(Method method, ProcessingContext context, Object receiver, Object... parameters) {
 		try {
 			return method.invoke(receiver, parameters);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException
@@ -197,7 +199,7 @@ public class BindingNodeUnbinder {
 		}
 	}
 
-	private static Object invokeConstructor(Constructor<?> method, UnbindingContext context, Object... parameters) {
+	private static Object invokeConstructor(Constructor<?> method, ProcessingContext context, Object... parameters) {
 		try {
 			return method.newInstance(parameters);
 		} catch (NullPointerException | InstantiationException | IllegalAccessException | IllegalArgumentException
@@ -210,7 +212,7 @@ public class BindingNodeUnbinder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node, UnbindingContext context) {
+	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node, ProcessingContext context) {
 		List<U> itemList;
 
 		Object parent = context.bindingObject().getObject();
