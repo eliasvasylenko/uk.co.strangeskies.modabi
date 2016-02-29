@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -28,15 +27,14 @@ import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public interface Unbinder<T> {
 	<U extends StructuredDataTarget> U to(U output);
 
 	// BindingFuture<T> to(RewritableStructuredData output);
 
-	default BindingFuture<T> to(File output) {
-		return to(output.toURI());
-	}
+	BindingFuture<T> to(File output);
 
 	default BindingFuture<T> to(URI output) {
 		try {
@@ -46,26 +44,9 @@ public interface Unbinder<T> {
 		}
 	}
 
-	default BindingFuture<T> to(URL output) {
-		String extension = output.getQuery();
-		int lastDot = extension.lastIndexOf('.');
-		if (lastDot > 0) {
-			extension = extension.substring(lastDot);
-		} else {
-			throw new IllegalArgumentException("No recognisable extension for file'"
-					+ output + "', data interface cannot be selected");
-		}
+	BindingFuture<T> to(URL output);
 
-		try (OutputStream fileStream = output.openConnection().getOutputStream()) {
-			BindingFuture<T> binding = to(extension, fileStream);
-			fileStream.flush();
-			return binding;
-		} catch (IOException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
-
-	BindingFuture<T> to(String extension, OutputStream output);
+	BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output);
 
 	// Unbinder<T> updatable();
 
@@ -75,4 +56,5 @@ public interface Unbinder<T> {
 	 * unbinding, and the exception information will be serialised as a comment.
 	 */
 	Unbinder<T> with(Consumer<Exception> errorHandler);
+
 }

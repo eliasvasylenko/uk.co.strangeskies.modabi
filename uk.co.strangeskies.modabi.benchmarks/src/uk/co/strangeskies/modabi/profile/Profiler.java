@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.profile;
 
-import java.io.ByteArrayOutputStream;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.wiring.BundleWiring;
@@ -29,6 +27,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.io.structured.DiscardingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
@@ -56,16 +55,12 @@ public class Profiler {
 
 	@Activate
 	public void profile(BundleContext context) throws BundleException {
-		ClassLoader classLoader = context.getBundle().adapt(BundleWiring.class)
-				.getClassLoader();
+		ClassLoader classLoader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
 
 		new ContextClassLoaderRunner(classLoader).run(() -> {
 			try {
-				log(Level.INFO,
-						manager
-								.unbind(manager.getMetaSchema().getSchemaModel(),
-										manager.getMetaSchema())
-								.to("xml", new ByteArrayOutputStream()).toString());
+				log(Level.INFO, manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema())
+						.to(new DiscardingStructuredDataTarget()).toString());
 
 				warmUpProfiling(60);
 
@@ -73,12 +68,8 @@ public class Profiler {
 				long totalTimeUnbinding = unbindingProfile(profileRounds);
 				long totalTimeBinding = bindingProfile(profileRounds);
 
-				log(Level.INFO,
-						"Time per unbind: "
-								+ (double) totalTimeUnbinding / (profileRounds * 1000)
-								+ " seconds");
-				log(Level.INFO, "Time per bind: "
-						+ (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
+				log(Level.INFO, "Time per unbind: " + (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
+				log(Level.INFO, "Time per bind: " + (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
 			} catch (Throwable t) {
 				throw t;
 			} finally {
@@ -89,8 +80,7 @@ public class Profiler {
 
 	private long bindingProfile(int profileRounds) {
 		StructuredDataBuffer.Navigable buffer = StructuredDataBuffer.singleBuffer();
-		manager.unbind(manager.getMetaSchema().getSchemaModel(),
-				manager.getMetaSchema()).to(buffer);
+		manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).to(buffer);
 
 		log(Level.INFO, "Binding Profiling");
 		long startTime = System.currentTimeMillis();
@@ -99,8 +89,7 @@ public class Profiler {
 				log(Level.INFO, "  working... (" + i + " / " + profileRounds + ")");
 
 			buffer.getBuffer().reset();
-			manager.bind(manager.getMetaSchema().getSchemaModel())
-					.from(buffer.getBuffer()).resolve();
+			manager.bind(manager.getMetaSchema().getSchemaModel()).from(buffer.getBuffer()).resolve();
 		}
 		return System.currentTimeMillis() - startTime;
 	}
@@ -112,8 +101,8 @@ public class Profiler {
 			if (i % 10 == 0)
 				log(Level.INFO, "  working... (" + i + " / " + profileRounds + ")");
 
-			manager.unbind(manager.getMetaSchema().getSchemaModel(),
-					manager.getMetaSchema()).to(StructuredDataBuffer.singleBuffer());
+			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema())
+					.to(StructuredDataBuffer.singleBuffer());
 		}
 		return System.currentTimeMillis() - startTime;
 	}
@@ -124,14 +113,11 @@ public class Profiler {
 			if (i % 10 == 0)
 				log(Level.INFO, "  working... (" + i + " / " + warmupRounds + ")");
 
-			StructuredDataBuffer.Navigable buffer = StructuredDataBuffer
-					.singleBuffer();
-			manager.unbind(manager.getMetaSchema().getSchemaModel(),
-					manager.getMetaSchema()).to(buffer);
+			StructuredDataBuffer.Navigable buffer = StructuredDataBuffer.singleBuffer();
+			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).to(buffer);
 
 			buffer.getBuffer().reset();
-			manager.bind(manager.getMetaSchema().getSchemaModel())
-					.from(buffer.getBuffer()).resolve();
+			manager.bind(manager.getMetaSchema().getSchemaModel()).from(buffer.getBuffer()).resolve();
 		}
 	}
 }

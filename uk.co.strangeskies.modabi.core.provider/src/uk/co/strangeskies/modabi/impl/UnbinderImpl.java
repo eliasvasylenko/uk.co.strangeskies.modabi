@@ -18,11 +18,16 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
 import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
@@ -31,6 +36,7 @@ import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class UnbinderImpl<T> implements Unbinder<T> {
 	private final SchemaManagerImpl manager;
@@ -46,10 +52,34 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	}
 
 	@Override
-	public BindingFuture<T> to(String extension, OutputStream output) {
-		to(manager.dataFormats().getDataFormat(extension).saveData(output));
+	public BindingFuture<T> to(File output) {
+		return to(BinderImpl.getExtension(output.getName()), () -> new FileOutputStream(output));
+	}
+
+	@Override
+	public BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output) {
+		try (OutputStream stream = output.get()) {
+			to(manager.dataFormats().getDataFormat(extension).saveData(stream));
+		} catch (Exception e) {
+			throw new SchemaException("Could not unbind to output with unloader registered for " + extension, e);
+		}
 
 		return null;
+	}
+
+	@Override
+	public BindingFuture<T> to(URL output) {
+		String extension = BinderImpl.getExtension(output.getQuery());
+
+		try {
+			if (extension != null) {
+				return to(extension, output.openConnection()::getOutputStream);
+			} else {
+				throw new SchemaException("No output format registered to handle " + output.getPath());
+			}
+		} catch (IOException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	@Override
@@ -64,7 +94,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			unbindImpl(c, m, output);
-		}, e -> new BindingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
+		} , e -> new BindingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
 
 		return output;
 	}

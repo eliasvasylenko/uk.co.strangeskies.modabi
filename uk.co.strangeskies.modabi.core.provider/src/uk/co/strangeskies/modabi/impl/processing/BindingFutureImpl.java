@@ -89,10 +89,12 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private final FutureTask<BindingSource<T>> sourceFuture;
 	private final FutureTask<T> dataFuture;
 
-	public BindingFutureImpl(SchemaManagerImpl manager, BindingFutureBlocksImpl blocks, Supplier<BindingSource<T>> modelSupplier,
-			ClassLoader classLoader) {
+	public BindingFutureImpl(SchemaManagerImpl manager, BindingFutureBlocksImpl blocks,
+			Supplier<BindingSource<T>> modelSupplier, ClassLoader classLoader) {
 		this.manager = manager;
-		this.blocks=blocks;
+		this.blocks = blocks;
+
+		blocks.addInternalProcessingThread(Thread.currentThread());
 
 		sourceFuture = new FutureTask<>(modelSupplier::get);
 		new Thread(() -> sourceFuture.run()).start();
@@ -102,7 +104,11 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 		dataFuture = new FutureTask<>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoaderFinal);
 
-			return bind(sourceFuture.get());
+			T binding = bind(sourceFuture.get());
+
+			blocks.waitForAll();
+
+			return binding;
 		});
 		new Thread(() -> dataFuture.run()).start();
 	}
@@ -176,7 +182,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private T bind(BindingSource<T> source) {
 		Model.Effective<T> model = source.getModel();
 		return source.withData((StructuredDataSource input) -> {
-			ProcessingContextImpl context = manager.getBindingContext().withInput(input);
+			ProcessingContextImpl context = manager.getProcessingContext().withInput(input).withBindingFutureBlocker(blocks);
 
 			QualifiedName inputRoot = input.startNextChild();
 			if (!inputRoot.equals(model.getName()))

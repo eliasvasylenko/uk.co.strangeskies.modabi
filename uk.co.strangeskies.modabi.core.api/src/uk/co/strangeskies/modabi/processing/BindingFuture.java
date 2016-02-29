@@ -135,6 +135,12 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 					public void waitFor(QualifiedName namespace, DataSource id) {}
 
 					@Override
+					public void waitForAll() {}
+
+					@Override
+					public void waitForAll(long timeoutMilliseconds) {}
+
+					@Override
 					public boolean isBlocked() {
 						return false;
 					}

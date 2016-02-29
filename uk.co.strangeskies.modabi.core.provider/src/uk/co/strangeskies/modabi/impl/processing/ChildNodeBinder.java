@@ -103,7 +103,7 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 		};
 
 		try {
-			return parentContext.withReplacementBindingObject(next.process(childProcessor).getContext().bindingObject());
+			return parentContext.withReplacementBindingObject(next.process(childProcessor).getContext().getBindingObject());
 		} catch (Exception e) {
 			throw new BindingException("Failed to bind node '" + next + "'", context, e);
 		}

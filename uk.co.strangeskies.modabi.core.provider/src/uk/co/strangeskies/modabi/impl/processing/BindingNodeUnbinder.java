@@ -215,7 +215,7 @@ public class BindingNodeUnbinder {
 	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node, ProcessingContext context) {
 		List<U> itemList;
 
-		Object parent = context.bindingObject().getObject();
+		Object parent = context.getBindingObject().getObject();
 
 		if (node.getDataType() == null)
 			throw new BindingException(

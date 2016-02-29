@@ -63,20 +63,7 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public BindingFuture<T> from(URL input) {
-		String extension = input.getPath();
-		int lastSlash = extension.lastIndexOf('/');
-		if (lastSlash > 0) {
-			extension = extension.substring(lastSlash);
-
-			int lastDot = extension.lastIndexOf('.');
-			if (lastDot > 0) {
-				extension = extension.substring(lastDot + 1);
-			} else {
-				extension = null;
-			}
-		} else {
-			extension = null;
-		}
+		String extension = getExtension(input.getPath());
 
 		if (extension != null) {
 			return fromExtension(extension, input::openStream);
@@ -118,9 +105,6 @@ public class BinderImpl<T> implements Binder<T> {
 			Predicate<StructuredDataFormat> formatPredicate, boolean canRetry) {
 		Property<Exception, Exception> exception = new IdentityProperty<>();
 
-		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
-		Set<StructuredDataFormat> registeredFormats = manager.dataFormats().registerObserver(queue);
-
 		Function<Iterable<StructuredDataFormat>, BindingSource<T>> getBindingSource = formats -> {
 			for (StructuredDataFormat format : formats) {
 				if (formatPredicate.test(format)) {
@@ -143,6 +127,9 @@ public class BinderImpl<T> implements Binder<T> {
 
 			return null;
 		};
+
+		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
+		Set<StructuredDataFormat> registeredFormats = manager.dataFormats().registerObserver(queue);
 
 		try {
 			BindingSource<T> source = getBindingSource.apply(registeredFormats);
@@ -171,5 +158,21 @@ public class BinderImpl<T> implements Binder<T> {
 	public Binder<T> with(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 		return this;
+	}
+
+	static String getExtension(String name) {
+		int lastSlash = name.lastIndexOf('/');
+		if (lastSlash > 0) {
+			name = name.substring(lastSlash);
+		}
+
+		int lastDot = name.lastIndexOf('.');
+		if (lastDot > 0) {
+			name = name.substring(lastDot + 1);
+		} else {
+			name = null;
+		}
+
+		return name;
 	}
 }

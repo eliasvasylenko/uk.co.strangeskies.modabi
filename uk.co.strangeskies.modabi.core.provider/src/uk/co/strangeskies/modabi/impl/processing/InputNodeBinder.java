@@ -35,7 +35,7 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 	}
 
 	protected Object invokeInMethod(Object... parameters) {
-		TypedObject<?> target = getContext().bindingObject();
+		TypedObject<?> target = getContext().getBindingObject();
 
 		TypedObject<?> result;
 

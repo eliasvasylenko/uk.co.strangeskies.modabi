@@ -193,7 +193,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.outMethod("null")
 											.bindingStrategy(BindingStrategy.PROVIDED)
 											.bindingType(ProcessingContext.class)
-											.addChild(e -> e.data().name("bindingNode")
+											.addChild(e -> e.data().name("bindingNode").inMethod("getBindingNode")
 													.inMethodChained(true)
 													.postInputType(
 															new TypeToken<DataType.Effective<?>>() {})
@@ -222,7 +222,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.provideValue(new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingType(ProcessingContext.class)
-													.addChild(e -> e.data().name("bindingNode")
+													.addChild(e -> e.data().name("bindingNode").inMethod("getBindingNode")
 															.inMethodChained(true)
 															.postInputType(
 																	new TypeToken<DataType.Effective<?>>() {})
@@ -327,7 +327,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			new BufferingDataTarget().buffer())
 											.bindingStrategy(BindingStrategy.PROVIDED)
 											.bindingType(ProcessingContext.class)
-											.addChild(e -> e.inputSequence().name("bindingNode")
+											.addChild(e -> e.inputSequence().name("bindingNode").inMethod("getBindingNode")
 													.inMethodChained(true)
 													.postInputType(
 															new TypeToken<DataType.Effective<?>>() {})
@@ -355,7 +355,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																			new BufferingDataTarget().buffer())
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingType(ProcessingContext.class)
-													.addChild(e -> e.inputSequence().name("bindingNode")
+													.addChild(e -> e.inputSequence().name("bindingNode").inMethod("getBindingNode")
 															.inMethodChained(true)
 															.postInputType(
 																	new TypeToken<DataType.Effective<?>>() {})
@@ -415,7 +415,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.bindingStrategy(BindingStrategy.PROVIDED)
 																	.bindingType(
 																			ProcessingContext.class)
-													.addChild(f -> f.data().name("bindingNode")
+													.addChild(f -> f.data().name("bindingNode").inMethod("getBindingNode")
 															.type(primitives.get(Primitive.INT))
 															.outMethod("null").inMethodChained(true)
 															.provideValue(new BufferingDataTarget()
@@ -440,7 +440,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.dataType(Collection.class).outMethod("null")
 													.bindingStrategy(BindingStrategy.PROVIDED)
 													.bindingType(ProcessingContext.class)
-													.addChild(f -> f.data().name("bindingObject")
+													.addChild(f -> f.data().name("bindingObject").inMethod("getBindingObject")
 															.type(primitives.get(Primitive.INT))
 															.inMethodChained(true).outMethod("null")
 															.provideValue(new BufferingDataTarget()
@@ -504,7 +504,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.bindingType(ProcessingContext.class)
 																	.provideValue(
 																			new BufferingDataTarget().buffer())
-											.addChild(f -> f.data().name("bindingNode")
+											.addChild(f -> f.data().name("bindingNode").inMethod("getBindingNode")
 													.type(primitives.get(Primitive.INT)).outMethod("null")
 													.inMethodChained(true)
 													.provideValue(new BufferingDataTarget()
@@ -529,7 +529,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.bindingStrategy(BindingStrategy.PROVIDED)
 											.bindingType(ProcessingContext.class)
 											.provideValue(new BufferingDataTarget().buffer())
-											.addChild(f -> f.data().name("bindingNode")
+											.addChild(f -> f.data().name("bindingNode").inMethod("getBindingNode")
 													.type(primitives.get(Primitive.INT)).outMethod("null")
 													.inMethodChained(true)
 													.provideValue(new BufferingDataTarget()

@@ -26,10 +26,13 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingFutureBlocker;
 import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
+import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.ObservableImpl;
+import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 import uk.co.strangeskies.utilities.tuple.Pair;
@@ -37,6 +40,9 @@ import uk.co.strangeskies.utilities.tuple.Pair;
 public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutureBlocker {
 	private final ObservableImpl<Pair<QualifiedName, DataSource>> observable = new ObservableImpl<>();
 	private final MultiMap<QualifiedName, DataSource, List<DataSource>> blocks = new MultiHashMap<>(ArrayList::new);
+	private int internalBlocks = 0;
+
+	private Set<Thread> processingThreads = new HashSet<>();
 
 	@Override
 	public boolean addObserver(Consumer<? super Pair<QualifiedName, DataSource>> observer) {
@@ -49,83 +55,173 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	}
 
 	public <T> T blockAndWaitFor(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
+			try {
+				T result = blockAndWaitForImpl(blockingSupplier, namespace, id);
+				return result;
+			} finally {
+				checkForDeadlock();
+			}
+		}
+	}
+
+	public <T> T blockAndWaitForImpl(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
+		synchronized (processingThreads) {
 			blocks.add(namespace, id);
 			observable.fire(new Pair<>(namespace, id));
-		}
 
-		try {
-			T result = blockingSupplier.get();
+			checkForDeadlock();
 
-			synchronized (blocks) {
-				blocks.remove(namespace, id);
-				blocks.notifyAll();
-				return result;
-			}
-		} catch (Exception e) {
-			synchronized (blocks) {
-				blocks.notifyAll();
+			try {
+				Property<T, T> result = new IdentityProperty<>();
+				Property<Boolean, Boolean> complete = new IdentityProperty<>(false);
+				Property<RuntimeException, RuntimeException> exception = new IdentityProperty<>();
+				new Thread(() -> {
+					try {
+						result.set(blockingSupplier.get());
+						complete.set(true);
+					} catch (RuntimeException e) {
+						exception.set(e);
+					} finally {
+						synchronized (processingThreads) {
+							processingThreads.notifyAll();
+						}
+					}
+				}).start();
 
-				// TODO fail properly, cancel bindingfuture etc.
+				while (!complete.get() && exception.get() == null) {
+					try {
+						processingThreads.wait();
+					} catch (InterruptedException e) {}
+				}
+
+				if (exception.get() != null) {
+					throw exception.get();
+				}
+
+				blocks.removeValue(namespace, id);
+
+				checkForDeadlock();
+
+				return result.get();
+			} catch (Exception e) {
+				// TODO fail properly, cancel binding future etc.
 
 				throw e;
+			} finally {
+				processingThreads.notifyAll();
 			}
 		}
 	}
 
 	@Override
+	public <T> T blockAndWaitForInteral(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
+		synchronized (processingThreads) {
+			internalBlocks++;
+			try {
+				T result = blockAndWaitForImpl(blockingSupplier, namespace, id);
+				return result;
+			} finally {
+				internalBlocks--;
+			}
+		}
+	}
+
+	private void checkForDeadlock() {
+		if (processingThreads.size() <= internalBlocks) {
+			throw new SchemaException("Internal deadlock waiting for " + internalBlocks + " of resources " + blocks);
+		}
+	}
+
+	@Override
+	public void addInternalProcessingThread(Thread processingThread) {
+		synchronized (processingThreads) {
+			processingThreads.add(processingThread);
+			new Thread(() -> {
+				try {
+					processingThread.join();
+				} catch (Exception e) {
+					// exception should be handled elsewhere
+				} finally {
+					synchronized (processingThreads) {
+						processingThreads.remove(processingThread);
+					}
+				}
+			}).start();
+		}
+	}
+
+	@Override
 	public Set<QualifiedName> waitingForNamespaces() {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			return new HashSet<>(blocks.keySet());
 		}
 	}
 
 	@Override
 	public List<DataSource> waitingForIds(QualifiedName namespace) {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			return new ArrayList<>(blocks.get(namespace));
 		}
 	}
 
 	@Override
 	public void waitFor(QualifiedName namespace, DataSource id) throws InterruptedException {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			while (blocks.contains(namespace, id)) {
-				blocks.wait();
+				processingThreads.wait();
 			}
 		}
 	}
 
 	@Override
 	public void waitFor(QualifiedName namespace, DataSource id, long timeoutMilliseconds) throws InterruptedException {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			while (blocks.contains(namespace, id)) {
-				blocks.wait(timeoutMilliseconds);
+				processingThreads.wait(timeoutMilliseconds);
 			}
 		}
 	}
 
 	@Override
 	public void waitForAll(QualifiedName namespace) throws InterruptedException {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			while (blocks.containsKey(namespace)) {
-				blocks.wait();
+				processingThreads.wait();
 			}
 		}
 	}
 
 	@Override
 	public void waitForAll(QualifiedName namespace, long timeoutMilliseconds) throws InterruptedException {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			while (blocks.containsKey(namespace)) {
-				blocks.wait(timeoutMilliseconds);
+				processingThreads.wait(timeoutMilliseconds);
+			}
+		}
+	}
+
+	@Override
+	public void waitForAll() throws InterruptedException {
+		synchronized (processingThreads) {
+			while (!blocks.isEmpty()) {
+				processingThreads.wait();
+			}
+		}
+	}
+
+	@Override
+	public void waitForAll(long timeoutMilliseconds) throws InterruptedException {
+		synchronized (processingThreads) {
+			while (!blocks.isEmpty()) {
+				processingThreads.wait(timeoutMilliseconds);
 			}
 		}
 	}
 
 	@Override
 	public boolean isBlocked() {
-		synchronized (blocks) {
+		synchronized (processingThreads) {
 			return !blocks.isEmpty();
 		}
 	}

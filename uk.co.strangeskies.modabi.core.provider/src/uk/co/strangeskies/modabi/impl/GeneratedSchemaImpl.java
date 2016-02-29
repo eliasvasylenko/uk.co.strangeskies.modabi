@@ -48,8 +48,8 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 
 	private Imports imports;
 
-	public GeneratedSchemaImpl(SchemaManagerImpl schemaManager,
-			QualifiedName name, Collection<? extends Schema> dependencies) {
+	public GeneratedSchemaImpl(SchemaManagerImpl schemaManager, QualifiedName name,
+			Collection<? extends Schema> dependencies) {
 		this.manager = schemaManager;
 
 		this.name = name;
@@ -109,12 +109,10 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	}
 
 	@Override
-	public <T> DataType<T> buildDataType(
-			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build) {
-		ProcessingContextImpl context = manager.getBindingContext();
+	public <T> DataType<T> buildDataType(Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> build) {
+		ProcessingContextImpl context = manager.getProcessingContext();
 
-		DataType<T> type = build.apply(manager.getDataTypeBuilder()
-				.configure(DataNodeBinder.dataLoader(context))).create();
+		DataType<T> type = build.apply(manager.getDataTypeBuilder().configure(DataNodeBinder.dataLoader(context))).create();
 
 		manager.registerDataType(type);
 
@@ -122,13 +120,10 @@ public class GeneratedSchemaImpl implements GeneratedSchema {
 	}
 
 	@Override
-	public <T> Model<T> buildModel(
-			Function<ModelConfigurator<Object>, ModelConfigurator<T>> build) {
-		ProcessingContextImpl context = manager.getBindingContext();
+	public <T> Model<T> buildModel(Function<ModelConfigurator<Object>, ModelConfigurator<T>> build) {
+		ProcessingContextImpl context = manager.getProcessingContext();
 
-		Model<T> model = build.apply(
-				manager.getModelBuilder().configure(DataNodeBinder.dataLoader(context)))
-				.create();
+		Model<T> model = build.apply(manager.getModelBuilder().configure(DataNodeBinder.dataLoader(context))).create();
 
 		manager.registerModel(model);
 

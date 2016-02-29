@@ -46,6 +46,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.BindingFutureBlocker;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -81,9 +82,10 @@ public class ProcessingContextImpl implements ProcessingContext {
 	private final Provisions provider;
 
 	private StructuredDataSource input;
+	private StructuredDataTarget output;
 	private final boolean exhaustive;
 
-	private StructuredDataTarget output;
+	private final BindingFutureBlocker bindingFutureBlocker;
 
 	/*
 	 * Registered models and types
@@ -112,11 +114,13 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		registeredModels = manager.registeredModels();
 		registeredTypes = manager.registeredTypes();
+
+		bindingFutureBlocker = null;
 	}
 
 	public ProcessingContextImpl(ProcessingContext parentContext) {
-		objectStack = parentContext.bindingObjectStack();
-		nodeStack = parentContext.bindingNodeStack();
+		objectStack = parentContext.getBindingObjectStack();
+		nodeStack = parentContext.getBindingNodeStack();
 		bindings = parentContext.bindings();
 
 		dataTypeCache = parentContext::getDataNodeOverrides;
@@ -132,11 +136,13 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		registeredModels = parentContext.registeredModels();
 		registeredTypes = parentContext.registeredTypes();
+
+		bindingFutureBlocker = parentContext.bindingFutureBlocker();
 	}
 
 	protected ProcessingContextImpl(ProcessingContext parentContext, List<TypedObject<?>> objectStack,
 			List<SchemaNode.Effective<?, ?>> nodeStack, StructuredDataSource input, StructuredDataTarget output,
-			Provisions provider, boolean exhaustive) {
+			Provisions provider, boolean exhaustive, BindingFutureBlocker blocker) {
 		this.objectStack = objectStack;
 		this.nodeStack = nodeStack;
 		bindings = parentContext.bindings();
@@ -154,15 +160,17 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		registeredModels = parentContext.registeredModels();
 		registeredTypes = parentContext.registeredTypes();
+
+		bindingFutureBlocker = blocker;
 	}
 
 	@Override
-	public List<Effective<?, ?>> bindingNodeStack() {
+	public List<Effective<?, ?>> getBindingNodeStack() {
 		return nodeStack;
 	}
 
 	@Override
-	public List<TypedObject<?>> bindingObjectStack() {
+	public List<TypedObject<?>> getBindingObjectStack() {
 		return objectStack;
 	}
 
@@ -281,7 +289,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 				// TODO Auto-generated method stub
 
 			}
-		}, isExhaustive());
+		}, exhaustive, bindingFutureBlocker);
 	}
 
 	@Override
@@ -303,12 +311,19 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return (ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>>) modelCache.apply(node.source());
 	}
 
+	@Override
+	public BindingFutureBlocker bindingFutureBlocker() {
+		return bindingFutureBlocker;
+	}
+
 	public ProcessingContextImpl withInput(StructuredDataSource input) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive);
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive,
+				bindingFutureBlocker);
 	}
 
 	public ProcessingContextImpl withOutput(StructuredDataTarget output) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive);
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive,
+				bindingFutureBlocker);
 	}
 
 	public <T> ProcessingContextImpl withBindingObject(TypedObject<?> target) {
@@ -328,7 +343,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		}
 
 		return new ProcessingContextImpl(this, Collections.unmodifiableList(bindingObjectStack), nodeStack, input, output,
-				provider, exhaustive);
+				provider, exhaustive, bindingFutureBlocker);
 	}
 
 	public <T> ProcessingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
@@ -348,7 +363,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		}
 
 		return new ProcessingContextImpl(this, objectStack, Collections.unmodifiableList(nodeStack), input, output,
-				provider, exhaustive);
+				provider, exhaustive, bindingFutureBlocker);
 	}
 
 	public void attemptUnbinding(Consumer<ProcessingContextImpl> unbindingMethod) {
@@ -476,11 +491,11 @@ public class ProcessingContextImpl implements ProcessingContext {
 		 * TODO actually make non-exhausting nodes non-exhausting...
 		 */
 		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider,
-				isExhaustive() && exhaustive);
+				isExhaustive() && exhaustive, bindingFutureBlocker);
 	}
 
 	public ProcessingContextImpl forceExhausting() {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, true);
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, true, bindingFutureBlocker);
 	}
 
 	@Override
@@ -491,5 +506,9 @@ public class ProcessingContextImpl implements ProcessingContext {
 	@Override
 	public DataTypes registeredTypes() {
 		return registeredTypes;
+	}
+
+	public ProcessingContextImpl withBindingFutureBlocker(BindingFutureBlocker blocker) {
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive, blocker);
 	}
 }

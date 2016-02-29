@@ -42,5 +42,9 @@ public interface BindingFutureBlocks extends Observable<Pair<QualifiedName, Data
 
 	void waitForAll(QualifiedName namespace, long timeoutMilliseconds) throws InterruptedException;
 
+	void waitForAll() throws InterruptedException;
+
+	void waitForAll(long timeoutMilliseconds) throws InterruptedException;
+
 	boolean isBlocked();
 }

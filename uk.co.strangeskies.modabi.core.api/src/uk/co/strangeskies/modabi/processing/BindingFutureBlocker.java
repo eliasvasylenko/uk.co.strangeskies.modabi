@@ -24,11 +24,127 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 
 public interface BindingFutureBlocker {
+	/**
+	 * Blocks are intended to signal that a thread is waiting for resources to be
+	 * made available by some external process.
+	 * <p>
+	 * This method will block completion of the {@link BindingFuture} until the
+	 * given runnable process completes. The process will be completed on the
+	 * invoking thread, so invocation returns only after the supplier completes
+	 * execution and the block is lifted.
+	 * <p>
+	 * Blocks may be satisfied by external processes, so if a block is still in
+	 * place when binding otherwise completes, with no internal processing threads
+	 * remaining unblocked, then the binding will simply wait until the supplier
+	 * delivers the dependency.
+	 * 
+	 * @param blockingSupplier
+	 *          The runnable which will block until its execution completes
+	 * @param namespace
+	 *          The namespace of the blocking resource
+	 * @param id
+	 *          The id of the blocking resource
+	 * @return The new thread which is performing the blocking resource fetching
+	 */
 	<T> T blockAndWaitFor(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id);
 
-	default void blockFor(Supplier<?> blockingSupplier, QualifiedName namespace, DataSource id) {
-		new Thread(() -> {
-			blockAndWaitFor(blockingSupplier, namespace, id);
-		}).start();
+	/**
+	 * Blocks are intended to signal that a thread is waiting for resources to be
+	 * made available by some external process.
+	 * <p>
+	 * This method will block completion of the {@link BindingFuture} until the
+	 * given runnable process completes. The process will be completed on another
+	 * thread, so invocation returns immediately.
+	 * <p>
+	 * Blocks may be satisfied by external processes, so if a block is still in
+	 * place when binding otherwise completes, with no internal processing threads
+	 * remaining unblocked, then the binding will simply wait until the supplier
+	 * delivers the dependency.
+	 * 
+	 * @param blockingRunnable
+	 *          The runnable which will block until its execution completes
+	 * @param namespace
+	 *          The namespace of the blocking resource
+	 * @param id
+	 *          The id of the blocking resource
+	 * @return The new thread which is performing the blocking resource fetching
+	 */
+	default Thread blockFor(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
+		Thread thread = new Thread(() -> {
+			blockAndWaitFor(() -> {
+				blockingRunnable.run();
+				return null;
+			} , namespace, id);
+		});
+		thread.start();
+		return thread;
 	}
+
+	/**
+	 * Internal blocks are intended to signal that a thread is waiting for
+	 * resources to be made available by other threads participating in the
+	 * binding/unbinding process.
+	 * <p>
+	 * This method will block completion of the {@link BindingFuture} until the
+	 * given runnable process completes. The process will be completed on the
+	 * invoking thread, so invocation returns only after the supplier completes
+	 * execution and the block is lifted.
+	 * <p>
+	 * Internal blocks must be satisfied by internal processes, so if an internal
+	 * block is still in place when binding otherwise completes, with no external
+	 * blocks in place and no internal processing threads remaining unblocked,
+	 * then the binding will fail due to unsatisfied dependency.
+	 * 
+	 * @param blockingSupplier
+	 *          The runnable which will block until its execution completes
+	 * @param namespace
+	 *          The namespace of the blocking resource
+	 * @param id
+	 *          The id of the blocking resource
+	 * @return The new thread which is performing the blocking resource fetching
+	 */
+	<T> T blockAndWaitForInteral(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id);
+
+	/**
+	 * Internal blocks are intended to signal that a thread is waiting for
+	 * resources to be made available by other threads participating in the
+	 * binding/unbinding process.
+	 * <p>
+	 * This method will block completion of the {@link BindingFuture} until the
+	 * given runnable process completes. The process will be completed on another
+	 * thread, so invocation returns immediately.
+	 * <p>
+	 * Internal blocks must be satisfied by internal processes, so if an internal
+	 * block is still in place when binding otherwise completes, with no external
+	 * blocks in place and no internal processing threads remaining unblocked,
+	 * then the binding will fail due to unsatisfied dependency.
+	 * 
+	 * @param blockingRunnable
+	 *          The runnable which will block until its execution completes
+	 * @param namespace
+	 *          The namespace of the blocking resource
+	 * @param id
+	 *          The id of the blocking resource
+	 * @return The new thread which is performing the blocking resource fetching
+	 */
+	default Thread blockForInteral(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
+		Thread thread = new Thread(() -> {
+			blockAndWaitForInteral(() -> {
+				blockingRunnable.run();
+				return null;
+			} , namespace, id);
+		});
+		thread.start();
+		return thread;
+	}
+
+	/**
+	 * Register a thread which is participating in the binding/unbinding process.
+	 * This helps the processor determine whether there is unblocked activity, or
+	 * otherwise detect a deadlock or unsatisfied dependency.
+	 * 
+	 * @param processingThread
+	 *          The thread participating in processing
+	 */
+	void addInternalProcessingThread(Thread processingThread);
 }

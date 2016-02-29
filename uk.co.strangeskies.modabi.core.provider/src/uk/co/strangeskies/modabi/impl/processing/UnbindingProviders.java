@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.Collection;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
@@ -31,6 +32,7 @@ import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
 public class UnbindingProviders {
@@ -47,7 +49,7 @@ public class UnbindingProviders {
 				for (U object : objects)
 					context.bindings().add(model, object);
 
-				context.output().get().registerNamespaceHint(model.getName().getNamespace());
+				context.output().ifPresent(o -> o.registerNamespaceHint(model.getName().getNamespace()));
 			}
 		};
 	}
@@ -83,5 +85,11 @@ public class UnbindingProviders {
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));
+	}
+
+	public void registerProviders(Provisions provisions) {
+		provisions.registerProvider(new TypeToken<ReferenceTarget>() {}, referenceTarget());
+		provisions.registerProvider(new TypeToken<ImportTarget>() {}, importTarget());
+		provisions.registerProvider(new TypeToken<IncludeTarget>() {}, includeTarget());
 	}
 }

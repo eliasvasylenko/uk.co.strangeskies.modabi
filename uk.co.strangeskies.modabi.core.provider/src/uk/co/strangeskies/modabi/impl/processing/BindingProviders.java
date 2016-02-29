@@ -21,13 +21,13 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataItem;
@@ -38,7 +38,6 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
-import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Effective;
@@ -46,10 +45,13 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
+import uk.co.strangeskies.utilities.IdentityProperty;
+import uk.co.strangeskies.utilities.Property;
 
 public class BindingProviders {
 	private interface ModelBindingProvider {
-		<T> Set<T> get(Model<T> model);
+		<T> Set<T> getAndListen(Model<T> model, Consumer<? super T> listener);
 	}
 
 	private final SchemaManager manager;
@@ -64,7 +66,7 @@ public class BindingProviders {
 			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
-					public <T> Set<T> get(Model<T> model) {
+					public <T> Set<T> getAndListen(Model<T> model, Consumer<? super T> listener) {
 						return manager.bindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 								.collect(Collectors.toSet());
 					}
@@ -93,18 +95,7 @@ public class BindingProviders {
 		return context -> new DereferenceSource() {
 			@Override
 			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id) {
-				return matchBinding(context, model, context.bindings()::get, idDomain, id);
-			}
-		};
-	}
-
-	public Function<ProcessingContext, IncludeTarget> includeTarget() {
-		return context -> new IncludeTarget() {
-			@Override
-			public <U> void include(Model<U> model, Collection<? extends U> objects) {
-				for (U object : objects) {
-					context.bindings().add(model, object);
-				}
+				return matchBinding(context, model, context.bindings()::addListener, idDomain, id);
 			}
 		};
 	}
@@ -130,14 +121,12 @@ public class BindingProviders {
 		 * dependencies etc. when threading is supported in binding.
 		 */
 
-		Supplier<U> objectProvider = () -> {
-			Set<U> bindingCandidates = bindings.get(model);
+		ChildNode<?, ?> child = model.effective().child(idDomain);
+		if (!(child instanceof DataNode.Effective<?>))
+			throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
+		DataNode.Effective<?> node = (Effective<?>) child;
 
-			ChildNode<?, ?> child = model.effective().child(idDomain);
-			if (!(child instanceof DataNode.Effective<?>))
-				throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
-			DataNode.Effective<?> node = (Effective<?>) child;
-
+		Function<Iterable<U>, U> objectProvider = bindingCandidates -> {
 			for (U bindingCandidate : bindingCandidates) {
 				DataSource candidateId = unbindDataNode(node, new TypedObject<>(model.getDataType(), bindingCandidate));
 
@@ -151,10 +140,27 @@ public class BindingProviders {
 				}
 			}
 
-			throw new BindingException(
-					"Can't find any bindings matching id '" + id + "' in domain '" + idDomain + "' for model '" + model + "'",
-					context);
+			return null;
 		};
+
+		Property<U, U> objectProperty = new IdentityProperty<>();
+		ConsumerSupplierQueue<U> queue = new ConsumerSupplierQueue<>();
+		objectProperty.set(objectProvider.apply(bindings.getAndListen(model, queue)));
+
+		Thread fetchThread;
+		if (objectProperty.get() == null) {
+			Boolean allowBlocking = true;
+			if (allowBlocking) {
+				fetchThread = context.bindingFutureBlocker().blockFor(() -> objectProperty.set(objectProvider.apply(queue)),
+						model.getName(), idSource);
+			} else {
+				throw new BindingException(
+						"Can't find any bindings matching id '" + id + "' in domain '" + idDomain + "' for model '" + model + "'",
+						context);
+			}
+		} else {
+			fetchThread = null;
+		}
 
 		/*
 		 * Should only have one raw type. Non-abstract models shouldn't be
@@ -168,17 +174,14 @@ public class BindingProviders {
 
 		return (U) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { rawType },
 				new InvocationHandler() {
-					private Supplier<U> objectSupplier = objectProvider;
-					private U object;
+					private Property<U, U> object = objectProperty;
+					private Thread thread = fetchThread;
 
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-						if (object == null) {
-							object = objectSupplier.get();
-							objectSupplier = null;
-						}
-
-						return method.invoke(object, args);
+						if (thread != null)
+							thread.join();
+						return method.invoke(object.get(), args);
 					}
 				});
 	}
@@ -188,5 +191,12 @@ public class BindingProviders {
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));
+	}
+
+	public void registerProviders(Provisions provisions) {
+		provisions.registerProvider(DereferenceSource.class, dereferenceSource());
+		provisions.registerProvider(ImportSource.class, importSource());
+		provisions.registerProvider(DataLoader.class, dataLoader());
+		provisions.registerProvider(Imports.class, imports());
 	}
 }

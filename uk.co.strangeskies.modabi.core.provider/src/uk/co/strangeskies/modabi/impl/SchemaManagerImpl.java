@@ -68,17 +68,10 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
-import uk.co.strangeskies.modabi.processing.providers.ImportSource;
-import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
-import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
-import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.ObservableImpl;
@@ -100,9 +93,6 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private final ModelBuilder modelBuilder;
 	private final DataTypeBuilder dataTypeBuilder;
-
-	private final BindingProviders bindingProviders;
-	private final UnbindingProviders unbindingProviders;
 
 	private final Map<String, StructuredDataFormat> dataInterfaces;
 	private final ObservableImpl<StructuredDataFormat> dataInterfaceObservers;
@@ -142,8 +132,9 @@ public class SchemaManagerImpl implements SchemaManager {
 		provisions().registerProvider(new @Infer TypeToken<List<?>>() {}, ArrayList::new);
 		provisions().registerProvider(new @Infer TypeToken<Map<?, ?>>() {}, HashMap::new);
 
-		bindingProviders = new BindingProviders(this);
-		unbindingProviders = new UnbindingProviders(this);
+		provisions().registerProvider(ProcessingContext.class, c -> c);
+		new BindingProviders(this).registerProviders(provisions());
+		new UnbindingProviders(this).registerProviders(provisions());
 
 		dataInterfaces = new HashMap<>();
 		dataInterfaceObservers = new ObservableImpl<>();
@@ -151,20 +142,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		registerSchema(coreSchemata.metaSchema());
 	}
 
-	public ProcessingContextImpl getBindingContext() {
-		return new ProcessingContextImpl(this).withProvision(DereferenceSource.class, bindingProviders.dereferenceSource())
-				.withProvision(IncludeTarget.class, bindingProviders.includeTarget())
-				.withProvision(ImportSource.class, bindingProviders.importSource())
-				.withProvision(DataLoader.class, bindingProviders.dataLoader())
-				.withProvision(Imports.class, bindingProviders.imports()).withProvision(ProcessingContext.class, c -> c);
-	}
-
 	public ProcessingContextImpl getProcessingContext() {
-		return new ProcessingContextImpl(this)
-				.withProvision(new TypeToken<ReferenceTarget>() {}, unbindingProviders.referenceTarget())
-				.withProvision(new TypeToken<ImportTarget>() {}, unbindingProviders.importTarget())
-				.withProvision(new TypeToken<IncludeTarget>() {}, unbindingProviders.includeTarget())
-				.withProvision(new TypeToken<ProcessingContext>() {}, c -> c);
+		return new ProcessingContextImpl(this);
 	}
 
 	ModelBuilder getModelBuilder() {
@@ -387,7 +366,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		}, this::addBindingFuture);
+		} , this::addBindingFuture);
 	}
 
 	@Override

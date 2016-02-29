@@ -18,13 +18,16 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
+import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -33,27 +36,50 @@ import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Bindings {
 	public final MultiMap<Model.Effective<?>, BindingNode<?, ?, ?>, Set<BindingNode<?, ?, ?>>> boundNodes;
-	public final MultiMap<BindingNode<?, ?, ?>, Object, Set<Object>> bindings;
+	public final MultiMap<BindingNode<?, ?, ?>, Object, Set<Object>> boundObjects;
+
+	private final MultiMap<Model.Effective<?>, Consumer<?>, Collection<Consumer<?>>> listeners;
 
 	public Bindings() {
 		boundNodes = new MultiHashMap<>(HashSet::new);
-		bindings = new MultiHashMap<>(HashSet::new);
+		boundObjects = new MultiHashMap<>(HashSet::new);
+
+		listeners = new MultiHashMap<>(HashSet::new);
 	}
 
 	public <T> void add(ComplexNode<T> element, T data) {
 		element = element.source();
 
-		boundNodes.addToAll(element.effective().baseModel(), element);
-		bindings.add(element, data);
+		synchronized (listeners) {
+			boundNodes.addToAll(element.effective().baseModel(), element);
+			boundObjects.add(element, data);
+
+			fire(element.effective(), data);
+		}
 	}
 
 	public <T> void add(Model<T> model, T data) {
 		model = model.source();
 
-		if (boundNodes.add(model.effective(), model)) {
-			boundNodes.addToAll(model.effective().baseModel(), model);
+		synchronized (listeners) {
+			if (boundNodes.add(model.effective(), model)) {
+				boundNodes.addToAll(model.effective().baseModel(), model);
+			}
+			boundObjects.add(model, data);
+
+			fire(model.effective(), data);
 		}
-		bindings.add(model, data);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> void fire(AbstractComplexNode.Effective<T, ?, ?> node, T data) {
+		for (Model.Effective<?> model : listeners.keySet()) {
+			if (model.equals(node) || node.baseModel().contains(model)) {
+				for (Consumer<?> listener : listeners.get(model)) {
+					((Consumer<? super T>) listener).accept(data);
+				}
+			}
+		}
 	}
 
 	public void add(Binding<?>... bindings) {
@@ -73,13 +99,23 @@ public class Bindings {
 	public <T> Set<T> get(Model<T> model) {
 		model = model.effective();
 
-		return boundNodes.getOrDefault(model, Collections.emptySet()).stream()
-				.flatMap(b -> bindings.getOrDefault(b, Collections.emptySet()).stream())
-				.map(t -> (T) t).collect(Collectors.toSet());
+		synchronized (listeners) {
+			return boundNodes.getOrDefault(model, emptySet()).stream()
+					.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
+		}
+	}
+
+	public <T> Set<T> addListener(Model<T> model, Consumer<? super T> listener) {
+		model = model.effective();
+
+		synchronized (listeners) {
+			listeners.add(model.effective(), listener);
+			return get(model);
+		}
 	}
 
 	@Override
 	public String toString() {
-		return bindings.toString();
+		return boundObjects.toString();
 	}
 }
