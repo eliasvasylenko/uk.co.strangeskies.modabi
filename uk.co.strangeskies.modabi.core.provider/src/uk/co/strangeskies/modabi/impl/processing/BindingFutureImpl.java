@@ -37,6 +37,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
@@ -94,19 +95,19 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 		this.manager = manager;
 		this.blocks = blocks;
 
-		blocks.addInternalProcessingThread(Thread.currentThread());
-
 		sourceFuture = new FutureTask<>(modelSupplier::get);
-		new Thread(() -> sourceFuture.run()).start();
 
 		ClassLoader classLoaderFinal = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
 
 		dataFuture = new FutureTask<>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoaderFinal);
+			blocks.addInternalProcessingThread(Thread.currentThread());
+
+			sourceFuture.run();
 
 			T binding = bind(sourceFuture.get());
 
-			blocks.waitForAll();
+			blocks.complete();
 
 			return binding;
 		});
@@ -183,6 +184,17 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 		Model.Effective<T> model = source.getModel();
 		return source.withData((StructuredDataSource input) -> {
 			ProcessingContextImpl context = manager.getProcessingContext().withInput(input).withBindingFutureBlocker(blocks);
+
+			/*
+			 * Processing should always have access to the contents of the schema
+			 * owning the associated model.
+			 */
+			for (Model<?> schemaModel : model.schema().getModels()) {
+				context.bindings().add(manager.getMetaSchema().getMetaModel(), schemaModel);
+			}
+			for (DataType<?> schemaDataType : model.schema().getDataTypes()) {
+				context.bindings().add(manager.getMetaSchema().getDataTypeModel(), schemaDataType);
+			}
 
 			QualifiedName inputRoot = input.startNextChild();
 			if (!inputRoot.equals(model.getName()))

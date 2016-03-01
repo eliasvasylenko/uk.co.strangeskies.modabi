@@ -37,6 +37,12 @@ public interface BindingFutureBlocker {
 	 * place when binding otherwise completes, with no internal processing threads
 	 * remaining unblocked, then the binding will simply wait until the supplier
 	 * delivers the dependency.
+	 * <p>
+	 * The thread which the given blocking process is invoked on will always
+	 * terminate after invocation, and after releasing the block. This can be
+	 * useful for synchronisation, as the thread which provided the dependency can
+	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingSupplier
 	 *          The runnable which will block until its execution completes
@@ -60,6 +66,12 @@ public interface BindingFutureBlocker {
 	 * place when binding otherwise completes, with no internal processing threads
 	 * remaining unblocked, then the binding will simply wait until the supplier
 	 * delivers the dependency.
+	 * <p>
+	 * The thread which the given blocking process is invoked on will always
+	 * terminate after invocation, and after releasing the block. This can be
+	 * useful for synchronisation, as the thread which provided the dependency can
+	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingRunnable
 	 *          The runnable which will block until its execution completes
@@ -74,7 +86,7 @@ public interface BindingFutureBlocker {
 			blockAndWaitFor(() -> {
 				blockingRunnable.run();
 				return null;
-			} , namespace, id);
+			}, namespace, id);
 		});
 		thread.start();
 		return thread;
@@ -94,6 +106,12 @@ public interface BindingFutureBlocker {
 	 * block is still in place when binding otherwise completes, with no external
 	 * blocks in place and no internal processing threads remaining unblocked,
 	 * then the binding will fail due to unsatisfied dependency.
+	 * <p>
+	 * The thread which the given blocking process is invoked on will always
+	 * terminate after invocation, and after releasing the block. This can be
+	 * useful for synchronisation, as the thread which provided the dependency can
+	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingSupplier
 	 *          The runnable which will block until its execution completes
@@ -118,6 +136,12 @@ public interface BindingFutureBlocker {
 	 * block is still in place when binding otherwise completes, with no external
 	 * blocks in place and no internal processing threads remaining unblocked,
 	 * then the binding will fail due to unsatisfied dependency.
+	 * <p>
+	 * The thread which the given blocking process is invoked on will always
+	 * terminate after invocation, and after releasing the block. This can be
+	 * useful for synchronisation, as the thread which provided the dependency can
+	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingRunnable
 	 *          The runnable which will block until its execution completes
@@ -127,16 +151,7 @@ public interface BindingFutureBlocker {
 	 *          The id of the blocking resource
 	 * @return The new thread which is performing the blocking resource fetching
 	 */
-	default Thread blockForInteral(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
-		Thread thread = new Thread(() -> {
-			blockAndWaitForInteral(() -> {
-				blockingRunnable.run();
-				return null;
-			} , namespace, id);
-		});
-		thread.start();
-		return thread;
-	}
+	Thread blockForInteral(Runnable blockingRunnable, QualifiedName namespace, DataSource id);
 
 	/**
 	 * Register a thread which is participating in the binding/unbinding process.

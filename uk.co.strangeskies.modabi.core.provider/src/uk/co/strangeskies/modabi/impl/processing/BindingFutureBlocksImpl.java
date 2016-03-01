@@ -42,6 +42,8 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	private final MultiMap<QualifiedName, DataSource, List<DataSource>> blocks = new MultiHashMap<>(ArrayList::new);
 	private int internalBlocks = 0;
 
+	private boolean completing = false;
+
 	private Set<Thread> processingThreads = new HashSet<>();
 
 	@Override
@@ -54,13 +56,13 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 		return observable.removeObserver(observer);
 	}
 
+	@Override
 	public <T> T blockAndWaitFor(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
 		synchronized (processingThreads) {
 			try {
-				T result = blockAndWaitForImpl(blockingSupplier, namespace, id);
-				return result;
+				return blockAndWaitForImpl(blockingSupplier, namespace, id);
 			} finally {
-				checkForDeadlock();
+				assertResolvable(false);
 			}
 		}
 	}
@@ -70,7 +72,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 			blocks.add(namespace, id);
 			observable.fire(new Pair<>(namespace, id));
 
-			checkForDeadlock();
+			assertResolvable(false);
 
 			try {
 				Property<T, T> result = new IdentityProperty<>();
@@ -101,7 +103,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 
 				blocks.removeValue(namespace, id);
 
-				checkForDeadlock();
+				assertResolvable(false);
 
 				return result.get();
 			} catch (Exception e) {
@@ -117,19 +119,45 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	@Override
 	public <T> T blockAndWaitForInteral(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
 		synchronized (processingThreads) {
+			boolean addedThread = !processingThreads.contains(Thread.currentThread());
+			if (addedThread) {
+				processingThreads.add(Thread.currentThread());
+			}
 			internalBlocks++;
+
 			try {
 				T result = blockAndWaitForImpl(blockingSupplier, namespace, id);
 				return result;
+
 			} finally {
+				if (addedThread) {
+					processingThreads.remove(Thread.currentThread());
+				}
 				internalBlocks--;
 			}
 		}
 	}
 
-	private void checkForDeadlock() {
-		if (processingThreads.size() <= internalBlocks) {
-			throw new SchemaException("Internal deadlock waiting for " + internalBlocks + " of resources " + blocks);
+	@Override
+	public Thread blockForInteral(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
+		synchronized (processingThreads) {
+			assertResolvable(true);
+		}
+
+		Thread thread = new Thread(() -> {
+			blockAndWaitForInteral(() -> {
+				blockingRunnable.run();
+				return null;
+			}, namespace, id);
+		});
+		thread.start();
+		return thread;
+	}
+
+	private void assertResolvable(boolean failIfCompleting) {
+		if ((processingThreads.size() <= internalBlocks) || (completing && (internalBlocks > 0 || failIfCompleting))) {
+			throw new SchemaException(
+					"Internal dependencies unresolvable; waiting for " + internalBlocks + " of resources " + blocks);
 		}
 	}
 
@@ -145,6 +173,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 				} finally {
 					synchronized (processingThreads) {
 						processingThreads.remove(processingThread);
+						processingThreads.notifyAll();
 					}
 				}
 			}).start();
@@ -223,6 +252,14 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	public boolean isBlocked() {
 		synchronized (processingThreads) {
 			return !blocks.isEmpty();
+		}
+	}
+
+	public void complete() throws InterruptedException {
+		synchronized (processingThreads) {
+			completing = true;
+			assertResolvable(false);
+			waitForAll();
 		}
 	}
 }

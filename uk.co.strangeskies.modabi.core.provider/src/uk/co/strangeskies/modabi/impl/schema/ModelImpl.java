@@ -23,32 +23,39 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>>
-		implements Model<T> {
-	private static class Effective<T>
-			extends BindingNodeImpl.Effective<T, Model<T>, Model.Effective<T>>
+class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>> implements Model<T> {
+	private static class Effective<T> extends BindingNodeImpl.Effective<T, Model<T>, Model.Effective<T>>
 			implements Model.Effective<T> {
 		private final List<Model.Effective<? super T>> baseModel;
 
-		protected Effective(
-				OverrideMerge<Model<T>, ModelConfiguratorImpl<T>> overrideMerge) {
+		protected Effective(OverrideMerge<Model<T>, ModelConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
 			List<Model.Effective<? super T>> baseModel = new ArrayList<>();
-			overrideMerge.configurator().getOverriddenNodes()
-					.forEach(n -> baseModel.addAll(n.effective().baseModel()));
-			baseModel.addAll(overrideMerge.node().baseModel().stream()
-					.map(SchemaNode::effective).collect(Collectors.toSet()));
+			overrideMerge.configurator().getOverriddenNodes().forEach(n -> baseModel.addAll(n.effective().baseModel()));
+			baseModel
+					.addAll(overrideMerge.node().baseModel().stream().map(SchemaNode::effective).collect(Collectors.toSet()));
 			this.baseModel = Collections.unmodifiableList(baseModel);
 		}
 
 		@Override
 		public final List<Model.Effective<? super T>> baseModel() {
 			return baseModel;
+		}
+
+		@Override
+		public Model.Effective<T> root() {
+			return this;
+		}
+
+		@Override
+		public Schema schema() {
+			return source().schema();
 		}
 	}
 
@@ -60,11 +67,9 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>>
 		super(configurator);
 
 		baseModel = configurator.getBaseModel() == null ? Collections.emptyList()
-				: Collections
-						.unmodifiableList(new ArrayList<>(configurator.getBaseModel()));
+				: Collections.unmodifiableList(new ArrayList<>(configurator.getBaseModel()));
 
-		effective = new ModelImpl.Effective<>(
-				ModelConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new ModelImpl.Effective<>(ModelConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override
@@ -75,5 +80,18 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>>
 	@Override
 	public ModelImpl.Effective<T> effective() {
 		return effective;
+	}
+
+	@Override
+	public Model<T> root() {
+		return this;
+	}
+
+	@Override
+	public Schema schema() {
+		/*
+		 * TODO
+		 */
+		return null;
 	}
 }

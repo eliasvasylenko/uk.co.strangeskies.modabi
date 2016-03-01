@@ -70,7 +70,7 @@ public class BindingProviders {
 						return manager.bindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 								.collect(Collectors.toSet());
 					}
-				}, idDomain, id);
+				}, idDomain, id, true);
 			}
 		};
 	}
@@ -94,39 +94,28 @@ public class BindingProviders {
 	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
-			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id) {
-				return matchBinding(context, model, context.bindings()::addListener, idDomain, id);
+			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id, boolean externalDependency) {
+				return matchBinding(context, model, context.bindings()::addListener, idDomain, id, externalDependency);
 			}
 		};
 	}
 
 	@SuppressWarnings("unchecked")
 	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
-			QualifiedName idDomain, DataSource idSource) {
+			QualifiedName idDomain, DataSource idSource, boolean externalDependency) {
 		if (idSource.currentState() == DataStreamState.TERMINATED)
 			throw new BindingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
 					context);
 
 		DataItem<?> id = idSource.get();
 
-		/*
-		 * TODO object provider begins trying to find straight away, blocking if
-		 * nothing is found in immediately available selection (though perhaps only
-		 * if import is flagged to allow such blocks / waits)
-		 * 
-		 * throw exception when we try to invoke a method which isn't proxied yet?
-		 * Or continue to block if this is allowed?
-		 * 
-		 * Make sure thread safe, this could be a cool way to support forward
-		 * dependencies etc. when threading is supported in binding.
-		 */
-
 		ChildNode<?, ?> child = model.effective().child(idDomain);
 		if (!(child instanceof DataNode.Effective<?>))
 			throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
 		DataNode.Effective<?> node = (Effective<?>) child;
 
-		Function<Iterable<U>, U> objectProvider = bindingCandidates -> {
+		Property<U, U> objectProperty = new IdentityProperty<>();
+		Consumer<Iterable<U>> objectProvider = bindingCandidates -> {
 			for (U bindingCandidate : bindingCandidates) {
 				DataSource candidateId = unbindDataNode(node, new TypedObject<>(model.getDataType(), bindingCandidate));
 
@@ -136,23 +125,19 @@ public class BindingProviders {
 				DataItem<?> candidateData = candidateId.get();
 
 				if (id.data(candidateData.type()).equals(candidateData.data())) {
-					return bindingCandidate;
+					objectProperty.set(bindingCandidate);
 				}
 			}
-
-			return null;
 		};
 
-		Property<U, U> objectProperty = new IdentityProperty<>();
 		ConsumerSupplierQueue<U> queue = new ConsumerSupplierQueue<>();
-		objectProperty.set(objectProvider.apply(bindings.getAndListen(model, queue)));
+		objectProvider.accept(bindings.getAndListen(model, queue));
 
 		Thread fetchThread;
 		if (objectProperty.get() == null) {
-			Boolean allowBlocking = true;
-			if (allowBlocking) {
-				fetchThread = context.bindingFutureBlocker().blockFor(() -> objectProperty.set(objectProvider.apply(queue)),
-						model.getName(), idSource);
+			if (externalDependency) {
+				fetchThread = context.bindingFutureBlocker().blockFor(() -> objectProvider.accept(queue), model.getName(),
+						idSource);
 			} else {
 				throw new BindingException(
 						"Can't find any bindings matching id '" + id + "' in domain '" + idDomain + "' for model '" + model + "'",
@@ -179,8 +164,10 @@ public class BindingProviders {
 
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-						if (thread != null)
+						if (thread != null) {
 							thread.join();
+							thread = null;
+						}
 						return method.invoke(object.get(), args);
 					}
 				});

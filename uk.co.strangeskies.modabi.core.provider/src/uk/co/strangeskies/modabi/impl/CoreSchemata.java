@@ -47,8 +47,7 @@ public class CoreSchemata {
 	private final BaseSchema baseSchema;
 	private final MetaSchema metaSchema;
 
-	public CoreSchemata(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
-			DataTypeBuilder dataTypeBuilder) {
+	public CoreSchemata(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
 		/*
 		 * We obviously don't have have any schema to use to bind provided values
 		 * which have registration time resolution, since what we're doing here is
@@ -59,26 +58,32 @@ public class CoreSchemata {
 			@SuppressWarnings("unchecked")
 			@Override
 			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
-				Namespace namespace = new Namespace(BaseSchema.class.getPackage(),
-						LocalDate.of(2014, 1, 1));
+				Namespace namespace = new Namespace(BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
 				if (node.getName().getNamespace().equals(namespace)) {
 					if (node.getName().getName().equals("configure"))
 						return Collections.emptyList();
 
 					if (node.getName().getName().equals("format"))
-						return (List<T>) Arrays
-								.asList(Format.valueOf(data.get(Primitive.STRING)));
+						return (List<T>) Arrays.asList(Format.valueOf(data.get(Primitive.STRING)));
 
 					if (node.getName().getName().equals("dataType"))
-						return (List<T>) Arrays.asList(
-								Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING)));
+						return (List<T>) Arrays.asList(Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING)));
 
 					if (node.getName().getName().equals("targetId"))
 						return (List<T>) Arrays.asList(data.get(Primitive.QUALIFIED_NAME));
 
 					if (node.getName().getName().equals("inline"))
 						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
+
+					if (node.getName().getName().equals("isExternal"))
+						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
+
+					if (node.getName().getName().equals("enumType"))
+						return (List<T>) Arrays.asList(Enum.class);
+
+					if (node.getName().getName().equals("enumerationType"))
+						return (List<T>) Arrays.asList(Enumeration.class);
 
 					if (node.getName().getName().equals("targetModel")) {
 						QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
@@ -90,43 +95,31 @@ public class CoreSchemata {
 								model = metaSchema.getModels().get(name);
 
 							if (model == null)
-								throw new SchemaException("Cannot provide model '" + name
-										+ "' from base schema or metaschema.");
+								throw new SchemaException("Cannot provide model '" + name + "' from base schema or metaschema.");
 
 							return model;
 						};
 
-						return (List<T>) Arrays
-								.asList(Proxy.newProxyInstance(Model.class.getClassLoader(),
-										new Class[] { Model.class }, new InvocationHandler() {
-							private Model<?> model;
+						return (List<T>) Arrays.asList(Proxy.newProxyInstance(Model.class.getClassLoader(),
+								new Class[] { Model.class }, new InvocationHandler() {
+									private Model<?> model;
 
-							@Override
-							public Object invoke(Object proxy, Method method, Object[] args)
-									throws Throwable {
-								if (model == null)
-									model = objectProvider.get();
+									@Override
+									public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+										if (model == null)
+											model = objectProvider.get();
 
-								return method.invoke(model, args);
-							}
-						}));
+										return method.invoke(model, args);
+									}
+								}));
 					}
-
-					if (node.getName().getName().equals("enumType"))
-						return (List<T>) Arrays.asList(Enum.class);
-
-					if (node.getName().getName().equals("enumerationType"))
-						return (List<T>) Arrays.asList(Enumeration.class);
 				}
 
-				throw new SchemaException(
-						"Unable to provide value for node '" + node + "'");
+				throw new SchemaException("Unable to provide value for node '" + node + "'");
 			}
 		};
-		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder,
-				dataTypeBuilder, loader);
-		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder,
-				dataTypeBuilder, loader, baseSchema);
+		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder, dataTypeBuilder, loader);
+		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder, dataTypeBuilder, loader, baseSchema);
 	}
 
 	public BaseSchema baseSchema() {

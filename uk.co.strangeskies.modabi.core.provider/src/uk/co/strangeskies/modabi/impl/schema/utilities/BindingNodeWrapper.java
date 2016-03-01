@@ -22,6 +22,7 @@ import java.lang.reflect.Executable;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
@@ -45,39 +46,31 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		this.component = component;
 		this.base = base;
 
-		String message = "Cannot override '" + base.getName() + "' with '"
-				+ component.getName() + "'";
+		String message = "Cannot override '" + base.getName() + "' with '" + component.getName() + "'";
 
 		if (base.getDataType() != null
-				&& !TypeToken.over(base.getDataType().getType())
-						.isAssignableFrom(component.getDataType().getType()))
+				&& !TypeToken.over(base.getDataType().getType()).isAssignableFrom(component.getDataType().getType()))
 			throw new SchemaException(message);
 
-		if (base.getBindingStrategy() != null
-				&& base.getBindingStrategy() != component.getBindingStrategy())
+		if (base.getBindingStrategy() != null && base.getBindingStrategy() != component.getBindingStrategy())
 			throw new SchemaException(message);
 
-		if (base.getUnbindingStrategy() != null
-				&& base.getUnbindingStrategy() != component.getUnbindingStrategy())
+		if (base.getUnbindingStrategy() != null && base.getUnbindingStrategy() != component.getUnbindingStrategy())
 			throw new SchemaException(message);
 
 		if (base.getBindingType() != null
-				&& !Types.isAssignable(component.getBindingType().getType(),
-						base.getBindingType().getType()))
+				&& !Types.isAssignable(component.getBindingType().getType(), base.getBindingType().getType()))
 			throw new SchemaException(message);
 
 		if (base.getUnbindingType() != null
-				&& !Types.isAssignable(component.getUnbindingType().getType(),
-						base.getUnbindingType().getType()))
+				&& !Types.isAssignable(component.getUnbindingType().getType(), base.getUnbindingType().getType()))
 			throw new SchemaException(message);
 
-		if (base.getUnbindingMethodName() != null
-				&& base.getUnbindingMethodName() != component.getUnbindingMethodName())
+		if (base.getUnbindingMethodName() != null && base.getUnbindingMethodName() != component.getUnbindingMethodName())
 			throw new SchemaException(message);
 
 		if (base.getProvidedUnbindingMethodParameterNames() != null
-				&& base.getProvidedUnbindingMethodParameterNames() != component
-						.getProvidedUnbindingMethodParameterNames())
+				&& base.getProvidedUnbindingMethodParameterNames() != component.getProvidedUnbindingMethodParameterNames())
 			throw new SchemaException(message);
 
 		if (!component.children().containsAll(base.children()))
@@ -177,5 +170,15 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	@Override
 	public String toString() {
 		return getName().toString();
+	}
+
+	@Override
+	public BindingNode.Effective<?, ?, ?> root() {
+		return component.root();
+	}
+
+	@Override
+	public Schema schema() {
+		return component.schema();
 	}
 }

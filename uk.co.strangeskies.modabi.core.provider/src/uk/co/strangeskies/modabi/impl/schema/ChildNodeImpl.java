@@ -22,32 +22,28 @@ import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
 		extends SchemaNodeImpl<S, E> implements ChildNode<S, E> {
 	protected static abstract class Effective<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
-			extends SchemaNodeImpl.Effective<S, E>
-			implements ChildNode.Effective<S, E> {
+			extends SchemaNodeImpl.Effective<S, E> implements ChildNode.Effective<S, E> {
 		private final SchemaNode.Effective<?, ?> parent;
 
 		private final Range<Integer> occurrences;
 		private final Boolean ordered;
 
-		public Effective(
-				OverrideMerge<S, ? extends ChildNodeConfiguratorImpl<?, S>> overrideMerge) {
+		public Effective(OverrideMerge<S, ? extends ChildNodeConfiguratorImpl<?, S>> overrideMerge) {
 			super(overrideMerge);
 
-			parent = overrideMerge.configurator().getContext().parentNodeProxy()
-					.effective();
+			parent = overrideMerge.configurator().getContext().parentNodeProxy().effective();
 
-			ordered = overrideMerge.getOverride(ChildNode::isOrdered).orDefault(true)
-					.get();
+			ordered = overrideMerge.getOverride(ChildNode::isOrdered).orDefault(true).get();
 
-			occurrences = overrideMerge.getOverride(ChildNode::occurrences)
-					.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1))
-					.get();
+			occurrences = overrideMerge.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
+					.orDefault(Range.between(1, 1)).get();
 
 		}
 
@@ -69,13 +65,17 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 		@Override
 		public boolean equals(Object that) {
 			return super.equals(that) && that instanceof ChildNode.Effective
-					&& Objects.equals(parent(),
-							((ChildNode.Effective<?, ?>) that).parent());
+					&& Objects.equals(parent(), ((ChildNode.Effective<?, ?>) that).parent());
 		}
 
 		@Override
 		public final int hashCode() {
 			return super.hashCode() ^ Objects.hashCode(parent());
+		}
+
+		@Override
+		public BindingNode.Effective<?, ?, ?> root() {
+			return parent().root();
 		}
 	}
 
@@ -117,5 +117,10 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 	@Override
 	public final int hashCode() {
 		return super.hashCode() ^ Objects.hashCode(parent());
+	}
+
+	@Override
+	public BindingNode<?, ?, ?> root() {
+		return parent().root();
 	}
 }

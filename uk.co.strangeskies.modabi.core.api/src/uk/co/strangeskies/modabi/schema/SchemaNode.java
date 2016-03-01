@@ -24,11 +24,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 
 public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
-	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>>
-			extends SchemaNode<S, E> {
+	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>> extends SchemaNode<S, E> {
 		@Override
 		List<ChildNode.Effective<?, ?>> children();
 
@@ -42,6 +42,9 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 		S source();
 
 		boolean hasExtensibleChildren();
+
+		@Override
+		BindingNode.Effective<?, ?, ?> root();
 	}
 
 	Boolean isAbstract();
@@ -59,11 +62,10 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 	default ChildNode<?, ?> child(QualifiedName name) {
 		return children().stream().filter(c -> c.getName().equals(name)).findAny()
-				.orElseThrow(() -> new SchemaException("Cannot find child '" + name
-						+ "' for node '" + getName() + "' amongst children '["
-						+ children().stream().map(SchemaNode::getName)
-								.map(Objects::toString).collect(Collectors.joining(", "))
-						+ "]."));
+				.orElseThrow(() -> new SchemaException(
+						"Cannot find child '" + name + "' for node '" + getName() + "' amongst children '["
+								+ children().stream().map(SchemaNode::getName).map(Objects::toString).collect(Collectors.joining(", "))
+								+ "]."));
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {
@@ -87,7 +89,10 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 		if (names.length == 0)
 			return child(new QualifiedName(name, getName().getNamespace()));
 		else
-			return child(name).child(names[0],
-					Arrays.copyOfRange(names, 1, names.length));
+			return child(name).child(names[0], Arrays.copyOfRange(names, 1, names.length));
 	}
+
+	BindingNode<?, ?, ?> root();
+
+	Schema schema();
 }

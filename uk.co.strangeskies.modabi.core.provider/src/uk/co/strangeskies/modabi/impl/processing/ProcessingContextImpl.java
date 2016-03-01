@@ -465,7 +465,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems,
 			BiConsumer<ProcessingContextImpl, I> bindingMethod, Function<Set<Exception>, BindingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new BindingException("Must supply items for binding attempt.", this);
+			throw new BindingException("Must supply items for binding attempt", this);
 
 		Set<Exception> failures = new HashSet<>();
 

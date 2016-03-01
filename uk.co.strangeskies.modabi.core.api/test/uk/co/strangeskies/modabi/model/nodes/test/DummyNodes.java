@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
@@ -34,28 +36,24 @@ public class DummyNodes {
 	private DummyNodes() {}
 
 	public static SequenceNode sequenceNode(String name, String... children) {
-		return sequenceNode(new QualifiedName(name), Arrays.asList(children)
-				.stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
+		return sequenceNode(new QualifiedName(name),
+				Arrays.asList(children).stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name,
-			QualifiedName... children) {
-		return sequenceNode(name, Arrays.asList(children).stream()
-				.map(DummyNodes::sequenceNode).collect(Collectors.toList()));
+	public static SequenceNode sequenceNode(QualifiedName name, QualifiedName... children) {
+		return sequenceNode(name,
+				Arrays.asList(children).stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
 	}
 
-	public static SequenceNode sequenceNode(String name,
-			ChildNode<?, ?>... children) {
+	public static SequenceNode sequenceNode(String name, ChildNode<?, ?>... children) {
 		return sequenceNode(new QualifiedName(name), children);
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name,
-			ChildNode<?, ?>... children) {
+	public static SequenceNode sequenceNode(QualifiedName name, ChildNode<?, ?>... children) {
 		return sequenceNode(name, Arrays.asList(children));
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name,
-			List<? extends ChildNode<?, ?>> children) {
+	public static SequenceNode sequenceNode(QualifiedName name, List<? extends ChildNode<?, ?>> children) {
 		return new SequenceNode() {
 			@Override
 			public QualifiedName getName() {
@@ -129,9 +127,7 @@ public class DummyNodes {
 
 					@Override
 					public List<ChildNode.Effective<?, ?>> children() {
-						return children.stream().<ChildNode
-								.Effective<?, ?>> map(c -> c.effective())
-								.collect(Collectors.toList());
+						return children.stream().<ChildNode.Effective<?, ?>>map(c -> c.effective()).collect(Collectors.toList());
 					}
 
 					@Override
@@ -163,6 +159,16 @@ public class DummyNodes {
 					public SchemaNode.Effective<?, ?> parent() {
 						return null;
 					}
+
+					@Override
+					public BindingNode.Effective<?, ?, ?> root() {
+						return null;
+					}
+
+					@Override
+					public Schema schema() {
+						return null;
+					}
 				};
 			}
 
@@ -178,6 +184,16 @@ public class DummyNodes {
 
 			@Override
 			public SchemaNode<?, ?> parent() {
+				return null;
+			}
+
+			@Override
+			public BindingNode<?, ?, ?> root() {
+				return null;
+			}
+
+			@Override
+			public Schema schema() {
 				return null;
 			}
 		};
@@ -249,6 +265,16 @@ public class DummyNodes {
 
 			@Override
 			public SchemaNode.Effective<?, ?> parent() {
+				return null;
+			}
+
+			@Override
+			public BindingNode.Effective<?, ?, ?> root() {
+				return null;
+			}
+
+			@Override
+			public Schema schema() {
 				return null;
 			}
 		};

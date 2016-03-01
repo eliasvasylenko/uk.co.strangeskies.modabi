@@ -25,16 +25,15 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class DataNodeImpl<T>
-		extends BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>>
+public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNode.Effective<T>>
 		implements DataNode<T> {
-	public static class Effective<T> extends
-			BindingChildNodeImpl.Effective<T, DataNode<T>, DataNode.Effective<T>>
+	public static class Effective<T> extends BindingChildNodeImpl.Effective<T, DataNode<T>, DataNode.Effective<T>>
 			implements DataNode.Effective<T> {
 		private final DataType.Effective<T> type;
 		private final Format format;
@@ -43,59 +42,44 @@ public class DataNodeImpl<T>
 		private final ValueResolution resolution;
 		private List<T> provided;
 
-		protected Effective(
-				OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
+		protected Effective(OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
-			DataType<T> type = overrideMerge.getOverride(DataNode::type)
-					.validate((n, o) -> {
-						DataType<?> p = n.effective();
-						do
-							if (p == o.effective())
-								return true;
-						while ((p = p.baseType().effective()) != null);
-						return false;
-					}).tryGet();
+			DataType<T> type = overrideMerge.getOverride(DataNode::type).validate((n, o) -> {
+				DataType<?> p = n.effective();
+				do
+					if (p == o.effective())
+						return true;
+				while ((p = p.baseType().effective()) != null);
+				return false;
+			}).tryGet();
 			this.type = type == null ? null : type.effective();
 
 			format = overrideMerge.getOverride(DataNode::format).tryGet();
-			if (format != null
-					&& overrideMerge.configurator().getContext().isInputDataOnly())
-				throw new SchemaException(
-						"Node '" + getName() + "' must not provide a format.");
+			if (format != null && overrideMerge.configurator().getContext().isInputDataOnly())
+				throw new SchemaException("Node '" + getName() + "' must not provide a format.");
 
-			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted)
-					.validate((n, o) -> o || !n).orDefault(false).get();
+			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted).validate((n, o) -> o || !n).orDefault(false)
+					.get();
 
-			if (!isAbstract() && nullIfOmitted
-					&& (!occurrences().equals(Range.between(0, 1))
-							|| format == Format.SIMPLE
-							|| !overrideMerge.configurator().getContext().isInputExpected()))
-				throw new SchemaException(
-						"'Null if omitted' property is not valid for node '" + getName()
-								+ "'");
+			if (!isAbstract() && nullIfOmitted && (!occurrences().equals(Range.between(0, 1)) || format == Format.SIMPLE
+					|| !overrideMerge.configurator().getContext().isInputExpected()))
+				throw new SchemaException("'Null if omitted' property is not valid for node '" + getName() + "'");
 
-			providedBuffer = overrideMerge.getOverride(DataNode::providedValueBuffer)
-					.tryGet();
-			ValueResolution resolution = overrideMerge
-					.getOverride(DataNode::valueResolution)
-					.validate((o,
-							n) -> o == n || (o == ValueResolution.REGISTRATION_TIME
-									&& n == ValueResolution.POST_REGISTRATION))
+			providedBuffer = overrideMerge.getOverride(DataNode::providedValueBuffer).tryGet();
+			ValueResolution resolution = overrideMerge.getOverride(DataNode::valueResolution)
+					.validate(
+							(o, n) -> o == n || (o == ValueResolution.REGISTRATION_TIME && n == ValueResolution.POST_REGISTRATION))
 					.orDefault(ValueResolution.PROCESSING_TIME).get();
 
 			if (providedBuffer == null && !isAbstract() && !occurrences().contains(0)
-					&& (resolution == ValueResolution.REGISTRATION_TIME
-							|| resolution == ValueResolution.POST_REGISTRATION))
-				throw new SchemaException(
-						"Value must be provided at registration time for node '" + getName()
-								+ "'");
+					&& (resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION))
+				throw new SchemaException("Value must be provided at registration time for node '" + getName() + "'");
 
-			if ((resolution == ValueResolution.REGISTRATION_TIME
-					|| resolution == ValueResolution.POST_REGISTRATION)
+			if ((resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION)
 					&& providedBuffer != null) {
-				provided = overrideMerge.configurator().getContext().dataLoader()
-						.loadData(DataNodeImpl.Effective.this, providedBuffer);
+				provided = overrideMerge.configurator().getContext().dataLoader().loadData(DataNodeImpl.Effective.this,
+						providedBuffer);
 
 				/*
 				 * Incorporate type information from provided data if possible
@@ -103,10 +87,8 @@ public class DataNodeImpl<T>
 				for (T providedItem : provided) {
 					Class<?> rawType = provided.iterator().next().getClass();
 
-					if (resolution == ValueResolution.REGISTRATION_TIME
-							&& Reified.class.isAssignableFrom(rawType)) {
-						TypeToken<?> providedType = ((Reified<?>) providedItem)
-								.getThisType();
+					if (resolution == ValueResolution.REGISTRATION_TIME && Reified.class.isAssignableFrom(rawType)) {
+						TypeToken<?> providedType = ((Reified<?>) providedItem).getThisType();
 						System.out.println(providedType);
 						/*
 						 * TODO Incorporate
@@ -156,6 +138,11 @@ public class DataNodeImpl<T>
 		public ValueResolution valueResolution() {
 			return resolution;
 		}
+
+		@Override
+		public BindingNode.Effective<?, ?, ?> root() {
+			return parent().root();
+		}
 	}
 
 	private final Effective<T> effective;
@@ -176,8 +163,7 @@ public class DataNodeImpl<T>
 		providedBuffer = configurator.getProvidedBufferedValue();
 		resolution = configurator.getResolution();
 
-		effective = new Effective<>(
-				DataNodeConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new Effective<>(DataNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override
@@ -208,5 +194,10 @@ public class DataNodeImpl<T>
 	@Override
 	public DataNodeImpl.Effective<T> effective() {
 		return effective;
+	}
+
+	@Override
+	public BindingNode<?, ?, ?> root() {
+		return parent().root();
 	}
 }

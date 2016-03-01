@@ -126,11 +126,11 @@ public class SchemaManagerImpl implements SchemaManager {
 		/*
 		 * Register collection providers
 		 */
-		provisions().registerProvider(new @Infer TypeToken<SortedSet<?>>() {}, TreeSet::new);
-		provisions().registerProvider(new @Infer TypeToken<Set<?>>() {}, HashSet::new);
-		provisions().registerProvider(new @Infer TypeToken<LinkedHashSet<?>>() {}, LinkedHashSet::new);
-		provisions().registerProvider(new @Infer TypeToken<List<?>>() {}, ArrayList::new);
-		provisions().registerProvider(new @Infer TypeToken<Map<?, ?>>() {}, HashMap::new);
+		provisions().registerProvider(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>());
+		provisions().registerProvider(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>());
+		provisions().registerProvider(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>());
+		provisions().registerProvider(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>());
+		provisions().registerProvider(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>());
 
 		provisions().registerProvider(ProcessingContext.class, c -> c);
 		new BindingProviders(this).registerProviders(provisions());
@@ -366,7 +366,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		} , this::addBindingFuture);
+		}, this::addBindingFuture);
 	}
 
 	@Override

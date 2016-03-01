@@ -18,25 +18,21 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.DataType;
 
-public class DataTypeImpl<T>
-		extends BindingNodeImpl<T, DataType<T>, DataType.Effective<T>>
-		implements DataType<T> {
-	private static class Effective<T>
-			extends BindingNodeImpl.Effective<T, DataType<T>, DataType.Effective<T>>
+public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Effective<T>> implements DataType<T> {
+	private static class Effective<T> extends BindingNodeImpl.Effective<T, DataType<T>, DataType.Effective<T>>
 			implements DataType.Effective<T> {
 		private final Boolean isPrivate;
 
 		private final DataType.Effective<? super T> baseType;
 
-		public Effective(
-				OverrideMerge<DataType<T>, DataTypeConfiguratorImpl<T>> overrideMerge) {
+		public Effective(OverrideMerge<DataType<T>, DataTypeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
-			isPrivate = overrideMerge.node().isPrivate() != null
-					&& overrideMerge.node().isPrivate();
+			isPrivate = overrideMerge.node().isPrivate() != null && overrideMerge.node().isPrivate();
 
 			baseType = overrideMerge.configurator().getBaseType() == null ? null
 					: overrideMerge.configurator().getBaseType().effective();
@@ -50,6 +46,16 @@ public class DataTypeImpl<T>
 		@Override
 		public DataType.Effective<? super T> baseType() {
 			return baseType;
+		}
+
+		@Override
+		public DataType.Effective<T> root() {
+			return this;
+		}
+
+		@Override
+		public Schema schema() {
+			return source().schema();
 		}
 	}
 
@@ -66,8 +72,7 @@ public class DataTypeImpl<T>
 
 		baseType = configurator.getBaseType();
 
-		effective = new DataTypeImpl.Effective<>(
-				DataTypeConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new DataTypeImpl.Effective<>(DataTypeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override
@@ -83,5 +88,18 @@ public class DataTypeImpl<T>
 	@Override
 	public DataTypeImpl.Effective<T> effective() {
 		return effective;
+	}
+
+	@Override
+	public DataType<T> root() {
+		return this;
+	}
+
+	@Override
+	public Schema schema() {
+		/*
+		 * TODO
+		 */
+		return null;
 	}
 }
