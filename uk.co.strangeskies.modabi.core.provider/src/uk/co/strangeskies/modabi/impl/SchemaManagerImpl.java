@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,22 +46,21 @@ import uk.co.strangeskies.modabi.Binder;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.DataTypes;
-import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
+import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
-import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
-import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -70,8 +68,6 @@ import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.ObservableImpl;
@@ -81,6 +77,8 @@ import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 @Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
+	private final SchemaBuilder schemaBuilder;
+
 	private final MultiMap<QualifiedName, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
 
 	private final CoreSchemata coreSchemata;
@@ -91,24 +89,19 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final DataTypes registeredTypes;
 	private final Schemata registeredSchemata;
 
-	private final ModelBuilder modelBuilder;
-	private final DataTypeBuilder dataTypeBuilder;
-
 	private final Map<String, StructuredDataFormat> dataInterfaces;
 	private final ObservableImpl<StructuredDataFormat> dataInterfaceObservers;
 
 	public SchemaManagerImpl() {
-		this(new SchemaBuilderImpl(), new ModelBuilderImpl(), new DataTypeBuilderImpl());
+		this(new SchemaBuilderImpl());
 	}
 
-	public SchemaManagerImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder,
-			DataTypeBuilder dataTypeBuilder /* TODO , Log log */) {
-		this.modelBuilder = modelBuilder;
-		this.dataTypeBuilder = dataTypeBuilder;
+	public SchemaManagerImpl(SchemaBuilder schemaBuilder /* TODO , Log log */) {
+		this.schemaBuilder = schemaBuilder;
 
 		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
 
-		coreSchemata = new CoreSchemata(schemaBuilder, modelBuilder, dataTypeBuilder);
+		coreSchemata = new CoreSchemata(schemaBuilder);
 
 		registeredSchemata = new Schemata();
 		registeredModels = new Models();
@@ -117,10 +110,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		provisions = new ProvisionsImpl();
 
 		/*
-		 * Register model builder providers
+		 * Register schema builder provider
 		 */
-		provisions().registerProvider(DataTypeBuilder.class, () -> dataTypeBuilder);
-		provisions().registerProvider(ModelBuilder.class, () -> modelBuilder);
 		provisions().registerProvider(SchemaBuilder.class, () -> schemaBuilder);
 
 		/*
@@ -146,12 +137,15 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new ProcessingContextImpl(this);
 	}
 
-	ModelBuilder getModelBuilder() {
-		return modelBuilder;
-	}
-
-	DataTypeBuilder getDataTypeBuilder() {
-		return dataTypeBuilder;
+	public SchemaConfigurator getSchemaConfigurator() {
+		return new SchemaConfiguratorDecorator(schemaBuilder.configure(DataNodeBinder.dataLoader(getProcessingContext()))) {
+			@Override
+			public Schema create() {
+				Schema schema = super.create();
+				registerSchema(schema);
+				return schema;
+			}
+		};
 	}
 
 	private boolean registerSchemaImpl(Schema schema) {
@@ -366,7 +360,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		}, this::addBindingFuture);
+		} , this::addBindingFuture);
 	}
 
 	@Override
@@ -415,13 +409,6 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public DataTypes registeredTypes() {
 		return registeredTypes;
-	}
-
-	@Override
-	public GeneratedSchema generateSchema(QualifiedName name, Collection<? extends Schema> dependencies) {
-		GeneratedSchemaImpl schema = new GeneratedSchemaImpl(this, name, dependencies);
-		registerSchema(schema);
-		return schema;
 	}
 
 	@Override

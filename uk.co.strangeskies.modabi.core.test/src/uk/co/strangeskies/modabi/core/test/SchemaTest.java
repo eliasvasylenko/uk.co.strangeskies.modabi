@@ -33,11 +33,11 @@ import org.osgi.util.tracker.ServiceTracker;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.GeneratedSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
@@ -76,8 +76,8 @@ public class SchemaTest {
 	@Test
 	public void abstractChoiceNodeTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
-		schemaManager.generateSchema(new QualifiedName("choiceNodeTest")).buildModel("choiceNodeTestModel",
-				m -> m.isAbstract(true).addChild(c -> c.choice().isAbstract(true)));
+		schemaManager.getSchemaConfigurator().qualifiedName(new QualifiedName("choiceNodeTest"))
+				.addModel("choiceNodeTestModel", m -> m.isAbstract(true).addChild(c -> c.choice().isAbstract(true)));
 	}
 
 	@Test
@@ -156,12 +156,13 @@ public class SchemaTest {
 	public void manualSchemaCreationTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
 
-		GeneratedSchema generatedSchema = schemaManager
-				.generateSchema(new QualifiedName("testExtentions", Namespace.getDefault()));
+		SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator()
+				.qualifiedName(new QualifiedName("testExtentions", Namespace.getDefault()));
 
-		DataType<List<?>> intListType = generatedSchema.buildDataType(
-				n -> n.name("intSet", Namespace.getDefault()).baseType(schemaManager.getBaseSchema().derivedTypes().listType())
-						.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))));
+		DataType<List<?>> intListType = generatedSchema.addDataType().name("intSet", Namespace.getDefault())
+				.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
+				.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))
+				.create();
 		System.out.println(intListType.effective().getDataType());
 
 		Map<String, Integer> stringIntMap = new HashMap<>();
@@ -170,13 +171,14 @@ public class SchemaTest {
 		stringIntMap.put("third", 3);
 
 		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> stringIntMapModel = generatedSchema.buildModel(n -> n.name("stringIntMap", Namespace.getDefault())
+		Model<Map<?, ?>> stringIntMapModel = generatedSchema.addModel().name("stringIntMap", Namespace.getDefault())
 				.baseModel(schemaManager.getBaseSchema().models().mapModel())
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
-										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))));
+								.<Object> baseModel((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
+										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
+				.create();
 		System.out.println(stringIntMapModel.effective().getDataType());
 		System.out.println("    ~# " + stringIntMapModel.effective().getDataType().getResolver().getBounds());
 
@@ -198,35 +200,56 @@ public class SchemaTest {
 				.over(AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
 						Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> mapModel3 = generatedSchema
-				.buildModel(
-						n -> n.name("map3", Namespace.getDefault())
+		Model<Map<?, ?>> mapModel3 = generatedSchema.addModel()
+				.name("map3",
+						Namespace
+								.getDefault())
+				.dataType(
+						new @Infer TypeToken<Map<?, ?>>() {})
+				.addChild(
+						e -> e.complex().name("entrySet").inline(true).inMethod("null")
 								.dataType(
-										new @Infer TypeToken<Map<?, ?>>() {})
+										inferredMapEntrySet)
+								.bindingStrategy(
+										BindingStrategy.TARGET_ADAPTOR)
 								.addChild(
-										e -> e.complex().name("entrySet").inline(true).inMethod("null").dataType(inferredMapEntrySet)
-												.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-												.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
-												.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
-														.outMethod("this").bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE).bindingType(
-																BaseSchema.class)
-														.unbindingMethod("mapEntry").dataType(inferredMapEntry)
-														.addChild(k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
-																.type(schemaManager.getBaseSchema().derivedTypes().listType())
-																.addChild(l -> l.data().name("element")
-																		.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
-														.addChild(
-																v -> v.complex().name("value").inMethod("null")
-																		.baseModel(schemaManager.getBaseSchema().models().mapModel())
-																		.addChild(s -> s.complex().name("entrySet")
+										s -> s.inputSequence().name("entrySet")
+												.inMethodChained(true))
+								.addChild(
+										f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add").outMethod("this")
+												.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE).bindingType(BaseSchema.class)
+												.unbindingMethod(
+														"mapEntry")
+												.dataType(inferredMapEntry)
+												.addChild(
+														k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
+																.type(
+																		schemaManager.getBaseSchema().derivedTypes().listType())
+																.addChild(
+																		l -> l.data().name("element")
+																				.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
+												.addChild(
+														v -> v.complex()
+																.name(
+																		"value")
+																.inMethod("null")
+																.baseModel(
+																		schemaManager.getBaseSchema().models()
+																				.mapModel())
+																.addChild(
+																		s -> s.complex()
+																				.name(
+																						"entrySet")
 																				.addChild(ee -> ee.complex().name("entry")
 																						.addChild(k -> k.data().name("key")
 																								.type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
-																						.addChild(vv -> vv.complex().name("value")
-																								.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema()
+																				.addChild(
+																						vv -> vv.complex().name("value")
+																								.<Object> baseModel((Model<Object>) schemaManager.getBaseSchema()
 																										.models().simpleModel())
-																								.addChild(cc -> cc.data().name("content").type(
-																										schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))))));
+																						.addChild(cc -> cc.data().name("content")
+																								.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
+				.create();
 		System.out.println(mapModel3.effective().getDataType());
 	}
 }

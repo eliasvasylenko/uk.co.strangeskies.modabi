@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema.building;
 
 import org.osgi.service.component.annotations.Component;
 
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.ModelConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
@@ -28,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 @Component
 public class ModelBuilderImpl implements ModelBuilder {
 	@Override
-	public ModelConfigurator<Object> configure(DataLoader loader) {
-		return new ModelConfiguratorImpl<>(loader);
+	public ModelConfigurator<Object> configure(DataLoader loader, Schema schema) {
+		return new ModelConfiguratorImpl<>(loader, schema);
 	}
 }

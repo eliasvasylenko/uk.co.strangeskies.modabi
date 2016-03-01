@@ -26,6 +26,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
@@ -55,11 +56,9 @@ import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 
 public class BindingNodeOverrider {
-	public <T> ComplexNode.Effective<T> override(ModelBuilder builder, ComplexNode.Effective<? super T> node,
+	public <T> ComplexNode.Effective<T> override(SchemaBuilder builder, ComplexNode.Effective<? super T> node,
 			Model.Effective<T> override) {
 		try {
 			if (isDirectOverridePossible(node, override))
@@ -75,7 +74,7 @@ public class BindingNodeOverrider {
 		return node.children().isEmpty(); // TODO is this enough?
 	}
 
-	public <T> DataNode.Effective<T> override(DataTypeBuilder builder, DataNode.Effective<? super T> node,
+	public <T> DataNode.Effective<T> override(SchemaBuilder builder, DataNode.Effective<? super T> node,
 			DataType.Effective<T> override) {
 		try {
 			if (isDirectOverridePossible(node, override))
@@ -102,7 +101,7 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> ComplexNode.Effective<T> process(ModelBuilder builder, ComplexNode.Effective<? super T> node,
+		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNode.Effective<? super T> node,
 				Model.Effective<T> override) {
 			DataLoader loader = new DataLoader() {
 				@Override
@@ -111,7 +110,7 @@ public class BindingNodeOverrider {
 				}
 			};
 
-			ModelConfigurator<Object> configurator = builder.configure(loader).name(new QualifiedName("base"))
+			ModelConfigurator<Object> configurator = builder.configure(loader).addModel().name(new QualifiedName("base"))
 					.isAbstract(true);
 			if (node.getPreInputType() != null)
 				configurator = configurator.bindingType(node.getPreInputType());
@@ -132,7 +131,7 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> DataNode.Effective<T> process(DataTypeBuilder builder, DataNode.Effective<? super T> node,
+		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNode.Effective<? super T> node,
 				DataType.Effective<T> override) {
 			DataLoader loader = new DataLoader() {
 				@Override
@@ -141,8 +140,9 @@ public class BindingNodeOverrider {
 				}
 			};
 
-			DataTypeConfigurator<Object> configurator = builder.configure(loader).name(new QualifiedName("base"))
-					.bindingType(node.getPreInputType()).unbindingType(node.getOutMethod().getDeclaringClass()).isAbstract(true);
+			DataTypeConfigurator<Object> configurator = builder.configure(loader).addDataType()
+					.name(new QualifiedName("base")).bindingType(node.getPreInputType())
+					.unbindingType(node.getOutMethod().getDeclaringClass()).isAbstract(true);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()
 					.name(override.getName()).type(override.source().baseType()).nullIfOmitted(node.nullIfOmitted());

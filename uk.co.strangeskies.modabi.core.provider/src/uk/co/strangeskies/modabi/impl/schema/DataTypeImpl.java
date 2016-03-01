@@ -65,6 +65,8 @@ public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Ef
 
 	private final DataType<? super T> baseType;
 
+	private final Schema schema;
+
 	public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
@@ -73,6 +75,8 @@ public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Ef
 		baseType = configurator.getBaseType();
 
 		effective = new DataTypeImpl.Effective<>(DataTypeConfiguratorImpl.overrideMerge(this, configurator));
+
+		schema = configurator.getSchema();
 	}
 
 	@Override
@@ -97,9 +101,6 @@ public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Ef
 
 	@Override
 	public Schema schema() {
-		/*
-		 * TODO
-		 */
-		return null;
+		return schema;
 	}
 }

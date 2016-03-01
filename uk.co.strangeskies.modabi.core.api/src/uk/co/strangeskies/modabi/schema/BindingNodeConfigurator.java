@@ -36,7 +36,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	default <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
 			Class<V> dataClass) {
-		return dataType(dataClass);
+		return dataType(TypeToken.over(dataClass));
 	}
 
 	@SuppressWarnings("unchecked")

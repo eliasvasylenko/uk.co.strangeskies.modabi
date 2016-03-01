@@ -39,15 +39,13 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class CoreSchemata {
 	private final BaseSchema baseSchema;
 	private final MetaSchema metaSchema;
 
-	public CoreSchemata(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
+	public CoreSchemata(SchemaBuilder schemaBuilder) {
 		/*
 		 * We obviously don't have have any schema to use to bind provided values
 		 * which have registration time resolution, since what we're doing here is
@@ -118,8 +116,8 @@ public class CoreSchemata {
 				throw new SchemaException("Unable to provide value for node '" + node + "'");
 			}
 		};
-		baseSchema = new BaseSchemaImpl(schemaBuilder, modelBuilder, dataTypeBuilder, loader);
-		metaSchema = new MetaSchemaImpl(schemaBuilder, modelBuilder, dataTypeBuilder, loader, baseSchema);
+		baseSchema = new BaseSchemaImpl(schemaBuilder, loader);
+		metaSchema = new MetaSchemaImpl(schemaBuilder, loader, baseSchema);
 	}
 
 	public BaseSchema baseSchema() {

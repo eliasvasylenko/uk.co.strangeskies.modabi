@@ -63,6 +63,8 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>> impl
 
 	private final List<Model<? super T>> baseModel;
 
+	private final Schema schema;
+
 	public ModelImpl(ModelConfiguratorImpl<T> configurator) {
 		super(configurator);
 
@@ -70,6 +72,8 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>> impl
 				: Collections.unmodifiableList(new ArrayList<>(configurator.getBaseModel()));
 
 		effective = new ModelImpl.Effective<>(ModelConfiguratorImpl.overrideMerge(this, configurator));
+
+		schema = configurator.getSchema();
 	}
 
 	@Override
@@ -89,9 +93,6 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>, Model.Effective<T>> impl
 
 	@Override
 	public Schema schema() {
-		/*
-		 * TODO
-		 */
-		return null;
+		return schema;
 	}
 }

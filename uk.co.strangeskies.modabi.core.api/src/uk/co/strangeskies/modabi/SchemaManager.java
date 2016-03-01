@@ -18,9 +18,6 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -31,15 +28,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 public interface SchemaManager {
 	DataFormats dataFormats();
 
-	default GeneratedSchema generateSchema(QualifiedName name) {
-		return generateSchema(name, Collections.emptySet());
-	}
-
-	default GeneratedSchema generateSchema(QualifiedName name, Schema... dependencies) {
-		return generateSchema(name, Arrays.asList(dependencies));
-	}
-
-	GeneratedSchema generateSchema(QualifiedName name, Collection<? extends Schema> dependencies);
+	SchemaConfigurator getSchemaConfigurator();
 
 	boolean registerSchema(Schema schema);
 

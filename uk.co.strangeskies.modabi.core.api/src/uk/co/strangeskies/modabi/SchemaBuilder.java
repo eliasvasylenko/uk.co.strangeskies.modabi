@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
+
 public interface SchemaBuilder {
-	public SchemaConfigurator configure();
+	public SchemaConfigurator configure(DataLoader loader);
 }

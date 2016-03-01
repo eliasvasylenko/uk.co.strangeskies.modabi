@@ -24,23 +24,28 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class DataTypeConfiguratorImpl<T>
-		extends
-		BindingNodeConfiguratorImpl<DataTypeConfigurator<T>, DataType<T>, T>
+public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<DataTypeConfigurator<T>, DataType<T>, T>
 		implements DataTypeConfigurator<T> {
 	private final DataLoader loader;
+	private final Schema schema;
 
 	private Boolean isPrivate;
 
 	private DataType<? super T> baseType;
 
-	public DataTypeConfiguratorImpl(DataLoader loader) {
+	public DataTypeConfiguratorImpl(DataLoader loader, Schema schema) {
 		this.loader = loader;
+		this.schema = schema;
+	}
+
+	public Schema getSchema() {
+		return schema;
 	}
 
 	@Override
@@ -62,8 +67,7 @@ public class DataTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataTypeConfigurator<U> baseType(
-			DataType<? super U> baseType) {
+	public final <U extends T> DataTypeConfigurator<U> baseType(DataType<? super U> baseType) {
 		assertConfigurable(this.baseType);
 		this.baseType = (DataType<? super T>) baseType;
 
@@ -76,8 +80,7 @@ public class DataTypeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> DataTypeConfigurator<V> dataType(
-			TypeToken<? extends V> dataClass) {
+	public <V extends T> DataTypeConfigurator<V> dataType(TypeToken<? extends V> dataClass) {
 		return (DataTypeConfigurator<V>) super.dataType(dataClass);
 	}
 
@@ -104,7 +107,6 @@ public class DataTypeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<DataType<T>> getOverriddenNodes() {
-		return baseType == null ? Collections.emptyList() : new ArrayList<>(
-				Arrays.asList((DataType<T>) baseType));
+		return baseType == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList((DataType<T>) baseType));
 	}
 }

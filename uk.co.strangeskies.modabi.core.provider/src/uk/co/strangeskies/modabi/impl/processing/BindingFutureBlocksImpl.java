@@ -117,7 +117,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	}
 
 	@Override
-	public <T> T blockAndWaitForInteral(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
+	public <T> T blockAndWaitForInternal(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
 		synchronized (processingThreads) {
 			boolean addedThread = !processingThreads.contains(Thread.currentThread());
 			if (addedThread) {
@@ -139,13 +139,13 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	}
 
 	@Override
-	public Thread blockForInteral(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
+	public Thread blockForInternal(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
 		synchronized (processingThreads) {
 			assertResolvable(true);
 		}
 
 		Thread thread = new Thread(() -> {
-			blockAndWaitForInteral(() -> {
+			blockAndWaitForInternal(() -> {
 				blockingRunnable.run();
 				return null;
 			}, namespace, id);

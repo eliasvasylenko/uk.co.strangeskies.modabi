@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema.building;
 
 import org.osgi.service.component.annotations.Component;
 
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.DataTypeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
@@ -28,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
 @Component
 public class DataTypeBuilderImpl implements DataTypeBuilder {
 	@Override
-	public DataTypeConfigurator<Object> configure(DataLoader loader) {
-		return new DataTypeConfiguratorImpl<Object>(loader);
+	public DataTypeConfigurator<Object> configure(DataLoader loader, Schema schema) {
+		return new DataTypeConfiguratorImpl<>(loader, schema);
 	}
 }

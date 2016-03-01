@@ -21,8 +21,7 @@ package uk.co.strangeskies.modabi.io;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.utilities.Decorator;
 
-public class DataSourceDecorator extends Decorator<DataSource> implements
-		DataSource {
+public class DataSourceDecorator extends Decorator<DataSource> implements DataSource {
 	private DataStreamState currentState;
 
 	public DataSourceDecorator(DataSource component) {
@@ -77,5 +76,10 @@ public class DataSourceDecorator extends Decorator<DataSource> implements
 	@Override
 	public DataSource copy() {
 		return new DataSourceDecorator(getComponent().copy());
+	}
+
+	@Override
+	public String toString() {
+		return getComponent().toString();
 	}
 }

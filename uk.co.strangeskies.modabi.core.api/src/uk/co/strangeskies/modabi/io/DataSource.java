@@ -187,5 +187,26 @@ public interface DataSource extends Copyable<DataSource> {
 		public DataSource copy() {
 			return new RepeatingDataSource(list, index, size);
 		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder("[ ");
+
+			for (int i = 0; i < size; i++) {
+				if (i > 0)
+					builder.append(", ");
+
+				if (i == index)
+					builder.append("[");
+
+				builder.append(list.get(i % list.size()));
+
+				if (i == index)
+					builder.append("]");
+
+			}
+
+			return builder.append(" ]").toString();
+		}
 	}
 }

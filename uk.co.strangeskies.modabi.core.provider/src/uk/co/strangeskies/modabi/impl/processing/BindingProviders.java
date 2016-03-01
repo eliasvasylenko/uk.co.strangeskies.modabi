@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
@@ -79,9 +80,6 @@ public class BindingProviders {
 		return context -> Imports.empty();
 	}
 
-	/*
-	 * TODO from BindingContext not ProcessingContextImpl
-	 */
 	public Function<ProcessingContext, DataLoader> dataLoader() {
 		return context -> new DataLoader() {
 			@Override
@@ -135,13 +133,13 @@ public class BindingProviders {
 
 		Thread fetchThread;
 		if (objectProperty.get() == null) {
+			DataSource bufferedId = new BufferingDataTarget().put(id).buffer();
 			if (externalDependency) {
 				fetchThread = context.bindingFutureBlocker().blockFor(() -> objectProvider.accept(queue), model.getName(),
-						idSource);
+						bufferedId);
 			} else {
-				throw new BindingException(
-						"Can't find any bindings matching id '" + id + "' in domain '" + idDomain + "' for model '" + model + "'",
-						context);
+				fetchThread = context.bindingFutureBlocker().blockForInternal(() -> objectProvider.accept(queue),
+						model.getName(), bufferedId);
 			}
 		} else {
 			fetchThread = null;

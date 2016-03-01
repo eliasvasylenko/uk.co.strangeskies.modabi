@@ -25,26 +25,31 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ModelConfiguratorImpl<T>
-		extends BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T>
+public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T>
 		implements ModelConfigurator<T> {
 	private final DataLoader loader;
+	private final Schema schema;
 
 	private List<Model<? super T>> baseModel;
 
-	public ModelConfiguratorImpl(DataLoader loader) {
+	public ModelConfiguratorImpl(DataLoader loader, Schema schema) {
 		this.loader = loader;
+		this.schema = schema;
+	}
+
+	public Schema getSchema() {
+		return schema;
 	}
 
 	@Override
 	public QualifiedName defaultName() {
-		return (baseModel == null || baseModel.size() != 1) ? null
-				: baseModel.get(0).getName();
+		return (baseModel == null || baseModel.size() != 1) ? null : baseModel.get(0).getName();
 	}
 
 	@Override
@@ -64,8 +69,7 @@ public class ModelConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> baseModel(
-			List<? extends Model<? super V>> base) {
+	public <V extends T> ModelConfigurator<V> baseModel(List<? extends Model<? super V>> base) {
 		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
@@ -79,15 +83,14 @@ public class ModelConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<Model<T>> getOverriddenNodes() {
-		return baseModel != null ? new ArrayList<>(baseModel.stream()
-				.map(m -> (Model<T>) m.effective()).collect(Collectors.toList()))
+		return baseModel != null
+				? new ArrayList<>(baseModel.stream().map(m -> (Model<T>) m.effective()).collect(Collectors.toList()))
 				: Collections.emptyList();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> dataType(
-			TypeToken<? extends V> dataClass) {
+	public <V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> dataClass) {
 		return (ModelConfigurator<V>) super.dataType(dataClass);
 	}
 

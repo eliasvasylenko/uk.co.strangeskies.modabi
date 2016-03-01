@@ -35,6 +35,7 @@ import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.BindingNodeOverrider;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
@@ -54,8 +55,6 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -198,7 +197,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	private <T> DataNode.Effective<T> getDataNodeOverride(DataNode.Effective<? super T> node,
 			DataType.Effective<T> type) {
-		return new BindingNodeOverrider().override(provisions().provide(DataTypeBuilder.class, this).getObject(), node,
+		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node,
 				type);
 	}
 
@@ -225,7 +224,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	private <T> ComplexNode.Effective<T> getComplexNodeOverride(ComplexNode.Effective<? super T> node,
 			Model.Effective<T> model) {
-		return new BindingNodeOverrider().override(provisions().provide(ModelBuilder.class, this).getObject(), node, model);
+		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node, model);
 	}
 
 	@Override

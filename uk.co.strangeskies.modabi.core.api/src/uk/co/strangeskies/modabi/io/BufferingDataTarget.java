@@ -143,5 +143,26 @@ class BufferingDataTargetImpl implements DataTarget {
 		public DataSource copy() {
 			return new BufferedDataSource(dataSequence, index);
 		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder("[ ");
+
+			for (int i = 0; i < dataSequence.size(); i++) {
+				if (i > 0)
+					builder.append(", ");
+
+				if (i == index)
+					builder.append("[");
+
+				builder.append(dataSequence.get(i));
+
+				if (i == index)
+					builder.append("]");
+
+			}
+
+			return builder.append(" ]").toString();
+		}
 	}
 }

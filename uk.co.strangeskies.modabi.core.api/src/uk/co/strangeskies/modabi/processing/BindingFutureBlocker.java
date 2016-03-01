@@ -121,7 +121,7 @@ public interface BindingFutureBlocker {
 	 *          The id of the blocking resource
 	 * @return The new thread which is performing the blocking resource fetching
 	 */
-	<T> T blockAndWaitForInteral(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id);
+	<T> T blockAndWaitForInternal(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id);
 
 	/**
 	 * Internal blocks are intended to signal that a thread is waiting for
@@ -151,7 +151,7 @@ public interface BindingFutureBlocker {
 	 *          The id of the blocking resource
 	 * @return The new thread which is performing the blocking resource fetching
 	 */
-	Thread blockForInteral(Runnable blockingRunnable, QualifiedName namespace, DataSource id);
+	Thread blockForInternal(Runnable blockingRunnable, QualifiedName namespace, DataSource id);
 
 	/**
 	 * Register a thread which is participating in the binding/unbinding process.

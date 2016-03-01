@@ -25,7 +25,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +38,7 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
@@ -60,8 +60,6 @@ import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
@@ -590,23 +588,23 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	private final BaseModels models;
 
-	public BaseSchemaImpl(SchemaBuilder schemaBuilder, ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder,
-			DataLoader loader) {
+	public BaseSchemaImpl(SchemaBuilder schemaBuilder, DataLoader loader) {
 		QualifiedName name = BaseSchema.QUALIFIED_NAME;
 		Namespace namespace = name.getNamespace();
 
 		/*
+		 * Schema
+		 */
+		SchemaConfigurator schemaConfigurator = schemaBuilder.configure(loader).qualifiedName(name);
+
+		/*
 		 * Types
 		 */
-		Set<DataType<?>> typeSet = new LinkedHashSet<>();
-
 		TypeFactory typeFactory = new TypeFactory() {
 			@Override
 			public <T> DataType<T> apply(String name,
 					Function<DataTypeConfigurator<Object>, DataTypeConfigurator<T>> typeFunction) {
-				DataType<T> type = typeFunction.apply(dataTypeBuilder.configure(loader).name(name, namespace)).create();
-				typeSet.add(type);
-				return type;
+				return typeFunction.apply(schemaConfigurator.addDataType().name(name, namespace)).create();
 			}
 		};
 
@@ -636,21 +634,17 @@ public class BaseSchemaImpl implements BaseSchema {
 		/*
 		 * Models
 		 */
-		Set<Model<?>> modelSet = new LinkedHashSet<>();
-
 		models = new BaseModelsImpl(new ModelFactory() {
 			@Override
 			public <T> Model<T> apply(String name, Function<ModelConfigurator<Object>, ModelConfigurator<T>> modelFunction) {
-				Model<T> model = modelFunction.apply(modelBuilder.configure(loader).name(name, namespace)).create();
-				modelSet.add(model);
-				return model;
+				return modelFunction.apply(schemaConfigurator.addModel().name(name, namespace)).create();
 			}
 		});
 
 		/*
 		 * Schema
 		 */
-		baseSchema = schemaBuilder.configure().qualifiedName(name).types(typeSet).models(modelSet).create();
+		baseSchema = schemaConfigurator.create();
 	}
 
 	private <T> TypeToken<Primitive<T>> resolvePrimitiveDataType(Primitive<T> dataType) {

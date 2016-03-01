@@ -18,8 +18,9 @@
  */
 package uk.co.strangeskies.modabi.schema.building;
 
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 
 public interface ModelBuilder {
-	public ModelConfigurator<Object> configure(DataLoader loader);
+	public ModelConfigurator<Object> configure(DataLoader loader, Schema schema);
 }
