@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -46,7 +47,6 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypedObject;
-import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 
@@ -98,7 +98,6 @@ public class BindingProviders {
 		};
 	}
 
-	@SuppressWarnings("unchecked")
 	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
 			QualifiedName idDomain, DataSource idSource, boolean externalDependency) {
 		if (idSource.currentState() == DataStreamState.TERMINATED)
@@ -112,37 +111,81 @@ public class BindingProviders {
 			throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
 		DataNode.Effective<?> node = (Effective<?>) child;
 
+		/*
+		 * Block thread
+		 */
+		Property<Thread, Thread> blockThread = new IdentityProperty<>();
+
 		Property<U, U> objectProperty = new IdentityProperty<>();
-		Consumer<Iterable<U>> objectProvider = bindingCandidates -> {
-			for (U bindingCandidate : bindingCandidates) {
-				DataSource candidateId = unbindDataNode(node, new TypedObject<>(model.getDataType(), bindingCandidate));
+		Function<U, Boolean> objectProvider = objectCandidate -> {
+			synchronized (objectProperty) {
+				if (objectProperty.get() == null) {
+					Objects.requireNonNull(objectCandidate);
 
-				if (candidateId.size() != 1)
-					continue;
+					DataSource candidateId = unbindDataNode(node, new TypedObject<>(model.getDataType(), objectCandidate));
 
-				DataItem<?> candidateData = candidateId.get();
+					if (candidateId.size() == 1) {
+						DataItem<?> candidateData = candidateId.get();
 
-				if (id.data(candidateData.type()).equals(candidateData.data())) {
-					objectProperty.set(bindingCandidate);
+						if (id.data(candidateData.type()).equals(candidateData.data())) {
+							objectProperty.set(objectCandidate);
+							objectProperty.notifyAll();
+
+							return true;
+						}
+					}
 				}
+
+				return false;
 			}
 		};
 
-		ConsumerSupplierQueue<U> queue = new ConsumerSupplierQueue<>();
-		objectProvider.accept(bindings.getAndListen(model, queue));
-
-		Thread fetchThread;
-		if (objectProperty.get() == null) {
-			DataSource bufferedId = new BufferingDataTarget().put(id).buffer();
-			if (externalDependency) {
-				fetchThread = context.bindingFutureBlocker().blockFor(() -> objectProvider.accept(queue), model.getName(),
-						bufferedId);
-			} else {
-				fetchThread = context.bindingFutureBlocker().blockForInternal(() -> objectProvider.accept(queue),
-						model.getName(), bufferedId);
+		Set<U> existingCandidates = bindings.getAndListen(model, objectCandidate -> {
+			synchronized (objectProperty) {
+				if (objectProvider.apply(objectCandidate) && blockThread.get() != null) {
+					try {
+						blockThread.get().join();
+					} catch (InterruptedException e) {}
+				}
 			}
-		} else {
-			fetchThread = null;
+		});
+		for (U objectCandidate : existingCandidates) {
+			if (objectProvider.apply(objectCandidate)) {
+				return objectCandidate;
+			}
+		}
+
+		return getProxiedBinding(id, context, model, objectProperty, blockThread, externalDependency);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <U> U getProxiedBinding(DataItem<?> id, ProcessingContext context, Model<U> model,
+			Property<U, U> objectProperty, Property<Thread, Thread> blockThread, boolean externalDependency) {
+		/*
+		 * Runnable to block until object is available
+		 */
+		Runnable waitForObject = () -> {
+			try {
+				synchronized (objectProperty) {
+					while (objectProperty.get() == null) {
+						objectProperty.wait();
+					}
+				}
+			} catch (InterruptedException e) {}
+		};
+
+		/*
+		 * Block binding until dependency is fulfilled
+		 */
+		DataSource bufferedId = new BufferingDataTarget().put(id).buffer();
+		synchronized (objectProperty) {
+			if (objectProperty.get() == null) {
+				if (externalDependency) {
+					blockThread.set(context.bindingFutureBlocker().blockFor(waitForObject, model.getName(), bufferedId));
+				} else {
+					blockThread.set(context.bindingFutureBlocker().blockForInternal(waitForObject, model.getName(), bufferedId));
+				}
+			}
 		}
 
 		/*
@@ -154,19 +197,12 @@ public class BindingProviders {
 		/*
 		 * TODO check if raw type is actually proxiable...
 		 */
-
 		return (U) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { rawType },
 				new InvocationHandler() {
-					private Property<U, U> object = objectProperty;
-					private Thread thread = fetchThread;
-
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-						if (thread != null) {
-							thread.join();
-							thread = null;
-						}
-						return method.invoke(object.get(), args);
+						context.bindingFutureBlocker().blockAndWaitForInternal(waitForObject, model.getName(), bufferedId);
+						return method.invoke(objectProperty.get(), args);
 					}
 				});
 	}

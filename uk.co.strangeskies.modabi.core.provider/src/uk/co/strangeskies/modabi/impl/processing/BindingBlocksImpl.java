@@ -18,28 +18,29 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toSet;
+
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.BindingFutureBlocker;
-import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
+import uk.co.strangeskies.modabi.processing.BindingBlocker;
+import uk.co.strangeskies.modabi.processing.BindingBlocks;
+import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.ObservableImpl;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
-import uk.co.strangeskies.utilities.tuple.Pair;
 
-public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutureBlocker {
-	private final ObservableImpl<Pair<QualifiedName, DataSource>> observable = new ObservableImpl<>();
-	private final MultiMap<QualifiedName, DataSource, List<DataSource>> blocks = new MultiHashMap<>(ArrayList::new);
+public class BindingBlocksImpl implements BindingBlocks, BindingBlocker {
+	private final ObservableImpl<BindingBlock> observable = new ObservableImpl<>();
+	private final MultiMap<QualifiedName, BindingBlock, Set<BindingBlock>> blocks = new MultiHashMap<>(HashSet::new);
 	private int internalBlocks = 0;
 
 	private boolean completing = false;
@@ -47,18 +48,19 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	private Set<Thread> processingThreads = new HashSet<>();
 
 	@Override
-	public boolean addObserver(Consumer<? super Pair<QualifiedName, DataSource>> observer) {
+	public boolean addObserver(Consumer<? super BindingBlock> observer) {
 		return observable.addObserver(observer);
 	}
 
 	@Override
-	public boolean removeObserver(Consumer<? super Pair<QualifiedName, DataSource>> observer) {
+	public boolean removeObserver(Consumer<? super BindingBlock> observer) {
 		return observable.removeObserver(observer);
 	}
 
 	@Override
-	public <T> T blockAndWaitFor(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
-		synchronized (processingThreads) {
+	public <T> T blockAndWaitFor(Function<BindingBlock, ? extends T> blockingSupplier, QualifiedName namespace,
+			DataSource id) {
+		synchronized (blocks) {
 			try {
 				return blockAndWaitForImpl(blockingSupplier, namespace, id);
 			} finally {
@@ -67,10 +69,13 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 		}
 	}
 
-	public <T> T blockAndWaitForImpl(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
-		synchronized (processingThreads) {
-			blocks.add(namespace, id);
-			observable.fire(new Pair<>(namespace, id));
+	public <T> T blockAndWaitForImpl(Function<BindingBlock, ? extends T> blockingSupplier, QualifiedName namespace,
+			DataSource id) {
+		synchronized (blocks) {
+			BindingBlock block = new BlockImpl(namespace, id);
+
+			blocks.add(namespace, block);
+			observable.fire(block);
 
 			assertResolvable(false);
 
@@ -80,12 +85,12 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 				Property<RuntimeException, RuntimeException> exception = new IdentityProperty<>();
 				new Thread(() -> {
 					try {
-						result.set(blockingSupplier.get());
+						result.set(blockingSupplier.apply(block));
 						complete.set(true);
 					} catch (RuntimeException e) {
 						exception.set(e);
 					} finally {
-						synchronized (processingThreads) {
+						synchronized (blocks) {
 							processingThreads.notifyAll();
 						}
 					}
@@ -93,7 +98,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 
 				while (!complete.get() && exception.get() == null) {
 					try {
-						processingThreads.wait();
+						blocks.wait();
 					} catch (InterruptedException e) {}
 				}
 
@@ -101,7 +106,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 					throw exception.get();
 				}
 
-				blocks.removeValue(namespace, id);
+				blocks.removeValue(namespace, block);
 
 				assertResolvable(false);
 
@@ -117,8 +122,9 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	}
 
 	@Override
-	public <T> T blockAndWaitForInternal(Supplier<? extends T> blockingSupplier, QualifiedName namespace, DataSource id) {
-		synchronized (processingThreads) {
+	public <T> T blockAndWaitForInternal(Function<BindingBlock, ? extends T> blockingSupplier, QualifiedName namespace,
+			DataSource id) {
+		synchronized (blocks) {
 			boolean addedThread = !processingThreads.contains(Thread.currentThread());
 			if (addedThread) {
 				processingThreads.add(Thread.currentThread());
@@ -139,16 +145,13 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	}
 
 	@Override
-	public Thread blockForInternal(Runnable blockingRunnable, QualifiedName namespace, DataSource id) {
-		synchronized (processingThreads) {
+	public Thread blockForInternal(Consumer<BindingBlock> blockingRunnable, QualifiedName namespace, DataSource id) {
+		synchronized (blocks) {
 			assertResolvable(true);
 		}
 
 		Thread thread = new Thread(() -> {
-			blockAndWaitForInternal(() -> {
-				blockingRunnable.run();
-				return null;
-			}, namespace, id);
+			blockAndWaitForInternal(blockingRunnable, namespace, id);
 		});
 		thread.start();
 		return thread;
@@ -163,7 +166,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 
 	@Override
 	public void addInternalProcessingThread(Thread processingThread) {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			processingThreads.add(processingThread);
 			new Thread(() -> {
 				try {
@@ -171,7 +174,7 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 				} catch (Exception e) {
 					// exception should be handled elsewhere
 				} finally {
-					synchronized (processingThreads) {
+					synchronized (blocks) {
 						processingThreads.remove(processingThread);
 						processingThreads.notifyAll();
 					}
@@ -181,82 +184,89 @@ public class BindingFutureBlocksImpl implements BindingFutureBlocks, BindingFutu
 	}
 
 	@Override
-	public Set<QualifiedName> waitingForNamespaces() {
-		synchronized (processingThreads) {
+	public Set<QualifiedName> getBlockingNamespaces() {
+		synchronized (blocks) {
 			return new HashSet<>(blocks.keySet());
 		}
 	}
 
 	@Override
-	public List<DataSource> waitingForIds(QualifiedName namespace) {
-		synchronized (processingThreads) {
-			return new ArrayList<>(blocks.get(namespace));
+	public Set<BindingBlock> getBlocks(QualifiedName namespace) {
+		synchronized (blocks) {
+			return new HashSet<>(blocks.get(namespace));
 		}
 	}
 
 	@Override
-	public void waitFor(QualifiedName namespace, DataSource id) throws InterruptedException {
-		synchronized (processingThreads) {
-			while (blocks.contains(namespace, id)) {
-				processingThreads.wait();
+	public Set<BindingBlock> getBlocks() {
+		synchronized (blocks) {
+			return new HashSet<>(blocks.values().stream().flatMap(Collection::stream).collect(toSet()));
+		}
+	}
+
+	@Override
+	public void waitFor(BindingBlock block) throws InterruptedException {
+		synchronized (blocks) {
+			while (blocks.contains(block.namespace(), block)) {
+				blocks.wait();
 			}
 		}
 	}
 
 	@Override
-	public void waitFor(QualifiedName namespace, DataSource id, long timeoutMilliseconds) throws InterruptedException {
-		synchronized (processingThreads) {
-			while (blocks.contains(namespace, id)) {
-				processingThreads.wait(timeoutMilliseconds);
+	public void waitFor(BindingBlock block, long timeoutMilliseconds) throws InterruptedException {
+		synchronized (blocks) {
+			while (blocks.contains(block.namespace(), block)) {
+				blocks.wait(timeoutMilliseconds);
 			}
 		}
 	}
 
 	@Override
 	public void waitForAll(QualifiedName namespace) throws InterruptedException {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			while (blocks.containsKey(namespace)) {
-				processingThreads.wait();
+				blocks.wait();
 			}
 		}
 	}
 
 	@Override
 	public void waitForAll(QualifiedName namespace, long timeoutMilliseconds) throws InterruptedException {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			while (blocks.containsKey(namespace)) {
-				processingThreads.wait(timeoutMilliseconds);
+				blocks.wait(timeoutMilliseconds);
 			}
 		}
 	}
 
 	@Override
 	public void waitForAll() throws InterruptedException {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			while (!blocks.isEmpty()) {
-				processingThreads.wait();
+				blocks.wait();
 			}
 		}
 	}
 
 	@Override
 	public void waitForAll(long timeoutMilliseconds) throws InterruptedException {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			while (!blocks.isEmpty()) {
-				processingThreads.wait(timeoutMilliseconds);
+				blocks.wait(timeoutMilliseconds);
 			}
 		}
 	}
 
 	@Override
 	public boolean isBlocked() {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			return !blocks.isEmpty();
 		}
 	}
 
 	public void complete() throws InterruptedException {
-		synchronized (processingThreads) {
+		synchronized (blocks) {
 			completing = true;
 			assertResolvable(false);
 			waitForAll();

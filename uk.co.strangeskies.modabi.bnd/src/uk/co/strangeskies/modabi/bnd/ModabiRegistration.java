@@ -32,10 +32,10 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
@@ -107,13 +107,13 @@ public class ModabiRegistration {
 		/*
 		 * Resolve dependencies
 		 */
-		bindingFuture.getBlocks().addObserver(p -> {
-			resolveDependency(p.getLeft(), p.getRight().get(Primitive.QUALIFIED_NAME), dependencySchemata);
+		bindingFuture.getBlocks().addObserver(block -> {
+			resolveDependency(block.namespace(), block.id().get(Primitive.QUALIFIED_NAME), dependencySchemata);
 		});
 
-		for (QualifiedName namespace : bindingFuture.getBlocks().waitingForNamespaces()) {
-			for (DataSource data : bindingFuture.getBlocks().waitingForIds(namespace)) {
-				resolveDependency(namespace, data.get(Primitive.QUALIFIED_NAME), dependencySchemata);
+		for (QualifiedName namespace : bindingFuture.getBlocks().getBlockingNamespaces()) {
+			for (BindingBlock block: bindingFuture.getBlocks().getBlocks(namespace)) {
+				resolveDependency(namespace, block.id().get(Primitive.QUALIFIED_NAME), dependencySchemata);
 			}
 		}
 

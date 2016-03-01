@@ -18,25 +18,21 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
-import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.utilities.Observable;
-import uk.co.strangeskies.utilities.tuple.Pair;
 
-/*
- * TODO binding future actually waits for blocks before it can complete, rather than assuming blocks must be released if it reaches completion...
- */
-public interface BindingFutureBlocks extends Observable<Pair<QualifiedName, DataSource>> {
-	Set<QualifiedName> waitingForNamespaces();
+public interface BindingBlocks extends Observable<BindingBlock> {
+	Set<QualifiedName> getBlockingNamespaces();
 
-	List<DataSource> waitingForIds(QualifiedName namespace);
+	Set<BindingBlock> getBlocks(QualifiedName namespace);
 
-	void waitFor(QualifiedName namespace, DataSource id) throws InterruptedException;
+	Set<BindingBlock> getBlocks();
 
-	void waitFor(QualifiedName namespace, DataSource id, long timeoutMilliseconds) throws InterruptedException;
+	void waitFor(BindingBlock block) throws InterruptedException;
+
+	void waitFor(BindingBlock block, long timeoutMilliseconds) throws InterruptedException;
 
 	void waitForAll(QualifiedName namespace) throws InterruptedException;
 

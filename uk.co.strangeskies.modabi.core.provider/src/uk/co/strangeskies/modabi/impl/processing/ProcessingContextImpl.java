@@ -47,7 +47,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingException;
-import uk.co.strangeskies.modabi.processing.BindingFutureBlocker;
+import uk.co.strangeskies.modabi.processing.BindingBlocker;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -84,7 +84,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	private StructuredDataTarget output;
 	private final boolean exhaustive;
 
-	private final BindingFutureBlocker bindingFutureBlocker;
+	private final BindingBlocker bindingFutureBlocker;
 
 	/*
 	 * Registered models and types
@@ -141,7 +141,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	protected ProcessingContextImpl(ProcessingContext parentContext, List<TypedObject<?>> objectStack,
 			List<SchemaNode.Effective<?, ?>> nodeStack, StructuredDataSource input, StructuredDataTarget output,
-			Provisions provider, boolean exhaustive, BindingFutureBlocker blocker) {
+			Provisions provider, boolean exhaustive, BindingBlocker blocker) {
 		this.objectStack = objectStack;
 		this.nodeStack = nodeStack;
 		bindings = parentContext.bindings();
@@ -311,7 +311,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	public BindingFutureBlocker bindingFutureBlocker() {
+	public BindingBlocker bindingFutureBlocker() {
 		return bindingFutureBlocker;
 	}
 
@@ -507,7 +507,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return registeredTypes;
 	}
 
-	public ProcessingContextImpl withBindingFutureBlocker(BindingFutureBlocker blocker) {
+	public ProcessingContextImpl withBindingFutureBlocker(BindingBlocker blocker) {
 		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive, blocker);
 	}
 }

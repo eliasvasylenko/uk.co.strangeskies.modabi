@@ -64,7 +64,7 @@ import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.processing.BindingFutureBlocks;
+import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -225,7 +225,7 @@ public class SchemaManagerImpl implements SchemaManager {
 					}
 
 					@Override
-					public BindingFutureBlocks getBlocks() {
+					public BindingBlocks getBlocks() {
 						return future.getBlocks();
 					}
 

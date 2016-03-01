@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.Binder;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.impl.processing.BindingFutureBlocksImpl;
+import uk.co.strangeskies.modabi.impl.processing.BindingBlocksImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
@@ -50,7 +50,7 @@ public class BinderImpl<T> implements Binder<T> {
 	private final SchemaManagerImpl manager;
 	private final Function<StructuredDataSource, Model<T>> bindingFunction;
 	private final Consumer<BindingFuture<?>> addFuture;
-	private final BindingFutureBlocksImpl blocks;
+	private final BindingBlocksImpl blocks;
 	private ClassLoader classLoader;
 
 	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingFunction,
@@ -58,7 +58,7 @@ public class BinderImpl<T> implements Binder<T> {
 		this.manager = manager;
 		this.bindingFunction = bindingFunction;
 		this.addFuture = addFuture;
-		blocks = new BindingFutureBlocksImpl();
+		blocks = new BindingBlocksImpl();
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class BinderImpl<T> implements Binder<T> {
 			BindingSource<T> source = getBindingSource.apply(registeredFormats);
 
 			if (source == null) {
-				source = blocks.blockAndWaitFor(() -> getBindingSource.apply(queue), FORMAT_BLOCK_NAMESPACE,
+				source = blocks.blockAndWaitFor(block -> getBindingSource.apply(queue), FORMAT_BLOCK_NAMESPACE,
 						new BufferingDataTarget().put(Primitive.STRING, formatId).buffer());
 			}
 
