@@ -31,6 +31,7 @@ import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -105,13 +106,24 @@ public class Bindings {
 		}
 	}
 
-	public <T> Set<T> addListener(Model<T> model, Consumer<? super T> listener) {
-		model = model.effective();
+	public <T> Observable<T> observers(Model<T> model) {
+		Model.Effective<T> effectiveModel = model.effective();
 
-		synchronized (listeners) {
-			listeners.add(model.effective(), listener);
-			return get(model);
-		}
+		return new Observable<T>() {
+			@Override
+			public boolean addObserver(Consumer<? super T> observer) {
+				synchronized (listeners) {
+					return listeners.add(effectiveModel, observer);
+				}
+			}
+
+			@Override
+			public boolean removeObserver(Consumer<? super T> observer) {
+				synchronized (listeners) {
+					return listeners.add(effectiveModel, observer);
+				}
+			}
+		};
 	}
 
 	@Override

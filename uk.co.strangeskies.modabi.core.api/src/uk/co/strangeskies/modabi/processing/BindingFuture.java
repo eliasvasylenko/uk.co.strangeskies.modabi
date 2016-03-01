@@ -18,15 +18,11 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
-import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.schema.Model;
 
@@ -98,55 +94,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 
 			@Override
 			public BindingBlocks getBlocks() {
-				return new BindingBlocks() {
-					@Override
-					public boolean addObserver(Consumer<? super BindingBlock> observer) {
-						return true;
-					}
-
-					@Override
-					public boolean removeObserver(Consumer<? super BindingBlock> observer) {
-						return true;
-					}
-
-					@Override
-					public Set<QualifiedName> getBlockingNamespaces() {
-						return Collections.emptySet();
-					}
-
-					@Override
-					public Set<BindingBlock> getBlocks(QualifiedName namespace) {
-						return Collections.emptySet();
-					}
-
-					@Override
-					public Set<BindingBlock> getBlocks() {
-						return Collections.emptySet();
-					}
-
-					@Override
-					public void waitFor(BindingBlock block) {}
-
-					@Override
-					public void waitFor(BindingBlock block, long timeoutMilliseconds) {}
-
-					@Override
-					public void waitForAll(QualifiedName namespace) {}
-
-					@Override
-					public void waitForAll(QualifiedName namespace, long timeoutMilliseconds) {}
-
-					@Override
-					public void waitForAll() {}
-
-					@Override
-					public void waitForAll(long timeoutMilliseconds) {}
-
-					@Override
-					public boolean isBlocked() {
-						return false;
-					}
-				};
+				return BindingBlocks.NON_BLOCKING;
 			}
 		};
 	}

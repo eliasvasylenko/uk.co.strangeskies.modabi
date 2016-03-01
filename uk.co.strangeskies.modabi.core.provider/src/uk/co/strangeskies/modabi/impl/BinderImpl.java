@@ -32,10 +32,10 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.processing.BindingBlocksImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
-import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
@@ -76,7 +76,7 @@ public class BinderImpl<T> implements Binder<T> {
 	public BindingFuture<T> from(StructuredDataSource input) {
 		return add(new BindingFutureImpl<>(manager, blocks, () -> {
 			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
-		} , classLoader));
+		}, classLoader));
 	}
 
 	@Override
@@ -135,8 +135,16 @@ public class BinderImpl<T> implements Binder<T> {
 			BindingSource<T> source = getBindingSource.apply(registeredFormats);
 
 			if (source == null) {
-				source = blocks.blockAndWaitFor(block -> getBindingSource.apply(queue), FORMAT_BLOCK_NAMESPACE,
-						new BufferingDataTarget().put(Primitive.STRING, formatId).buffer());
+				BindingBlock block = blocks.block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId, false);
+				new Thread(() -> {
+					try {
+						getBindingSource.apply(queue);
+						block.complete();
+					} catch (Exception e) {
+						block.fail(e);
+					}
+				}).start();
+				block.waitUntilComplete();
 			}
 
 			return source;

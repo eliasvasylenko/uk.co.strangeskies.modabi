@@ -143,8 +143,6 @@ public class BaseSchemaImpl implements BaseSchema {
 									.valueResolution(ValueResolution.REGISTRATION_TIME).inMethod("null").outMethod("null"))
 							.addChild(d -> d.data().type(primitives.get(Primitive.QUALIFIED_NAME)).name("targetId").isAbstract(true)
 									.valueResolution(ValueResolution.REGISTRATION_TIME).inMethod("null").outMethod("null"))
-							.addChild(d -> d.data().type(primitives.get(Primitive.BOOLEAN)).name("isExternal").isAbstract(true)
-									.valueResolution(ValueResolution.REGISTRATION_TIME).inMethod("null").outMethod("null"))
 							.addChild(c -> c.inputSequence().name("dereference").inMethodChained(true).inMethodUnchecked(true)
 									.addChild(d -> d.data().dataType(Model.class)
 											/*
@@ -176,61 +174,29 @@ public class BaseSchemaImpl implements BaseSchema {
 													.postInputType(new TypeToken<DataType.Effective<?>>() {}).type(primitives.get(Primitive.INT))
 													.inMethodCast(true).outMethod("null")
 													.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
-											.addChild(
-													e -> e.data().name("child")
-															.type(primitives.get(Primitive.QUALIFIED_NAME)).inMethodChained(true).outMethod("null")
-															.provideValue(new BufferingDataTarget()
-																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("targetId", namespace)).buffer())
-															.postInputType(new TypeToken<DataNode.Effective<?>>() {}).inMethodCast(true))
-											.addChild(
-													e -> e.inputSequence().name("providedValue").inMethodChained(true)))
-									.addChild(
-											d -> d.data()
-													.name(
-															"data")
-													.type(
-															bufferedDataType)
-													.outMethod(
-															"this"))
-									.addChild(
-											d -> d.data().dataType(Boolean.class).name("isExternalInput").outMethod("null")
-													.provideValue(
-															new BufferingDataTarget()
-																	.buffer())
-													.bindingStrategy(BindingStrategy.PROVIDED).bindingType(ProcessingContext.class)
-													.addChild(e -> e.data().name("bindingNode").inMethod("getBindingNode").inMethodChained(true)
-															.postInputType(new TypeToken<DataType.Effective<?>>() {})
-															.type(primitives.get(Primitive.INT)).inMethodCast(true).outMethod("null")
-															.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
-													.addChild(e -> e.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
-															.inMethodChained(true).outMethod("null")
-															.provideValue(new BufferingDataTarget()
-																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("isExternal", namespace)).buffer())
-															.postInputType(new TypeToken<DataNode.Effective<?>>() {}).inMethodCast(true))
-													.addChild(e -> e.inputSequence().name("providedValue").inMethodChained(true)))));
+											.addChild(e -> e.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
+													.inMethodChained(true).outMethod("null")
+													.provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("targetId", namespace)).buffer())
+													.postInputType(new TypeToken<DataNode.Effective<?>>() {}).inMethodCast(true))
+											.addChild(e -> e.inputSequence().name("providedValue").inMethodChained(true)))
+									.addChild(d -> d.data().name("data").type(bufferedDataType).outMethod("this"))));
 
-			referenceType = factory
-					.apply("reference",
-							t -> t.baseType(referenceBaseType).isAbstract(true)
-									.addChild(c -> c.data().name("targetModel").type(referenceBaseType).isAbstract(true).dataType(
-											Model.class).addChild(d -> d.data().name("targetModel").type(referenceBaseType)
-													.extensible(true).dataType(Model.class)
+			referenceType = factory.apply("reference", t -> t.baseType(referenceBaseType).isAbstract(true)
+					.addChild(c -> c.data().name("targetModel").type(referenceBaseType).isAbstract(true).dataType(Model.class)
+							.addChild(
+									d -> d.data().name("targetModel").type(referenceBaseType).extensible(true).dataType(Model.class)
+											.provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer())
+											.addChild(e -> e.data().name("targetModel").type(referenceBaseType).extensible(true)
+													.isAbstract(true).dataType(Model.class)
 													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer())
-													.addChild(e -> e.data().name("targetModel").type(referenceBaseType).extensible(true)
-															.isAbstract(true).dataType(Model.class)
-															.provideValue(new BufferingDataTarget()
-																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-													.addChild(e -> e.data().name("targetId")
-															.provideValue(new BufferingDataTarget()
-																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))
-													.addChild(e -> e.data().name("isExternal")
-															.provideValue(new BufferingDataTarget().put(Primitive.BOOLEAN, false).buffer())))
-											.addChild(d -> d.data().name("targetId")
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
+											.addChild(e -> e.data().name("targetId")
 													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))
-											.addChild(e -> e.data().name("isExternal")
-													.provideValue(new BufferingDataTarget().put(Primitive.BOOLEAN, false).buffer()))));
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
+							.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
+									.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
 			classType = factory.apply("class",
 					t -> t.dataType(new TypeToken<Class<?>>() {}).bindingStrategy(BindingStrategy.STATIC_FACTORY)
@@ -283,7 +249,9 @@ public class BaseSchemaImpl implements BaseSchema {
 			includeType = factory
 					.apply("include",
 							t -> t.dataType(new TypeToken<Collection<?>>() {}).unbindingType(IncludeTarget.class)
-									.bindingStrategy(BindingStrategy.TARGET_ADAPTOR).unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+									.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+									.unbindingStrategy(
+											UnbindingStrategy.PASS_TO_PROVIDED)
 									.unbindingMethod("include").providedUnbindingMethodParameters("targetModel", "this")
 									.unbindingMethodUnchecked(true).isAbstract(true)
 									.addChild(c -> c.data().name("targetModel").type(referenceType).isAbstract(true)
@@ -292,13 +260,11 @@ public class BaseSchemaImpl implements BaseSchema {
 											.addChild(d -> d.data().name("targetModel")
 													.provideValue(new BufferingDataTarget()
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-											.addChild(d -> d.data().name("targetId")
-													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))
 											.addChild(
-													d -> d.data().name("isExternal")
-															.provideValue(
-																	new BufferingDataTarget().put(Primitive.BOOLEAN, false).buffer())))
+													d -> d.data().name("targetId")
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
+																	.buffer())))
 									.addChild(
 											c -> c.data()
 													.name(
@@ -352,7 +318,11 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			importType = factory
 					.apply("import",
-							t -> t.dataType(Object.class).isAbstract(true)
+							t -> t
+									.dataType(
+											Object.class)
+									.isAbstract(
+											true)
 									.bindingStrategy(
 											BindingStrategy.SOURCE_ADAPTOR)
 									.unbindingStrategy(
@@ -374,12 +344,11 @@ public class BaseSchemaImpl implements BaseSchema {
 															.addChild(d -> d.data().name("targetModel")
 																	.provideValue(new BufferingDataTarget()
 																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-															.addChild(d -> d.data().name("targetId")
-																	.provideValue(new BufferingDataTarget()
-																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))
 															.addChild(
-																	d -> d.data().name("isExternal").provideValue(
-																			new BufferingDataTarget().put(Primitive.BOOLEAN, true).buffer())))
+																	d -> d.data().name("targetId")
+																			.provideValue(new BufferingDataTarget()
+																					.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
+																					.buffer())))
 													.addChild(
 															d -> d.data().type(primitives.get(Primitive.QUALIFIED_NAME)).isAbstract(true)
 																	.name(

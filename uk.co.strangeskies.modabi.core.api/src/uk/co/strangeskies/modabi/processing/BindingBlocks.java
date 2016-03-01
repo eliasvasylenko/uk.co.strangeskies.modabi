@@ -18,29 +18,48 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Observable;
 
 public interface BindingBlocks extends Observable<BindingBlock> {
-	Set<QualifiedName> getBlockingNamespaces();
+	public static BindingBlocks NON_BLOCKING = new BindingBlocks() {
+		@Override
+		public boolean addObserver(Consumer<? super BindingBlock> observer) {
+			return true;
+		}
 
-	Set<BindingBlock> getBlocks(QualifiedName namespace);
+		@Override
+		public boolean removeObserver(Consumer<? super BindingBlock> observer) {
+			return true;
+		}
+
+		@Override
+		public Set<BindingBlock> getBlocks() {
+			return Collections.emptySet();
+		}
+
+		@Override
+		public void waitForAll() throws InterruptedException {}
+
+		@Override
+		public void waitForAll(long timeoutMilliseconds) throws InterruptedException, TimeoutException {}
+
+		@Override
+		public boolean isBlocked() {
+			return false;
+		}
+	};
 
 	Set<BindingBlock> getBlocks();
 
-	void waitFor(BindingBlock block) throws InterruptedException;
+	void waitForAll() throws InterruptedException, ExecutionException;
 
-	void waitFor(BindingBlock block, long timeoutMilliseconds) throws InterruptedException;
-
-	void waitForAll(QualifiedName namespace) throws InterruptedException;
-
-	void waitForAll(QualifiedName namespace, long timeoutMilliseconds) throws InterruptedException;
-
-	void waitForAll() throws InterruptedException;
-
-	void waitForAll(long timeoutMilliseconds) throws InterruptedException;
+	void waitForAll(long timeoutMilliseconds) throws InterruptedException, TimeoutException, ExecutionException;
 
 	boolean isBlocked();
 }

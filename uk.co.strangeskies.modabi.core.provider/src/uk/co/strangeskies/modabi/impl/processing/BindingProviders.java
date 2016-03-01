@@ -24,17 +24,17 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
+import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
@@ -49,10 +49,11 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
+import uk.co.strangeskies.utilities.tuple.Pair;
 
 public class BindingProviders {
 	private interface ModelBindingProvider {
-		<T> Set<T> getAndListen(Model<T> model, Consumer<? super T> listener);
+		<T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener);
 	}
 
 	private final SchemaManager manager;
@@ -67,7 +68,7 @@ public class BindingProviders {
 			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
-					public <T> Set<T> getAndListen(Model<T> model, Consumer<? super T> listener) {
+					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
 						return manager.bindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 								.collect(Collectors.toSet());
 					}
@@ -92,8 +93,14 @@ public class BindingProviders {
 	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
-			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id, boolean externalDependency) {
-				return matchBinding(context, model, context.bindings()::addListener, idDomain, id, externalDependency);
+			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id) {
+				return matchBinding(context, model, new ModelBindingProvider() {
+					@Override
+					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+						context.bindings().observers(model).addTerminatingObserver(listener);
+						return context.bindings().get(model);
+					}
+				}, idDomain, id, false);
 			}
 		};
 	}
@@ -104,90 +111,92 @@ public class BindingProviders {
 			throw new BindingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
 					context);
 
+		/*
+		 * Object property to contain result when we find a matching binding
+		 */
+		Property<U, U> objectProperty = new IdentityProperty<>();
+
+		/*
+		 * Create a validation function for the parameters of this dependency
+		 */
 		DataItem<?> id = idSource.get();
 
 		ChildNode<?, ?> child = model.effective().child(idDomain);
 		if (!(child instanceof DataNode.Effective<?>))
 			throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
-		DataNode.Effective<?> node = (Effective<?>) child;
+		DataNode.Effective<?> idNode = (Effective<?>) child;
 
-		/*
-		 * Block thread
-		 */
-		Property<Thread, Thread> blockThread = new IdentityProperty<>();
-
-		Property<U, U> objectProperty = new IdentityProperty<>();
-		Function<U, Boolean> objectProvider = objectCandidate -> {
-			synchronized (objectProperty) {
-				if (objectProperty.get() == null) {
-					Objects.requireNonNull(objectCandidate);
-
-					DataSource candidateId = unbindDataNode(node, new TypedObject<>(model.getDataType(), objectCandidate));
-
-					if (candidateId.size() == 1) {
-						DataItem<?> candidateData = candidateId.get();
-
-						if (id.data(candidateData.type()).equals(candidateData.data())) {
-							objectProperty.set(objectCandidate);
-							objectProperty.notifyAll();
-
-							return true;
-						}
-					}
-				}
-
-				return false;
+		Function<U, Boolean> validate = bindingCandidate -> {
+			boolean success = validateBindingCandidate(bindingCandidate, model, idNode, id);
+			if (success) {
+				objectProperty.set(bindingCandidate);
 			}
+			return success;
 		};
 
-		Set<U> existingCandidates = bindings.getAndListen(model, objectCandidate -> {
-			synchronized (objectProperty) {
-				if (objectProvider.apply(objectCandidate) && blockThread.get() != null) {
-					try {
-						blockThread.get().join();
-					} catch (InterruptedException e) {}
+		/*
+		 * Resolve dependency!
+		 */
+		Property<BindingBlock, BindingBlock> block = new IdentityProperty<>();
+		synchronized (objectProperty) {
+			/*
+			 * We are synchronized on the object property, so the listener will wait
+			 * for our check of existing candidates regardless of any fancy
+			 * implementation of getAndListen()
+			 */
+			Set<U> existingCandidates = bindings.getAndListen(model, objectCandidate -> {
+				synchronized (objectProperty) {
+					if (objectProperty.get() == null) {
+						if (validate.apply(objectCandidate)) {
+							objectProperty.set(objectCandidate);
+							block.get().complete();
+							return false;
+						} else {
+							return true;
+						}
+					} else {
+						return false;
+					}
+				}
+			});
+
+			/*
+			 * Check existing candidates to fulfil dependency
+			 */
+			for (U objectCandidate : existingCandidates) {
+				if (validate.apply(objectCandidate)) {
+					return objectCandidate;
 				}
 			}
-		});
-		for (U objectCandidate : existingCandidates) {
-			if (objectProvider.apply(objectCandidate)) {
-				return objectCandidate;
+
+			/*
+			 * No existing candidates found, so block to wait for new ones
+			 */
+			block.set(context.bindingFutureBlocker().block(model.getName(), id, !externalDependency));
+		}
+
+		return getProxiedBinding(model, block.get(), objectProperty::get);
+	}
+
+	private <U> boolean validateBindingCandidate(U objectCandidate, Model<U> model, DataNode.Effective<?> idNode,
+			DataItem<?> id) {
+		Objects.requireNonNull(objectCandidate);
+
+		DataSource candidateId = unbindDataNode(idNode, new TypedObject<>(model.getDataType(), objectCandidate));
+
+		if (candidateId.size() == 1) {
+			DataItem<?> candidateData = candidateId.get();
+
+			if (id.data(candidateData.type()).equals(candidateData.data())) {
+				return true;
 			}
 		}
 
-		return getProxiedBinding(id, context, model, objectProperty, blockThread, externalDependency);
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U> U getProxiedBinding(DataItem<?> id, ProcessingContext context, Model<U> model,
-			Property<U, U> objectProperty, Property<Thread, Thread> blockThread, boolean externalDependency) {
-		/*
-		 * Runnable to block until object is available
-		 */
-		Runnable waitForObject = () -> {
-			try {
-				synchronized (objectProperty) {
-					while (objectProperty.get() == null) {
-						objectProperty.wait();
-					}
-				}
-			} catch (InterruptedException e) {}
-		};
-
-		/*
-		 * Block binding until dependency is fulfilled
-		 */
-		DataSource bufferedId = new BufferingDataTarget().put(id).buffer();
-		synchronized (objectProperty) {
-			if (objectProperty.get() == null) {
-				if (externalDependency) {
-					blockThread.set(context.bindingFutureBlocker().blockFor(waitForObject, model.getName(), bufferedId));
-				} else {
-					blockThread.set(context.bindingFutureBlocker().blockForInternal(waitForObject, model.getName(), bufferedId));
-				}
-			}
-		}
-
+	private <U> U getProxiedBinding(Model<U> model, BindingBlock block, Supplier<U> objectSupplier) {
 		/*
 		 * Should only have one raw type. Non-abstract models shouldn't be
 		 * intersection types.
@@ -199,10 +208,23 @@ public class BindingProviders {
 		 */
 		return (U) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { rawType },
 				new InvocationHandler() {
+					/*
+					 * Use a Pair so we can reduce the extra memory footprint to a single
+					 * nullable reference...
+					 */
+					private Pair<BindingBlock, Supplier<U>> blockAndObjectSupplier = new Pair<>(block, objectSupplier);
+					private U object;
+
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-						context.bindingFutureBlocker().blockAndWaitForInternal(waitForObject, model.getName(), bufferedId);
-						return method.invoke(objectProperty.get(), args);
+						if (object == null) {
+							blockAndObjectSupplier.getLeft().waitUntilComplete();
+							object = blockAndObjectSupplier.getRight().get();
+
+							blockAndObjectSupplier = null;
+						}
+
+						return method.invoke(object, args);
 					}
 				});
 	}
