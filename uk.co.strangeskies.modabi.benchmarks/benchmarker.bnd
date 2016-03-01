@@ -1,8 +1,5 @@
 Bundle-Name: Modabi :: Benchmarker
 
--dependson: \
-	uk.co.strangeskies.modabi.bnd
-
 -pluginpath: \
 	${pluginpath.modabi;xml}
 

@@ -41,7 +41,7 @@ public interface BindingFutureBlocker {
 	 * The thread which the given blocking process is invoked on will always
 	 * terminate after invocation, and after releasing the block. This can be
 	 * useful for synchronisation, as the thread which provided the dependency can
-	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * be {@link Thread#join()}ed onto this thread before blocking itself on a
 	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingSupplier
@@ -70,7 +70,7 @@ public interface BindingFutureBlocker {
 	 * The thread which the given blocking process is invoked on will always
 	 * terminate after invocation, and after releasing the block. This can be
 	 * useful for synchronisation, as the thread which provided the dependency can
-	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * be {@link Thread#join()}ed onto this thread before blocking itself on a
 	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingRunnable
@@ -86,7 +86,7 @@ public interface BindingFutureBlocker {
 			blockAndWaitFor(() -> {
 				blockingRunnable.run();
 				return null;
-			}, namespace, id);
+			} , namespace, id);
 		});
 		thread.start();
 		return thread;
@@ -110,7 +110,7 @@ public interface BindingFutureBlocker {
 	 * The thread which the given blocking process is invoked on will always
 	 * terminate after invocation, and after releasing the block. This can be
 	 * useful for synchronisation, as the thread which provided the dependency can
-	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * be {@link Thread#join()}ed onto this thread before blocking itself on a
 	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingSupplier
@@ -140,7 +140,7 @@ public interface BindingFutureBlocker {
 	 * The thread which the given blocking process is invoked on will always
 	 * terminate after invocation, and after releasing the block. This can be
 	 * useful for synchronisation, as the thread which provided the dependency can
-	 * {@link Thread#join()} onto this thread before blocking itself on a
+	 * be {@link Thread#join()}ed onto this thread before blocking itself on a
 	 * difference resource, potentially causing an erroneous deadlock detection.
 	 * 
 	 * @param blockingRunnable

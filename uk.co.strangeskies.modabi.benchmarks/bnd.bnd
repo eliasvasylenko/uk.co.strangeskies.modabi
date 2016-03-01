@@ -4,6 +4,9 @@ Bundle-Description: \
 	${modabi-description}
 -sub: *.bnd
 
+-dependson: \
+	uk.co.strangeskies.modabi.bnd
+
 -runee: JavaSE-1.8
 
 -buildpath: \
