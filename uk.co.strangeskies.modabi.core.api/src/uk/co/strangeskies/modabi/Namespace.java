@@ -29,16 +29,15 @@ public class Namespace {
 	private final String namespace;
 	private final LocalDate date;
 
-	private final static Namespace DEFAULT = new Namespace(
-			Namespace.class.getPackage().getName(), LocalDate.of(2014, 1, 1));
+	private final static Namespace DEFAULT = new Namespace(Namespace.class.getPackage().getName(),
+			LocalDate.of(2014, 1, 1));
 
 	public Namespace(String namespace, LocalDate date) {
 		this.namespace = namespace;
 		this.date = date;
 
 		if (!namespace.matches("[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*")) {
-			throw new IllegalArgumentException(
-					"Namespace is not valid package name: " + namespace);
+			throw new IllegalArgumentException("Namespace is not valid package name: " + namespace);
 		}
 	}
 
@@ -75,14 +74,9 @@ public class Namespace {
 		int splitIndex = string.lastIndexOf(':');
 
 		String packageString = string.substring(0, splitIndex);
-		Package packageObject = Package.getPackage(packageString);
 
-		if (packageObject == null)
-			throw new IllegalArgumentException(
-					"Cannot find package " + packageString);
-
-		return new Namespace(packageObject, LocalDate.parse(
-				string.substring(splitIndex + 1), DateTimeFormatter.ISO_LOCAL_DATE));
+		return new Namespace(packageString,
+				LocalDate.parse(string.substring(splitIndex + 1), DateTimeFormatter.ISO_LOCAL_DATE));
 	}
 
 	public static Namespace parseHttpString(String httpString) {
@@ -104,8 +98,7 @@ public class Namespace {
 
 		String packageName = packages.stream().collect(Collectors.joining("."));
 
-		return new Namespace(packageName,
-				LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE));
+		return new Namespace(packageName, LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE));
 	}
 
 	@Override
@@ -113,8 +106,7 @@ public class Namespace {
 		if (!(obj instanceof Namespace))
 			return false;
 
-		return namespace.equals(((Namespace) obj).namespace)
-				&& date.equals(((Namespace) obj).date);
+		return namespace.equals(((Namespace) obj).namespace) && date.equals(((Namespace) obj).date);
 	}
 
 	@Override

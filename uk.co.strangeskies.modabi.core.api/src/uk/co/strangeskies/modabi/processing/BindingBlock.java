@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.utilities.Observable;
 
 /**
  * A {@link BindingBlock} is intended to represent that a binding thread is
@@ -34,7 +35,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
  * 
  * @author Elias N Vasylenko
  */
-public interface BindingBlock {
+public interface BindingBlock extends Observable<BindingBlockEvent> {
 	/**
 	 * @return The namespace of the blocking resource
 	 */
@@ -49,7 +50,13 @@ public interface BindingBlock {
 	 * @return True if the resource or dependency represented by this block is
 	 *         satisfied or failed, false otherwise
 	 */
-	boolean isComplete();
+	boolean isEnded();
+
+	/**
+	 * @return True if the resource or dependency represented by this block has
+	 *         completed, and was successful, false otherwise
+	 */
+	boolean isSuccessful();
 
 	/**
 	 * @return If the block has failed, the exception cause

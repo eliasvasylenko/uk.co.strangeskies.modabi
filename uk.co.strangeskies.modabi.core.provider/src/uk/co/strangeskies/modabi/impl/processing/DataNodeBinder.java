@@ -176,16 +176,16 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				dataSource.reset();
 				while (dataSource.index() < successfulIndex)
 					dataSource.get();
+
+				if (context.isExhaustive() && !dataSource.isComplete()) {
+					throw new BindingException(
+							"Failed to bind all of data source, with ["
+									+ dataSource.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "] remaining",
+							context, e);
+				}
 			}
 
-			if (context.isExhaustive() && !dataSource.isComplete()) {
-				throw new BindingException(
-						"Failed to bind all of data source, with ["
-								+ dataSource.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "] remaining",
-						context, e);
-			} else {
-				optionalException = e;
-			}
+			optionalException = e;
 		}
 
 		validateResults(node, results, optionalException);

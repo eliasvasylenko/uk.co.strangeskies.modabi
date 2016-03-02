@@ -25,29 +25,52 @@ import java.util.function.Consumer;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
+import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
+import uk.co.strangeskies.utilities.ObservableImpl;
 
 public class BindingBlockImpl implements BindingBlock {
+	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
+
 	private final QualifiedName namespace;
 	private final DataSource id;
 	private final boolean internal;
 
-	private boolean complete;
-	private Throwable failure;
+	private boolean complete = false;
+	private Throwable failure = null;
 
-	private final Consumer<BindingBlock> startListener;
-	private final Consumer<BindingBlock> endListener;
-
-	public BindingBlockImpl(QualifiedName namespace, DataSource id, boolean internal,
-			Consumer<BindingBlock> startThreadBlockListener, Consumer<BindingBlock> endThreadBlockListener) {
+	public BindingBlockImpl(QualifiedName namespace, DataSource id, boolean internal) {
 		this.namespace = namespace;
 		this.id = id;
 		this.internal = internal;
+	}
 
-		complete = false;
-		failure = null;
+	void fireEvent(BindingBlockEvent.Type type) {
+		blockEventObservable.fire(new BindingBlockEvent() {
+			@Override
+			public BindingBlock block() {
+				return BindingBlockImpl.this;
+			}
 
-		startListener = startThreadBlockListener;
-		endListener = endThreadBlockListener;
+			@Override
+			public Type type() {
+				return type;
+			}
+
+			@Override
+			public Thread thread() {
+				return Thread.currentThread();
+			}
+		});
+	}
+
+	@Override
+	public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
+		return blockEventObservable.addObserver(observer);
+	}
+
+	@Override
+	public boolean removeObserver(Consumer<? super BindingBlockEvent> observer) {
+		return blockEventObservable.removeObserver(observer);
 	}
 
 	@Override
@@ -61,8 +84,13 @@ public class BindingBlockImpl implements BindingBlock {
 	}
 
 	@Override
-	public synchronized boolean isComplete() {
+	public synchronized boolean isEnded() {
 		return complete;
+	}
+
+	@Override
+	public synchronized boolean isSuccessful() {
+		return complete && failure == null;
 	}
 
 	@Override
@@ -78,7 +106,7 @@ public class BindingBlockImpl implements BindingBlock {
 	@Override
 	public synchronized void complete() {
 		complete = true;
-		endListener.accept(this);
+		fireEvent(BindingBlockEvent.Type.ENDED);
 		notifyAll();
 	}
 
@@ -88,7 +116,7 @@ public class BindingBlockImpl implements BindingBlock {
 			return false;
 		} else {
 			failure = cause;
-			endListener.accept(this);
+			fireEvent(BindingBlockEvent.Type.ENDED);
 			notifyAll();
 			return true;
 		}
@@ -96,32 +124,35 @@ public class BindingBlockImpl implements BindingBlock {
 
 	@Override
 	public synchronized void waitUntilComplete() throws InterruptedException, ExecutionException {
-		startListener.accept(this);
+		fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
 		while (!complete) {
 			wait();
-			if (failure != null) {
-				throw new ExecutionException(failure);
-			}
+			throwIfFailed();
 		}
 	}
 
 	@Override
 	public synchronized void waitUntilComplete(long timeoutMilliseconds)
 			throws InterruptedException, TimeoutException, ExecutionException {
-		startListener.accept(this);
+		fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
 		long startTime = System.currentTimeMillis();
 
 		while (!complete) {
 			long wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
 			if (wait < 0) {
+				fireEvent(BindingBlockEvent.Type.THREAD_UNBLOCKED);
 				throw new TimeoutException("Timed out waiting for blocking dependency " + this);
 			}
 			wait();
-			if (failure != null) {
-				throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
-			}
+			throwIfFailed();
+		}
+	}
+
+	private void throwIfFailed() throws ExecutionException {
+		if (failure != null) {
+			throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
 		}
 	}
 

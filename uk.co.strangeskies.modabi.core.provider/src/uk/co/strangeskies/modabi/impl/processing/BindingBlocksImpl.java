@@ -30,69 +30,99 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
+import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
-import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.ObservableImpl;
 
 public class BindingBlocksImpl implements BindingBlocker {
-	private final ObservableImpl<BindingBlock> blockObservable = new ObservableImpl<>();
-	private final ObservableImpl<BindingBlock> blockCompletionObservable = new ObservableImpl<>();
+	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
 	private final Set<BindingBlock> blocks = new HashSet<>();
 
 	private Set<Thread> processingThreads = new HashSet<>();
 	private Map<Thread, BindingBlock> processingThreadBlocks = new HashMap<>();
 
 	@Override
-	public boolean addObserver(Consumer<? super BindingBlock> observer) {
-		return blockObservable.addObserver(observer);
+	public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
+		return blockEventObservable.addObserver(observer);
 	}
 
 	@Override
-	public boolean removeObserver(Consumer<? super BindingBlock> observer) {
-		return blockObservable.removeObserver(observer);
-	}
-
-	@Override
-	public Observable<BindingBlock> completion() {
-		return blockCompletionObservable;
+	public boolean removeObserver(Consumer<? super BindingBlockEvent> observer) {
+		return blockEventObservable.removeObserver(observer);
 	}
 
 	@Override
 	public BindingBlock block(QualifiedName namespace, DataSource id, boolean internal) {
-		BindingBlock block = new BindingBlockImpl(namespace, id, internal, this::startThreadBlock, this::endThreadBlock);
+		BindingBlock block = new BindingBlockImpl(namespace, id, internal);
+		block.addObserver(event -> {
+			switch (event.type()) {
+			case THREAD_BLOCKED:
+				startThreadBlock(block, event.thread());
+				break;
+			case THREAD_UNBLOCKED:
+				endThreadBlock(block, event.thread());
+				break;
+			case ENDED:
+				endThreadBlocks(block);
+				break;
+			case STARTED:
+				break;
+			}
+			blockEventObservable.fire(event);
+		});
 
 		synchronized (blocks) {
 			blocks.add(block);
-			blockObservable.fire(block);
+			blockEventObservable.fire(new BindingBlockEvent() {
+				@Override
+				public BindingBlock block() {
+					return block;
+				}
+
+				@Override
+				public Type type() {
+					return Type.STARTED;
+				}
+
+				@Override
+				public Thread thread() {
+					return Thread.currentThread();
+				}
+			});
 
 			return block;
 		}
 	}
 
-	void startThreadBlock(BindingBlock block) {
+	void startThreadBlock(BindingBlock block, Thread thread) {
 		synchronized (blocks) {
-			if (processingThreads.contains(Thread.currentThread())) {
-				processingThreadBlocks.put(Thread.currentThread(), block);
+			if (processingThreads.contains(thread)) {
+				processingThreadBlocks.put(thread, block);
 
 				assertResolvable();
 			}
 		}
 	}
 
-	void endThreadBlock(BindingBlock block) {
+	void endThreadBlock(BindingBlock block, Thread thread) {
+		synchronized (blocks) {
+			processingThreadBlocks.remove(thread);
+		}
+	}
+
+	void endThreadBlocks(BindingBlock block) {
 		synchronized (blocks) {
 			for (Thread processingThread : processingThreads) {
 				if (processingThreadBlocks.get(processingThread) == block) {
 					processingThreadBlocks.remove(processingThread);
 				}
 			}
-			blockCompletionObservable.fire(block);
 		}
 	}
 
 	private void assertResolvable() {
 		synchronized (blocks) {
-			if (isBlocked() && processingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
+			if (isDeadlocked() && processingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
 				throw new SchemaException("Internal dependencies unresolvable; waiting for " + processingThreadBlocks.values());
 			}
 		}
@@ -169,7 +199,15 @@ public class BindingBlocksImpl implements BindingBlocker {
 	@Override
 	public boolean isBlocked() {
 		synchronized (blocks) {
-			return processingThreadBlocks.size() > 0 && processingThreadBlocks.size() == processingThreads.size();
+			return processingThreadBlocks.size() > 0 && processingThreadBlocks.size() >= processingThreads.size();
+		}
+	}
+
+	public boolean isDeadlocked() {
+		synchronized (blocks) {
+			int internalBlocks = (int) processingThreadBlocks.values().stream().filter(BindingBlock::isInternal).count();
+
+			return internalBlocks > 0 && internalBlocks >= processingThreads.size();
 		}
 	}
 

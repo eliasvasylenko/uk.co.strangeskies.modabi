@@ -26,31 +26,17 @@ import java.util.function.Consumer;
 
 import uk.co.strangeskies.utilities.Observable;
 
-public interface BindingBlocks extends Observable<BindingBlock> {
+public interface BindingBlocks extends Observable<BindingBlockEvent> {
 	public static BindingBlocks NON_BLOCKING = new BindingBlocks() {
 		@Override
-		public boolean addObserver(Consumer<? super BindingBlock> observer) {
+		public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
 			return true;
 		}
 
 		@Override
-		public boolean removeObserver(Consumer<? super BindingBlock> observer) {
+		public boolean removeObserver(Consumer<? super BindingBlockEvent> observer) {
 			return true;
 		}
-
-		public Observable<BindingBlock> completion() {
-			return new Observable<BindingBlock>() {
-				@Override
-				public boolean addObserver(Consumer<? super BindingBlock> observer) {
-					return true;
-				}
-
-				@Override
-				public boolean removeObserver(Consumer<? super BindingBlock> observer) {
-					return true;
-				}
-			};
-		};
 
 		@Override
 		public Set<BindingBlock> getBlocks() {
@@ -68,18 +54,6 @@ public interface BindingBlocks extends Observable<BindingBlock> {
 			return false;
 		}
 	};
-
-	/**
-	 * Get an observable event source over completion events. Listeners will be
-	 * notified in the thread which registered the completion of a
-	 * {@link BindingBlock}.
-	 * <p>
-	 * The completion event will be triggered for both a successful completion,
-	 * and also a failure
-	 * 
-	 * @return An observable completion event interface
-	 */
-	Observable<BindingBlock> completion();
 
 	/**
 	 * @return All blocks in the binding process which are still incomplete
@@ -119,7 +93,7 @@ public interface BindingBlocks extends Observable<BindingBlock> {
 	 * the associated {@link BindingBlocker} is waiting on a block via
 	 * {@link #waitForAll()}, or {@link BindingBlock#waitUntilComplete()}, etc.
 	 * <p>
-	 * If this is the case, and it is also the case that all threads are blocked
+	 * Note: If this is the case, and it is also the case that all threads are blocked
 	 * on internal, not external, dependencies, the binding will fail.
 	 * 
 	 * @return True if the binding is blocked and no processing threads are

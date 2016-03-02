@@ -100,9 +100,14 @@ public abstract class ModabiPlugin implements AnalyzerPlugin, Plugin {
 
 	@Override
 	public synchronized boolean analyzeJar(Analyzer analyzer) throws Exception {
-		scanSchemaAnnotations(analyzer);
+		try {
+			scanSchemaAnnotations(analyzer);
 
-		return new ModabiRegistration(createRegistrationContext(analyzer)).registerSchemata();
+			return new ModabiRegistration(createRegistrationContext(analyzer)).registerSchemata();
+		} catch (Throwable t) {
+			log.log(Level.ERROR, "Oh no.", t);
+			throw t;
+		}
 	}
 
 	private RegistrationContext createRegistrationContext(Analyzer analyzer) {
@@ -205,6 +210,8 @@ public abstract class ModabiPlugin implements AnalyzerPlugin, Plugin {
 	private Map<QualifiedName, Resource> collectSchemaResources(Collection<? extends Jar> jars) {
 		Map<QualifiedName, Resource> resources = new HashMap<>();
 
+		log.log(Level.TRACE, "Jars on build path: " + jars);
+
 		for (Jar jar : jars) {
 			Manifest manifest = null;
 			try {
@@ -213,6 +220,8 @@ public abstract class ModabiPlugin implements AnalyzerPlugin, Plugin {
 
 			if (manifest != null) {
 				String provides = manifest.getMainAttributes().getValue(Constants.PROVIDE_CAPABILITY);
+
+				log.log(Level.TRACE, "Jar " + jar.getName() + " provides: " + provides);
 
 				if (provides != null) {
 					List<Attribute> attributes = ManifestUtilities.parseAttributes(provides);

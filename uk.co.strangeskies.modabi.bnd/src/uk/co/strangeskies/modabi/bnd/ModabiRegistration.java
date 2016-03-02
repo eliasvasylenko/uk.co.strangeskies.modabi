@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.bnd;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
@@ -56,13 +59,30 @@ public class ModabiRegistration {
 			+ SchemaManager.class.getTypeName() + ")";
 
 	private final RegistrationContext context;
+
+	/*
+	 * The schemata provided by the building bundle, mapped to their jar resource
+	 * locations:
+	 */
 	private final Map<BindingFuture<Schema>, String> providedSchemata;
+	/*
+	 * The names of required schemata from build dependencies:
+	 */
 	private final Set<QualifiedName> requiredSchemata;
+	/*
+	 * All encountered schemata which are loading or have loaded:
+	 */
+	private final Set<BindingFuture<?>> resolvingSchemata;
 
 	public ModabiRegistration(RegistrationContext context) {
 		this.context = context;
 		requiredSchemata = new HashSet<>();
 		providedSchemata = new HashMap<>();
+		resolvingSchemata = new HashSet<>();
+	}
+
+	private QualifiedName getDependencyNamespace() {
+		return context.schemaManager().getMetaSchema().getSchemaModel().getName();
 	}
 
 	public synchronized boolean registerSchemata() throws Exception {
@@ -78,6 +98,8 @@ public class ModabiRegistration {
 	}
 
 	private void registerSchemaResources() {
+		context.log(Level.TRACE, "Available dependencies: " + context.availableDependencies());
+		
 		/*
 		 * Begin binding schemata concurrently
 		 */
@@ -100,33 +122,66 @@ public class ModabiRegistration {
 		BindingFuture<Schema> bindingFuture = context.schemaManager().bindSchema().from(context.formatId(), inputStream);
 
 		/*
-		 * Locate resources for available dependencies
-		 */
-		Map<QualifiedName, BindingFuture<?>> dependencySchemata = new HashMap<>();
-
-		/*
 		 * Resolve dependencies
 		 */
-		bindingFuture.blocks().addObserver(block -> {
-			resolveDependency(block, dependencySchemata);
-		});
+		synchronized (resolvingSchemata) {
+			bindingFuture.blocks().addObserver(event -> {
+				synchronized (resolvingSchemata) {
+					switch (event.type()) {
+					case STARTED:
+						resolveDependency(event.block());
+						break;
+					case THREAD_BLOCKED:
+						detectDeadlock();
+						break;
+					case THREAD_UNBLOCKED:
 
-		for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
-			resolveDependency(block, dependencySchemata);
+						break;
+					case ENDED:
+						if (event.block().isSuccessful()) {
+							//
+						} else {
+							throw new SchemaException("Failed to resolve " + event.block() + " during processing",
+									event.block().getFailure());
+						}
+						break;
+					}
+				}
+			});
+
+			resolvingSchemata.add(bindingFuture);
+
+			for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
+				resolveDependency(block);
+			}
+			detectDeadlock();
 		}
 
 		return bindingFuture;
 	}
 
-	private void resolveDependency(BindingBlock block, Map<QualifiedName, BindingFuture<?>> dependencySchemata) {
-		QualifiedName dependencyNamespace = context.schemaManager().getMetaSchema().getSchemaModel().getName();
+	private void detectDeadlock() {
+		synchronized (resolvingSchemata) {
+			if (resolvingSchemata.stream().allMatch(f -> f.blocks().isBlocked())) {
+				Set<BindingBlock> missingDependencies = resolvingSchemata.stream().flatMap(f -> f.blocks().getBlocks().stream())
+						.collect(toSet());
 
-		if (!block.namespace().equals(dependencyNamespace)) {
+				throw new SchemaException(
+						"Cannot bind " + providedSchemata.keySet() + "; Cannot resolve dependencies " + missingDependencies);
+			}
+		}
+	}
+
+	private void resolveDependency(BindingBlock block) {
+		if (!block.namespace().equals(getDependencyNamespace())) {
+			/*-
+			 * TODO put this error aside and only register it if we deadlock
 			SchemaException exception = new SchemaException(
-					"Cannot resolve " + block + "; Only those external dependencies in the " + dependencyNamespace
+					"Cannot resolve " + block + "; Only those external dependencies in the " + getDependencyNamespace()
 							+ " namespace may be considered at build time");
 			block.fail(exception);
 			throw exception;
+			 */
 		} else {
 			QualifiedName id = block.id().get(Primitive.QUALIFIED_NAME);
 
