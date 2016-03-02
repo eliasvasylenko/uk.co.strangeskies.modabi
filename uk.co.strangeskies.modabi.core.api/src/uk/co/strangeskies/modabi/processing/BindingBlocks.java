@@ -55,11 +55,49 @@ public interface BindingBlocks extends Observable<BindingBlock> {
 		}
 	};
 
+	/**
+	 * @return All blocks in the binding process which are still incomplete
+	 */
 	Set<BindingBlock> getBlocks();
 
+	/**
+	 * Wait until no blocks remain held in the binding system. This may not
+	 * signify the end of binding, or that more blocks will not occur.
+	 * 
+	 * @throws InterruptedException
+	 *           The waiting thread was interrupted
+	 * @throws ExecutionException
+	 *           The blocking dependency failed resolution with the causing
+	 *           exception
+	 */
 	void waitForAll() throws InterruptedException, ExecutionException;
 
+	/**
+	 * Wait until no blocks remain held in the binding system, or until the given
+	 * time period ends. Successful invocation may not signify the end of binding,
+	 * or that more blocks will not occur.
+	 * 
+	 * @throws InterruptedException
+	 *           The waiting thread was interrupted
+	 * @throws ExecutionException
+	 *           The blocking dependency failed resolution with the causing
+	 *           exception
+	 * @throws TimeoutException
+	 *           The timeout period elapsed before the blocks were resolved
+	 */
 	void waitForAll(long timeoutMilliseconds) throws InterruptedException, TimeoutException, ExecutionException;
 
+	/**
+	 * Determine whether the binding block system as a whole is blocked. It is
+	 * considered blocked if every participating {@link Thread} registered with
+	 * the associated {@link BindingBlocker} is waiting on a block via
+	 * {@link #waitForAll()}, or {@link BindingBlock#waitUntilComplete()}, etc.
+	 * <p>
+	 * If this is the case, and it is also the case that all threads are blocked
+	 * on internal, not external, dependencies, the binding will fail.
+	 * 
+	 * @return True if the binding is blocked and no processing threads are
+	 *         active, false otherwise
+	 */
 	boolean isBlocked();
 }

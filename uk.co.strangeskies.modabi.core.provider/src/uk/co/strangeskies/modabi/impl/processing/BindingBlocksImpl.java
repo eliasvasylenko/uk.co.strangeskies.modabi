@@ -18,7 +18,9 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -29,17 +31,14 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
-import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.utilities.ObservableImpl;
 
-public class BindingBlocksImpl implements BindingBlocks, BindingBlocker {
+public class BindingBlocksImpl implements BindingBlocker {
 	private final ObservableImpl<BindingBlock> observable = new ObservableImpl<>();
 	private final Set<BindingBlock> blocks = new HashSet<>();
-	private int internalBlockCount = 0;
-
-	private boolean completing = false;
 
 	private Set<Thread> processingThreads = new HashSet<>();
+	private Map<Thread, BindingBlock> processingThreadBlocks = new HashMap<>();
 
 	@Override
 	public boolean addObserver(Consumer<? super BindingBlock> observer) {
@@ -53,36 +52,61 @@ public class BindingBlocksImpl implements BindingBlocks, BindingBlocker {
 
 	@Override
 	public BindingBlock block(QualifiedName namespace, DataSource id, boolean internal) {
-		BindingBlock block = new BindingBlockImpl(namespace, id, internal);
+		BindingBlock block = new BindingBlockImpl(namespace, id, internal, this::startThreadBlock, this::endThreadBlock);
 
 		synchronized (blocks) {
 			blocks.add(block);
+			observable.fire(block);
 
 			return block;
 		}
 	}
 
-	private void assertResolvable(boolean failIfCompleting) {
-		if ((processingThreads.size() <= internalBlockCount)
-				|| (completing && (internalBlockCount > 0 || failIfCompleting))) {
-			throw new SchemaException(
-					"Internal dependencies unresolvable; waiting for " + internalBlockCount + " of resources " + blocks);
+	void startThreadBlock(BindingBlock block) {
+		synchronized (blocks) {
+			if (processingThreads.contains(Thread.currentThread())) {
+				processingThreadBlocks.put(Thread.currentThread(), block);
+
+				assertResolvable();
+			}
+		}
+	}
+
+	void endThreadBlock(BindingBlock block) {
+		synchronized (blocks) {
+			for (Thread processingThread : processingThreads) {
+				if (processingThreadBlocks.get(processingThread) == block) {
+					processingThreadBlocks.remove(processingThread);
+				}
+			}
+		}
+	}
+
+	private void assertResolvable() {
+		synchronized (blocks) {
+			if (isBlocked() && processingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
+				throw new SchemaException("Internal dependencies unresolvable; waiting for " + processingThreadBlocks.values());
+			}
 		}
 	}
 
 	@Override
-	public void addInternalProcessingThread(Thread processingThread) {
+	public void addParticipatingThread(Thread processingThread) {
 		synchronized (blocks) {
 			processingThreads.add(processingThread);
+
 			new Thread(() -> {
 				try {
-					processingThread.join();
-				} catch (Exception e) {
-					// exception should be handled elsewhere
+					try {
+						processingThread.join();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 				} finally {
 					synchronized (blocks) {
 						processingThreads.remove(processingThread);
-						blocks.notifyAll();
+
+						assertResolvable();
 					}
 				}
 			}).start();
@@ -102,7 +126,7 @@ public class BindingBlocksImpl implements BindingBlocks, BindingBlocker {
 			BindingBlock block;
 
 			synchronized (blocks) {
-				if (isBlocked()) {
+				if (!blocks.isEmpty()) {
 					block = blocks.iterator().next();
 				} else {
 					break;
@@ -121,7 +145,7 @@ public class BindingBlocksImpl implements BindingBlocks, BindingBlocker {
 			BindingBlock block;
 
 			synchronized (blocks) {
-				if (isBlocked()) {
+				if (!blocks.isEmpty()) {
 					block = blocks.iterator().next();
 				} else {
 					break;
@@ -137,14 +161,15 @@ public class BindingBlocksImpl implements BindingBlocks, BindingBlocker {
 	@Override
 	public boolean isBlocked() {
 		synchronized (blocks) {
-			return !blocks.isEmpty();
+			return processingThreadBlocks.size() > 0 && processingThreadBlocks.size() == processingThreads.size();
 		}
 	}
 
 	public void complete() throws InterruptedException, ExecutionException {
 		synchronized (blocks) {
-			completing = true;
-			assertResolvable(false);
+			new Thread(() -> {
+				assertResolvable();
+			});
 			waitForAll();
 		}
 	}

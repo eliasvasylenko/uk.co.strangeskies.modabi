@@ -225,8 +225,8 @@ public class SchemaManagerImpl implements SchemaManager {
 					}
 
 					@Override
-					public BindingBlocks getBlocks() {
-						return future.getBlocks();
+					public BindingBlocks blocks() {
+						return future.blocks();
 					}
 
 					@Override

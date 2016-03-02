@@ -153,6 +153,16 @@ public abstract class ModabiPlugin implements AnalyzerPlugin, Plugin {
 				availableDependencies();
 				return availableDependencies.get(name).openInputStream();
 			}
+
+			@Override
+			public void log(Level level, String message) {
+				log.log(level, message);
+			}
+
+			@Override
+			public void log(Level level, String message, Throwable throwable) {
+				log.log(level, message, throwable);
+			}
 		};
 	}
 

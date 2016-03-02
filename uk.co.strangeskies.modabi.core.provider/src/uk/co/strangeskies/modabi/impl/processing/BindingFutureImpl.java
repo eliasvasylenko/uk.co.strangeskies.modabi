@@ -34,9 +34,9 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.IdentityProperty;
@@ -101,7 +101,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 		dataFuture = new FutureTask<>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoaderFinal);
-			blocks.addInternalProcessingThread(Thread.currentThread());
+			blocks.addParticipatingThread(Thread.currentThread());
 
 			sourceFuture.run();
 
@@ -176,7 +176,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	@Override
-	public BindingBlocks getBlocks() {
+	public BindingBlocks blocks() {
 		return blocks;
 	}
 

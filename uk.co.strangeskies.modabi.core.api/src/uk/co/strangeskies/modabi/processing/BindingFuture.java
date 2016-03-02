@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 public interface BindingFuture<T> extends Future<Binding<T>> {
 	Future<Model<T>> getModelFuture();
 
-	BindingBlocks getBlocks();
+	BindingBlocks blocks();
 
 	@Override
 	Binding<T> get();
@@ -46,7 +46,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 	}
 
 	default Binding<T> getNow() {
-		BindingBlocks blockingBindings = getBlocks();
+		BindingBlocks blockingBindings = blocks();
 
 		if (!isDone() && cancel(true))
 			throw new SchemaException("Binding has been blocked by the following missing dependencies: " + blockingBindings);
@@ -93,7 +93,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 			}
 
 			@Override
-			public BindingBlocks getBlocks() {
+			public BindingBlocks blocks() {
 				return BindingBlocks.NON_BLOCKING;
 			}
 		};

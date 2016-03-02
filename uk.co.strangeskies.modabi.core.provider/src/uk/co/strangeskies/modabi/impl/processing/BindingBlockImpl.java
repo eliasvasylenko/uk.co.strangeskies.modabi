@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
@@ -15,13 +16,20 @@ public class BindingBlockImpl implements BindingBlock {
 	private boolean complete;
 	private Throwable failure;
 
-	public BindingBlockImpl(QualifiedName namespace, DataSource id, boolean internal) {
+	private final Consumer<BindingBlock> startListener;
+	private final Consumer<BindingBlock> endListener;
+
+	public BindingBlockImpl(QualifiedName namespace, DataSource id, boolean internal,
+			Consumer<BindingBlock> startThreadBlockListener, Consumer<BindingBlock> endThreadBlockListener) {
 		this.namespace = namespace;
 		this.id = id;
 		this.internal = internal;
 
 		complete = false;
 		failure = null;
+
+		startListener = startThreadBlockListener;
+		endListener = endThreadBlockListener;
 	}
 
 	@Override
@@ -35,17 +43,13 @@ public class BindingBlockImpl implements BindingBlock {
 	}
 
 	@Override
-	public boolean isComplete() {
-		synchronized (this) {
-			return complete;
-		}
+	public synchronized boolean isComplete() {
+		return complete;
 	}
 
 	@Override
-	public Throwable getFailure() {
-		synchronized (this) {
-			return failure;
-		}
+	public synchronized Throwable getFailure() {
+		return failure;
 	}
 
 	@Override
@@ -54,53 +58,51 @@ public class BindingBlockImpl implements BindingBlock {
 	}
 
 	@Override
-	public void complete() {
-		synchronized (this) {
-			complete = true;
+	public synchronized void complete() {
+		complete = true;
+		endListener.accept(this);
+		notifyAll();
+	}
+
+	@Override
+	public synchronized boolean fail(Throwable cause) {
+		if (complete || failure != null) {
+			return false;
+		} else {
+			failure = cause;
+			endListener.accept(this);
 			notifyAll();
+			return true;
 		}
 	}
 
 	@Override
-	public boolean fail(Throwable cause) {
-		synchronized (this) {
-			if (complete || failure != null) {
-				return false;
-			} else {
-				failure = cause;
-				notifyAll();
-				return true;
+	public synchronized void waitUntilComplete() throws InterruptedException, ExecutionException {
+		startListener.accept(this);
+
+		while (!complete) {
+			wait();
+			if (failure != null) {
+				throw new ExecutionException(failure);
 			}
 		}
 	}
 
 	@Override
-	public void waitUntilComplete() throws InterruptedException, ExecutionException {
-		synchronized (this) {
-			while (!complete) {
-				wait();
-				if (failure != null) {
-					throw new ExecutionException(failure);
-				}
-			}
-		}
-	}
-
-	@Override
-	public void waitUntilComplete(long timeoutMilliseconds)
+	public synchronized void waitUntilComplete(long timeoutMilliseconds)
 			throws InterruptedException, TimeoutException, ExecutionException {
+		startListener.accept(this);
+
 		long startTime = System.currentTimeMillis();
 
-		synchronized (this) {
-			while (!complete) {
-				long wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
-				if (wait < 0) {
-					throw new TimeoutException("Timed out waiting for blocking dependency " + this);
-				}
-				wait();
-				if (failure != null) {
-					throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
-				}
+		while (!complete) {
+			long wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
+			if (wait < 0) {
+				throw new TimeoutException("Timed out waiting for blocking dependency " + this);
+			}
+			wait();
+			if (failure != null) {
+				throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
 			}
 		}
 	}

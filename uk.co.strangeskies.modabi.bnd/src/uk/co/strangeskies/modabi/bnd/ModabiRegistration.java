@@ -34,8 +34,8 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
+import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
@@ -107,32 +107,37 @@ public class ModabiRegistration {
 		/*
 		 * Resolve dependencies
 		 */
-		bindingFuture.getBlocks().addObserver(block -> {
-			resolveDependency(block.namespace(), block.id().get(Primitive.QUALIFIED_NAME), dependencySchemata);
+		bindingFuture.blocks().addObserver(block -> {
+			resolveDependency(block, dependencySchemata);
 		});
 
-		for (QualifiedName namespace : bindingFuture.getBlocks().getBlockingNamespaces()) {
-			for (BindingBlock block: bindingFuture.getBlocks().getBlocks(namespace)) {
-				resolveDependency(namespace, block.id().get(Primitive.QUALIFIED_NAME), dependencySchemata);
-			}
+		for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
+			resolveDependency(block, dependencySchemata);
 		}
 
 		return bindingFuture;
 	}
 
-	private void resolveDependency(QualifiedName namespace, QualifiedName dependency,
-			Map<QualifiedName, BindingFuture<?>> dependencySchemata) {
-		if (!namespace.equals(Schema.class.getPackage().getName())) {
-			throw new SchemaException("Unsatisfiable dependency " + namespace + ": " + dependency);
-		}
+	private void resolveDependency(BindingBlock block, Map<QualifiedName, BindingFuture<?>> dependencySchemata) {
+		QualifiedName dependencyNamespace = context.schemaManager().getMetaSchema().getSchemaModel().getName();
 
-		if (context.availableDependencies().contains(dependency)) {
-			boolean added;
-			synchronized (requiredSchemata) {
-				added = requiredSchemata.add(dependency);
-			}
-			if (added) {
-				registerSchemaResource(() -> context.openDependency(dependency));
+		if (!block.namespace().equals(dependencyNamespace)) {
+			SchemaException exception = new SchemaException(
+					"Cannot resolve " + block + "; Only those external dependencies in the " + dependencyNamespace
+							+ " namespace may be considered at build time");
+			block.fail(exception);
+			throw exception;
+		} else {
+			QualifiedName id = block.id().get(Primitive.QUALIFIED_NAME);
+
+			if (context.availableDependencies().contains(id)) {
+				boolean added;
+				synchronized (requiredSchemata) {
+					added = requiredSchemata.add(id);
+				}
+				if (added) {
+					registerSchemaResource(() -> context.openDependency(id));
+				}
 			}
 		}
 	}
