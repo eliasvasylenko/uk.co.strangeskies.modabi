@@ -38,6 +38,20 @@ public interface BindingBlocks extends Observable<BindingBlock> {
 			return true;
 		}
 
+		public Observable<BindingBlock> completion() {
+			return new Observable<BindingBlock>() {
+				@Override
+				public boolean addObserver(Consumer<? super BindingBlock> observer) {
+					return true;
+				}
+
+				@Override
+				public boolean removeObserver(Consumer<? super BindingBlock> observer) {
+					return true;
+				}
+			};
+		};
+
 		@Override
 		public Set<BindingBlock> getBlocks() {
 			return Collections.emptySet();
@@ -54,6 +68,18 @@ public interface BindingBlocks extends Observable<BindingBlock> {
 			return false;
 		}
 	};
+
+	/**
+	 * Get an observable event source over completion events. Listeners will be
+	 * notified in the thread which registered the completion of a
+	 * {@link BindingBlock}.
+	 * <p>
+	 * The completion event will be triggered for both a successful completion,
+	 * and also a failure
+	 * 
+	 * @return An observable completion event interface
+	 */
+	Observable<BindingBlock> completion();
 
 	/**
 	 * @return All blocks in the binding process which are still incomplete

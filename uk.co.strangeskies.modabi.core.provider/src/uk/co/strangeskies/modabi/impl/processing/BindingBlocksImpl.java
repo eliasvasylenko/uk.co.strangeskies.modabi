@@ -31,10 +31,12 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
+import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.ObservableImpl;
 
 public class BindingBlocksImpl implements BindingBlocker {
-	private final ObservableImpl<BindingBlock> observable = new ObservableImpl<>();
+	private final ObservableImpl<BindingBlock> blockObservable = new ObservableImpl<>();
+	private final ObservableImpl<BindingBlock> blockCompletionObservable = new ObservableImpl<>();
 	private final Set<BindingBlock> blocks = new HashSet<>();
 
 	private Set<Thread> processingThreads = new HashSet<>();
@@ -42,12 +44,17 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 	@Override
 	public boolean addObserver(Consumer<? super BindingBlock> observer) {
-		return observable.addObserver(observer);
+		return blockObservable.addObserver(observer);
 	}
 
 	@Override
 	public boolean removeObserver(Consumer<? super BindingBlock> observer) {
-		return observable.removeObserver(observer);
+		return blockObservable.removeObserver(observer);
+	}
+
+	@Override
+	public Observable<BindingBlock> completion() {
+		return blockCompletionObservable;
 	}
 
 	@Override
@@ -56,7 +63,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 		synchronized (blocks) {
 			blocks.add(block);
-			observable.fire(block);
+			blockObservable.fire(block);
 
 			return block;
 		}
@@ -79,6 +86,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 					processingThreadBlocks.remove(processingThread);
 				}
 			}
+			blockCompletionObservable.fire(block);
 		}
 	}
 
