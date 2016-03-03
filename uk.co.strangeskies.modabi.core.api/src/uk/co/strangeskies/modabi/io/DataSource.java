@@ -69,7 +69,7 @@ public interface DataSource extends Copyable<DataSource> {
 	static DataSource parseString(String string, Function<String, QualifiedName> qualifiedNameParser) {
 		List<DataItem<?>> dataItemList = new ArrayList<>();
 
-		String[] strings = string.split("^,|[^\\\\],");
+		String[] strings = string.split("^,|(?<!\\\\),");
 		for (String item : strings) {
 			item = item.trim().replaceAll("\\\\,", ",");
 			dataItemList.add(DataItem.forString(item, qualifiedNameParser));

@@ -66,6 +66,7 @@ public class BindingProviders {
 		return context -> new ImportSource() {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
+				System.out.println("   " + model + " @ " + idDomain + " ==== " + id);
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
@@ -107,7 +108,7 @@ public class BindingProviders {
 
 	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
 			QualifiedName idDomain, DataSource idSource, boolean externalDependency) {
-		if (idSource.currentState() == DataStreamState.TERMINATED)
+		if (idSource.currentState() == DataStreamState.TERMINATED || idSource.isComplete())
 			throw new BindingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
 					context);
 
