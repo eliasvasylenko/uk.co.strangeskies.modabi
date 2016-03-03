@@ -165,7 +165,7 @@ public interface DataSource extends Copyable<DataSource> {
 				throw new ArrayIndexOutOfBoundsException(items);
 
 			for (int i = 0; i < items; i++)
-				target.put(list.get((index + items) % list.size()));
+				target.put(list.get((index + i) % list.size()));
 
 			index += items;
 

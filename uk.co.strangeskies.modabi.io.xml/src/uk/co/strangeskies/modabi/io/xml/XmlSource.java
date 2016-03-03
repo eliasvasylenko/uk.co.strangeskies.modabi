@@ -223,7 +223,11 @@ public class XmlSource implements StructuredDataSource {
 
 	@Override
 	public DataSource readContent() {
-		return (content == null || content.trim().equals("")) ? null : DataSource.parseString(content, parseName());
+		if (content == null || content.trim().equals("")) {
+			return null;
+		} else {
+			return DataSource.parseString(content, parseName());
+		}
 	}
 
 	@Override

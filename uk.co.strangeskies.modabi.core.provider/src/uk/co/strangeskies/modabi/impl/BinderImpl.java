@@ -76,13 +76,13 @@ public class BinderImpl<T> implements Binder<T> {
 	public BindingFuture<T> from(StructuredDataSource input) {
 		return add(new BindingFutureImpl<>(manager, blocks, () -> {
 			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
-		}, classLoader));
+		} , classLoader));
 	}
 
 	@Override
 	public BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input) {
 		return add(
-				new BindingFutureImpl<>(manager, blocks, () -> getBindingSource("", input, f -> true, true), classLoader));
+				new BindingFutureImpl<>(manager, blocks, () -> getBindingSource(null, input, f -> true, true), classLoader));
 	}
 
 	@Override
@@ -118,7 +118,8 @@ public class BinderImpl<T> implements Binder<T> {
 						exception.set(e);
 
 						if (!canRetry) {
-							throw new SchemaException("Could not bind input with file loader registered for " + formatId,
+							throw new SchemaException(
+									"Could not bind input with any file loader registered" + (formatId == null ? "" : " for " + formatId),
 									exception.get());
 						}
 					}

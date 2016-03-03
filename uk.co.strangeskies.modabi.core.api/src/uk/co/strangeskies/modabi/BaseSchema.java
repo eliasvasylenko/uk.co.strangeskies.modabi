@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.DataType;
@@ -55,6 +56,8 @@ public interface BaseSchema extends Schema {
 		DataType<Object> referenceType();
 
 		DataType<DataSource> bufferedDataType();
+
+		DataType<DataItem<?>> bufferedDataItemType();
 
 		DataType<Range<Integer>> rangeType();
 

@@ -1,12 +1,8 @@
-Bundle-Name: Modabi :: Bnd
+Bundle-Name: Modabi :: Plugin :: Test
 Bundle-Description: \
-	This package contains a Bnd plugin for automatically analysing \
-	Modabi annotations, and adding capability meta-data to a bundle's \
-	manifest.\
+	This package contains tests for uk.co.strangeskies.modabi.plugin.test \
 \
 	${modabi-description}
-
--dsannotations:
 
 -runee: JavaSE-1.8
 
@@ -21,4 +17,4 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.plugin;version=project,\
 	biz.aQute.bndlib
 
--sub: *.bnd
+Private-Package: uk.co.strangeskies.modabi.plugin.test

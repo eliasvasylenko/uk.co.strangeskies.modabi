@@ -1,8 +1,8 @@
-Bundle-Name: Modabi :: Bnd
+Bundle-Name: Modabi :: Plugin
 Bundle-Description: \
-	This package contains a Bnd plugin for automatically analysing \
-	Modabi annotations, and adding capability meta-data to a bundle's \
-	manifest.\
+	This package contains classes for building plugins to automatically \
+	analyse Modabi annotations, and to add capability meta-data to a \
+	bundle's manifest. The classes are agnostic of build environment.\
 \
 	${modabi-description}
 
@@ -18,7 +18,6 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	uk.co.strangeskies.modabi.core.provider;version=project,\
 	uk.co.strangeskies.modabi.io.xml;version=project,\
-	uk.co.strangeskies.modabi.plugin;version=project,\
 	biz.aQute.bndlib
 
--sub: *.bnd
+Export-Package: uk.co.strangeskies.modabi.plugin

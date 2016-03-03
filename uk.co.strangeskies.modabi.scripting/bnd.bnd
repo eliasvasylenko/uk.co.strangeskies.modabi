@@ -22,7 +22,7 @@ Export-Package: uk.co.strangeskies.modabi.scripting
 	${pluginpath.modabi;xml}
 
 -plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlPlugin
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
 
 -includeresource: \
 	META-INF/schemata=schemata

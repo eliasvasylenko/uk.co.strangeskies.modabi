@@ -83,6 +83,10 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			});
 			return result.get();
 		}
+
+		public String getName() {
+			return null;
+		}
 	}
 
 	private final SchemaManagerImpl manager;
@@ -131,22 +135,24 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public Binding<T> get() {
-		return tryGet(() -> sourceFuture.get().getModel(), dataFuture::get);
+		return tryGet(() -> sourceFuture.get(), dataFuture::get);
 	}
 
 	@Override
 	public Binding<T> get(long timeout, TimeUnit unit) {
-		return tryGet(() -> sourceFuture.get(timeout, unit).getModel(), () -> dataFuture.get(timeout, unit));
+		return tryGet(() -> sourceFuture.get(timeout, unit), () -> dataFuture.get(timeout, unit));
 	}
 
-	private Binding<T> tryGet(TryGet<Model<T>> getModel, TryGet<T> getData) {
-		String input = "TEMP"; // TODO
+	private Binding<T> tryGet(TryGet<BindingSource<T>> getModel, TryGet<T> getData) {
+		String input = "unknown";
 
 		String modelString = "";
 		try {
-			Model<T> model = getModel.tryGet();
+			Model<T> model = getModel.tryGet().getModel();
 
 			modelString = " with model '" + model.getName() + "'";
+			
+			input = getModel.tryGet().getName();
 
 			T data = getData.tryGet();
 

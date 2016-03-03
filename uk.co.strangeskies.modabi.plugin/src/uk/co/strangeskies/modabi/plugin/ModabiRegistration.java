@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.bnd.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.bnd;
+package uk.co.strangeskies.modabi.plugin;
 
 import static java.util.stream.Collectors.toSet;
 

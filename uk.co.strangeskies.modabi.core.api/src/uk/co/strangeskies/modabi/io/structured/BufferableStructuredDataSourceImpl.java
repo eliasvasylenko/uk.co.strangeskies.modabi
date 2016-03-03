@@ -25,8 +25,8 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 
-public class BufferableStructuredDataSourceImpl extends
-		StructuredDataSourceWrapper implements NavigableStructuredDataSource {
+public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrapper
+		implements NavigableStructuredDataSource {
 	private final StructuredDataSource wrappedComponent;
 	private final StructuredDataSource buffer;
 	private final StructuredDataBuffer buffers;
@@ -35,13 +35,12 @@ public class BufferableStructuredDataSourceImpl extends
 		this(component, StructuredDataBuffer.multipleBuffers());
 	}
 
-	private BufferableStructuredDataSourceImpl(StructuredDataSource component,
-			StructuredDataBuffer buffers) {
+	private BufferableStructuredDataSourceImpl(StructuredDataSource component, StructuredDataBuffer buffers) {
 		this(component, buffers, buffers.openBuffer());
 	}
 
-	private BufferableStructuredDataSourceImpl(StructuredDataSource component,
-			StructuredDataBuffer buffers, StructuredDataSource buffer) {
+	private BufferableStructuredDataSourceImpl(StructuredDataSource component, StructuredDataBuffer buffers,
+			StructuredDataSource buffer) {
 		super(wrapComponent(component, buffers, buffer));
 
 		this.wrappedComponent = component;
@@ -49,8 +48,7 @@ public class BufferableStructuredDataSourceImpl extends
 		this.buffer = buffer;
 	}
 
-	protected static StructuredDataSource wrapComponent(
-			StructuredDataSource component, StructuredDataBuffer buffers,
+	protected static StructuredDataSource wrapComponent(StructuredDataSource component, StructuredDataBuffer buffers,
 			StructuredDataSource buffer) {
 		return new StructuredDataSource() {
 			@Override
@@ -142,7 +140,7 @@ public class BufferableStructuredDataSourceImpl extends
 				}
 
 				buffer.endChild();
-				
+
 				return this;
 			}
 		};
@@ -150,19 +148,17 @@ public class BufferableStructuredDataSourceImpl extends
 
 	@Override
 	public NavigableStructuredDataSource copy() {
-		throw new UnsupportedOperationException();
+		return buffer();
 	}
 
 	@Override
 	public StructuredDataSource split() {
-		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers,
-				buffer.split());
+		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers, buffer.split());
 	}
 
 	@Override
 	public NavigableStructuredDataSource buffer() {
-		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers,
-				buffer.buffer());
+		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers, buffer.buffer());
 	}
 
 	@Override

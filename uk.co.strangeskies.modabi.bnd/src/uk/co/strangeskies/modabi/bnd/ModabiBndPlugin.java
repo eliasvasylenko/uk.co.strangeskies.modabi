@@ -49,6 +49,8 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
+import uk.co.strangeskies.modabi.plugin.RegistrationContext;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
@@ -57,7 +59,7 @@ import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 /**
  * @author Elias N Vasylenko
  */
-public abstract class ModabiPlugin implements AnalyzerPlugin, Plugin {
+public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 	private static final Object SOURCES_PROPERTY = "sources";
 	private static final String DEFAULT_SOURCE = "META-INF/schemata/*";
 
@@ -68,7 +70,7 @@ public abstract class ModabiPlugin implements AnalyzerPlugin, Plugin {
 
 	private Log log = (l, m) -> {};
 
-	public ModabiPlugin(StructuredDataFormat handler) {
+	public ModabiBndPlugin(StructuredDataFormat handler) {
 		this.manager = new SchemaManagerImpl();
 		this.format = handler;
 

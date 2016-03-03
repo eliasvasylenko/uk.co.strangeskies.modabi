@@ -465,6 +465,11 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
+		public DataType<DataItem<?>> bufferedDataItemType() {
+			return bufferedDataItemType;
+		}
+
+		@Override
 		public DataType<Object[]> arrayType() {
 			return arrayType;
 		}
