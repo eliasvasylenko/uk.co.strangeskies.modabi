@@ -42,6 +42,7 @@ import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
@@ -83,6 +84,7 @@ public class BaseSchemaImpl implements BaseSchema {
 	private class DerivedTypesImpl implements DerivedTypes {
 		private final DataType<Object> referenceType;
 		private final DataType<DataSource> bufferedDataType;
+		private final DataType<DataItem<?>> bufferedDataItemType;
 
 		private final DataType<Class<?>> classType;
 		private final DataType<Type> typeType;
@@ -131,6 +133,13 @@ public class BaseSchemaImpl implements BaseSchema {
 					t -> t.dataType(DataSource.class).bindingType(DataSource.class).bindingStrategy(BindingStrategy.PROVIDED)
 							.unbindingType(DataTarget.class).unbindingStrategy(UnbindingStrategy.ACCEPT_PROVIDED)
 							.unbindingMethod("pipe"));
+
+			bufferedDataItemType = factory.apply("bufferedDataItem",
+					t -> t.dataType(new TypeToken<DataItem<?>>() {})
+							.bindingType(DataSource.class).bindingStrategy(BindingStrategy.PROVIDED)
+							.unbindingType(DataTarget.class).unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
+							.unbindingMethod("put")
+							.addChild(c -> c.inputSequence().name("get").inMethodChained(true)));
 
 			DataType<Object> referenceBaseType = factory.apply("referenceBase",
 					t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
