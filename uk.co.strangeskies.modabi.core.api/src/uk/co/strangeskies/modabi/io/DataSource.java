@@ -77,11 +77,6 @@ public interface DataSource extends Copyable<DataSource> {
 
 		return forDataItems(dataItemList);
 	}
-	
-	public static void main(String... args) {
-		System.out.println(parseString("\t\t  First, \t Second", null));
-		System.out.println(parseString("\t\t  First,"+System.lineSeparator()+"\t \t Second", null));
-	}
 
 	static DataSource forDataItems(List<DataItem<?>> dataItemList) {
 		return new DataSourceDecorator(new RepeatingDataSource(dataItemList, 0, dataItemList.size()));
