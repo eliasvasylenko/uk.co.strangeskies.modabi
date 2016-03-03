@@ -3,7 +3,8 @@
 	name="ScriptingSchema">
 
 	<dependencies>
-		BaseSchema, BaseSchema
+		BaseSchema,
+		BaseSchema
 	</dependencies>
 
 	<types />
