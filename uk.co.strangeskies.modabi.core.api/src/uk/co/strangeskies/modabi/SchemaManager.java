@@ -47,11 +47,13 @@ public interface SchemaManager {
 
 	Binder<?> bind();
 
+	default Binder<Schema> bindSchema() {
+		return bind(getMetaSchema().getSchemaModel());
+	}
+
 	<T> Set<BindingFuture<T>> getBindingFutures(Model<T> model);
 
 	<T> Observable<BindingFuture<T>> bindingFutures(Model<T> model);
-
-	Binder<Schema> bindSchema();
 
 	<T> Unbinder<T> unbind(Model<T> model, T data);
 

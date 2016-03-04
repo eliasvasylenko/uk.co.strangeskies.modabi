@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2016 Elias N Vasylenko <eliasvasylenko@gmail.com>
  *
- * This file is part of uk.co.strangeskies.modabi.bnd.
+ * This file is part of uk.co.strangeskies.modabi.plugin.
  *
- * uk.co.strangeskies.modabi.bnd is free software: you can redistribute it and/or modify
+ * uk.co.strangeskies.modabi.plugin is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * uk.co.strangeskies.modabi.bnd is distributed in the hope that it will be useful,
+ * uk.co.strangeskies.modabi.plugin is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with uk.co.strangeskies.modabi.bnd.  If not, see <http://www.gnu.org/licenses/>.
+ * along with uk.co.strangeskies.modabi.plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 package uk.co.strangeskies.modabi.plugin;
 
@@ -58,36 +58,32 @@ public class ModabiRegistration {
 	private static final String SCHEMAMANAGER_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
 			+ SchemaManager.class.getTypeName() + ")";
 
-	private final RegistrationContext context;
+	private RegistrationContext context;
 
 	/*
 	 * The schemata provided by the building bundle, mapped to their jar resource
 	 * locations:
 	 */
-	private final Map<BindingFuture<Schema>, String> providedSchemata;
+	private final Map<BindingFuture<Schema>, String> providedSchemata = new HashMap<>();
 	/*
 	 * The names of required schemata from build dependencies:
 	 */
-	private final Set<QualifiedName> requiredSchemata;
+	private final Set<QualifiedName> requiredSchemata = new HashSet<>();
 	/*
 	 * All encountered schemata which are loading or have loaded:
 	 */
-	private final Set<BindingFuture<?>> resolvingSchemata;
-
-	public ModabiRegistration(RegistrationContext context) {
-		this.context = context;
-		requiredSchemata = new HashSet<>();
-		providedSchemata = new HashMap<>();
-		resolvingSchemata = new HashSet<>();
-	}
+	private final Set<BindingFuture<?>> resolvingSchemata = new HashSet<>();
 
 	private QualifiedName getDependencyNamespace() {
 		return context.schemaManager().getMetaSchema().getSchemaModel().getName();
 	}
 
-	public synchronized boolean registerSchemata() {
+	public synchronized boolean registerSchemata(RegistrationContext context) {
+		this.context = context;
+
 		requiredSchemata.clear();
 		providedSchemata.clear();
+		resolvingSchemata.clear();
 
 		if (!context.sources().isEmpty()) {
 			new ContextClassLoaderRunner(context.classLoader()).run(() -> registerSchemaResources());

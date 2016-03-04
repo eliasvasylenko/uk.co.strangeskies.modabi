@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,9 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
@@ -62,26 +57,25 @@ import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.ObservableImpl;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
-import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 @Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
 	private final SchemaBuilder schemaBuilder;
 
 	private final MultiMap<QualifiedName, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
-	private ObservableImpl<BindingFuture<?>> bindingFuturesEvents;
+	private final Map<Model.Effective<?>, ObservableImpl<? extends BindingFuture<?>>> bindingFutureObservables;
+	private final Map<Model.Effective<?>, ObservableImpl<? extends Binding<?>>> bindingObservables;
 
 	private final CoreSchemata coreSchemata;
 
@@ -91,8 +85,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	private final DataTypes registeredTypes;
 	private final Schemata registeredSchemata;
 
-	private final Map<String, StructuredDataFormat> dataInterfaces;
-	private final ObservableImpl<StructuredDataFormat> dataInterfaceObservers;
+	private final DataFormats dataFormats;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl());
@@ -102,6 +95,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		this.schemaBuilder = schemaBuilder;
 
 		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
+		bindingFutureObservables = new HashMap<>();
+		bindingObservables = new HashMap<>();
 
 		coreSchemata = new CoreSchemata(schemaBuilder);
 
@@ -114,7 +109,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		/*
 		 * Register schema builder provider
 		 */
-		provisions().registerProvider(SchemaBuilder.class, () -> schemaBuilder);
+		provisions().registerProvider(SchemaBuilder.class, this::getSchemaBuilder);
 
 		/*
 		 * Register collection providers
@@ -129,8 +124,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		new BindingProviders(this).registerProviders(provisions());
 		new UnbindingProviders(this).registerProviders(provisions());
 
-		dataInterfaces = new HashMap<>();
-		dataInterfaceObservers = new ObservableImpl<>();
+		dataFormats = new DataFormats();
 
 		registerSchema(coreSchemata.metaSchema());
 	}
@@ -141,12 +135,21 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public SchemaConfigurator getSchemaConfigurator() {
-		return new SchemaConfiguratorDecorator(schemaBuilder.configure(DataNodeBinder.dataLoader(getProcessingContext()))) {
+		return getSchemaBuilder().configure(DataNodeBinder.dataLoader(getProcessingContext()));
+	}
+
+	private SchemaBuilder getSchemaBuilder() {
+		return new SchemaBuilder() {
 			@Override
-			public Schema create() {
-				Schema schema = super.create();
-				registerSchema(schema);
-				return schema;
+			public SchemaConfigurator configure(DataLoader loader) {
+				return new SchemaConfiguratorDecorator(schemaBuilder.configure(loader)) {
+					@Override
+					public Schema create() {
+						Schema schema = super.create();
+						registerSchema(schema);
+						return schema;
+					}
+				};
 			}
 		};
 	}
@@ -180,97 +183,13 @@ public class SchemaManagerImpl implements SchemaManager {
 		}
 	}
 
-	@Override
-	public Binder<Schema> bindSchema() {
-		Binder<Schema> binder = bind(getMetaSchema().getSchemaModel());
-
-		return new Binder<Schema>() {
-			@Override
-			public BindingFuture<Schema> from(StructuredDataSource input) {
-				return registerFuture(binder.from(input));
-			}
-
-			@Override
-			public BindingFuture<Schema> from(URL input) {
-				return registerFuture(binder.from(input));
-			}
-
-			@Override
-			public BindingFuture<Schema> from(ThrowingSupplier<InputStream, ?> input) {
-				return registerFuture(binder.from(input));
-			}
-
-			@Override
-			public BindingFuture<Schema> from(String extension, ThrowingSupplier<InputStream, ?> input) {
-				return registerFuture(binder.from(extension, input));
-			}
-
-			private BindingFuture<Schema> registerFuture(BindingFuture<Schema> future) {
-				BindingFuture<Schema> wrappedFuture = new BindingFuture<Schema>() {
-					@Override
-					public boolean cancel(boolean mayInterruptIfRunning) {
-						return future.cancel(mayInterruptIfRunning);
-					}
-
-					@Override
-					public boolean isCancelled() {
-						return future.isCancelled();
-					}
-
-					@Override
-					public boolean isDone() {
-						return future.isDone();
-					}
-
-					@Override
-					public Future<Model<Schema>> getModelFuture() {
-						return future.getModelFuture();
-					}
-
-					@Override
-					public BindingBlocks blocks() {
-						return future.blocks();
-					}
-
-					@Override
-					public Binding<Schema> get() {
-						return register(future.get());
-					}
-
-					@Override
-					public Binding<Schema> get(long timeout, TimeUnit unit) {
-						return register(future.get(timeout, unit));
-					}
-
-					private Binding<Schema> register(Binding<Schema> binding) {
-						registerSchemaImpl(binding.getData());
-						return binding;
-					}
-				};
-
-				new Thread(() -> wrappedFuture.resolve()).start();
-
-				return wrappedFuture;
-			}
-
-			@Override
-			public Binder<Schema> with(Consumer<Exception> errorHandler) {
-				binder.with(errorHandler);
-				return this;
-			}
-
-			@Override
-			public Binder<Schema> with(ClassLoader classLoader) {
-				binder.with(classLoader);
-				return this;
-			}
-		};
-	}
-
 	void registerModel(Model<?> model) {
 		synchronized (registeredModels) {
 			registeredModels.add(model);
 			registeredModels.notifyAll();
+
+			bindingFutureObservables.put(model.effective(), new ObservableImpl<>());
+			bindingObservables.put(model.effective(), new ObservableImpl<>());
 		}
 	}
 
@@ -309,21 +228,31 @@ public class SchemaManagerImpl implements SchemaManager {
 		return coreSchemata.baseSchema();
 	}
 
-	<T> BindingFuture<T> addBindingFuture(BindingFuture<T> binding) {
+	<T> BindingFuture<T> addBindingFuture(BindingFuture<T> bindingFuture) {
 		new Thread(() -> {
 			try {
-				QualifiedName modelName = binding.getModelFuture().get().effective().getName();
-				bindingFutures.add(modelName, binding);
+				Model.Effective<T> model = bindingFuture.getModelFuture().get().effective();
+				QualifiedName modelName = model.getName();
+				bindingFutures.add(modelName, bindingFuture);
+
+				@SuppressWarnings("unchecked")
+				ObservableImpl<BindingFuture<T>> bindingFutureObservable = (ObservableImpl<BindingFuture<T>>) bindingFutureObservables
+						.get(model);
+				bindingFutureObservable.fire(bindingFuture);
 
 				try {
-					binding.get();
+					Binding<T> binding = bindingFuture.get();
+
+					@SuppressWarnings("unchecked")
+					ObservableImpl<Binding<T>> bindingObservable = (ObservableImpl<Binding<T>>) bindingObservables.get(model);
+					bindingObservable.fire(binding);
 				} catch (Exception e) {
 					bindingFutures.remove(modelName);
 				}
 			} catch (Exception e) {}
 		}).start();
 
-		return binding;
+		return bindingFuture;
 	}
 
 	@Override
@@ -363,7 +292,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		}, this::addBindingFuture);
+		} , this::addBindingFuture);
 	}
 
 	@Override
@@ -374,30 +303,22 @@ public class SchemaManagerImpl implements SchemaManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Set<BindingFuture<T>> getBindingFutures(Model<T> model) {
-		Set<BindingFuture<?>> modelBindings = bindingFutures.get(model.effective().getName());
+		synchronized (bindingFutureObservables.get(model.effective())) {
+			Set<BindingFuture<?>> modelBindings = bindingFutures.get(model.effective().getName());
 
-		if (modelBindings == null)
-			return Collections.emptySet();
-		else
-			return modelBindings.stream().map(t -> (BindingFuture<T>) t).collect(Collectors.toSet());
+			if (modelBindings == null)
+				return Collections.emptySet();
+			else
+				return modelBindings.stream().map(t -> (BindingFuture<T>) t).collect(Collectors.toSet());
+		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Observable<BindingFuture<T>> bindingFutures(Model<T> model) {
-		return new Observable<BindingFuture<T>>() {
-			@Override
-			public boolean addObserver(Consumer<? super BindingFuture<T>> observer) {
-				// TODO bindingFuturesEvents
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public boolean removeObserver(Consumer<? super BindingFuture<T>> observer) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-		};
+		synchronized (bindingFutureObservables) {
+			return (ObservableImpl<BindingFuture<T>>) bindingFutureObservables.get(model.effective());
+		}
 	}
 
 	@Override
@@ -434,50 +355,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public DataFormats dataFormats() {
-		return new DataFormats() {
-			@Override
-			public void registerDataFormat(StructuredDataFormat loader) {
-				synchronized (dataInterfaces) {
-					dataInterfaces.put(loader.getFormatId(), loader);
-					dataInterfaceObservers.fire(loader);
-				}
-			}
-
-			@Override
-			public void unregisterDataFormat(StructuredDataFormat loader) {
-				synchronized (dataInterfaces) {
-					dataInterfaces.remove(loader.getFormatId(), loader);
-				}
-			}
-
-			@Override
-			public Set<StructuredDataFormat> getRegistered() {
-				synchronized (dataInterfaces) {
-					return new HashSet<>(dataInterfaces.values());
-				}
-			}
-
-			@Override
-			public StructuredDataFormat getDataFormat(String id) {
-				synchronized (dataInterfaces) {
-					return dataInterfaces.get(id);
-				}
-			}
-
-			@Override
-			public boolean addObserver(Consumer<? super StructuredDataFormat> observer) {
-				synchronized (dataInterfaces) {
-					return dataInterfaceObservers.addWeakObserver(observer);
-				}
-			}
-
-			@Override
-			public boolean removeObserver(Consumer<? super StructuredDataFormat> observer) {
-				synchronized (dataInterfaces) {
-					return dataInterfaceObservers.addWeakObserver(observer);
-				}
-			}
-		};
+		return dataFormats;
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")

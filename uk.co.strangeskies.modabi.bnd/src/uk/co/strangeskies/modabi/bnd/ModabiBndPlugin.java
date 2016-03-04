@@ -105,7 +105,7 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 		try {
 			scanSchemaAnnotations(analyzer);
 
-			return new ModabiRegistration(createRegistrationContext(analyzer)).registerSchemata();
+			return new ModabiRegistration().registerSchemata(createRegistrationContext(analyzer));
 		} catch (Throwable t) {
 			log.log(Level.ERROR, "Oh no.", t);
 			throw t;

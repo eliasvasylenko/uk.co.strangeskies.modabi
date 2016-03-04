@@ -18,24 +18,42 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.utilities.Observable;
+import uk.co.strangeskies.utilities.ObservableImpl;
 
-public interface DataFormats extends Observable<StructuredDataFormat> {
-	void registerDataFormat(StructuredDataFormat handler);
+public class DataFormats implements Observable<StructuredDataFormat> {
+	private final ObservableImpl<StructuredDataFormat> dataInterfaceObservers = new ObservableImpl<>();
+	private final Map<String, StructuredDataFormat> dataInterfaces = new HashMap<>();
 
-	void unregisterDataFormat(StructuredDataFormat handler);
+	public synchronized void registerDataFormat(StructuredDataFormat loader) {
+		dataInterfaces.put(loader.getFormatId(), loader);
+		dataInterfaceObservers.fire(loader);
+	}
 
-	Set<StructuredDataFormat> getRegistered();
+	public synchronized void unregisterDataFormat(StructuredDataFormat loader) {
+		dataInterfaces.remove(loader.getFormatId(), loader);
+	}
 
-	StructuredDataFormat getDataFormat(String id);
+	public synchronized Set<StructuredDataFormat> getRegistered() {
+		return new HashSet<>(dataInterfaces.values());
+	}
 
-	default Set<StructuredDataFormat> getDataFormats(String extension) {
-		return getRegistered().stream().filter(l -> l.getFileExtensions().contains(extension))
-				.collect(Collectors.toCollection(LinkedHashSet::new));
+	public synchronized StructuredDataFormat getDataFormat(String id) {
+		return dataInterfaces.get(id);
+	}
+
+	public synchronized boolean addObserver(Consumer<? super StructuredDataFormat> observer) {
+		return dataInterfaceObservers.addWeakObserver(observer);
+	}
+
+	public synchronized boolean removeObserver(Consumer<? super StructuredDataFormat> observer) {
+		return dataInterfaceObservers.addWeakObserver(observer);
 	}
 }

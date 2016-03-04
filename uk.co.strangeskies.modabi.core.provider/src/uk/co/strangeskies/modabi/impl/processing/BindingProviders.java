@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
@@ -90,6 +92,15 @@ public class BindingProviders {
 				return new DataNodeBinder<>(context, node.effective()).getBinding();
 			}
 		};
+	}
+
+	public Function<ProcessingContext, SchemaConfigurator> schemaConfigurator() {
+		return context -> context.provide(SchemaBuilder.class).getObject().configure(new DataLoader() {
+			@Override
+			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+				return new DataNodeBinder<>(context, node.effective()).getBinding();
+			}
+		});
 	}
 
 	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
@@ -243,6 +254,7 @@ public class BindingProviders {
 		provisions.registerProvider(DereferenceSource.class, dereferenceSource());
 		provisions.registerProvider(ImportSource.class, importSource());
 		provisions.registerProvider(DataLoader.class, dataLoader());
+		provisions.registerProvider(SchemaConfigurator.class, schemaConfigurator());
 		provisions.registerProvider(Imports.class, imports());
 	}
 }

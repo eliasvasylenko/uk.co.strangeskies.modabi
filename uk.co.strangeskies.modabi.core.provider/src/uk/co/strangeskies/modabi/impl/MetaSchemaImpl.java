@@ -352,10 +352,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Schema Models */
 
 		schemaModel = factory.apply("schema",
-				m -> m.dataType(Schema.class).bindingType(SchemaBuilder.class)
-						.addChild(c -> c.inputSequence().name("configure").inMethodChained(true)
-								.addChild(d -> d.data().dataType(DataLoader.class).bindingStrategy(BindingStrategy.PROVIDED)
-										.name("dataLoader").outMethod("null")))
+				m -> m.dataType(Schema.class).bindingType(SchemaConfigurator.class)
 						.addChild(n -> n.data().format(Format.PROPERTY).name("name").inMethod("qualifiedName")
 								.outMethod("getQualifiedName").type(base.primitiveType(Primitive.QUALIFIED_NAME)))
 						.addChild(i -> i.data().format(Format.SIMPLE).name("imports").optional(true)

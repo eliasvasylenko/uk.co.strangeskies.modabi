@@ -26,8 +26,6 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.namespace.extender.ExtenderNamespace;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 
 import aQute.bnd.annotation.headers.ProvideCapability;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -35,7 +33,6 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.osgi.ExtenderManager;
-import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.classpath.DelegatingClassLoader;
 
 @ProvideCapability(ns = ExtenderNamespace.EXTENDER_NAMESPACE, name = ModabiExtender.MODABI_EXTENDER_NAME, version = "1.0.0")
@@ -82,15 +79,4 @@ public class ModabiExtender extends ExtenderManager {
 
 	@Override
 	protected void unregister(Bundle bundle) {}
-
-	@Override
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
-	protected void setLog(Log log) {
-		super.setLog(log);
-	}
-
-	@Override
-	protected void unsetLog(Log log) {
-		super.unsetLog(log);
-	}
 }
