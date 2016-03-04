@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -76,7 +77,7 @@ public class BinderImpl<T> implements Binder<T> {
 	public BindingFuture<T> from(StructuredDataSource input) {
 		return add(new BindingFutureImpl<>(manager, blocks, () -> {
 			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
-		} , classLoader));
+		}, classLoader));
 	}
 
 	@Override
@@ -114,7 +115,6 @@ public class BinderImpl<T> implements Binder<T> {
 
 						return new BindingSource<>(model, input, format);
 					} catch (Exception e) {
-						e.printStackTrace();
 						exception.set(e);
 
 						if (!canRetry) {
@@ -130,7 +130,17 @@ public class BinderImpl<T> implements Binder<T> {
 		};
 
 		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
-		Set<StructuredDataFormat> registeredFormats = manager.dataFormats().registerObserver(queue);
+		Set<StructuredDataFormat> registeredFormats = new HashSet<>();
+		synchronized (registeredFormats) {
+			manager.dataFormats().addWeakObserver(format -> {
+				synchronized (registeredFormats) {
+					if (!registeredFormats.contains(format)) {
+						queue.accept(format);
+					}
+				}
+			});
+			registeredFormats.addAll(manager.dataFormats().getRegistered());
+		}
 
 		try {
 			BindingSource<T> source = getBindingSource.apply(registeredFormats);

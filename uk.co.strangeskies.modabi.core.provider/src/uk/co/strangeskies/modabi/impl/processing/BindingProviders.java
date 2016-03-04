@@ -24,6 +24,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.utilities.EqualityComparator;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.tuple.Pair;
@@ -66,11 +68,10 @@ public class BindingProviders {
 		return context -> new ImportSource() {
 			@Override
 			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
-				System.out.println("   " + model + " @ " + idDomain + " ==== " + id);
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						return manager.bindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
+						return manager.getBindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 								.collect(Collectors.toSet());
 					}
 				}, idDomain, id, true);
@@ -145,9 +146,10 @@ public class BindingProviders {
 			 * for our check of existing candidates regardless of any fancy
 			 * implementation of getAndListen()
 			 */
-			Set<U> existingCandidates = bindings.getAndListen(model, objectCandidate -> {
+			Set<U> existingCandidates = new TreeSet<>(EqualityComparator.identityComparator());
+			existingCandidates.addAll(bindings.getAndListen(model, objectCandidate -> {
 				synchronized (objectProperty) {
-					if (objectProperty.get() == null) {
+					if (objectProperty.get() == null && !existingCandidates.contains(objectCandidate)) {
 						if (validate.apply(objectCandidate)) {
 							objectProperty.set(objectCandidate);
 							block.get().complete();
@@ -159,7 +161,7 @@ public class BindingProviders {
 						return false;
 					}
 				}
-			});
+			}));
 
 			/*
 			 * Check existing candidates to fulfil dependency

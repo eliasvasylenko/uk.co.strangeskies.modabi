@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="Types">
+
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
+	<types>
+		<type name="testType" />
+	</types>
+
+	<models />
+</schema>

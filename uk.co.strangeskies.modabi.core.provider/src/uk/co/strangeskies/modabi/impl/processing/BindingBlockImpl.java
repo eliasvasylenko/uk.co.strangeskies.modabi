@@ -127,8 +127,7 @@ public class BindingBlockImpl implements BindingBlock {
 		fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
 		while (!complete) {
-			wait();
-			throwIfFailed();
+			tryWait();
 		}
 	}
 
@@ -145,12 +144,18 @@ public class BindingBlockImpl implements BindingBlock {
 				fireEvent(BindingBlockEvent.Type.THREAD_UNBLOCKED);
 				throw new TimeoutException("Timed out waiting for blocking dependency " + this);
 			}
-			wait();
-			throwIfFailed();
+			tryWait();
 		}
 	}
 
-	private void throwIfFailed() throws ExecutionException {
+	private void tryWait() throws ExecutionException, InterruptedException {
+		try {
+			wait();
+		} catch (InterruptedException e) {
+			if (failure == null) {
+				throw e;
+			}
+		}
 		if (failure != null) {
 			throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
 		}

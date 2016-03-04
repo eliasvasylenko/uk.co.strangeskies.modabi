@@ -25,10 +25,7 @@ Export-Package: \
 
 Test-Cases: ${test-cases}
 
--runtrace: true
-
 -runproperties: \
-	tester.trace=true,\
 	tester.dir=testdir
 
 -dependson: \
@@ -38,6 +35,7 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.modabi.core.provider
 
 -runrequires: \
+	${req;biz.aQute.tester},\
 	${req;osgi.enroute.logger.simple.provider},\
 	${req;uk.co.strangeskies.osgi.consolelog},\
 	${req;org.apache.felix.gogo.command},\
@@ -45,7 +43,6 @@ Test-Cases: ${test-cases}
 	${req;org.apache.felix.gogo.shell},\
 	${req;uk.co.strangeskies.modabi.io.json},\
 	${req;uk.co.strangeskies.modabi.io.xml},\
-	${req;biz.aQute.tester},\
 	${req;uk.co.strangeskies.modabi.core.provider},\
 	${req;uk.co.strangeskies.modabi.core.api}
 
@@ -61,13 +58,17 @@ Test-Cases: ${test-cases}
 	org.apache.felix.metatype;version='[1.1.2,1.1.3)',\
 	org.apache.felix.scr;version='[2.0.0,2.0.1)',\
 	org.apache.servicemix.bundles.stax-utils;version='[20070216.0.0,20070216.0.1)',\
-	osgi.enroute.hamcrest.wrapper;version='[1.3.0,1.3.1)',\
-	osgi.enroute.junit.wrapper;version='[4.12.0,4.12.1)',\
+	org.hamcrest.core;version='[1.3.0,1.3.1)',\
+	org.junit;version='[4.12.0,4.12.1)',\
 	osgi.enroute.logger.simple.provider;version='[1.2.1,1.2.2)',\
+	uk.co.strangeskies.mathematics;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
 	uk.co.strangeskies.modabi.io.json;version=snapshot,\
-	uk.co.strangeskies.modabi.io.xml;version=snapshot
+	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
+	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000
 Import-Package: \

@@ -24,6 +24,7 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.Observable;
 
 public interface SchemaManager {
 	DataFormats dataFormats();
@@ -46,7 +47,9 @@ public interface SchemaManager {
 
 	Binder<?> bind();
 
-	<T> Set<BindingFuture<T>> bindingFutures(Model<T> model);
+	<T> Set<BindingFuture<T>> getBindingFutures(Model<T> model);
+
+	<T> Observable<BindingFuture<T>> bindingFutures(Model<T> model);
 
 	Binder<Schema> bindSchema();
 

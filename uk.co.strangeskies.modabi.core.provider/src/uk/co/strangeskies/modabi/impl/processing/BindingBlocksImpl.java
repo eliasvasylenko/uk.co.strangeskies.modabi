@@ -38,8 +38,8 @@ public class BindingBlocksImpl implements BindingBlocker {
 	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
 	private final Set<BindingBlock> blocks = new HashSet<>();
 
-	private Set<Thread> processingThreads = new HashSet<>();
-	private Map<Thread, BindingBlock> processingThreadBlocks = new HashMap<>();
+	private Set<Thread> participatingThreads = new HashSet<>();
+	private Map<Thread, BindingBlock> participatingThreadBlocks = new HashMap<>();
 
 	@Override
 	public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
@@ -96,8 +96,8 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 	void startThreadBlock(BindingBlock block, Thread thread) {
 		synchronized (blocks) {
-			if (processingThreads.contains(thread)) {
-				processingThreadBlocks.put(thread, block);
+			if (participatingThreads.contains(thread)) {
+				participatingThreadBlocks.put(thread, block);
 
 				assertResolvable();
 			}
@@ -106,15 +106,15 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 	void endThreadBlock(BindingBlock block, Thread thread) {
 		synchronized (blocks) {
-			processingThreadBlocks.remove(thread);
+			participatingThreadBlocks.remove(thread);
 		}
 	}
 
 	void endThreadBlocks(BindingBlock block) {
 		synchronized (blocks) {
-			for (Thread processingThread : processingThreads) {
-				if (processingThreadBlocks.get(processingThread) == block) {
-					processingThreadBlocks.remove(processingThread);
+			for (Thread processingThread : participatingThreads) {
+				if (participatingThreadBlocks.get(processingThread) == block) {
+					participatingThreadBlocks.remove(processingThread);
 				}
 			}
 		}
@@ -122,8 +122,9 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 	private void assertResolvable() {
 		synchronized (blocks) {
-			if (isDeadlocked() && processingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
-				throw new SchemaException("Internal dependencies unresolvable; waiting for " + processingThreadBlocks.values());
+			if (isDeadlocked() && participatingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
+				throw new SchemaException(
+						"Internal dependencies unresolvable; waiting for " + participatingThreadBlocks.values());
 			}
 		}
 	}
@@ -131,7 +132,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 	@Override
 	public void addParticipatingThread(Thread processingThread) {
 		synchronized (blocks) {
-			processingThreads.add(processingThread);
+			participatingThreads.add(processingThread);
 
 			new Thread(() -> {
 				try {
@@ -142,12 +143,18 @@ public class BindingBlocksImpl implements BindingBlocker {
 					}
 				} finally {
 					synchronized (blocks) {
-						processingThreads.remove(processingThread);
+						participatingThreads.remove(processingThread);
 
 						assertResolvable();
 					}
 				}
 			}).start();
+		}
+	}
+
+	public Set<Thread> getParticipatingThreads() {
+		synchronized (blocks) {
+			return participatingThreads;
 		}
 	}
 
@@ -199,23 +206,21 @@ public class BindingBlocksImpl implements BindingBlocker {
 	@Override
 	public boolean isBlocked() {
 		synchronized (blocks) {
-			return processingThreadBlocks.size() > 0 && processingThreadBlocks.size() >= processingThreads.size();
+			return participatingThreadBlocks.size() > 0 && participatingThreadBlocks.size() >= participatingThreads.size();
 		}
 	}
 
 	public boolean isDeadlocked() {
 		synchronized (blocks) {
-			int internalBlocks = (int) processingThreadBlocks.values().stream().filter(BindingBlock::isInternal).count();
+			int internalBlocks = (int) participatingThreadBlocks.values().stream().filter(BindingBlock::isInternal).count();
 
-			return internalBlocks > 0 && internalBlocks >= processingThreads.size();
+			return internalBlocks > 0 && internalBlocks >= participatingThreads.size();
 		}
 	}
 
 	public void complete() throws InterruptedException, ExecutionException {
 		synchronized (blocks) {
-			new Thread(() -> {
-				assertResolvable();
-			});
+			assertResolvable();
 			waitForAll();
 		}
 	}

@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.io.InputStream;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -34,6 +35,7 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
@@ -94,10 +96,15 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private final FutureTask<BindingSource<T>> sourceFuture;
 	private final FutureTask<T> dataFuture;
 
+	private Binding<T> bindingResult;
+	private boolean cancelled;
+
 	public BindingFutureImpl(SchemaManagerImpl manager, BindingBlocksImpl blocks,
 			Supplier<BindingSource<T>> modelSupplier, ClassLoader classLoader) {
 		this.manager = manager;
 		this.blocks = blocks;
+
+		cancelled = false;
 
 		sourceFuture = new FutureTask<>(modelSupplier::get);
 
@@ -120,7 +127,21 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
-		return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning);
+		synchronized (blocks) {
+			if (bindingResult == null && !cancelled) {
+				Exception exception = new SchemaException("Cancellation of " + this + " requested");
+				for (BindingBlock block : blocks.getBlocks()) {
+					block.fail(exception);
+				}
+				for (Thread thread : blocks.getParticipatingThreads()) {
+					thread.interrupt();
+				}
+				cancelled = true;
+				return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning);
+			} else {
+				return false;
+			}
+		}
 	}
 
 	@Override
@@ -144,35 +165,47 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	private Binding<T> tryGet(TryGet<BindingSource<T>> getModel, TryGet<T> getData) {
-		String input = "unknown";
+		synchronized (blocks) {
+			if (bindingResult != null) {
+				return bindingResult;
+			}
 
-		String modelString = "";
-		try {
-			Model<T> model = getModel.tryGet().getModel();
+			if (cancelled) {
+				throw new CancellationException();
+			}
 
-			modelString = " with model '" + model.getName() + "'";
-			
-			input = getModel.tryGet().getName();
+			String input = "unknown";
 
-			T data = getData.tryGet();
+			String modelString = "";
+			try {
+				Model<T> model = getModel.tryGet().getModel();
 
-			return new Binding<T>() {
-				@Override
-				public Model<T> getModel() {
-					return model;
-				}
+				modelString = " with model '" + model.getName() + "'";
 
-				@Override
-				public T getData() {
-					return data;
-				}
-			};
-		} catch (InterruptedException e) {
-			throw new SchemaException("Unexpected interrupt during binding of '" + input + "'" + modelString, e);
-		} catch (ExecutionException e) {
-			throw new SchemaException("Exception during binding of '" + input + "'" + modelString, e);
-		} catch (TimeoutException e) {
-			throw new SchemaException("Timed out waiting for binding of '" + input + "'" + modelString, e);
+				input = getModel.tryGet().getName();
+
+				T data = getData.tryGet();
+
+				bindingResult = new Binding<T>() {
+					@Override
+					public Model<T> getModel() {
+						return model;
+					}
+
+					@Override
+					public T getData() {
+						return data;
+					}
+				};
+
+				return bindingResult;
+			} catch (InterruptedException e) {
+				throw new SchemaException("Unexpected interrupt during binding of '" + input + "'" + modelString, e);
+			} catch (ExecutionException e) {
+				throw new SchemaException("Exception during binding of '" + input + "'" + modelString, e);
+			} catch (TimeoutException e) {
+				throw new SchemaException("Timed out waiting for binding of '" + input + "'" + modelString, e);
+			}
 		}
 	}
 
