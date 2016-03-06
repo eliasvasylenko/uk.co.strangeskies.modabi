@@ -18,13 +18,11 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.util.Set;
-
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.Observable;
+import uk.co.strangeskies.utilities.collection.ObservableSet;
 
 public interface SchemaManager {
 	DataFormats dataFormats();
@@ -51,9 +49,7 @@ public interface SchemaManager {
 		return bind(getMetaSchema().getSchemaModel());
 	}
 
-	<T> Set<BindingFuture<T>> getBindingFutures(Model<T> model);
-
-	<T> Observable<BindingFuture<T>> bindingFutures(Model<T> model);
+	<T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model);
 
 	<T> Unbinder<T> unbind(Model<T> model, T data);
 

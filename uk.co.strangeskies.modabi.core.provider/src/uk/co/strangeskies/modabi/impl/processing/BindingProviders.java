@@ -24,7 +24,6 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -50,7 +49,6 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypedObject;
-import uk.co.strangeskies.utilities.EqualityComparator;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.tuple.Pair;
@@ -95,12 +93,8 @@ public class BindingProviders {
 	}
 
 	public Function<ProcessingContext, SchemaConfigurator> schemaConfigurator() {
-		return context -> context.provide(SchemaBuilder.class).getObject().configure(new DataLoader() {
-			@Override
-			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context, node.effective()).getBinding();
-			}
-		});
+		return context -> context.provide(SchemaBuilder.class).getObject()
+				.configure(context.provide(DataLoader.class).getObject());
 	}
 
 	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
@@ -110,8 +104,10 @@ public class BindingProviders {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						context.bindings().observers(model).addTerminatingObserver(listener);
-						return context.bindings().get(model);
+						synchronized (context.bindings()) {
+							context.bindings().changes(model).addTerminatingObserver(listener);
+							return context.bindings().get(model);
+						}
 					}
 				}, idDomain, id, false);
 			}
@@ -127,7 +123,6 @@ public class BindingProviders {
 		/*
 		 * Object property to contain result when we find a matching binding
 		 */
-		Property<U, U> objectProperty = new IdentityProperty<>();
 
 		/*
 		 * Create a validation function for the parameters of this dependency
@@ -139,6 +134,12 @@ public class BindingProviders {
 			throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
 		DataNode.Effective<?> idNode = (Effective<?>) child;
 
+		/*
+		 * Resolve dependency!
+		 */
+		Property<U, U> objectProperty = new IdentityProperty<>();
+		Property<BindingBlock, BindingBlock> blockProperty = new IdentityProperty<>();
+
 		Function<U, Boolean> validate = bindingCandidate -> {
 			boolean success = validateBindingCandidate(bindingCandidate, model, idNode, id);
 			if (success) {
@@ -147,23 +148,13 @@ public class BindingProviders {
 			return success;
 		};
 
-		/*
-		 * Resolve dependency!
-		 */
-		Property<BindingBlock, BindingBlock> block = new IdentityProperty<>();
 		synchronized (objectProperty) {
-			/*
-			 * We are synchronized on the object property, so the listener will wait
-			 * for our check of existing candidates regardless of any fancy
-			 * implementation of getAndListen()
-			 */
-			Set<U> existingCandidates = new TreeSet<>(EqualityComparator.identityComparator());
-			existingCandidates.addAll(bindings.getAndListen(model, objectCandidate -> {
+			Set<U> existingCandidates = bindings.getAndListen(model, objectCandidate -> {
 				synchronized (objectProperty) {
-					if (objectProperty.get() == null && !existingCandidates.contains(objectCandidate)) {
+					if (objectProperty.get() == null) {
 						if (validate.apply(objectCandidate)) {
 							objectProperty.set(objectCandidate);
-							block.get().complete();
+							blockProperty.get().complete();
 							return false;
 						} else {
 							return true;
@@ -172,7 +163,7 @@ public class BindingProviders {
 						return false;
 					}
 				}
-			}));
+			});
 
 			/*
 			 * Check existing candidates to fulfil dependency
@@ -186,10 +177,11 @@ public class BindingProviders {
 			/*
 			 * No existing candidates found, so block to wait for new ones
 			 */
-			block.set(context.bindingFutureBlocker().block(model.getName(), id, !externalDependency));
+			BindingBlock block = context.bindingFutureBlocker().block(model.getName(), id, !externalDependency);
+			blockProperty.set(block);
 		}
 
-		return getProxiedBinding(model, block.get(), objectProperty::get);
+		return getProxiedBinding(model, blockProperty.get(), objectProperty::get);
 	}
 
 	private <U> boolean validateBindingCandidate(U objectCandidate, Model<U> model, DataNode.Effective<?> idNode,

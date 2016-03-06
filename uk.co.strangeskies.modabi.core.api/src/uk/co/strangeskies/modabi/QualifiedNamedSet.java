@@ -21,12 +21,20 @@ package uk.co.strangeskies.modabi;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
+import uk.co.strangeskies.utilities.Observable;
+import uk.co.strangeskies.utilities.ObservableImpl;
+import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.collection.SetDecorator;
 import uk.co.strangeskies.utilities.function.SetTransformationView;
 
-public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
+public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T>
+		implements ObservableSet<QualifiedNamedSet<T>, T> {
+	private final ObservableImpl<Change<T>> changeObservable = new ObservableImpl<>();
+	private final ObservableImpl<QualifiedNamedSet<T>> stateObservable = new ObservableImpl<>();
+
 	private final Function<T, QualifiedName> qualifiedNamingFunction;
 	private final LinkedHashMap<QualifiedName, T> elements;
 
@@ -34,10 +42,8 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 		this(namingFunction, new LinkedHashMap<>());
 	}
 
-	private QualifiedNamedSet(Function<T, QualifiedName> namingFunction,
-			LinkedHashMap<QualifiedName, T> elements) {
-		super(new SetTransformationView<T, T>(elements.values(),
-				Function.identity()));
+	private QualifiedNamedSet(Function<T, QualifiedName> namingFunction, LinkedHashMap<QualifiedName, T> elements) {
+		super(new SetTransformationView<>(elements.values(), Function.identity()));
 
 		qualifiedNamingFunction = namingFunction;
 		this.elements = elements;
@@ -54,6 +60,19 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 			return false;
 
 		elements.put(name, element);
+
+		stateObservable.fire(this);
+		changeObservable.fire(new Change<T>() {
+			@Override
+			public Type type() {
+				return Type.ADDED;
+			}
+
+			@Override
+			public T element() {
+				return element;
+			}
+		});
 
 		return true;
 	}
@@ -74,5 +93,20 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T> {
 	@Override
 	public String toString() {
 		return elements.toString();
+	}
+
+	@Override
+	public Observable<Change<T>> changes() {
+		return changeObservable;
+	}
+
+	@Override
+	public boolean addObserver(Consumer<? super QualifiedNamedSet<T>> observer) {
+		return stateObservable.addObserver(observer);
+	}
+
+	@Override
+	public boolean removeObserver(Consumer<? super QualifiedNamedSet<T>> observer) {
+		return stateObservable.removeObserver(observer);
 	}
 }

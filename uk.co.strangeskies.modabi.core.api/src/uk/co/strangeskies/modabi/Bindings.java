@@ -48,7 +48,7 @@ public class Bindings {
 		listeners = new MultiHashMap<>(HashSet::new);
 	}
 
-	public <T> void add(ComplexNode<T> element, T data) {
+	public synchronized <T> void add(ComplexNode<T> element, T data) {
 		element = element.source();
 
 		synchronized (listeners) {
@@ -59,7 +59,7 @@ public class Bindings {
 		}
 	}
 
-	public <T> void add(Model<T> model, T data) {
+	public synchronized <T> void add(Model<T> model, T data) {
 		model = model.source();
 
 		synchronized (listeners) {
@@ -83,11 +83,11 @@ public class Bindings {
 		}
 	}
 
-	public void add(Binding<?>... bindings) {
+	public synchronized void add(Binding<?>... bindings) {
 		add(Arrays.asList(bindings));
 	}
 
-	public void add(Collection<? extends Binding<?>> bindings) {
+	public synchronized void add(Collection<? extends Binding<?>> bindings) {
 		for (Binding<?> binding : bindings)
 			addCapture(binding);
 	}
@@ -97,7 +97,7 @@ public class Bindings {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> Set<T> get(Model<T> model) {
+	public synchronized <T> Set<T> get(Model<T> model) {
 		model = model.effective();
 
 		synchronized (listeners) {
@@ -106,20 +106,20 @@ public class Bindings {
 		}
 	}
 
-	public <T> Observable<T> observers(Model<T> model) {
+	public synchronized <T> Observable<T> changes(Model<T> model) {
 		Model.Effective<T> effectiveModel = model.effective();
 
 		return new Observable<T>() {
 			@Override
 			public boolean addObserver(Consumer<? super T> observer) {
-				synchronized (listeners) {
+				synchronized (Bindings.this) {
 					return listeners.add(effectiveModel, observer);
 				}
 			}
 
 			@Override
 			public boolean removeObserver(Consumer<? super T> observer) {
-				synchronized (listeners) {
+				synchronized (Bindings.this) {
 					return listeners.add(effectiveModel, observer);
 				}
 			}

@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -64,17 +63,15 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
-import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.ObservableImpl;
-import uk.co.strangeskies.utilities.collection.MultiHashMap;
-import uk.co.strangeskies.utilities.collection.MultiMap;
+import uk.co.strangeskies.utilities.collection.ObservableHashSet;
+import uk.co.strangeskies.utilities.collection.ObservableSet;
 
 @Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
 	private final SchemaBuilder schemaBuilder;
 
-	private final MultiMap<QualifiedName, BindingFuture<?>, Set<BindingFuture<?>>> bindingFutures;
-	private final Map<Model.Effective<?>, ObservableImpl<? extends BindingFuture<?>>> bindingFutureObservables;
+	private final Map<QualifiedName, ObservableSet<?, BindingFuture<?>>> bindingFutures;
 	private final Map<Model.Effective<?>, ObservableImpl<? extends Binding<?>>> bindingObservables;
 
 	private final CoreSchemata coreSchemata;
@@ -94,8 +91,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder /* TODO , Log log */) {
 		this.schemaBuilder = schemaBuilder;
 
-		bindingFutures = new MultiHashMap<>(HashSet::new); // TODO make synchronous
-		bindingFutureObservables = new HashMap<>();
+		bindingFutures = new HashMap<>(); // TODO make synchronous
 		bindingObservables = new HashMap<>();
 
 		coreSchemata = new CoreSchemata(schemaBuilder);
@@ -114,18 +110,19 @@ public class SchemaManagerImpl implements SchemaManager {
 		/*
 		 * Register collection providers
 		 */
+		provisions().registerProvider(ProcessingContext.class, c -> c);
 		provisions().registerProvider(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>());
 		provisions().registerProvider(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>());
 		provisions().registerProvider(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>());
 		provisions().registerProvider(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>());
 		provisions().registerProvider(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>());
 
-		provisions().registerProvider(ProcessingContext.class, c -> c);
 		new BindingProviders(this).registerProviders(provisions());
 		new UnbindingProviders(this).registerProviders(provisions());
 
 		dataFormats = new DataFormats();
 
+		bindingFutures.put(coreSchemata.metaSchema().getSchemaModel().getName(), new ObservableHashSet<>());
 		registerSchema(coreSchemata.metaSchema());
 	}
 
@@ -174,8 +171,8 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public boolean registerSchema(Schema schema) {
 		if (registerSchemaImpl(schema)) {
-			bindingFutures.add(coreSchemata.metaSchema().getSchemaModel().getName(),
-					registerBinding(coreSchemata.metaSchema().getSchemaModel(), schema));
+			bindingFutures.get(coreSchemata.metaSchema().getSchemaModel().getName())
+					.add(registerBinding(coreSchemata.metaSchema().getSchemaModel(), schema));
 
 			return true;
 		} else {
@@ -188,7 +185,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			registeredModels.add(model);
 			registeredModels.notifyAll();
 
-			bindingFutureObservables.put(model.effective(), new ObservableImpl<>());
+			bindingFutures.put(model.getName(), new ObservableHashSet<>());
 			bindingObservables.put(model.effective(), new ObservableImpl<>());
 		}
 	}
@@ -214,7 +211,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
 		BindingFuture<T> future = BindingFuture.forBinding(binding);
-		bindingFutures.add(binding.getModel().getName(), future);
+		bindingFutures.get(binding.getModel().getName()).add(future);
 		return future;
 	}
 
@@ -233,12 +230,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			try {
 				Model.Effective<T> model = bindingFuture.getModelFuture().get().effective();
 				QualifiedName modelName = model.getName();
-				bindingFutures.add(modelName, bindingFuture);
-
-				@SuppressWarnings("unchecked")
-				ObservableImpl<BindingFuture<T>> bindingFutureObservable = (ObservableImpl<BindingFuture<T>>) bindingFutureObservables
-						.get(model);
-				bindingFutureObservable.fire(bindingFuture);
+				bindingFutures.get(modelName).add(bindingFuture);
 
 				try {
 					Binding<T> binding = bindingFuture.get();
@@ -292,7 +284,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		} , this::addBindingFuture);
+		}, this::addBindingFuture);
 	}
 
 	@Override
@@ -300,24 +292,11 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new BinderImpl<>(this, input -> waitForModel(input.peekNextChild()).effective(), this::addBindingFuture);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public <T> Set<BindingFuture<T>> getBindingFutures(Model<T> model) {
-		synchronized (bindingFutureObservables.get(model.effective())) {
-			Set<BindingFuture<?>> modelBindings = bindingFutures.get(model.effective().getName());
-
-			if (modelBindings == null)
-				return Collections.emptySet();
-			else
-				return modelBindings.stream().map(t -> (BindingFuture<T>) t).collect(Collectors.toSet());
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> Observable<BindingFuture<T>> bindingFutures(Model<T> model) {
-		synchronized (bindingFutureObservables) {
-			return (ObservableImpl<BindingFuture<T>>) bindingFutureObservables.get(model.effective());
+	public <T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model) {
+		synchronized (bindingFutures.get(model.effective().getName())) {
+			return (ObservableSet) bindingFutures.get(model.effective().getName());
 		}
 	}
 
