@@ -64,7 +64,6 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.ObservableImpl;
-import uk.co.strangeskies.utilities.collection.ObservableHashSet;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 
 @Component(immediate = true)
@@ -122,7 +121,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 		dataFormats = new DataFormats();
 
-		bindingFutures.put(coreSchemata.metaSchema().getSchemaModel().getName(), new ObservableHashSet<>());
+		bindingFutures.put(coreSchemata.metaSchema().getSchemaModel().getName(), ObservableSet.ofElements());
 		registerSchema(coreSchemata.metaSchema());
 	}
 
@@ -185,7 +184,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			registeredModels.add(model);
 			registeredModels.notifyAll();
 
-			bindingFutures.put(model.getName(), new ObservableHashSet<>());
+			bindingFutures.put(model.getName(), ObservableSet.ofElements());
 			bindingObservables.put(model.effective(), new ObservableImpl<>());
 		}
 	}

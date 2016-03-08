@@ -71,6 +71,15 @@ public class BindingProviders {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+						/*
+						 * 
+						 * 
+						 * TODO should really have an observable set directly over bindings,
+						 * not be messing with bindingFutures here...
+						 * 
+						 * 
+						 * 
+						 */
 						return manager.getBindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
 								.collect(Collectors.toSet());
 					}
@@ -104,6 +113,18 @@ public class BindingProviders {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+						/*
+						 * 
+						 * 
+						 * 
+						 * 
+						 * TODO context.bindings().get(model) should return a (synchronized)
+						 * observable set rather than needing a separate changes method.
+						 * 
+						 * 
+						 * 
+						 * 
+						 */
 						synchronized (context.bindings()) {
 							context.bindings().changes(model).addTerminatingObserver(listener);
 							return context.bindings().get(model);

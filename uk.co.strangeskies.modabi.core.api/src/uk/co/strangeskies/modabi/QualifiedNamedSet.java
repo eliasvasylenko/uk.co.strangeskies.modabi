@@ -21,20 +21,13 @@ package uk.co.strangeskies.modabi;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import uk.co.strangeskies.utilities.Observable;
-import uk.co.strangeskies.utilities.ObservableImpl;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
-import uk.co.strangeskies.utilities.collection.SetDecorator;
+import uk.co.strangeskies.utilities.collection.SynchronizedObservableSet;
 import uk.co.strangeskies.utilities.function.SetTransformationView;
 
-public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T>
-		implements ObservableSet<QualifiedNamedSet<T>, T> {
-	private final ObservableImpl<Change<T>> changeObservable = new ObservableImpl<>();
-	private final ObservableImpl<QualifiedNamedSet<T>> stateObservable = new ObservableImpl<>();
-
+public class QualifiedNamedSet<T> extends /* @ReadOnly */SynchronizedObservableSet<QualifiedNamedSet<T>, T> {
 	private final Function<T, QualifiedName> qualifiedNamingFunction;
 	private final LinkedHashMap<QualifiedName, T> elements;
 
@@ -43,7 +36,25 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T>
 	}
 
 	private QualifiedNamedSet(Function<T, QualifiedName> namingFunction, LinkedHashMap<QualifiedName, T> elements) {
-		super(new SetTransformationView<>(elements.values(), Function.identity()));
+		super(ObservableSet.over(new SetTransformationView<T, T>(elements.values(), Function.identity()) {
+			@Override
+			public boolean add(T e) {
+				QualifiedName name = namingFunction.apply(e);
+				if (elements.get(name) != null)
+					return false;
+
+				return elements.putIfAbsent(name, e) == null;
+			}
+
+			@Override
+			public boolean addAll(Collection<? extends T> elements) {
+				boolean changed = false;
+				for (T element : elements) {
+					changed = add(element) || changed;
+				}
+				return changed;
+			}
+		}));
 
 		qualifiedNamingFunction = namingFunction;
 		this.elements = elements;
@@ -51,39 +62,6 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T>
 
 	protected Map<QualifiedName, T> getElements() {
 		return elements;
-	}
-
-	@Override
-	public boolean add(T element) {
-		QualifiedName name = qualifiedNamingFunction.apply(element);
-		if (elements.get(name) != null)
-			return false;
-
-		elements.put(name, element);
-
-		stateObservable.fire(this);
-		changeObservable.fire(new Change<T>() {
-			@Override
-			public Type type() {
-				return Type.ADDED;
-			}
-
-			@Override
-			public T element() {
-				return element;
-			}
-		});
-
-		return true;
-	}
-
-	@Override
-	public boolean addAll(Collection<? extends T> elements) {
-		boolean changed = false;
-		for (T element : elements) {
-			changed = add(element) || changed;
-		}
-		return changed;
 	}
 
 	public T get(QualifiedName name) {
@@ -96,17 +74,9 @@ public class QualifiedNamedSet<T> extends /* @ReadOnly */SetDecorator<T>
 	}
 
 	@Override
-	public Observable<Change<T>> changes() {
-		return changeObservable;
-	}
-
-	@Override
-	public boolean addObserver(Consumer<? super QualifiedNamedSet<T>> observer) {
-		return stateObservable.addObserver(observer);
-	}
-
-	@Override
-	public boolean removeObserver(Consumer<? super QualifiedNamedSet<T>> observer) {
-		return stateObservable.removeObserver(observer);
+	public QualifiedNamedSet<T> copy() {
+		QualifiedNamedSet<T> copy = new QualifiedNamedSet<>(qualifiedNamingFunction, new LinkedHashMap<>());
+		copy.addAll(this);
+		return copy;
 	}
 }

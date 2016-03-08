@@ -18,16 +18,18 @@
  */
 package uk.co.strangeskies.modabi.io;
 
-import uk.co.strangeskies.utilities.Decorator;
-
-public class DataTargetDecorator extends Decorator<DataTarget> implements
-		DataTarget {
+public class DataTargetDecorator implements DataTarget {
+	private final DataTarget component;
 	private DataStreamState currentState;
 
 	public DataTargetDecorator(DataTarget component) {
-		super(component);
+		this.component = component;
 
 		currentState = DataStreamState.UNSTARTED;
+	}
+
+	public DataTarget getComponent() {
+		return component;
 	}
 
 	@Override
@@ -37,8 +39,7 @@ public class DataTargetDecorator extends Decorator<DataTarget> implements
 
 	private void checkTransition(DataStreamState to) {
 		if (currentState == DataStreamState.TERMINATED || to == DataStreamState.UNSTARTED)
-			throw new ModabiIOException("Cannot move to state '" + currentState
-					+ "' from state '" + to + "'");
+			throw new ModabiIOException("Cannot move to state '" + currentState + "' from state '" + to + "'");
 		currentState = to;
 	}
 
