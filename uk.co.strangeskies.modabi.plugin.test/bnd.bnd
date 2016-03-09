@@ -15,7 +15,8 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.core.provider;version=project,\
 	uk.co.strangeskies.modabi.io.xml;version=project,\
 	uk.co.strangeskies.modabi.plugin;version=project,\
-	biz.aQute.bndlib
+	biz.aQute.bndlib,\
+	${testpath.base}
 
 Private-Package: uk.co.strangeskies.modabi.plugin.test
 
