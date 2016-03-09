@@ -49,16 +49,18 @@ public class BinderImpl<T> implements Binder<T> {
 			Schema.MODABI_NAMESPACE);
 
 	private final SchemaManagerImpl manager;
-	private final Function<StructuredDataSource, Model<T>> bindingFunction;
+	private final Function<StructuredDataSource, Model<T>> bindingModelFunction;
 	private final Consumer<BindingFuture<?>> addFuture;
+
 	private final BindingBlocksImpl blocks;
 	private ClassLoader classLoader;
 
-	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingFunction,
+	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingModelFunction,
 			Consumer<BindingFuture<?>> addFuture) {
 		this.manager = manager;
-		this.bindingFunction = bindingFunction;
+		this.bindingModelFunction = bindingModelFunction;
 		this.addFuture = addFuture;
+
 		blocks = new BindingBlocksImpl();
 	}
 
@@ -76,8 +78,8 @@ public class BinderImpl<T> implements Binder<T> {
 	@Override
 	public BindingFuture<T> from(StructuredDataSource input) {
 		return add(new BindingFutureImpl<>(manager, blocks, () -> {
-			return new BindingSource<>(bindingFunction.apply(input).effective(), input);
-		}, classLoader));
+			return new BindingSource<>(bindingModelFunction.apply(input).effective(), input);
+		} , classLoader));
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public class BinderImpl<T> implements Binder<T> {
 				if (formatPredicate.test(format)) {
 					try (InputStream inputStream = input.get()) {
 						StructuredDataSource source = format.loadData(inputStream);
-						Model.Effective<T> model = bindingFunction.apply(source).effective();
+						Model.Effective<T> model = bindingModelFunction.apply(source).effective();
 
 						return new BindingSource<>(model, input, format);
 					} catch (Exception e) {

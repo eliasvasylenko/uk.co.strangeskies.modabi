@@ -28,6 +28,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
@@ -38,7 +39,6 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingException;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
@@ -51,6 +51,7 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
+import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.tuple.Pair;
 
 public class BindingProviders {
@@ -71,17 +72,20 @@ public class BindingProviders {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						/*
-						 * 
-						 * 
-						 * TODO should really have an observable set directly over bindings,
-						 * not be messing with bindingFutures here...
-						 * 
-						 * 
-						 * 
-						 */
-						return manager.getBindingFutures(model).stream().filter(BindingFuture::isDone).map(BindingFuture::resolve)
-								.collect(Collectors.toSet());
+						ObservableSet<?, Binding<T>> bindings = manager.getBindings(model);
+
+						synchronized (bindings) {
+							bindings.changes().addTerminatingObserver(b -> {
+								for (Binding<T> binding : b.added()) {
+									if (!listener.apply(binding.getData())) {
+										return false;
+									}
+								}
+								return true;
+							});
+							Set<T> s = bindings.stream().map(Binding::getData).collect(Collectors.toSet());
+							return s;
+						}
 					}
 				}, idDomain, id, true);
 			}

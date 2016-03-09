@@ -112,6 +112,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 	void endThreadBlocks(BindingBlock block) {
 		synchronized (blocks) {
+			blocks.remove(block);
 			for (Thread processingThread : participatingThreads) {
 				if (participatingThreadBlocks.get(processingThread) == block) {
 					participatingThreadBlocks.remove(processingThread);

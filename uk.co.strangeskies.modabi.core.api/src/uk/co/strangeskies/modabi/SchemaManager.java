@@ -51,6 +51,8 @@ public interface SchemaManager {
 
 	<T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model);
 
+	<T> ObservableSet<?, Binding<T>> getBindings(Model<T> model);
+
 	<T> Unbinder<T> unbind(Model<T> model, T data);
 
 	<T> Unbinder<T> unbind(TypeToken<T> dataClass, T data);

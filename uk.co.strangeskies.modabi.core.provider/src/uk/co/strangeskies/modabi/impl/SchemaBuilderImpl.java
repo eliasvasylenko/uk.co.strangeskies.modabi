@@ -167,6 +167,11 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 					return getDataTypes().hashCode() ^ getQualifiedName().hashCode() ^ getModels().hashCode()
 							^ getDependencies().hashCode() ^ getImports().hashCode();
 				}
+
+				@Override
+				public String toString() {
+					return getQualifiedName().toString();
+				}
 			});
 			return schemaProperty.get();
 		}

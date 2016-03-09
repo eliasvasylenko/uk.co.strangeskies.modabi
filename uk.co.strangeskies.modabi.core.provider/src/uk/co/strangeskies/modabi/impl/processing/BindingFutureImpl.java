@@ -117,7 +117,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			sourceFuture.run();
 
 			T binding = bind(sourceFuture.get());
-
+			
 			blocks.complete();
 
 			return binding;

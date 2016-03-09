@@ -27,9 +27,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.Constants;
 
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -38,11 +40,13 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
+import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class ModabiRegistration {
@@ -72,7 +76,7 @@ public class ModabiRegistration {
 	/*
 	 * All encountered schemata which are loading or have loaded:
 	 */
-	private final Set<BindingFuture<?>> resolvingSchemata = new HashSet<>();
+	private final Set<BindingFuture<Schema>> resolvingSchemata = new HashSet<>();
 
 	private QualifiedName getDependencyNamespace() {
 		return context.schemaManager().getMetaSchema().getSchemaModel().getName();
@@ -85,6 +89,21 @@ public class ModabiRegistration {
 		providedSchemata.clear();
 		resolvingSchemata.clear();
 
+		Model<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
+		ObservableSet<?, Binding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(schemaModel);
+		schemaBindingChanges.changes().addObserver(c -> {
+			Set<Binding<Schema>> added = new HashSet<>(c.added());
+			new Thread(() -> {
+				synchronized (schemaBindingChanges) {
+					synchronized (resolvingSchemata) {
+						resolvingSchemata.removeAll(context.schemaManager().getBindingFutures(schemaModel).stream()
+								.filter(BindingFuture::isDone).collect(Collectors.toSet()));
+						detectDeadlock();
+					}
+				}
+			}).start();
+		});
+
 		if (!context.sources().isEmpty()) {
 			new ContextClassLoaderRunner(context.classLoader()).run(() -> registerSchemaResources());
 			return true;
@@ -94,28 +113,34 @@ public class ModabiRegistration {
 	}
 
 	private void registerSchemaResources() {
-		context.log(Level.TRACE, "Available dependencies: " + context.availableDependencies());
+		try {
+			context.log(Level.TRACE, "Available dependencies: " + context.availableDependencies());
 
-		/*
-		 * Begin binding schemata concurrently
-		 */
-		for (String resourceName : context.sources()) {
-			providedSchemata.put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName);
+			/*
+			 * Begin binding schemata concurrently
+			 */
+			for (String resourceName : context.sources()) {
+				providedSchemata.put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName);
+			}
+
+			/*
+			 * Resolve schemata
+			 */
+			for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
+				schemaFuture.resolve();
+			}
+
+			addProvisions();
+			addRequirements();
+		} catch (Throwable e) {
+			e.printStackTrace();
+			throw e;
 		}
-
-		/*
-		 * Resolve schemata
-		 */
-		for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
-			schemaFuture.resolve();
-		}
-
-		addProvisions();
-		addRequirements();
 	}
 
 	private BindingFuture<Schema> registerSchemaResource(ThrowingSupplier<InputStream, ?> inputStream) {
-		BindingFuture<Schema> bindingFuture = context.schemaManager().bindSchema().from(context.formatId(), inputStream);
+		BindingFuture<Schema> bindingFuture = context.schemaManager().bindSchema().with(context.classLoader())
+				.from(context.formatId(), inputStream);
 
 		/*
 		 * Resolve dependencies
@@ -149,11 +174,11 @@ public class ModabiRegistration {
 		new Thread(() -> {
 			try {
 				bindingFuture.resolve();
-			} catch (Exception e) {}
-
-			synchronized (resolvingSchemata) {
-				resolvingSchemata.remove(bindingFuture);
-				detectDeadlock();
+			} catch (Exception e) {
+				synchronized (resolvingSchemata) {
+					resolvingSchemata.remove(bindingFuture);
+					detectDeadlock();
+				}
 			}
 		}).start();
 

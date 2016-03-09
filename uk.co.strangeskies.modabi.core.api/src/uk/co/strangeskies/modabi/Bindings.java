@@ -36,8 +36,8 @@ import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Bindings {
-	public final MultiMap<Model.Effective<?>, BindingNode<?, ?, ?>, Set<BindingNode<?, ?, ?>>> boundNodes;
-	public final MultiMap<BindingNode<?, ?, ?>, Object, Set<Object>> boundObjects;
+	public final MultiMap<Model.Effective<?>, BindingNode.Effective<?, ?, ?>, Set<BindingNode.Effective<?, ?, ?>>> boundNodes;
+	public final MultiMap<BindingNode.Effective<?, ?, ?>, Object, Set<Object>> boundObjects;
 
 	private final MultiMap<Model.Effective<?>, Consumer<?>, Collection<Consumer<?>>> listeners;
 
@@ -49,26 +49,26 @@ public class Bindings {
 	}
 
 	public synchronized <T> void add(ComplexNode<T> element, T data) {
-		element = element.source();
+		ComplexNode.Effective<T> effectiveElement = element.effective();
 
 		synchronized (listeners) {
-			boundNodes.addToAll(element.effective().baseModel(), element);
-			boundObjects.add(element, data);
+			boundNodes.addToAll(effectiveElement.baseModel(), effectiveElement);
+			boundObjects.add(effectiveElement, data);
 
-			fire(element.effective(), data);
+			fire(effectiveElement, data);
 		}
 	}
 
 	public synchronized <T> void add(Model<T> model, T data) {
-		model = model.source();
+		Model.Effective<T> effectiveModel = model.effective();
 
 		synchronized (listeners) {
-			if (boundNodes.add(model.effective(), model)) {
-				boundNodes.addToAll(model.effective().baseModel(), model);
+			if (boundNodes.add(effectiveModel, effectiveModel)) {
+				boundNodes.addToAll(effectiveModel.baseModel(), effectiveModel);
 			}
-			boundObjects.add(model, data);
+			boundObjects.add(effectiveModel, data);
 
-			fire(model.effective(), data);
+			fire(effectiveModel, data);
 		}
 	}
 

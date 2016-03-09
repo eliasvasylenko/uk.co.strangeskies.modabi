@@ -687,4 +687,9 @@ public class BaseSchemaImpl implements BaseSchema {
 	public Imports getImports() {
 		return Imports.empty();
 	}
+
+	@Override
+	public String toString() {
+		return getQualifiedName().toString();
+	}
 }

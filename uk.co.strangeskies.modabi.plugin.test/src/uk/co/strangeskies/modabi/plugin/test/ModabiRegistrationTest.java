@@ -153,12 +153,12 @@ public class ModabiRegistrationTest {
 	public void createEmptyContextTest() {
 		createSimpleContext();
 	}
-
+	
 	@Test
 	public void createModabiRegistrationTest() {
 		new ModabiRegistration();
 	}
-
+	
 	@Test
 	public void loadEmpty() {
 		runSimpleTest(createSimpleContext(asList("Empty"), emptySet()));
@@ -173,27 +173,27 @@ public class ModabiRegistrationTest {
 	public void failLoadEmptyDependent() {
 		runSimpleTest(createSimpleContext(asList("EmptyDep"), emptySet()));
 	}
-
+	
 	@Test
 	public void loadTypes() {
 		runSimpleTest(createSimpleContext(asList("Types"), emptySet()));
 	}
-
+	
 	@Test(timeout = 2000)
 	public void loadTypesDependent() {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), asList("Types")));
 	}
-
+	
 	@Test(timeout = 2000, expected = SchemaException.class)
 	public void failLoadTypesDependent() {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), emptySet()));
 	}
-
+	
 	@Test(timeout = 2000, expected = SchemaException.class)
 	public void missingDependency() {
 		runSimpleTest(createSimpleContext(asList("MissingDep"), emptySet()));
 	}
-
+	
 	@Test(timeout = 2000, expected = SchemaException.class)
 	public void namedMissingDependency() {
 		runSimpleTest(createSimpleContext(asList("MissingDep"), asList("Missing")));
