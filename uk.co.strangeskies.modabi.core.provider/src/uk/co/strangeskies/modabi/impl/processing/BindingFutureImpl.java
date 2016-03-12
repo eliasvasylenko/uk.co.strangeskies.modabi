@@ -117,7 +117,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			sourceFuture.run();
 
 			T binding = bind(sourceFuture.get());
-			
+
 			blocks.complete();
 
 			return binding;
@@ -178,11 +178,12 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			String modelString = "";
 			try {
-				Model<T> model = getModel.tryGet().getModel();
+				BindingSource<T> source = getModel.tryGet();
+				Model<T> model = source.getModel();
 
 				modelString = " with model '" + model.getName() + "'";
 
-				input = getModel.tryGet().getName();
+				input = source.getName();
 
 				T data = getData.tryGet();
 

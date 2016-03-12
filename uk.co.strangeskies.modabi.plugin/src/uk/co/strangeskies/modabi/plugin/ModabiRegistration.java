@@ -92,7 +92,6 @@ public class ModabiRegistration {
 		Model<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
 		ObservableSet<?, Binding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(schemaModel);
 		schemaBindingChanges.changes().addObserver(c -> {
-			Set<Binding<Schema>> added = new HashSet<>(c.added());
 			new Thread(() -> {
 				synchronized (schemaBindingChanges) {
 					synchronized (resolvingSchemata) {

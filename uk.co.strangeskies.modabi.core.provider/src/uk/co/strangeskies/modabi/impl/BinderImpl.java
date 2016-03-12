@@ -79,7 +79,7 @@ public class BinderImpl<T> implements Binder<T> {
 	public BindingFuture<T> from(StructuredDataSource input) {
 		return add(new BindingFutureImpl<>(manager, blocks, () -> {
 			return new BindingSource<>(bindingModelFunction.apply(input).effective(), input);
-		} , classLoader));
+		}, classLoader));
 	}
 
 	@Override
@@ -149,15 +149,13 @@ public class BinderImpl<T> implements Binder<T> {
 
 			if (source == null) {
 				BindingBlock block = blocks.block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId, false);
-				new Thread(() -> {
-					try {
-						getBindingSource.apply(queue);
-						block.complete();
-					} catch (Exception e) {
-						block.fail(e);
-					}
-				}).start();
-				block.waitUntilComplete();
+
+				try {
+					source = getBindingSource.apply(queue);
+					block.complete();
+				} catch (Exception e) {
+					block.fail(e);
+				}
 			}
 
 			return source;
