@@ -37,6 +37,7 @@ import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class InputSequenceNodeConfiguratorImpl extends
@@ -135,6 +136,11 @@ public class InputSequenceNodeConfiguratorImpl extends
 					@Override
 					public DataLoader dataLoader() {
 						return getDataLoader();
+					}
+
+					@Override
+					public Imports imports() {
+						return getImports();
 					}
 
 					@Override

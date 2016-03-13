@@ -3,6 +3,13 @@
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="BenchmarkSchema">
 
+	<imports>
+		uk.co.strangeskies.modabi.benchmark.PersonType,
+		uk.co.strangeskies.modabi.benchmark.PersonsType,
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+		java.util.List
+	</imports>
+
 	<dependencies>
 		BaseSchema
 	</dependencies>
@@ -12,7 +19,7 @@
 	<models>
 		<model
 			name="person"
-			dataType="uk.co.strangeskies.modabi.benchmark.PersonType"
+			dataType="PersonType"
 			bindingStrategy="CONSTRUCTOR">
 
 			<inputSequence name="constructor" />
@@ -45,12 +52,12 @@
 
 		<model
 			name="persons"
-			dataType="uk.co.strangeskies.modabi.benchmark.PersonsType"
+			dataType="PersonsType"
 			bindingStrategy="CONSTRUCTOR">
 			<inline
 				name="personList"
 				outMethod="getPerson"
-				dataType="@uk.co.strangeskies.reflection.TypeToken.Infer java.util.List&lt;?&gt;">
+				dataType="@Infer List&lt;?&gt;">
 				<complex
 					baseModel="person"
 					outMethod="this"

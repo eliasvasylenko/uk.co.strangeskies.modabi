@@ -31,13 +31,12 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class SequenceNodeConfiguratorImpl
-		extends ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
+public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
 		implements SequenceNodeConfigurator {
-	public SequenceNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super SequenceNode> parent) {
+	public SequenceNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super SequenceNode> parent) {
 		super(parent);
 	}
 
@@ -56,77 +55,80 @@ public class SequenceNodeConfiguratorImpl
 		TypeToken<?> inputTarget = getContext().inputTargetType();
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
-		return new SequentialChildrenConfigurator(
-				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
-					@Override
-					public SchemaNode<?, ?> parentNodeProxy() {
-						return getSchemaNodeProxy();
-					}
+		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+			@Override
+			public SchemaNode<?, ?> parentNodeProxy() {
+				return getSchemaNodeProxy();
+			}
 
-					@Override
-					public BoundSet boundSet() {
-						return getContext().boundSet();
-					}
+			@Override
+			public BoundSet boundSet() {
+				return getContext().boundSet();
+			}
 
-					@Override
-					public DataLoader dataLoader() {
-						return getDataLoader();
-					}
+			@Override
+			public DataLoader dataLoader() {
+				return getDataLoader();
+			}
 
-					@Override
-					public boolean isAbstract() {
-						return isChildContextAbstract();
-					}
+			@Override
+			public Imports imports() {
+				return getImports();
+			}
 
-					@Override
-					public boolean isInputExpected() {
-						return true;
-					}
+			@Override
+			public boolean isAbstract() {
+				return isChildContextAbstract();
+			}
 
-					@Override
-					public boolean isInputDataOnly() {
-						return getContext().isInputDataOnly();
-					}
+			@Override
+			public boolean isInputExpected() {
+				return true;
+			}
 
-					@Override
-					public boolean isConstructorExpected() {
-						return false;
-					}
+			@Override
+			public boolean isInputDataOnly() {
+				return getContext().isInputDataOnly();
+			}
 
-					@Override
-					public boolean isStaticMethodExpected() {
-						return false;
-					}
+			@Override
+			public boolean isConstructorExpected() {
+				return false;
+			}
 
-					@Override
-					public Namespace namespace() {
-						return getNamespace();
-					}
+			@Override
+			public boolean isStaticMethodExpected() {
+				return false;
+			}
 
-					@Override
-					public TypeToken<?> inputTargetType() {
-						return inputTarget;
-					}
+			@Override
+			public Namespace namespace() {
+				return getNamespace();
+			}
 
-					@Override
-					public TypeToken<?> outputSourceType() {
-						return outputSource;
-					}
+			@Override
+			public TypeToken<?> inputTargetType() {
+				return inputTarget;
+			}
 
-					@Override
-					public void addChild(ChildNode<?, ?> result) {}
+			@Override
+			public TypeToken<?> outputSourceType() {
+				return outputSource;
+			}
 
-					@Override
-					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeToken<U> nodeClass) {
-						return null;
-					}
+			@Override
+			public void addChild(ChildNode<?, ?> result) {}
 
-					@Override
-					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
-						return getOverriddenNodes();
-					}
-				});
+			@Override
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
+				return null;
+			}
+
+			@Override
+			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+				return getOverriddenNodes();
+			}
+		});
 	}
 
 	@Override

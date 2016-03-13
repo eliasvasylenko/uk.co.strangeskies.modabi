@@ -85,7 +85,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 			typeSet = new LinkedHashSet<>();
 			modelSet = new LinkedHashSet<>();
 			dependencySet = new Schemata();
-			imports = Imports.empty();
+			imports = Imports.empty(Thread.currentThread().getContextClassLoader());
 
 			pendingDataTypeConfigurations = new HashMap<>();
 			pendingModelConfigurations = new HashMap<>();
@@ -200,7 +200,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public DataTypeConfigurator<Object> addDataType() {
-			return new DataTypeConfiguratorDecorator<Object>(dataTypeBuilder.configure(loader, schemaProxy)) {
+			return new DataTypeConfiguratorDecorator<Object>(dataTypeBuilder.configure(loader, schemaProxy, imports)) {
 				@Override
 				public DataType<Object> create() {
 					DataType<Object> dataType = super.create();
@@ -223,7 +223,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public ModelConfigurator<Object> addModel() {
-			return new ModelConfiguratorDecorator<Object>(modelBuilder.configure(loader, schemaProxy)) {
+			return new ModelConfiguratorDecorator<Object>(modelBuilder.configure(loader, schemaProxy, imports)) {
 				@Override
 				public Model<Object> create() {
 					Model<Object> model = super.create();

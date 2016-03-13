@@ -25,11 +25,12 @@ import uk.co.strangeskies.modabi.impl.schema.ModelConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
+import uk.co.strangeskies.reflection.Imports;
 
 @Component
 public class ModelBuilderImpl implements ModelBuilder {
 	@Override
-	public ModelConfigurator<Object> configure(DataLoader loader, Schema schema) {
-		return new ModelConfiguratorImpl<>(loader, schema);
+	public ModelConfigurator<Object> configure(DataLoader loader, Schema schema, Imports imports) {
+		return new ModelConfiguratorImpl<>(loader, schema, imports);
 	}
 }

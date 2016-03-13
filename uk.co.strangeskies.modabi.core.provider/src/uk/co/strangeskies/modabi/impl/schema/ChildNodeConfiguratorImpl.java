@@ -28,19 +28,18 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationCo
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
-		extends SchemaNodeConfiguratorImpl<S, N>
-		implements ChildNodeConfigurator<S, N> {
+		extends SchemaNodeConfiguratorImpl<S, N> implements ChildNodeConfigurator<S, N> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private Range<Integer> occurrences;
 	private Boolean ordered;
 	private TypeToken<?> postInputClass;
 
-	public ChildNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super N> parent) {
+	public ChildNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super N> parent) {
 		this.context = parent;
 
 		addResultListener(result -> parent.addChild(result));
@@ -52,8 +51,12 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	public List<N> getOverriddenNodes() {
-		return getName() == null ? Collections.emptyList()
-				: getContext().overrideChild(getName(), getNodeClass());
+		return getName() == null ? Collections.emptyList() : getContext().overrideChild(getName(), getNodeClass());
+	}
+
+	@Override
+	protected Imports getImports() {
+		return getContext().imports();
 	}
 
 	@Override
@@ -63,13 +66,17 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	protected Namespace getNamespace() {
-		return getName() != null ? getName().getNamespace()
-				: getContext().namespace();
+		return getName() != null ? getName().getNamespace() : getContext().namespace();
 	}
 
 	@Override
 	public S name(String name) {
 		return name(new QualifiedName(name, getContext().namespace()));
+	}
+
+	@Override
+	public S postInputType(String postInputType) {
+		return postInputType(TypeToken.fromString(postInputType, getImports()));
 	}
 
 	@Override

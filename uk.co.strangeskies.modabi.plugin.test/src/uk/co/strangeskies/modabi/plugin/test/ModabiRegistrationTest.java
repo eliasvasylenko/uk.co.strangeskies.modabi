@@ -149,17 +149,17 @@ public class ModabiRegistrationTest {
 		return context;
 	}
 
-	@Test
+	@Test(timeout = 2000)
 	public void createEmptyContextTest() {
 		createSimpleContext();
 	}
 	
-	@Test
+	@Test(timeout = 2000)
 	public void createModabiRegistrationTest() {
 		new ModabiRegistration();
 	}
 	
-	@Test
+	@Test(timeout = 2000)
 	public void loadEmpty() {
 		runSimpleTest(createSimpleContext(asList("Empty"), emptySet()));
 	}
@@ -174,7 +174,7 @@ public class ModabiRegistrationTest {
 		runSimpleTest(createSimpleContext(asList("EmptyDep"), emptySet()));
 	}
 	
-	@Test
+	@Test(timeout = 2000)
 	public void loadTypes() {
 		runSimpleTest(createSimpleContext(asList("Types"), emptySet()));
 	}

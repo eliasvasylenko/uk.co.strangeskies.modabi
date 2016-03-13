@@ -46,6 +46,7 @@ import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 /**
@@ -85,8 +86,8 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 		public ChildNode.Effective<?, ?> getChild() {
 			if (children.size() > 1)
-				throw new SchemaException("Node '" + getName()
-						+ "' is inherited multiple times and must be explicitly overridden.");
+				throw new SchemaException(
+						"Node '" + getName() + "' is inherited multiple times and must be explicitly overridden.");
 
 			return children.stream().findAny().get();
 		}
@@ -125,15 +126,13 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
-		List<? extends SchemaNode<?, ?>> reversedNodes = new ArrayList<>(
-				context.overriddenNodes());
+		List<? extends SchemaNode<?, ?>> reversedNodes = new ArrayList<>(context.overriddenNodes());
 		Collections.reverse(reversedNodes);
 		for (SchemaNode<?, ?> overriddenNode : reversedNodes) {
 			int index = 0;
 
 			for (ChildNode<?, ?> child : overriddenNode.children())
-				index = merge(overriddenNode.getName(), child.effective(), index,
-						false);
+				index = merge(overriddenNode.getName(), child.effective(), index, false);
 		}
 
 		this.context = context;
@@ -142,8 +141,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = 0;
 	}
 
-	private int merge(QualifiedName parentName, ChildNode.Effective<?, ?> child,
-			int index, boolean override) {
+	private int merge(QualifiedName parentName, ChildNode.Effective<?, ?> child, int index, boolean override) {
 		QualifiedName name = child.getName();
 
 		if (name != null) {
@@ -156,25 +154,19 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			} else {
 				int newIndex = mergedChildren.indexOf(group) + 1;
 
-				List<String> nodesSoFar = mergedChildren.stream()
-						.map(MergeGroup::getName).map(Objects::toString)
+				List<String> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName).map(Objects::toString)
 						.collect(Collectors.toCollection(ArrayList::new));
 				nodesSoFar.add(newIndex, "*");
 
-				String nodesSoFarMessage = "Nodes so far: ["
-						+ nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
+				String nodesSoFarMessage = "Nodes so far: [" + nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
 
 				if (newIndex < index)
 					if (override)
-						throw new SchemaException(
-								"The child node '" + name + "' declared by '" + parentName
-										+ "' cannot be merged into the overridden nodes with order preservation. "
-										+ nodesSoFarMessage);
+						throw new SchemaException("The child node '" + name + "' declared by '" + parentName
+								+ "' cannot be merged into the overridden nodes with order preservation. " + nodesSoFarMessage);
 					else
-						throw new SchemaException("The child node '" + name
-								+ "' inherited from the overridden node '" + parentName
-								+ "' cannot be merged with order preservation. "
-								+ nodesSoFarMessage);
+						throw new SchemaException("The child node '" + name + "' inherited from the overridden node '" + parentName
+								+ "' cannot be merged with order preservation. " + nodesSoFarMessage);
 
 				if (override)
 					group.override(child);
@@ -190,8 +182,8 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 	@Override
 	public ChildrenContainer create() {
-		List<ChildNode.Effective<?, ?>> effectiveChildren = mergedChildren.stream()
-				.map(MergeGroup::getChild).collect(Collectors.toList());
+		List<ChildNode.Effective<?, ?>> effectiveChildren = mergedChildren.stream().map(MergeGroup::getChild)
+				.collect(Collectors.toList());
 
 		return new ChildrenContainer(children, effectiveChildren);
 	}
@@ -202,25 +194,22 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
-			TypeToken<U> nodeClass) {
+	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
 		List<ChildNode.Effective<?, ?>> overriddenNodes = new ArrayList<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
-			mergeGroup.getChildren().stream()
-					.filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass()))
-					.findAny().ifPresent(n -> {
-						throw new SchemaException("Cannot override with node of class '"
-								+ n.getClass() + "' with a node of class '" + nodeClass + "'");
+			mergeGroup.getChildren().stream().filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass())).findAny()
+					.ifPresent(n -> {
+						throw new SchemaException(
+								"Cannot override with node of class '" + n.getClass() + "' with a node of class '" + nodeClass + "'");
 					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
 
 			int index = mergedChildren.indexOf(mergeGroup);
 			if (index > 0)
-				inputTarget = mergedChildren.get(index - 1).getChild()
-						.getPostInputType();
+				inputTarget = mergedChildren.get(index - 1).getChild().getPostInputType();
 		}
 
 		return (List<U>) overriddenNodes;
@@ -232,8 +221,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		childIndex = merge(new QualifiedName("?", Namespace.getDefault()),
-				effective, childIndex, true);
+		childIndex = merge(new QualifiedName("?", Namespace.getDefault()), effective, childIndex, true);
 
 		inputTarget = effective.getPostInputType();
 	}
@@ -255,6 +243,11 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
+			public Imports imports() {
+				return HidingChildrenConfigurator.this.context.imports();
+			}
+
+			@Override
 			public Namespace namespace() {
 				return HidingChildrenConfigurator.this.context.namespace();
 			}
@@ -270,8 +263,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id,
-					TypeToken<U> nodeClass) {
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
 				return HidingChildrenConfigurator.this.overrideChild(id, nodeClass);
 			}
 
@@ -287,14 +279,12 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public boolean isConstructorExpected() {
-				return HidingChildrenConfigurator.this.context.isConstructorExpected()
-						&& children.isEmpty();
+				return HidingChildrenConfigurator.this.context.isConstructorExpected() && children.isEmpty();
 			}
 
 			@Override
 			public boolean isStaticMethodExpected() {
-				return HidingChildrenConfigurator.this.context.isStaticMethodExpected()
-						&& children.isEmpty();
+				return HidingChildrenConfigurator.this.context.isStaticMethodExpected() && children.isEmpty();
 			}
 
 			@Override
@@ -329,7 +319,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public DataNodeConfigurator<Object> data() {
-				return new DataNodeConfiguratorImpl<Object>(context);
+				return new DataNodeConfiguratorImpl<>(context);
 			}
 
 			@Override

@@ -29,18 +29,21 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T>
 		implements ModelConfigurator<T> {
 	private final DataLoader loader;
 	private final Schema schema;
+	private final Imports imports;
 
 	private List<Model<? super T>> baseModel;
 
-	public ModelConfiguratorImpl(DataLoader loader, Schema schema) {
+	public ModelConfiguratorImpl(DataLoader loader, Schema schema, Imports imports) {
 		this.loader = loader;
 		this.schema = schema;
+		this.imports = imports;
 	}
 
 	public Schema getSchema() {
@@ -55,6 +58,11 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	@Override
 	protected DataLoader getDataLoader() {
 		return loader;
+	}
+	
+	@Override
+	protected Imports getImports() {
+		return imports;
 	}
 
 	@Override

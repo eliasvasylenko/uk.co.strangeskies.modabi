@@ -56,6 +56,12 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	}
 
 	@Override
+	public S bindingType(String bindingType) {
+		component = component.bindingType(bindingType);
+		return getThis();
+	}
+
+	@Override
 	public S bindingType(TypeToken<?> bindingType) {
 		component = component.bindingType(bindingType);
 		return getThis();
@@ -68,8 +74,20 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	}
 
 	@Override
+	public S unbindingFactoryType(String factoryType) {
+		component = component.unbindingFactoryType(factoryType);
+		return getThis();
+	}
+
+	@Override
 	public S unbindingFactoryType(TypeToken<?> factoryType) {
 		component = component.unbindingFactoryType(factoryType);
+		return getThis();
+	}
+
+	@Override
+	public S unbindingType(String unbindingType) {
+		component = component.unbindingType(unbindingType);
 		return getThis();
 	}
 
@@ -118,6 +136,13 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	@Override
 	public ChildBuilder addChild() {
 		return component.addChild();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public BindingNodeConfigurator<?, ?, ? extends T> dataType(String bindingClass) {
+		component = (S) component.dataType(bindingClass);
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

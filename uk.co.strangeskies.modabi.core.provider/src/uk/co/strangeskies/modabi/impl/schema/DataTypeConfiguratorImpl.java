@@ -28,24 +28,32 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<DataTypeConfigurator<T>, DataType<T>, T>
 		implements DataTypeConfigurator<T> {
 	private final DataLoader loader;
 	private final Schema schema;
+	private final Imports imports;
 
 	private Boolean isPrivate;
 
 	private DataType<? super T> baseType;
 
-	public DataTypeConfiguratorImpl(DataLoader loader, Schema schema) {
+	public DataTypeConfiguratorImpl(DataLoader loader, Schema schema, Imports imports) {
 		this.loader = loader;
 		this.schema = schema;
+		this.imports = imports;
 	}
 
 	public Schema getSchema() {
 		return schema;
+	}
+
+	@Override
+	protected Imports getImports() {
+		return imports;
 	}
 
 	@Override

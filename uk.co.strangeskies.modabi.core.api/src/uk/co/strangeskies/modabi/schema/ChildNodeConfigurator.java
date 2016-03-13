@@ -45,6 +45,8 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 
 	S ordered(boolean ordered);
 
+	S postInputType(String postInputType);
+
 	S postInputType(TypeToken<?> postInputType);
 
 	default S postInputType(AnnotatedType unbindingType) {

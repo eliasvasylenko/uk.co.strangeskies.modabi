@@ -25,11 +25,12 @@ import uk.co.strangeskies.modabi.impl.schema.DataTypeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
+import uk.co.strangeskies.reflection.Imports;
 
 @Component
 public class DataTypeBuilderImpl implements DataTypeBuilder {
 	@Override
-	public DataTypeConfigurator<Object> configure(DataLoader loader, Schema schema) {
-		return new DataTypeConfiguratorImpl<>(loader, schema);
+	public DataTypeConfigurator<Object> configure(DataLoader loader, Schema schema, Imports imports) {
+		return new DataTypeConfiguratorImpl<>(loader, schema, imports);
 	}
 }

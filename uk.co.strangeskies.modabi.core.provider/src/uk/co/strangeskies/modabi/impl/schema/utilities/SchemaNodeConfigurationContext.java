@@ -26,12 +26,15 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 	SchemaNode<?, ?> parentNodeProxy();
 
 	DataLoader dataLoader();
+
+	Imports imports();
 
 	boolean isAbstract();
 

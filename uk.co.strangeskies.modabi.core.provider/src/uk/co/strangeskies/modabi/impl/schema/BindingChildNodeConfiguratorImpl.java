@@ -29,11 +29,11 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationCo
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
-		extends BindingNodeConfiguratorImpl<S, N, T>
-		implements BindingChildNodeConfigurator<S, N, T> {
+		extends BindingNodeConfiguratorImpl<S, N, T> implements BindingChildNodeConfigurator<S, N, T> {
 	private final SchemaNodeConfigurationContext<? super N> context;
 
 	private TypeToken<?> postInputClass;
@@ -49,8 +49,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Boolean inMethodUnchecked;
 	private Boolean extensible;
 
-	public BindingChildNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super N> parent) {
+	public BindingChildNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super N> parent) {
 		this.context = parent;
 
 		addResultListener(result -> parent.addChild(result));
@@ -62,8 +61,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	protected Namespace getNamespace() {
-		return getName() != null ? getName().getNamespace()
-				: getContext().namespace();
+		return getName() != null ? getName().getNamespace() : getContext().namespace();
 	}
 
 	@Override
@@ -71,10 +69,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getContext().dataLoader();
 	}
 
+	@Override
+	protected Imports getImports() {
+		return getContext().imports();
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> BindingChildNodeConfigurator<?, ?, V> dataType(
-			TypeToken<? extends V> dataClass) {
+	public <V extends T> BindingChildNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataClass) {
 		return (BindingChildNodeConfigurator<?, ?, V>) super.dataType(dataClass);
 	}
 
@@ -93,8 +95,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	public final S inMethod(String inMethodName) {
 		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
-			throw new SchemaException(
-					"No input method should be specified on this node.");
+			throw new SchemaException("No input method should be specified on this node.");
 
 		assertConfigurable(this.inMethodName);
 		this.inMethodName = inMethodName;
@@ -211,14 +212,17 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public List<N> getOverriddenNodes() {
-		return getName() == null ? Collections.emptyList()
-				: getContext().overrideChild(getName(), getNodeClass());
+		return getName() == null ? Collections.emptyList() : getContext().overrideChild(getName(), getNodeClass());
 	}
 
 	@Override
 	protected final boolean isChildContextAbstract() {
-		return super.isChildContextAbstract() || getContext().isAbstract()
-				|| extensible != null && extensible;
+		return super.isChildContextAbstract() || getContext().isAbstract() || extensible != null && extensible;
+	}
+
+	@Override
+	public S postInputType(String postInputType) {
+		return postInputType(TypeToken.fromString(postInputType, getImports()));
 	}
 
 	@Override
@@ -243,15 +247,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		OverrideMerge<? extends BindingChildNode<?, ?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
-		System.out.println(overrideMerge
-				.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
-						.getInMethod())
-				.tryGet());
+		System.out.println(
+				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).getInMethod()).tryGet());
 
-		System.out.println(overrideMerge
-				.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective())
-						.getOutMethod())
-				.tryGet());
+		System.out.println(
+				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).getOutMethod()).tryGet());
 
 		return null;
 	}

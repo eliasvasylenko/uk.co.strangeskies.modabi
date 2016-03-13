@@ -24,8 +24,7 @@ import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
-public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
-		extends SchemaNode<S, E> {
+public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>> extends SchemaNode<S, E> {
 	interface Effective<S extends ChildNode<S, E>, E extends Effective<S, E>>
 			extends ChildNode<S, E>, SchemaNode.Effective<S, E> {
 		TypeToken<?> getPreInputType();
@@ -86,6 +85,10 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 	Boolean isOrdered();
 
 	TypeToken<?> getPostInputType();
+
+	default String getPostInputTypeString() {
+		return getPostInputType() == null ? null : getPostInputType().toString(schema().getImports());
+	}
 
 	SchemaNode<?, ?> parent();
 }

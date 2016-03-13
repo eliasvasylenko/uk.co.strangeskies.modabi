@@ -39,6 +39,7 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.factory.Configurator;
@@ -197,6 +198,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Namespace getNamespace();
 
+	protected abstract Imports getImports();
+	
 	public abstract List<N> getOverriddenNodes();
 
 	protected abstract ChildrenConfigurator createChildrenConfigurator();
@@ -210,7 +213,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected static <S extends SchemaNode<S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S>> OverrideMerge<S, C> overrideMerge(
 			S node, C configurator) {
-		return new OverrideMerge<S, C>(node, configurator);
+		return new OverrideMerge<>(node, configurator);
 	}
 
 	protected Boolean isAbstract() {

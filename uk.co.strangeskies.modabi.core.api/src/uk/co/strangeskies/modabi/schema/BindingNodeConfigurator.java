@@ -31,17 +31,16 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
 		extends SchemaNodeConfigurator<S, N> {
-	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(
-			TypeToken<? extends V> dataType);
+	BindingNodeConfigurator<?, ?, ? extends T> dataType(String dataType);
 
-	default <V extends T> BindingNodeConfigurator<?, ?, V> dataType(
-			Class<V> dataClass) {
+	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataType);
+
+	default <V extends T> BindingNodeConfigurator<?, ?, V> dataType(Class<V> dataClass) {
 		return dataType(TypeToken.over(dataClass));
 	}
 
 	@SuppressWarnings("unchecked")
-	default BindingNodeConfigurator<?, ?, ? extends T> dataType(
-			AnnotatedType dataType) {
+	default BindingNodeConfigurator<?, ?, ? extends T> dataType(AnnotatedType dataType) {
 		return dataType((TypeToken<? extends T>) TypeToken.over(dataType));
 	}
 
@@ -50,6 +49,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	}
 
 	S bindingStrategy(BindingStrategy strategy);
+
+	S bindingType(String bindingType);
 
 	S bindingType(TypeToken<?> bindingType);
 
@@ -63,6 +64,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	S unbindingStrategy(UnbindingStrategy strategy);
 
+	S unbindingFactoryType(String factoryType);
+
 	S unbindingFactoryType(TypeToken<?> factoryType);
 
 	default S unbindingFactoryType(AnnotatedType factoryType) {
@@ -70,9 +73,10 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	}
 
 	default S unbindingFactoryType(Type factoryType) {
-		return unbindingFactoryType(
-				TypeToken.over(AnnotatedTypes.over(factoryType)));
+		return unbindingFactoryType(TypeToken.over(AnnotatedTypes.over(factoryType)));
 	}
+
+	S unbindingType(String unbindingType);
 
 	S unbindingType(TypeToken<?> unbindingType);
 
