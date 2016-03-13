@@ -1,6 +1,13 @@
 <?xml version="1.0" ?>
-<schema xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="ScriptingSchema">
+
+	<imports>
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+		javax.script.ScriptEngineManager,
+		javax.script.ScriptEngine
+	</imports>
 
 	<dependencies>
 		BaseSchema
@@ -9,19 +16,63 @@
 	<types />
 
 	<models>
-		<model name="script" abstract="true">
-			<property name="objectType" type="type" abstract="true" />
+		<model
+			name="scriptObject"
+			dataType="@uk.co.strangeskies.reflection.TypeToken.Infer ?"
+			bindingType="javax.script.ScriptEngineManager"
+			extensible="true">
 
-			<property name="objectName" type="string" optional="true"
-				abstract="true" />
+			<choice
+				name="scriptSource"
+				postInputType="javax.script.Invocable">
 
-			<choice name="scriptType" abstract="true">
-				<property name="source" type="url" abstract="true" />
+				<sequence name="direct">
+					<property
+						name="language"
+						type="string"
+						outMethod="null"
+						inMethod="getEngineByName"
+						inMethodChained="true" />
 
-				<sequence abstract="true">
-					<property name="language" type="string" abstract="true" />
-					<content name="script" type="string" abstract="true" />
+					<content
+						name="script"
+						type="string"
+						outMethod="null"
+						inMethod="eval"
+						inMethodChained="true"
+						postInputType="javax.script.Invocable"
+						inMethodCast="true" />
 				</sequence>
+
+				<!-- sequence name="resource">
+					<property
+						name="source"
+						type="string" />
+
+					<property
+						name="language"
+						type="string"
+						optional="true" />
+				</sequence -->
+			</choice>
+
+			<choice name="scriptObject">
+				<!-- inputSequence inMethod="getInterface">
+					<property
+						name="objectName"
+						type="string" />
+
+					<property
+						name="objectClass"
+						type="class" />
+				</inputSequence -->
+
+				<property
+					name="objectClass"
+					type="class"
+					outMethod="null"
+					inMethod="getInterface"
+					inMethodChained="true" />
 			</choice>
 		</model>
 	</models>

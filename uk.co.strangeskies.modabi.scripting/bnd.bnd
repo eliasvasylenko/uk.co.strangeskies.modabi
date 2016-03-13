@@ -8,9 +8,9 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	osgi.enroute.base.api,\
 	${ss;utilities},\
 	${ss;scripting.management},\
+	${ss;reflection},\
 	${mdb;core.api}
 
 Export-Package: uk.co.strangeskies.modabi.scripting

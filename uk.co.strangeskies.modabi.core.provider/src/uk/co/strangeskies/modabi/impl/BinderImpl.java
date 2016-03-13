@@ -42,6 +42,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
+import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class BinderImpl<T> implements Binder<T> {
@@ -66,7 +67,7 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public BindingFuture<T> from(URL input) {
-		String extension = getExtension(input.getPath());
+		String extension = ManifestUtilities.getResourceExtension(input.getPath());
 
 		if (extension != null) {
 			return fromExtension(extension, input::openStream);
@@ -177,21 +178,5 @@ public class BinderImpl<T> implements Binder<T> {
 	public Binder<T> with(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 		return this;
-	}
-
-	static String getExtension(String name) {
-		int lastSlash = name.lastIndexOf('/');
-		if (lastSlash > 0) {
-			name = name.substring(lastSlash);
-		}
-
-		int lastDot = name.lastIndexOf('.');
-		if (lastDot > 0) {
-			name = name.substring(lastDot + 1);
-		} else {
-			name = null;
-		}
-
-		return name;
 	}
 }

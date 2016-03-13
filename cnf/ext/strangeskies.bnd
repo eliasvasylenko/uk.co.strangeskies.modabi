@@ -10,13 +10,13 @@ plugin.strangeskies: ${def;plugin.strangeskies.override;\\\$\{plugin.strangeskie
 
 ## Modabi
 mdb: ${def;mdb.override;uk.co.strangeskies.modabi:uk.co.strangeskies.modabi.${1}\\\;version=latest}
-plugin.strangeskies.modabi.default: \
+plugin.modabi.default: \
 \
 		aQute.bnd.deployer.repository.aether.AetherRepository\; \
 			name				=		Modabi\; \
 			url					=		http://oss.jfrog.org/libs-snapshot/
 
-plugin.strangeskies.modabi: ${def;plugin.strangeskies.modabi.override;\\\$\{plugin.strangeskies.modabi.default\}}
+plugin.modabi: ${def;plugin.modabi.override;\\\$\{plugin.modabi.default\}}
 
 # For users with a copy of the uk.co.strangeskies or uk.co.strangeskies.modabi
 #  project checked out from git locally, they can redirect dependencies on
@@ -42,3 +42,7 @@ plugin.strangeskies.modabi: ${def;plugin.strangeskies.modabi.override;\\\$\{plug
 #			name                =       Modabi;\
 #			pretty              =       true;\
 #			local               =       ${user.home}[/git-location]/uk.co.strangeskies.modabi/cnf/release
+
+pluginpath.modabi.default: someProperReleaseURL
+
+pluginpath.modabi: ${def;pluginpath.modabi.override;\\\$\{pluginpath.modabi.default\}}

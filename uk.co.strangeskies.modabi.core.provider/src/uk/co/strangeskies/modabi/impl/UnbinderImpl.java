@@ -36,6 +36,7 @@ import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class UnbinderImpl<T> implements Unbinder<T> {
@@ -53,7 +54,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 	@Override
 	public BindingFuture<T> to(File output) {
-		return to(BinderImpl.getExtension(output.getName()), () -> new FileOutputStream(output));
+		return to(ManifestUtilities.getResourceExtension(output.getName()), () -> new FileOutputStream(output));
 	}
 
 	@Override
@@ -69,7 +70,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 	@Override
 	public BindingFuture<T> to(URL output) {
-		String extension = BinderImpl.getExtension(output.getQuery());
+		String extension = ManifestUtilities.getResourceExtension(output.getQuery());
 
 		try {
 			if (extension != null) {
@@ -94,7 +95,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			unbindImpl(c, m, output);
-		} , e -> new BindingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
+		}, e -> new BindingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
 
 		return output;
 	}
