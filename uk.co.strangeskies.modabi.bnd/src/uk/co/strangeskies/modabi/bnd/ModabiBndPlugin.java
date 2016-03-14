@@ -54,6 +54,7 @@ import uk.co.strangeskies.modabi.plugin.RegistrationContext;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
+import uk.co.strangeskies.utilities.classpath.DelegatingClassLoader;
 import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 
 /**
@@ -255,7 +256,10 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 			throw new SchemaException("Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
 		}
 
-		return new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]), Schema.class.getClassLoader());
+		log.log(Level.INFO, "Classpath: " + jarPaths);
+
+		return new DelegatingClassLoader(Thread.currentThread().getContextClassLoader(),
+				new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]), Schema.class.getClassLoader()));
 	}
 
 	private List<URL> getJarPaths(Analyzer analyzer) throws MalformedURLException {
