@@ -1,7 +1,6 @@
-Bundle-Name: Modabi - FX
+Bundle-Name: Modabi :: Scripting
 Bundle-Description: \
-	This package provides UI components for manipulating Java \
-	objects by way of a given schema binding, built on JavaFX.\
+	This package provides scripting schemata.\
 \
 	${modabi-description}
 
@@ -9,11 +8,12 @@ Bundle-Description: \
 
 -buildpath: \
 	${ss;utilities},\
-	${ss;scripting.management},\
 	${ss;reflection},\
+	${ss;mathematics},\
 	${mdb;core.api}
 
-Export-Package: uk.co.strangeskies.modabi.scripting
+Export-Package: \
+	uk.co.strangeskies.modabi.scripting
 
 -dependson: \
 	uk.co.strangeskies.modabi.bnd

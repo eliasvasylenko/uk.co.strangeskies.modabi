@@ -14,7 +14,7 @@ Bundle-Description: \
 	${ss;utilities},\
 	${ss;reflection},\
 	${ss;mathematics},\
-	uk.co.strangeskies.modabi.core.api;version=project,\
+	${mdb;core.api},\
 	org.apache.commons.lang3
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000

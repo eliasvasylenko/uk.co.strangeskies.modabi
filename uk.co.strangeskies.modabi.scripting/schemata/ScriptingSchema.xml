@@ -6,7 +6,8 @@
 	<imports>
 		uk.co.strangeskies.reflection.TypeToken.Infer,
 		javax.script.ScriptEngineManager,
-		javax.script.ScriptEngine
+		javax.script.ScriptEngine,
+		javax.script.Invocable
 	</imports>
 
 	<dependencies>
@@ -18,13 +19,13 @@
 	<models>
 		<model
 			name="scriptObject"
-			dataType="@uk.co.strangeskies.reflection.TypeToken.Infer ?"
-			bindingType="javax.script.ScriptEngineManager"
+			dataType="@Infer ?"
+			bindingType="ScriptEngineManager"
 			extensible="true">
 
 			<choice
 				name="scriptSource"
-				postInputType="javax.script.Invocable">
+				postInputType="Invocable">
 
 				<sequence name="direct">
 					<property
@@ -40,7 +41,7 @@
 						outMethod="null"
 						inMethod="eval"
 						inMethodChained="true"
-						postInputType="javax.script.Invocable"
+						postInputType="Invocable"
 						inMethodCast="true" />
 				</sequence>
 

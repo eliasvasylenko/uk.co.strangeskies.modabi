@@ -43,7 +43,7 @@ Bundle-Version: ${modabi-version}.${tstamp}
 	${plugin.eclipse.fx}
 
 mdb.override: uk.co.strangeskies.modabi.${1}\;version=snapshot
-plugin.strangeskies.modabi.override:
+plugin.modabi.override:
 
 pluginpath.modabi: \
 	${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar
@@ -66,7 +66,6 @@ testpath.base=\
 	osgi.enroute.hamcrest.wrapper,\
 	org.hamcrest__java-hamcrest
 	
-
 -testpath.base=${testpath.base}
 
 ## General configuration

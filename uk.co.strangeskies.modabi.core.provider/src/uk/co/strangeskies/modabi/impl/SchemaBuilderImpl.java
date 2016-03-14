@@ -193,7 +193,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public SchemaConfigurator imports(Collection<? extends Class<?>> imports) {
-			this.imports = Imports.empty().withImports(imports);
+			this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(imports);
 
 			return this;
 		}
