@@ -44,7 +44,6 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.Log.Level;
 import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.AttributeProperty;
-import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
 import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
@@ -104,7 +103,7 @@ public class ModabiRegistration {
 		});
 
 		if (!context.sources().isEmpty()) {
-			new ContextClassLoaderRunner(context.classLoader()).run(() -> registerSchemaResources());
+			registerSchemaResources();
 			return true;
 		} else {
 			return false;

@@ -71,6 +71,8 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 
 	private Log log = (l, m) -> {};
 
+	private ClassLoader loader;
+
 	public ModabiBndPlugin(StructuredDataFormat handler) {
 		this.manager = new SchemaManagerImpl();
 		this.format = handler;
@@ -79,6 +81,8 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 
 		sources = new HashSet<>();
 		sources.add(DEFAULT_SOURCE);
+
+		loader = Thread.currentThread().getContextClassLoader();
 	}
 
 	@Override
@@ -114,6 +118,8 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 	}
 
 	private RegistrationContext createRegistrationContext(Analyzer analyzer) {
+		ClassLoader classLoader = getClassLoader(analyzer);
+
 		return new RegistrationContext() {
 			Map<String, Resource> resources = collectSchemaResources(analyzer.getJar(), sources);
 			Map<QualifiedName, Resource> availableDependencies;
@@ -130,7 +136,7 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 
 			@Override
 			public ClassLoader classLoader() {
-				return getClassLoader(analyzer);
+				return classLoader;
 			}
 
 			@Override
@@ -256,10 +262,29 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 			throw new SchemaException("Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
 		}
 
-		log.log(Level.INFO, "Classpath: " + jarPaths);
+		log.log(Level.WARN, "Classpath: " + jarPaths);
 
-		return new DelegatingClassLoader(Thread.currentThread().getContextClassLoader(),
-				new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]), Schema.class.getClassLoader()));
+		ClassLoader classpathLoader = new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]));
+		ClassLoader classLoader = new DelegatingClassLoader(loader, getClass().getClassLoader(), classpathLoader);
+
+		log.log(Level.WARN, "context class loader: " + loader);
+		log.log(Level.WARN, "ModabiBndPlugin.class loader: " + getClass().getClassLoader());
+		log.log(Level.WARN, "classpath loader: " + classpathLoader);
+		log.log(Level.WARN, "delegating classloader: " + classLoader);
+
+		try {
+			Class<?> classA = classLoader.loadClass("uk.co.strangeskies.modabi.scripting.TestA");
+			Class<?> classB = classLoader.loadClass("uk.co.strangeskies.modabi.ui.TestB");
+
+			log.log(Level.WARN, "  " + classA + " : " + classA.getClassLoader());
+			log.log(Level.WARN, "  " + classB + " : " + classB.getClassLoader());
+			log.log(Level.WARN,
+					"  superclass!" + classB.getInterfaces()[0] + " : " + classB.getInterfaces()[0].getClassLoader());
+		} catch (Throwable e) {
+			log.log(Level.WARN, "  no superclass!!!", e);
+		}
+
+		return classLoader;
 	}
 
 	private List<URL> getJarPaths(Analyzer analyzer) throws MalformedURLException {

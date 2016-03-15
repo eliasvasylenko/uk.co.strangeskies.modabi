@@ -7,7 +7,8 @@
 		uk.co.strangeskies.reflection.TypeToken.Infer,
 		javax.script.ScriptEngineManager,
 		javax.script.ScriptEngine,
-		javax.script.Invocable
+		javax.script.Invocable,
+		uk.co.strangeskies.modabi.scripting.TestA
 	</imports>
 
 	<dependencies>
@@ -17,6 +18,10 @@
 	<types />
 
 	<models>
+		<model
+			name="testA"
+			dataType="TestA" />
+
 		<model
 			name="scriptObject"
 			dataType="@Infer ?"
