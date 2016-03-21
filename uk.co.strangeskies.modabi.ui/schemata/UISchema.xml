@@ -3,23 +3,12 @@
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="UISchema">
 
-	<imports>
-		uk.co.strangeskies.modabi.scripting.TestA,
-		uk.co.strangeskies.modabi.ui.TestB
-	</imports>
-
 	<dependencies>
-		BaseSchema,
-		ScriptingSchema
+		BaseSchema
 	</dependencies>
 
 	<types />
 
 	<models>
-		<model
-			name="testB"
-			dataType="TestB"
-			baseModel="testA">
-		</model>
 	</models>
 </schema>

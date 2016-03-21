@@ -29,7 +29,6 @@ import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.classpath.Attribute;
-import uk.co.strangeskies.utilities.classpath.DelegatingClassLoader;
 import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 
 final class BndRegistrationContext implements RegistrationContext {
@@ -188,17 +187,13 @@ final class BndRegistrationContext implements RegistrationContext {
 
 		log.log(Level.INFO, "Classpath: " + jarPaths);
 
-		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-		ClassLoader classpathLoader = new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]));
-		ClassLoader classLoader = new DelegatingClassLoader(contextClassLoader, getClass().getClassLoader(),
-				classpathLoader);
+		ClassLoader classpathLoader = new URLClassLoader(jarPaths.toArray(new URL[jarPaths.size()]),
+				getClass().getClassLoader());
 
-		log.log(Level.TRACE, "Context class loader: " + contextClassLoader);
 		log.log(Level.TRACE, "ModabiBndPlugin.class loader: " + getClass().getClassLoader());
 		log.log(Level.TRACE, "Classpath loader: " + classpathLoader);
-		log.log(Level.TRACE, "Delegating classloader: " + classLoader);
 
-		return classLoader;
+		return classpathLoader;
 	}
 
 	private List<URL> getJarPaths(Analyzer analyzer) throws MalformedURLException {
