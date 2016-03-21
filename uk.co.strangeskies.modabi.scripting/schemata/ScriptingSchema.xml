@@ -4,15 +4,19 @@
 	name="ScriptingSchema">
 
 	<imports>
-		uk.co.strangeskies.reflection.TypeToken,
-		uk.co.strangeskies.reflection.TypeToken.Infer,
+		java.lang.Object,
+
 		javax.script.ScriptEngineManager,
 		javax.script.ScriptEngine,
 		javax.script.Invocable,
+
+		uk.co.strangeskies.reflection.TypeToken,
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+
 		uk.co.strangeskies.modabi.scripting.ScriptObject,
 		uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder,
 		uk.co.strangeskies.modabi.processing.ProcessingContext,
-		uk.co.strangeskies.modabi.schema.Model.Effective
+		uk.co.strangeskies.modabi.schema.Model
 	</imports>
 
 	<dependencies>
@@ -25,7 +29,7 @@
 		<model
 			name="scriptObject"
 			dataType="@Infer ?"
-			bindingType="ScriptObjectBuilder"
+			bindingType="ScriptObjectBuilder{Object}"
 			bindingStrategy="STATIC_FACTORY"
 			unbindingStrategy="STATIC_FACTORY"
 			unbindingFactoryType="ScriptObjectBuilder"
@@ -59,7 +63,7 @@
 					outMethod="null"
 					type="int"
 					value="1"
-					postInputType="Effective{?}"
+					postInputType="Model{?}"
 					inMethodChained="true"
 					inMethodCast="true" />
 				<inputSequence

@@ -12,6 +12,19 @@ Bundle-Description: \
 -buildpath: \
 	osgi.enroute.base.api,\
 	${ss;utilities},\
-	uk.co.strangeskies.modabi.core.api;version=project
+	uk.co.strangeskies.modabi.core.api;version=snapshot,\
+	uk.co.strangeskies.modabi.scripting;version=snapshot
 
 Export-Package: uk.co.strangeskies.modabi.ui
+
+-dependson: \
+	uk.co.strangeskies.modabi.bnd
+
+-pluginpath: \
+	${pluginpath.modabi;xml}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+
+-includeresource: \
+	META-INF/schemata=schemata
