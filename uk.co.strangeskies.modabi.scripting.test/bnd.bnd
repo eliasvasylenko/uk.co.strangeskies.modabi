@@ -1,0 +1,87 @@
+Bundle-Name: Modabi :: Scripting
+Bundle-Description: \
+	This package provides scripting schemata.\
+\
+	${modabi-description}
+
+-runee: JavaSE-1.8
+
+-buildpath: \
+	${ss;utilities},\
+	${ss;reflection},\
+	${ss;mathematics},\
+	${ss;scripting.management},\
+	${ss;scripting.language.javascript},\
+	${ss;osgi.consolelog},\
+	${ss;osgi.utilities},\
+	${ss;osgi.logging},\
+	${mdb;core.api},\
+	${mdb;scripting},\
+	${testpath.base}
+
+-dependson: \
+	uk.co.strangeskies.modabi.bnd
+
+-pluginpath: \
+	${pluginpath.modabi;xml}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+
+-includeresource: \
+	META-INF/schemata=schemata
+#,\
+#	@${repo;uk.co.strangeskies.scripting.language.javascript}
+
+Private-Package: \
+	uk.co.strangeskies.modabi.scripting.test
+
+Import-Package: \
+	uk.co.strangeskies.modabi.schema,\
+	uk.co.strangeskies.modabi.scripting,\
+	*
+
+# This makes run requirements simpler so they work for different strangeskies repo types
+#Export-Package: \
+#	uk.co.strangeskies.osgi.*,\
+#	uk.co.strangeskies.mathematics.*,\
+#	uk.co.strangeskies.scripting.*,\
+#	javax.script.*,\
+#	uk.co.strangeskies.utilities.*,\
+#	uk.co.strangeskies.reflection
+
+Test-Cases: ${test-cases}
+
+-runrequires: \
+	${req;biz.aQute.tester},\
+	${req;uk.co.strangeskies.scripting.language.javascript},\
+	${req;uk.co.strangeskies.modabi.scripting.test},\
+	${req;uk.co.strangeskies.osgi.consolelog},\
+	${req;org.apache.aries.spifly.dynamic.bundle}
+
+-runbundles: \
+	biz.aQute.tester;version='[3.0.0,3.0.1)',\
+	org.apache.aries.spifly.dynamic.bundle;version='[1.0.8,1.0.9)',\
+	org.apache.aries.util;version='[1.1.1,1.1.2)',\
+	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.metatype;version='[1.1.2,1.1.3)',\
+	org.apache.felix.scr;version='[2.0.0,2.0.1)',\
+	org.apache.servicemix.bundles.stax-utils;version='[20070216.0.0,20070216.0.1)',\
+	org.hamcrest.core;version='[1.3.0,1.3.1)',\
+	org.junit;version='[4.12.0,4.12.1)',\
+	org.objectweb.asm;version='[5.1.0,5.1.1)',\
+	org.objectweb.asm.commons;version='[5.1.0,5.1.1)',\
+	org.objectweb.asm.tree;version='[5.1.0,5.1.1)',\
+	uk.co.strangeskies.mathematics;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.modabi.core.api;version=snapshot,\
+	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.extender;version=snapshot,\
+	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
+	uk.co.strangeskies.modabi.scripting;version=snapshot,\
+	uk.co.strangeskies.modabi.scripting.test;version=snapshot,\
+	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.osgi.utilities;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.scripting.language.frege;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.scripting.language.javascript;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'

@@ -17,6 +17,10 @@ Bundle-Description: \
 Private-Package: \
 	uk.co.strangeskies.modabi.core.test
 
+Import-Package: \
+	uk.co.strangeskies.modabi.processing.providers,\
+	*
+
 # This makes run requirements simpler so they work for different strangeskies repo types
 Export-Package: \
 	uk.co.strangeskies.mathematics.*,\
@@ -71,6 +75,3 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000
-Import-Package: \
-	uk.co.strangeskies.modabi.processing.providers,\
-	*

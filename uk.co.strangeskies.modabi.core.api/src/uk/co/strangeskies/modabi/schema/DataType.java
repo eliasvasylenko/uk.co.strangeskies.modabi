@@ -18,10 +18,15 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-public interface DataType<T>
-		extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
-	interface Effective<T> extends DataType<T>,
-			BindingNode.Effective<T, DataType<T>, Effective<T>> {}
+import uk.co.strangeskies.modabi.SchemaProcessor;
+
+public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
+	interface Effective<T> extends DataType<T>, BindingNode.Effective<T, DataType<T>, Effective<T>> {
+		@Override
+		default void process(SchemaProcessor context) {
+			context.accept(this);
+		}
+	}
 
 	Boolean isPrivate();
 

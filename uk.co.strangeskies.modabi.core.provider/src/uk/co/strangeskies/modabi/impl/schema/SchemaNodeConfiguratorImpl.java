@@ -67,8 +67,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		assertConfigurable();
 		if (object != null)
 			throw new InvalidBuildStateException(this,
-					"Property has already been configured; cannot configure with value '"
-							+ object + "'");
+					"Property has already been configured; cannot configure with value '" + object + "'");
 	}
 
 	protected final void assertConfigurable() {
@@ -128,49 +127,40 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return (N) proxyNode(finalNode::get, types);
 	}
 
-	private Object proxyNode(Supplier<?> supplier,
-			Set<? extends Class<?>> types) {
-		return Proxy.newProxyInstance(getClass().getClassLoader(),
-				types.toArray(new Class<?>[types.size()]), new InvocationHandler() {
+	private Object proxyNode(Supplier<?> supplier, Set<? extends Class<?>> types) {
+		return Proxy.newProxyInstance(getClass().getClassLoader(), types.toArray(new Class<?>[types.size()]),
+				new InvocationHandler() {
 					@Override
-					public Object invoke(Object proxy, Method method, Object[] args)
-							throws Throwable {
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 						Object node = supplier.get();
 						if (node != null) {
 							return method.invoke(node, args);
 						} else {
 							Type[] parameters = method.getParameterTypes();
 
-							if (method.getName().equals("equals") && parameters.length == 1
-									&& parameters[0].equals(Object.class)) {
+							if (method.getName().equals("equals") && parameters.length == 1 && parameters[0].equals(Object.class)) {
 								if (!(args[0] instanceof SchemaNode)) {
 									return false;
 								} else {
-									return Objects.equals(getFinalName(),
-											((SchemaNode<?, ?>) args[0]).getName());
+									return Objects.equals(getFinalName(), ((SchemaNode<?, ?>) args[0]).getName());
 								}
 							}
 
-							if (method.getName().equals("hashCode")
-									&& parameters.length == 0) {
+							if (method.getName().equals("hashCode") && parameters.length == 0) {
 								return Objects.hashCode(getFinalName());
 							}
 
-							if (method.getName().equals("getName")
-									&& parameters.length == 0) {
+							if (method.getName().equals("getName") && parameters.length == 0) {
 								return getFinalName();
 							}
 
-							if (method.getName().equals("effective")
-									&& parameters.length == 0) {
-								return proxyNode(
-										() -> finalNode.get() == null ? null
-												: finalNode.get().effective(),
+							if (method.getName().equals("effective") && parameters.length == 0) {
+								return proxyNode(() -> finalNode.get() == null ? null : finalNode.get().effective(),
 										new HashSet<>(Arrays.asList(method.getReturnType())));
 							}
 
-							throw new SchemaException("Cannot invoke method '" + method
-									+ "' on node '" + getFinalName() + "' before instantiation");
+							throw new SchemaException(
+									"Cannot invoke method '" + method + "' on node '" + getFinalName() + "' before instantiation");
 						}
 					}
 
@@ -199,7 +189,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected abstract Namespace getNamespace();
 
 	protected abstract Imports getImports();
-	
+
 	public abstract List<N> getOverriddenNodes();
 
 	protected abstract ChildrenConfigurator createChildrenConfigurator();
@@ -226,7 +216,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	@Override
 	public String toString() {
-		return getNodeClass().getRawType().getSimpleName() + " configurator: "
-				+ getName();
+		return getNodeClass().getRawType().getSimpleName() + " configurator: " + getName();
+	}
+
+	protected TypeToken<?> parseTypeWithSubstitutedBrackets(String typeName, Imports imports) {
+		return TypeToken.fromString(typeName.replace('(', '<').replace(')', '>').replace('{', '<').replace('}', '>'),
+				imports);
 	}
 }

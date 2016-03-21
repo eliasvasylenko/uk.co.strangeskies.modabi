@@ -18,8 +18,13 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-public interface Model<T>
-		extends AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
-	interface Effective<T> extends Model<T>,
-			AbstractComplexNode.Effective<T, Model<T>, Effective<T>> {}
+import uk.co.strangeskies.modabi.SchemaProcessor;
+
+public interface Model<T> extends AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
+	interface Effective<T> extends Model<T>, AbstractComplexNode.Effective<T, Model<T>, Effective<T>> {
+		@Override
+		default void process(SchemaProcessor context) {
+			context.accept(this);
+		}
+	}
 }

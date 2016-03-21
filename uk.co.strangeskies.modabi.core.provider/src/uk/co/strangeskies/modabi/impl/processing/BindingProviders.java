@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -100,7 +102,8 @@ public class BindingProviders {
 		return context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context, node.effective()).getBinding();
+				return new DataNodeBinder<>(context, node.effective()).getBinding().stream().map(NodeBinding::getBinding)
+						.collect(toList());
 			}
 		};
 	}

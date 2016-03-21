@@ -37,9 +37,9 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 	protected Object invokeInMethod(Object... parameters) {
 		TypedObject<?> target = getContext().getBindingObject();
 
-		TypedObject<?> result;
-
 		if (!"null".equals(getNode().getInMethodName())) {
+			TypedObject<?> result;
+
 			try {
 				TypeToken<?> postInputType = getNode().getPostInputType();
 				if (postInputType == null) {
@@ -62,8 +62,6 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 				setContext(getContext().withReplacementBindingObject(result));
 				target = result;
 			}
-		} else {
-			result = null;
 		}
 
 		return target;

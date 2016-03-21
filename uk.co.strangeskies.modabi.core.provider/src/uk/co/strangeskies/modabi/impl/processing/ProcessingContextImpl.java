@@ -46,8 +46,8 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
+import uk.co.strangeskies.modabi.processing.BindingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -188,7 +188,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		List<DataType<? extends T>> types = registeredTypes.getTypesWithBase(node).stream().map(n -> n.source())
 				.collect(Collectors.toCollection(ArrayList::new));
 
-		ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>>(
+		ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
 				type -> getDataNodeOverride(node, type.effective()));
 		overrideMap.putAll(types);
 
@@ -197,8 +197,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	private <T> DataNode.Effective<T> getDataNodeOverride(DataNode.Effective<? super T> node,
 			DataType.Effective<T> type) {
-		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node,
-				type);
+		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node, type);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -212,10 +211,10 @@ public class ProcessingContextImpl implements ProcessingContext {
 		} else {
 			models = registeredModels.stream().map(SchemaNode::source)
 					.filter(c -> node.getDataType().isAssignableFrom(c.effective().getDataType()))
-					.map(m -> (Model.Effective<? extends T>) m).collect(Collectors.toList());
+					.map(m -> (Model.Effective<? extends T>) m.effective()).collect(Collectors.toList());
 		}
 
-		ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>>(
+		ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
 				model -> getComplexNodeOverride(node, model.effective()));
 		overrideMap.putAll(models);
 
@@ -224,7 +223,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	private <T> ComplexNode.Effective<T> getComplexNodeOverride(ComplexNode.Effective<? super T> node,
 			Model.Effective<T> model) {
-		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node, model);
+		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node,
+				model);
 	}
 
 	@Override

@@ -37,20 +37,31 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	private final C component;
 	private final B base;
 
+	private final TypeToken<T> dataType;
+
+	@SuppressWarnings("unchecked")
 	public BindingNodeWrapper(C component) {
 		this.component = component;
 		base = null;
+		dataType = (TypeToken<T>) component.getDataType();
 	}
 
+	@SuppressWarnings("unchecked")
 	public BindingNodeWrapper(C component, B base) {
 		this.component = component;
 		this.base = base;
 
 		String message = "Cannot override '" + base.getName() + "' with '" + component.getName() + "'";
 
-		if (base.getDataType() != null
-				&& !TypeToken.over(base.getDataType().getType()).isAssignableFrom(component.getDataType().getType()))
-			throw new SchemaException(message);
+		try {
+			if (base.getDataType() != null) {
+				dataType = (TypeToken<T>) component.getDataType().withLooseCompatibility(base.getDataType()).infer();
+			} else {
+				dataType = (TypeToken<T>) component.getDataType().infer();
+			}
+		} catch (Exception e) {
+			throw new SchemaException(message, e);
+		}
 
 		if (base.getBindingStrategy() != null && base.getBindingStrategy() != component.getBindingStrategy())
 			throw new SchemaException(message);
@@ -77,11 +88,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 	}
 
-	protected C getComponent() {
+	public C getComponent() {
 		return component;
 	}
 
-	protected B getBase() {
+	public B getBase() {
 		return base;
 	}
 
@@ -90,10 +101,9 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		return component.isAbstract();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public final TypeToken<T> getDataType() {
-		return (TypeToken<T>) component.getDataType();
+		return dataType;
 	}
 
 	@Override

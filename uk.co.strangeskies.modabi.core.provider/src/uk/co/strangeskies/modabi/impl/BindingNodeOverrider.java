@@ -33,6 +33,7 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -56,6 +57,8 @@ import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeOverrider {
 	public <T> ComplexNode.Effective<T> override(SchemaBuilder builder, ComplexNode.Effective<? super T> node,
@@ -64,14 +67,14 @@ public class BindingNodeOverrider {
 			if (isDirectOverridePossible(node, override))
 				return new ComplexNodeWrapper<>(override, node);
 			else
-				return new OverridingProcessor().process(builder, node, override);
+				return new OverridingProcessor().process(builder, new ComplexNodeWrapper<>(override, node), override);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override complex node '" + node + "' with model '" + override + "'", e);
 		}
 	}
 
 	private <T> boolean isDirectOverridePossible(ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
-		return node.children().isEmpty(); // TODO is this enough?
+		return node.children().isEmpty() && !(node.isAbstract() && override.isAbstract());
 	}
 
 	public <T> DataNode.Effective<T> override(SchemaBuilder builder, DataNode.Effective<? super T> node,
@@ -80,7 +83,7 @@ public class BindingNodeOverrider {
 			if (isDirectOverridePossible(node, override))
 				return new DataNodeWrapper<>(override, node);
 			else
-				return new OverridingProcessor().process(builder, node, override);
+				return new OverridingProcessor().process(builder, new DataNodeWrapper<>(override, node), override);
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override data node '" + node + "' with data binding type '" + override + "'",
 					e);
@@ -88,7 +91,7 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(DataNode.Effective<? super T> node, DataType.Effective<T> override) {
-		return node.children().isEmpty(); // TODO is this enough?
+		return node.children().isEmpty() && !(node.isAbstract() && override.isAbstract());
 	}
 
 	private class OverridingProcessor implements SchemaProcessor {
@@ -101,8 +104,39 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNode.Effective<? super T> node,
+		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNodeWrapper<T> node,
 				Model.Effective<T> override) {
+			/*
+			 * TODO All this clever parent detection stuff for DataNods too...
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * TODO
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 * TODO
+			 * 
+			 * 
+			 * 
+			 * 
+			 * 
+			 */
 			DataLoader loader = new DataLoader() {
 				@Override
 				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
@@ -110,19 +144,85 @@ public class BindingNodeOverrider {
 				}
 			};
 
-			ModelConfigurator<Object> configurator = builder.configure(loader).addModel().name(new QualifiedName("base"))
+			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
+			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
+			IdentityProperty<BindingStrategy> parentBindingStrategy = new IdentityProperty<>();
+			SchemaNode.Effective<?, ?> parent = node.parent();
+			parent.process(new SchemaProcessor() {
+				@Override
+				public <U> void accept(DataNode.Effective<U> node) {
+					acceptParent(node);
+				}
+
+				@Override
+				public <U> void accept(ComplexNode.Effective<U> node) {
+					acceptParent(node);
+				}
+
+				@Override
+				public <U> void accept(DataType.Effective<U> node) {
+					acceptParent(node);
+				}
+
+				@Override
+				public <U> void accept(Model.Effective<U> node) {
+					acceptParent(node);
+				}
+
+				@Override
+				public void accept(ChoiceNode.Effective node) {
+					node.parent().process(this);
+				}
+
+				@Override
+				public void accept(InputSequenceNode.Effective node) {
+					node.parent().process(this);
+				}
+
+				@Override
+				public void accept(SequenceNode.Effective node) {
+					node.parent().process(this);
+				}
+
+				private void acceptParent(BindingNode.Effective<?, ?, ?> parent) {
+					parentUnbindingType.set(parent.getUnbindingType());
+
+					if (node.getBase() == parent.children().get(0)) {
+						parentBindingStrategy.set(parent.getBindingStrategy());
+
+						if (parent.getBindingType() != null) {
+							parentBindingType.set(parent.getBindingType());
+						} else {
+							parentBindingType.set(parent.getDataType());
+						}
+					}
+				}
+			});
+
+			ModelConfigurator<?> configurator = builder.configure(loader).addModel().name(new QualifiedName("base"))
 					.isAbstract(true);
-			if (node.getPreInputType() != null)
+			if (parentBindingType.get() != null) {
+				configurator = configurator.bindingType(parentBindingType.get());
+			} else if (node.getPreInputType() != null) {
 				configurator = configurator.bindingType(node.getPreInputType());
-			if (node.getOutMethod().getDeclaringClass() != null)
+			}
+
+			if (parentBindingStrategy.get() != null) {
+				configurator = configurator.bindingStrategy(parentBindingStrategy.get());
+			}
+
+			if (node.getOutMethod().getDeclaringClass() != null) {
 				configurator = configurator.unbindingType(node.getOutMethod().getDeclaringClass());
+			} else {
+				configurator = configurator.unbindingType(parentUnbindingType.get());
+			}
 
 			ComplexNodeConfigurator<T> elementConfigurator;
 
 			List<Model<? super T>> models = new ArrayList<>(override.source().baseModel());
 			models.add(0, new ModelWrapper<>(node));
 			elementConfigurator = configurator.addChild().complex().outMethodCast(true).baseModel(models);
-			elementConfigurator = processBindingNode(override, elementConfigurator);
+			elementConfigurator = processBindingNode(node, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
 
 			doChildren(override.children(), elementConfigurator.name(override.getName()));
@@ -131,7 +231,7 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNode.Effective<? super T> node,
+		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNode.Effective<T> node,
 				DataType.Effective<T> override) {
 			DataLoader loader = new DataLoader() {
 				@Override
@@ -149,7 +249,7 @@ public class BindingNodeOverrider {
 
 			dataNodeConfigurator = tryProperty(node.format(), DataNodeConfigurator::format, dataNodeConfigurator);
 
-			dataNodeConfigurator = processBindingNode(override, dataNodeConfigurator);
+			dataNodeConfigurator = processBindingNode(node, dataNodeConfigurator);
 			dataNodeConfigurator = processBindingChildNode(node, dataNodeConfigurator);
 
 			doChildren(override.children(), dataNodeConfigurator);

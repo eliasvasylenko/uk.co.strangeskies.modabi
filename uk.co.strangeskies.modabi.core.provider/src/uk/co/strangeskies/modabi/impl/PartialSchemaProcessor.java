@@ -18,53 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaProcessor;
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.InputNode;
-import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public interface PartialSchemaProcessor extends SchemaProcessor {
 	@Override
-	default <U> void accept(ComplexNode.Effective<U> node) {
-		accept((BindingChildNode.Effective<U, ?, ?>) node);
-	}
-
-	@Override
-	default <U> void accept(DataNode.Effective<U> node) {
-		accept((BindingChildNode.Effective<U, ?, ?>) node);
-	}
-
-	@Override
-	default void accept(InputSequenceNode.Effective node) {
-		accept((InputNode.Effective<?, ?>) node);
-	}
-
-	@Override
-	default void accept(SequenceNode.Effective node) {
-		accept((SchemaNode.Effective<?, ?>) node);
-	}
-
-	@Override
-	default void accept(ChoiceNode.Effective node) {
-		accept((SchemaNode.Effective<?, ?>) node);
-	}
-
-	default <U> void accept(BindingChildNode.Effective<U, ?, ?> node) {
-		accept((InputNode.Effective<?, ?>) node);
-	}
-
-	default void accept(InputNode.Effective<?, ?> node) {
-		accept((SchemaNode.Effective<?, ?>) node);
-	}
-
-	default void accept(SchemaNode.Effective<?, ?> node) {
-		throw new SchemaException("Unexpected node type '" + node.getClass()
-				+ "' for node '" + node.getName() + "'");
-	}
+	default void accept(SchemaNode.Effective<?, ?> node) {}
 }

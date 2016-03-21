@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="ScriptingTestSchema">
+
+	<imports>
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+		java.lang.String,
+		java.lang.Runnable,
+		java.util.function.Function,
+		uk.co.strangeskies.utilities.IdentityProperty
+	</imports>
+
+	<dependencies>
+		BaseSchema,
+		ScriptingSchema
+	</dependencies>
+
+	<types />
+
+	<models>
+		<model
+			name="runnableScript"
+			baseModel="scriptObject"
+			dataType="Runnable" />
+
+		<model
+			name="functionScript"
+			baseModel="scriptObject"
+			dataType="Function{String\, String}" />
+
+		<model
+			name="scriptProperty"
+			bindingStrategy="CONSTRUCTOR"
+			dataType="@Infer IdentityProperty{?}">
+
+			<complex
+				name="function"
+				baseModel="functionScript" />
+		</model>
+
+		<model
+			name="functionProperty"
+			bindingStrategy="CONSTRUCTOR"
+			dataType="@Infer IdentityProperty{?}">
+
+			<complex
+				name="function"
+				extensible="true"
+				abstract="true"
+				occurrences="1..1"
+				dataType="Function{String\, String}" />
+		</model>
+	</models>
+</schema>

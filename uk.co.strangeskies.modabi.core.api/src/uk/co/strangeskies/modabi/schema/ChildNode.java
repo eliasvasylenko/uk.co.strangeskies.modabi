@@ -19,50 +19,12 @@
 package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
-import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.IdentityProperty;
 
 public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>> extends SchemaNode<S, E> {
 	interface Effective<S extends ChildNode<S, E>, E extends Effective<S, E>>
 			extends ChildNode<S, E>, SchemaNode.Effective<S, E> {
 		TypeToken<?> getPreInputType();
-
-		void process(SchemaProcessor context);
-
-		default <T> T process(ReturningSchemaProcessor<T> context) {
-			IdentityProperty<T> result = new IdentityProperty<>();
-
-			process(new SchemaProcessor() {
-				@Override
-				public void accept(ChoiceNode.Effective node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public void accept(SequenceNode.Effective node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public void accept(InputSequenceNode.Effective node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public <U> void accept(DataNode.Effective<U> node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public <U> void accept(ComplexNode.Effective<U> node) {
-					result.set(context.accept(node));
-				}
-			});
-
-			return result.get();
-		}
 
 		@Override
 		SchemaNode.Effective<?, ?> parent();

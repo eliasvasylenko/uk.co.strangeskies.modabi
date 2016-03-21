@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.Reference;
 import uk.co.strangeskies.modabi.SchemaManager;
 
 @Component
-public class ScriptEngineManagerRegistration {
+public class Activator {
 	@Reference
 	ScriptEngineManager scriptEngineManager;
 

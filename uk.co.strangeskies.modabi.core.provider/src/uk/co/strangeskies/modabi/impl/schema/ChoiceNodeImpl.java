@@ -18,22 +18,21 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import uk.co.strangeskies.modabi.SchemaException;
+import static java.util.stream.Collectors.toSet;
+
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.Types;
 
-class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective>
-		implements ChoiceNode {
-	private static class Effective
-			extends ChildNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
+class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective> implements ChoiceNode {
+	private static class Effective extends ChildNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
 			implements ChoiceNode.Effective {
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;
 
-		public Effective(
-				OverrideMerge<ChoiceNode, ChoiceNodeConfiguratorImpl> overrideMerge) {
+		public Effective(OverrideMerge<ChoiceNode, ChoiceNodeConfiguratorImpl> overrideMerge) {
 			super(overrideMerge);
 
 			TypeToken<?> preInputClass = null;
@@ -48,30 +47,14 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective>
 				}
 			this.preInputClass = preInputClass;
 
-			TypeToken<?> postInputClass = overrideMerge
-					.getOverride(ChildNode::getPostInputType)
+			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::getPostInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
-			if (!isAbstract()) {
-				if (postInputClass == null) {
-					for (ChildNode.Effective<?, ?> child : children()) {
-						TypeToken<?> nextOutputClass = child.getPostInputType();
 
-						if (postInputClass != null) {
-							if (nextOutputClass.isAssignableFrom(postInputClass)) {
-								postInputClass = nextOutputClass;
-							} else if (!postInputClass.isAssignableFrom(nextOutputClass)) {
-								postInputClass = TypeToken.over(Object.class);
-							}
-						}
-					}
-				} else {
-					for (ChildNode.Effective<?, ?> child : children()) {
-						if (!postInputClass.isAssignableFrom(child.getPostInputType())) {
-							throw new SchemaException();
-						}
-					}
-				}
+			if (!isAbstract() && postInputClass == null) {
+				postInputClass = TypeToken.over(Types.leastUpperBound(
+						children().stream().map(ChildNode::getPostInputType).map(TypeToken::getType).collect(toSet())));
 			}
+
 			this.postInputClass = postInputClass;
 		}
 
@@ -95,8 +78,7 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective>
 
 		postInputClass = configurator.getPostInputClass();
 
-		effective = new Effective(
-				ChoiceNodeConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new Effective(ChoiceNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override

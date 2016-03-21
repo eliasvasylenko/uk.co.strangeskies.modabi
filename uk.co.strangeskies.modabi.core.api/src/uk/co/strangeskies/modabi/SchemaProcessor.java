@@ -18,26 +18,34 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public interface SchemaProcessor {
+	default <U> void accept(DataType.Effective<U> node) {
+		accept((SchemaNode.Effective<?, ?>) node);
+	}
+
+	default <U> void accept(Model.Effective<U> node) {
+		accept((SchemaNode.Effective<?, ?>) node);
+	}
+
 	default <U> void accept(ComplexNode.Effective<U> node) {
-		accept((BindingChildNode.Effective<U, ?, ?>) node);
+		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default <U> void accept(DataNode.Effective<U> node) {
-		accept((BindingChildNode.Effective<U, ?, ?>) node);
+		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default void accept(InputSequenceNode.Effective node) {
-		accept((InputNode.Effective<?, ?>) node);
+		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default void accept(SequenceNode.Effective node) {
@@ -48,16 +56,7 @@ public interface SchemaProcessor {
 		accept((SchemaNode.Effective<?, ?>) node);
 	}
 
-	default <U> void accept(BindingChildNode.Effective<U, ?, ?> node) {
-		accept(node);
-	}
-
-	default void accept(InputNode.Effective<?, ?> node) {
-		accept((SchemaNode.Effective<?, ?>) node);
-	}
-
 	default void accept(SchemaNode.Effective<?, ?> node) {
-		throw new SchemaException("Unexpected node type '" + node.getClass()
-				+ "' for node '" + node.getName() + "'");
+		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.getName() + "'");
 	}
 }

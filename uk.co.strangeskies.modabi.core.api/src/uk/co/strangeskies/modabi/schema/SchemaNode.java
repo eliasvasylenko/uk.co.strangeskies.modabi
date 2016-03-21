@@ -24,8 +24,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.utilities.IdentityProperty;
 
 public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
 	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>> extends SchemaNode<S, E> {
@@ -45,6 +48,51 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 		@Override
 		BindingNode.Effective<?, ?, ?> root();
+
+		void process(SchemaProcessor context);
+
+		default <T> T process(ReturningSchemaProcessor<T> context) {
+			IdentityProperty<T> result = new IdentityProperty<>();
+
+			process(new SchemaProcessor() {
+				@Override
+				public <U> void accept(Model.Effective<U> node) {
+					result.set(context.accept(node));
+				}
+
+				@Override
+				public <U> void accept(DataType.Effective<U> node) {
+					result.set(context.accept(node));
+				}
+
+				@Override
+				public void accept(ChoiceNode.Effective node) {
+					result.set(context.accept(node));
+				}
+
+				@Override
+				public void accept(SequenceNode.Effective node) {
+					result.set(context.accept(node));
+				}
+
+				@Override
+				public void accept(InputSequenceNode.Effective node) {
+					result.set(context.accept(node));
+				}
+
+				@Override
+				public <U> void accept(DataNode.Effective<U> node) {
+					result.set(context.accept(node));
+				}
+
+				@Override
+				public <U> void accept(ComplexNode.Effective<U> node) {
+					result.set(context.accept(node));
+				}
+			});
+
+			return result.get();
+		}
 	}
 
 	Boolean isAbstract();

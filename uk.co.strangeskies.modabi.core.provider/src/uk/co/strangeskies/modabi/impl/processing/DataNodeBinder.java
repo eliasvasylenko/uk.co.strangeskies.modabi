@@ -18,8 +18,9 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -35,43 +36,42 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
-import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
-	private final List<U> binding;
+	private final List<NodeBinding<U>> bindings;
 
 	public DataNodeBinder(ProcessingContext context, DataNode<U> node) {
 		super(context, node.effective());
 
-		binding = Collections.unmodifiableList(bind());
+		bindings = bind();
 	}
 
 	public DataNodeBinder<U> bindToTarget() {
-		for (Object item : getBinding())
-			invokeInMethod(item);
+		for (NodeBinding<U> item : getBinding())
+			invokeInMethod(item.getBinding());
 
 		return this;
 	}
 
-	public List<U> getBinding() {
-		return binding;
+	public List<NodeBinding<U>> getBinding() {
+		return bindings;
 	}
 
-	private List<U> bind() {
+	private List<NodeBinding<U>> bind() {
 		ProcessingContextImpl context = getContext();
 		DataNode.Effective<U> node = getNode();
 
 		DataSource dataSource;
 
-		List<U> results = new ArrayList<>();
+		List<NodeBinding<U>> results = new ArrayList<>();
 
 		if (node.isValueProvided() && (node.valueResolution() == ValueResolution.REGISTRATION_TIME
 				|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
 			/*
 			 * Value is already provided and bound
 			 */
-			results.addAll(node.providedValues());
+			results.addAll(node.providedValues().stream().map(b -> new NodeBinding<>(b, node)).collect(toList()));
 		} else {
 			/*
 			 * Value is not yet bound, so we must determind the data source
@@ -111,7 +111,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 						dataSource = context.input().get().readContent();
 
-						U result = bindWithDataSource(dataSource, context, node);
+						NodeBinding<U> result = bindWithDataSource(dataSource, context, node);
 						results.add(result);
 
 						context.input().get().endChild();
@@ -149,10 +149,10 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		}
 	}
 
-	private List<U> bindList(ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private List<NodeBinding<U>> bindList(ProcessingContextImpl context, DataNode.Effective<U> node) {
 		context = context.withInput(null);
 
-		List<U> results = new ArrayList<>();
+		List<NodeBinding<U>> results = new ArrayList<>();
 
 		Exception optionalException = null;
 
@@ -193,16 +193,16 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private static <U> U bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
+	private static <U> NodeBinding<U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
 			DataNode.Effective<U> node) {
 		context = context.withProvision(DataSource.class, () -> dataSource).forceExhausting();
 
-		U binding = bindExactNode(context, node);
+		NodeBinding<U> binding = bindExactNode(context, node);
 
 		return binding;
 	}
 
-	private static <U> U bindExactNode(ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private static <U> NodeBinding<U> bindExactNode(ProcessingContextImpl context, DataNode.Effective<U> node) {
 		if (node.isExtensible()) {
 			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
@@ -211,20 +211,18 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				throw new SchemaException("Unable to find type to satisfy data node '" + node.getName() + "' with type '"
 						+ node.effective().type() + "'");
 
-			Property<U, U> result = new IdentityProperty<U>();
+			IdentityProperty<NodeBinding<U>> result = new IdentityProperty<>();
 
-			context.attemptBindingUntilSuccessful(overrides.keySet(),
-					(c, n) -> result.set(new BindingNodeBinder(c).bind(overrides.putGet(n))),
-					l -> new BindingException(
-							"Unable to bind data node '" + node.getName()
-									+ "' with type candidates '" + overrides.keySet().stream()
-											.map(m -> m.effective().getName().toString()).collect(Collectors.joining(", "))
-									+ "'",
-							context, l));
+			context.attemptBindingUntilSuccessful(overrides.keySet(), (c, n) -> {
+				DataNode.Effective<? extends U> exactNode = overrides.putGet(n);
+				result.set(new NodeBinding<>(new BindingNodeBinder(c).bind(exactNode), exactNode));
+			}, l -> new BindingException("Unable to bind data node '" + node.getName() + "' with type candidates '"
+					+ overrides.keySet().stream().map(m -> m.effective().getName().toString()).collect(Collectors.joining(", "))
+					+ "'", context, l));
 
 			return result.get();
 		} else
-			return new BindingNodeBinder(context).bind(node);
+			return new NodeBinding<>(new BindingNodeBinder(context).bind(node), node);
 	}
 
 	public static DataLoader dataLoader(ProcessingContextImpl context) {
@@ -232,7 +230,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				return new DataNodeBinder<>(context.withProvision(DataSource.class, () -> data).forceExhausting(),
-						node.effective()).getBinding();
+						node.effective()).getBinding().stream().map(NodeBinding::getBinding).collect(toList());
 			}
 		};
 	}

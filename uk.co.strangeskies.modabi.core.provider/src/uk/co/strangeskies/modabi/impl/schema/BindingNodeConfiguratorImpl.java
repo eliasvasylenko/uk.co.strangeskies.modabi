@@ -38,7 +38,6 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
@@ -261,19 +260,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	@SuppressWarnings("unchecked")
 	@Override
 	public BindingNodeConfigurator<?, ?, ? extends T> dataType(String dataType) {
-		return dataType((TypeToken<? extends T>) TypeToken.fromString(dataType, getImports()));
+		return dataType((TypeToken<? extends T>) parseTypeWithSubstitutedBrackets(dataType, getImports()));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataType) {
 		assertConfigurable(this.dataType);
-
-		if (dataType == null)
-			throw new IllegalArgumentException("Data type must not be null");
-
-		if (!InferenceVariable.isProperType(dataType.getAnnotatedDeclaration().getType()))
-			throw new IllegalArgumentException("Data type must be proper: " + dataType);
 
 		this.dataType = (TypeToken<T>) dataType;
 
@@ -288,7 +281,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S bindingType(String bindingType) {
-		return bindingType(TypeToken.fromString(bindingType, getImports()));
+		return bindingType(parseTypeWithSubstitutedBrackets(bindingType, getImports()));
+
 	}
 
 	@Override
@@ -305,7 +299,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S unbindingType(String unbindingType) {
-		return unbindingType(TypeToken.fromString(unbindingType, getImports()));
+		return unbindingType(parseTypeWithSubstitutedBrackets(unbindingType, getImports()));
 	}
 
 	@Override

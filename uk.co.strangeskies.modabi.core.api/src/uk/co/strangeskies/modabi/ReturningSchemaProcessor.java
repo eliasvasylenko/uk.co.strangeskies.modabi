@@ -18,26 +18,34 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public interface ReturningSchemaProcessor<T> {
+	default <U> T accept(DataType.Effective<U> node) {
+		return accept((SchemaNode.Effective<?, ?>) node);
+	}
+
+	default <U> T accept(Model.Effective<U> node) {
+		return accept((SchemaNode.Effective<?, ?>) node);
+	}
+
 	default <U> T accept(ComplexNode.Effective<U> node) {
-		return accept((BindingChildNode.Effective<U, ?, ?>) node);
+		return accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default <U> T accept(DataNode.Effective<U> node) {
-		return accept((BindingChildNode.Effective<U, ?, ?>) node);
+		return accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default T accept(InputSequenceNode.Effective node) {
-		return accept((InputNode.Effective<?, ?>) node);
+		return accept((SchemaNode.Effective<?, ?>) node);
 	}
 
 	default T accept(SequenceNode.Effective node) {
@@ -48,16 +56,7 @@ public interface ReturningSchemaProcessor<T> {
 		return accept((SchemaNode.Effective<?, ?>) node);
 	}
 
-	default <U> T accept(BindingChildNode.Effective<U, ?, ?> node) {
-		return accept(node);
-	}
-
-	default T accept(InputNode.Effective<?, ?> node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
-	}
-
 	default T accept(SchemaNode.Effective<?, ?> node) {
-		throw new SchemaException("Unexpected node type '" + node.getClass()
-				+ "' for node '" + node.getName() + "'");
+		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.getName() + "'");
 	}
 }

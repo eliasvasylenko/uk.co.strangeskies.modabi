@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<runnableScript
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	language="JavaScript">
+
+	function run() {
+		print('run called');
+	}
+
+</runnableScript>

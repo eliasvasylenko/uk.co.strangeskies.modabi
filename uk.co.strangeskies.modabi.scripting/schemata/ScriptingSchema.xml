@@ -4,10 +4,15 @@
 	name="ScriptingSchema">
 
 	<imports>
+		uk.co.strangeskies.reflection.TypeToken,
 		uk.co.strangeskies.reflection.TypeToken.Infer,
 		javax.script.ScriptEngineManager,
 		javax.script.ScriptEngine,
-		javax.script.Invocable
+		javax.script.Invocable,
+		uk.co.strangeskies.modabi.scripting.ScriptObject,
+		uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder,
+		uk.co.strangeskies.modabi.processing.ProcessingContext,
+		uk.co.strangeskies.modabi.schema.Model.Effective
 	</imports>
 
 	<dependencies>
@@ -20,61 +25,78 @@
 		<model
 			name="scriptObject"
 			dataType="@Infer ?"
-			bindingType="ScriptEngineManager"
-			extensible="true">
+			bindingType="ScriptObjectBuilder"
+			bindingStrategy="STATIC_FACTORY"
+			unbindingStrategy="STATIC_FACTORY"
+			unbindingFactoryType="ScriptObjectBuilder"
+			unbindingType="ScriptObject"
+			unbindingMethod="cast"
+			extensible="true"
+			abstract="true">
 
-			<choice
-				name="scriptSource"
-				postInputType="Invocable">
+			<inputSequence name="build" />
 
+			<property
+				name="objectName"
+				occurrences="0..1"
+				type="string" />
+
+
+			<data
+				name="scriptEngineManager"
+				dataType="ScriptEngineManager"
+				bindingStrategy="PROVIDED"
+				outMethod="null" />
+
+			<data
+				name="objectType"
+				dataType="TypeToken{?}"
+				bindingStrategy="PROVIDED"
+				bindingType="ProcessingContext"
+				outMethod="null">
+				<data
+					name="getBindingNode"
+					outMethod="null"
+					type="int"
+					value="1"
+					postInputType="Effective{?}"
+					inMethodChained="true"
+					inMethodCast="true" />
+				<inputSequence
+					name="getDataType"
+					inMethodChained="true" />
+			</data>
+
+			<choice name="scriptSource">
 				<sequence name="direct">
-					<property
-						name="language"
-						type="string"
-						outMethod="null"
-						inMethod="getEngineByName"
-						inMethodChained="true" />
-
 					<content
 						name="script"
-						type="string"
-						outMethod="null"
-						inMethod="eval"
-						inMethodChained="true"
-						postInputType="Invocable"
-						inMethodCast="true" />
+						type="string" />
+
+					<property
+						name="language"
+						type="string" />
 				</sequence>
 
-				<!-- sequence name="resource">
+				<sequence name="resource">
 					<property
-						name="source"
+						name="resource"
 						type="string" />
 
 					<property
 						name="language"
 						type="string"
 						optional="true" />
-				</sequence -->
+				</sequence>
 			</choice>
 
-			<choice name="scriptObject">
-				<!-- inputSequence inMethod="getInterface">
-					<property
-						name="objectName"
-						type="string" />
+			<inputSequence
+				name="create"
+				inMethodChained="true" />
 
-					<property
-						name="objectClass"
-						type="class" />
-				</inputSequence -->
-
-				<property
-					name="objectClass"
-					type="class"
-					outMethod="null"
-					inMethod="getInterface"
-					inMethodChained="true" />
-			</choice>
+			<inputSequence
+				name="cast"
+				inMethodChained="true" />
 		</model>
 	</models>
 </schema>

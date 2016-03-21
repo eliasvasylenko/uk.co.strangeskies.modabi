@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.SchemaManager;
  * classes, abstract classes, or interfaces, unless otherwise specified.
  * </p>
  *
- * @author eli
+ * @author Elias N Vasylenko
  *
  */
 public enum BindingStrategy {

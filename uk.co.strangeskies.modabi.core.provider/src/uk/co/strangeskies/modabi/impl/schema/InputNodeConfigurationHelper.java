@@ -54,20 +54,16 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	public InputNodeConfigurationHelper(boolean isAbstract, QualifiedName name,
 			OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge,
-			SchemaNodeConfigurationContext<? super N> context,
-			List<TypeToken<?>> inMethodParameters) {
+			SchemaNodeConfigurationContext<? super N> context, List<TypeToken<?>> inMethodParameters) {
 		this.isAbstract = isAbstract;
 		this.name = name;
 		this.overrideMerge = overrideMerge;
 		this.context = context;
 
-		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained)
-				.orDefault(false).get();
-		inMethodUnchecked = overrideMerge
-				.getOverride(InputNode::isInMethodUnchecked).orDefault(false).get();
+		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained).orDefault(false).get();
+		inMethodUnchecked = overrideMerge.getOverride(InputNode::isInMethodUnchecked).orDefault(false).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false)
-						.get();
+				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false).get();
 
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
@@ -110,15 +106,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
 		Invokable<?, ?> inInvokable;
 
-		String overriddenInMethodName = overrideMerge
-				.getOverride(InputNode::getInMethodName).tryGet();
+		String overriddenInMethodName = overrideMerge.getOverride(InputNode::getInMethodName).tryGet();
 
 		if (!context.isInputExpected())
 			if (overriddenInMethodName == null)
 				overriddenInMethodName = "null";
 			else if (!"null".equals(overriddenInMethodName))
-				throw new SchemaException(
-						"In method name should not be provided for this node.");
+				throw new SchemaException("In method name should not be provided for this node.");
 
 		TypeToken<?> inputTargetType = inputTargetType();
 
@@ -128,8 +122,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			try {
 				TypeToken<?> result;
 				if (inMethodChained) {
-					TypeToken<?> resultType = overrideMerge
-							.getOverride(InputNode::getPostInputType)
+					TypeToken<?> resultType = overrideMerge.getOverride(InputNode::getPostInputType)
 							.validate(TypeToken::isAssignableTo).tryGet();
 
 					result = resultType == null ? null : resultType;
@@ -141,24 +134,19 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				}
 
 				if (inMethodUnchecked)
-					parameters = parameters.stream()
-							.<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
-				Executable inMethod = overrideMerge
-						.getOverride(
-								n -> n.effective() == null ? null : n.effective().getInMethod())
+				Executable inMethod = overrideMerge.getOverride(n -> n.effective() == null ? null : n.effective().getInMethod())
 						.tryGet();
 				if (inMethod != null) {
-					inInvokable = Invokable.over(inMethod, inputTargetType)
-							.withTargetType(result);
+					inInvokable = Invokable.over(inMethod, inputTargetType);
 					try {
 						inInvokable = inInvokable.withLooseApplicability(parameters);
 					} catch (Exception e) {
 						if (inInvokable.isVariableArity()) {
 							try {
-								inInvokable = inInvokable
-										.withVariableArityApplicability(parameters);
+								inInvokable = inInvokable.withVariableArityApplicability(parameters);
 							} catch (Exception e2) {
 								throw e;
 							}
@@ -167,30 +155,24 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 						}
 					}
 				} else if (context.isConstructorExpected()) {
-					inInvokable = Methods.findConstructor(inputTargetType, parameters)
-							.withTargetType(result);
+					inInvokable = Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
+					System.out.println(inInvokable);
 				} else {
-					inInvokable = Methods.findMethod(
-							generateInMethodNames(name, overriddenInMethodName),
-							inputTargetType, context.isStaticMethodExpected(), result,
-							inMethodChained && allowInMethodResultCast, parameters);
+					inInvokable = Methods.findMethod(generateInMethodNames(name, overriddenInMethodName), inputTargetType,
+							context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast, parameters);
 				}
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
-			} catch (NoSuchMethodException e) {
-				throw new SchemaException(
-						"Cannot find input method for node '" + name + "' on class '"
-								+ inputTargetType + "' with parameters '" + parameters + "'",
-						e);
+			} catch (Exception e) {
+				throw new SchemaException("Cannot find input method for node '" + name + "' on class '" + inputTargetType
+						+ "' with parameters '" + parameters + "'", e);
 			}
 		}
 
 		return inInvokable;
-
 	}
 
-	private static List<String> generateInMethodNames(QualifiedName nodeName,
-			String inheritedInMethodName) {
+	private static List<String> generateInMethodNames(QualifiedName nodeName, String inheritedInMethodName) {
 		List<String> names;
 
 		if (inheritedInMethodName != null)
@@ -217,13 +199,11 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	static String capitalize(String string) {
-		return string == "" ? ""
-				: Character.toUpperCase(string.charAt(0)) + string.substring(1);
+		return string == "" ? "" : Character.toUpperCase(string.charAt(0)) + string.substring(1);
 	}
 
 	private String inMethodName() {
-		String inMethodName = overrideMerge.getOverride(InputNode::getInMethodName)
-				.tryGet();
+		String inMethodName = overrideMerge.getOverride(InputNode::getInMethodName).tryGet();
 
 		if (!context.isInputExpected() && inMethodName == null)
 			inMethodName = "null";
@@ -242,13 +222,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	private TypeToken<?> postInputType() {
 		TypeToken<?> postInputClass;
 
-		if ("null".equals(inMethodName)
-				|| (inMethodChained != null && !inMethodChained)) {
+		if ("null".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = inputTargetType();
 		} else if (isAbstract || inMethodChained == null) {
-			postInputClass = overrideMerge
-					.getOverride(
-							n -> n.getPostInputType() == null ? null : n.getPostInputType())
+			postInputClass = overrideMerge.getOverride(n -> n.getPostInputType() == null ? null : n.getPostInputType())
 					.validate(TypeToken::isAssignableTo).tryGet();
 		} else {
 			TypeToken<?> methodReturn;
@@ -257,22 +234,16 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 			if (methodReturn.getType() instanceof TypeVariableCapture)
 				methodReturn = TypeToken
-						.over(
-								IntersectionType.from(
-										Arrays.asList(((TypeVariableCapture) methodReturn.getType())
-												.getUpperBounds()),
-						methodReturn.getResolver().getBounds()))
+						.over(IntersectionType.from(Arrays.asList(((TypeVariableCapture) methodReturn.getType()).getUpperBounds()),
+								methodReturn.getResolver().getBounds()))
 						.withBoundsFrom(methodReturn.getResolver());
 
-			TypeToken<?> localPostInputClass = overrideMerge.node()
-					.getPostInputType();
+			TypeToken<?> localPostInputClass = overrideMerge.node().getPostInputType();
 
-			if (localPostInputClass == null
-					|| localPostInputClass.isAssignableFrom(methodReturn))
+			if (localPostInputClass == null || localPostInputClass.isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge
-					.getOverride(n -> n.getPostInputType(), localPostInputClass)
+			postInputClass = overrideMerge.getOverride(n -> n.getPostInputType(), localPostInputClass)
 					.validate(TypeToken::isAssignableTo).get();
 		}
 

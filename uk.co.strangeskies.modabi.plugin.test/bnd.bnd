@@ -18,9 +18,12 @@ Bundle-Description: \
 	biz.aQute.bndlib,\
 	${testpath.base}
 
-Private-Package: uk.co.strangeskies.modabi.plugin.test
+Private-Package: \
+	uk.co.strangeskies.modabi.plugin.test
 
-Import-Package: uk.co.strangeskies.modabi.schema, *
+Import-Package: \
+	uk.co.strangeskies.modabi.schema,\
+	*
 
 # This makes run requirements simpler so they work for different strangeskies repo types
 Export-Package: \

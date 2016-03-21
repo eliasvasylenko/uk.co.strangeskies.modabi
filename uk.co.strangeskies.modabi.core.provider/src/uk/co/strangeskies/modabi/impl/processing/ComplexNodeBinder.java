@@ -30,30 +30,30 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
 public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<U>> {
-	private final List<U> binding;
+	private final List<NodeBinding<U>> bindings;
 
 	public ComplexNodeBinder(ProcessingContextImpl context, ComplexNode<U> node) {
 		super(context, node.effective());
 
-		binding = bind();
+		bindings = bind();
 	}
 
 	public ComplexNodeBinder<U> bindToTarget() {
-		for (Object item : getBinding())
-			invokeInMethod(item);
+		for (NodeBinding<U> item : getBinding())
+			invokeInMethod(item.getBinding());
 
 		return this;
 	}
 
-	public List<U> getBinding() {
-		return binding;
+	public List<NodeBinding<U>> getBinding() {
+		return bindings;
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<U> bind() {
+	private List<NodeBinding<U>> bind() {
 		ComplexNode.Effective<U> node = getNode();
 
-		List<U> result = new ArrayList<>();
+		List<NodeBinding<U>> result = new ArrayList<>();
 
 		repeatNode(count -> {
 			ProcessingContextImpl context = getContext();
@@ -92,7 +92,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				binding = bind.apply(context);
 			}
 
-			result.add(binding);
+			result.add(new NodeBinding<>(binding, exactNode));
 			context.bindings().add((ComplexNode.Effective<U>) exactNode, binding);
 
 			return true;
@@ -114,11 +114,6 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 
 				if (extension == null) {
 					throw new BindingException("Cannot find model '" + nextElement + "' to bind to", context);
-				}
-
-				if (!node.getDataType().isAssignableFrom(extension.getDataType())) {
-					throw new BindingException("Named input node '" + nextElement + "' of type '" + extension.getDataType()
-							+ "' does not match type '" + node.getDataType() + "' of extention point", context);
 				}
 
 				exactNode = context.getComplexNodeOverrides(node).putGet((Effective<? extends U>) extension);

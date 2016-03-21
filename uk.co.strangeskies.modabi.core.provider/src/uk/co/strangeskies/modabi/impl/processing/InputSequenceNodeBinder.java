@@ -22,14 +22,12 @@ import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
-public class InputSequenceNodeBinder
-		extends InputNodeBinder<InputSequenceNode.Effective> {
-	public InputSequenceNodeBinder(ProcessingContextImpl context,
-			InputSequenceNode.Effective node) {
+public class InputSequenceNodeBinder extends InputNodeBinder<InputSequenceNode.Effective> {
+	public InputSequenceNodeBinder(ProcessingContextImpl context, InputSequenceNode.Effective node) {
 		super(context, node);
 
 		Consumer<ProcessingContextImpl> bind = c -> invokeInMethod(
-				BindingNodeBinder.getSingleBindingSequence(node, c).toArray());
+				BindingNodeBinder.getSingleBindingSequence(node, c).stream().map(NodeBinding::getBinding).toArray());
 
 		repeatNode(count -> {
 			if (node.occurrences().isValueBelow(count)) {

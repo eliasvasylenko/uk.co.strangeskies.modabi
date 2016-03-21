@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<scriptProperty
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/">
+
+	<function language="JavaScript">
+
+		function apply(lowercase) {
+			return lowercase.toUpperCase();
+		}
+
+	</function>
+</scriptProperty>

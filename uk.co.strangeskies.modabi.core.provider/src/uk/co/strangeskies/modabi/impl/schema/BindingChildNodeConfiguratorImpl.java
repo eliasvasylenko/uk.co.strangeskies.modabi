@@ -222,7 +222,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public S postInputType(String postInputType) {
-		return postInputType(TypeToken.fromString(postInputType, getImports()));
+		return postInputType(parseTypeWithSubstitutedBrackets(postInputType, getImports()));
 	}
 
 	@Override
