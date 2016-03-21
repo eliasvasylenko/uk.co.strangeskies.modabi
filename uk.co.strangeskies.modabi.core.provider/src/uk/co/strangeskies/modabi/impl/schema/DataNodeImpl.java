@@ -89,7 +89,6 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 
 					if (resolution == ValueResolution.REGISTRATION_TIME && Reified.class.isAssignableFrom(rawType)) {
 						TypeToken<?> providedType = ((Reified<?>) providedItem).getThisType();
-						System.out.println(providedType);
 						/*
 						 * TODO Incorporate
 						 */

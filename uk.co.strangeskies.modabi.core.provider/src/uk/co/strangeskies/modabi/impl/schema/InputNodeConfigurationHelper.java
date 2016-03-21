@@ -156,7 +156,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 					}
 				} else if (context.isConstructorExpected()) {
 					inInvokable = Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
-					System.out.println(inInvokable);
 				} else {
 					inInvokable = Methods.findMethod(generateInMethodNames(name, overriddenInMethodName), inputTargetType,
 							context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast, parameters);
