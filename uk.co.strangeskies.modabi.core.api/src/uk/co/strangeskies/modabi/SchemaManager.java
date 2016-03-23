@@ -25,18 +25,14 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 
 public interface SchemaManager {
-	DataFormats dataFormats();
+	BaseSchema getBaseSchema();
+
+	MetaSchema getMetaSchema();
 
 	SchemaConfigurator getSchemaConfigurator();
 
-	boolean registerSchema(Schema schema);
-
-	<T> BindingFuture<T> registerBinding(Model<T> model, T data);
-
-	// Blocks until all possible processing is done other than waiting imports:
 	<T> Binder<T> bind(Model<T> model);
 
-	// Blocks until all possible processing is done other than waiting imports:
 	<T> Binder<T> bind(TypeToken<T> dataClass);
 
 	default <T> Binder<T> bind(Class<T> dataClass) {
@@ -67,10 +63,6 @@ public interface SchemaManager {
 
 	<T> Unbinder<T> unbind(T data);
 
-	MetaSchema getMetaSchema();
-
-	BaseSchema getBaseSchema();
-
 	Provisions provisions();
 
 	Schemata registeredSchemata();
@@ -78,4 +70,8 @@ public interface SchemaManager {
 	Models registeredModels();
 
 	DataTypes registeredTypes();
+
+	DataFormats dataFormats();
+	
+	SchemaManagerScope childScope();
 }

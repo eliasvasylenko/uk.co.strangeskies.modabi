@@ -20,14 +20,27 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.schema.Model;
 
-/*
- * TODO this doesn't need to be an interface with the current design...
- * consider converting to class if potential expansion of interface doesn't pan out.
- */
-public interface Binding<T> {
-	public Model<T> getModel();
+public class Binding<T> {
+	private final Model<T> model;
+	private final T data;
 
-	public T getData();
+	public Binding(Model<T> model, T data) {
+		this.model = model;
+		this.data = data;
+	}
+
+	public Model<T> getModel() {
+		return model;
+	}
+
+	public T getData() {
+		return data;
+	}
+
+	@Override
+	public String toString() {
+		return data + " : " + model;
+	}
 
 	// public void updateData();
 

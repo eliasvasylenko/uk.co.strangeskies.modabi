@@ -47,7 +47,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -267,7 +267,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 					return new TypedObject<>(requestedType, (U) provider.apply(state));
 
 				if (!provisions().isProvided(requestedType, state))
-					throw new BindingException("Requested type '" + requestedType + "' is not provided by the unbinding context",
+					throw new ProcessingException("Requested type '" + requestedType + "' is not provided by the unbinding context",
 							state);
 				return provisions().provide(requestedType, state);
 			}
@@ -401,9 +401,9 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public <I> I attemptUnbindingUntilSuccessful(Iterable<I> attemptItems,
-			BiConsumer<ProcessingContextImpl, I> unbindingMethod, Function<Set<Exception>, BindingException> onFailure) {
+			BiConsumer<ProcessingContextImpl, I> unbindingMethod, Function<Set<Exception>, ProcessingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new BindingException("Must supply items for unbinding attempt", this);
+			throw new ProcessingException("Must supply items for unbinding attempt", this);
 
 		Set<Exception> failures = new HashSet<>();
 
@@ -462,9 +462,9 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems,
-			BiConsumer<ProcessingContextImpl, I> bindingMethod, Function<Set<Exception>, BindingException> onFailure) {
+			BiConsumer<ProcessingContextImpl, I> bindingMethod, Function<Set<Exception>, ProcessingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new BindingException("Must supply items for binding attempt", this);
+			throw new ProcessingException("Must supply items for binding attempt", this);
 
 		Set<Exception> failures = new HashSet<>();
 

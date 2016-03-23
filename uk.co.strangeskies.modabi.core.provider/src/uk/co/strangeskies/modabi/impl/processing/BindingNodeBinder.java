@@ -31,7 +31,7 @@ import java.util.Set;
 import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.PartialSchemaProcessor;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -88,7 +88,7 @@ public class BindingNodeBinder {
 				Object[] parameterArray = parameters.stream().map(NodeBinding::getBinding).toArray();
 				binding = TypedObject.castInto(bindingType, ((Constructor<?>) inputMethod).newInstance(parameterArray));
 			} catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
-				throw new BindingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
+				throw new ProcessingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
 						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
@@ -130,7 +130,7 @@ public class BindingNodeBinder {
 				Object[] parameterArray = parameters.stream().map(NodeBinding::getBinding).toArray();
 				binding = TypedObject.castInto(bindingType, ((Method) inputMethod).invoke(null, parameterArray));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
-				throw new BindingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
+				throw new ProcessingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
 						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
@@ -236,7 +236,7 @@ public class BindingNodeBinder {
 				if (!results.isEmpty()) {
 					result.set(results.get(0));
 				} else if (!node.occurrences().contains(0)) {
-					throw new BindingException("Node must be bound data", context);
+					throw new ProcessingException("Node must be bound data", context);
 				} else {
 					result.set(new NodeBinding<>(null, node));
 				}

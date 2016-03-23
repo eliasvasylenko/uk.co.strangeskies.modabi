@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -62,12 +62,12 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 				count++;
 			} while (!node.occurrences().isValueAbove(count + 1));
 		} catch (Exception e) {
-			throw new BindingException("Node '" + node.getName() + "' failed to bind on occurance '" + count + "' of range '"
+			throw new ProcessingException("Node '" + node.getName() + "' failed to bind on occurance '" + count + "' of range '"
 					+ node.occurrences() + "'", context, e);
 		}
 
 		if (!node.occurrences().contains(count)) {
-			throw new BindingException("Node '" + node.getName() + "' occurrences '" + count + "' should be within range '"
+			throw new ProcessingException("Node '" + node.getName() + "' occurrences '" + count + "' should be within range '"
 					+ node.occurrences() + "'", getContext());
 		}
 	}
@@ -105,7 +105,7 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 		try {
 			return parentContext.withReplacementBindingObject(next.process(childProcessor).getContext().getBindingObject());
 		} catch (Exception e) {
-			throw new BindingException("Failed to bind node '" + next + "'", context, e);
+			throw new ProcessingException("Failed to bind node '" + next + "'", context, e);
 		}
 	}
 }

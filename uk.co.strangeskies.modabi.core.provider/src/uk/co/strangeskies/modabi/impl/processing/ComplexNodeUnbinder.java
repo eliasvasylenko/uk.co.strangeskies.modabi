@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -48,7 +48,7 @@ public class ComplexNodeUnbinder {
 						.collect(Collectors.toList());
 
 				if (node.isAbstract() && validOverrides.isEmpty()) {
-					throw new BindingException(
+					throw new ProcessingException(
 							"Unable to find model to satisfy complex node '"
 									+ node.getName() + "' with base model '" + node.baseModel().stream()
 											.map(m -> m.source().getName().toString()).collect(Collectors.joining(", "))
@@ -59,18 +59,18 @@ public class ComplexNodeUnbinder {
 				try {
 					context.attemptUnbindingUntilSuccessful(validOverrides,
 							(c, n) -> unbindExactNode(c, (ComplexNode.Effective<U>) overrides.putGet(n), item),
-							l -> new BindingException(
+							l -> new ProcessingException(
 									"Unable to unbind complex node '" + node.getName() + "' with model candidates '"
 											+ validOverrides.stream().map(m -> m.effective().getName().toString())
 													.collect(Collectors.joining(", "))
 											+ "' for object '" + item + "' to be unbound",
 									context, l));
-				} catch (BindingException e) {
+				} catch (ProcessingException e) {
 					if (!node.isAbstract()) {
 						for (U i : data)
 							unbindExactNode(context, node, i);
 					} else {
-						throw new BindingException("Could not unbind without extension", context, e);
+						throw new ProcessingException("Could not unbind without extension", context, e);
 					}
 				}
 			}
@@ -91,7 +91,7 @@ public class ComplexNodeUnbinder {
 
 			context.bindings().add(element, data);
 		} catch (ClassCastException e) {
-			throw new BindingException("Cannot unbind data at this node.", context, e);
+			throw new ProcessingException("Cannot unbind data at this node.", context, e);
 		}
 	}
 }

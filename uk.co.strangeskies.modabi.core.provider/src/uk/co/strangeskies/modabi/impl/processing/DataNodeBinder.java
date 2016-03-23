@@ -29,7 +29,7 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
@@ -134,18 +134,18 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		if (results.isEmpty() && !node.occurrences().contains(0) && !node.occurrences().contains(0)) {
 			String message = "Node '" + node.getName() + "' must be bound data.";
 			if (cause != null)
-				throw new BindingException(message, getContext(), cause);
+				throw new ProcessingException(message, getContext(), cause);
 			else
-				throw new BindingException(message, getContext());
+				throw new ProcessingException(message, getContext());
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
 			String message = "Node '" + node.getName() + "' binding results '" + results
 					+ "' must be bound data within range of '" + Range.compose(node.occurrences()) + "' occurrences.";
 			if (cause != null)
-				throw new BindingException(message, getContext(), cause);
+				throw new ProcessingException(message, getContext(), cause);
 			else
-				throw new BindingException(message, getContext());
+				throw new ProcessingException(message, getContext());
 		}
 	}
 
@@ -178,7 +178,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					dataSource.get();
 
 				if (context.isExhaustive() && !dataSource.isComplete()) {
-					throw new BindingException(
+					throw new ProcessingException(
 							"Failed to bind all of data source, with ["
 									+ dataSource.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "] remaining",
 							context, e);
@@ -216,7 +216,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			context.attemptBindingUntilSuccessful(overrides.keySet(), (c, n) -> {
 				DataNode.Effective<? extends U> exactNode = overrides.putGet(n);
 				result.set(new NodeBinding<>(new BindingNodeBinder(c).bind(exactNode), exactNode));
-			}, l -> new BindingException("Unable to bind data node '" + node.getName() + "' with type candidates '"
+			}, l -> new ProcessingException("Unable to bind data node '" + node.getName() + "' with type candidates '"
 					+ overrides.keySet().stream().map(m -> m.effective().getName().toString()).collect(Collectors.joining(", "))
 					+ "'", context, l));
 

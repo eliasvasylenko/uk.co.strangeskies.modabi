@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
@@ -113,7 +113,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				Model.Effective<?> extension = context.getModel(nextElement);
 
 				if (extension == null) {
-					throw new BindingException("Cannot find model '" + nextElement + "' to bind to", context);
+					throw new ProcessingException("Cannot find model '" + nextElement + "' to bind to", context);
 				}
 
 				exactNode = context.getComplexNodeOverrides(node).putGet((Effective<? extends U>) extension);

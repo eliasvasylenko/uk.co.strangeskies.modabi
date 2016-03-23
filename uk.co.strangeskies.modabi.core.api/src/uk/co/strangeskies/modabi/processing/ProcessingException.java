@@ -23,28 +23,28 @@ import java.util.Collection;
 
 import uk.co.strangeskies.modabi.SchemaException;
 
-public class BindingException extends SchemaException {
+public class ProcessingException extends SchemaException {
 	private static final long serialVersionUID = 1L;
 
 	private final ProcessingContext state;
 
 	private final Collection<? extends Exception> multiCause;
 
-	public BindingException(String message, ProcessingContext state, Collection<? extends Exception> cause) {
+	public ProcessingException(String message, ProcessingContext state, Collection<? extends Exception> cause) {
 		super(message + getBindingStateString(state), cause.iterator().next());
 
 		multiCause = cause;
 		this.state = state;
 	}
 
-	public BindingException(String message, ProcessingContext state, Exception cause) {
+	public ProcessingException(String message, ProcessingContext state, Exception cause) {
 		super(message + getBindingStateString(state), cause);
 
 		multiCause = Arrays.asList(cause);
 		this.state = state;
 	}
 
-	public BindingException(String message, ProcessingContext state) {
+	public ProcessingException(String message, ProcessingContext state) {
 		super(message + getBindingStateString(state));
 
 		multiCause = null;

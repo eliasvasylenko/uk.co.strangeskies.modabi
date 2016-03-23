@@ -50,6 +50,7 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.SchemaManagerScope;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
@@ -88,14 +89,20 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder /* TODO , Log log */) {
+		this(schemaBuilder, new CoreSchemata(schemaBuilder));
+	}
+
+	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
+			CoreSchemata coreSchemata /* TODO , Log log */) {
 		this.schemaBuilder = schemaBuilder;
+		this.coreSchemata = coreSchemata;
 
 		bindingFutures = new ConcurrentHashMap<>();
 		bindings = new ConcurrentHashMap<>();
 
-		coreSchemata = new CoreSchemata(schemaBuilder);
-
 		registeredSchemata = new Schemata();
+		registeredSchemata.changes().addObserver(c -> registerSchemata(c.added()));
+
 		registeredModels = new Models();
 		registeredTypes = new DataTypes();
 
@@ -124,7 +131,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		QualifiedName schemaModelName = coreSchemata.metaSchema().getSchemaModel().getName();
 		bindingFutures.put(schemaModelName, ObservableSet.ofElements());
 		bindings.put(schemaModelName, ObservableSet.ofElements());
-		registerSchema(coreSchemata.metaSchema());
+		registeredSchemata().add(coreSchemata.metaSchema());
 	}
 
 	public ProcessingContextImpl getProcessingContext() {
@@ -144,7 +151,7 @@ public class SchemaManagerImpl implements SchemaManager {
 					@Override
 					public Schema create() {
 						Schema schema = super.create();
-						registerSchema(schema);
+						registeredSchemata().add(schema);
 						return schema;
 					}
 				};
@@ -152,8 +159,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		};
 	}
 
-	private boolean registerSchemaImpl(Schema schema) {
-		if (registeredSchemata.add(schema)) {
+	private void registerSchemata(Set<Schema> added) {
+		for (Schema schema : added) {
 			for (Model<?> model : schema.getModels())
 				registerModel(model);
 
@@ -161,26 +168,13 @@ public class SchemaManagerImpl implements SchemaManager {
 				registerDataType(type);
 
 			for (Schema dependency : schema.getDependencies())
-				registerSchema(dependency);
+				registeredSchemata.add(dependency);
 
-			return true;
-		} else {
-			return false;
+			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel(), schema));
 		}
 	}
 
-	@Override
-	public boolean registerSchema(Schema schema) {
-		if (registerSchemaImpl(schema)) {
-			registerBinding(coreSchemata.metaSchema().getSchemaModel(), schema);
-
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	void registerModel(Model<?> model) {
+	private void registerModel(Model<?> model) {
 		synchronized (registeredModels) {
 			if (registeredModels.add(model)) {
 				registeredModels.notifyAll();
@@ -191,28 +185,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		}
 	}
 
-	void registerDataType(DataType<?> type) {
+	private void registerDataType(DataType<?> type) {
 		registeredTypes.add(type);
-	}
-
-	@Override
-	public <T> BindingFuture<T> registerBinding(Model<T> model, T data) {
-		return registerBindingImpl(new Binding<T>() {
-			@Override
-			public Model<T> getModel() {
-				return model;
-			}
-
-			@Override
-			public T getData() {
-				return data;
-			}
-			
-			@Override
-			public String toString() {
-				return data + " : " + model;
-			}
-		});
 	}
 
 	protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
@@ -288,7 +262,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			 */
 
 			return (Model<T>) model;
-		} , this::addBindingFuture);
+		}, this::addBindingFuture);
 	}
 
 	@Override
@@ -361,5 +335,10 @@ public class SchemaManagerImpl implements SchemaManager {
 	@Override
 	public Provisions provisions() {
 		return provisions;
+	}
+
+	@Override
+	public SchemaManagerScope childScope() {
+		return null; // TODO
 	}
 }

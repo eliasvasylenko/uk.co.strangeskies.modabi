@@ -37,7 +37,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocks;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -187,17 +187,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 				T data = getData.tryGet();
 
-				bindingResult = new Binding<T>() {
-					@Override
-					public Model<T> getModel() {
-						return model;
-					}
-
-					@Override
-					public T getData() {
-						return data;
-					}
-				};
+				bindingResult = new Binding<>(model, data);
 
 				return bindingResult;
 			} catch (InterruptedException e) {
@@ -238,15 +228,15 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			QualifiedName inputRoot = input.startNextChild();
 			if (!inputRoot.equals(model.getName()))
-				throw new BindingException("Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'",
-						context);
+				throw new ProcessingException(
+						"Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'", context);
 
 			try {
 				return new BindingNodeBinder(context).bind(model);
 			} catch (SchemaException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new BindingException("Unexpected problem during binding", context, e);
+				throw new ProcessingException("Unexpected problem during binding", context, e);
 			}
 		});
 	}

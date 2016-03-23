@@ -40,7 +40,7 @@ import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
@@ -145,7 +145,7 @@ public class BindingProviders {
 	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
 			QualifiedName idDomain, DataSource idSource, boolean externalDependency) {
 		if (idSource.currentState() == DataStreamState.TERMINATED || idSource.isComplete())
-			throw new BindingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
+			throw new ProcessingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
 					context);
 
 		/*
@@ -159,7 +159,7 @@ public class BindingProviders {
 
 		ChildNode<?, ?> child = model.effective().child(idDomain);
 		if (!(child instanceof DataNode.Effective<?>))
-			throw new BindingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
+			throw new ProcessingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
 		DataNode.Effective<?> idNode = (Effective<?>) child;
 
 		/*

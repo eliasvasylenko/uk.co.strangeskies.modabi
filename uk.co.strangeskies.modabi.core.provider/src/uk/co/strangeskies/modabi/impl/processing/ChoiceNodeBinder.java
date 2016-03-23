@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.function.Consumer;
 
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 
 public class ChoiceNodeBinder extends ChildNodeBinder<ChoiceNode.Effective> {
@@ -35,7 +35,7 @@ public class ChoiceNodeBinder extends ChildNodeBinder<ChoiceNode.Effective> {
 				context
 						.attemptBindingUntilSuccessful(node.children(),
 								(c, n) -> bind(c, n),
-								n -> new BindingException("Option '" + n
+								n -> new ProcessingException("Option '" + n
 										+ "' under choice node '" + node + "' could not be unbound",
 								context, n));
 			}

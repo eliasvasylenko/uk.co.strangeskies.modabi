@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import uk.co.strangeskies.modabi.processing.BindingException;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.reflection.Invokable;
@@ -53,7 +53,7 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 				result = TypedObject.castInto(postInputType,
 						((Method) getNode().getInMethod()).invoke(target.getObject(), parameters));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
-				throw new BindingException(
+				throw new ProcessingException(
 						"Unable to call method '" + getNode().getInMethod() + "' with parameters '" + Arrays.toString(parameters),
 						getContext(), e);
 			}
