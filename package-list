@@ -16,6 +16,7 @@ uk.co.strangeskies.modabi.io.json.impl
 uk.co.strangeskies.modabi.io.structured
 uk.co.strangeskies.modabi.io.xml
 uk.co.strangeskies.modabi.mapping
+uk.co.strangeskies.modabi.osgi
 uk.co.strangeskies.modabi.plugin
 uk.co.strangeskies.modabi.processing
 uk.co.strangeskies.modabi.processing.providers
