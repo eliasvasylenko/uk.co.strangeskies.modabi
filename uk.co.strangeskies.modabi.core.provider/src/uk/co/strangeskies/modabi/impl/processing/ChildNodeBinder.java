@@ -21,8 +21,8 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;

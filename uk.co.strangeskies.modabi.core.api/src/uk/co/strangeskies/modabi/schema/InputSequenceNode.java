@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 
 public interface InputSequenceNode extends
 		InputNode<InputSequenceNode, InputSequenceNode.Effective>,
@@ -26,7 +26,7 @@ public interface InputSequenceNode extends
 	interface Effective extends InputSequenceNode,
 			InputNode.Effective<InputSequenceNode, Effective> {
 		@Override
-		default void process(SchemaProcessor context) {
+		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
 	}

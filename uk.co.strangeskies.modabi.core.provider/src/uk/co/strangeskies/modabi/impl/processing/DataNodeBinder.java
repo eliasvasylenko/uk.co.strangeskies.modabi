@@ -26,11 +26,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
@@ -83,7 +84,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				 */
 				DataSource providedValueBuffer = node.providedValueBuffer();
 				context = context.withProvisionScope().forceExhausting();
-				context.provisions().registerProvider(DataSource.class, () -> providedValueBuffer);
+				context.provisions().add(Provider.over(DataSource.class, () -> providedValueBuffer));
 				results.addAll(bindList(context, node));
 			} else if (node.format() != null) {
 				switch (node.format()) {
@@ -197,7 +198,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	private static <U> NodeBinding<U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
 			DataNode.Effective<U> node) {
 		context = context.withProvisionScope().forceExhausting();
-		context.provisions().registerProvider(DataSource.class, () -> dataSource);
+		context.provisions().add(Provider.over(DataSource.class, () -> dataSource));
 
 		NodeBinding<U> binding = bindExactNode(context, node);
 
@@ -232,7 +233,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				ProcessingContextImpl derivedContext = context.withProvisionScope().forceExhausting();
-				derivedContext.provisions().registerProvider(DataSource.class, () -> data);
+				derivedContext.provisions().add(Provider.over(DataSource.class, () -> data));
 				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream().map(NodeBinding::getBinding)
 						.collect(toList());
 			}

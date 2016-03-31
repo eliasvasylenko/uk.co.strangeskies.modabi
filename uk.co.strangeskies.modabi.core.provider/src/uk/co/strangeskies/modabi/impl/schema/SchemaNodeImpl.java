@@ -27,10 +27,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -79,7 +79,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 			for (ChildNode.Effective<?, ?> child : nodeStack.peek().children()) {
 				nodeStack.push(child);
 
-				child.process(new SchemaProcessor() {
+				child.process(new NodeProcessor() {
 					@Override
 					public void accept(ChoiceNode.Effective node) {
 						requireNonAbstract(nodeStack);

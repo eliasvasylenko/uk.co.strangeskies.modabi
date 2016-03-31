@@ -18,12 +18,12 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 
 public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
 	interface Effective<T> extends DataType<T>, BindingNode.Effective<T, DataType<T>, Effective<T>> {
 		@Override
-		default void process(SchemaProcessor context) {
+		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
 	}

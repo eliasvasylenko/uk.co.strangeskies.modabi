@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
@@ -236,7 +237,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public <T> ProcessingContextImpl withProvisionScope() {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions.deriveChildScope(),
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions.nestChildScope(),
 				exhaustive, bindingFutureBlocker);
 	}
 
@@ -328,7 +329,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 			dataTarget = new BufferingDataTarget();
 			DataTarget finalTarget = dataTarget;
 			context = context.withProvisionScope();
-			context.provisions().registerProvider(new TypeToken<DataTarget>() {}, () -> finalTarget);
+			context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, () -> finalTarget));
 		}
 		context = context.withOutput(output);
 
@@ -387,7 +388,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 			dataSource = context.provisions().provide(DataSource.class, this).getObject().copy();
 			DataSource finalSource = dataSource;
 			context = context.withProvisionScope();
-			context.provisions().registerProvider(new TypeToken<DataSource>() {}, () -> finalSource);
+			context.provisions().add(Provider.over(new TypeToken<DataSource>() {}, () -> finalSource));
 		}
 		StructuredDataSource input = this.input.split();
 		context = context.withInput(input);

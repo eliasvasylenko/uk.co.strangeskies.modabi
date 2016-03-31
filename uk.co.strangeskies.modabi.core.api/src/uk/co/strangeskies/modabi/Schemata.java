@@ -28,7 +28,7 @@ public class Schemata extends QualifiedNamedSet<Schemata, Schema> {
 	}
 
 	@Override
-	public Schemata deriveChildScope() {
+	public Schemata nestChildScope() {
 		return new Schemata(this);
 	}
 

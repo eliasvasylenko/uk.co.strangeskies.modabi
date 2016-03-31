@@ -22,6 +22,7 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.Scoped;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 
 public interface SchemaManager extends Scoped<SchemaManager> {

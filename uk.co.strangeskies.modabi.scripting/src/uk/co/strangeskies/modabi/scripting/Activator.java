@@ -24,6 +24,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.SchemaManager;
 
 @Component
@@ -36,6 +37,6 @@ public class Activator {
 
 	@Activate
 	public void activate() {
-		schemaManager.provisions().registerProvider(ScriptEngineManager.class, () -> scriptEngineManager);
+		schemaManager.provisions().add(Provider.over(ScriptEngineManager.class, () -> scriptEngineManager));
 	}
 }

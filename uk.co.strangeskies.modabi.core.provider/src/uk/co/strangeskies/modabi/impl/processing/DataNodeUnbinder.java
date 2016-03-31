@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
@@ -55,7 +56,7 @@ public class DataNodeUnbinder {
 		BufferingDataTarget target = new BufferingDataTarget();
 
 		ProcessingContextImpl context = this.context.withOutput(null).withProvisionScope();
-		context.provisions().registerProvider(new TypeToken<DataTarget>() {}, c -> target);
+		context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, c -> target));
 
 		unbindWithFormat(node, data, null, context);
 
@@ -88,7 +89,7 @@ public class DataNodeUnbinder {
 						target = new BufferingDataTarget();
 						BufferingDataTarget finalTarget = target;
 						context = context.withProvisionScope();
-						context.provisions().registerProvider(new TypeToken<DataTarget>() {}, () -> finalTarget);
+						context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, () -> finalTarget));
 					}
 
 					unbindToContext(node, item, context, attemptedOverrideMap);

@@ -23,8 +23,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -82,7 +82,7 @@ public class DataTypes extends QualifiedNamedSet<DataTypes, DataType<?>> {
 	}
 
 	@Override
-	public DataTypes deriveChildScope() {
+	public DataTypes nestChildScope() {
 		return new DataTypes(this);
 	}
 }

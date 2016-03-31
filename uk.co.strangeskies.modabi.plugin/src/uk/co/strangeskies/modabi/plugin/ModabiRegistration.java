@@ -137,7 +137,7 @@ public class ModabiRegistration {
 	}
 
 	private BindingFuture<Schema> registerSchemaResource(ThrowingSupplier<InputStream, ?> inputStream) {
-		BindingFuture<Schema> bindingFuture = context.schemaManager().bindSchema().with(context.classLoader())
+		BindingFuture<Schema> bindingFuture = context.schemaManager().bindSchema().withClassLoader(context.classLoader())
 				.from(context.formatId(), inputStream);
 
 		/*

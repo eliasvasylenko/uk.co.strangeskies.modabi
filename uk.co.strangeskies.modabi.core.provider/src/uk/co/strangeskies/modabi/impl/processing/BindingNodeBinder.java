@@ -30,9 +30,9 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.impl.PartialSchemaProcessor;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.impl.PartialNodeProcessor;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -172,7 +172,7 @@ public class BindingNodeBinder {
 
 	private static Executable getInputMethod(ChildNode.Effective<?, ?> node) {
 		IdentityProperty<Executable> result = new IdentityProperty<>();
-		node.process(new PartialSchemaProcessor() {
+		node.process(new PartialNodeProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
 				result.set(node.getInMethod());
@@ -194,7 +194,7 @@ public class BindingNodeBinder {
 	public static List<NodeBinding<?>> getSingleBindingSequence(ChildNode.Effective<?, ?> node,
 			ProcessingContextImpl context) {
 		List<NodeBinding<?>> parameters = new ArrayList<>();
-		node.process(new PartialSchemaProcessor() {
+		node.process(new PartialNodeProcessor() {
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
 				for (ChildNode.Effective<?, ?> child : node.children())
@@ -217,7 +217,7 @@ public class BindingNodeBinder {
 
 	public static NodeBinding<?> getSingleBinding(ChildNode.Effective<?, ?> node, ProcessingContextImpl context) {
 		IdentityProperty<NodeBinding<?>> result = new IdentityProperty<>();
-		node.process(new PartialSchemaProcessor() {
+		node.process(new PartialNodeProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
 				List<NodeBinding<U>> results = new ComplexNodeBinder<>(context, node).getBinding();

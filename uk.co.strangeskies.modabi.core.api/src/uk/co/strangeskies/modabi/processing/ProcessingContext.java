@@ -53,6 +53,11 @@ public interface ProcessingContext {
 	DataTypes registeredTypes();
 
 	/**
+	 * @return Objects provided by schema manager for certain types
+	 */
+	Provisions provisions();
+
+	/**
 	 * Get the model of the given name registered in the {@link SchemaManager}
 	 * backing this context.
 	 * 
@@ -83,11 +88,6 @@ public interface ProcessingContext {
 	 * @return A mapping from possible overrides to override results
 	 */
 	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(DataNode<T> node);
-
-	/**
-	 * @return Objects provided by schema manager for certain types
-	 */
-	Provisions provisions();
 
 	/**
 	 * The stack of schema nodes corresponding to the processing position in a

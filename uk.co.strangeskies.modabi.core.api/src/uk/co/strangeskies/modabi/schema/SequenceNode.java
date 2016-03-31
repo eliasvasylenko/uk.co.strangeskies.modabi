@@ -18,14 +18,14 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 
 public interface SequenceNode extends
 		ChildNode<SequenceNode, SequenceNode.Effective> {
 	interface Effective extends SequenceNode,
 			ChildNode.Effective<SequenceNode, Effective> {
 		@Override
-		default void process(SchemaProcessor context) {
+		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
 	}

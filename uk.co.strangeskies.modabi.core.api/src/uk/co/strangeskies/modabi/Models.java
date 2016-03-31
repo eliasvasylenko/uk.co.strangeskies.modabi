@@ -108,7 +108,7 @@ public class Models extends QualifiedNamedSet<Models, Model<?>> {
 	}
 
 	@Override
-	public Models deriveChildScope() {
+	public Models nestChildScope() {
 		return new Models(this);
 	}
 }

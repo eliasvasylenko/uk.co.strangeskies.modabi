@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 
 public interface ComplexNode<T> extends
 		AbstractComplexNode<T, ComplexNode<T>, ComplexNode.Effective<T>>,
@@ -27,7 +27,7 @@ public interface ComplexNode<T> extends
 			AbstractComplexNode.Effective<T, ComplexNode<T>, Effective<T>>,
 			BindingChildNode.Effective<T, ComplexNode<T>, Effective<T>> {
 		@Override
-		default void process(SchemaProcessor context) {
+		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
 	}

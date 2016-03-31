@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -43,6 +44,7 @@ import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
@@ -68,6 +70,8 @@ import uk.co.strangeskies.utilities.collection.ObservableSet;
 
 @Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
+	private final SchemaManager parent;
+
 	private final SchemaBuilder schemaBuilder;
 
 	private final Map<QualifiedName, ObservableSet<?, BindingFuture<?>>> bindingFutures;
@@ -77,14 +81,42 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private final Provisions provisions;
 
+	/*
+	 * Schemata, models, and data types registered to this manager.
+	 */
+	private final Schemata registeredSchemata;
 	private final Models registeredModels;
 	private final DataTypes registeredTypes;
-	private final Schemata registeredSchemata;
 
+	/*
+	 * Data formats available for binding and unbinding
+	 */
 	private final DataFormats dataFormats;
 
 	public SchemaManagerImpl() {
 		this(new SchemaBuilderImpl());
+	}
+
+	protected SchemaManagerImpl(SchemaManager parent, SchemaBuilder schemaBuilder, CoreSchemata coreSchemata,
+			Schemata registeredSchemata, Models registeredModels, DataTypes registeredTypes, Provisions provisions,
+			DataFormats dataFormats) {
+		this.parent = parent;
+
+		this.schemaBuilder = schemaBuilder;
+		this.coreSchemata = coreSchemata;
+
+		this.bindingFutures = new ConcurrentHashMap<>();
+		this.bindings = new ConcurrentHashMap<>();
+
+		this.registeredSchemata = registeredSchemata;
+		this.registeredSchemata.changes().addObserver(c -> registerSchemata(c.added()));
+
+		this.registeredModels = registeredModels;
+		this.registeredTypes = registeredTypes;
+
+		this.provisions = provisions;
+
+		this.dataFormats = dataFormats;
 	}
 
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder /* TODO , Log log */) {
@@ -93,6 +125,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	public SchemaManagerImpl(SchemaBuilder schemaBuilder,
 			CoreSchemata coreSchemata /* TODO , Log log */) {
+		parent = null;
+
 		this.schemaBuilder = schemaBuilder;
 		this.coreSchemata = coreSchemata;
 
@@ -107,25 +141,25 @@ public class SchemaManagerImpl implements SchemaManager {
 
 		provisions = new ProvisionsImpl();
 
+		dataFormats = new DataFormats();
+
 		/*
 		 * Register schema builder provider
 		 */
-		provisions().registerProvider(SchemaBuilder.class, this::getSchemaBuilder);
+		provisions().add(Provider.over(SchemaBuilder.class, this::getSchemaBuilder));
 
 		/*
 		 * Register collection providers
 		 */
-		provisions().registerProvider(ProcessingContext.class, c -> c);
-		provisions().registerProvider(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>());
-		provisions().registerProvider(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>());
-		provisions().registerProvider(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>());
-		provisions().registerProvider(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>());
-		provisions().registerProvider(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>());
+		provisions().add(Provider.over(ProcessingContext.class, c -> c));
+		provisions().add(Provider.over(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>()));
+		provisions().add(Provider.over(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>()));
+		provisions().add(Provider.over(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>()));
+		provisions().add(Provider.over(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>()));
+		provisions().add(Provider.over(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>()));
 
 		new BindingProviders(this).registerProviders(provisions());
 		new UnbindingProviders(this).registerProviders(provisions());
-
-		dataFormats = new DataFormats();
 
 		QualifiedName schemaModelName = coreSchemata.metaSchema().getSchemaModel().getName();
 		bindingFutures.put(schemaModelName, ObservableSet.ofElements());
@@ -336,19 +370,28 @@ public class SchemaManagerImpl implements SchemaManager {
 		return provisions;
 	}
 
-	public SchemaManager getParentScope() {
-		return null;
-	}
-
-	public SchemaManager deriveChildScope() {
-		return null;
+	@Override
+	public Optional<SchemaManager> getParentScope() {
+		return Optional.ofNullable(parent);
 	}
 
 	@Override
-	public void collapseIntoParentScope() {}
+	public SchemaManager nestChildScope() {
+		return new SchemaManagerImpl(this, schemaBuilder, coreSchemata, registeredSchemata.nestChildScope(),
+				registeredModels.nestChildScope(), registeredTypes.nestChildScope(), provisions.nestChildScope(), dataFormats);
+	}
+
+	@Override
+	public void collapseIntoParentScope() {
+		registeredModels.collapseIntoParentScope();
+		registeredTypes.collapseIntoParentScope();
+		registeredSchemata.collapseIntoParentScope();
+		provisions.collapseIntoParentScope();
+	}
 
 	@Override
 	public SchemaManager copy() {
-		throw new UnsupportedOperationException();
+		return new SchemaManagerImpl(parent, schemaBuilder, coreSchemata, registeredSchemata.copy(),
+				registeredModels.copy(), registeredTypes.copy(), provisions.copy(), dataFormats);
 	}
 }

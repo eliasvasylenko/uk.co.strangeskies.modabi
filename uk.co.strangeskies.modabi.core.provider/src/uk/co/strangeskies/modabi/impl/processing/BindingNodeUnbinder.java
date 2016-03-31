@@ -31,10 +31,11 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.ValueResolution;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -57,7 +58,7 @@ public class BindingNodeUnbinder {
 
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
 		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node).withProvisionScope();
-		context.provisions().registerProvider(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node);
+		context.provisions().add(Provider.over(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node));
 
 		TypeToken<?> unbindingType = node.getUnbindingType() != null ? node.getUnbindingType() : node.getDataType();
 		TypeToken<?> unbindingFactoryType = node.getUnbindingFactoryType() != null ? node.getUnbindingFactoryType()
@@ -110,7 +111,7 @@ public class BindingNodeUnbinder {
 	}
 
 	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(ProcessingContextImpl context) {
-		SchemaProcessor processor = new SchemaProcessor() {
+		NodeProcessor processor = new NodeProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
 				new ComplexNodeUnbinder(context).unbind(node, getData(node, context));

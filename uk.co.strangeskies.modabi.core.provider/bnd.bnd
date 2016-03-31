@@ -1,5 +1,5 @@
 -buildpath: \
-	uk.co.strangeskies.modabi.core.api;version=project,\
+	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	${ss;utilities},\
 	${ss;reflection},\
 	${ss;mathematics}

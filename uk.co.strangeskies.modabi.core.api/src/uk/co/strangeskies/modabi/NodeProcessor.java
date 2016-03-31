@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public interface SchemaProcessor {
+public interface NodeProcessor {
 	default <U> void accept(DataType.Effective<U> node) {
 		accept((SchemaNode.Effective<?, ?>) node);
 	}

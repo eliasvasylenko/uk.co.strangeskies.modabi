@@ -18,14 +18,14 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 
 public interface ChoiceNode
 		extends ChildNode<ChoiceNode, ChoiceNode.Effective> {
 	interface Effective
 			extends ChoiceNode, ChildNode.Effective<ChoiceNode, Effective> {
 		@Override
-		default void process(SchemaProcessor context) {
+		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
 	}

@@ -25,10 +25,10 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaProcessor;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
@@ -94,7 +94,7 @@ public class BindingNodeOverrider {
 		return node.children().isEmpty() && !(node.isAbstract() && override.isAbstract());
 	}
 
-	private class OverridingProcessor implements SchemaProcessor {
+	private class OverridingProcessor implements NodeProcessor {
 		private final Deque<SchemaNodeConfigurator<?, ?>> configuratorStack;
 		private List<?> currentProvidedValue;
 
@@ -148,7 +148,7 @@ public class BindingNodeOverrider {
 			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
 			IdentityProperty<BindingStrategy> parentBindingStrategy = new IdentityProperty<>();
 			SchemaNode.Effective<?, ?> parent = node.parent();
-			parent.process(new SchemaProcessor() {
+			parent.process(new NodeProcessor() {
 				@Override
 				public <U> void accept(DataNode.Effective<U> node) {
 					acceptParent(node);

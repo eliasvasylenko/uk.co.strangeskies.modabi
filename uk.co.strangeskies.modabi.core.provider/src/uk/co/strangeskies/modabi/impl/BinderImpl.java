@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -169,13 +170,25 @@ public class BinderImpl<T> implements Binder<T> {
 	}
 
 	@Override
-	public Binder<T> with(Consumer<Exception> errorHandler) {
+	public Binder<T> withProvider(Provider provider) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Binder<T> with(ClassLoader classLoader) {
+	public Binder<T> withRoot(T root) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Binder<T> withErrorHandler(Consumer<Exception> errorHandler) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Binder<T> withClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 		return this;
 	}

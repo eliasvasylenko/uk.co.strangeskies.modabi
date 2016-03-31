@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
@@ -40,8 +41,8 @@ import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -145,8 +146,8 @@ public class BindingProviders {
 	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
 			QualifiedName idDomain, DataSource idSource, boolean externalDependency) {
 		if (idSource.currentState() == DataStreamState.TERMINATED || idSource.isComplete())
-			throw new ProcessingException("No further id data to match in domain '" + idDomain + "' for model '" + model + "'",
-					context);
+			throw new ProcessingException(
+					"No further id data to match in domain '" + idDomain + "' for model '" + model + "'", context);
 
 		/*
 		 * Object property to contain result when we find a matching binding
@@ -271,10 +272,10 @@ public class BindingProviders {
 	}
 
 	public void registerProviders(Provisions provisions) {
-		provisions.registerProvider(DereferenceSource.class, dereferenceSource());
-		provisions.registerProvider(ImportSource.class, importSource());
-		provisions.registerProvider(DataLoader.class, dataLoader());
-		provisions.registerProvider(SchemaConfigurator.class, schemaConfigurator());
-		provisions.registerProvider(Imports.class, imports());
+		provisions.add(Provider.over(DereferenceSource.class, dereferenceSource()));
+		provisions.add(Provider.over(ImportSource.class, importSource()));
+		provisions.add(Provider.over(DataLoader.class, dataLoader()));
+		provisions.add(Provider.over(SchemaConfigurator.class, schemaConfigurator()));
+		provisions.add(Provider.over(Imports.class, imports()));
 	}
 }

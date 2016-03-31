@@ -54,12 +54,16 @@ public interface Binder<T> {
 
 	// Binder<T> updatable();
 
-	Binder<T> with(ClassLoader classLoader);
+	Binder<T> withProvider(Provider provider);
+
+	Binder<T> withRoot(T root);
+
+	Binder<T> withClassLoader(ClassLoader classLoader);
 
 	/*
 	 * Errors which are rethrown will be passed to the next error handler if
 	 * present, or dealt with as normal. Otherwise, a best effort is made at
 	 * binding.
 	 */
-	Binder<T> with(Consumer<Exception> errorHandler);
+	Binder<T> withErrorHandler(Consumer<Exception> errorHandler);
 }

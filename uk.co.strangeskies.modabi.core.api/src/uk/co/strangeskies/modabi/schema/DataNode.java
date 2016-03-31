@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.reflection.TypedObject;
@@ -35,7 +35,7 @@ public interface DataNode<T>
 			BindingChildNode.Effective<T, DataNode<T>, Effective<T>>,
 			ChildNode<DataNode<T>, Effective<T>> {
 		@Override
-		default void process(SchemaProcessor context) {
+		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
 

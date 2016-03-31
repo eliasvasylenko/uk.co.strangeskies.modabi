@@ -1,0 +1,15 @@
+Bundle-Name: Modabi :: OSGi
+Bundle-Description: \
+	OSGi related helper classes.,\
+\
+	${modabi-description}
+
+Bundle-SymbolicName: ${p};singleton:=true
+
+-buildpath: \
+	uk.co.strangeskies.modabi.core.api;version=snapshot,\
+	${ss;reflection},\
+	${ss;utilities}
+
+Export-Package: \
+	uk.co.strangeskies.modabi.osgi

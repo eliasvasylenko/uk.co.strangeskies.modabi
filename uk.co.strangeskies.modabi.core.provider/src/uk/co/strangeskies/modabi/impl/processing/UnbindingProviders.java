@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.Collection;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -88,8 +89,8 @@ public class UnbindingProviders {
 	}
 
 	public void registerProviders(Provisions provisions) {
-		provisions.registerProvider(new TypeToken<ReferenceTarget>() {}, referenceTarget());
-		provisions.registerProvider(new TypeToken<ImportTarget>() {}, importTarget());
-		provisions.registerProvider(new TypeToken<IncludeTarget>() {}, includeTarget());
+		provisions.add(Provider.over(new TypeToken<ReferenceTarget>() {}, referenceTarget()));
+		provisions.add(Provider.over(new TypeToken<ImportTarget>() {}, importTarget()));
+		provisions.add(Provider.over(new TypeToken<IncludeTarget>() {}, includeTarget()));
 	}
 }

@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import uk.co.strangeskies.modabi.SchemaProcessor;
+import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-public interface PartialSchemaProcessor extends SchemaProcessor {
+public interface PartialNodeProcessor extends NodeProcessor {
 	@Override
 	default void accept(SchemaNode.Effective<?, ?> node) {}
 }
