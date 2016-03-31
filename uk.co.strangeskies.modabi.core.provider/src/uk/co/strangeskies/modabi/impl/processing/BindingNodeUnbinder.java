@@ -56,8 +56,8 @@ public class BindingNodeUnbinder {
 	}
 
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
-		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node)
-				.withProvision(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node);
+		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node).withProvisionScope();
+		context.provisions().registerProvider(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node);
 
 		TypeToken<?> unbindingType = node.getUnbindingType() != null ? node.getUnbindingType() : node.getDataType();
 		TypeToken<?> unbindingFactoryType = node.getUnbindingFactoryType() != null ? node.getUnbindingFactoryType()

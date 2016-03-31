@@ -24,7 +24,7 @@ import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 
-public interface SchemaManager {
+public interface SchemaManager extends Scoped<SchemaManager> {
 	BaseSchema getBaseSchema();
 
 	MetaSchema getMetaSchema();
@@ -72,6 +72,4 @@ public interface SchemaManager {
 	DataTypes registeredTypes();
 
 	DataFormats dataFormats();
-	
-	SchemaManagerScope childScope();
 }

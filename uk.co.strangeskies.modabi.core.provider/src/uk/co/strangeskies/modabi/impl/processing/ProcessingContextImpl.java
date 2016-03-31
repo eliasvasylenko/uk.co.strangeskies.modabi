@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,8 +46,8 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
@@ -60,7 +59,6 @@ import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.DeferredComputingMap;
 import uk.co.strangeskies.utilities.collection.computingmap.LRUCacheComputingMap;
-import uk.co.strangeskies.utilities.factory.Factory;
 
 public class ProcessingContextImpl implements ProcessingContext {
 	private final List<TypedObject<?>> objectStack;
@@ -78,7 +76,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	 */
 	private final Function<QualifiedName, Model.Effective<?>> getModel;
 
-	private final Provisions provider;
+	private final Provisions provisions;
 
 	private StructuredDataSource input;
 	private StructuredDataTarget output;
@@ -108,7 +106,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 			return model == null ? null : model.effective();
 		};
 
-		provider = manager.provisions();
+		provisions = manager.provisions();
 		exhaustive = true;
 
 		registeredModels = manager.registeredModels();
@@ -127,7 +125,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		getModel = parentContext::getModel;
 
-		this.provider = parentContext.provisions();
+		this.provisions = parentContext.provisions();
 		this.exhaustive = parentContext.isExhaustive();
 
 		this.input = parentContext.input().orElse(null);
@@ -151,7 +149,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		getModel = parentContext::getModel;
 
-		this.provider = provider;
+		this.provisions = provider;
 		this.exhaustive = exhaustive;
 
 		this.input = input;
@@ -234,61 +232,12 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	@Override
 	public Provisions provisions() {
-		return provider;
+		return provisions;
 	}
 
-	public <T> ProcessingContextImpl withProvision(Class<T> providedClass, Factory<? extends T> provider) {
-		return withProvision(TypeToken.over(providedClass), provider);
-	}
-
-	public <T> ProcessingContextImpl withProvision(TypeToken<T> providedClass, Factory<? extends T> provider) {
-		return withProvision(providedClass, c -> provider.create());
-	}
-
-	public <T> ProcessingContextImpl withProvision(Class<T> providedClass,
-			Function<? super ProcessingContext, ? extends T> provider) {
-		return withProvision(TypeToken.over(providedClass), provider);
-	}
-
-	public <T> ProcessingContextImpl withProvision(TypeToken<T> provisionType,
-			Function<? super ProcessingContext, ? extends T> provider) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, new Provisions() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public <U> TypedObject<U> provide(TypeToken<U> requestedType, ProcessingContext state) {
-				boolean canEqual = false;
-
-				try {
-					requestedType.withEquality(provisionType);
-					canEqual = true;
-				} catch (Exception e) {}
-
-				if (canEqual)
-					return new TypedObject<>(requestedType, (U) provider.apply(state));
-
-				if (!provisions().isProvided(requestedType, state))
-					throw new ProcessingException("Requested type '" + requestedType + "' is not provided by the unbinding context",
-							state);
-				return provisions().provide(requestedType, state);
-			}
-
-			@Override
-			public boolean isProvided(TypeToken<?> clazz, ProcessingContext state) {
-				return clazz.equals(provisionType) || provisions().isProvided(clazz, state);
-			}
-
-			@Override
-			public <U> void registerProvider(TypeToken<U> providedClass, Function<ProcessingContext, U> provider) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void registerProvider(BiFunction<TypeToken<?>, ProcessingContext, ?> provider) {
-				// TODO Auto-generated method stub
-
-			}
-		}, exhaustive, bindingFutureBlocker);
+	public <T> ProcessingContextImpl withProvisionScope() {
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions.deriveChildScope(),
+				exhaustive, bindingFutureBlocker);
 	}
 
 	@Override
@@ -316,12 +265,12 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public ProcessingContextImpl withInput(StructuredDataSource input) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive,
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, exhaustive,
 				bindingFutureBlocker);
 	}
 
 	public ProcessingContextImpl withOutput(StructuredDataTarget output) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive,
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, exhaustive,
 				bindingFutureBlocker);
 	}
 
@@ -342,7 +291,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		}
 
 		return new ProcessingContextImpl(this, Collections.unmodifiableList(bindingObjectStack), nodeStack, input, output,
-				provider, exhaustive, bindingFutureBlocker);
+				provisions, exhaustive, bindingFutureBlocker);
 	}
 
 	public <T> ProcessingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
@@ -362,7 +311,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		}
 
 		return new ProcessingContextImpl(this, objectStack, Collections.unmodifiableList(nodeStack), input, output,
-				provider, exhaustive, bindingFutureBlocker);
+				provisions, exhaustive, bindingFutureBlocker);
 	}
 
 	public void attemptUnbinding(Consumer<ProcessingContextImpl> unbindingMethod) {
@@ -378,7 +327,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 		if (context.provisions().isProvided(DataTarget.class, this)) {
 			dataTarget = new BufferingDataTarget();
 			DataTarget finalTarget = dataTarget;
-			context = context.withProvision(new TypeToken<DataTarget>() {}, () -> finalTarget);
+			context = context.withProvisionScope();
+			context.provisions().registerProvider(new TypeToken<DataTarget>() {}, () -> finalTarget);
 		}
 		context = context.withOutput(output);
 
@@ -436,7 +386,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 		if (context.provisions().isProvided(DataSource.class, this)) {
 			dataSource = context.provisions().provide(DataSource.class, this).getObject().copy();
 			DataSource finalSource = dataSource;
-			context = context.withProvision(new TypeToken<DataSource>() {}, () -> finalSource);
+			context = context.withProvisionScope();
+			context.provisions().registerProvider(new TypeToken<DataSource>() {}, () -> finalSource);
 		}
 		StructuredDataSource input = this.input.split();
 		context = context.withInput(input);
@@ -489,12 +440,13 @@ public class ProcessingContextImpl implements ProcessingContext {
 		/*
 		 * TODO actually make non-exhausting nodes non-exhausting...
 		 */
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider,
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions,
 				isExhaustive() && exhaustive, bindingFutureBlocker);
 	}
 
 	public ProcessingContextImpl forceExhausting() {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, true, bindingFutureBlocker);
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, true,
+				bindingFutureBlocker);
 	}
 
 	@Override
@@ -508,6 +460,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public ProcessingContextImpl withBindingFutureBlocker(BindingBlocker blocker) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provider, exhaustive, blocker);
+		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, exhaustive, blocker);
 	}
 }

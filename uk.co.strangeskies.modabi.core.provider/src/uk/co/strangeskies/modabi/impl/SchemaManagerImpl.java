@@ -50,7 +50,6 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.SchemaManagerScope;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
@@ -337,8 +336,19 @@ public class SchemaManagerImpl implements SchemaManager {
 		return provisions;
 	}
 
+	public SchemaManager getParentScope() {
+		return null;
+	}
+
+	public SchemaManager deriveChildScope() {
+		return null;
+	}
+
 	@Override
-	public SchemaManagerScope childScope() {
-		return null; // TODO
+	public void collapseIntoParentScope() {}
+
+	@Override
+	public SchemaManager copy() {
+		throw new UnsupportedOperationException();
 	}
 }

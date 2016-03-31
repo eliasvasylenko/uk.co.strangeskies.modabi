@@ -26,7 +26,7 @@ import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public interface Provisions {
+public interface Provisions extends Scoped<Provisions> {
 	default <T> void registerProvider(TypeToken<T> providedClass, Supplier<T> provider) {
 		registerProvider(providedClass, s -> provider.get());
 	}

@@ -18,11 +18,14 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import static java.util.Collections.synchronizedList;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -30,8 +33,18 @@ import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-final class ProvisionsImpl implements Provisions {
-	private final List<BiFunction<TypeToken<?>, ProcessingContext, Object>> providers = new ArrayList<>();
+public final class ProvisionsImpl implements Provisions {
+	private final ProvisionsImpl parent;
+	private final List<BiFunction<TypeToken<?>, ProcessingContext, Object>> providers = synchronizedList(
+			new ArrayList<>());
+
+	protected ProvisionsImpl(ProvisionsImpl parent) {
+		this.parent = parent;
+	}
+
+	public ProvisionsImpl() {
+		this(null);
+	}
 
 	@Override
 	public <T> void registerProvider(TypeToken<T> providedType, Function<ProcessingContext, T> provider) {
@@ -60,12 +73,43 @@ final class ProvisionsImpl implements Provisions {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state) {
-		return new TypedObject<>(type, (T) providers.stream().map(p -> p.apply(type, state)).filter(Objects::nonNull)
+		return new TypedObject<>(type, (T) visiblePriovidersStream().map(p -> p.apply(type, state)).filter(Objects::nonNull)
 				.findFirst().orElseThrow(() -> new SchemaException("No provider exists for the type '" + type + "'")));
 	}
 
 	@Override
 	public boolean isProvided(TypeToken<?> type, ProcessingContext state) {
-		return providers.stream().map(p -> p.apply(type, state)).anyMatch(Objects::nonNull);
+		return visiblePriovidersStream().map(p -> p.apply(type, state)).anyMatch(Objects::nonNull);
+	}
+
+	protected Stream<BiFunction<TypeToken<?>, ProcessingContext, Object>> visiblePriovidersStream() {
+		if (parent == null)
+			return providers.stream();
+		else
+			return Stream.concat(providers.stream(), parent.visiblePriovidersStream());
+	}
+
+	@Override
+	public Provisions getParentScope() {
+		return parent;
+	}
+
+	@Override
+	public void collapseIntoParentScope() {
+		Objects.requireNonNull(parent);
+		parent.providers.addAll(providers);
+	}
+
+	@Override
+	public Provisions deriveChildScope() {
+		return new ProvisionsImpl(this);
+	}
+
+	@Override
+	public ProvisionsImpl copy() {
+		ProvisionsImpl parentCopy = parent != null ? parent.copy() : null;
+		ProvisionsImpl copy = new ProvisionsImpl(parentCopy);
+		copy.providers.addAll(providers);
+		return copy;
 	}
 }

@@ -28,11 +28,15 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
-public class DataTypes extends QualifiedNamedSet<DataType<?>> {
+public class DataTypes extends QualifiedNamedSet<DataTypes, DataType<?>> {
 	private final MultiMap<QualifiedName, DataType<?>, LinkedHashSet<DataType<?>>> derivedTypes;
 
 	public DataTypes() {
-		super(DataType::getName);
+		this(null);
+	}
+
+	public DataTypes(DataTypes parent) {
+		super(DataType::getName, parent);
 		derivedTypes = new MultiHashMap<>(() -> new LinkedHashSet<>());
 	}
 
@@ -56,20 +60,29 @@ public class DataTypes extends QualifiedNamedSet<DataType<?>> {
 		/*
 		 * This extra cast is needed by javac but not JDT... Is it valid without?
 		 */
-		LinkedHashSet<DataType<?>> subTypeList = derivedTypes
-				.get(type.effective().getName());
+		LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type.effective().getName());
 		return subTypeList == null ? new ArrayList<>()
-				: new ArrayList<DataType<? extends T>>(subTypeList.stream()
-						.map(m -> (DataType<? extends T>) m).collect(Collectors.toList()));
+				: new ArrayList<DataType<? extends T>>(
+						subTypeList.stream().map(m -> (DataType<? extends T>) m).collect(Collectors.toList()));
 	}
 
 	public <T> List<DataType<? extends T>> getTypesWithBase(DataNode<T> node) {
-		List<DataType<? extends T>> subTypes = getDerivedTypes(
-				node.effective().type());
+		List<DataType<? extends T>> subTypes = getDerivedTypes(node.effective().type());
 
-		subTypes = subTypes.stream().filter(m -> !m.effective().isAbstract())
-				.collect(Collectors.toList());
+		subTypes = subTypes.stream().filter(m -> !m.effective().isAbstract()).collect(Collectors.toList());
 
 		return subTypes;
+	}
+
+	@Override
+	public DataTypes copy() {
+		DataTypes copy = new DataTypes();
+		copy.addAll(this);
+		return copy;
+	}
+
+	@Override
+	public DataTypes deriveChildScope() {
+		return new DataTypes(this);
 	}
 }

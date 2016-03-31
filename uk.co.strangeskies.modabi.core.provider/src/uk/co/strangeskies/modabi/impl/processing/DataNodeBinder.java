@@ -82,8 +82,9 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				 * Value is already provided, but not bound
 				 */
 				DataSource providedValueBuffer = node.providedValueBuffer();
-				results.addAll(
-						bindList(context.withProvision(DataSource.class, () -> providedValueBuffer).forceExhausting(), node));
+				context = context.withProvisionScope().forceExhausting();
+				context.provisions().registerProvider(DataSource.class, () -> providedValueBuffer);
+				results.addAll(bindList(context, node));
 			} else if (node.format() != null) {
 				switch (node.format()) {
 				case CONTENT:
@@ -195,7 +196,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 	private static <U> NodeBinding<U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
 			DataNode.Effective<U> node) {
-		context = context.withProvision(DataSource.class, () -> dataSource).forceExhausting();
+		context = context.withProvisionScope().forceExhausting();
+		context.provisions().registerProvider(DataSource.class, () -> dataSource);
 
 		NodeBinding<U> binding = bindExactNode(context, node);
 
@@ -229,8 +231,10 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context.withProvision(DataSource.class, () -> data).forceExhausting(),
-						node.effective()).getBinding().stream().map(NodeBinding::getBinding).collect(toList());
+				ProcessingContextImpl derivedContext = context.withProvisionScope().forceExhausting();
+				derivedContext.provisions().registerProvider(DataSource.class, () -> data);
+				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream().map(NodeBinding::getBinding)
+						.collect(toList());
 			}
 		};
 	}
