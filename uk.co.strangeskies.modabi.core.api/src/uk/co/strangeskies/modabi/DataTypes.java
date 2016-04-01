@@ -57,9 +57,6 @@ public class DataTypes extends QualifiedNamedSet<DataTypes, DataType<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<DataType<? extends T>> getDerivedTypes(DataType<T> type) {
-		/*
-		 * This extra cast is needed by javac but not JDT... Is it valid without?
-		 */
 		LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type.effective().getName());
 		return subTypeList == null ? new ArrayList<>()
 				: new ArrayList<DataType<? extends T>>(

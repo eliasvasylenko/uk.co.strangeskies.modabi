@@ -77,9 +77,20 @@ public class Models extends QualifiedNamedSet<Models, Model<?>> {
 				: subModelList.stream().map(m -> (Model<? extends T>) m).collect(Collectors.toCollection(ArrayList::new));
 	}
 
+	public <T> Model<T> get(QualifiedName name, TypeToken<T> dataType) {
+		@SuppressWarnings("unchecked")
+		Model<T> model = (Model<T>) get(name);
+
+		if (!model.getDataType().isAssignableFrom(dataType)) {
+			throw new SchemaException("Cannot bind type " + dataType + " with model " + name);
+		}
+
+		return model;
+	}
+
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<T>> getModelsWithClass(TypeToken<T> dataClass) {
-		Set<Model<?>> models = classModels.get(dataClass.getType());
+	public <T> List<Model<T>> getModelsWithType(TypeToken<T> dataType) {
+		Set<Model<?>> models = classModels.get(dataType.getType());
 		return models == null ? Collections.emptyList()
 				: models.stream().map(m -> (Model<T>) m).collect(Collectors.toList());
 	}

@@ -283,7 +283,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		return new BinderImpl<>(this, input -> {
 			Model<?> model = waitForModel(input.peekNextChild());
 
-			List<Model<T>> models = registeredModels.getModelsWithClass(dataClass);
+			List<Model<T>> models = registeredModels.getModelsWithType(dataClass);
 
 			if (!models.contains(model)) {
 				throw new IllegalArgumentException("None of the models '" + models + "' compatible with the class '" + dataClass
@@ -332,7 +332,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public <T> Unbinder<T> unbind(TypeToken<T> dataType, T data) {
-		return new UnbinderImpl<>(this, data, context -> registeredModels().getModelsWithClass(dataType).stream()
+		return new UnbinderImpl<>(this, data, context -> registeredModels().getModelsWithType(dataType).stream()
 				.map(n -> n.effective()).collect(Collectors.toList()));
 	}
 

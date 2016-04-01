@@ -12,12 +12,13 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.utilities.Self;
 
-public abstract class ModabiServiceInstance<T> {
+public abstract class ModabiServiceInstance<S extends ModabiServiceInstance<S>> implements Self<S> {
 	@Reference
 	SchemaManager manager;
 
-	private TypeToken<T> type;
+	private final TypeToken<S> type;
 	private final URL location;
 	private final QualifiedName schema;
 
@@ -30,12 +31,12 @@ public abstract class ModabiServiceInstance<T> {
 		this.schema = schema;
 
 		type = TypeToken.over(getClass()).resolveSupertypeParameters(ModabiServiceInstance.class)
-				.resolveType(new TypeParameter<T>() {});
+				.resolveType(new TypeParameter<S>() {});
 
 		if (!type.isProper()) {
 			throw new SchemaException(
 					"Class " + getClass() + " cannot be bound with service, as type parameter of superclass "
-							+ ModabiServiceInstance.class + " is erased");
+							+ ModabiServiceInstance.class + " is not proper");
 		}
 
 		if (!type.isAssignableFrom(getClass())) {
@@ -48,10 +49,10 @@ public abstract class ModabiServiceInstance<T> {
 		SchemaManager manager = this.manager;
 		this.manager = null;
 
-		Binder<?> binder;
+		Binder<S> binder;
 
 		if (schema != null) {
-			Model<?> model = manager.registeredModels().get(schema);
+			Model<S> model = manager.registeredModels().get(schema, type);
 
 			if (!model.getBindingType().isAssignableFrom(type)) {
 				throw new SchemaException("Cannot bind type " + type + " with model " + model);
@@ -62,7 +63,6 @@ public abstract class ModabiServiceInstance<T> {
 			binder = manager.bind(type);
 		}
 
-		// TODO bind with provider of this type supplying "this"
-		binder.from(location).resolve();
+		binder.withRoot(getThis()).from(location).resolve();
 	}
 }

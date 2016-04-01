@@ -69,11 +69,63 @@ public interface DataSource extends Copyable<DataSource> {
 	static DataSource parseString(String string, Function<String, QualifiedName> qualifiedNameParser) {
 		List<DataItem<?>> dataItemList = new ArrayList<>();
 
-		String[] strings = string.split("^,|(?<!\\\\),");
-		for (String item : strings) {
-			item = item.trim().replaceAll("\\\\,", ",");
-			dataItemList.add(DataItem.forString(item, qualifiedNameParser));
+		Function<String, String> removeEscapes = s -> {
+			char[] characters = s.toCharArray();
+
+			int output = 0;
+			char previous = characters[0];
+			char character = ' ';
+			for (int i = 1; i < characters.length; i++) {
+				character = characters[i];
+
+				if (previous != '\\' && character != ',') {
+					characters[output++] = previous;
+				}
+
+				previous = character;
+			}
+			characters[output++] = character;
+			return new String(characters, 0, output);
+		};
+
+		boolean wasEscape = false;
+		boolean splitContainsEscapes = false;
+
+		int startSplit = 0;
+		int endSplit = 0;
+
+		for (endSplit = 0; endSplit < string.length(); endSplit++) {
+			char c = string.charAt(endSplit);
+
+			switch (c) {
+			case '\\':
+				wasEscape = true;
+				break;
+			case ',':
+				if (wasEscape) {
+					splitContainsEscapes = true;
+				} else {
+					String item = string.substring(startSplit, endSplit);
+					if (splitContainsEscapes) {
+						item = removeEscapes.apply(item);
+						splitContainsEscapes = false;
+					}
+					dataItemList.add(DataItem.forString(item.trim(), qualifiedNameParser));
+
+					startSplit = endSplit + 1;
+					endSplit = startSplit + 1;
+				}
+			default:
+				wasEscape = false;
+			}
 		}
+
+		String item = string.substring(startSplit, endSplit);
+		if (splitContainsEscapes) {
+			item = removeEscapes.apply(item);
+			splitContainsEscapes = false;
+		}
+		dataItemList.add(DataItem.forString(item.trim(), qualifiedNameParser));
 
 		return forDataItems(dataItemList);
 	}
