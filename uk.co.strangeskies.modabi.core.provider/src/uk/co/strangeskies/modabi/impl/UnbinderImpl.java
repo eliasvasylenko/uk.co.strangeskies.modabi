@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
@@ -36,6 +37,7 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
 import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
@@ -44,6 +46,8 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	private final T data;
 
 	private final Function<ProcessingContext, List<Model.Effective<T>>> unbindingFunction;
+
+	private ClassLoader classLoader;
 
 	public UnbinderImpl(SchemaManagerImpl manager, T data,
 			Function<ProcessingContext, List<Model.Effective<T>>> unbindingFunction) {
@@ -108,7 +112,10 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 		try {
 			context.output().get().addChild(model.getName());
 
-			new BindingNodeUnbinder(context).unbind(model, (U) data);
+			ClassLoader classLoader = this.classLoader != null ? this.classLoader
+					: Thread.currentThread().getContextClassLoader();
+
+			new ContextClassLoaderRunner(classLoader).run(() -> new BindingNodeUnbinder(context).unbind(model, (U) data));
 
 			context.output().get().endChild();
 		} catch (ProcessingException e) {
@@ -120,7 +127,19 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	}
 
 	@Override
-	public Unbinder<T> with(Consumer<Exception> errorHandler) {
+	public Unbinder<T> withClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+		return this;
+	}
+
+	@Override
+	public Unbinder<T> withProvider(Provider provider) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Unbinder<T> withErrorHandler(Consumer<Exception> errorHandler) {
 		// TODO Auto-generated method stub
 		return null;
 	}

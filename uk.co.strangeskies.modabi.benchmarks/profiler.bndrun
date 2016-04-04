@@ -1,6 +1,6 @@
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=osgi.enroute.logger.simple.provider)',\
-	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.utilities.osgi.consolelog)',\
+	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.osgi.consolelog)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.runtime)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
@@ -22,7 +22,7 @@
 	uk.co.strangeskies.modabi.benchmarks.profiler;version=snapshot,\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
+	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
-	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)',\
-	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.13,1.0.14)'
+	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 -runee: JavaSE-1.8

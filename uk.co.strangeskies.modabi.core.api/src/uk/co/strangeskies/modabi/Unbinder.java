@@ -50,11 +50,15 @@ public interface Unbinder<T> {
 
 	// Unbinder<T> updatable();
 
+	Unbinder<T> withProvider(Provider provider);
+
+	Unbinder<T> withClassLoader(ClassLoader classLoader);
+
 	/*
 	 * Errors which are rethrown will be passed to the next error handler if
 	 * present, or dealt with as normal. Otherwise, a best effort is made at
 	 * unbinding, and the exception information will be serialised as a comment.
 	 */
-	Unbinder<T> with(Consumer<Exception> errorHandler);
+	Unbinder<T> withErrorHandler(Consumer<Exception> errorHandler);
 
 }

@@ -107,7 +107,7 @@ public class BenchmarkRunner {
 				manager.bindSchema().from(context.getBundle().getResource("/META-INF/schemata/BenchmarkSchema.xml")::openStream)
 						.resolve(2500);
 
-				boolean createXml = true;
+				boolean createXml = false;
 				log(LogService.LOG_INFO, "Will create XML files? " + createXml);
 				if (createXml) {
 					createXmlPortfolio();

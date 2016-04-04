@@ -25,99 +25,113 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.DiscardingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.utilities.Log;
 import uk.co.strangeskies.utilities.Log.Level;
-import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
 
 @Component
 public class Profiler {
-	private SchemaManager manager;
-	private Log log;
+	private static final int OUTPUT_RESOLUTION = 10;
+	private static final int WARMUP_ROUNDS = 120;
+	private static final int PROFILE_ROUNDS = 30;
 
 	@Reference
-	public void setSchemaManager(SchemaManager manager) {
-		this.manager = manager;
-	}
-
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	public void setlog(Log log) {
-		this.log = log;
-	}
+	private SchemaManager manager;
+	@Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
+	private Log log;
 
 	private void log(Level level, String message) {
-		if (log != null)
+		if (log != null) {
 			log.log(level, message);
+		} else {
+			System.out.println(level + ": " + message);
+		}
 	}
 
 	@Activate
 	public void profile(BundleContext context) throws BundleException {
 		ClassLoader classLoader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
 
-		new ContextClassLoaderRunner(classLoader).run(() -> {
-			try {
-				log(Level.INFO, manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema())
-						.to(new DiscardingStructuredDataTarget()).toString());
+		try {
+			log(Level.INFO, manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema())
+					.withClassLoader(classLoader).to(new DiscardingStructuredDataTarget()).toString());
 
-				warmUpProfiling(60);
+			warmUpProfiling(WARMUP_ROUNDS, classLoader);
 
-				int profileRounds = 20;
-				long totalTimeUnbinding = unbindingProfile(profileRounds);
-				long totalTimeBinding = bindingProfile(profileRounds);
+			long totalTimeUnbinding = unbindingProfile(PROFILE_ROUNDS, classLoader);
+			long totalTimeBinding = bindingProfile(PROFILE_ROUNDS, classLoader);
 
-				log(Level.INFO, "Time per unbind: " + (double) totalTimeUnbinding / (profileRounds * 1000) + " seconds");
-				log(Level.INFO, "Time per bind: " + (double) totalTimeBinding / (profileRounds * 1000) + " seconds");
-			} catch (Throwable t) {
-				throw t;
-			} finally {
-				// context.getBundle(0).stop();
-			}
-		});
+			log(Level.INFO, "Time per unbind: " + (double) totalTimeUnbinding / (PROFILE_ROUNDS * 1000) + " seconds");
+			log(Level.INFO, "Time per bind: " + (double) totalTimeBinding / (PROFILE_ROUNDS * 1000) + " seconds");
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
+		} finally {
+			context.getBundle(0).stop();
+		}
 	}
 
-	private long bindingProfile(int profileRounds) {
+	private long bindingProfile(int profileRounds, ClassLoader classLoader) {
 		StructuredDataBuffer.Navigable buffer = StructuredDataBuffer.singleBuffer();
-		manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).to(buffer);
+		manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).withClassLoader(classLoader)
+				.to(buffer);
 
 		log(Level.INFO, "Binding Profiling");
+
 		long startTime = System.currentTimeMillis();
 		for (int i = 0; i < profileRounds; i++) {
-			if (i % 10 == 0)
+			if (i % OUTPUT_RESOLUTION == 0)
 				log(Level.INFO, "  working... (" + i + " / " + profileRounds + ")");
 
 			buffer.getBuffer().reset();
-			manager.bind(manager.getMetaSchema().getSchemaModel()).from(buffer.getBuffer()).resolve();
+			manager.bind(manager.getMetaSchema().getSchemaModel()).withClassLoader(classLoader).from(buffer.getBuffer())
+					.resolve();
 		}
-		return System.currentTimeMillis() - startTime;
+		long elapsedTime = System.currentTimeMillis() - startTime;
+
+		log(Level.INFO, "  done       (" + profileRounds + " / " + profileRounds + ")");
+
+		return elapsedTime;
 	}
 
-	private long unbindingProfile(int profileRounds) {
+	private long unbindingProfile(int profileRounds, ClassLoader classLoader) {
 		log(Level.INFO, "Unbinding Profiling");
+
 		long startTime = System.currentTimeMillis();
 		for (int i = 0; i < profileRounds; i++) {
-			if (i % 10 == 0)
+			if (i % OUTPUT_RESOLUTION == 0)
 				log(Level.INFO, "  working... (" + i + " / " + profileRounds + ")");
 
-			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema())
+			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).withClassLoader(classLoader)
 					.to(StructuredDataBuffer.singleBuffer());
 		}
-		return System.currentTimeMillis() - startTime;
+		long elapsedTime = System.currentTimeMillis() - startTime;
+
+		log(Level.INFO, "  done       (" + profileRounds + " / " + profileRounds + ")");
+
+		return elapsedTime;
 	}
 
-	private void warmUpProfiling(int warmupRounds) {
+	private void warmUpProfiling(int warmupRounds, ClassLoader classLoader) {
 		log(Level.INFO, "Profiling Warmup");
+
 		for (int i = 0; i < warmupRounds; i++) {
-			if (i % 10 == 0)
+			if (i % OUTPUT_RESOLUTION == 0)
 				log(Level.INFO, "  working... (" + i + " / " + warmupRounds + ")");
 
 			StructuredDataBuffer.Navigable buffer = StructuredDataBuffer.singleBuffer();
-			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).to(buffer);
+			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).withClassLoader(classLoader)
+					.to(buffer);
 
 			buffer.getBuffer().reset();
-			manager.bind(manager.getMetaSchema().getSchemaModel()).from(buffer.getBuffer()).resolve();
+			manager.bind(manager.getMetaSchema().getSchemaModel()).withClassLoader(classLoader).from(buffer.getBuffer())
+					.resolve();
 		}
+
+		log(Level.INFO, "  done       (" + warmupRounds + " / " + warmupRounds + ")");
 	}
 }

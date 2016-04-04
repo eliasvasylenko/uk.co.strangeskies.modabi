@@ -251,5 +251,6 @@ public class SchemaTest {
 																								.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
 		System.out.println(mapModel3.effective().getDataType());
+		System.out.println(mapModel3.effective().getDataType().getResolver().getBounds());
 	}
 }
