@@ -9,7 +9,6 @@ import uk.co.strangeskies.modabi.Binder;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Self;
@@ -49,19 +48,11 @@ public abstract class ModabiServiceInstance<S extends ModabiServiceInstance<S>> 
 		SchemaManager manager = this.manager;
 		this.manager = null;
 
-		Binder<S> binder;
+		Binder<S> binder = (schema != null)
 
-		if (schema != null) {
-			Model<S> model = manager.registeredModels().get(schema, type);
+				? manager.bind(schema, type)
 
-			if (!model.getBindingType().isAssignableFrom(type)) {
-				throw new SchemaException("Cannot bind type " + type + " with model " + model);
-			}
-
-			binder = manager.bind(model);
-		} else {
-			binder = manager.bind(type);
-		}
+				: manager.bind(type);
 
 		binder.withRoot(getThis()).from(location).resolve();
 	}

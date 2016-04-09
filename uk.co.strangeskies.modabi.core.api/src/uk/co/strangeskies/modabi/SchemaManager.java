@@ -32,6 +32,18 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 
 	SchemaConfigurator getSchemaConfigurator();
 
+	default Binder<?> bind(QualifiedName modelName) {
+		return bind(registeredModels().get(modelName));
+	}
+
+	default <T> Binder<T> bind(QualifiedName modelName, TypeToken<T> type) {
+		return bind(registeredModels().get(modelName, type));
+	}
+
+	default <T> Binder<T> bind(QualifiedName modelName, Class<T> type) {
+		return bind(registeredModels().get(modelName, TypeToken.over(type)));
+	}
+
 	<T> Binder<T> bind(Model<T> model);
 
 	<T> Binder<T> bind(TypeToken<T> dataClass);
@@ -56,6 +68,14 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 
 	default <T> Unbinder<T> unbind(Class<T> dataClass, T data) {
 		return unbind(TypeToken.over(dataClass), data);
+	}
+
+	default <T> Unbinder<T> unbind(QualifiedName modelName, TypeToken<T> type, T data) {
+		return unbind(registeredModels().get(modelName, type), data);
+	}
+
+	default <T> Unbinder<T> unbind(QualifiedName modelName, Class<T> type, T data) {
+		return unbind(registeredModels().get(modelName, TypeToken.over(type)), data);
 	}
 
 	default <T extends Reified<T>> Unbinder<T> unbind(T data) {
