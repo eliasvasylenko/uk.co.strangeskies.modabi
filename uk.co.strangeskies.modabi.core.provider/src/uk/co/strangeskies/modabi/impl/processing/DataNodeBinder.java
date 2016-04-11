@@ -83,7 +83,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				 * Value is already provided, but not bound
 				 */
 				DataSource providedValueBuffer = node.providedValueBuffer();
-				context = context.withProvisionScope().forceExhausting();
+				context = context.withNestedProvisionScope().forceExhausting();
 				context.provisions().add(Provider.over(DataSource.class, () -> providedValueBuffer));
 				results.addAll(bindList(context, node));
 			} else if (node.format() != null) {
@@ -197,7 +197,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 	private static <U> NodeBinding<U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
 			DataNode.Effective<U> node) {
-		context = context.withProvisionScope().forceExhausting();
+		context = context.withNestedProvisionScope().forceExhausting();
 		context.provisions().add(Provider.over(DataSource.class, () -> dataSource));
 
 		NodeBinding<U> binding = bindExactNode(context, node);
@@ -232,7 +232,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				ProcessingContextImpl derivedContext = context.withProvisionScope().forceExhausting();
+				ProcessingContextImpl derivedContext = context.withNestedProvisionScope().forceExhausting();
 				derivedContext.provisions().add(Provider.over(DataSource.class, () -> data));
 				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream().map(NodeBinding::getBinding)
 						.collect(toList());

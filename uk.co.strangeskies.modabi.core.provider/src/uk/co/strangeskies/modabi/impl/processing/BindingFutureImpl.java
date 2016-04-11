@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.io.InputStream;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -30,6 +31,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
@@ -100,8 +102,8 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private Binding<T> bindingResult;
 	private boolean cancelled;
 
-	public BindingFutureImpl(SchemaManagerImpl manager, BindingBlocksImpl blocks,
-			Supplier<BindingSource<T>> modelSupplier, ClassLoader classLoader) {
+	public BindingFutureImpl(SchemaManagerImpl manager, BindingBlocksImpl blocks, ClassLoader classLoader,
+			Set<Provider> providers, Supplier<BindingSource<T>> modelSupplier) {
 		this.manager = manager;
 		this.blocks = blocks;
 

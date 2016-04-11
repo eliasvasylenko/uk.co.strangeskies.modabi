@@ -23,7 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,6 +49,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 	private final Function<ProcessingContext, List<Model.Effective<T>>> unbindingFunction;
 
+	private final Set<Provider> providers;
 	private ClassLoader classLoader;
 
 	public UnbinderImpl(SchemaManagerImpl manager, T data,
@@ -54,6 +57,8 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 		this.manager = manager;
 		this.data = data;
 		this.unbindingFunction = unbindingFunction;
+
+		providers = new HashSet<>();
 	}
 
 	@Override
@@ -90,6 +95,8 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	@Override
 	public <U extends StructuredDataTarget> U to(U output) {
 		ProcessingContextImpl context = manager.getProcessingContext().withOutput(output);
+		context = context.withNestedProvisionScope();
+		context.provisions().addAll(providers);
 
 		List<? extends Model.Effective<? extends T>> models = unbindingFunction.apply(context);
 
@@ -97,9 +104,10 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 			throw new ProcessingException("Cannot find any model to unbind '" + data + "'", context);
 		}
 
+		ProcessingContextImpl finalContext = context;
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			unbindImpl(c, m, output);
-		}, e -> new ProcessingException("Cannot unbind data '" + data + "' with models '" + models + "'", context, e));
+		}, e -> new ProcessingException("Cannot unbind data '" + data + "' with models '" + models + "'", finalContext, e));
 
 		return output;
 	}
@@ -134,8 +142,8 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 
 	@Override
 	public Unbinder<T> withProvider(Provider provider) {
-		// TODO Auto-generated method stub
-		return null;
+		providers.add(provider);
+		return this;
 	}
 
 	@Override

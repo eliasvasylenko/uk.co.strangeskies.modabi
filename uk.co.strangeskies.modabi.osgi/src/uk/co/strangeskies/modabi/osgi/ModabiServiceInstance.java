@@ -18,7 +18,7 @@ public abstract class ModabiServiceInstance<T> {
 
 	private final TypeToken<T> type;
 	private final URL location;
-	private final QualifiedName schema;
+	private final QualifiedName model;
 
 	public ModabiServiceInstance(URL location) {
 		this(location, null);
@@ -32,14 +32,14 @@ public abstract class ModabiServiceInstance<T> {
 		String resourceLocation = getClass().getPackage().getName().replaceAll(".", "/") + '/';
 		this.location = getClass().getResource(resourceLocation + name + '.' + extension);
 
-		this.schema = schema;
+		this.model = schema;
 
 		type = findType();
 	}
 
 	public ModabiServiceInstance(URL location, QualifiedName schema) {
 		this.location = location;
-		this.schema = schema;
+		this.model = schema;
 
 		type = findType();
 	}
@@ -67,9 +67,9 @@ public abstract class ModabiServiceInstance<T> {
 		SchemaManager manager = this.manager;
 		this.manager = null;
 
-		Binder<T> binder = (schema != null)
+		Binder<T> binder = (model != null)
 
-				? manager.bind(schema, type)
+				? manager.bind(model, type)
 
 				: manager.bind(type);
 

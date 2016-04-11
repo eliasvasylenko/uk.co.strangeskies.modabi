@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Binder;
 import uk.co.strangeskies.modabi.Provider;
@@ -56,6 +57,8 @@ public class BinderImpl<T> implements Binder<T> {
 	private final Consumer<BindingFuture<?>> addFuture;
 
 	private final BindingBlocksImpl blocks;
+
+	private final Set<Provider> providers;
 	private ClassLoader classLoader;
 
 	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingModelFunction,
@@ -63,6 +66,8 @@ public class BinderImpl<T> implements Binder<T> {
 		this.manager = manager;
 		this.bindingModelFunction = bindingModelFunction;
 		this.addFuture = addFuture;
+
+		providers = new HashSet<>();
 
 		blocks = new BindingBlocksImpl();
 	}
@@ -80,30 +85,29 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public BindingFuture<T> from(StructuredDataSource input) {
-		return add(new BindingFutureImpl<>(manager, blocks, () -> {
-			return new BindingSource<>(bindingModelFunction.apply(input).effective(), input);
-		}, classLoader));
+		return createBindingFuture(() -> new BindingSource<>(bindingModelFunction.apply(input).effective(), input));
 	}
 
 	@Override
 	public BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input) {
-		return add(
-				new BindingFutureImpl<>(manager, blocks, () -> getBindingSource(null, input, f -> true, true), classLoader));
+		return createBindingFuture(() -> getBindingSource(null, input, f -> true, true));
 	}
 
 	@Override
 	public BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input) {
-		return add(new BindingFutureImpl<>(manager, blocks,
-				() -> getBindingSource(formatId, input, f -> f.getFormatId().equals(formatId), false), classLoader));
+		return createBindingFuture(() -> getBindingSource(formatId, input, f -> f.getFormatId().equals(formatId), false));
 	}
 
 	private BindingFuture<T> fromExtension(String extension, ThrowingSupplier<InputStream, ?> input) {
-		return add(new BindingFutureImpl<>(manager, blocks,
-				() -> getBindingSource(extension, input, f -> f.getFileExtensions().contains(extension), true), classLoader));
+		return createBindingFuture(
+				() -> getBindingSource(extension, input, f -> f.getFileExtensions().contains(extension), true));
 	}
 
-	private BindingFuture<T> add(BindingFuture<T> bindingFuture) {
+	private BindingFuture<T> createBindingFuture(Supplier<BindingSource<T>> modelSupplier) {
+		BindingFuture<T> bindingFuture = new BindingFutureImpl<>(manager, blocks, classLoader, providers, modelSupplier);
+
 		addFuture.accept(bindingFuture);
+
 		return bindingFuture;
 	}
 
@@ -177,8 +181,8 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public Binder<T> withProvider(Provider provider) {
-		// TODO Auto-generated method stub
-		return null;
+		providers.add(provider);
+		return this;
 	}
 
 	@Override

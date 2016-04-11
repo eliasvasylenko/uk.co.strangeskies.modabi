@@ -55,7 +55,7 @@ public class DataNodeUnbinder {
 	public <U> DataSource unbindToDataBuffer(DataNode.Effective<U> node, List<U> data) {
 		BufferingDataTarget target = new BufferingDataTarget();
 
-		ProcessingContextImpl context = this.context.withOutput(null).withProvisionScope();
+		ProcessingContextImpl context = this.context.withOutput(null).withNestedProvisionScope();
 		context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, c -> target));
 
 		unbindWithFormat(node, data, null, context);
@@ -88,7 +88,7 @@ public class DataNodeUnbinder {
 					if (format != null) {
 						target = new BufferingDataTarget();
 						BufferingDataTarget finalTarget = target;
-						context = context.withProvisionScope();
+						context = context.withNestedProvisionScope();
 						context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, () -> finalTarget));
 					}
 

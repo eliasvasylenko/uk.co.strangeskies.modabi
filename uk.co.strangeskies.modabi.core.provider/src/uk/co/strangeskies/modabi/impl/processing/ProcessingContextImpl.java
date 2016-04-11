@@ -249,7 +249,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return provisions;
 	}
 
-	public <T> ProcessingContextImpl withProvisionScope() {
+	public <T> ProcessingContextImpl withNestedProvisionScope() {
 		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions.nestChildScope(),
 				exhaustive, bindingFutureBlocker);
 	}
@@ -341,7 +341,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		if (context.provisions().isProvided(DataTarget.class, this)) {
 			dataTarget = new BufferingDataTarget();
 			DataTarget finalTarget = dataTarget;
-			context = context.withProvisionScope();
+			context = context.withNestedProvisionScope();
 			context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, () -> finalTarget));
 		}
 		context = context.withOutput(output);
@@ -400,7 +400,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		if (context.provisions().isProvided(DataSource.class, this)) {
 			dataSource = context.provisions().provide(DataSource.class, this).getObject().copy();
 			DataSource finalSource = dataSource;
-			context = context.withProvisionScope();
+			context = context.withNestedProvisionScope();
 			context.provisions().add(Provider.over(new TypeToken<DataSource>() {}, () -> finalSource));
 		}
 		StructuredDataSource input = this.input.split();
