@@ -67,6 +67,8 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
+import uk.co.strangeskies.utilities.collection.ScopedObservableSet;
+import uk.co.strangeskies.utilities.collection.ScopedObservableSet.ScopedObservableSetImpl;
 
 @Component(immediate = true)
 public class SchemaManagerImpl implements SchemaManager {
@@ -74,8 +76,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private final SchemaBuilder schemaBuilder;
 
-	private final Map<QualifiedName, ObservableSet<?, BindingFuture<?>>> bindingFutures;
-	private final Map<QualifiedName, ObservableSet<?, Binding<?>>> bindings;
+	private final Map<QualifiedName, ScopedObservableSetImpl<BindingFuture<?>>> bindingFutures;
+	private final Map<QualifiedName, ScopedObservableSetImpl<Binding<?>>> bindings;
 
 	private final CoreSchemata coreSchemata;
 
@@ -97,19 +99,33 @@ public class SchemaManagerImpl implements SchemaManager {
 		this(new SchemaBuilderImpl());
 	}
 
-	protected SchemaManagerImpl(SchemaManager parent, SchemaBuilder schemaBuilder, CoreSchemata coreSchemata,
+	/*
+	 * copy constructor
+	 */
+	protected SchemaManagerImpl(SchemaManager parent,
+
+			Map<QualifiedName, ScopedObservableSetImpl<BindingFuture<?>>> bindingFutures,
+			Map<QualifiedName, ScopedObservableSetImpl<Binding<?>>> bindings,
+
+			SchemaBuilder schemaBuilder, CoreSchemata coreSchemata,
+
 			Schemata registeredSchemata, Models registeredModels, DataTypes registeredTypes, Provisions provisions,
 			DataFormats dataFormats) {
+
 		this.parent = parent;
 
 		this.schemaBuilder = schemaBuilder;
 		this.coreSchemata = coreSchemata;
 
-		this.bindingFutures = new ConcurrentHashMap<>();
-		this.bindings = new ConcurrentHashMap<>();
+		this.bindingFutures = bindingFutures;
+		this.bindings = bindings;
 
 		this.registeredSchemata = registeredSchemata;
-		this.registeredSchemata.changes().addObserver(c -> registerSchemata(c.added()));
+		this.registeredSchemata.changes().addObserver(c -> {
+			Set<Schema> added = new HashSet<>(c.added());
+			registeredSchemata.getParentScope().ifPresent(p -> added.removeAll(p));
+			registerSchemata(added);
+		});
 
 		this.registeredModels = registeredModels;
 		this.registeredTypes = registeredTypes;
@@ -146,7 +162,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		/*
 		 * Register schema builder provider
 		 */
-		provisions().add(Provider.over(SchemaBuilder.class, this::getSchemaBuilder));
+		provisions().add(Provider.over(SchemaBuilder.class, c -> c.manager().getSchemaBuilder()));
 
 		/*
 		 * Register collection providers
@@ -158,12 +174,12 @@ public class SchemaManagerImpl implements SchemaManager {
 		provisions().add(Provider.over(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>()));
 		provisions().add(Provider.over(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>()));
 
-		new BindingProviders(this).registerProviders(provisions());
-		new UnbindingProviders(this).registerProviders(provisions());
+		new BindingProviders().registerProviders(provisions());
+		new UnbindingProviders().registerProviders(provisions());
 
 		QualifiedName schemaModelName = coreSchemata.metaSchema().getSchemaModel().getName();
-		bindingFutures.put(schemaModelName, ObservableSet.ofElements());
-		bindings.put(schemaModelName, ObservableSet.ofElements());
+		bindingFutures.put(schemaModelName, ScopedObservableSet.over(HashSet::new));
+		bindings.put(schemaModelName, ScopedObservableSet.over(HashSet::new));
 		registeredSchemata().add(coreSchemata.metaSchema());
 	}
 
@@ -176,7 +192,8 @@ public class SchemaManagerImpl implements SchemaManager {
 		return getSchemaBuilder().configure(DataNodeBinder.dataLoader(getProcessingContext()));
 	}
 
-	private SchemaBuilder getSchemaBuilder() {
+	@Override
+	public SchemaBuilder getSchemaBuilder() {
 		return new SchemaBuilder() {
 			@Override
 			public SchemaConfigurator configure(DataLoader loader) {
@@ -212,8 +229,12 @@ public class SchemaManagerImpl implements SchemaManager {
 			if (registeredModels.add(model)) {
 				registeredModels.notifyAll();
 
-				bindingFutures.put(model.getName(), ObservableSet.ofElements());
-				bindings.put(model.getName(), ObservableSet.ofElements());
+				/*
+				 * TODO add/fetch scope on parent first if we have a parent, then add
+				 * nested one here
+				 */
+				bindingFutures.put(model.getName(), ScopedObservableSet.over(HashSet::new));
+				bindings.put(model.getName(), ScopedObservableSet.over(HashSet::new));
 			}
 		}
 	}
@@ -352,17 +373,17 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public DataFormats dataFormats() {
+	public DataFormats registeredFormats() {
 		return dataFormats;
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unregisterDataInterface")
 	void registerDataInterface(StructuredDataFormat loader) {
-		dataFormats().registerDataFormat(loader);
+		registeredFormats().add(loader);
 	}
 
 	void unregisterDataInterface(StructuredDataFormat loader) {
-		dataFormats().unregisterDataFormat(loader);
+		registeredFormats().remove(loader);
 	}
 
 	@Override
@@ -377,8 +398,21 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public SchemaManager nestChildScope() {
-		return new SchemaManagerImpl(this, schemaBuilder, coreSchemata, registeredSchemata.nestChildScope(),
-				registeredModels.nestChildScope(), registeredTypes.nestChildScope(), provisions.nestChildScope(), dataFormats);
+		Map<QualifiedName, ScopedObservableSetImpl<BindingFuture<?>>> bindingFutures = new ConcurrentHashMap<>();
+		Map<QualifiedName, ScopedObservableSetImpl<Binding<?>>> bindings = new ConcurrentHashMap<>();
+
+		for (Map.Entry<QualifiedName, ScopedObservableSetImpl<BindingFuture<?>>> bindingFuture : this.bindingFutures
+				.entrySet()) {
+			bindingFutures.put(bindingFuture.getKey(), bindingFuture.getValue().nestChildScope());
+		}
+
+		for (Map.Entry<QualifiedName, ScopedObservableSetImpl<Binding<?>>> binding : this.bindings.entrySet()) {
+			bindings.put(binding.getKey(), binding.getValue().nestChildScope());
+		}
+
+		return new SchemaManagerImpl(this, bindingFutures, bindings, schemaBuilder, coreSchemata,
+				registeredSchemata.nestChildScope(), registeredModels.nestChildScope(), registeredTypes.nestChildScope(),
+				provisions.nestChildScope(), dataFormats.nestChildScope());
 	}
 
 	@Override
@@ -391,7 +425,20 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public SchemaManager copy() {
-		return new SchemaManagerImpl(parent, schemaBuilder, coreSchemata, registeredSchemata.copy(),
-				registeredModels.copy(), registeredTypes.copy(), provisions.copy(), dataFormats);
+		Map<QualifiedName, ScopedObservableSetImpl<BindingFuture<?>>> bindingFutures = new ConcurrentHashMap<>();
+		Map<QualifiedName, ScopedObservableSetImpl<Binding<?>>> bindings = new ConcurrentHashMap<>();
+
+		for (Map.Entry<QualifiedName, ScopedObservableSetImpl<BindingFuture<?>>> bindingFuture : this.bindingFutures
+				.entrySet()) {
+			bindingFutures.put(bindingFuture.getKey(), bindingFuture.getValue().copy());
+		}
+
+		for (Map.Entry<QualifiedName, ScopedObservableSetImpl<Binding<?>>> binding : this.bindings.entrySet()) {
+			bindings.put(binding.getKey(), binding.getValue().copy());
+		}
+
+		return new SchemaManagerImpl(parent, bindingFutures, bindings, schemaBuilder, coreSchemata,
+				registeredSchemata.copy(), registeredModels.copy(), registeredTypes.copy(), provisions.copy(),
+				dataFormats.copy());
 	}
 }

@@ -62,6 +62,8 @@ import uk.co.strangeskies.utilities.collection.computingmap.DeferredComputingMap
 import uk.co.strangeskies.utilities.collection.computingmap.LRUCacheComputingMap;
 
 public class ProcessingContextImpl implements ProcessingContext {
+	private final SchemaManager manager;
+
 	private final List<TypedObject<?>> objectStack;
 	private final List<SchemaNode.Effective<?, ?>> nodeStack;
 	private final Bindings bindings; // TODO erase bindings in failed sections
@@ -92,6 +94,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 	private final DataTypes registeredTypes;
 
 	public ProcessingContextImpl(SchemaManager manager) {
+		this.manager = manager;
+
 		objectStack = Collections.emptyList();
 		nodeStack = Collections.emptyList();
 		bindings = new Bindings();
@@ -117,6 +121,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public ProcessingContextImpl(ProcessingContext parentContext) {
+		manager = parentContext.manager();
+
 		objectStack = parentContext.getBindingObjectStack();
 		nodeStack = parentContext.getBindingNodeStack();
 		bindings = parentContext.bindings();
@@ -141,6 +147,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 	protected ProcessingContextImpl(ProcessingContext parentContext, List<TypedObject<?>> objectStack,
 			List<SchemaNode.Effective<?, ?>> nodeStack, StructuredDataSource input, StructuredDataTarget output,
 			Provisions provider, boolean exhaustive, BindingBlocker blocker) {
+		manager = parentContext.manager();
+
 		this.objectStack = objectStack;
 		this.nodeStack = nodeStack;
 		bindings = parentContext.bindings();
@@ -160,6 +168,11 @@ public class ProcessingContextImpl implements ProcessingContext {
 		registeredTypes = parentContext.registeredTypes();
 
 		bindingFutureBlocker = blocker;
+	}
+
+	@Override
+	public SchemaManager manager() {
+		return manager;
 	}
 
 	@Override

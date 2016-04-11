@@ -20,13 +20,17 @@ package uk.co.strangeskies.modabi.processing;
 
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.schema.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
 /**
  * <p>
  * This enumeration describes the different ways a {@link Schema} can request a
- * {@link SchemaManager} should provide implementations of classes and interfaces
- * to bind to. All binding strategies can be applied when binding to concrete
- * classes, abstract classes, or interfaces, unless otherwise specified.
+ * {@link SchemaManager} should provide implementations of classes and
+ * interfaces to bind to. All binding strategies can be applied when binding to
+ * concrete classes, abstract classes, or interfaces, unless otherwise
+ * specified.
  * </p>
  *
  * @author Elias N Vasylenko
@@ -44,28 +48,53 @@ public enum BindingStrategy {
 	/**
 	 * The schema binder should attempt to create a simple proxy implementation of
 	 * an interface.
-	 *
+	 * <p>
 	 * This binding strategy is only valid when binding to interfaces.
 	 */
 	IMPLEMENT_IN_PLACE,
 
 	/**
 	 * The schema binder should attempt to find a constructor to call on the
-	 * requested class. The first of any child nodes must be an input node, though
-	 * it may be an empty sequence, and any data it binds should be passed to the
-	 * constructor as parameters. No in method name should be specified on this
-	 * child node.
-	 *
+	 * requested class.
+	 * <p>
+	 * The arguments passed to the constructor will be determined by way of the
+	 * first child node which is an input node, and which has an
+	 * {@link InputNode.Effective#getInMethod() in method} other than an explicit
+	 * {@code "null"}. The only valid in method string for this node is
+	 * {@code "this"}, though it may be omitted. No input may be bound to the
+	 * target by any node, or the child of any node, appearing before this one.
+	 * <p>
+	 * This node may be an {@link InputSequenceNode input sequence}, in which case
+	 * any data its children bind will be passed to the constructor as parameters
+	 * in the order of those nodes. In the case of a {@link BindingChildNode
+	 * binding node}, the bound value will be passed to a single argument
+	 * constructor of that type.
+	 * <p>
+	 * The constructor will be resolved as per the normal java overload resolution
+	 * rules, given the determined arguments.
+	 * <p>
 	 * This binding strategy is only valid when binding to concrete classes.
 	 */
 	CONSTRUCTOR,
 
 	/**
-	 * The schema binder should attempt to find the static factory method to call
-	 * on the requested binding class, named by the input method of the first
-	 * child nodes. This child node must be an input node, though it may be an
-	 * empty input sequence, and any data it binds should be passed to the factory
-	 * method as parameters.
+	 * The schema binder should attempt to find a static factory method to call on
+	 * the requested binding class.
+	 * <p>
+	 * The arguments passed to the method will be determined by way of the first
+	 * child node which is an input node, and which has an
+	 * {@link InputNode.Effective#getInMethod() in method} other than an explicit
+	 * {@code "null"}. No input may be bound to the target by any node, or the
+	 * child of any node, appearing before this one.
+	 * <p>
+	 * This node may be an {@link InputSequenceNode input sequence}, in which case
+	 * any data its children bind will be passed to the method as parameters in
+	 * the order of those nodes. In the case of a {@link BindingChildNode binding
+	 * node}, the bound value will be passed to a single argument method of that
+	 * type.
+	 * <p>
+	 * The static method will be resolved as per the normal java overload
+	 * resolution rules, given the determined arguments.
 	 */
 	STATIC_FACTORY,
 
@@ -84,7 +113,7 @@ public enum BindingStrategy {
 	 * object being bound. It is possible that objects produced from the parent
 	 * don't need to be 'added' after, so it is optional to omit the'inMethod'
 	 * property by setting it to 'void'.
-	 *
+	 * <p>
 	 * If a data node binds with this strategy and is set to resolve a provided
 	 * value at registration time, the object being bound by the parent node
 	 * during processing will not be available yet. In this case, an instance of

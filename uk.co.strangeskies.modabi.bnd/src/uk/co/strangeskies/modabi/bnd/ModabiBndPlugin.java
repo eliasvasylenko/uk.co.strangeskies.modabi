@@ -28,6 +28,8 @@ import aQute.bnd.service.AnalyzerPlugin;
 import aQute.bnd.service.Plugin;
 import aQute.service.reporter.Reporter;
 import uk.co.strangeskies.bnd.ReporterLog;
+import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
@@ -38,6 +40,7 @@ import uk.co.strangeskies.utilities.Log.Level;
  * @author Elias N Vasylenko
  */
 public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
+	private static final SchemaManager MANAGER = new SchemaManagerImpl();
 	private static final Object SOURCES_PROPERTY = "sources";
 	private static final String DEFAULT_SOURCE = "META-INF/schemata/*";
 
@@ -73,7 +76,8 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 		try {
 			scanSchemaAnnotations(analyzer);
 
-			RegistrationContext context = new BndRegistrationContext(log, analyzer, format, sources);
+			RegistrationContext context = new BndRegistrationContext(MANAGER.nestChildScope(), log, analyzer, format,
+					sources);
 			return new ModabiRegistration().registerSchemata(context);
 		} catch (Throwable t) {
 			log.log(Level.ERROR, "Failed to register modabi schemata " + sources, t);

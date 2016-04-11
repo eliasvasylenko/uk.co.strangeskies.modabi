@@ -83,7 +83,12 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 
 			@Override
 			public boolean isInputExpected() {
-				return true;
+				/*
+				 * We shouldn't bind input if our parent doesn't expect it, or if our
+				 * parent expects a constructor or static method
+				 */
+				return getContext().isInputExpected() && !getContext().isConstructorExpected()
+						&& !getContext().isStaticMethodExpected();
 			}
 
 			@Override

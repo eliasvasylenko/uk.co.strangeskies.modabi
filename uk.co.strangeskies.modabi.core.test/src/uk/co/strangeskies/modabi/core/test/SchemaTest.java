@@ -94,7 +94,7 @@ public class SchemaTest {
 			Navigable out = StructuredDataBuffer.singleBuffer();
 			NavigableStructuredDataSource buffered = out.getBuffer();
 			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), schemaManager.getBaseSchema()).to(out);
-			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 
 			System.out.println();
 			System.out.println();
@@ -109,7 +109,7 @@ public class SchemaTest {
 				throw new RuntimeException(e);
 			}
 
-			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 			buffered.reset();
 
 			System.out.println();
@@ -130,7 +130,7 @@ public class SchemaTest {
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
 			schemaManager.unbind(schemaModel, metaSchema).to(out);
-			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 			buffered.reset();
 
 			System.out.println();
@@ -148,7 +148,7 @@ public class SchemaTest {
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
 			schemaManager.unbind(schemaModel2, metaSchema).to(out);
-			buffered.pipeNextChild(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
+			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 		});
 	}
 
@@ -176,14 +176,14 @@ public class SchemaTest {
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object> baseModel((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
+								.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.effective().getDataType());
 		System.out.println("    ~# " + stringIntMapModel.effective().getDataType().getResolver().getBounds());
 
 		schemaManager.unbind(stringIntMapModel, stringIntMap)
-				.to(schemaManager.dataFormats().getDataFormat("xml").saveData(System.out));
+				.to(schemaManager.registeredFormats().get("xml").saveData(System.out));
 		System.out.println();
 
 		/*-
@@ -210,29 +210,24 @@ public class SchemaTest {
 						e -> e.complex().name("entrySet").inline(true).inMethod("null")
 								.dataType(
 										inferredMapEntrySet)
-								.bindingStrategy(
-										BindingStrategy.TARGET_ADAPTOR)
+								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 								.addChild(
-										s -> s.inputSequence().name("entrySet")
-												.inMethodChained(true))
+										s -> s.inputSequence()
+												.name(
+														"entrySet")
+												.inMethodChained(
+														true))
 								.addChild(
 										f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add").outMethod("this")
 												.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE).bindingType(BaseSchema.class)
-												.unbindingMethod(
-														"mapEntry")
-												.dataType(inferredMapEntry)
+												.unbindingMethod("mapEntry").dataType(inferredMapEntry)
 												.addChild(
 														k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
-																.type(
-																		schemaManager.getBaseSchema().derivedTypes().listType())
-																.addChild(
+																.type(schemaManager.getBaseSchema().derivedTypes().listType()).addChild(
 																		l -> l.data().name("element")
 																				.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
 												.addChild(
-														v -> v.complex()
-																.name(
-																		"value")
-																.inMethod("null")
+														v -> v.complex().name("value").inMethod("null")
 																.baseModel(
 																		schemaManager.getBaseSchema().models()
 																				.mapModel())
@@ -240,15 +235,16 @@ public class SchemaTest {
 																		s -> s.complex()
 																				.name(
 																						"entrySet")
-																				.addChild(ee -> ee.complex().name("entry")
-																						.addChild(k -> k.data().name("key")
-																								.type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 																				.addChild(
-																						vv -> vv.complex().name("value")
-																								.<Object> baseModel((Model<Object>) schemaManager.getBaseSchema()
-																										.models().simpleModel())
-																						.addChild(cc -> cc.data().name("content")
-																								.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
+																						ee -> ee.complex().name("entry")
+																								.addChild(k -> k.data().name("key")
+																										.type(schemaManager.getBaseSchema()
+																												.primitiveType(Primitive.STRING)))
+																								.addChild(vv -> vv.complex().name("value")
+																										.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema()
+																												.models().simpleModel())
+																										.addChild(cc -> cc.data().name("content").type(schemaManager
+																												.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
 		System.out.println(mapModel3.effective().getDataType());
 		System.out.println(mapModel3.effective().getDataType().getResolver().getBounds());

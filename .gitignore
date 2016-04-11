@@ -41,19 +41,17 @@ Thumbs.db
 
 # generated files #
 ###################
-bin/
-bin_test/
-gen/
-target/
-build/
-generated/
-test-output/
+/*/bin/
+/*/bin_test/
+/*/gen/
+/*/target/
+/*/build/
+/*/testdir/
+/*/generated/
 .gradle/
 .e4css/
-reports/
-release/
-testdir/
-workspace/
+/*/workspace/
+/Mission Control
 
 # Local configuration file (sdk path, etc) #
 ############################################

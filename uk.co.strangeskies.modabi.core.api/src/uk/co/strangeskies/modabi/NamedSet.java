@@ -27,54 +27,64 @@ import java.util.function.Function;
 import uk.co.strangeskies.utilities.Scoped;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.collection.ScopedObservableSet;
+import uk.co.strangeskies.utilities.collection.SynchronizedObservableSet;
 import uk.co.strangeskies.utilities.function.SetTransformationView;
 
-public abstract class QualifiedNamedSet<S extends QualifiedNamedSet<S, T>, T>
-		extends /* @ReadOnly */ScopedObservableSet<S, T> implements Scoped<S> {
-	private final LinkedHashMap<QualifiedName, T> elements;
+public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @ReadOnly */ScopedObservableSet<S, T>
+		implements Scoped<S> {
+	private final LinkedHashMap<N, T> elements;
+	private final Object mutex;
 
-	public QualifiedNamedSet(Function<T, QualifiedName> namingFunction) {
+	public NamedSet(Function<T, N> namingFunction) {
 		this(namingFunction, null);
 	}
 
-	protected QualifiedNamedSet(Function<T, QualifiedName> namingFunction, S parent) {
+	protected NamedSet(Function<T, N> namingFunction, S parent) {
 		this(namingFunction, parent, new LinkedHashMap<>());
 	}
 
-	private QualifiedNamedSet(Function<T, QualifiedName> namingFunction, S parent,
-			LinkedHashMap<QualifiedName, T> elements) {
-		super(ObservableSet.over(new SetTransformationView<T, T>(elements.values(), identity()) {
-			@Override
-			public boolean add(T e) {
-				if (parent != null && parent.contains(e))
-					return false;
+	private NamedSet(Function<T, N> namingFunction, S parent, LinkedHashMap<N, T> elements) {
+		this(parent, elements, SynchronizedObservableSet
+				.over(ObservableSet.over(new SetTransformationView<T, T>(elements.values(), identity()) {
+					@Override
+					public boolean add(T e) {
+						N name = namingFunction.apply(e);
+						if (elements.get(name) != null)
+							return false;
 
-				QualifiedName name = namingFunction.apply(e);
-				if (elements.get(name) != null)
-					return false;
+						return elements.putIfAbsent(name, e) == null;
+					}
 
-				return elements.putIfAbsent(name, e) == null;
-			}
-
-			@Override
-			public boolean addAll(Collection<? extends T> elements) {
-				boolean changed = false;
-				for (T element : elements) {
-					changed = add(element) || changed;
-				}
-				return changed;
-			}
-		}).synchronizedView());
-
-		this.elements = elements;
+					@Override
+					public boolean addAll(Collection<? extends T> elements) {
+						boolean changed = false;
+						for (T element : elements) {
+							changed = add(element) || changed;
+						}
+						return changed;
+					}
+				})));
 	}
 
-	public T get(QualifiedName name) {
-		T element = elements.get(name);
-		if (element == null) {
-			element = getParentScope().map(p -> p.get(name)).orElse(null);
+	private NamedSet(S parent, LinkedHashMap<N, T> elements, SynchronizedObservableSet<?, T> set) {
+		super(parent, set);
+
+		this.elements = elements;
+		this.mutex = set.getMutex();
+	}
+
+	protected Object getMutex() {
+		return mutex;
+	}
+
+	public T get(N name) {
+		synchronized (getMutex()) {
+			T element = elements.get(name);
+			if (element == null) {
+				element = getParentScope().map(p -> p.get(name)).orElse(null);
+			}
+			return element;
 		}
-		return element;
 	}
 
 	@Override

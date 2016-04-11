@@ -40,6 +40,7 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
@@ -123,12 +124,15 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private boolean blocked;
 	private int childIndex;
 
+	private final SchemaNodeConfigurationContext<?> context;
+
 	private final List<ChildNode<?, ?>> children;
 	private final List<MergeGroup> mergedChildren;
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
-	private final SchemaNodeConfigurationContext<?> context;
 	private TypeToken<?> inputTarget;
+	private boolean constructorExpected;
+	private boolean staticMethodExpected;
 
 	public SequentialChildrenConfigurator(SchemaNodeConfigurationContext<?> context) {
 		children = new ArrayList<>();
@@ -147,8 +151,13 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 		}
 
+		/*
+		 * Initial state:
+		 */
 		this.context = context;
 		inputTarget = context.inputTargetType();
+		constructorExpected = context.isConstructorExpected();
+		staticMethodExpected = context.isStaticMethodExpected();
 
 		childIndex = 0;
 	}
@@ -228,6 +237,15 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = group.getIndex() + 1;
 
 		inputTarget = effective.getPostInputType();
+
+		if ((constructorExpected || staticMethodExpected)
+
+				&& effective instanceof InputNode
+
+				&& !"null".equals(((InputNode<?, ?>) effective).getInMethodName())) {
+
+			constructorExpected = staticMethodExpected = false;
+		}
 	}
 
 	@Override
@@ -283,12 +301,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public boolean isConstructorExpected() {
-				return SequentialChildrenConfigurator.this.context.isConstructorExpected() && children.isEmpty();
+				return constructorExpected;
 			}
 
 			@Override
 			public boolean isStaticMethodExpected() {
-				return SequentialChildrenConfigurator.this.context.isStaticMethodExpected() && children.isEmpty();
+				return staticMethodExpected;
 			}
 
 			@Override

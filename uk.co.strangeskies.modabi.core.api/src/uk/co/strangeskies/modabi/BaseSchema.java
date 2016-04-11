@@ -65,6 +65,8 @@ public interface BaseSchema extends Schema {
 
 		DataType<Enumeration<?>> enumerationType();
 
+		DataType<Package> packageType();
+
 		DataType<Class<?>> classType();
 
 		DataType<Type> typeType();

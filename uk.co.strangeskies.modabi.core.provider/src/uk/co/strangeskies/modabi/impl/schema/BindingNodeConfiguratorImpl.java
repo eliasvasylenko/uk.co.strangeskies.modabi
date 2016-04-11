@@ -39,6 +39,7 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements BindingNodeConfigurator<S, N, T> {
@@ -107,7 +108,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			if (this.dataType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::getDataType)) {
-					effectiveDataType = effectiveDataType.withUpperBound(overriddenType.deepCopy());
+					/*
+					 * only perform more complex type override behaviour if not already
+					 * directly assignable
+					 */
+					if (!overriddenType.isProper()
+							|| !Types.isAssignable(effectiveDataType.getType(), overriddenType.getType())) {
+						effectiveDataType = effectiveDataType.withUpperBound(overriddenType.deepCopy());
+					}
 				}
 			}
 
@@ -118,7 +126,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			if (this.bindingType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::getBindingType)) {
-					effectiveBindingType = effectiveBindingType.withUpperBound(overriddenType.deepCopy());
+					/*
+					 * only perform more complex type override behaviour if not already
+					 * directly assignable
+					 */
+					if (!overriddenType.isProper()
+							|| !Types.isAssignable(effectiveBindingType.getType(), overriddenType.getType())) {
+						effectiveBindingType = effectiveBindingType.withUpperBound(overriddenType.deepCopy());
+					}
 				}
 			}
 
@@ -129,7 +144,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			if (this.unbindingType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::getUnbindingType)) {
-					effectiveUnbindingType = effectiveUnbindingType.withUpperBound(overriddenType.deepCopy());
+					/*
+					 * only perform more complex type override behaviour if not already
+					 * directly assignable
+					 */
+					if (!overriddenType.isProper()
+							|| !Types.isAssignable(effectiveUnbindingType.getType(), overriddenType.getType())) {
+						effectiveUnbindingType = effectiveUnbindingType.withUpperBound(overriddenType.deepCopy());
+					}
 				}
 			}
 
@@ -140,7 +162,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			if (this.unbindingFactoryType != null) {
 				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::getUnbindingFactoryType)) {
-					effectiveUnbindingFactoryType = effectiveUnbindingFactoryType.withUpperBound(overriddenType.deepCopy());
+					/*
+					 * only perform more complex type override behaviour if not already
+					 * directly assignable
+					 */
+					if (!overriddenType.isProper()
+							|| !Types.isAssignable(effectiveUnbindingFactoryType.getType(), overriddenType.getType())) {
+						effectiveUnbindingFactoryType = effectiveUnbindingFactoryType.withUpperBound(overriddenType.deepCopy());
+					}
 				}
 			}
 

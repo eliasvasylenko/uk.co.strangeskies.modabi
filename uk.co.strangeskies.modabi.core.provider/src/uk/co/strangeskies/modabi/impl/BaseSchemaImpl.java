@@ -86,6 +86,7 @@ public class BaseSchemaImpl implements BaseSchema {
 		private final DataType<DataSource> bufferedDataType;
 		private final DataType<DataItem<?>> bufferedDataItemType;
 
+		private final DataType<Package> packageType;
 		private final DataType<Class<?>> classType;
 		private final DataType<Type> typeType;
 		private final DataType<AnnotatedType> annotatedTypeType;
@@ -135,10 +136,9 @@ public class BaseSchemaImpl implements BaseSchema {
 							.unbindingMethod("pipe"));
 
 			bufferedDataItemType = factory.apply("bufferedDataItem",
-					t -> t.dataType(new TypeToken<DataItem<?>>() {})
-							.bindingType(DataSource.class).bindingStrategy(BindingStrategy.PROVIDED)
-							.unbindingType(DataTarget.class).unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-							.unbindingMethod("put")
+					t -> t.dataType(new TypeToken<DataItem<?>>() {}).bindingType(DataSource.class)
+							.bindingStrategy(BindingStrategy.PROVIDED).unbindingType(DataTarget.class)
+							.unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED).unbindingMethod("put")
 							.addChild(c -> c.inputSequence().name("get").inMethodChained(true)));
 
 			DataType<Object> referenceBaseType = factory.apply("referenceBase",
@@ -206,6 +206,10 @@ public class BaseSchemaImpl implements BaseSchema {
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
 							.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
 									.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
+
+			packageType = factory.apply("package",
+					t -> t.dataType(new TypeToken<Package>() {}).bindingStrategy(BindingStrategy.STATIC_FACTORY)
+							.addChild(p -> p.data().type(primitives.get(Primitive.STRING)).name("name").inMethod("getPackage")));
 
 			classType = factory.apply("class",
 					t -> t.dataType(new TypeToken<Class<?>>() {}).bindingStrategy(BindingStrategy.STATIC_FACTORY)
@@ -417,6 +421,11 @@ public class BaseSchemaImpl implements BaseSchema {
 																							.inMethodCast(true))
 																			.addChild(e -> e.inputSequence().name("providedValue").inMethodChained(true)))
 																	.addChild(d -> d.data().name("data").type(bufferedDataType).outMethod("this")))));
+		}
+
+		@Override
+		public DataType<Package> packageType() {
+			return packageType;
 		}
 
 		@Override

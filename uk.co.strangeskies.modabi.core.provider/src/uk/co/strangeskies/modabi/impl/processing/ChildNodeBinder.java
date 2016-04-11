@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
+import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -75,7 +75,7 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 	public static ProcessingContextImpl bind(ProcessingContextImpl parentContext, ChildNode.Effective<?, ?> next) {
 		ProcessingContextImpl context = parentContext.withBindingNode(next);
 
-		ReturningSchemaProcessor<ChildNodeBinder<?>> childProcessor = new ReturningSchemaProcessor<ChildNodeBinder<?>>() {
+		ReturningNodeProcessor<ChildNodeBinder<?>> childProcessor = new ReturningNodeProcessor<ChildNodeBinder<?>>() {
 			@Override
 			public <U> ChildNodeBinder<?> accept(ComplexNode.Effective<U> node) {
 				return new ComplexNodeBinder<>(context, node).bindToTarget();

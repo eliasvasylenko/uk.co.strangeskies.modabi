@@ -18,8 +18,7 @@ Bundle-Description: \
 	biz.aQute.bndlib,\
 	${testpath.base}
 
-Private-Package: \
-	uk.co.strangeskies.modabi.plugin.test
+Private-Package: uk.co.strangeskies.modabi.plugin.test
 
 Import-Package: \
 	uk.co.strangeskies.modabi.schema,\

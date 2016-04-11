@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.ReturningSchemaProcessor;
+import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.NodeProcessor;
@@ -51,7 +51,7 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 		void process(NodeProcessor context);
 
-		default <T> T process(ReturningSchemaProcessor<T> context) {
+		default <T> T process(ReturningNodeProcessor<T> context) {
 			IdentityProperty<T> result = new IdentityProperty<>();
 
 			process(new NodeProcessor() {

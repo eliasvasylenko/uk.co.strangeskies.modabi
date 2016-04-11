@@ -20,10 +20,10 @@ package uk.co.strangeskies.modabi.bnd.xml;
 
 import aQute.bnd.service.AnalyzerPlugin;
 import uk.co.strangeskies.modabi.bnd.ModabiBndPlugin;
-import uk.co.strangeskies.modabi.io.xml.XmlInterface;
+import uk.co.strangeskies.modabi.io.xml.XmlFormat;
 
 public class ModabiXmlBndPlugin extends ModabiBndPlugin implements AnalyzerPlugin {
 	public ModabiXmlBndPlugin() {
-		super(new XmlInterface());
+		super(new XmlFormat());
 	}
 }

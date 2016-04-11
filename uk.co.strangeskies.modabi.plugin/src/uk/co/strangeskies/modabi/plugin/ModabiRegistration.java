@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toSet;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,7 +72,7 @@ public class ModabiRegistration {
 	/*
 	 * The names of required schemata from build dependencies:
 	 */
-	private final Set<QualifiedName> requiredSchemata = new HashSet<>();
+	private final Set<QualifiedName> requiredSchemata = Collections.synchronizedSet(new HashSet<>());
 	/*
 	 * All encountered schemata which are loading or have loaded:
 	 */
@@ -92,13 +93,11 @@ public class ModabiRegistration {
 		ObservableSet<?, Binding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(schemaModel);
 		schemaBindingChanges.changes().addObserver(c -> {
 			new Thread(() -> {
-				synchronized (schemaBindingChanges) {
-					synchronized (resolvingSchemata) {
-						resolvingSchemata.removeAll(context.schemaManager().getBindingFutures(schemaModel).stream()
-								.filter(BindingFuture::isDone).collect(Collectors.toSet()));
-						detectDeadlock();
-					}
+				synchronized (resolvingSchemata) {
+					resolvingSchemata.removeAll(context.schemaManager().getBindingFutures(schemaModel).stream()
+							.filter(BindingFuture::isDone).collect(Collectors.toSet()));
 				}
+				detectDeadlock();
 			}).start();
 		});
 
@@ -166,8 +165,8 @@ public class ModabiRegistration {
 			for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
 				resolveDependency(block);
 			}
-			detectDeadlock();
 		}
+		detectDeadlock();
 
 		new Thread(() -> {
 			try {
@@ -175,8 +174,8 @@ public class ModabiRegistration {
 			} catch (Exception e) {
 				synchronized (resolvingSchemata) {
 					resolvingSchemata.remove(bindingFuture);
-					detectDeadlock();
 				}
+				detectDeadlock();
 			}
 		}).start();
 
@@ -184,21 +183,24 @@ public class ModabiRegistration {
 	}
 
 	private void detectDeadlock() {
-		synchronized (resolvingSchemata) {
-			if (resolvingSchemata.stream().allMatch(f -> f.blocks().isBlocked())) {
-				Set<BindingBlock> missingDependencies = resolvingSchemata.stream().flatMap(f -> f.blocks().getBlocks().stream())
-						.collect(toSet());
+		Set<BindingFuture<Schema>> resolvingSchemata;
+		synchronized (this.resolvingSchemata) {
+			resolvingSchemata = this.resolvingSchemata;
+		}
 
-				SchemaException deadlockException = new SchemaException(
-						"Cannot bind " + providedSchemata.keySet() + "; Cannot resolve dependencies " + missingDependencies);
-				for (BindingFuture<?> future : resolvingSchemata) {
-					for (BindingBlock block : future.blocks().getBlocks()) {
-						block.fail(deadlockException);
-					}
+		if (resolvingSchemata.stream().allMatch(f -> f.blocks().isBlocked())) {
+			Set<BindingBlock> missingDependencies = resolvingSchemata.stream().flatMap(f -> f.blocks().getBlocks().stream())
+					.collect(toSet());
+
+			SchemaException deadlockException = new SchemaException(
+					"Cannot bind " + providedSchemata.keySet() + "; Cannot resolve dependencies " + missingDependencies);
+			for (BindingFuture<?> future : resolvingSchemata) {
+				for (BindingBlock block : future.blocks().getBlocks()) {
+					block.fail(deadlockException);
 				}
-
-				throw deadlockException;
 			}
+
+			throw deadlockException;
 		}
 	}
 
@@ -216,10 +218,8 @@ public class ModabiRegistration {
 			QualifiedName id = block.id().get(Primitive.QUALIFIED_NAME);
 
 			if (context.availableDependencies().contains(id)) {
-				boolean added;
-				synchronized (requiredSchemata) {
-					added = requiredSchemata.add(id);
-				}
+				boolean added = requiredSchemata.add(id);
+
 				if (added) {
 					registerSchemaResource(() -> context.openDependency(id));
 				}

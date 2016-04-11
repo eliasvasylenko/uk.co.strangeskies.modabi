@@ -29,34 +29,34 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public interface NodeProcessor {
 	default <U> void accept(DataType.Effective<U> node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
 	default <U> void accept(Model.Effective<U> node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
 	default <U> void accept(ComplexNode.Effective<U> node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
 	default <U> void accept(DataNode.Effective<U> node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
 	default void accept(InputSequenceNode.Effective node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
 	default void accept(SequenceNode.Effective node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
 	default void accept(ChoiceNode.Effective node) {
-		accept((SchemaNode.Effective<?, ?>) node);
+		acceptDefault(node);
 	}
 
-	default void accept(SchemaNode.Effective<?, ?> node) {
+	default void acceptDefault(SchemaNode.Effective<?, ?> node) {
 		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.getName() + "'");
 	}
 }

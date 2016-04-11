@@ -21,12 +21,8 @@ import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.impl.CoreSchemata;
-import uk.co.strangeskies.modabi.impl.SchemaBuilderImpl;
-import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
@@ -35,9 +31,6 @@ import uk.co.strangeskies.utilities.classpath.Attribute;
 import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 
 final class BndRegistrationContext implements RegistrationContext {
-	private static final SchemaBuilder SCHEMA_BUILDER = new SchemaBuilderImpl();
-	private static final CoreSchemata CORE_SCHEMATA = new CoreSchemata(SCHEMA_BUILDER);
-
 	private final Log log;
 	private final Analyzer analyzer;
 	private final StructuredDataFormat format;
@@ -47,17 +40,19 @@ final class BndRegistrationContext implements RegistrationContext {
 	private final Map<QualifiedName, Resource> availableDependencies;
 	private final SchemaManager manager;
 
-	public BndRegistrationContext(Log log, Analyzer analyzer, StructuredDataFormat format, Set<String> sources) {
+	public BndRegistrationContext(SchemaManager manager, Log log, Analyzer analyzer, StructuredDataFormat format,
+			Set<String> sources) {
 		this.log = log;
 		this.analyzer = analyzer;
 		this.format = format;
 
-		classLoader = getClassLoader(analyzer);
+		classLoader = createClassLoader(analyzer);
 		resources = collectSchemaResources(analyzer.getJar(), sources);
 		availableDependencies = collectSchemaResources(analyzer.getClasspath());
 
-		manager = new SchemaManagerImpl(SCHEMA_BUILDER, CORE_SCHEMATA);
-		manager.dataFormats().registerDataFormat(format);
+		this.manager = manager;
+
+		manager.registeredFormats().add(format);
 	}
 
 	@Override
@@ -182,7 +177,7 @@ final class BndRegistrationContext implements RegistrationContext {
 		return resources;
 	}
 
-	private ClassLoader getClassLoader(Analyzer analyzer) {
+	private ClassLoader createClassLoader(Analyzer analyzer) {
 		List<URL> jarPaths;
 		try {
 			jarPaths = getJarPaths(analyzer);

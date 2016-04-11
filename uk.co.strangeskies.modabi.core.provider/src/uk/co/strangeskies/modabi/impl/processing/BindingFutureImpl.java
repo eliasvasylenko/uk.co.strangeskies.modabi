@@ -95,6 +95,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private final BindingBlocksImpl blocks;
 	private final FutureTask<BindingSource<T>> sourceFuture;
 	private final FutureTask<T> dataFuture;
+	private final FutureTask<Model<T>> modelFuture;
 
 	private Binding<T> bindingResult;
 	private boolean cancelled;
@@ -107,6 +108,10 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 		cancelled = false;
 
 		sourceFuture = new FutureTask<>(modelSupplier::get);
+		modelFuture = new FutureTask<>(() -> {
+			sourceFuture.run();
+			return sourceFuture.get().getModel();
+		});
 
 		ClassLoader classLoaderFinal = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
 
@@ -114,7 +119,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			Thread.currentThread().setContextClassLoader(classLoaderFinal);
 			blocks.addParticipatingThread(Thread.currentThread());
 
-			sourceFuture.run();
+			modelFuture.run();
 
 			T binding = bind(sourceFuture.get());
 
@@ -137,7 +142,8 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 					thread.interrupt();
 				}
 				cancelled = true;
-				return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning);
+				return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning)
+						| modelFuture.cancel(mayInterruptIfRunning);
 			} else {
 				return false;
 			}
@@ -173,36 +179,36 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			if (cancelled) {
 				throw new CancellationException();
 			}
+		}
 
-			String input = "unknown";
+		String input = "unknown";
 
-			String modelString = "";
-			try {
-				BindingSource<T> source = getModel.tryGet();
-				Model<T> model = source.getModel();
+		String modelString = "";
+		try {
+			BindingSource<T> source = getModel.tryGet();
+			Model<T> model = source.getModel();
 
-				modelString = " with model '" + model.getName() + "'";
+			modelString = " with model '" + model.getName() + "'";
 
-				input = source.getName();
+			input = source.getName();
 
-				T data = getData.tryGet();
+			T data = getData.tryGet();
 
-				bindingResult = new Binding<>(model, data);
+			bindingResult = new Binding<>(model, data);
 
-				return bindingResult;
-			} catch (InterruptedException e) {
-				throw new SchemaException("Unexpected interrupt during binding of '" + input + "'" + modelString, e);
-			} catch (ExecutionException e) {
-				throw new SchemaException("Exception during binding of '" + input + "'" + modelString, e);
-			} catch (TimeoutException e) {
-				throw new SchemaException("Timed out waiting for binding of '" + input + "'" + modelString, e);
-			}
+			return bindingResult;
+		} catch (InterruptedException e) {
+			throw new SchemaException("Unexpected interrupt during binding of '" + input + "'" + modelString, e);
+		} catch (ExecutionException e) {
+			throw new SchemaException("Exception during binding of '" + input + "'" + modelString, e);
+		} catch (TimeoutException e) {
+			throw new SchemaException("Timed out waiting for binding of '" + input + "'" + modelString, e);
 		}
 	}
 
 	@Override
 	public Future<Model<T>> getModelFuture() {
-		return new FutureTask<>(() -> sourceFuture.get().getModel());
+		return modelFuture;
 	}
 
 	@Override

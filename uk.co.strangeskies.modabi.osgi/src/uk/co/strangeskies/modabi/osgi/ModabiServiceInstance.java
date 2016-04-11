@@ -11,13 +11,12 @@ import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.Self;
 
-public abstract class ModabiServiceInstance<S extends ModabiServiceInstance<S>> implements Self<S> {
+public abstract class ModabiServiceInstance<T> {
 	@Reference
 	SchemaManager manager;
 
-	private final TypeToken<S> type;
+	private final TypeToken<T> type;
 	private final URL location;
 	private final QualifiedName schema;
 
@@ -25,12 +24,29 @@ public abstract class ModabiServiceInstance<S extends ModabiServiceInstance<S>> 
 		this(location, null);
 	}
 
+	public ModabiServiceInstance(String name, String extension) {
+		this(name, extension, null);
+	}
+
+	public ModabiServiceInstance(String name, String extension, QualifiedName schema) {
+		String resourceLocation = getClass().getPackage().getName().replaceAll(".", "/") + '/';
+		this.location = getClass().getResource(resourceLocation + name + '.' + extension);
+
+		this.schema = schema;
+
+		type = findType();
+	}
+
 	public ModabiServiceInstance(URL location, QualifiedName schema) {
 		this.location = location;
 		this.schema = schema;
 
-		type = TypeToken.over(getClass()).resolveSupertypeParameters(ModabiServiceInstance.class)
-				.resolveType(new TypeParameter<S>() {});
+		type = findType();
+	}
+
+	private TypeToken<T> findType() {
+		TypeToken<T> type = TypeToken.over(getClass()).resolveSupertypeParameters(ModabiServiceInstance.class)
+				.resolveType(new TypeParameter<T>() {});
 
 		if (!type.isProper()) {
 			throw new SchemaException(
@@ -41,19 +57,22 @@ public abstract class ModabiServiceInstance<S extends ModabiServiceInstance<S>> 
 		if (!type.isAssignableFrom(getClass())) {
 			throw new SchemaException("Type " + type + " must be assignable from providing service class " + getClass());
 		}
+
+		return type;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Activate
 	public void initialise() {
 		SchemaManager manager = this.manager;
 		this.manager = null;
 
-		Binder<S> binder = (schema != null)
+		Binder<T> binder = (schema != null)
 
 				? manager.bind(schema, type)
 
 				: manager.bind(type);
 
-		binder.withRoot(getThis()).from(location).resolve();
+		binder.withRoot((T) this).from(location).resolve();
 	}
 }

@@ -33,7 +33,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
-public class Models extends QualifiedNamedSet<Models, Model<?>> {
+public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	private final MultiMap<QualifiedName, Model<?>, LinkedHashSet<Model<?>>> derivedModels;
 	private final MultiMap<Type, Model<?>, LinkedHashSet<Model<?>>> classModels;
 
@@ -49,12 +49,14 @@ public class Models extends QualifiedNamedSet<Models, Model<?>> {
 
 	@Override
 	public boolean add(Model<?> element) {
-		boolean added = super.add(element.source());
+		synchronized (getComponent()) {
+			boolean added = super.add(element.source());
 
-		if (added)
-			mapModel(element);
+			if (added)
+				mapModel(element);
 
-		return added;
+			return added;
+		}
 	}
 
 	private void mapModel(Model<?> model) {
@@ -69,53 +71,73 @@ public class Models extends QualifiedNamedSet<Models, Model<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getDerivedModels(Model<T> model) {
-		/*
-		 * This extra cast is needed by javac but not JDT... Is it valid without?
-		 */
-		LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.effective().getName());
-		return subModelList == null ? new ArrayList<>()
-				: subModelList.stream().map(m -> (Model<? extends T>) m).collect(Collectors.toCollection(ArrayList::new));
+		synchronized (getMutex()) {
+			LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.effective().getName());
+
+			List<Model<? extends T>> derivedModelList = subModelList == null ? new ArrayList<>()
+					: subModelList.stream().map(m -> (Model<? extends T>) m).collect(Collectors.toCollection(ArrayList::new));
+
+			getParentScope().ifPresent(p -> derivedModelList.addAll(p.getDerivedModels(model)));
+
+			return derivedModelList;
+		}
 	}
 
 	public <T> Model<T> get(QualifiedName name, TypeToken<T> dataType) {
-		@SuppressWarnings("unchecked")
-		Model<T> model = (Model<T>) get(name);
+		synchronized (getMutex()) {
+			@SuppressWarnings("unchecked")
+			Model<T> model = (Model<T>) get(name);
 
-		if (!model.getDataType().isAssignableFrom(dataType)) {
-			throw new SchemaException("Cannot bind type " + dataType + " with model " + name);
+			if (!model.getDataType().isAssignableFrom(dataType)) {
+				throw new SchemaException("Cannot bind type " + dataType + " with model " + name);
+			}
+
+			return model;
 		}
-
-		return model;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<T>> getModelsWithType(TypeToken<T> dataType) {
-		Set<Model<?>> models = classModels.get(dataType.getType());
-		return models == null ? Collections.emptyList()
-				: models.stream().map(m -> (Model<T>) m).collect(Collectors.toList());
+		synchronized (getMutex()) {
+			Set<Model<?>> models = classModels.get(dataType.getType());
+
+			List<Model<T>> modelsWithType = models == null ? Collections.emptyList()
+					: models.stream().map(m -> (Model<T>) m).collect(Collectors.toList());
+
+			getParentScope().ifPresent(p -> modelsWithType.addAll(p.getModelsWithType(dataType)));
+
+			return modelsWithType;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getModelsWithBase(Collection<? extends Model<? super T>> baseModel) {
-		Iterator<? extends Model<?>> modelIterator = baseModel.iterator();
+		synchronized (getMutex()) {
+			Iterator<? extends Model<? extends T>> modelIterator = (Iterator<? extends Model<? extends T>>) baseModel
+					.iterator();
 
-		List<? extends Model<?>> subModels = new ArrayList<>(getDerivedModels(modelIterator.next()));
-		while (modelIterator.hasNext())
-			subModels.retainAll(getDerivedModels(modelIterator.next()));
+			List<Model<? extends T>> subModels = new ArrayList<>(getDerivedModels(modelIterator.next()));
+			while (modelIterator.hasNext())
+				subModels.retainAll(getDerivedModels(modelIterator.next()));
 
-		modelIterator = subModels.iterator();
-		while (modelIterator.hasNext())
-			if (modelIterator.next().effective().isAbstract())
-				modelIterator.remove();
+			modelIterator = subModels.iterator();
+			while (modelIterator.hasNext())
+				if (modelIterator.next().effective().isAbstract())
+					modelIterator.remove();
 
-		return (List<Model<? extends T>>) subModels;
+			getParentScope().ifPresent(p -> subModels.addAll(p.getModelsWithBase(baseModel)));
+
+			return subModels;
+		}
 	}
 
 	@Override
 	public Models copy() {
-		Models copy = new Models();
-		copy.addAll(this);
-		return copy;
+		synchronized (getMutex()) {
+			Models copy = new Models();
+			copy.addAll(this);
+			return copy;
+		}
 	}
 
 	@Override

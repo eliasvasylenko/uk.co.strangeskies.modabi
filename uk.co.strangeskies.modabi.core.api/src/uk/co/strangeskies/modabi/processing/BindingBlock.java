@@ -73,7 +73,7 @@ public interface BindingBlock extends Observable<BindingBlockEvent> {
 	 * Signal that the resource or dependency represented by this block has become
 	 * available
 	 */
-	void complete();
+	void complete() throws ExecutionException;
 
 	/**
 	 * Wait for availability of the resource or dependency.

@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
-public class DataTypes extends QualifiedNamedSet<DataTypes, DataType<?>> {
+public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 	private final MultiMap<QualifiedName, DataType<?>, LinkedHashSet<DataType<?>>> derivedTypes;
 
 	public DataTypes() {
@@ -42,12 +42,14 @@ public class DataTypes extends QualifiedNamedSet<DataTypes, DataType<?>> {
 
 	@Override
 	public boolean add(DataType<?> element) {
-		boolean added = super.add(element.source());
+		synchronized (getMutex()) {
+			boolean added = super.add(element.source());
 
-		if (added)
-			mapType(element);
+			if (added)
+				mapType(element);
 
-		return added;
+			return added;
+		}
 	}
 
 	private void mapType(DataType<?> type) {
@@ -57,25 +59,39 @@ public class DataTypes extends QualifiedNamedSet<DataTypes, DataType<?>> {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<DataType<? extends T>> getDerivedTypes(DataType<T> type) {
-		LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type.effective().getName());
-		return subTypeList == null ? new ArrayList<>()
-				: new ArrayList<DataType<? extends T>>(
-						subTypeList.stream().map(m -> (DataType<? extends T>) m).collect(Collectors.toList()));
+		synchronized (getMutex()) {
+			LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type.effective().getName());
+
+			List<DataType<? extends T>> derivedTypes = subTypeList == null ? new ArrayList<>()
+					: new ArrayList<>(subTypeList.stream().map(m -> (DataType<? extends T>) m).collect(Collectors.toList()));
+
+			getParentScope().ifPresent(p -> derivedTypes.addAll(p.getDerivedTypes(type)));
+
+			return derivedTypes;
+		}
 	}
 
 	public <T> List<DataType<? extends T>> getTypesWithBase(DataNode<T> node) {
-		List<DataType<? extends T>> subTypes = getDerivedTypes(node.effective().type());
+		synchronized (getMutex()) {
+			List<DataType<? extends T>> subTypes =
 
-		subTypes = subTypes.stream().filter(m -> !m.effective().isAbstract()).collect(Collectors.toList());
+					getDerivedTypes(node.effective().type())
 
-		return subTypes;
+							.stream().filter(m -> !m.effective().isAbstract()).collect(Collectors.toList());
+
+			getParentScope().ifPresent(p -> subTypes.addAll(p.getTypesWithBase(node)));
+
+			return subTypes;
+		}
 	}
 
 	@Override
 	public DataTypes copy() {
-		DataTypes copy = new DataTypes();
-		copy.addAll(this);
-		return copy;
+		synchronized (getMutex()) {
+			DataTypes copy = new DataTypes();
+			copy.addAll(this);
+			return copy;
+		}
 	}
 
 	@Override

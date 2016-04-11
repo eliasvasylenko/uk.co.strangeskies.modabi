@@ -44,6 +44,7 @@ import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
+import uk.co.strangeskies.utilities.collection.ObservableSet.Change;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public class BinderImpl<T> implements Binder<T> {
@@ -135,15 +136,20 @@ public class BinderImpl<T> implements Binder<T> {
 
 		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
 		Set<StructuredDataFormat> registeredFormats = new HashSet<>();
-		synchronized (registeredFormats) {
-			manager.dataFormats().addWeakObserver(format -> {
-				synchronized (registeredFormats) {
+
+		Consumer<Change<StructuredDataFormat>> observer = change -> {
+			synchronized (registeredFormats) {
+				for (StructuredDataFormat format : change.added()) {
 					if (!registeredFormats.contains(format)) {
 						queue.accept(format);
 					}
 				}
-			});
-			registeredFormats.addAll(manager.dataFormats().getRegistered());
+			}
+		};
+
+		synchronized (registeredFormats) {
+			manager.registeredFormats().changes().addWeakObserver(observer);
+			registeredFormats.addAll(manager.registeredFormats());
 		}
 
 		try {

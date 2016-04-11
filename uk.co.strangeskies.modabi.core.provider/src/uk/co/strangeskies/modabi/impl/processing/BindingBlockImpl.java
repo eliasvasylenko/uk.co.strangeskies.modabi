@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
@@ -85,12 +86,12 @@ public class BindingBlockImpl implements BindingBlock {
 
 	@Override
 	public synchronized boolean isEnded() {
-		return complete;
+		return complete || failure != null;
 	}
 
 	@Override
 	public synchronized boolean isSuccessful() {
-		return complete && failure == null;
+		return complete;
 	}
 
 	@Override
@@ -104,29 +105,44 @@ public class BindingBlockImpl implements BindingBlock {
 	}
 
 	@Override
-	public synchronized void complete() {
-		complete = true;
-		fireEvent(BindingBlockEvent.Type.ENDED);
-		notifyAll();
+	public synchronized void complete() throws ExecutionException {
+		if (failure != null) {
+			throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
+		}
+
+		if (!complete) {
+			complete = true;
+			notifyAll();
+			fireEvent(BindingBlockEvent.Type.ENDED);
+		}
 	}
 
 	@Override
 	public synchronized boolean fail(Throwable cause) {
-		if (complete || failure != null) {
+		if (isEnded()) {
 			return false;
 		} else {
 			failure = cause;
-			fireEvent(BindingBlockEvent.Type.ENDED);
+
+			if (failure == null) {
+				failure = new SchemaException("No cause of failure given for " + this);
+			}
+
 			notifyAll();
+			fireEvent(BindingBlockEvent.Type.ENDED);
 			return true;
 		}
 	}
 
 	@Override
 	public synchronized void waitUntilComplete() throws InterruptedException, ExecutionException {
+		if (isEnded()) {
+			return;
+		}
+
 		fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
-		while (!complete) {
+		while (!isEnded()) {
 			tryWait();
 		}
 	}
@@ -134,17 +150,28 @@ public class BindingBlockImpl implements BindingBlock {
 	@Override
 	public synchronized void waitUntilComplete(long timeoutMilliseconds)
 			throws InterruptedException, TimeoutException, ExecutionException {
-		fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
+		synchronized (this) {
+			if (isEnded()) {
+				return;
+			}
 
-		long startTime = System.currentTimeMillis();
+			fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
-		while (!complete) {
-			long wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
+			long wait = 0;
+			long startTime = System.currentTimeMillis();
+
+			while (!isEnded()) {
+				wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
+				if (wait < 0) {
+					break;
+				}
+				tryWait();
+			}
+
 			if (wait < 0) {
 				fireEvent(BindingBlockEvent.Type.THREAD_UNBLOCKED);
 				throw new TimeoutException("Timed out waiting for blocking dependency " + this);
 			}
-			tryWait();
 		}
 	}
 

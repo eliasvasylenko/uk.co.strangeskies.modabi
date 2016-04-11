@@ -41,19 +41,24 @@ import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public interface ProcessingContext {
 	/**
-	 * @return All models registered in the {@link SchemaManager} backing this
+	 * @return the root manager of the process
+	 */
+	SchemaManager manager();
+
+	/**
+	 * @return all models registered in the {@link SchemaManager} backing this
 	 *         context.
 	 */
 	Models registeredModels();
 
 	/**
-	 * @return All data types registered in the {@link SchemaManager} backing this
+	 * @return all data types registered in the {@link SchemaManager} backing this
 	 *         context.
 	 */
 	DataTypes registeredTypes();
 
 	/**
-	 * @return Objects provided by schema manager for certain types
+	 * @return objects provided by schema manager for certain types
 	 */
 	Provisions provisions();
 
@@ -62,8 +67,8 @@ public interface ProcessingContext {
 	 * backing this context.
 	 * 
 	 * @param name
-	 *          The name of the model to fetch
-	 * @return The model of the given name, or null if no such model exists
+	 *          the name of the model to fetch
+	 * @return the model of the given name, or null if no such model exists
 	 */
 	Model.Effective<?> getModel(QualifiedName name);
 
@@ -73,8 +78,8 @@ public interface ProcessingContext {
 	 * values of the map are lazily computed, then cached for further use.
 	 * 
 	 * @param node
-	 *          The element to override with a model
-	 * @return A mapping from possible overrides to override results
+	 *          the element to override with a model
+	 * @return a mapping from possible overrides to override results
 	 */
 	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(ComplexNode<T> node);
 
@@ -84,8 +89,8 @@ public interface ProcessingContext {
 	 * values of the map are lazily computed, then cached for further use.
 	 * 
 	 * @param node
-	 *          The element to override with a model
-	 * @return A mapping from possible overrides to override results
+	 *          the element to override with a model
+	 * @return a mapping from possible overrides to override results
 	 */
 	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(DataNode<T> node);
 
@@ -94,12 +99,12 @@ public interface ProcessingContext {
 	 * depth first traversal of a schema node tree. The object at the head of the
 	 * stack - the end of the list - is the object currently being processed.
 	 * 
-	 * @return A list representing the stack, in order from tail to head
+	 * @return a list representing the stack, in order from tail to head
 	 */
 	List<SchemaNode.Effective<?, ?>> getBindingNodeStack();
 
 	/**
-	 * @return The node at the head of the {@link #getBindingNodeStack()}.
+	 * @return the node at the head of the {@link #getBindingNodeStack()}.
 	 */
 	default SchemaNode.Effective<?, ?> getBindingNode() {
 		return getBindingNode(0);
@@ -107,8 +112,8 @@ public interface ProcessingContext {
 
 	/**
 	 * @param parent
-	 *          The number of steps back through the stack to reach for a node
-	 * @return The node a given number of steps back from the head of the
+	 *          the number of steps back through the stack to reach for a node
+	 * @return the node a given number of steps back from the head of the
 	 *         {@link #getBindingNodeStack()}
 	 */
 	default SchemaNode.Effective<?, ?> getBindingNode(int parent) {
@@ -122,12 +127,12 @@ public interface ProcessingContext {
 	 * the head of the stack - the end of the list - is the object currently being
 	 * processed.
 	 * 
-	 * @return A list representing the stack, in order from tail to head
+	 * @return a list representing the stack, in order from tail to head
 	 */
 	List<TypedObject<?>> getBindingObjectStack();
 
 	/**
-	 * @return The object at the head of the {@link #getBindingObjectStack()}.
+	 * @return the object at the head of the {@link #getBindingObjectStack()}.
 	 */
 	default TypedObject<?> getBindingObject() {
 		return getBindingObject(0);
@@ -135,8 +140,8 @@ public interface ProcessingContext {
 
 	/**
 	 * @param parent
-	 *          The number of steps back through the stack to reach for an object
-	 * @return The object a given number of steps back from the head of the
+	 *          the number of steps back through the stack to reach for an object
+	 * @return the object a given number of steps back from the head of the
 	 *         {@link #getBindingObjectStack()}
 	 */
 	default TypedObject<?> getBindingObject(int parent) {
@@ -145,24 +150,24 @@ public interface ProcessingContext {
 	}
 
 	/**
-	 * @return The blocking interface through which a processing thread may signal
+	 * @return the blocking interface through which a processing thread may signal
 	 *         that it is waiting for availability of some dependency or resource
 	 */
 	BindingBlocker bindingFutureBlocker();
 
 	/**
-	 * @return Objects which have been bound so far, or bindings which have been
+	 * @return objects which have been bound so far, or bindings which have been
 	 *         encountered so far, during processing
 	 */
 	Bindings bindings();
 
 	/**
-	 * @return The input data source for the processing operation, if applicable
+	 * @return the input data source for the processing operation, if applicable
 	 */
 	Optional<StructuredDataSource> input();
 
 	/**
-	 * @return The output data target for the processing operation, if applicable
+	 * @return the output data target for the processing operation, if applicable
 	 */
 	Optional<StructuredDataTarget> output();
 
@@ -181,8 +186,8 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#provide(TypeToken, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          The type of object to be provided
-	 * @return The provided object with respect to this context
+	 *          the type of object to be provided
+	 * @return the provided object with respect to this context
 	 */
 	default <T> TypedObject<T> provide(TypeToken<T> type) {
 		return provisions().provide(type, this);
@@ -193,8 +198,8 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#provide(Class, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          The type of object to be provided
-	 * @return The provided object with respect to this context
+	 *          the type of object to be provided
+	 * @return the provided object with respect to this context
 	 */
 	default <T> TypedObject<T> provide(Class<T> type) {
 		return provisions().provide(type, this);
@@ -205,8 +210,8 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#isProvided(TypeToken, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          The type of object to be provided
-	 * @return True if the object is available, false otherwise
+	 *          the type of object to be provided
+	 * @return true if the object is available, false otherwise
 	 */
 	default boolean isProvided(TypeToken<?> type) {
 		return provisions().isProvided(type, this);
@@ -217,8 +222,8 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#isProvided(Class, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          The type of object to be provided
-	 * @return True if the object is available, false otherwise
+	 *          the type of object to be provided
+	 * @return true if the object is available, false otherwise
 	 */
 	default boolean isProvided(Class<?> type) {
 		return provisions().isProvided(type, this);

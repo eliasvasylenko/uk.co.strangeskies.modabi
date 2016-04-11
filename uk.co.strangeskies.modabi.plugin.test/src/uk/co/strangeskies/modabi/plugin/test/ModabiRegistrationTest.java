@@ -48,6 +48,8 @@ public class ModabiRegistrationTest {
 	private static final String RESOURCE_LOCATION = "/META-INF/schemata/";
 	protected static final String XML_POSTFIX = ".xml";
 
+	private static final int TIMEOUT_MILLISECONDS = 2000;
+
 	private BundleContext getBundleContext() {
 		return FrameworkUtil.getBundle(this.getClass()).getBundleContext();
 	}
@@ -84,7 +86,7 @@ public class ModabiRegistrationTest {
 			/*
 			 * Services
 			 */
-			private final SchemaManager manager = getService(SchemaManager.class);
+			private final SchemaManager manager = getService(SchemaManager.class).nestChildScope();
 			private final Log log = getService(Log.class);
 			private MultiMap<String, Attribute, Set<Attribute>> attributes = new MultiHashMap<>(HashSet::new);
 
@@ -137,10 +139,6 @@ public class ModabiRegistrationTest {
 			public void addAttributes(String attributeName, List<Attribute> attributes) {
 				this.attributes.addAll(attributeName, attributes);
 			}
-
-			public MultiMap<String, Attribute, Set<Attribute>> getAttributes() {
-				return attributes;
-			}
 		};
 	}
 
@@ -149,52 +147,62 @@ public class ModabiRegistrationTest {
 		return context;
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void createEmptyContextTest() {
 		createSimpleContext();
 	}
-	
-	@Test(timeout = 2000)
+
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void createModabiRegistrationTest() {
 		new ModabiRegistration();
+
+		System.out.println();
+		System.out.println(getService(SchemaManager.class).registeredModels());
+		System.out.println(getService(SchemaManager.class).registeredTypes());
+		System.out.println(getService(SchemaManager.class).registeredSchemata());
 	}
-	
-	@Test(timeout = 2000)
+
+	@Test // (timeout = TIMEOUT_MILLISECONDS)
 	public void loadEmpty() {
 		runSimpleTest(createSimpleContext(asList("Empty"), emptySet()));
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void loadEmptyDependent() {
 		runSimpleTest(createSimpleContext(asList("EmptyDep"), asList("Empty")));
 	}
 
-	@Test(timeout = 2000, expected = SchemaException.class)
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
 	public void failLoadEmptyDependent() {
 		runSimpleTest(createSimpleContext(asList("EmptyDep"), emptySet()));
 	}
-	
-	@Test(timeout = 2000)
+
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void loadTypes() {
 		runSimpleTest(createSimpleContext(asList("Types"), emptySet()));
 	}
-	
-	@Test(timeout = 2000)
+
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void loadTypesDependent() {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), asList("Types")));
 	}
-	
-	@Test(timeout = 2000, expected = SchemaException.class)
+
+	@Test(timeout = TIMEOUT_MILLISECONDS)
+	public void loadBenchmark() {
+		runSimpleTest(createSimpleContext(asList("BenchmarkSchema"), asList("Types")));
+	}
+
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
 	public void failLoadTypesDependent() {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), emptySet()));
 	}
-	
-	@Test(timeout = 2000, expected = SchemaException.class)
+
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
 	public void missingDependency() {
 		runSimpleTest(createSimpleContext(asList("MissingDep"), emptySet()));
 	}
-	
-	@Test(timeout = 2000, expected = SchemaException.class)
+
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
 	public void namedMissingDependency() {
 		runSimpleTest(createSimpleContext(asList("MissingDep"), asList("Missing")));
 	}

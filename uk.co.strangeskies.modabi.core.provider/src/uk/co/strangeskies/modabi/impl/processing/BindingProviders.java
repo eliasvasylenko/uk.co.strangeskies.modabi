@@ -26,6 +26,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -62,12 +63,6 @@ public class BindingProviders {
 		<T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener);
 	}
 
-	private final SchemaManager manager;
-
-	public BindingProviders(SchemaManager manager) {
-		this.manager = manager;
-	}
-
 	public Function<ProcessingContext, ImportSource> importSource() {
 		return context -> new ImportSource() {
 			@Override
@@ -75,7 +70,7 @@ public class BindingProviders {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						ObservableSet<?, Binding<T>> bindings = manager.getBindings(model);
+						ObservableSet<?, Binding<T>> bindings = context.manager().getBindings(model);
 
 						synchronized (bindings) {
 							bindings.changes().addTerminatingObserver(b -> {
@@ -170,7 +165,7 @@ public class BindingProviders {
 		Property<BindingBlock, BindingBlock> blockProperty = new IdentityProperty<>();
 
 		Function<U, Boolean> validate = bindingCandidate -> {
-			boolean success = validateBindingCandidate(bindingCandidate, model, idNode, id);
+			boolean success = validateBindingCandidate(context.manager(), bindingCandidate, model, idNode, id);
 			if (success) {
 				objectProperty.set(bindingCandidate);
 			}
@@ -183,7 +178,11 @@ public class BindingProviders {
 					if (objectProperty.get() == null) {
 						if (validate.apply(objectCandidate)) {
 							objectProperty.set(objectCandidate);
-							blockProperty.get().complete();
+							try {
+								blockProperty.get().complete();
+							} catch (ExecutionException e) {
+								throw new RuntimeException(e.getCause());
+							}
 							return false;
 						} else {
 							return true;
@@ -213,11 +212,11 @@ public class BindingProviders {
 		return getProxiedBinding(model, blockProperty.get(), objectProperty::get);
 	}
 
-	private <U> boolean validateBindingCandidate(U objectCandidate, Model<U> model, DataNode.Effective<?> idNode,
-			DataItem<?> id) {
+	private <U> boolean validateBindingCandidate(SchemaManager manager, U objectCandidate, Model<U> model,
+			DataNode.Effective<?> idNode, DataItem<?> id) {
 		Objects.requireNonNull(objectCandidate);
 
-		DataSource candidateId = unbindDataNode(idNode, new TypedObject<>(model.getDataType(), objectCandidate));
+		DataSource candidateId = unbindDataNode(manager, idNode, new TypedObject<>(model.getDataType(), objectCandidate));
 
 		if (candidateId.size() == 1) {
 			DataItem<?> candidateData = candidateId.get();
@@ -253,7 +252,11 @@ public class BindingProviders {
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 						if (object == null) {
-							blockAndObjectSupplier.getLeft().waitUntilComplete();
+							try {
+								blockAndObjectSupplier.getLeft().waitUntilComplete();
+							} catch (Exception e) {
+								throw new RuntimeException("Problem waiting for " + blockAndObjectSupplier.getLeft(), e);
+							}
 							object = blockAndObjectSupplier.getRight().get();
 
 							blockAndObjectSupplier = null;
@@ -264,7 +267,7 @@ public class BindingProviders {
 				});
 	}
 
-	private <V> DataSource unbindDataNode(DataNode.Effective<V> node, TypedObject<?> source) {
+	private <V> DataSource unbindDataNode(SchemaManager manager, DataNode.Effective<V> node, TypedObject<?> source) {
 		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(manager).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,

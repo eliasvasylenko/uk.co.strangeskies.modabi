@@ -34,11 +34,9 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ChoiceNodeConfiguratorImpl
-		extends ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode>
+public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode>
 		implements ChoiceNodeConfigurator {
-	public ChoiceNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super ChildNode<?, ?>> parent) {
+	public ChoiceNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super ChildNode<?, ?>> parent) {
 		super(parent);
 	}
 
@@ -52,82 +50,85 @@ public class ChoiceNodeConfiguratorImpl
 		TypeToken<?> inputTarget = getContext().inputTargetType();
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
-		return new HidingChildrenConfigurator(
-				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
-					@Override
-					public SchemaNode<?, ?> parentNodeProxy() {
-						return getSchemaNodeProxy();
-					}
+		return new HidingChildrenConfigurator(new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+			@Override
+			public SchemaNode<?, ?> parentNodeProxy() {
+				return getSchemaNodeProxy();
+			}
 
-					@Override
-					public BoundSet boundSet() {
-						return getContext().boundSet();
-					}
+			@Override
+			public BoundSet boundSet() {
+				return getContext().boundSet();
+			}
 
-					@Override
-					public DataLoader dataLoader() {
-						return getDataLoader();
-					}
+			@Override
+			public DataLoader dataLoader() {
+				return getDataLoader();
+			}
 
-					@Override
-					public Imports imports() {
-						return getImports();
-					}
+			@Override
+			public Imports imports() {
+				return getImports();
+			}
 
-					@Override
-					public boolean isAbstract() {
-						return isChildContextAbstract();
-					}
+			@Override
+			public boolean isAbstract() {
+				return isChildContextAbstract();
+			}
 
-					@Override
-					public boolean isInputExpected() {
-						return true;
-					}
+			@Override
+			public boolean isInputExpected() {
+				/*
+				 * We shouldn't bind input if our parent doesn't expect it, or if our
+				 * parent expects a constructor or static method
+				 */
+				return getContext().isInputExpected() && !getContext().isConstructorExpected()
+						&& !getContext().isStaticMethodExpected();
+			}
 
-					@Override
-					public boolean isInputDataOnly() {
-						return getContext().isInputDataOnly();
-					}
+			@Override
+			public boolean isInputDataOnly() {
+				return getContext().isInputDataOnly();
+			}
 
-					@Override
-					public boolean isConstructorExpected() {
-						return false;
-					}
+			@Override
+			public boolean isConstructorExpected() {
+				return false;
+			}
 
-					@Override
-					public boolean isStaticMethodExpected() {
-						return false;
-					}
+			@Override
+			public boolean isStaticMethodExpected() {
+				return false;
+			}
 
-					@Override
-					public Namespace namespace() {
-						return getNamespace();
-					}
+			@Override
+			public Namespace namespace() {
+				return getNamespace();
+			}
 
-					@Override
-					public TypeToken<?> inputTargetType() {
-						return inputTarget;
-					}
+			@Override
+			public TypeToken<?> inputTargetType() {
+				return inputTarget;
+			}
 
-					@Override
-					public TypeToken<?> outputSourceType() {
-						return outputSource;
-					}
+			@Override
+			public TypeToken<?> outputSourceType() {
+				return outputSource;
+			}
 
-					@Override
-					public void addChild(ChildNode<?, ?> result) {}
+			@Override
+			public void addChild(ChildNode<?, ?> result) {}
 
-					@Override
-					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeToken<U> nodeClass) {
-						return null;
-					}
+			@Override
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
+				return null;
+			}
 
-					@Override
-					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
-						return getOverriddenNodes();
-					}
-				});
+			@Override
+			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+				return getOverriddenNodes();
+			}
+		});
 	}
 
 	@Override

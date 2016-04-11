@@ -16,12 +16,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.impl;
+package uk.co.strangeskies.modabi.model.building.test;
 
-import uk.co.strangeskies.modabi.NodeProcessor;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
+import org.junit.Test;
 
-public interface PartialNodeProcessor extends NodeProcessor {
-	@Override
-	default void accept(SchemaNode.Effective<?, ?> node) {}
+import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
+
+public class SchemaManagerTests {
+	@Test
+	public void buildChildScopeTest() {
+		new SchemaManagerImpl().nestChildScope();
+	}
 }

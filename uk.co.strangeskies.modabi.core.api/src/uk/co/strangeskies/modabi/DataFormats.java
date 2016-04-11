@@ -18,42 +18,26 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.utilities.Observable;
-import uk.co.strangeskies.utilities.ObservableImpl;
 
-public class DataFormats implements Observable<StructuredDataFormat> {
-	private final ObservableImpl<StructuredDataFormat> dataInterfaceObservers = new ObservableImpl<>();
-	private final Map<String, StructuredDataFormat> dataInterfaces = new HashMap<>();
-
-	public synchronized void registerDataFormat(StructuredDataFormat loader) {
-		dataInterfaces.put(loader.getFormatId(), loader);
-		dataInterfaceObservers.fire(loader);
+public class DataFormats extends NamedSet<DataFormats, String, StructuredDataFormat> {
+	public DataFormats() {
+		this(null);
 	}
 
-	public synchronized void unregisterDataFormat(StructuredDataFormat loader) {
-		dataInterfaces.remove(loader.getFormatId(), loader);
+	public DataFormats(DataFormats parent) {
+		super(StructuredDataFormat::getFormatId, parent);
 	}
 
-	public synchronized Set<StructuredDataFormat> getRegistered() {
-		return new HashSet<>(dataInterfaces.values());
+	@Override
+	public DataFormats nestChildScope() {
+		return new DataFormats(this);
 	}
 
-	public synchronized StructuredDataFormat getDataFormat(String id) {
-		return dataInterfaces.get(id);
-	}
-
-	public synchronized boolean addObserver(Consumer<? super StructuredDataFormat> observer) {
-		return dataInterfaceObservers.addWeakObserver(observer);
-	}
-
-	public synchronized boolean removeObserver(Consumer<? super StructuredDataFormat> observer) {
-		return dataInterfaceObservers.addWeakObserver(observer);
+	@Override
+	public DataFormats copy() {
+		DataFormats copy = new DataFormats();
+		copy.addAll(this);
+		return copy;
 	}
 }

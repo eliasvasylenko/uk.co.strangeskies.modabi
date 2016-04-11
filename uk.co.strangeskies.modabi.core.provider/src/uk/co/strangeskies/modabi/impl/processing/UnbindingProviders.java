@@ -37,12 +37,6 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
 public class UnbindingProviders {
-	private final SchemaManager manager;
-
-	public UnbindingProviders(SchemaManager manager) {
-		this.manager = manager;
-	}
-
 	public Function<ProcessingContext, IncludeTarget> includeTarget() {
 		return context -> new IncludeTarget() {
 			@Override
@@ -63,7 +57,7 @@ public class UnbindingProviders {
 						.filter(c -> c.getName().equals(idDomain) && c instanceof DataNode.Effective<?>).findAny().orElseThrow(
 								() -> new SchemaException("Can't fine child '" + idDomain + "' to target for model '" + model + "'"));
 
-				return unbindDataNode(node, new TypedObject<>(model.getDataType(), object));
+				return unbindDataNode(context.manager(), node, new TypedObject<>(model.getDataType(), object));
 			}
 		};
 	}
@@ -81,7 +75,7 @@ public class UnbindingProviders {
 		};
 	}
 
-	private <V> DataSource unbindDataNode(DataNode.Effective<V> node, TypedObject<?> source) {
+	private <V> DataSource unbindDataNode(SchemaManager manager, DataNode.Effective<V> node, TypedObject<?> source) {
 		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(manager).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,

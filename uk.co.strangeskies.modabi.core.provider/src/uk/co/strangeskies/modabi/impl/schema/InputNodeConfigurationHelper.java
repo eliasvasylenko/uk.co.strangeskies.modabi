@@ -60,7 +60,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		this.overrideMerge = overrideMerge;
 		this.context = context;
 
-		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained).orDefault(false).get();
+		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained)
+				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected()).get();
 		inMethodUnchecked = overrideMerge.getOverride(InputNode::isInMethodUnchecked).orDefault(false).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
 				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false).get();
@@ -106,59 +107,32 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
 		Invokable<?, ?> inInvokable;
 
-		String overriddenInMethodName = overrideMerge.getOverride(InputNode::getInMethodName).tryGet();
-
-		if (!context.isInputExpected())
-			if (overriddenInMethodName == null)
-				overriddenInMethodName = "null";
-			else if (!"null".equals(overriddenInMethodName))
-				throw new SchemaException("In method name should not be provided for this node.");
+		String givenInMethodName = getGivenInMethodName();
 
 		TypeToken<?> inputTargetType = inputTargetType();
 
-		if (isAbstract || "null".equals(overriddenInMethodName)) {
+		if (isAbstract || "null".equals(givenInMethodName)) {
 			inInvokable = null;
 		} else {
 			try {
-				TypeToken<?> result;
-				if (inMethodChained) {
-					TypeToken<?> resultType = overrideMerge.getOverride(InputNode::getPostInputType)
-							.validate(TypeToken::isAssignableTo).tryGet();
+				TypeToken<?> result = getResultType();
 
-					result = resultType == null ? null : resultType;
-					if (result == null) {
-						result = TypeToken.over(Object.class);
-					}
-				} else {
-					result = null;
-				}
-
+				/*
+				 * cast parameter types to their raw types if unchecked
+				 */
 				if (inMethodUnchecked)
 					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
-				Executable inMethod = overrideMerge.getOverride(n -> n.effective() == null ? null : n.effective().getInMethod())
-						.tryGet();
-				if (inMethod != null) {
-					inInvokable = Invokable.over(inMethod, inputTargetType);
-					try {
-						inInvokable = inInvokable.withLooseApplicability(parameters);
-					} catch (Exception e) {
-						if (inInvokable.isVariableArity()) {
-							try {
-								inInvokable = inInvokable.withVariableArityApplicability(parameters);
-							} catch (Exception e2) {
-								throw e;
-							}
-						} else {
-							throw e;
-						}
-					}
-				} else if (context.isConstructorExpected()) {
-					inInvokable = Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
-				} else {
-					inInvokable = Methods.findMethod(generateInMethodNames(name, overriddenInMethodName), inputTargetType,
-							context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast, parameters);
+				/*
+				 * first try to find and validate an inherited in method ...
+				 */
+				inInvokable = resolveOverriddenInMethod(inputTargetType, parameters);
+				/*
+				 * ... then if none exists, resolve one from scratch
+				 */
+				if (inInvokable == null) {
+					inInvokable = resolveInMethod(givenInMethodName, inputTargetType, result, parameters);
 				}
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
@@ -169,6 +143,86 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		}
 
 		return inInvokable;
+	}
+
+	/*
+	 * resolve the exact in method overload
+	 */
+	private Invokable<?, ?> resolveInMethod(String givenInMethodName, TypeToken<?> inputTargetType, TypeToken<?> result,
+			List<TypeToken<?>> parameters) throws NoSuchMethodException {
+
+		if (context.isConstructorExpected()) {
+			if (givenInMethodName != null && !givenInMethodName.equals("this")) {
+				throw new SchemaException("In method name cannot be anything other than \"this\" for constructor nodes");
+			}
+			return Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
+
+		} else {
+
+			return Methods.findMethod(generateInMethodNames(name, givenInMethodName), inputTargetType,
+					context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast, parameters);
+		}
+	}
+
+	/*
+	 * resolve the inherited in method or constructor, and make sure it is
+	 * properly overridden if necessary
+	 * 
+	 * TODO handle some sort of constructor 'pseudo-override' behaviour
+	 */
+	private Invokable<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
+		Executable inExecutable = overrideMerge.getOverride(n -> n.effective() == null ? null : n.effective().getInMethod())
+				.tryGet();
+
+		Invokable<?, ?> inInvokable;
+
+		if (inExecutable == null) {
+			inInvokable = null;
+		} else {
+			inInvokable = Invokable.over(inExecutable, inputTargetType);
+			try {
+				inInvokable = inInvokable.withLooseApplicability(parameters);
+			} catch (Exception e) {
+				if (inInvokable.isVariableArity()) {
+					try {
+						inInvokable = inInvokable.withVariableArityApplicability(parameters);
+					} catch (Exception e2) {
+						throw e;
+					}
+				} else {
+					throw e;
+				}
+			}
+		}
+
+		return inInvokable;
+	}
+
+	private String getGivenInMethodName() {
+		String givenInMethodName = overrideMerge.getOverride(InputNode::getInMethodName).tryGet();
+
+		if (!context.isInputExpected())
+			if (givenInMethodName == null)
+				givenInMethodName = "null";
+			else if (!"null".equals(givenInMethodName))
+				throw new SchemaException("In method name should not be provided for this node");
+
+		return givenInMethodName;
+	}
+
+	private TypeToken<?> getResultType() {
+		if (inMethodChained) {
+			TypeToken<?> resultType = overrideMerge.getOverride(InputNode::getPostInputType)
+					.validate(TypeToken::isAssignableTo).tryGet();
+
+			return resultType != null ? resultType : TypeToken.over(Object.class);
+		} else {
+			if (context.isConstructorExpected() || context.isStaticMethodExpected()) {
+				throw new SchemaException("In method must be chained for this node");
+			}
+
+			return null;
+		}
 	}
 
 	private static List<String> generateInMethodNames(QualifiedName nodeName, String inheritedInMethodName) {

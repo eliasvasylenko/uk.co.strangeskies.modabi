@@ -27,36 +27,36 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public interface ReturningSchemaProcessor<T> {
+public interface ReturningNodeProcessor<T> {
 	default <U> T accept(DataType.Effective<U> node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
 	default <U> T accept(Model.Effective<U> node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
 	default <U> T accept(ComplexNode.Effective<U> node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
 	default <U> T accept(DataNode.Effective<U> node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
 	default T accept(InputSequenceNode.Effective node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
 	default T accept(SequenceNode.Effective node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
 	default T accept(ChoiceNode.Effective node) {
-		return accept((SchemaNode.Effective<?, ?>) node);
+		return acceptDefault(node);
 	}
 
-	default T accept(SchemaNode.Effective<?, ?> node) {
+	default T acceptDefault(SchemaNode.Effective<?, ?> node) {
 		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.getName() + "'");
 	}
 }

@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Scoped;
@@ -30,6 +31,19 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 
 	MetaSchema getMetaSchema();
 
+	/**
+	 * @return a schema builder who's products will be automatically registered
+	 *         with this manager
+	 */
+	SchemaBuilder getSchemaBuilder();
+
+	/**
+	 * Create a {@link SchemaConfigurator} equivalent to one created via
+	 * {@link #getSchemaBuilder()} with a default {@link DataLoader} provided.
+	 * 
+	 * @return a schema configurator who's products will be automatically
+	 *         registered with this manager
+	 */
 	SchemaConfigurator getSchemaConfigurator();
 
 	default Binder<?> bind(QualifiedName modelName) {
@@ -92,5 +106,5 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 
 	DataTypes registeredTypes();
 
-	DataFormats dataFormats();
+	DataFormats registeredFormats();
 }

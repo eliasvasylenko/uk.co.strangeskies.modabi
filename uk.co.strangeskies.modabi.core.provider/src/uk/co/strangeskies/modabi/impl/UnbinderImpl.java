@@ -64,7 +64,7 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	@Override
 	public BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output) {
 		try (OutputStream stream = output.get()) {
-			to(manager.dataFormats().getDataFormat(extension).saveData(stream));
+			to(manager.registeredFormats().get(extension).saveData(stream));
 		} catch (Exception e) {
 			throw new SchemaException("Could not unbind to output with unloader registered for " + extension, e);
 		}

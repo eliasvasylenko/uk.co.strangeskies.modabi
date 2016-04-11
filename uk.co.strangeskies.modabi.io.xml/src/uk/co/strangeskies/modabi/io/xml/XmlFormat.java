@@ -31,8 +31,8 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 
-@Component(property = "formatId=" + XmlInterface.XML_ID)
-public class XmlInterface implements StructuredDataFormat {
+@Component(property = "formatId=" + XmlFormat.XML_ID)
+public class XmlFormat implements StructuredDataFormat {
 	public static final String XML_ID = "xml";
 
 	@Override
