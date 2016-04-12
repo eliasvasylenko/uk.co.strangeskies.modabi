@@ -196,7 +196,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			T data = getData.tryGet();
 
-			bindingResult = new Binding<>(model, data);
+			bindingResult = new Binding<>(model.effective(), data);
 
 			return bindingResult;
 		} catch (InterruptedException e) {

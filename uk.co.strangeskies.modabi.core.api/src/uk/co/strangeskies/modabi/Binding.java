@@ -20,31 +20,8 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.schema.Model;
 
-public class Binding<T> {
-	private final Model<T> model;
-	private final T data;
-
-	public Binding(Model<T> model, T data) {
-		this.model = model;
-		this.data = data;
+public class Binding<T> extends NodeBinding<T, Model.Effective<T>> {
+	public Binding(Model.Effective<T> model, T data) {
+		super(model, data);
 	}
-
-	public Model<T> getModel() {
-		return model;
-	}
-
-	public T getData() {
-		return data;
-	}
-
-	@Override
-	public String toString() {
-		return data + " : " + model;
-	}
-
-	// public void updateData();
-
-	// public StructuredDataSource getSource();
-
-	// public void updateSource();
 }

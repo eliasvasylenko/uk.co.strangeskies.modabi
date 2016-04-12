@@ -220,7 +220,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (Schema dependency : schema.getDependencies())
 				registeredSchemata.add(dependency);
 
-			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel(), schema));
+			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel().effective(), schema));
 		}
 	}
 
@@ -245,8 +245,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
 		BindingFuture<T> future = BindingFuture.forBinding(binding);
-		bindingFutures.get(binding.getModel().getName()).add(future);
-		bindings.get(binding.getModel().getName()).add(binding);
+		bindingFutures.get(binding.getNode().getName()).add(future);
+		bindings.get(binding.getNode().getName()).add(binding);
 		return future;
 	}
 

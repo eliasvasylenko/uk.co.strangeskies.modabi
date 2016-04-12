@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.function.Consumer;
 
+import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
 public class InputSequenceNodeBinder extends InputNodeBinder<InputSequenceNode.Effective> {
@@ -27,7 +28,7 @@ public class InputSequenceNodeBinder extends InputNodeBinder<InputSequenceNode.E
 		super(context, node);
 
 		Consumer<ProcessingContextImpl> bind = c -> invokeInMethod(
-				BindingNodeBinder.getSingleBindingSequence(node, c).stream().map(NodeBinding::getBinding).toArray());
+				BindingNodeBinder.getSingleBindingSequence(node, c).stream().map(ChildNodeBinding::getData).toArray());
 
 		repeatNode(count -> {
 			if (node.occurrences().isValueBelow(count)) {

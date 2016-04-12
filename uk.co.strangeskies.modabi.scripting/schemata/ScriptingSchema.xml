@@ -45,7 +45,6 @@
 				occurrences="0..1"
 				type="string" />
 
-
 			<data
 				name="scriptEngineManager"
 				dataType="ScriptEngineManager"

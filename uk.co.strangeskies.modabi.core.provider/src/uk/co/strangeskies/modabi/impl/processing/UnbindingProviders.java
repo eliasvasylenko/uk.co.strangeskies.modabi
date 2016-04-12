@@ -66,9 +66,9 @@ public class UnbindingProviders {
 		return context -> new ReferenceTarget() {
 			@Override
 			public <U> DataSource reference(Model<U> model, QualifiedName idDomain, U object) {
-				if (!context.bindings().get(model).contains(object))
+				if (!context.bindings().getModelBindings(model).contains(object))
 					throw new SchemaException("Cannot find any instance '" + object + "' bound to model '" + model.getName()
-							+ "' from '" + context.bindings().get(model) + "'");
+							+ "' from '" + context.bindings().getModelBindings(model) + "'");
 
 				return importTarget().apply(context).dereferenceImport(model, idDomain, object);
 			}

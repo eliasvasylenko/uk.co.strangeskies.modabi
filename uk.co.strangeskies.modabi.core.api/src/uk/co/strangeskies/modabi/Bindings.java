@@ -51,25 +51,21 @@ public class Bindings {
 	public synchronized <T> void add(ComplexNode<T> element, T data) {
 		ComplexNode.Effective<T> effectiveElement = element.effective();
 
-		synchronized (listeners) {
-			boundNodes.addToAll(effectiveElement.baseModel(), effectiveElement);
-			boundObjects.add(effectiveElement, data);
+		boundNodes.addToAll(effectiveElement.baseModel(), effectiveElement);
+		boundObjects.add(effectiveElement, data);
 
-			fire(effectiveElement, data);
-		}
+		fire(effectiveElement, data);
 	}
 
 	public synchronized <T> void add(Model<T> model, T data) {
 		Model.Effective<T> effectiveModel = model.effective();
 
-		synchronized (listeners) {
-			if (boundNodes.add(effectiveModel, effectiveModel)) {
-				boundNodes.addToAll(effectiveModel.baseModel(), effectiveModel);
-			}
-			boundObjects.add(effectiveModel, data);
-
-			fire(effectiveModel, data);
+		if (boundNodes.add(effectiveModel, effectiveModel)) {
+			boundNodes.addToAll(effectiveModel.baseModel(), effectiveModel);
 		}
+		boundObjects.add(effectiveModel, data);
+
+		fire(effectiveModel, data);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -93,17 +89,22 @@ public class Bindings {
 	}
 
 	private <T> void addCapture(Binding<T> binding) {
-		add(binding.getModel(), binding.getData());
+		add(binding.getNode(), binding.getData());
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized <T> Set<T> get(Model<T> model) {
+	public synchronized <T> Set<T> getModelBindings(Model<T> model) {
 		model = model.effective();
 
-		synchronized (listeners) {
-			return boundNodes.getOrDefault(model, emptySet()).stream()
-					.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
-		}
+		return boundNodes.getOrDefault(model, emptySet()).stream()
+				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
+	}
+
+	@SuppressWarnings("unchecked")
+	public synchronized <T> Set<T> getNodeBindings(BindingNode<T, ?, ?> node) {
+		node = node.effective();
+
+		return boundObjects.getOrDefault(node, emptySet()).stream().map(t -> (T) t).collect(toSet());
 	}
 
 	public synchronized <T> Observable<T> changes(Model<T> model) {

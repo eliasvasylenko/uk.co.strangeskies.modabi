@@ -87,7 +87,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 
 			@Override
 			public Future<Model<U>> getModelFuture() {
-				FutureTask<Model<U>> modelFuture = new FutureTask<>(binding::getModel);
+				FutureTask<Model<U>> modelFuture = new FutureTask<>(binding::getNode);
 				modelFuture.run();
 				return modelFuture;
 			}

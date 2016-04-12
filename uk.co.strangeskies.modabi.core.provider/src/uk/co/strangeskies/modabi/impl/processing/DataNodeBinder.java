@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
@@ -40,7 +41,7 @@ import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
-	private final List<NodeBinding<U>> bindings;
+	private final List<ChildNodeBinding<? extends U>> bindings;
 
 	public DataNodeBinder(ProcessingContext context, DataNode<U> node) {
 		super(context, node.effective());
@@ -49,30 +50,30 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	}
 
 	public DataNodeBinder<U> bindToTarget() {
-		for (NodeBinding<U> item : getBinding())
-			invokeInMethod(item.getBinding());
+		for (ChildNodeBinding<? extends U> item : getBinding())
+			invokeInMethod(item.getData());
 
 		return this;
 	}
 
-	public List<NodeBinding<U>> getBinding() {
+	public List<ChildNodeBinding<? extends U>> getBinding() {
 		return bindings;
 	}
 
-	private List<NodeBinding<U>> bind() {
+	private List<ChildNodeBinding<? extends U>> bind() {
 		ProcessingContextImpl context = getContext();
 		DataNode.Effective<U> node = getNode();
 
 		DataSource dataSource;
 
-		List<NodeBinding<U>> results = new ArrayList<>();
+		List<ChildNodeBinding<? extends U>> results = new ArrayList<>();
 
 		if (node.isValueProvided() && (node.valueResolution() == ValueResolution.REGISTRATION_TIME
 				|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
 			/*
 			 * Value is already provided and bound
 			 */
-			results.addAll(node.providedValues().stream().map(b -> new NodeBinding<>(b, node)).collect(toList()));
+			results.addAll(node.providedValues().stream().map(b -> new ChildNodeBinding<>(node, b)).collect(toList()));
 		} else {
 			/*
 			 * Value is not yet bound, so we must determind the data source
@@ -113,7 +114,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 						dataSource = context.input().get().readContent();
 
-						NodeBinding<U> result = bindWithDataSource(dataSource, context, node);
+						ChildNodeBinding<? extends U> result = bindWithDataSource(dataSource, context, node);
 						results.add(result);
 
 						context.input().get().endChild();
@@ -151,10 +152,10 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		}
 	}
 
-	private List<NodeBinding<U>> bindList(ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private List<ChildNodeBinding<? extends U>> bindList(ProcessingContextImpl context, DataNode.Effective<U> node) {
 		context = context.withInput(null);
 
-		List<NodeBinding<U>> results = new ArrayList<>();
+		List<ChildNodeBinding<? extends U>> results = new ArrayList<>();
 
 		Exception optionalException = null;
 
@@ -195,17 +196,17 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private static <U> NodeBinding<U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
+	private static <U> ChildNodeBinding<? extends U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
 			DataNode.Effective<U> node) {
 		context = context.withNestedProvisionScope().forceExhausting();
 		context.provisions().add(Provider.over(DataSource.class, () -> dataSource));
 
-		NodeBinding<U> binding = bindExactNode(context, node);
+		ChildNodeBinding<? extends U> binding = bindExactNode(context, node);
 
 		return binding;
 	}
 
-	private static <U> NodeBinding<U> bindExactNode(ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private static <U> ChildNodeBinding<? extends U> bindExactNode(ProcessingContextImpl context, DataNode.Effective<U> node) {
 		if (node.isExtensible()) {
 			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
@@ -214,18 +215,22 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				throw new SchemaException("Unable to find type to satisfy data node '" + node.getName() + "' with type '"
 						+ node.effective().type() + "'");
 
-			IdentityProperty<NodeBinding<U>> result = new IdentityProperty<>();
+			IdentityProperty<ChildNodeBinding<? extends U>> result = new IdentityProperty<>();
 
 			context.attemptBindingUntilSuccessful(overrides.keySet(), (c, n) -> {
 				DataNode.Effective<? extends U> exactNode = overrides.putGet(n);
-				result.set(new NodeBinding<>(new BindingNodeBinder(c).bind(exactNode), exactNode));
+				result.set(getNodeBinding(c, exactNode));
 			}, l -> new ProcessingException("Unable to bind data node '" + node.getName() + "' with type candidates '"
 					+ overrides.keySet().stream().map(m -> m.effective().getName().toString()).collect(Collectors.joining(", "))
 					+ "'", context, l));
 
 			return result.get();
 		} else
-			return new NodeBinding<>(new BindingNodeBinder(context).bind(node), node);
+			return new ChildNodeBinding<>(node, new BindingNodeBinder(context).bind(node));
+	}
+
+	private static <U> ChildNodeBinding<U> getNodeBinding(ProcessingContextImpl context, DataNode.Effective<U> exactNode) {
+		return new ChildNodeBinding<>(exactNode, new BindingNodeBinder(context).bind(exactNode));
 	}
 
 	public static DataLoader dataLoader(ProcessingContextImpl context) {
@@ -234,7 +239,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				ProcessingContextImpl derivedContext = context.withNestedProvisionScope().forceExhausting();
 				derivedContext.provisions().add(Provider.over(DataSource.class, () -> data));
-				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream().map(NodeBinding::getBinding)
+				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream().map(ChildNodeBinding::getData)
 						.collect(toList());
 			}
 		};

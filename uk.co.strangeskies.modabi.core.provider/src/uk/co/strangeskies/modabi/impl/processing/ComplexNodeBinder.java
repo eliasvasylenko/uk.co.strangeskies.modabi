@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
@@ -30,7 +31,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Model.Effective;
 
 public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<U>> {
-	private final List<NodeBinding<U>> bindings;
+	private final List<ChildNodeBinding<? extends U>> bindings;
 
 	public ComplexNodeBinder(ProcessingContextImpl context, ComplexNode<U> node) {
 		super(context, node.effective());
@@ -39,21 +40,21 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 	}
 
 	public ComplexNodeBinder<U> bindToTarget() {
-		for (NodeBinding<U> item : getBinding())
-			invokeInMethod(item.getBinding());
+		for (ChildNodeBinding<? extends U> item : getBinding())
+			invokeInMethod(item.getData());
 
 		return this;
 	}
 
-	public List<NodeBinding<U>> getBinding() {
+	public List<ChildNodeBinding<? extends U>> getBinding() {
 		return bindings;
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<NodeBinding<U>> bind() {
+	private List<ChildNodeBinding<? extends U>> bind() {
 		ComplexNode.Effective<U> node = getNode();
 
-		List<NodeBinding<U>> result = new ArrayList<>();
+		List<ChildNodeBinding<? extends U>> result = new ArrayList<>();
 
 		repeatNode(count -> {
 			ProcessingContextImpl context = getContext();
@@ -92,13 +93,18 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				binding = bind.apply(context);
 			}
 
-			result.add(new NodeBinding<>(binding, exactNode));
+			result.add(getNodeBinding(exactNode, binding));
 			context.bindings().add((ComplexNode.Effective<U>) exactNode, binding);
 
 			return true;
 		});
 
 		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <U, V extends U> ChildNodeBinding<V> getNodeBinding(ComplexNode.Effective<V> exactNode, U binding) {
+		return new ChildNodeBinding<>(exactNode, (V) binding);
 	}
 
 	@SuppressWarnings("unchecked")

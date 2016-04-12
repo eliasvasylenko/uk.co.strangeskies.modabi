@@ -32,6 +32,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -98,7 +99,7 @@ public class BindingProviders {
 		return context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context, node.effective()).getBinding().stream().map(NodeBinding::getBinding)
+				return new DataNodeBinder<>(context, node.effective()).getBinding().stream().map(ChildNodeBinding::getData)
 						.collect(toList());
 			}
 		};
@@ -130,7 +131,7 @@ public class BindingProviders {
 						 */
 						synchronized (context.bindings()) {
 							context.bindings().changes(model).addTerminatingObserver(listener);
-							return context.bindings().get(model);
+							return context.bindings().getModelBindings(model);
 						}
 					}
 				}, idDomain, id, false);
