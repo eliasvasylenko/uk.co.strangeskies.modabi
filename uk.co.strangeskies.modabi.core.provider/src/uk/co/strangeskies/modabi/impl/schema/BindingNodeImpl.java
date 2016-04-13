@@ -44,8 +44,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		extends SchemaNodeImpl<S, E> implements BindingNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
-			extends SchemaNodeImpl.Effective<S, E>
-			implements BindingNode.Effective<T, S, E> {
+			extends SchemaNodeImpl.Effective<S, E> implements BindingNode.Effective<T, S, E> {
 		private final TypeToken<T> dataType;
 
 		private final TypeToken<?> bindingType;
@@ -64,58 +63,42 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 		@SuppressWarnings("unchecked")
-		protected Effective(
-				OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+		protected Effective(OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			super(overrideMerge);
 
 			BoundSet bounds = overrideMerge.configurator().getInferenceBounds();
 
-			bindingStrategy = overrideMerge
-					.getOverride(BindingNode::getBindingStrategy)
-					.orDefault(BindingStrategy.PROVIDED).get();
+			bindingStrategy = overrideMerge.getOverride(BindingNode::getBindingStrategy).orDefault(BindingStrategy.PROVIDED)
+					.get();
 
-			unbindingStrategy = overrideMerge
-					.getOverride(BindingNode::getUnbindingStrategy)
+			unbindingStrategy = overrideMerge.getOverride(BindingNode::getUnbindingStrategy)
 					.orDefault(UnbindingStrategy.SIMPLE).get();
 
-			providedUnbindingParameterNames = overrideMerge
-					.getOverride(BindingNode::getProvidedUnbindingMethodParameterNames)
-					.orDefault(Collections.<QualifiedName> emptyList()).get();
+			providedUnbindingParameterNames = overrideMerge.getOverride(BindingNode::getProvidedUnbindingMethodParameterNames)
+					.orDefault(Collections.<QualifiedName>emptyList()).get();
 
-			unbindingMethodName = overrideMerge
-					.getOverride(BindingNode::getUnbindingMethodName).tryGet();
+			unbindingMethodName = overrideMerge.getOverride(BindingNode::getUnbindingMethodName).tryGet();
 
-			providedUnbindingParameters = isAbstract() ? null
-					: findProvidedUnbindingParameters(this);
+			providedUnbindingParameters = isAbstract() ? null : findProvidedUnbindingParameters(this);
 
-			unbindingMethodUnchecked = overrideMerge
-					.getOverride(BindingNode::isUnbindingMethodUnchecked).tryGet();
+			unbindingMethodUnchecked = overrideMerge.getOverride(BindingNode::isUnbindingMethodUnchecked).tryGet();
 
-			dataType = inferDataType(
-					(TypeToken<T>) overrideMerge.configurator().getEffectiveDataType(),
-					bounds);
+			dataType = inferDataType((TypeToken<T>) overrideMerge.configurator().getEffectiveDataType(), bounds);
 
-			bindingType = inferDataType(
-					overrideMerge.configurator().getEffectiveBindingType(), bounds);
+			bindingType = inferDataType(overrideMerge.configurator().getEffectiveBindingType(), bounds);
 
-			unbindingType = inferDataType(
-					overrideMerge.configurator().getEffectiveUnbindingType(), bounds);
+			unbindingType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingType(), bounds);
 
-			unbindingFactoryType = inferDataType(
-					overrideMerge.configurator().getEffectiveUnbindingFactoryType(),
-					bounds);
+			unbindingFactoryType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingFactoryType(), bounds);
 
-			unbindingMethod = isAbstract() ? null
-					: findUnbindingMethod(overrideMerge);
+			unbindingMethod = isAbstract() ? null : findUnbindingMethod(overrideMerge);
 
-			if (unbindingMethodName == null && !isAbstract()
-					&& unbindingStrategy != UnbindingStrategy.SIMPLE
+			if (unbindingMethodName == null && !isAbstract() && unbindingStrategy != UnbindingStrategy.SIMPLE
 					&& unbindingStrategy != UnbindingStrategy.CONSTRUCTOR)
 				unbindingMethodName = unbindingMethod.getName();
 		}
 
-		private <U> TypeToken<U> inferDataType(TypeToken<U> exactDataType,
-				BoundSet bounds) {
+		private <U> TypeToken<U> inferDataType(TypeToken<U> exactDataType, BoundSet bounds) {
 			/*
 			 * Incorporate bounds derived from child nodes through their input and
 			 * output methods.
@@ -127,8 +110,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 					try {
 						exactDataType = exactDataType.infer();
 					} catch (TypeException e) {
-						throw new SchemaException("Cannot infer data type '" + exactDataType
-								+ "' at node '" + this + "'", e);
+						throw new SchemaException("Cannot infer data type '" + exactDataType + "' at node '" + this + "'", e);
 					}
 				}
 			}
@@ -191,8 +173,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			return providedUnbindingParameterNames;
 		}
 
-		private Method findUnbindingMethod(
-				OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
+		private Method findUnbindingMethod(OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			UnbindingStrategy unbindingStrategy = getUnbindingStrategy();
 			if (unbindingStrategy == null)
 				unbindingStrategy = UnbindingStrategy.SIMPLE;
@@ -204,55 +185,46 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			case STATIC_FACTORY:
 			case PROVIDED_FACTORY:
-				TypeToken<?> receiverClass = getUnbindingFactoryType() != null
-						? getUnbindingFactoryType() : getUnbindingType();
+				TypeToken<?> receiverClass = getUnbindingFactoryType() != null ? getUnbindingFactoryType() : getUnbindingType();
 				return findUnbindingMethod(getUnbindingType(), receiverClass,
-						findUnbindingMethodParameterClasses(
-								BindingNodeImpl.Effective::getDataType),
-						overrideMerge);
+						findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getDataType), overrideMerge);
 
 			case PASS_TO_PROVIDED:
 				return findUnbindingMethod(null, getUnbindingType(),
-						findUnbindingMethodParameterClasses(
-								BindingNodeImpl.Effective::getDataType),
-						overrideMerge);
+						findUnbindingMethodParameterClasses(BindingNodeImpl.Effective::getDataType), overrideMerge);
 
 			case ACCEPT_PROVIDED:
-				return findUnbindingMethod(null, getDataType(),
-						findUnbindingMethodParameterClasses(t -> t.getUnbindingType()),
+				return findUnbindingMethod(null, getDataType(), findUnbindingMethodParameterClasses(t -> t.getUnbindingType()),
 						overrideMerge);
 			}
 			throw new AssertionError();
 		}
 
-		private static List<DataNode.Effective<?>> findProvidedUnbindingParameters(
-				BindingNode.Effective<?, ?, ?> node) {
+		private static List<DataNode.Effective<?>> findProvidedUnbindingParameters(BindingNode.Effective<?, ?, ?> node) {
 			return node.getProvidedUnbindingMethodParameterNames() == null
 					? node.getUnbindingMethodName() == null ? null : new ArrayList<>()
 					: node.getProvidedUnbindingMethodParameterNames().stream().map(p -> {
 						if (p.getName().equals("this"))
 							return null;
 						else {
-							ChildNode.Effective<?, ?> effective = node.children().stream()
-									.filter(c -> c.getName().equals(p)).findAny()
-									.orElseThrow(() -> new SchemaException(
-											"Cannot find node for unbinding parameter: '" + p + "'"));
+							ChildNode.Effective<?, ?> effective = node.children().stream().filter(c -> c.getName().equals(p))
+									.findAny()
+									.orElseThrow(() -> new SchemaException("Cannot find node for unbinding parameter: '" + p + "'"));
 
 							if (!(effective instanceof DataNode.Effective))
-								throw new SchemaException("Unbinding parameter node '"
-										+ effective + "' for '" + p + "' is not a data node.");
+								throw new SchemaException(
+										"Unbinding parameter node '" + effective + "' for '" + p + "' is not a data node.");
 
 							DataNode.Effective<?> dataNode = (DataNode.Effective<?>) effective;
 
 							if (dataNode.occurrences() != null
-									&& (dataNode.occurrences().getTo() != 1
-											|| dataNode.occurrences().getFrom() != 1))
-								throw new SchemaException("Unbinding parameter node '"
-										+ effective + "' for '" + p + "' must occur exactly once.");
+									&& (dataNode.occurrences().getTo() != 1 || dataNode.occurrences().getFrom() != 1))
+								throw new SchemaException(
+										"Unbinding parameter node '" + effective + "' for '" + p + "' must occur exactly once.");
 
 							if (!node.isAbstract() && !dataNode.isValueProvided())
-								throw new SchemaException("Unbinding parameter node '"
-										+ dataNode + "' for '" + p + "' must provide a value.");
+								throw new SchemaException(
+										"Unbinding parameter node '" + dataNode + "' for '" + p + "' must provide a value.");
 
 							return dataNode;
 						}
@@ -283,17 +255,14 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 				classList.add(0, nodeClass.apply(this));
 
 			if (isUnbindingMethodUnchecked() != null && isUnbindingMethodUnchecked())
-				classList = classList.stream()
-						.map(t -> t == null ? null
-								: (TypeToken<?>) TypeToken.over(t.getRawType()))
+				classList = classList.stream().map(t -> t == null ? null : (TypeToken<?>) TypeToken.over(t.getRawType()))
 						.collect(Collectors.toList());
 
 			return classList;
 		}
 
 		@SuppressWarnings("unchecked")
-		private <U> Method findUnbindingMethod(TypeToken<?> result,
-				TypeToken<U> receiver, List<TypeToken<?>> parameters,
+		private <U> Method findUnbindingMethod(TypeToken<?> result, TypeToken<U> receiver, List<TypeToken<?>> parameters,
 				OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			Executable overridden = overrideMerge.getOverride(b -> {
 				if (b.effective() != null)
@@ -303,8 +272,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			}).tryGet();
 
 			if (overridden != null) {
-				Invokable<U, ?> invokable = (Invokable<U, ?>) Invokable.over(overridden)
-						.withLooseApplicability(parameters);
+				Invokable<U, ?> invokable = (Invokable<U, ?>) Invokable.over(overridden).withLooseApplicability(parameters);
 				if (receiver != null)
 					invokable = invokable.withReceiverType(receiver);
 				if (result != null)
@@ -312,49 +280,40 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 				return (Method) overridden;
 			} else {
-				if (isUnbindingMethodUnchecked() != null
-						&& isUnbindingMethodUnchecked()) {
+				if (isUnbindingMethodUnchecked() != null && isUnbindingMethodUnchecked()) {
 					if (result != null)
 						result = TypeToken.over(result.getRawType());
 					if (receiver != null)
 						receiver = (TypeToken<U>) TypeToken.over(receiver.getRawType());
-					parameters = parameters.stream()
-							.map(t -> t == null ? null
-									: (TypeToken<?>) TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().map(t -> t == null ? null : (TypeToken<?>) TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 				}
 
 				List<String> names = generateUnbindingMethodNames(result);
 				try {
-					return (Method) Methods.findMethod(names, receiver,
-							getBindingStrategy() == BindingStrategy.STATIC_FACTORY, result,
-							false, parameters).getExecutable();
-				} catch (NoSuchMethodException | SchemaException
-						| SecurityException e) {
-					throw new SchemaException(
-							"Cannot find unbinding method for node '" + this + "' of class '"
-									+ result + "', reveiver '" + receiver + "', and parameters '"
-									+ parameters + "' with any name of '" + names + "'",
+					return (Method) Methods.findMethod(names, receiver, getBindingStrategy() == BindingStrategy.STATIC_FACTORY,
+							result, false, parameters).getExecutable();
+				} catch (NoSuchMethodException | SchemaException | SecurityException e) {
+					throw new SchemaException("Cannot find unbinding method for node '" + this + "' of class '" + result
+							+ "', reveiver '" + receiver + "', and parameters '" + parameters + "' with any name of '" + names + "'",
 							e);
 				}
 			}
 		}
 
-		private List<String> generateUnbindingMethodNames(
-				TypeToken<?> resultClass) {
+		private List<String> generateUnbindingMethodNames(TypeToken<?> resultClass) {
 			List<String> names;
 
 			if (getUnbindingMethodName() != null)
 				names = Arrays.asList(getUnbindingMethodName());
 			else
-				names = generateUnbindingMethodNames(getName().getName(), false,
-						resultClass.getRawType());
+				names = generateUnbindingMethodNames(getName().getName(), false, resultClass.getRawType());
 
 			return names;
 		}
 
-		protected static List<String> generateUnbindingMethodNames(
-				String propertyName, boolean isIterable, Class<?> resultClass) {
+		protected static List<String> generateUnbindingMethodNames(String propertyName, boolean isIterable,
+				Class<?> resultClass) {
 			List<String> names = new ArrayList<>();
 
 			names.add(propertyName);
@@ -368,8 +327,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 					names.add(name + "Array");
 				}
 			}
-			if (resultClass != null && (resultClass.equals(Boolean.class)
-					|| resultClass.equals(boolean.class)))
+			if (resultClass != null && (resultClass.equals(Boolean.class) || resultClass.equals(boolean.class)))
 				names.add("is" + InputNodeConfigurationHelper.capitalize(propertyName));
 
 			List<String> namesAndBlank = new ArrayList<>(names);
@@ -410,10 +368,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		unbindingMethodName = configurator.getUnbindingMethod();
 		unbindingMethodUnchecked = configurator.getUnbindingMethodUnchecked();
 		unbindingFactoryType = configurator.getUnbindingFactoryType();
-		unbindingParameterNames = configurator.getUnbindingParameterNames() == null
-				? null
-				: Collections.unmodifiableList(
-						new ArrayList<>(configurator.getUnbindingParameterNames()));
+		unbindingParameterNames = configurator.getUnbindingParameterNames() == null ? null
+				: Collections.unmodifiableList(new ArrayList<>(configurator.getUnbindingParameterNames()));
 	}
 
 	@Override

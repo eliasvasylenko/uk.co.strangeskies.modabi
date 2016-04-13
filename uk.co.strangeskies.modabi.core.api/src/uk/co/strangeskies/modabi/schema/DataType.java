@@ -18,10 +18,13 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.NodeProcessor;
+import uk.co.strangeskies.reflection.TypeParameter;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
 	interface Effective<T> extends DataType<T>, BindingNode.Effective<T, DataType<T>, Effective<T>> {
@@ -35,8 +38,17 @@ public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effect
 
 		@Override
 		default List<DataType.Effective<? super T>> base() {
-			return Arrays.asList(baseType());
+			List<DataType.Effective<? super T>> base = new ArrayList<>();
+
+			DataType.Effective<? super T> baseComponent = baseType();
+			do {
+				base.add(baseComponent);
+				baseComponent = baseComponent.baseType();
+			} while (baseComponent != null);
+
+			return base;
 		}
+
 	}
 
 	Boolean isPrivate();
@@ -46,5 +58,10 @@ public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effect
 	@Override
 	default List<? extends DataType<? super T>> base() {
 		return Arrays.asList(baseType());
+	}
+
+	@Override
+	default TypeToken<DataType<T>> getThisType() {
+		return new TypeToken<DataType<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());
 	}
 }

@@ -19,14 +19,18 @@
 package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.modabi.NodeProcessor;
+import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ChoiceNode
-		extends ChildNode<ChoiceNode, ChoiceNode.Effective> {
-	interface Effective
-			extends ChoiceNode, ChildNode.Effective<ChoiceNode, Effective> {
+public interface ChoiceNode extends ChildNode<ChoiceNode, ChoiceNode.Effective> {
+	interface Effective extends ChoiceNode, ChildNode.Effective<ChoiceNode, Effective> {
 		@Override
 		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
+	}
+
+	@Override
+	default TypeToken<ChoiceNode> getThisType() {
+		return new TypeToken<ChoiceNode>() {};
 	}
 }

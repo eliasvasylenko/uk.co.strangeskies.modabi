@@ -29,6 +29,7 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.impl.schema.utilities.BindingChildNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
@@ -61,6 +62,21 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeOverrider {
+	/**
+	 * Override an extensible complex node in some node tree with a given model.
+	 * Each {@link Model model node} which forms a part of the complex node's
+	 * effective {@link ComplexNode.Effective#model() base model} must also appear
+	 * in the given model's {@link Model.Effective#baseModel() base model}.
+	 *
+	 * @param builder
+	 *          A schema builder for constructing the effective overriding node
+	 * @param node
+	 *          the complex node we wish to override
+	 * @param override
+	 *          the overriding model
+	 * @return a node which overrides the given node by merging it with a model
+	 *         which extends all components of the nodes model
+	 */
 	public <T> ComplexNode.Effective<T> override(SchemaBuilder builder, ComplexNode.Effective<? super T> node,
 			Model.Effective<T> override) {
 		try {
@@ -77,6 +93,21 @@ public class BindingNodeOverrider {
 		return node.children().isEmpty() && !(node.isAbstract() && override.isAbstract());
 	}
 
+	/**
+	 * Override an extensible data node in some node tree with a given data type.
+	 * The {@link DataType data type} of the data nodes {@link DataNode#type()
+	 * base model} must also appear in the given data type's
+	 * {@link DataType.Effective#base() base type}.
+	 *
+	 * @param builder
+	 *          A schema builder for constructing the effective overriding node
+	 * @param node
+	 *          the complex node we wish to override
+	 * @param override
+	 *          the overriding data type
+	 * @return a node which overrides the given node by merging it with a data
+	 *         type which extends its type
+	 */
 	public <T> DataNode.Effective<T> override(SchemaBuilder builder, DataNode.Effective<? super T> node,
 			DataType.Effective<T> override) {
 		try {
@@ -103,46 +134,23 @@ public class BindingNodeOverrider {
 			currentProvidedValue = null;
 		}
 
-		@SuppressWarnings("unchecked")
-		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNodeWrapper<T> node,
-				Model.Effective<T> override) {
-			/*
-			 * TODO All this clever parent detection stuff for DataNods too...
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * TODO
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 * TODO
-			 * 
-			 * 
-			 * 
-			 * 
-			 * 
-			 */
-			DataLoader loader = new DataLoader() {
+		private DataLoader getDataLoader() {
+			return new DataLoader() {
+				@SuppressWarnings("unchecked")
 				@Override
 				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
 					return (List<V>) currentProvidedValue;
 				}
 			};
+		}
+
+		/*
+		 * Configure the parent, or "base", node for the overriding node we are
+		 * building.
+		 */
+		private <T, C extends BindingNodeConfigurator<C, ?, ?>> C configureParentNode(C configurator,
+				BindingChildNodeWrapper<T, ?, ?, ?, ?> node) {
+			configurator = configurator.name(new QualifiedName("base")).isAbstract(true);
 
 			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
 			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
@@ -199,8 +207,6 @@ public class BindingNodeOverrider {
 				}
 			});
 
-			ModelConfigurator<?> configurator = builder.configure(loader).addModel().name(new QualifiedName("base"))
-					.isAbstract(true);
 			if (parentBindingType.get() != null) {
 				configurator = configurator.bindingType(parentBindingType.get());
 			} else if (node.getPreInputType() != null) {
@@ -217,35 +223,37 @@ public class BindingNodeOverrider {
 				configurator = configurator.unbindingType(parentUnbindingType.get());
 			}
 
-			ComplexNodeConfigurator<T> elementConfigurator;
+			return configurator;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNodeWrapper<T> node,
+				Model.Effective<T> override) {
+			ModelConfigurator<?> configurator = configureParentNode(builder.configure(getDataLoader()).addModel(), node);
 
 			List<Model<? super T>> models = new ArrayList<>(override.source().baseModel());
 			models.add(0, new ModelWrapper<>(node));
-			elementConfigurator = configurator.addChild().complex().outMethodCast(true).model(models);
+
+			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild().complex().name(override.getName())
+					.outMethodCast(true).model(models);
+
 			elementConfigurator = processBindingNode(node, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
 
-			doChildren(override.children(), elementConfigurator.name(override.getName()));
+			doChildren(override.children(), elementConfigurator);
 
 			return (ComplexNode.Effective<T>) configurator.create().children().get(0).effective();
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNode.Effective<T> node,
+		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNodeWrapper<T> node,
 				DataType.Effective<T> override) {
-			DataLoader loader = new DataLoader() {
-				@Override
-				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
-					return (List<V>) currentProvidedValue;
-				}
-			};
-
-			DataTypeConfigurator<Object> configurator = builder.configure(loader).addDataType()
-					.name(new QualifiedName("base")).bindingType(node.getPreInputType())
-					.unbindingType(node.getOutMethod().getDeclaringClass()).isAbstract(true);
+			DataTypeConfigurator<?> configurator = configureParentNode(builder.configure(getDataLoader()).addDataType(),
+					node);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()
-					.name(override.getName()).type(override.source().baseType()).nullIfOmitted(node.nullIfOmitted());
+					.name(override.getName()).outMethodCast(true).type(override.source().baseType())
+					.nullIfOmitted(node.nullIfOmitted());
 
 			dataNodeConfigurator = tryProperty(node.format(), DataNodeConfigurator::format, dataNodeConfigurator);
 

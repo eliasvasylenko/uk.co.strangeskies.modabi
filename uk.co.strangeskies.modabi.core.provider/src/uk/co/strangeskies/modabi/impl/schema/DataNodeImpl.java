@@ -83,6 +83,29 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 
 				/*
 				 * Incorporate type information from provided data if possible
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * TODO lift this into BindingNodeImpl where it belongs
+				 * 
+				 * for things like "providedBuffer" and "provided", propagate results
+				 * back up the constructor chain by passing down an IdentityProperty or
+				 * something
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
+				 * 
 				 */
 				for (T providedItem : provided) {
 					Class<?> rawType = provided.iterator().next().getClass();

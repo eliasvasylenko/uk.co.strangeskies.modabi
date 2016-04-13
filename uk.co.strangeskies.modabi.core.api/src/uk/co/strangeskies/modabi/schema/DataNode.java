@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +28,8 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.reflection.TypeParameter;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
 public interface DataNode<T>
@@ -43,7 +46,15 @@ public interface DataNode<T>
 
 		@Override
 		default List<DataType.Effective<? super T>> base() {
-			return Arrays.asList(type());
+			List<DataType.Effective<? super T>> base = new ArrayList<>();
+
+			DataType.Effective<? super T> baseComponent = type();
+			do {
+				base.add(baseComponent);
+				baseComponent = baseComponent.baseType();
+			} while (baseComponent != null);
+
+			return base;
 		}
 
 		List<T> providedValues();
@@ -103,4 +114,9 @@ public interface DataNode<T>
 	}
 
 	Boolean nullIfOmitted();
+
+	@Override
+	default TypeToken<DataNode<T>> getThisType() {
+		return new TypeToken<DataNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());
+	}
 }

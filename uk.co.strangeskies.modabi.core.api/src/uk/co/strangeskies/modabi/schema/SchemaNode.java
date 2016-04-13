@@ -23,14 +23,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.NodeProcessor;
+import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
-public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> {
+public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> extends Reified<S> {
 	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>> extends SchemaNode<S, E> {
 		@Override
 		List<ChildNode.Effective<?, ?>> children();
@@ -143,4 +144,9 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	BindingNode<?, ?, ?> root();
 
 	Schema schema();
+
+	@Override
+	default S copy() {
+		return getThis();
+	}
 }

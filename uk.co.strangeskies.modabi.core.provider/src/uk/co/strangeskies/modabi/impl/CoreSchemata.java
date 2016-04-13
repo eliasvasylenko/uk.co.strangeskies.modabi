@@ -24,28 +24,87 @@ import java.lang.reflect.Proxy;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Map;
 
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
+import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.reflection.TypeParameter;
+import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class CoreSchemata {
+	private class TargetModelSkeletonObject {
+		private final QualifiedName name;
+		private final TypeToken<?> type;
+
+		public TargetModelSkeletonObject(QualifiedName name) {
+			this.name = name;
+
+			switch (name.getName()) {
+			case "model":
+				type = modelOf(new @Infer TypeToken<Model<?>>() {});
+				break;
+			case "type":
+				type = modelOf(new @Infer TypeToken<DataType<?>>() {});
+				break;
+			case "schema":
+				type = new TypeToken<Model<Schema>>() {};
+				break;
+			default:
+				type = null;
+			}
+		}
+
+		private <T> TypeToken<Model<T>> modelOf(TypeToken<T> type) {
+			return new TypeToken<Model<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, type);
+		}
+
+		boolean isReady() {
+			return baseSchema != null && metaSchema != null;
+		}
+
+		Model<?> provideObject() {
+			Model<?> model = baseSchema.getModels().get(name);
+
+			if (model == null)
+				model = metaSchema.getModels().get(name);
+
+			if (model == null)
+				throw new SchemaException("Cannot provide model '" + name + "' from base schema or metaschema.");
+
+			return model;
+		}
+
+		public boolean hasThisType() {
+			return type != null;
+		}
+
+		public TypeToken<?> getThisType() {
+			return type;
+		}
+	}
+
 	private final BaseSchema baseSchema;
 	private final MetaSchema metaSchema;
 
 	public CoreSchemata(SchemaBuilder schemaBuilder) {
+		Map<QualifiedName, Model<?>> targetModels = new HashMap<>();
+
 		/*
 		 * We obviously don't have have any schema to use to bind provided values
 		 * which have registration time resolution, since what we're doing here is
@@ -86,30 +145,31 @@ public class CoreSchemata {
 					if (node.getName().getName().equals("targetModel")) {
 						QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
 
-						Supplier<Model<?>> objectProvider = () -> {
-							Model<?> model = baseSchema.getModels().get(name);
+						return (List<T>) Arrays.asList(targetModels.computeIfAbsent(name, n -> {
 
-							if (model == null)
-								model = metaSchema.getModels().get(name);
+							return (Model<?>) Proxy.newProxyInstance(Model.class.getClassLoader(), new Class[] { Model.class },
+									new InvocationHandler() {
+										private TargetModelSkeletonObject skeleton = new TargetModelSkeletonObject(name);
+										private Model<?> model;
 
-							if (model == null)
-								throw new SchemaException("Cannot provide model '" + name + "' from base schema or metaschema.");
+										@Override
+										public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+											if (skeleton != null) {
+												if (skeleton.isReady()) {
+													model = skeleton.provideObject();
+													skeleton = null;
+												} else {
+													if (method.getName().equals("getThisType") && skeleton.hasThisType()) {
+														return skeleton.getThisType();
+													}
+													throw new IllegalStateException("Proxy for target model '" + name + "' is not ready yet");
+												}
+											}
 
-							return model;
-						};
-
-						return (List<T>) Arrays.asList(Proxy.newProxyInstance(Model.class.getClassLoader(),
-								new Class[] { Model.class }, new InvocationHandler() {
-									private Model<?> model;
-
-									@Override
-									public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-										if (model == null)
-											model = objectProvider.get();
-
-										return method.invoke(model, args);
-									}
-								}));
+											return method.invoke(model, args);
+										}
+									});
+						}));
 					}
 				}
 
@@ -118,6 +178,8 @@ public class CoreSchemata {
 		};
 		baseSchema = new BaseSchemaImpl(schemaBuilder, loader);
 		metaSchema = new MetaSchemaImpl(schemaBuilder, loader, baseSchema);
+
+		targetModels.values().forEach(Model::getThis);
 	}
 
 	public BaseSchema baseSchema() {

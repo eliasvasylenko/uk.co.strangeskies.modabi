@@ -21,6 +21,8 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.NodeProcessor;
+import uk.co.strangeskies.reflection.TypeParameter;
+import uk.co.strangeskies.reflection.TypeToken;
 
 public interface ComplexNode<T> extends BindingNode<T, ComplexNode<T>, ComplexNode.Effective<T>>,
 		BindingChildNode<T, ComplexNode<T>, ComplexNode.Effective<T>> {
@@ -48,4 +50,9 @@ public interface ComplexNode<T> extends BindingNode<T, ComplexNode<T>, ComplexNo
 	}
 
 	Boolean isInline();
+
+	@Override
+	default TypeToken<ComplexNode<T>> getThisType() {
+		return new TypeToken<ComplexNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());
+	}
 }
