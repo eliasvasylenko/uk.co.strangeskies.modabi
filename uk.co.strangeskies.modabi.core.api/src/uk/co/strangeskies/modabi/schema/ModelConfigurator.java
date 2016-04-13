@@ -27,48 +27,37 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ModelConfigurator<T>
-		extends AbstractComplexNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
-	@Override
-	default <V extends T> ModelConfigurator<V> baseModel(
-			Model<? super V> baseModel) {
+public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
+	default <V extends T> ModelConfigurator<V> baseModel(Model<? super V> baseModel) {
 		return baseModel(Arrays.asList(baseModel));
 	}
 
-	@Override
-	default <V extends T> ModelConfigurator<V> baseModel(
-			@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
+	default <V extends T> ModelConfigurator<V> baseModel(@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
 		return baseModel(Arrays.asList(baseModel));
 	}
 
-	@Override
-	<V extends T> ModelConfigurator<V> baseModel(
-			List<? extends Model<? super V>> baseModel);
+	<V extends T> ModelConfigurator<V> baseModel(List<? extends Model<? super V>> baseModel);
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default <V extends T> ModelConfigurator<V> dataType(Class<V> dataType) {
 		Type type = dataType;
-		return (ModelConfigurator<V>) AbstractComplexNodeConfigurator.super.dataType(
-				type);
+		return (ModelConfigurator<V>) BindingNodeConfigurator.super.dataType(type);
 	}
 
 	@Override
-	<V extends T> ModelConfigurator<V> dataType(
-			TypeToken<? extends V> bindingClass);
+	<V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> bindingClass);
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default ModelConfigurator<? extends T> dataType(AnnotatedType dataType) {
-		return (ModelConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
-				dataType);
+		return (ModelConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default ModelConfigurator<? extends T> dataType(Type dataType) {
-		return (ModelConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
-				dataType);
+		return (ModelConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
 	}
 
 	@Override

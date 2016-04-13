@@ -25,50 +25,38 @@ import java.util.List;
 
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ComplexNodeConfigurator<T> extends
-		AbstractComplexNodeConfigurator<ComplexNodeConfigurator<T>, ComplexNode<T>, T>,
-		BindingChildNodeConfigurator<ComplexNodeConfigurator<T>, ComplexNode<T>, T> {
-	@Override
-	default <V extends T> ComplexNodeConfigurator<V> baseModel(
-			Model<? super V> baseModel) {
-		return baseModel(Arrays.asList(baseModel));
+public interface ComplexNodeConfigurator<T>
+		extends BindingChildNodeConfigurator<ComplexNodeConfigurator<T>, ComplexNode<T>, T> {
+	default <V extends T> ComplexNodeConfigurator<V> model(Model<? super V> baseModel) {
+		return model(Arrays.asList(baseModel));
 	}
 
-	@Override
-	default <V extends T> ComplexNodeConfigurator<V> baseModel(
-			@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
-		return baseModel(Arrays.asList(baseModel));
+	default <V extends T> ComplexNodeConfigurator<V> model(@SuppressWarnings("unchecked") Model<? super V>... baseModel) {
+		return model(Arrays.asList(baseModel));
 	}
 
-	@Override
-	<V extends T> ComplexNodeConfigurator<V> baseModel(
-			List<? extends Model<? super V>> baseModel);
+	<V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> baseModel);
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default <V extends T> ComplexNodeConfigurator<V> dataType(Class<V> dataType) {
-		return (ComplexNodeConfigurator<V>) AbstractComplexNodeConfigurator.super.dataType(
-				dataType);
+		return (ComplexNodeConfigurator<V>) BindingChildNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default ComplexNodeConfigurator<? extends T> dataType(
-			AnnotatedType dataType) {
-		return (ComplexNodeConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
-				dataType);
+	default ComplexNodeConfigurator<? extends T> dataType(AnnotatedType dataType) {
+		return (ComplexNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default ComplexNodeConfigurator<? extends T> dataType(Type dataType) {
-		return (ComplexNodeConfigurator<? extends T>) AbstractComplexNodeConfigurator.super.dataType(
-				dataType);
+		return (ComplexNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(dataType);
 	}
 
 	@Override
-	<V extends T> ComplexNodeConfigurator<V> dataType(
-			TypeToken<? extends V> dataClass);
+	<V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<? extends V> dataClass);
 
 	ComplexNodeConfigurator<T> inline(boolean inline);
 }

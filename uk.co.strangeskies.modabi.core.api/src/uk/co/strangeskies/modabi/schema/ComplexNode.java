@@ -18,18 +18,33 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.List;
+
 import uk.co.strangeskies.modabi.NodeProcessor;
 
-public interface ComplexNode<T> extends
-		AbstractComplexNode<T, ComplexNode<T>, ComplexNode.Effective<T>>,
+public interface ComplexNode<T> extends BindingNode<T, ComplexNode<T>, ComplexNode.Effective<T>>,
 		BindingChildNode<T, ComplexNode<T>, ComplexNode.Effective<T>> {
-	interface Effective<T> extends ComplexNode<T>,
-			AbstractComplexNode.Effective<T, ComplexNode<T>, Effective<T>>,
+	interface Effective<T> extends ComplexNode<T>, BindingNode.Effective<T, ComplexNode<T>, Effective<T>>,
 			BindingChildNode.Effective<T, ComplexNode<T>, Effective<T>> {
 		@Override
 		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
+
+		@Override
+		List<Model.Effective<? super T>> model();
+
+		@Override
+		default List<Model.Effective<? super T>> base() {
+			return model();
+		}
+	}
+
+	List<? extends Model<? super T>> model();
+
+	@Override
+	default List<? extends Model<? super T>> base() {
+		return model();
 	}
 
 	Boolean isInline();

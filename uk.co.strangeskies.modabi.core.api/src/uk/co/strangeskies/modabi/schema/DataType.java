@@ -18,6 +18,9 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.Arrays;
+import java.util.List;
+
 import uk.co.strangeskies.modabi.NodeProcessor;
 
 public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
@@ -26,9 +29,22 @@ public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effect
 		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
+
+		@Override
+		DataType.Effective<? super T> baseType();
+
+		@Override
+		default List<DataType.Effective<? super T>> base() {
+			return Arrays.asList(baseType());
+		}
 	}
 
 	Boolean isPrivate();
 
 	DataType<? super T> baseType();
+
+	@Override
+	default List<? extends DataType<? super T>> base() {
+		return Arrays.asList(baseType());
+	}
 }

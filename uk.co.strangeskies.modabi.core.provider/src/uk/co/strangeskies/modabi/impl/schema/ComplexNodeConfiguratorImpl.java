@@ -49,7 +49,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ComplexNodeConfigurator<V> baseModel(
+	public <V extends T> ComplexNodeConfigurator<V> model(
 			List<? extends Model<? super V>> base) {
 		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);

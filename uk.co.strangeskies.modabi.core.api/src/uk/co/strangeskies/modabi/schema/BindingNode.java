@@ -33,7 +33,12 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 		Executable getUnbindingMethod();
 
 		List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters();
+
+		@Override
+		List<? extends BindingNode.Effective<? super T, ?, ?>> base();
 	}
+
+	List<? extends BindingNode<? super T, ?, ?>> base();
 
 	default String getDataTypeString() {
 		return getDataType() == null ? null : getDataType().toString(schema().getImports());

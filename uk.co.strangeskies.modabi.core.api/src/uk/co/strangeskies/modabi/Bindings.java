@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -51,7 +50,7 @@ public class Bindings {
 	public synchronized <T> void add(ComplexNode<T> element, T data) {
 		ComplexNode.Effective<T> effectiveElement = element.effective();
 
-		boundNodes.addToAll(effectiveElement.baseModel(), effectiveElement);
+		boundNodes.addToAll(effectiveElement.model(), effectiveElement);
 		boundObjects.add(effectiveElement, data);
 
 		fire(effectiveElement, data);
@@ -69,9 +68,9 @@ public class Bindings {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> void fire(AbstractComplexNode.Effective<T, ?, ?> node, T data) {
+	private <T> void fire(BindingNode.Effective<T, ?, ?> node, T data) {
 		for (Model.Effective<?> model : listeners.keySet()) {
-			if (model.equals(node) || node.baseModel().contains(model)) {
+			if (model.equals(node) || node.base().contains(model)) {
 				for (Consumer<?> listener : listeners.get(model)) {
 					((Consumer<? super T>) listener).accept(data);
 				}

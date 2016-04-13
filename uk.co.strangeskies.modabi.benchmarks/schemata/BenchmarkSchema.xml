@@ -59,7 +59,7 @@
 				outMethod="getPerson"
 				dataType="@Infer List&lt;?&gt;">
 				<complex
-					baseModel="person"
+					model="person"
 					outMethod="this"
 					occurrences="0.."
 					inMethod="add"

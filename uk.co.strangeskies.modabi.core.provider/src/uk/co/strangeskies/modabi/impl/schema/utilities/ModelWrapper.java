@@ -21,19 +21,19 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.Collections;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
 
-public class ModelWrapper<T>
-		extends
-		BindingNodeWrapper<T, AbstractComplexNode.Effective<T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
+public class ModelWrapper<T> extends
+		BindingNodeWrapper<T, BindingNode.Effective<T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
 		implements Model.Effective<T> {
-	public ModelWrapper(AbstractComplexNode.Effective<T, ?, ?> component) {
+	public ModelWrapper(BindingNode.Effective<T, ?, ?> component) {
 		super(component);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Model.Effective<? super T>> baseModel() {
-		return Collections.unmodifiableList(getComponent().baseModel());
+		return (List<Model.Effective<? super T>>) Collections.unmodifiableList(getComponent().base());
 	}
 }

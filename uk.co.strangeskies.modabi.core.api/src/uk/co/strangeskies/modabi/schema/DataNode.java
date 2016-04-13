@@ -18,21 +18,20 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.NodeProcessor;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.reflection.TypedObject;
 
 public interface DataNode<T>
-		extends BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>,
-		ChildNode<DataNode<T>, DataNode.Effective<T>> {
-	interface Effective<T> extends DataNode<T>,
-			BindingChildNode.Effective<T, DataNode<T>, Effective<T>>,
+		extends BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>, ChildNode<DataNode<T>, DataNode.Effective<T>> {
+	interface Effective<T> extends DataNode<T>, BindingChildNode.Effective<T, DataNode<T>, Effective<T>>,
 			ChildNode<DataNode<T>, Effective<T>> {
 		@Override
 		default void process(NodeProcessor context) {
@@ -42,17 +41,21 @@ public interface DataNode<T>
 		@Override
 		DataType.Effective<T> type();
 
+		@Override
+		default List<DataType.Effective<? super T>> base() {
+			return Arrays.asList(type());
+		}
+
 		List<T> providedValues();
 
 		default List<TypedObject<T>> typedProvidedValues() {
-			return providedValues().stream().map(getDataType()::typedObject)
-					.collect(Collectors.toList());
+			return providedValues().stream().map(getDataType()::typedObject).collect(Collectors.toList());
 		}
 
 		default T providedValue() {
 			if (!Range.between(0, 1).contains(occurrences()))
-				throw new SchemaException("Cannot request single value from node '"
-						+ getName() + "' with occurrences '" + occurrences() + "'");
+				throw new SchemaException(
+						"Cannot request single value from node '" + getName() + "' with occurrences '" + occurrences() + "'");
 
 			if (providedValues() == null || providedValues().isEmpty())
 				return null;
@@ -93,6 +96,11 @@ public interface DataNode<T>
 	ValueResolution valueResolution();
 
 	DataType<T> type();
+
+	@Override
+	default List<? extends DataType<? super T>> base() {
+		return Arrays.asList(type());
+	}
 
 	Boolean nullIfOmitted();
 }

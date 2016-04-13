@@ -176,7 +176,7 @@ public class SchemaTest {
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
+								.<Object>model((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.effective().getDataType());
@@ -228,7 +228,7 @@ public class SchemaTest {
 																				.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
 												.addChild(
 														v -> v.complex().name("value").inMethod("null")
-																.baseModel(
+																.model(
 																		schemaManager.getBaseSchema().models()
 																				.mapModel())
 																.addChild(
@@ -241,7 +241,7 @@ public class SchemaTest {
 																										.type(schemaManager.getBaseSchema()
 																												.primitiveType(Primitive.STRING)))
 																								.addChild(vv -> vv.complex().name("value")
-																										.<Object>baseModel((Model<Object>) schemaManager.getBaseSchema()
+																										.<Object>model((Model<Object>) schemaManager.getBaseSchema()
 																												.models().simpleModel())
 																										.addChild(cc -> cc.data().name("content").type(schemaManager
 																												.getBaseSchema().primitiveType(Primitive.INT)))))))))

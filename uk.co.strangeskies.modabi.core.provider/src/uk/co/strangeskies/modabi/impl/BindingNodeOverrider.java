@@ -221,7 +221,7 @@ public class BindingNodeOverrider {
 
 			List<Model<? super T>> models = new ArrayList<>(override.source().baseModel());
 			models.add(0, new ModelWrapper<>(node));
-			elementConfigurator = configurator.addChild().complex().outMethodCast(true).baseModel(models);
+			elementConfigurator = configurator.addChild().complex().outMethodCast(true).model(models);
 			elementConfigurator = processBindingNode(node, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
 
@@ -330,7 +330,7 @@ public class BindingNodeOverrider {
 			 * propagate through the tree of children manually.
 			 */
 			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex).extensible(node.isExtensible())
-					.baseModel(node.source().baseModel());
+					.model(node.source().model());
 
 			c = tryProperty(source.isInline(), ComplexNodeConfigurator::inline, c);
 

@@ -42,9 +42,8 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 			super(overrideMerge);
 
 			List<Model.Effective<? super T>> baseModel = new ArrayList<>();
-			overrideMerge.configurator().getOverriddenNodes().forEach(n -> baseModel.addAll(n.effective().baseModel()));
-			baseModel
-					.addAll(overrideMerge.node().baseModel().stream().map(SchemaNode::effective).collect(Collectors.toSet()));
+			overrideMerge.configurator().getOverriddenNodes().forEach(n -> baseModel.addAll(n.effective().model()));
+			baseModel.addAll(overrideMerge.node().model().stream().map(SchemaNode::effective).collect(Collectors.toSet()));
 			this.baseModel = Collections.unmodifiableList(baseModel);
 
 			Boolean inline = overrideMerge.getOverride(ComplexNode::isInline).orDefault(false).get();
@@ -55,7 +54,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 		}
 
 		@Override
-		public List<Model.Effective<? super T>> baseModel() {
+		public List<Model.Effective<? super T>> model() {
 			return baseModel;
 		}
 
@@ -93,7 +92,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 	}
 
 	@Override
-	public final List<Model<? super T>> baseModel() {
+	public final List<Model<? super T>> model() {
 		return baseModel;
 	}
 

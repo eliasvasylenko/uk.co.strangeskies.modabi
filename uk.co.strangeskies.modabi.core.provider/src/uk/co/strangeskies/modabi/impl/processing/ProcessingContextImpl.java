@@ -217,8 +217,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 			ComplexNode.Effective<T> node) {
 		List<Model<? extends T>> models;
 
-		if (node.baseModel() != null && !node.baseModel().isEmpty()) {
-			models = registeredModels.getModelsWithBase(node.baseModel()).stream().map(SchemaNode::source)
+		if (node.model() != null && !node.model().isEmpty()) {
+			models = registeredModels.getModelsWithBase(node.model()).stream().map(SchemaNode::source)
 					.filter(n -> node.getDataType().isAssignableFrom(n.effective().getDataType())).collect(Collectors.toList());
 		} else {
 			models = registeredModels.stream().map(SchemaNode::source)

@@ -18,13 +18,30 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.List;
+
 import uk.co.strangeskies.modabi.NodeProcessor;
 
-public interface Model<T> extends AbstractComplexNode<T, Model<T>, Model.Effective<T>> {
-	interface Effective<T> extends Model<T>, AbstractComplexNode.Effective<T, Model<T>, Effective<T>> {
+public interface Model<T> extends BindingNode<T, Model<T>, Model.Effective<T>> {
+	interface Effective<T> extends Model<T>, BindingNode.Effective<T, Model<T>, Effective<T>> {
 		@Override
 		default void process(NodeProcessor context) {
 			context.accept(this);
 		}
+
+		@Override
+		List<Model.Effective<? super T>> baseModel();
+
+		@Override
+		default List<Model.Effective<? super T>> base() {
+			return baseModel();
+		}
+	}
+
+	List<? extends Model<? super T>> baseModel();
+
+	@Override
+	default List<? extends Model<? super T>> base() {
+		return baseModel();
 	}
 }

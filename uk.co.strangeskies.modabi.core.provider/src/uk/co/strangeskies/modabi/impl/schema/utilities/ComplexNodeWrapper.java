@@ -22,33 +22,31 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.schema.AbstractComplexNode;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public class ComplexNodeWrapper<T> extends
-		BindingChildNodeWrapper<T, AbstractComplexNode.Effective<? super T, ?, ?>, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
+		BindingChildNodeWrapper<T, BindingNode.Effective<? super T, ?, ?>, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
 		implements ComplexNode.Effective<T> {
-	public ComplexNodeWrapper(
-			AbstractComplexNode.Effective<? super T, ?, ?> component) {
+	public ComplexNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
 		super(component);
 	}
 
-	public ComplexNodeWrapper(Model.Effective<T> component,
-			ComplexNode.Effective<? super T> base) {
+	public ComplexNodeWrapper(Model.Effective<T> component, ComplexNode.Effective<? super T> base) {
 		super(component, base);
 
-		String message = "Cannot override '" + base.getName() + "' with '"
-				+ component.getName() + "'";
+		String message = "Cannot override '" + base.getName() + "' with '" + component.getName() + "'";
 
-		if (!component.baseModel().containsAll(base.baseModel()))
+		if (!component.baseModel().containsAll(base.model()))
 			throw new SchemaException(message);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<Model.Effective<? super T>> baseModel() {
-		return Collections.unmodifiableList(getComponent().baseModel());
+	public List<Model.Effective<? super T>> model() {
+		return (List<Model.Effective<? super T>>) Collections.unmodifiableList(getComponent().base());
 	}
 
 	@Override

@@ -49,9 +49,8 @@ public class ComplexNodeUnbinder {
 
 				if (node.isAbstract() && validOverrides.isEmpty()) {
 					throw new ProcessingException(
-							"Unable to find model to satisfy complex node '"
-									+ node.getName() + "' with base model '" + node.baseModel().stream()
-											.map(m -> m.source().getName().toString()).collect(Collectors.joining(", "))
+							"Unable to find model to satisfy complex node '" + node.getName() + "' with base model '"
+									+ node.model().stream().map(m -> m.source().getName().toString()).collect(Collectors.joining(", "))
 									+ "' for object '" + item + "' to be unbound",
 							context);
 				}

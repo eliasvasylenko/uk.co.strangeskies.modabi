@@ -36,7 +36,7 @@
 
 			<complex
 				name="function"
-				baseModel="functionScript" />
+				model="functionScript" />
 		</model>
 
 		<model
