@@ -95,7 +95,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
 					else if (node.nullIfOmitted())
-						results.add(null);
+						results.add(new ChildNodeBinding<U>(node, null));
 
 					break;
 				case PROPERTY:
@@ -104,7 +104,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
 					else if (node.nullIfOmitted())
-						results.add(null);
+						results.add(new ChildNodeBinding<U>(node, null));
 
 					break;
 				case SIMPLE:
@@ -196,8 +196,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private static <U> ChildNodeBinding<? extends U> bindWithDataSource(DataSource dataSource, ProcessingContextImpl context,
-			DataNode.Effective<U> node) {
+	private static <U> ChildNodeBinding<? extends U> bindWithDataSource(DataSource dataSource,
+			ProcessingContextImpl context, DataNode.Effective<U> node) {
 		context = context.withNestedProvisionScope().forceExhausting();
 		context.provisions().add(Provider.over(DataSource.class, () -> dataSource));
 
@@ -206,7 +206,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return binding;
 	}
 
-	private static <U> ChildNodeBinding<? extends U> bindExactNode(ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private static <U> ChildNodeBinding<? extends U> bindExactNode(ProcessingContextImpl context,
+			DataNode.Effective<U> node) {
 		if (node.isExtensible()) {
 			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
@@ -229,7 +230,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			return new ChildNodeBinding<>(node, new BindingNodeBinder(context).bind(node));
 	}
 
-	private static <U> ChildNodeBinding<U> getNodeBinding(ProcessingContextImpl context, DataNode.Effective<U> exactNode) {
+	private static <U> ChildNodeBinding<U> getNodeBinding(ProcessingContextImpl context,
+			DataNode.Effective<U> exactNode) {
 		return new ChildNodeBinding<>(exactNode, new BindingNodeBinder(context).bind(exactNode));
 	}
 
@@ -239,8 +241,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				ProcessingContextImpl derivedContext = context.withNestedProvisionScope().forceExhausting();
 				derivedContext.provisions().add(Provider.over(DataSource.class, () -> data));
-				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream().map(ChildNodeBinding::getData)
-						.collect(toList());
+				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream()
+						.map(ChildNodeBinding::getData).collect(toList());
 			}
 		};
 	}

@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.List;
 
-import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
@@ -59,12 +58,19 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 			if (format != null && overrideMerge.configurator().getContext().isInputDataOnly())
 				throw new SchemaException("Node '" + getName() + "' must not provide a format.");
 
-			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted).validate((n, o) -> o || !n).orDefault(false)
-					.get();
-
-			if (!isAbstract() && nullIfOmitted && (!occurrences().equals(Range.between(0, 1)) || format == Format.SIMPLE
-					|| !overrideMerge.configurator().getContext().isInputExpected()))
-				throw new SchemaException("'Null if omitted' property is not valid for node '" + getName() + "'");
+			/*
+			 * Determine effective 'null if omitted' property. Must be true for nodes
+			 * which form part of an inputSequence, or which bind their data into a
+			 * constructor or static factory.
+			 */
+			boolean mustBeNullIfOmitted = !overrideMerge.configurator().getContext().isInputExpected()
+					|| overrideMerge.configurator().getContext().isConstructorExpected()
+					|| overrideMerge.configurator().getContext().isStaticMethodExpected();
+			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted).validate((n, o) -> o || !n)
+					.orDefault(mustBeNullIfOmitted).get();
+			if (nullIfOmitted != null && !nullIfOmitted && mustBeNullIfOmitted) {
+				throw new SchemaException("'Null if omitted' property must be true for node '" + getName() + "'");
+			}
 
 			providedBuffer = overrideMerge.getOverride(DataNode::providedValueBuffer).tryGet();
 			ValueResolution resolution = overrideMerge.getOverride(DataNode::valueResolution)
