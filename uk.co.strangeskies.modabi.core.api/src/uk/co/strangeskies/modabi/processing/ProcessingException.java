@@ -75,11 +75,11 @@ public class ProcessingException extends SchemaException {
 		if (state.getBindingNodeStack().isEmpty()) {
 			nodeContext = " at root";
 		} else {
-			nodeContext = " at node '" + state.getBindingNode().getName() + "'";
+			nodeContext = " at node '" + state.getBindingNode().name() + "'";
 
 			if (state.getBindingNodeStack().size() > 1) {
 				nodeContext = nodeContext + " at node '"
-						+ (state.getBindingNodeStack().get(state.getBindingNodeStack().size() - 2)).getName() + "'";
+						+ (state.getBindingNodeStack().get(state.getBindingNodeStack().size() - 2)).name() + "'";
 			}
 		}
 

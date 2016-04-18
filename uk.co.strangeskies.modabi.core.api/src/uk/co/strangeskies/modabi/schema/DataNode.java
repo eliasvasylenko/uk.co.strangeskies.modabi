@@ -66,7 +66,7 @@ public interface DataNode<T>
 		default T providedValue() {
 			if (!Range.between(0, 1).contains(occurrences()))
 				throw new SchemaException(
-						"Cannot request single value from node '" + getName() + "' with occurrences '" + occurrences() + "'");
+						"Cannot request single value from node '" + name() + "' with occurrences '" + occurrences() + "'");
 
 			if (providedValues() == null || providedValues().isEmpty())
 				return null;

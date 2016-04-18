@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -56,13 +57,13 @@ public class DummyNodes {
 	public static SequenceNode sequenceNode(QualifiedName name, List<? extends ChildNode<?, ?>> children) {
 		return new SequenceNode() {
 			@Override
-			public QualifiedName getName() {
+			public QualifiedName name() {
 				return name;
 			}
 
 			@Override
-			public Boolean isAbstract() {
-				return false;
+			public Abstractness abstractness() {
+				return Abstractness.CONCRETE;
 			}
 
 			@Override
@@ -78,13 +79,12 @@ public class DummyNodes {
 				if (object == this)
 					return true;
 
-				return ((SequenceNode) object).getName().equals(getName())
-						&& children.equals(((SequenceNode) object).children());
+				return ((SequenceNode) object).name().equals(name()) && children.equals(((SequenceNode) object).children());
 			}
 
 			@Override
 			public int hashCode() {
-				return getName().hashCode() + children.hashCode();
+				return name().hashCode() + children.hashCode();
 			}
 
 			@Override
@@ -98,7 +98,7 @@ public class DummyNodes {
 
 				return new Effective() {
 					@Override
-					public QualifiedName getName() {
+					public QualifiedName name() {
 						return name;
 					}
 
@@ -111,18 +111,13 @@ public class DummyNodes {
 					}
 
 					@Override
-					public Boolean isAbstract() {
-						return false;
-					}
-
-					@Override
-					public boolean hasExtensibleChildren() {
-						return false;
+					public Abstractness abstractness() {
+						return Abstractness.CONCRETE;
 					}
 
 					@Override
 					public int hashCode() {
-						return getName().hashCode() + children.hashCode();
+						return name().hashCode() + children.hashCode();
 					}
 
 					@Override
@@ -206,7 +201,7 @@ public class DummyNodes {
 	public static SequenceNode sequenceNode(QualifiedName name) {
 		return new SequenceNode.Effective() {
 			@Override
-			public QualifiedName getName() {
+			public QualifiedName name() {
 				return name;
 			}
 
@@ -221,13 +216,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Boolean isAbstract() {
-				return false;
-			}
-
-			@Override
-			public boolean hasExtensibleChildren() {
-				return false;
+			public Abstractness abstractness() {
+				return Abstractness.CONCRETE;
 			}
 
 			@Override
@@ -235,12 +225,12 @@ public class DummyNodes {
 				if (!(object instanceof SequenceNode.Effective))
 					return false;
 
-				return ((SequenceNode) object).getName().equals(getName());
+				return ((SequenceNode) object).name().equals(name());
 			}
 
 			@Override
 			public int hashCode() {
-				return getName().hashCode();
+				return name().hashCode();
 			}
 
 			@Override

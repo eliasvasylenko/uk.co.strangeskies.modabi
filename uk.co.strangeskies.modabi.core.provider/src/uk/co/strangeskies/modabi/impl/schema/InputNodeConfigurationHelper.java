@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
@@ -38,7 +39,7 @@ import uk.co.strangeskies.reflection.TypeVariableCapture;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
 	private final QualifiedName name;
-	private final boolean isAbstract;
+	private final Abstractness abstractness;
 
 	private final String inMethodName;
 	private final Invokable<?, ?> inMethod;
@@ -50,21 +51,22 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	private final TypeToken<?> postInputType;
 
 	private final OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge;
-	private final SchemaNodeConfigurationContext<? super N> context;
+	private final SchemaNodeConfigurationContext context;
 
-	public InputNodeConfigurationHelper(boolean isAbstract, QualifiedName name,
-			OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge,
-			SchemaNodeConfigurationContext<? super N> context, List<TypeToken<?>> inMethodParameters) {
-		this.isAbstract = isAbstract;
+	public InputNodeConfigurationHelper(Abstractness abstractness, QualifiedName name,
+			OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge, SchemaNodeConfigurationContext context,
+			List<TypeToken<?>> inMethodParameters) {
+		this.abstractness = abstractness;
 		this.name = name;
 		this.overrideMerge = overrideMerge;
 		this.context = context;
 
 		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained)
-				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected()).get();
-		inMethodUnchecked = overrideMerge.getOverride(InputNode::isInMethodUnchecked).orDefault(false).get();
+				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected(), Abstractness.RESOLVED).get();
+		inMethodUnchecked = overrideMerge.getOverride(InputNode::isInMethodUnchecked)
+				.orDefault(false, Abstractness.RESOLVED).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false).get();
+				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false, Abstractness.RESOLVED).get();
 
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
@@ -111,7 +113,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		TypeToken<?> inputTargetType = inputTargetType();
 
-		if (isAbstract || "null".equals(givenInMethodName)) {
+		if (abstractness.isMoreThan(Abstractness.RESOLVED) || "null".equals(givenInMethodName)) {
 			inInvokable = null;
 		} else {
 			try {
@@ -131,11 +133,23 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				/*
 				 * ... then if none exists, resolve one from scratch
 				 */
+				System.out.println();
 				if (inInvokable == null) {
 					inInvokable = resolveInMethod(givenInMethodName, inputTargetType, result, parameters);
+					System.out.println("{ " + inputTargetType);
+					System.out.println("* " + result);
+					System.out.println("  " + parameters);
 				}
 
+				/*
+				 * We're incorporating the preliminary types rather than those improved
+				 * by accounting for reified provided values!
+				 */
+
+				System.out.println(context.boundSet());
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
+				System.out.println(" " + context.boundSet());
+
 			} catch (Exception e) {
 				throw new SchemaException("Cannot find input method for node '" + name + "' on class '" + inputTargetType
 						+ "' with parameters '" + parameters + "'", e);
@@ -261,14 +275,14 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		if (!context.isInputExpected() && inMethodName == null)
 			inMethodName = "null";
 
-		if (context.isInputExpected() && inMethodName == null && !isAbstract)
+		if (context.isInputExpected() && inMethodName == null && abstractness.isAtMost(Abstractness.RESOLVED))
 			inMethodName = inMethod.getExecutable().getName();
 
 		return inMethodName;
 	}
 
 	private TypeToken<?> preInputType() {
-		return (isAbstract || "null".equals(inMethodName)) ? null
+		return (abstractness.isMoreThan(Abstractness.RESOLVED) || "null".equals(inMethodName)) ? null
 				: TypeToken.over(inMethod.getExecutable().getDeclaringClass());
 	}
 
@@ -277,7 +291,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		if ("null".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = inputTargetType();
-		} else if (isAbstract || inMethodChained == null) {
+		} else if (abstractness.isMoreThan(Abstractness.RESOLVED) || inMethodChained == null) {
 			postInputClass = overrideMerge.getOverride(n -> n.getPostInputType() == null ? null : n.getPostInputType())
 					.validate(TypeToken::isAssignableTo).tryGet();
 		} else {

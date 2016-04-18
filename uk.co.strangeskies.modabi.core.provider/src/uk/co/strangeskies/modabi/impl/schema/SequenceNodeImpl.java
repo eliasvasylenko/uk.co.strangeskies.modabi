@@ -18,33 +18,28 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class SequenceNodeImpl
-		extends ChildNodeImpl<SequenceNode, SequenceNode.Effective>
-		implements SequenceNode {
-	private class Effective
-			extends ChildNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
+class SequenceNodeImpl extends ChildNodeImpl<SequenceNode, SequenceNode.Effective> implements SequenceNode {
+	private class Effective extends ChildNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
 			implements SequenceNode.Effective {
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;
 
-		public Effective(
-				OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
+		public Effective(OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
 			super(overrideMerge);
 
-			preInputClass = isAbstract() ? null : children().get(0).getPreInputType();
+			preInputClass = abstractness().isLessThan(Abstractness.ABSTRACT) ? null : children().get(0).getPreInputType();
 
-			TypeToken<?> postInputClass = overrideMerge
-					.getOverride(ChildNode::getPostInputType)
+			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::getPostInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
-			if (postInputClass == null && !isAbstract()) {
+			if (postInputClass == null && abstractness().isLessThan(Abstractness.ABSTRACT)) {
 				for (ChildNode.Effective<?, ?> child : children()) {
-					if (postInputClass != null
-							&& !child.getPreInputType().isAssignableFrom(postInputClass)) {
+					if (postInputClass != null && !child.getPreInputType().isAssignableFrom(postInputClass)) {
 						throw new IllegalArgumentException();
 					}
 					postInputClass = child.getPostInputType();
@@ -72,8 +67,7 @@ class SequenceNodeImpl
 
 		postInputClass = configurator.getPostInputClass();
 
-		effective = new Effective(
-				SequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new Effective(SequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override

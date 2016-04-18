@@ -115,10 +115,10 @@ public class UnbinderImpl<T> implements Unbinder<T> {
 	@SuppressWarnings("unchecked")
 	private <U extends T> void unbindImpl(ProcessingContext context, Model.Effective<U> model,
 			StructuredDataTarget output) {
-		output.registerDefaultNamespaceHint(model.getName().getNamespace());
+		output.registerDefaultNamespaceHint(model.name().getNamespace());
 
 		try {
-			context.output().get().addChild(model.getName());
+			context.output().get().addChild(model.name());
 
 			ClassLoader classLoader = this.classLoader != null ? this.classLoader
 					: Thread.currentThread().getContextClassLoader();

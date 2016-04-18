@@ -21,12 +21,10 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
@@ -40,16 +38,15 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class InputSequenceNodeConfiguratorImpl extends
-		ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
+public class InputSequenceNodeConfiguratorImpl
+		extends ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
 		implements InputSequenceNodeConfigurator {
 	private String inMethodName;
 	private Boolean inMethodChained;
 	private Boolean inMethodCast;
 	private Boolean inMethodUnchecked;
 
-	public InputSequenceNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super InputSequenceNode> parent) {
+	public InputSequenceNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
 	}
 
@@ -61,8 +58,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	@Override
 	public InputSequenceNodeConfigurator inMethod(String methodName) {
 		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
-			throw new SchemaException(
-					"No input method should be specified on this node.");
+			throw new SchemaException("No input method should be specified on this node.");
 
 		assertConfigurable(inMethodName);
 		inMethodName = methodName;
@@ -87,8 +83,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator inMethodCast(
-			boolean allowInMethodResultCast) {
+	public InputSequenceNodeConfigurator inMethodCast(boolean allowInMethodResultCast) {
 		assertConfigurable(this.inMethodCast);
 		this.inMethodCast = allowInMethodResultCast;
 
@@ -100,8 +95,7 @@ public class InputSequenceNodeConfiguratorImpl extends
 	}
 
 	@Override
-	public final InputSequenceNodeConfigurator inMethodUnchecked(
-			boolean unchecked) {
+	public final InputSequenceNodeConfigurator inMethodUnchecked(boolean unchecked) {
 		assertConfigurable(inMethodUnchecked);
 		inMethodUnchecked = unchecked;
 
@@ -121,82 +115,72 @@ public class InputSequenceNodeConfiguratorImpl extends
 	public ChildrenConfigurator createChildrenConfigurator() {
 		TypeToken<?> outputTarget = getContext().outputSourceType();
 
-		return new SequentialChildrenConfigurator(
-				new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
-					@Override
-					public SchemaNode<?, ?> parentNodeProxy() {
-						return getSchemaNodeProxy();
-					}
+		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public SchemaNode<?, ?> parentNodeProxy() {
+				return getSchemaNodeProxy();
+			}
 
-					@Override
-					public BoundSet boundSet() {
-						return getContext().boundSet();
-					}
+			@Override
+			public BoundSet boundSet() {
+				return getContext().boundSet();
+			}
 
-					@Override
-					public DataLoader dataLoader() {
-						return getDataLoader();
-					}
+			@Override
+			public DataLoader dataLoader() {
+				return getDataLoader();
+			}
 
-					@Override
-					public Imports imports() {
-						return getImports();
-					}
+			@Override
+			public Imports imports() {
+				return getImports();
+			}
 
-					@Override
-					public boolean isAbstract() {
-						return isChildContextAbstract();
-					}
+			@Override
+			public boolean isAbstract() {
+				return isChildContextAbstract();
+			}
 
-					@Override
-					public boolean isInputExpected() {
-						return false;
-					}
+			@Override
+			public boolean isInputExpected() {
+				return false;
+			}
 
-					@Override
-					public boolean isInputDataOnly() {
-						return getContext().isInputDataOnly();
-					}
+			@Override
+			public boolean isInputDataOnly() {
+				return getContext().isInputDataOnly();
+			}
 
-					@Override
-					public boolean isConstructorExpected() {
-						return false;
-					}
+			@Override
+			public boolean isConstructorExpected() {
+				return false;
+			}
 
-					@Override
-					public boolean isStaticMethodExpected() {
-						return false;
-					}
+			@Override
+			public boolean isStaticMethodExpected() {
+				return false;
+			}
 
-					@Override
-					public Namespace namespace() {
-						return getNamespace();
-					}
+			@Override
+			public Namespace namespace() {
+				return getNamespace();
+			}
 
-					@Override
-					public TypeToken<?> inputTargetType() {
-						return null;
-					}
+			@Override
+			public TypeToken<?> inputTargetType() {
+				return null;
+			}
 
-					@Override
-					public TypeToken<?> outputSourceType() {
-						return outputTarget;
-					}
+			@Override
+			public TypeToken<?> outputSourceType() {
+				return outputTarget;
+			}
 
-					@Override
-					public void addChild(ChildNode<?, ?> result) {}
-
-					@Override
-					public <U extends ChildNode<?, ?>> List<U> overrideChild(
-							QualifiedName id, TypeToken<U> nodeClass) {
-						return null;
-					}
-
-					@Override
-					public List<? extends SchemaNode<?, ?>> overriddenNodes() {
-						return getOverriddenNodes();
-					}
-				}) {
+			@Override
+			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+				return getOverriddenNodes();
+			}
+		}) {
 			@Override
 			public ChildBuilder addChild() {
 				ChildBuilder component = super.addChild();
@@ -208,17 +192,17 @@ public class InputSequenceNodeConfiguratorImpl extends
 
 					@Override
 					public InputSequenceNodeConfigurator inputSequence() {
-						return null;
+						throw new UnsupportedOperationException();
 					}
 
 					@Override
 					public SequenceNodeConfigurator sequence() {
-						return null;
+						throw new UnsupportedOperationException();
 					}
 
 					@Override
 					public ChoiceNodeConfigurator choice() {
-						return null;
+						throw new UnsupportedOperationException();
 					}
 
 					@Override

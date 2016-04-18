@@ -29,7 +29,7 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
+public interface SchemaNodeConfigurationContext {
 	SchemaNode<?, ?> parentNodeProxy();
 
 	DataLoader dataLoader();
@@ -50,13 +50,21 @@ public interface SchemaNodeConfigurationContext<T extends ChildNode<?, ?>> {
 
 	BoundSet boundSet();
 
+	default void resetBoundSetIncorporations() {
+		throw new UnsupportedOperationException();
+	}
+
 	TypeToken<?> inputTargetType();
 
 	TypeToken<?> outputSourceType();
 
-	void addChild(T result);
+	default void addChild(ChildNode<?, ?> result) {
+		throw new UnsupportedOperationException();
+	}
 
-	<U extends T> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass);
+	default <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
+		throw new UnsupportedOperationException();
+	}
 
 	List<? extends SchemaNode<?, ?>> overriddenNodes();
 }

@@ -52,7 +52,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 
 	@Override
 	public QualifiedName defaultName() {
-		return (baseModel == null || baseModel.size() != 1) ? null : baseModel.get(0).getName();
+		return (baseModel == null || baseModel.size() != 1) ? null : baseModel.get(0).name();
 	}
 
 	@Override

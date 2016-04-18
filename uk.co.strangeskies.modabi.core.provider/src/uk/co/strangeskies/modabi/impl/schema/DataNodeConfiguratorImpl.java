@@ -33,8 +33,7 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataNodeConfiguratorImpl<T> extends
-		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T>
-		implements DataNodeConfigurator<T> {
+		BindingChildNodeConfiguratorImpl<DataNodeConfigurator<T>, DataNode<T>, T> implements DataNodeConfigurator<T> {
 	private Format format;
 
 	private DataType<T> type;
@@ -43,8 +42,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	private Boolean nullIfOmitted;
 
-	public DataNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super DataNode<T>> parent) {
+	public DataNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
 	}
 
@@ -55,13 +53,12 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public QualifiedName defaultName() {
-		return type == null ? null : type.effective().getName();
+		return type == null ? null : type.effective().name();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataNodeConfigurator<U> dataType(
-			TypeToken<? extends U> dataClass) {
+	public final <U extends T> DataNodeConfigurator<U> dataType(TypeToken<? extends U> dataClass) {
 		return (DataNodeConfigurator<U>) super.dataType(dataClass);
 	}
 
@@ -108,8 +105,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataNodeConfigurator<T> valueResolution(
-			ValueResolution valueResolution) {
+	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution) {
 		assertConfigurable(this.resolution);
 		this.resolution = valueResolution;
 

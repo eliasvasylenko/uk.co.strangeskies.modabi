@@ -38,7 +38,6 @@ import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
-import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataStreamState;
@@ -166,7 +165,7 @@ public class BindingProviders {
 		Property<BindingBlock, BindingBlock> blockProperty = new IdentityProperty<>();
 
 		Function<U, Boolean> validate = bindingCandidate -> {
-			boolean success = validateBindingCandidate(context.manager(), bindingCandidate, model, idNode, id);
+			boolean success = validateBindingCandidate(context, bindingCandidate, model, idNode, id);
 			if (success) {
 				objectProperty.set(bindingCandidate);
 			}
@@ -206,18 +205,18 @@ public class BindingProviders {
 			/*
 			 * No existing candidates found, so block to wait for new ones
 			 */
-			BindingBlock block = context.bindingFutureBlocker().block(model.getName(), id, !externalDependency);
+			BindingBlock block = context.bindingFutureBlocker().block(model.name(), id, !externalDependency);
 			blockProperty.set(block);
 		}
 
 		return getProxiedBinding(model, blockProperty.get(), objectProperty::get);
 	}
 
-	private <U> boolean validateBindingCandidate(SchemaManager manager, U objectCandidate, Model<U> model,
+	private <U> boolean validateBindingCandidate(ProcessingContext context, U bindingCandidate, Model<U> model,
 			DataNode.Effective<?> idNode, DataItem<?> id) {
-		Objects.requireNonNull(objectCandidate);
+		Objects.requireNonNull(bindingCandidate);
 
-		DataSource candidateId = unbindDataNode(manager, idNode, new TypedObject<>(model.getDataType(), objectCandidate));
+		DataSource candidateId = unbindDataNode(context, idNode, new TypedObject<>(model.getDataType(), bindingCandidate));
 
 		if (candidateId.size() == 1) {
 			DataItem<?> candidateData = candidateId.get();
@@ -268,8 +267,8 @@ public class BindingProviders {
 				});
 	}
 
-	private <V> DataSource unbindDataNode(SchemaManager manager, DataNode.Effective<V> node, TypedObject<?> source) {
-		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(manager).withBindingObject(source);
+	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode.Effective<V> node, TypedObject<?> source) {
+		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(context).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));

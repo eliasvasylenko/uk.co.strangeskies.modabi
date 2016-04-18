@@ -33,7 +33,6 @@ import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
@@ -202,7 +201,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			outputSource = null;
 
-		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
 			@Override
 			public SchemaNode<?, ?> parentNodeProxy() {
 				return getSchemaNodeProxy();
@@ -261,14 +260,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			@Override
 			public TypeToken<?> outputSourceType() {
 				return outputSource;
-			}
-
-			@Override
-			public void addChild(ChildNode<?, ?> result) {}
-
-			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
-				return null;
 			}
 
 			@Override

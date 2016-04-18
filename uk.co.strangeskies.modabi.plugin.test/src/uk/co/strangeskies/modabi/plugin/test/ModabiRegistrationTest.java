@@ -187,11 +187,6 @@ public class ModabiRegistrationTest {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), asList("Types")));
 	}
 
-	@Test(timeout = TIMEOUT_MILLISECONDS)
-	public void loadBenchmark() {
-		runSimpleTest(createSimpleContext(asList("BenchmarkSchema"), asList("Types")));
-	}
-
 	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
 	public void failLoadTypesDependent() {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), emptySet()));

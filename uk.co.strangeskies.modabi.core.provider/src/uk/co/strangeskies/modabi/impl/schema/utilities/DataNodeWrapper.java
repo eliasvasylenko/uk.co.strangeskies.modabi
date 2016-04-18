@@ -39,8 +39,8 @@ public final class DataNodeWrapper<T> extends
 			DataNode.Effective<? super T> base) {
 		super(component, base);
 
-		String message = "Cannot override '" + base.getName() + "' with '"
-				+ component.getName() + "'";
+		String message = "Cannot override '" + base.name() + "' with '"
+				+ component.name() + "'";
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null

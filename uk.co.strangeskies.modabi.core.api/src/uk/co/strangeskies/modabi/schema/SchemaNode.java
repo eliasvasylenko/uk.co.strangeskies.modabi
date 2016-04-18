@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
@@ -44,8 +45,6 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 		@Override
 		S source();
-
-		boolean hasExtensibleChildren();
 
 		@Override
 		BindingNode.Effective<?, ?, ?> root();
@@ -96,9 +95,9 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 		}
 	}
 
-	Boolean isAbstract();
+	Abstractness abstractness();
 
-	QualifiedName getName();
+	QualifiedName name();
 
 	List<? extends ChildNode<?, ?>> children();
 
@@ -110,11 +109,10 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name) {
-		return children().stream().filter(c -> c.getName().equals(name)).findAny()
-				.orElseThrow(() -> new SchemaException(
-						"Cannot find child '" + name + "' for node '" + getName() + "' amongst children '["
-								+ children().stream().map(SchemaNode::getName).map(Objects::toString).collect(Collectors.joining(", "))
-								+ "]."));
+		return children().stream().filter(c -> c.name().equals(name)).findAny().orElseThrow(
+				() -> new SchemaException("Cannot find child '" + name + "' for node '" + name() + "' amongst children '["
+						+ children().stream().map(SchemaNode::name).map(Objects::toString).collect(Collectors.joining(", "))
+						+ "]."));
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {
@@ -136,7 +134,7 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 	default ChildNode<?, ?> child(String name, String... names) {
 		if (names.length == 0)
-			return child(new QualifiedName(name, getName().getNamespace()));
+			return child(new QualifiedName(name, name().getNamespace()));
 		else
 			return child(name).child(names[0], Arrays.copyOfRange(names, 1, names.length));
 	}

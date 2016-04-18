@@ -47,31 +47,23 @@ public class ComplexNodeUnbinder {
 						.filter(m -> m.effective().getDataType().getRawType().isAssignableFrom(item.getClass()))
 						.collect(Collectors.toList());
 
-				if (node.isAbstract() && validOverrides.isEmpty()) {
+				if (validOverrides.isEmpty()) {
 					throw new ProcessingException(
-							"Unable to find model to satisfy complex node '" + node.getName() + "' with base model '"
-									+ node.model().stream().map(m -> m.source().getName().toString()).collect(Collectors.joining(", "))
+							"Unable to find model to satisfy complex node '" + node.name() + "' with base model '"
+									+ node.model().stream().map(m -> m.source().name().toString()).collect(Collectors.joining(", "))
 									+ "' for object '" + item + "' to be unbound",
 							context);
 				}
 
-				try {
-					context.attemptUnbindingUntilSuccessful(validOverrides,
-							(c, n) -> unbindExactNode(c, (ComplexNode.Effective<U>) overrides.putGet(n), item),
-							l -> new ProcessingException(
-									"Unable to unbind complex node '" + node.getName() + "' with model candidates '"
-											+ validOverrides.stream().map(m -> m.effective().getName().toString())
-													.collect(Collectors.joining(", "))
-											+ "' for object '" + item + "' to be unbound",
-									context, l));
-				} catch (ProcessingException e) {
-					if (!node.isAbstract()) {
-						for (U i : data)
-							unbindExactNode(context, node, i);
-					} else {
-						throw new ProcessingException("Could not unbind without extension", context, e);
-					}
-				}
+				context
+						.attemptUnbindingUntilSuccessful(validOverrides,
+								(c, n) -> unbindExactNode(c, (ComplexNode.Effective<U>) overrides.putGet(n), item),
+								l -> new ProcessingException(
+										"Unable to unbind complex node '" + node.name() + "' with model candidates '"
+												+ validOverrides.stream().map(m -> m.effective().name().toString())
+														.collect(Collectors.joining(", "))
+												+ "' for object '" + item + "' to be unbound",
+										context, l));
 			}
 		} else
 			for (U item : data)
@@ -81,7 +73,7 @@ public class ComplexNodeUnbinder {
 	private <U> void unbindExactNode(ProcessingContextImpl context, ComplexNode.Effective<U> element, U data) {
 		try {
 			if (!element.isInline())
-				context.output().get().addChild(element.getName());
+				context.output().get().addChild(element.name());
 
 			new BindingNodeUnbinder(context).unbind(element, data);
 

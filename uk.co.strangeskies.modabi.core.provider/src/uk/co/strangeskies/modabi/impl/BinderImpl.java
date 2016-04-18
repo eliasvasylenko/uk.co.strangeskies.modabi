@@ -32,9 +32,9 @@ import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.impl.processing.BindingBlocksImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
+import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
@@ -56,9 +56,7 @@ public class BinderImpl<T> implements Binder<T> {
 	private final Function<StructuredDataSource, Model<T>> bindingModelFunction;
 	private final Consumer<BindingFuture<?>> addFuture;
 
-	private final BindingBlocksImpl blocks;
-
-	private final Set<Provider> providers;
+	private final ProcessingContextImpl context;
 	private ClassLoader classLoader;
 
 	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingModelFunction,
@@ -67,9 +65,7 @@ public class BinderImpl<T> implements Binder<T> {
 		this.bindingModelFunction = bindingModelFunction;
 		this.addFuture = addFuture;
 
-		providers = new HashSet<>();
-
-		blocks = new BindingBlocksImpl();
+		context = manager.getProcessingContext();
 	}
 
 	@Override
@@ -104,7 +100,9 @@ public class BinderImpl<T> implements Binder<T> {
 	}
 
 	private BindingFuture<T> createBindingFuture(Supplier<BindingSource<T>> modelSupplier) {
-		BindingFuture<T> bindingFuture = new BindingFutureImpl<>(manager, blocks, classLoader, providers, modelSupplier);
+		ClassLoader classLoader = this.classLoader != null ? this.classLoader
+				: Thread.currentThread().getContextClassLoader();
+		BindingFuture<T> bindingFuture = new BindingFutureImpl<>(context, classLoader, modelSupplier);
 
 		addFuture.accept(bindingFuture);
 
@@ -160,7 +158,8 @@ public class BinderImpl<T> implements Binder<T> {
 			BindingSource<T> source = getBindingSource.apply(registeredFormats);
 
 			if (source == null) {
-				BindingBlock block = blocks.block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId, false);
+				BindingBlock block = context.bindingFutureBlocker().block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId,
+						false);
 
 				try {
 					source = getBindingSource.apply(queue);
@@ -181,14 +180,8 @@ public class BinderImpl<T> implements Binder<T> {
 
 	@Override
 	public Binder<T> withProvider(Provider provider) {
-		providers.add(provider);
+		context.provisions().add(provider);
 		return this;
-	}
-
-	@Override
-	public Binder<T> withRoot(T root) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

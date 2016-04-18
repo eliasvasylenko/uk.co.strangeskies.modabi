@@ -177,7 +177,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		new BindingProviders().registerProviders(provisions());
 		new UnbindingProviders().registerProviders(provisions());
 
-		QualifiedName schemaModelName = coreSchemata.metaSchema().getSchemaModel().getName();
+		QualifiedName schemaModelName = coreSchemata.metaSchema().getSchemaModel().name();
 		bindingFutures.put(schemaModelName, ScopedObservableSet.over(HashSet::new));
 		bindings.put(schemaModelName, ScopedObservableSet.over(HashSet::new));
 		registeredSchemata().add(coreSchemata.metaSchema());
@@ -189,7 +189,16 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	@Override
 	public SchemaConfigurator getSchemaConfigurator() {
-		return getSchemaBuilder().configure(DataNodeBinder.dataLoader(getProcessingContext()));
+		ProcessingContextImpl context = getProcessingContext();
+
+		for (Model<?> schemaModel : getMetaSchema().getModels()) {
+			context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
+		}
+		for (DataType<?> schemaDataType : getMetaSchema().getDataTypes()) {
+			context.bindings().add(context.manager().getMetaSchema().getDataTypeModel(), schemaDataType);
+		}
+
+		return getSchemaBuilder().configure(DataNodeBinder.dataLoader(context));
 	}
 
 	@Override
@@ -233,8 +242,8 @@ public class SchemaManagerImpl implements SchemaManager {
 				 * TODO add/fetch scope on parent first if we have a parent, then add
 				 * nested one here
 				 */
-				bindingFutures.put(model.getName(), ScopedObservableSet.over(HashSet::new));
-				bindings.put(model.getName(), ScopedObservableSet.over(HashSet::new));
+				bindingFutures.put(model.name(), ScopedObservableSet.over(HashSet::new));
+				bindings.put(model.name(), ScopedObservableSet.over(HashSet::new));
 			}
 		}
 	}
@@ -245,8 +254,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
 		BindingFuture<T> future = BindingFuture.forBinding(binding);
-		bindingFutures.get(binding.getNode().getName()).add(future);
-		bindings.get(binding.getNode().getName()).add(binding);
+		bindingFutures.get(binding.getNode().name()).add(future);
+		bindings.get(binding.getNode().name()).add(binding);
 		return future;
 	}
 
@@ -264,7 +273,7 @@ public class SchemaManagerImpl implements SchemaManager {
 		new Thread(() -> {
 			try {
 				Model.Effective<T> model = bindingFuture.getModelFuture().get().effective();
-				QualifiedName modelName = model.getName();
+				QualifiedName modelName = model.name();
 
 				bindingFutures.get(modelName).add(bindingFuture);
 
@@ -327,16 +336,16 @@ public class SchemaManagerImpl implements SchemaManager {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model) {
-		synchronized (bindingFutures.get(model.effective().getName())) {
-			return (ObservableSet) bindingFutures.get(model.effective().getName());
+		synchronized (bindingFutures.get(model.effective().name())) {
+			return (ObservableSet) bindingFutures.get(model.effective().name());
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <T> ObservableSet<?, Binding<T>> getBindings(Model<T> model) {
-		synchronized (bindings.get(model.effective().getName())) {
-			return (ObservableSet) bindings.get(model.effective().getName());
+		synchronized (bindings.get(model.effective().name())) {
+			return (ObservableSet) bindings.get(model.effective().name());
 		}
 	}
 

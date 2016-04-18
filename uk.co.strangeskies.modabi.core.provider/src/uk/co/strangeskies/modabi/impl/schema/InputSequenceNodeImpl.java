@@ -27,11 +27,9 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class InputSequenceNodeImpl
-		extends ChildNodeImpl<InputSequenceNode, InputSequenceNode.Effective>
+class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequenceNode.Effective>
 		implements InputSequenceNode {
-	private static class Effective extends
-			ChildNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
+	private static class Effective extends ChildNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
 			implements InputSequenceNode.Effective {
 		private final String inMethodName;
 		private final Executable inMethod;
@@ -42,29 +40,23 @@ class InputSequenceNodeImpl
 		private final TypeToken<?> preInputClass;
 		private final TypeToken<?> postInputClass;
 
-		protected Effective(
-				OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl> overrideMerge) {
+		protected Effective(OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl> overrideMerge) {
 			super(overrideMerge);
 
 			if (!overrideMerge.configurator().getContext().isInputExpected())
-				throw new SchemaException("InputSequenceNode '" + getName()
-						+ "' cannot occur in a context without input.");
+				throw new SchemaException("InputSequenceNode '" + name() + "' cannot occur in a context without input.");
 
-			List<TypeToken<?>> parameterClasses = overrideMerge.configurator()
-					.getChildrenContainer().getChildren().stream()
-					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective())
-							.getDataType())
+			List<TypeToken<?>> parameterClasses = overrideMerge.configurator().getChildrenContainer().getChildren().stream()
+					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective()).getDataType())
 					.collect(Collectors.toList());
 
 			InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
-					isAbstract(), getName(), overrideMerge,
-					overrideMerge.configurator().getContext(), parameterClasses);
+					abstractness(), name(), overrideMerge, overrideMerge.configurator().getContext(), parameterClasses);
 
 			inMethodChained = inputNodeHelper.isInMethodChained();
 			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 			inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-			inMethod = inputNodeHelper.getInMethod() != null
-					? inputNodeHelper.getInMethod().getExecutable() : null;
+			inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper.getInMethod().getExecutable() : null;
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputClass = inputNodeHelper.getPreInputType();
 			postInputClass = inputNodeHelper.getPostInputType();
@@ -123,8 +115,7 @@ class InputSequenceNodeImpl
 		allowInMethodResultCast = configurator.getInMethodCast();
 		inMethodUnchecked = configurator.getInMethodUnchecked();
 
-		effective = new Effective(
-				InputSequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
+		effective = new Effective(InputSequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
 	}
 
 	@Override

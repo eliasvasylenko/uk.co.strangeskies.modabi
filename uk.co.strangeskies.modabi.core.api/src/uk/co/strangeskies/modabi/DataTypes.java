@@ -36,7 +36,7 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 	}
 
 	public DataTypes(DataTypes parent) {
-		super(DataType::getName, parent);
+		super(DataType::name, parent);
 		derivedTypes = new MultiHashMap<>(() -> new LinkedHashSet<>());
 	}
 
@@ -54,13 +54,13 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 
 	private void mapType(DataType<?> type) {
 		if (type.effective().baseType() != null)
-			derivedTypes.add(type.effective().baseType().getName(), type.source());
+			derivedTypes.add(type.effective().baseType().name(), type.source());
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> List<DataType<? extends T>> getDerivedTypes(DataType<T> type) {
 		synchronized (getMutex()) {
-			LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type.effective().getName());
+			LinkedHashSet<DataType<?>> subTypeList = derivedTypes.get(type.effective().name());
 
 			List<DataType<? extends T>> derivedTypes = subTypeList == null ? new ArrayList<>()
 					: new ArrayList<>(subTypeList.stream().map(m -> (DataType<? extends T>) m).collect(Collectors.toList()));
@@ -77,7 +77,8 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 
 					getDerivedTypes(node.effective().type())
 
-							.stream().filter(m -> !m.effective().isAbstract()).collect(Collectors.toList());
+							.stream().filter(m -> m.effective().abstractness().isAtMost(Abstractness.UNINFERRED))
+							.collect(Collectors.toList());
 
 			getParentScope().ifPresent(p -> subTypes.addAll(p.getTypesWithBase(node)));
 

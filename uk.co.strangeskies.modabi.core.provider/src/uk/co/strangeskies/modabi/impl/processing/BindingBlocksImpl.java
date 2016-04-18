@@ -153,6 +153,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 		}
 	}
 
+	@Override
 	public Set<Thread> getParticipatingThreads() {
 		synchronized (blocks) {
 			return participatingThreads;
@@ -211,6 +212,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 		}
 	}
 
+	@Override
 	public boolean isDeadlocked() {
 		synchronized (blocks) {
 			int internalBlocks = (int) participatingThreadBlocks.values().stream().filter(BindingBlock::isInternal).count();
@@ -219,6 +221,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 		}
 	}
 
+	@Override
 	public void complete() throws InterruptedException, ExecutionException {
 		synchronized (blocks) {
 			assertResolvable();

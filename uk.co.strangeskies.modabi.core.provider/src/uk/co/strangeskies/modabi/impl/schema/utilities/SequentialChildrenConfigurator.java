@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -124,7 +125,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private boolean blocked;
 	private int childIndex;
 
-	private final SchemaNodeConfigurationContext<?> context;
+	private final SchemaNodeConfigurationContext context;
 
 	private final List<ChildNode<?, ?>> children;
 	private final List<MergeGroup> mergedChildren;
@@ -134,7 +135,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private boolean constructorExpected;
 	private boolean staticMethodExpected;
 
-	public SequentialChildrenConfigurator(SchemaNodeConfigurationContext<?> context) {
+	public SequentialChildrenConfigurator(SchemaNodeConfigurationContext context) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
@@ -145,7 +146,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			int index = 0;
 
 			for (ChildNode.Effective<?, ?> child : overriddenNode.effective().children()) {
-				MergeGroup group = merge(overriddenNode.getName(), child.getName(), index);
+				MergeGroup group = merge(overriddenNode.name(), child.name(), index);
 				group.addChild(child);
 				index = group.getIndex() + 1;
 			}
@@ -213,9 +214,9 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			for (; childIndex < mergeGroup.getIndex(); childIndex++) {
 				ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex).getChild();
 
-				if (!context.isAbstract() && skippedChild.isAbstract()) {
+				if (!context.isAbstract() && skippedChild.abstractness().isAtLeast(Abstractness.RESOLVED)) {
 					throw new SchemaException(
-							"Must override abstract node '" + skippedChild.getName() + "' before node '" + id + "'");
+							"Must override abstract node '" + skippedChild.name() + "' before node '" + id + "'");
 				}
 			}
 
@@ -232,7 +233,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		MergeGroup group = merge(new QualifiedName("?", Namespace.getDefault()), effective.getName(), childIndex);
+		MergeGroup group = merge(new QualifiedName("?", Namespace.getDefault()), effective.name(), childIndex);
 		group.override(effective);
 		childIndex = group.getIndex() + 1;
 
@@ -253,35 +254,35 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		assertUnblocked();
 		blocked = true;
 
-		SchemaNodeConfigurationContext<ChildNode<?, ?>> context = new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+		SchemaNodeConfigurationContext childContext = new SchemaNodeConfigurationContext() {
 			@Override
 			public BoundSet boundSet() {
-				return SequentialChildrenConfigurator.this.context.boundSet();
+				return context.boundSet();
 			}
 
 			@Override
 			public DataLoader dataLoader() {
-				return SequentialChildrenConfigurator.this.context.dataLoader();
+				return context.dataLoader();
 			}
 
 			@Override
 			public Imports imports() {
-				return SequentialChildrenConfigurator.this.context.imports();
+				return context.imports();
 			}
 
 			@Override
 			public Namespace namespace() {
-				return SequentialChildrenConfigurator.this.context.namespace();
+				return context.namespace();
 			}
 
 			@Override
 			public boolean isAbstract() {
-				return SequentialChildrenConfigurator.this.context.isAbstract();
+				return context.isAbstract();
 			}
 
 			@Override
 			public boolean isInputDataOnly() {
-				return SequentialChildrenConfigurator.this.context.isInputDataOnly();
+				return context.isInputDataOnly();
 			}
 
 			@Override
@@ -291,12 +292,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
-				return SequentialChildrenConfigurator.this.context.overriddenNodes();
+				return context.overriddenNodes();
 			}
 
 			@Override
 			public boolean isInputExpected() {
-				return SequentialChildrenConfigurator.this.context.isInputExpected();
+				return context.isInputExpected();
 			}
 
 			@Override
@@ -319,7 +320,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public TypeToken<?> outputSourceType() {
-				return SequentialChildrenConfigurator.this.context.outputSourceType();
+				return context.outputSourceType();
 			}
 
 			@Override
@@ -329,34 +330,34 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public SchemaNode<?, ?> parentNodeProxy() {
-				return SequentialChildrenConfigurator.this.context.parentNodeProxy();
+				return context.parentNodeProxy();
 			}
 		};
 
 		return new ChildBuilder() {
 			@Override
 			public InputSequenceNodeConfigurator inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl(context);
+				return new InputSequenceNodeConfiguratorImpl(childContext);
 			}
 
 			@Override
 			public DataNodeConfigurator<Object> data() {
-				return new DataNodeConfiguratorImpl<>(context);
+				return new DataNodeConfiguratorImpl<>(childContext);
 			}
 
 			@Override
 			public ChoiceNodeConfigurator choice() {
-				return new ChoiceNodeConfiguratorImpl(context);
+				return new ChoiceNodeConfiguratorImpl(childContext);
 			}
 
 			@Override
 			public SequenceNodeConfigurator sequence() {
-				return new SequenceNodeConfiguratorImpl(context);
+				return new SequenceNodeConfiguratorImpl(childContext);
 			}
 
 			@Override
 			public ComplexNodeConfigurator<Object> complex() {
-				return new ComplexNodeConfiguratorImpl<>(context);
+				return new ComplexNodeConfiguratorImpl<>(childContext);
 			}
 		};
 	}

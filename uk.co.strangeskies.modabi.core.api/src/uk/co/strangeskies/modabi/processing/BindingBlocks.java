@@ -53,6 +53,11 @@ public interface BindingBlocks extends Observable<BindingBlockEvent> {
 		public boolean isBlocked() {
 			return false;
 		}
+
+		@Override
+		public boolean isDeadlocked() {
+			return false;
+		}
 	};
 
 	/**
@@ -93,11 +98,13 @@ public interface BindingBlocks extends Observable<BindingBlockEvent> {
 	 * the associated {@link BindingBlocker} is waiting on a block via
 	 * {@link #waitForAll()}, or {@link BindingBlock#waitUntilComplete()}, etc.
 	 * <p>
-	 * Note: If this is the case, and it is also the case that all threads are blocked
-	 * on internal, not external, dependencies, the binding will fail.
+	 * Note: If this is the case, and it is also the case that all threads are
+	 * blocked on internal, not external, dependencies, the binding will fail.
 	 * 
 	 * @return True if the binding is blocked and no processing threads are
 	 *         active, false otherwise
 	 */
 	boolean isBlocked();
+
+	public boolean isDeadlocked();
 }

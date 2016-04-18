@@ -50,7 +50,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 			this.inline = inline != null && inline;
 
 			if (this.inline && isExtensible() != null && isExtensible())
-				throw new SchemaException("Complex node '" + getName() + "' cannot be both inline and extensible");
+				throw new SchemaException("Complex node '" + name() + "' cannot be both inline and extensible");
 		}
 
 		@Override

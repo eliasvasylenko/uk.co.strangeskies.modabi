@@ -123,7 +123,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				}
 
 				exactNode = context.getComplexNodeOverrides(node).putGet((Effective<? extends U>) extension);
-			} else if (node.isInline() || Objects.equals(nextElement, node.getName())) {
+			} else if (node.isInline() || Objects.equals(nextElement, node.name())) {
 				exactNode = node;
 			} else {
 				exactNode = null;

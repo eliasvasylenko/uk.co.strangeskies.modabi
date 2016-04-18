@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
@@ -63,7 +64,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		private final Boolean extensible;
 
 		private final TypeToken<?> preInputType;
-		private final TypeToken<?> postInputType;
+		protected TypeToken<?> postInputType;
 
 		protected Effective(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			super(overrideMerge);
@@ -72,9 +73,10 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 			extensible = overrideMerge.node().isExtensible() == null ? false : overrideMerge.node().isExtensible();
 
-			if (isAbstract() && !overrideMerge.configurator().getContext().isAbstract() && !isExtensible())
+			if (abstractness().isMoreThan(Abstractness.UNINFERRED) && !overrideMerge.configurator().getContext().isAbstract()
+					&& !isExtensible())
 				throw new SchemaException(
-						"Node '" + getName() + "' has no abstract or extensible parents, so cannot be abstract.");
+						"Node '" + name() + "' has no abstract or extensible parents, so cannot be abstract.");
 
 			ordered = overrideMerge.getOverride(BindingChildNode::isOrdered).orDefault(true).get();
 
@@ -112,8 +114,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			if (outMethodName == null && hasOutMethod(overrideMerge))
 				outMethodName = outMethod.getName();
 
-			InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<>(isAbstract(),
-					getName(), overrideMerge, overrideMerge.configurator().getContext(), Arrays.asList(getDataType()));
+			InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<>(abstractness(), name(),
+					overrideMerge, overrideMerge.configurator().getContext(), Arrays.asList(getDataType()));
 
 			inMethodChained = inputNodeHelper.isInMethodChained();
 			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
@@ -130,8 +132,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		private boolean hasOutMethod(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-			return !"null".equals(outMethodName) && !(overrideMerge.configurator().getContext().isAbstract() && isAbstract()
-					&& (outMethodName == null || "this".equals(outMethodName)));
+			return !"null".equals(outMethodName) && !(overrideMerge.configurator().getContext().isAbstract()
+					&& abstractness().isAtMost(Abstractness.RESOLVED) && (outMethodName == null || "this".equals(outMethodName)));
 		}
 
 		@Override
@@ -152,11 +154,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		@Override
 		public final Boolean isExtensible() {
 			return extensible;
-		}
-
-		@Override
-		public boolean hasExtensibleChildren() {
-			return (isExtensible() == null || isExtensible()) || super.hasExtensibleChildren();
 		}
 
 		@Override
@@ -227,7 +224,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				TypeToken<?> receiverType, BoundSet bounds) {
 			if (receiverType == null)
 				throw new SchemaException(
-						"Can't find out method for node '" + node.getName() + "' as target class cannot be found");
+						"Can't find out method for node '" + node.name() + "' as target class cannot be found");
 
 			boolean outMethodCast = node.isOutMethodCast() != null && node.isOutMethodCast();
 
@@ -241,12 +238,12 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 			if (resultType == null)
 				throw new SchemaException(
-						"Can't find out method for node '" + node.getName() + "' as result class cannot be found");
+						"Can't find out method for node '" + node.name() + "' as result class cannot be found");
 
 			Invokable<?, ?> outMethod;
 			if ("this".equals(node.getOutMethodName())) {
 				if (!resultType.isAssignableFrom(receiverType.resolve())) {
-					throw new SchemaException("Can't use out method 'this' for node '" + node.getName() + "', as result class '"
+					throw new SchemaException("Can't use out method 'this' for node '" + node.name() + "', as result class '"
 							+ resultType + "' cannot be assigned from target class '" + receiverType + "'");
 				}
 
@@ -288,7 +285,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			if (node.getOutMethodName() != null)
 				names = Arrays.asList(node.getOutMethodName());
 			else
-				names = generateUnbindingMethodNames(node.getName().getName(),
+				names = generateUnbindingMethodNames(node.name().getName(),
 						node.isOutMethodIterable() != null && node.isOutMethodIterable(), resultClass);
 
 			return names;
@@ -344,6 +341,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		inMethodChained = configurator.getInMethodChained();
 		allowInMethodResultCast = configurator.getInMethodCast();
 		inMethodUnchecked = configurator.getInMethodUnchecked();
+	}
+
+	@Override
+	protected Boolean isExplicitlyExtensible() {
+		return extensible != null && extensible;
 	}
 
 	@Override

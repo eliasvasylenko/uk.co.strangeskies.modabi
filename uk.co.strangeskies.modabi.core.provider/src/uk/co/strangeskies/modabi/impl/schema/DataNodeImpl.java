@@ -18,8 +18,11 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
@@ -27,6 +30,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -39,9 +43,9 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 		private final Boolean nullIfOmitted;
 		private final DataSource providedBuffer;
 		private final ValueResolution resolution;
-		private List<T> provided;
+		private final List<T> provided;
 
-		protected Effective(OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
+		private Effective(OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge);
 
 			DataType<T> type = overrideMerge.getOverride(DataNode::type).validate((n, o) -> {
@@ -56,7 +60,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 
 			format = overrideMerge.getOverride(DataNode::format).tryGet();
 			if (format != null && overrideMerge.configurator().getContext().isInputDataOnly())
-				throw new SchemaException("Node '" + getName() + "' must not provide a format.");
+				throw new SchemaException("Node '" + name() + "' must not provide a format.");
 
 			/*
 			 * Determine effective 'null if omitted' property. Must be true for nodes
@@ -69,7 +73,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 			nullIfOmitted = overrideMerge.getOverride(DataNode::nullIfOmitted).validate((n, o) -> o || !n)
 					.orDefault(mustBeNullIfOmitted).get();
 			if (nullIfOmitted != null && !nullIfOmitted && mustBeNullIfOmitted) {
-				throw new SchemaException("'Null if omitted' property must be true for node '" + getName() + "'");
+				throw new SchemaException("'Null if omitted' property must be true for node '" + name() + "'");
 			}
 
 			providedBuffer = overrideMerge.getOverride(DataNode::providedValueBuffer).tryGet();
@@ -78,9 +82,9 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 							(o, n) -> o == n || (o == ValueResolution.REGISTRATION_TIME && n == ValueResolution.POST_REGISTRATION))
 					.orDefault(ValueResolution.PROCESSING_TIME).get();
 
-			if (providedBuffer == null && !isAbstract() && !occurrences().contains(0)
+			if (providedBuffer == null && abstractness().isAtMost(Abstractness.UNINFERRED) && !occurrences().contains(0)
 					&& (resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION))
-				throw new SchemaException("Value must be provided at registration time for node '" + getName() + "'");
+				throw new SchemaException("Value must be provided at registration time for node '" + name() + "'");
 
 			if ((resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION)
 					&& providedBuffer != null) {
@@ -113,22 +117,46 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 				 * 
 				 * 
 				 */
+				TypeToken<T> effectiveDataType = overrideMerge.configurator().getEffectiveDataType();
+				List<TypeToken<?>> providedTypes = new ArrayList<>();
+				BoundSet bounds = overrideMerge.configurator().getInferenceBounds();
+
 				for (T providedItem : provided) {
 					Class<?> rawType = provided.iterator().next().getClass();
 
 					if (resolution == ValueResolution.REGISTRATION_TIME && Reified.class.isAssignableFrom(rawType)) {
 						TypeToken<?> providedType = ((Reified<?>) providedItem).getThisType();
-						/*
-						 * TODO Incorporate
-						 */
+						providedTypes.add(providedType);
+
+						effectiveDataType = effectiveDataType.withLooseCompatibilityFrom(providedType);
 					} else {
 						/*
 						 * Only a simple check is possible here as the actual reified type
 						 * may not be available, or may not yet be properly proxied in the
 						 * case of a post registration provision..
 						 */
-						TypeToken.over(rawType).withLooseCompatibility(getDataType());
+						getDataType().withLooseCompatibilityFrom(rawType);
 					}
+				}
+
+				if (!providedTypes.isEmpty()) {
+					dataType = inferDataType(effectiveDataType, bounds);
+					bindingType = inferDataType(overrideMerge.configurator().getEffectiveBindingType(), bounds);
+					unbindingType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingType(), bounds);
+					unbindingFactoryType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingFactoryType(), bounds);
+
+					/*
+					 * We have incorporated into the parent bound set based on less
+					 * specific types during initial resolution of input and output
+					 * methods, we need to wipe those changes so we can incorporate more
+					 * specific bounds based on the data types inferred from the provided
+					 * values...
+					 */
+
+					overrideMerge.configurator().getContext().resetBoundSetIncorporations();
+
+					postInputType = new InputNodeConfigurationHelper<>(abstractness(), name(), overrideMerge,
+							overrideMerge.configurator().getContext(), Arrays.asList(getDataType())).getPostInputType();
 				}
 			} else {
 				provided = null;

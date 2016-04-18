@@ -79,7 +79,7 @@ public class ModabiRegistration {
 	private final Set<BindingFuture<Schema>> resolvingSchemata = new HashSet<>();
 
 	private QualifiedName getDependencyNamespace() {
-		return context.schemaManager().getMetaSchema().getSchemaModel().getName();
+		return context.schemaManager().getMetaSchema().getSchemaModel().name();
 	}
 
 	public synchronized boolean registerSchemata(RegistrationContext context) {

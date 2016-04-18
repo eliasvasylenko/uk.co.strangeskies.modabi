@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.MetaSchema;
@@ -118,32 +119,33 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Node Models */
 
 		Model<SchemaNode<?, ?>> nodeModel = factory.apply("node",
-				m -> m.isAbstract(true).dataType(new TypeToken<SchemaNode<?, ?>>() {})
+				m -> m.abstractness(Abstractness.ABSTRACT).dataType(new TypeToken<SchemaNode<?, ?>>() {})
 						.unbindingStrategy(UnbindingStrategy.SIMPLE)
-						.addChild(n -> n.inputSequence().name("configure").isAbstract(true)
+						.addChild(n -> n.inputSequence().name("configure").abstractness(Abstractness.ABSTRACT)
 								.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
 						.addChild(n -> n.data().format(Format.PROPERTY).type(base.primitiveType(Primitive.QUALIFIED_NAME))
 								.name("name").inMethod("name").optional(true))
 						.addChild(n -> n.data().format(Format.PROPERTY).type(base.primitiveType(Primitive.BOOLEAN)).name("abstract")
 								.inMethod("isAbstract").optional(true)));
 
-		Model<ChildNode<?, ?>> childBaseModel = factory.apply("childBase", m -> m.isAbstract(true)
+		Model<ChildNode<?, ?>> childBaseModel = factory.apply("childBase", m -> m.abstractness(Abstractness.ABSTRACT)
 				.dataType(new TypeToken<ChildNode<?, ?>>() {}).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
 
 		Model<SchemaNode<?, ?>> branchModel = factory.apply("branch",
-				m -> m.isAbstract(true).baseModel(nodeModel).addChild(n -> n.data().name("name"))
+				m -> m.abstractness(Abstractness.ABSTRACT).baseModel(nodeModel).addChild(n -> n.data().name("name"))
 						.addChild(n -> n.data().name("abstract"))
-						.addChild(n -> n.complex().name("child").outMethod("children").inMethod("null").isAbstract(true)
-								.extensible(true).model(childBaseModel).occurrences(Range.between(0, null)))
+						.addChild(n -> n.complex().name("child").outMethod("children").inMethod("null")
+								.abstractness(Abstractness.ABSTRACT).extensible(true).model(childBaseModel)
+								.occurrences(Range.between(0, null)))
 						.addChild(n -> n.inputSequence().name("create").inMethodChained(true)));
 
 		@SuppressWarnings("unchecked")
 		Model<ChildNode<?, ?>> childModel = factory.apply("child",
-				m -> m.baseModel(branchModel, childBaseModel).isAbstract(true).dataType(new TypeToken<ChildNode<?, ?>>() {})
-						.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+				m -> m.baseModel(branchModel, childBaseModel).abstractness(Abstractness.ABSTRACT)
+						.dataType(new TypeToken<ChildNode<?, ?>>() {}).bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
 						.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
 						.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
-						.addChild(c -> c.inputSequence().name("configure").isAbstract(true).inMethodChained(true)
+						.addChild(c -> c.inputSequence().name("configure").abstractness(Abstractness.ABSTRACT).inMethodChained(true)
 								.postInputType(new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
 						.addChild(n -> n.data().name("name"))
 						.addChild(n -> n.data().format(Format.PROPERTY).name("ordered").type(base.primitiveType(Primitive.BOOLEAN))
@@ -154,8 +156,9 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("postInputType").optional(true).outMethod("getPostInputTypeString")));
 
 		Model<BindingNode<?, ?, ?>> bindingNodeModel = factory.apply("binding",
-				m -> m.baseModel(branchModel).isAbstract(true).dataType(new TypeToken<BindingNode<?, ?, ?>>() {})
-						.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
+				m -> m.baseModel(branchModel).abstractness(Abstractness.ABSTRACT)
+						.dataType(new TypeToken<BindingNode<?, ?, ?>>() {})
+						.addChild(c -> c.inputSequence().name("configure").abstractness(Abstractness.ABSTRACT)
 								.postInputType(new TypeToken<BindingNodeConfigurator<?, ?, Object>>() {}))
 						.addChild(n -> n.data().name("name"))
 						.addChild(o -> o.data().format(Format.PROPERTY).name("dataType").optional(true)
@@ -178,8 +181,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.type(base.primitiveType(Primitive.STRING)).outMethod("getUnbindingFactoryTypeString")));
 
 		Model<InputNode<?, ?>> inputModel = factory.apply("input",
-				m -> m.isAbstract(true).baseModel(childModel).dataType(new TypeToken<InputNode<?, ?>>() {})
-						.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
+				m -> m.abstractness(Abstractness.ABSTRACT).baseModel(childModel).dataType(new TypeToken<InputNode<?, ?>>() {})
+						.addChild(c -> c.inputSequence().name("configure").abstractness(Abstractness.ABSTRACT)
 								.postInputType(new TypeToken<InputNodeConfigurator<?, ?>>() {}))
 						.addChild(n -> n.data().name("name"))
 						.addChild(n -> n.data().format(Format.PROPERTY).name("inMethod").outMethod("getInMethodName").optional(true)
@@ -193,9 +196,9 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		@SuppressWarnings("unchecked")
 		Model<BindingChildNode<?, ?, ?>> bindingChildNodeModel = factory.apply("bindingChild",
-				m -> m.isAbstract(true).dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {})
+				m -> m.abstractness(Abstractness.ABSTRACT).dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {})
 						.baseModel(inputModel, bindingNodeModel)
-						.addChild(c -> c.inputSequence().name("configure").isAbstract(true)
+						.addChild(c -> c.inputSequence().name("configure").abstractness(Abstractness.ABSTRACT)
 								.postInputType(new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}))
 						.addChild(n -> n.data().name("name"))
 						.addChild(n -> n.data().format(Format.PROPERTY).name("extensible")
@@ -246,12 +249,12 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(n -> baseModelConfiguration.apply(n.data().name("baseModel"))));
 
 		Model<ComplexNode<?>> abstractComplexModel = factory.apply("abstractComplex",
-				m -> m.isAbstract(true).dataType(new TypeToken<ComplexNode<?>>() {}).baseModel(bindingChildNodeModel)
-						.addChild(c -> c.inputSequence().name("addChild"))
+				m -> m.abstractness(Abstractness.ABSTRACT).dataType(new TypeToken<ComplexNode<?>>() {})
+						.baseModel(bindingChildNodeModel).addChild(c -> c.inputSequence().name("addChild"))
 						.addChild(c -> c.inputSequence().name("configure").inMethod("complex").inMethodChained(true)
 								.postInputType(new TypeToken<ComplexNodeConfigurator<Object>>() {}))
 						.addChild(n -> n.data().name("name")).addChild(n -> baseModelConfiguration.apply(n.data().name("model")))
-						.addChild(c -> c.data().name("inline").isAbstract(true).optional(true)
+						.addChild(c -> c.data().name("inline").abstractness(Abstractness.ABSTRACT).optional(true)
 								.valueResolution(ValueResolution.REGISTRATION_TIME).type(base.primitiveType(Primitive.BOOLEAN))));
 
 		factory.apply("complex", m -> m.baseModel(abstractComplexModel).addChild(c -> c.data().name("inline").optional(true)
@@ -262,7 +265,8 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<DataNode<?>> typedDataModel = factory
 				.apply("typedData",
-						m -> m.baseModel(bindingChildNodeModel).dataType(new TypeToken<DataNode<?>>() {}).isAbstract(true)
+						m -> m.baseModel(bindingChildNodeModel).dataType(new TypeToken<DataNode<?>>() {})
+								.abstractness(Abstractness.ABSTRACT)
 								.addChild(
 										c -> c.inputSequence().name("addChild"))
 								.addChild(
@@ -270,7 +274,7 @@ public class MetaSchemaImpl implements MetaSchema {
 												.inMethodChained(true))
 								.addChild(
 										n -> n.data().format(Format.PROPERTY).name("format").optional(true)
-												.valueResolution(ValueResolution.REGISTRATION_TIME).isAbstract(true)
+												.valueResolution(ValueResolution.REGISTRATION_TIME).abstractness(Abstractness.ABSTRACT)
 												.type(base.derivedTypes().enumType())
 												.dataType(
 														Format.class)

@@ -22,18 +22,18 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface DataTypeConfigurator<T>
-		extends BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
+public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
 	/**
 	 * @param isAbstract
 	 *          The value to be returned by {@link DataType#isAbstract()}.
 	 * @return
 	 */
 	@Override
-	DataTypeConfigurator<T> isAbstract(boolean isAbstract);
+	DataTypeConfigurator<T> abstractness(Abstractness abstractness);
 
 	/**
 	 * @param hidden
@@ -51,26 +51,22 @@ public interface DataTypeConfigurator<T>
 	@Override
 	default <U extends T> DataTypeConfigurator<U> dataType(Class<U> dataType) {
 		Type type = dataType;
-		return (DataTypeConfigurator<U>) BindingNodeConfigurator.super.dataType(
-				type);
+		return (DataTypeConfigurator<U>) BindingNodeConfigurator.super.dataType(type);
 	}
 
 	@Override
-	<U extends T> DataTypeConfigurator<U> dataType(
-			TypeToken<? extends U> dataClass);
+	<U extends T> DataTypeConfigurator<U> dataType(TypeToken<? extends U> dataClass);
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default DataTypeConfigurator<? extends T> dataType(AnnotatedType dataType) {
-		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(
-				dataType);
+		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default DataTypeConfigurator<? extends T> dataType(Type dataType) {
-		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(
-				dataType);
+		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
 	}
 
 	<U extends T> DataTypeConfigurator<U> baseType(DataType<? super U> baseType);

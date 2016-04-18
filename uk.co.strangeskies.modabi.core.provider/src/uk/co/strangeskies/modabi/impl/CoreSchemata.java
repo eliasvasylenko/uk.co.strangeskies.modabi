@@ -44,7 +44,6 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public class CoreSchemata {
@@ -57,10 +56,10 @@ public class CoreSchemata {
 
 			switch (name.getName()) {
 			case "model":
-				type = modelOf(new @Infer TypeToken<Model<?>>() {});
+				type = modelOf(new TypeToken<Model<?>>() {});
 				break;
 			case "type":
-				type = modelOf(new @Infer TypeToken<DataType<?>>() {});
+				type = modelOf(new TypeToken<DataType<?>>() {});
 				break;
 			case "schema":
 				type = new TypeToken<Model<Schema>>() {};
@@ -117,32 +116,32 @@ public class CoreSchemata {
 			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
 				Namespace namespace = new Namespace(BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
-				if (node.getName().getNamespace().equals(namespace)) {
-					if (node.getName().getName().equals("configure"))
+				if (node.name().getNamespace().equals(namespace)) {
+					if (node.name().getName().equals("configure"))
 						return Collections.emptyList();
 
-					if (node.getName().getName().equals("format"))
+					if (node.name().getName().equals("format"))
 						return (List<T>) Arrays.asList(Format.valueOf(data.get(Primitive.STRING)));
 
-					if (node.getName().getName().equals("dataType"))
+					if (node.name().getName().equals("dataType"))
 						return (List<T>) Arrays.asList(Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING)));
 
-					if (node.getName().getName().equals("targetId"))
+					if (node.name().getName().equals("targetId"))
 						return (List<T>) Arrays.asList(data.get(Primitive.QUALIFIED_NAME));
 
-					if (node.getName().getName().equals("inline"))
+					if (node.name().getName().equals("inline"))
 						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
 
-					if (node.getName().getName().equals("isExternal"))
+					if (node.name().getName().equals("isExternal"))
 						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
 
-					if (node.getName().getName().equals("enumType"))
+					if (node.name().getName().equals("enumType"))
 						return (List<T>) Arrays.asList(Enum.class);
 
-					if (node.getName().getName().equals("enumerationType"))
+					if (node.name().getName().equals("enumerationType"))
 						return (List<T>) Arrays.asList(Enumeration.class);
 
-					if (node.getName().getName().equals("targetModel")) {
+					if (node.name().getName().equals("targetModel")) {
 						QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
 
 						return (List<T>) Arrays.asList(targetModels.computeIfAbsent(name, n -> {

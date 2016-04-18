@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
@@ -90,7 +91,8 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(ComplexNode.Effective<? super T> node, Model.Effective<T> override) {
-		return node.children().isEmpty() && !(node.isAbstract() && override.isAbstract());
+		return node.children().isEmpty() && node.abstractness().isAtMost(Abstractness.UNINFERRED)
+				&& override.abstractness().isAtMost(Abstractness.UNINFERRED);
 	}
 
 	/**
@@ -122,7 +124,8 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(DataNode.Effective<? super T> node, DataType.Effective<T> override) {
-		return node.children().isEmpty() && !(node.isAbstract() && override.isAbstract());
+		return node.children().isEmpty() && node.abstractness().isAtMost(Abstractness.UNINFERRED)
+				&& override.abstractness().isAtMost(Abstractness.UNINFERRED);
 	}
 
 	private class OverridingProcessor implements NodeProcessor {
@@ -150,7 +153,7 @@ public class BindingNodeOverrider {
 		 */
 		private <T, C extends BindingNodeConfigurator<C, ?, ?>> C configureParentNode(C configurator,
 				BindingChildNodeWrapper<T, ?, ?, ?, ?> node) {
-			configurator = configurator.name(new QualifiedName("base")).isAbstract(true);
+			configurator = configurator.name(new QualifiedName("base")).abstractness(Abstractness.ABSTRACT);
 
 			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
 			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
@@ -234,7 +237,7 @@ public class BindingNodeOverrider {
 			List<Model<? super T>> models = new ArrayList<>(override.source().baseModel());
 			models.add(0, new ModelWrapper<>(node));
 
-			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild().complex().name(override.getName())
+			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild().complex().name(override.name())
 					.outMethodCast(true).model(models);
 
 			elementConfigurator = processBindingNode(node, elementConfigurator);
@@ -252,7 +255,7 @@ public class BindingNodeOverrider {
 					node);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()
-					.name(override.getName()).outMethodCast(true).type(override.source().baseType())
+					.name(override.name()).outMethodCast(true).type(override.source().baseType())
 					.nullIfOmitted(node.nullIfOmitted());
 
 			dataNodeConfigurator = tryProperty(node.format(), DataNodeConfigurator::format, dataNodeConfigurator);
@@ -285,11 +288,11 @@ public class BindingNodeOverrider {
 		}
 
 		private <N extends ChildNode<N, ?>, C extends ChildNodeConfigurator<C, N>> N processChildNode(N node, C c) {
-			c = tryProperty(node.isAbstract(), C::isAbstract, c);
+			c = tryProperty(node.abstractness(), C::abstractness, c);
 			c = tryProperty(node.occurrences(), C::occurrences, c);
 			c = tryProperty(node.isOrdered(), C::ordered, c);
 
-			return doChildren(node.children(), c.name(node.getName()));
+			return doChildren(node.children(), c.name(node.name()));
 		}
 
 		@SuppressWarnings("unchecked")

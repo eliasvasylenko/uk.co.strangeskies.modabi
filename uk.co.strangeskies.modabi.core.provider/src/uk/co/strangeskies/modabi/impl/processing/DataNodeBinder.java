@@ -99,7 +99,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 					break;
 				case PROPERTY:
-					dataSource = context.input().get().readProperty(node.getName());
+					dataSource = context.input().get().readProperty(node.name());
 
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
@@ -109,8 +109,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					break;
 				case SIMPLE:
 					dataSource = null;
-					while (node.getName().equals(context.input().get().peekNextChild())) {
-						context.input().get().startNextChild(node.getName());
+					while (node.name().equals(context.input().get().peekNextChild())) {
+						context.input().get().startNextChild(node.name());
 
 						dataSource = context.input().get().readContent();
 
@@ -135,7 +135,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 	private void validateResults(DataNode.Effective<?> node, List<?> results, Exception cause) {
 		if (results.isEmpty() && !node.occurrences().contains(0) && !node.occurrences().contains(0)) {
-			String message = "Node '" + node.getName() + "' must be bound data.";
+			String message = "Node '" + node.name() + "' must be bound data.";
 			if (cause != null)
 				throw new ProcessingException(message, getContext(), cause);
 			else
@@ -143,7 +143,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
-			String message = "Node '" + node.getName() + "' binding results '" + results
+			String message = "Node '" + node.name() + "' binding results '" + results
 					+ "' must be bound data within range of '" + Range.compose(node.occurrences()) + "' occurrences.";
 			if (cause != null)
 				throw new ProcessingException(message, getContext(), cause);
@@ -213,7 +213,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
-				throw new SchemaException("Unable to find type to satisfy data node '" + node.getName() + "' with type '"
+				throw new SchemaException("Unable to find type to satisfy data node '" + node.name() + "' with type '"
 						+ node.effective().type() + "'");
 
 			IdentityProperty<ChildNodeBinding<? extends U>> result = new IdentityProperty<>();
@@ -221,8 +221,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			context.attemptBindingUntilSuccessful(overrides.keySet(), (c, n) -> {
 				DataNode.Effective<? extends U> exactNode = overrides.putGet(n);
 				result.set(getNodeBinding(c, exactNode));
-			}, l -> new ProcessingException("Unable to bind data node '" + node.getName() + "' with type candidates '"
-					+ overrides.keySet().stream().map(m -> m.effective().getName().toString()).collect(Collectors.joining(", "))
+			}, l -> new ProcessingException("Unable to bind data node '" + node.name() + "' with type candidates '"
+					+ overrides.keySet().stream().map(m -> m.effective().name().toString()).collect(Collectors.joining(", "))
 					+ "'", context, l));
 
 			return result.get();

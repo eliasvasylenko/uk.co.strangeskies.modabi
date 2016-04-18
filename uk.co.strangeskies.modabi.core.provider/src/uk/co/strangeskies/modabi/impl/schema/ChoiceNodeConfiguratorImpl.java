@@ -21,11 +21,9 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.HidingChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -36,7 +34,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<ChoiceNodeConfigurator, ChoiceNode>
 		implements ChoiceNodeConfigurator {
-	public ChoiceNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super ChildNode<?, ?>> parent) {
+	public ChoiceNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
 	}
 
@@ -50,7 +48,7 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 		TypeToken<?> inputTarget = getContext().inputTargetType();
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
-		return new HidingChildrenConfigurator(new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+		return new HidingChildrenConfigurator(new SchemaNodeConfigurationContext() {
 			@Override
 			public SchemaNode<?, ?> parentNodeProxy() {
 				return getSchemaNodeProxy();
@@ -114,14 +112,6 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 			@Override
 			public TypeToken<?> outputSourceType() {
 				return outputSource;
-			}
-
-			@Override
-			public void addChild(ChildNode<?, ?> result) {}
-
-			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
-				return null;
 			}
 
 			@Override

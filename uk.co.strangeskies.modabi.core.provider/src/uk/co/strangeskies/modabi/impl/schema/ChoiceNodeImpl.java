@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import static java.util.stream.Collectors.toSet;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -36,7 +37,7 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective> imp
 			super(overrideMerge);
 
 			TypeToken<?> preInputClass = null;
-			if (!isAbstract())
+			if (abstractness().isLessThan(Abstractness.ABSTRACT))
 				for (ChildNode.Effective<?, ?> child : children()) {
 					TypeToken<?> nextInputClass = child.getPreInputType();
 					if (preInputClass != null)
@@ -50,7 +51,7 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective> imp
 			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::getPostInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
 
-			if (!isAbstract() && postInputClass == null) {
+			if (abstractness().isLessThan(Abstractness.ABSTRACT) && postInputClass == null) {
 				postInputClass = TypeToken.over(Types.leastUpperBound(
 						children().stream().map(ChildNode::getPostInputType).map(TypeToken::getType).collect(toSet())));
 			}

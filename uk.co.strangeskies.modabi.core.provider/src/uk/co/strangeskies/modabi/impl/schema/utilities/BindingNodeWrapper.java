@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.lang.reflect.Executable;
 import java.util.List;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -51,11 +52,11 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 		this.component = component;
 		this.base = base;
 
-		String message = "Cannot override '" + base.getName() + "' with '" + component.getName() + "'";
+		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
 
 		try {
 			if (base.getDataType() != null) {
-				dataType = (TypeToken<T>) component.getDataType().withLooseCompatibility(base.getDataType()).infer();
+				dataType = (TypeToken<T>) component.getDataType().withLooseCompatibilityTo(base.getDataType()).infer();
 			} else {
 				dataType = (TypeToken<T>) component.getDataType().infer();
 			}
@@ -97,8 +98,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final Boolean isAbstract() {
-		return component.isAbstract();
+	public Abstractness abstractness() {
+		return component.abstractness();
 	}
 
 	@Override
@@ -147,13 +148,8 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final QualifiedName getName() {
-		return component.getName();
-	}
-
-	@Override
-	public boolean hasExtensibleChildren() {
-		return component.hasExtensibleChildren();
+	public final QualifiedName name() {
+		return component.name();
 	}
 
 	@Override
@@ -179,7 +175,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 
 	@Override
 	public String toString() {
-		return getName().toString();
+		return name().toString();
 	}
 
 	@Override

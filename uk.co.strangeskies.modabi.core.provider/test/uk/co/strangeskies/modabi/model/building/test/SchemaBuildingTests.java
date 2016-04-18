@@ -39,10 +39,10 @@ public class SchemaBuildingTests {
 	// @Test
 	public void fixMeUp() {
 		System.out.println(
-				new @Infer TypeToken<SortedSet<?>>() {}.withLooseCompatibility(new TypeToken<Set<String>>() {}).infer());
+				new @Infer TypeToken<SortedSet<?>>() {}.withLooseCompatibilityTo(new TypeToken<Set<String>>() {}).infer());
 		System.out.println(
-				new TypeToken<@Infer SortedSet<?>>() {}.withLooseCompatibility(new TypeToken<Set<String>>() {}).infer());
+				new TypeToken<@Infer SortedSet<?>>() {}.withLooseCompatibilityTo(new TypeToken<Set<String>>() {}).infer());
 		System.out.println(
-				new TypeToken<SortedSet<@Infer ?>>() {}.withLooseCompatibility(new TypeToken<Set<String>>() {}).infer());
+				new TypeToken<SortedSet<@Infer ?>>() {}.withLooseCompatibilityTo(new TypeToken<Set<String>>() {}).infer());
 	}
 }

@@ -42,7 +42,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	}
 
 	protected Models(Models parent) {
-		super(Model::getName, parent);
+		super(Model::name, parent);
 		derivedModels = new MultiHashMap<>(LinkedHashSet::new);
 		classModels = new MultiHashMap<>(LinkedHashSet::new);
 	}
@@ -62,17 +62,16 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	private void mapModel(Model<?> model) {
 		model = model.source();
 
-		derivedModels.addToAll(model.effective().baseModel().stream().map(Model::getName).collect(Collectors.toSet()),
-				model);
+		derivedModels.addToAll(model.effective().baseModel().stream().map(Model::name).collect(Collectors.toSet()), model);
 
-		if (!model.effective().isAbstract())
+		if (model.effective().abstractness().isLessThan(Abstractness.UNINFERRED))
 			classModels.add(model.effective().getDataType().getType(), model);
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> List<Model<? extends T>> getDerivedModels(Model<T> model) {
 		synchronized (getMutex()) {
-			LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.effective().getName());
+			LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.effective().name());
 
 			List<Model<? extends T>> derivedModelList = subModelList == null ? new ArrayList<>()
 					: subModelList.stream().map(m -> (Model<? extends T>) m).collect(Collectors.toCollection(ArrayList::new));
@@ -122,7 +121,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 
 			modelIterator = subModels.iterator();
 			while (modelIterator.hasNext())
-				if (modelIterator.next().effective().isAbstract())
+				if (modelIterator.next().effective().abstractness().isMoreThan(Abstractness.UNINFERRED))
 					modelIterator.remove();
 
 			getParentScope().ifPresent(p -> subModels.addAll(p.getModelsWithBase(baseModel)));

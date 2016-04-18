@@ -57,6 +57,6 @@ public interface NodeProcessor {
 	}
 
 	default void acceptDefault(SchemaNode.Effective<?, ?> node) {
-		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.getName() + "'");
+		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.name() + "'");
 	}
 }

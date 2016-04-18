@@ -62,12 +62,12 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 				count++;
 			} while (!node.occurrences().isValueAbove(count + 1));
 		} catch (Exception e) {
-			throw new ProcessingException("Node '" + node.getName() + "' failed to bind on occurance '" + count + "' of range '"
+			throw new ProcessingException("Node '" + node.name() + "' failed to bind on occurance '" + count + "' of range '"
 					+ node.occurrences() + "'", context, e);
 		}
 
 		if (!node.occurrences().contains(count)) {
-			throw new ProcessingException("Node '" + node.getName() + "' occurrences '" + count + "' should be within range '"
+			throw new ProcessingException("Node '" + node.name() + "' occurrences '" + count + "' should be within range '"
 					+ node.occurrences() + "'", getContext());
 		}
 	}

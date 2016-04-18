@@ -37,7 +37,7 @@ public class ComplexNodeWrapper<T> extends
 	public ComplexNodeWrapper(Model.Effective<T> component, ComplexNode.Effective<? super T> base) {
 		super(component, base);
 
-		String message = "Cannot override '" + base.getName() + "' with '" + component.getName() + "'";
+		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
 
 		if (!component.baseModel().containsAll(base.model()))
 			throw new SchemaException(message);

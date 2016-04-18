@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema.building;
 
 import java.util.List;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
@@ -128,8 +129,8 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	}
 
 	@Override
-	public S isAbstract(boolean isAbstract) {
-		component = component.isAbstract(isAbstract);
+	public S abstractness(Abstractness abstractness) {
+		component = component.abstractness(abstractness);
 		return getThis();
 	}
 

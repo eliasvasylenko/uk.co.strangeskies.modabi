@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
@@ -45,13 +46,10 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		extends SchemaNodeImpl<S, E> implements BindingNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 			extends SchemaNodeImpl.Effective<S, E> implements BindingNode.Effective<T, S, E> {
-		private final TypeToken<T> dataType;
-
-		private final TypeToken<?> bindingType;
-
-		private final TypeToken<?> unbindingType;
-
-		private final TypeToken<?> unbindingFactoryType;
+		protected TypeToken<T> dataType;
+		protected TypeToken<?> bindingType;
+		protected TypeToken<?> unbindingType;
+		protected TypeToken<?> unbindingFactoryType;
 
 		private final BindingStrategy bindingStrategy;
 		private final UnbindingStrategy unbindingStrategy;
@@ -79,26 +77,24 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			unbindingMethodName = overrideMerge.getOverride(BindingNode::getUnbindingMethodName).tryGet();
 
-			providedUnbindingParameters = isAbstract() ? null : findProvidedUnbindingParameters(this);
+			providedUnbindingParameters = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null
+					: findProvidedUnbindingParameters(this);
 
 			unbindingMethodUnchecked = overrideMerge.getOverride(BindingNode::isUnbindingMethodUnchecked).tryGet();
 
 			dataType = inferDataType((TypeToken<T>) overrideMerge.configurator().getEffectiveDataType(), bounds);
-
 			bindingType = inferDataType(overrideMerge.configurator().getEffectiveBindingType(), bounds);
-
 			unbindingType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingType(), bounds);
-
 			unbindingFactoryType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingFactoryType(), bounds);
 
-			unbindingMethod = isAbstract() ? null : findUnbindingMethod(overrideMerge);
+			unbindingMethod = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null : findUnbindingMethod(overrideMerge);
 
-			if (unbindingMethodName == null && !isAbstract() && unbindingStrategy != UnbindingStrategy.SIMPLE
-					&& unbindingStrategy != UnbindingStrategy.CONSTRUCTOR)
+			if (unbindingMethodName == null && abstractness().isLessThan(Abstractness.ABSTRACT)
+					&& unbindingStrategy != UnbindingStrategy.SIMPLE && unbindingStrategy != UnbindingStrategy.CONSTRUCTOR)
 				unbindingMethodName = unbindingMethod.getName();
 		}
 
-		private <U> TypeToken<U> inferDataType(TypeToken<U> exactDataType, BoundSet bounds) {
+		protected <U> TypeToken<U> inferDataType(TypeToken<U> exactDataType, BoundSet bounds) {
 			/*
 			 * Incorporate bounds derived from child nodes through their input and
 			 * output methods.
@@ -106,7 +102,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			if (exactDataType != null && !exactDataType.isProper()) {
 				exactDataType = exactDataType.withBounds(bounds).resolve();
 
-				if (!isAbstract() && !hasExtensibleChildren()) {
+				if (abstractness().isLessThan(Abstractness.UNINFERRED)
+						&& !((BindingNodeImpl<?, ?, ?>) source()).isExplicitlyExtensible()) {
 					try {
 						exactDataType = exactDataType.infer();
 					} catch (TypeException e) {
@@ -207,8 +204,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 						if (p.getName().equals("this"))
 							return null;
 						else {
-							ChildNode.Effective<?, ?> effective = node.children().stream().filter(c -> c.getName().equals(p))
-									.findAny()
+							ChildNode.Effective<?, ?> effective = node.children().stream().filter(c -> c.name().equals(p)).findAny()
 									.orElseThrow(() -> new SchemaException("Cannot find node for unbinding parameter: '" + p + "'"));
 
 							if (!(effective instanceof DataNode.Effective))
@@ -222,7 +218,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 								throw new SchemaException(
 										"Unbinding parameter node '" + effective + "' for '" + p + "' must occur exactly once.");
 
-							if (!node.isAbstract() && !dataNode.isValueProvided())
+							if (node.abstractness().isAtMost(Abstractness.ABSTRACT) && !dataNode.isValueProvided())
 								throw new SchemaException(
 										"Unbinding parameter node '" + dataNode + "' for '" + p + "' must provide a value.");
 
@@ -307,7 +303,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			if (getUnbindingMethodName() != null)
 				names = Arrays.asList(getUnbindingMethodName());
 			else
-				names = generateUnbindingMethodNames(getName().getName(), false, resultClass.getRawType());
+				names = generateUnbindingMethodNames(name().getName(), false, resultClass.getRawType());
 
 			return names;
 		}
@@ -370,6 +366,10 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		unbindingFactoryType = configurator.getUnbindingFactoryType();
 		unbindingParameterNames = configurator.getUnbindingParameterNames() == null ? null
 				: Collections.unmodifiableList(new ArrayList<>(configurator.getUnbindingParameterNames()));
+	}
+
+	protected Boolean isExplicitlyExtensible() {
+		return false;
 	}
 
 	@Override

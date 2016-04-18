@@ -1,14 +1,17 @@
 package uk.co.strangeskies.modabi.osgi;
 
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 
 import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -73,6 +76,17 @@ public abstract class ModabiServiceInstance<T> {
 
 				: manager.bind(type);
 
-		binder.withRoot((T) this).from(location).resolve();
+		BindingFuture<T> future = binder
+				.withProvider(Provider.over(type, c -> c.getBindingNodeStack().size() == 1 ? (T) this : null)).from(location);
+		T binding = future.resolve();
+
+		if (binding != this) {
+			try {
+				throw new SchemaException(
+						"Could not bind to provided instance '" + this + "' for model '" + future.getModelFuture().get() + "'");
+			} catch (InterruptedException | ExecutionException e) {
+				throw new SchemaException("Could not bind to provided instance '" + this + "'");
+			}
+		}
 	}
 }

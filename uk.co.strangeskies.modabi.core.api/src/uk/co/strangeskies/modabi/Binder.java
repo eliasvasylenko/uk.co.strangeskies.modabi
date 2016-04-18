@@ -56,8 +56,6 @@ public interface Binder<T> {
 
 	Binder<T> withProvider(Provider provider);
 
-	Binder<T> withRoot(T root);
-
 	Binder<T> withClassLoader(ClassLoader classLoader);
 
 	/*

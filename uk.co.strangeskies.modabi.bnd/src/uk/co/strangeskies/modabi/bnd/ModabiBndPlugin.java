@@ -40,7 +40,7 @@ import uk.co.strangeskies.utilities.Log.Level;
  * @author Elias N Vasylenko
  */
 public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
-	private static final SchemaManager MANAGER = new SchemaManagerImpl();
+	private static SchemaManager MANAGER;
 	private static final Object SOURCES_PROPERTY = "sources";
 	private static final String DEFAULT_SOURCE = "META-INF/schemata/*";
 
@@ -74,6 +74,10 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
 	@Override
 	public synchronized boolean analyzeJar(Analyzer analyzer) throws Exception {
 		try {
+			if (MANAGER == null) {
+				MANAGER = new SchemaManagerImpl();
+			}
+
 			scanSchemaAnnotations(analyzer);
 
 			RegistrationContext context = new BndRegistrationContext(MANAGER.nestChildScope(), log, analyzer, format,

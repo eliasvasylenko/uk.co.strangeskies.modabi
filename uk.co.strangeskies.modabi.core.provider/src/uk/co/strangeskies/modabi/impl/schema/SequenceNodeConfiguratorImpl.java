@@ -21,11 +21,9 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
@@ -36,7 +34,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<SequenceNodeConfigurator, SequenceNode>
 		implements SequenceNodeConfigurator {
-	public SequenceNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super SequenceNode> parent) {
+	public SequenceNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
 	}
 
@@ -55,7 +53,7 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 		TypeToken<?> inputTarget = getContext().inputTargetType();
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
-		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
 			@Override
 			public SchemaNode<?, ?> parentNodeProxy() {
 				return getSchemaNodeProxy();
@@ -119,14 +117,6 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 			@Override
 			public TypeToken<?> outputSourceType() {
 				return outputSource;
-			}
-
-			@Override
-			public void addChild(ChildNode<?, ?> result) {}
-
-			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
-				return null;
 			}
 
 			@Override

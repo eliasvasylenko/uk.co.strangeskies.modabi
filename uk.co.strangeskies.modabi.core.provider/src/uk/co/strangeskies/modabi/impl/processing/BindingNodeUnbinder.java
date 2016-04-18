@@ -220,11 +220,11 @@ public class BindingNodeUnbinder {
 
 		if (node.getDataType() == null)
 			throw new ProcessingException(
-					"Cannot unbind node '" + node.getName() + "' from object '" + parent + "' with no data class.", context);
+					"Cannot unbind node '" + node.name() + "' from object '" + parent + "' with no data class.", context);
 
 		if (node.getOutMethod() == null && (node.getOutMethodName() == null || !node.getOutMethodName().equals("this")))
 			throw new ProcessingException(
-					"Cannot unbind node '" + node.getName() + "' from object '" + parent + "' with no out method.", context);
+					"Cannot unbind node '" + node.name() + "' from object '" + parent + "' with no out method.", context);
 
 		if (node.isOutMethodIterable() != null && node.isOutMethodIterable()) {
 			Iterable<U> iterable = null;

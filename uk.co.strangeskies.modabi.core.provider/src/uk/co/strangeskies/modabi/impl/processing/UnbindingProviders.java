@@ -25,7 +25,6 @@ import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
@@ -44,7 +43,7 @@ public class UnbindingProviders {
 				for (U object : objects)
 					context.bindings().add(model, object);
 
-				context.output().ifPresent(o -> o.registerNamespaceHint(model.getName().getNamespace()));
+				context.output().ifPresent(o -> o.registerNamespaceHint(model.name().getNamespace()));
 			}
 		};
 	}
@@ -54,10 +53,10 @@ public class UnbindingProviders {
 			@Override
 			public <U> DataSource dereferenceImport(Model<U> model, QualifiedName idDomain, U object) {
 				DataNode.Effective<?> node = (DataNode.Effective<?>) model.effective().children().stream()
-						.filter(c -> c.getName().equals(idDomain) && c instanceof DataNode.Effective<?>).findAny().orElseThrow(
+						.filter(c -> c.name().equals(idDomain) && c instanceof DataNode.Effective<?>).findAny().orElseThrow(
 								() -> new SchemaException("Can't fine child '" + idDomain + "' to target for model '" + model + "'"));
 
-				return unbindDataNode(context.manager(), node, new TypedObject<>(model.getDataType(), object));
+				return unbindDataNode(context, node, new TypedObject<>(model.getDataType(), object));
 			}
 		};
 	}
@@ -67,7 +66,7 @@ public class UnbindingProviders {
 			@Override
 			public <U> DataSource reference(Model<U> model, QualifiedName idDomain, U object) {
 				if (!context.bindings().getModelBindings(model).contains(object))
-					throw new SchemaException("Cannot find any instance '" + object + "' bound to model '" + model.getName()
+					throw new SchemaException("Cannot find any instance '" + object + "' bound to model '" + model.name()
 							+ "' from '" + context.bindings().getModelBindings(model) + "'");
 
 				return importTarget().apply(context).dereferenceImport(model, idDomain, object);
@@ -75,8 +74,8 @@ public class UnbindingProviders {
 		};
 	}
 
-	private <V> DataSource unbindDataNode(SchemaManager manager, DataNode.Effective<V> node, TypedObject<?> source) {
-		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(manager).withBindingObject(source);
+	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode.Effective<V> node, TypedObject<?> source) {
+		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(context).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
 				BindingNodeUnbinder.getData(node, unbindingContext));

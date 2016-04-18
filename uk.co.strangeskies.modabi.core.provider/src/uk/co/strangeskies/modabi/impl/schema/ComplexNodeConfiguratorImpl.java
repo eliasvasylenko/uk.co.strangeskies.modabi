@@ -30,15 +30,13 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeConfiguratorImpl<T>
-		extends
-		BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T>
+		extends BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T>
 		implements ComplexNodeConfigurator<T> {
 	private List<Model<? super T>> baseModel;
 
 	private Boolean inline;
 
-	public ComplexNodeConfiguratorImpl(
-			SchemaNodeConfigurationContext<? super ComplexNode<T>> parent) {
+	public ComplexNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
 	}
 
@@ -49,8 +47,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ComplexNodeConfigurator<V> model(
-			List<? extends Model<? super V>> base) {
+	public <V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> base) {
 		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
@@ -76,8 +73,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ComplexNodeConfigurator<V> dataType(
-			TypeToken<? extends V> dataClass) {
+	public <V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<? extends V> dataClass) {
 		return (ComplexNodeConfigurator<V>) super.dataType(dataClass);
 	}
 

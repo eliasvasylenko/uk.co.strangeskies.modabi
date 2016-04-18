@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -116,6 +118,8 @@ public interface BindingBlocker extends BindingBlocks {
 	 */
 	BindingBlock block(QualifiedName namespace, DataSource id, boolean internal);
 
+	public Set<Thread> getParticipatingThreads();
+
 	/**
 	 * Register a thread as a participant in the binding/unbinding process. This
 	 * helps the processor determine whether there is unblocked activity, or
@@ -134,4 +138,6 @@ public interface BindingBlocker extends BindingBlocks {
 	default void addParticipatingThread() {
 		addParticipatingThread(Thread.currentThread());
 	}
+
+	public void complete() throws InterruptedException, ExecutionException;
 }

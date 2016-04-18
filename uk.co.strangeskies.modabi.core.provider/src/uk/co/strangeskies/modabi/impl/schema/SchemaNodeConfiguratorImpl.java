@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
@@ -55,7 +56,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private boolean finalised;
 
 	private QualifiedName name;
-	private Boolean isAbstract;
+	private Abstractness abstractness;
 
 	public SchemaNodeConfiguratorImpl() {
 		finalNode = new IdentityProperty<>();
@@ -142,7 +143,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 								if (!(args[0] instanceof SchemaNode)) {
 									return false;
 								} else {
-									return Objects.equals(getFinalName(), ((SchemaNode<?, ?>) args[0]).getName());
+									return Objects.equals(getFinalName(), ((SchemaNode<?, ?>) args[0]).name());
 								}
 							}
 
@@ -175,9 +176,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@Override
-	public final S isAbstract(boolean isAbstract) {
-		assertConfigurable(this.isAbstract);
-		this.isAbstract = isAbstract;
+	public final S abstractness(Abstractness abstractness) {
+		assertConfigurable(this.abstractness);
+		this.abstractness = abstractness;
 
 		return getThis();
 	}
@@ -206,12 +207,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return new OverrideMerge<>(node, configurator);
 	}
 
-	protected Boolean isAbstract() {
-		return isAbstract;
+	protected Abstractness abstractness() {
+		return abstractness;
 	}
 
 	protected boolean isChildContextAbstract() {
-		return isAbstract() != null && isAbstract();
+		return abstractness() != null && abstractness().isAtLeast(Abstractness.RESOLVED);
 	}
 
 	@Override

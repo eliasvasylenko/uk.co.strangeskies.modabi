@@ -76,7 +76,7 @@ public class BindingNodeBinder {
 			break;
 		case CONSTRUCTOR:
 			if (children.isEmpty())
-				throw new SchemaException("Node '" + node.getName() + "' with binding strategy '" + BindingStrategy.CONSTRUCTOR
+				throw new SchemaException("Node '" + node.name() + "' with binding strategy '" + BindingStrategy.CONSTRUCTOR
 						+ "' should contain at least one child");
 
 			ChildNode.Effective<?, ?> firstChild;
@@ -103,7 +103,7 @@ public class BindingNodeBinder {
 			break;
 		case STATIC_FACTORY:
 			if (children.isEmpty())
-				throw new SchemaException("Node '" + node.getName() + "' with binding strategy '"
+				throw new SchemaException("Node '" + node.name() + "' with binding strategy '"
 						+ BindingStrategy.STATIC_FACTORY + "' should contain at least one child");
 
 			do {

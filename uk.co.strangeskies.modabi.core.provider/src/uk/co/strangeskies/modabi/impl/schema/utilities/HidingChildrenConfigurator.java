@@ -75,7 +75,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		private boolean overridden;
 
 		public MergeGroup(ChildNode.Effective<?, ?> node) {
-			this.name = node.getName();
+			this.name = node.name();
 			children = new HashSet<>();
 			children.add(node);
 		}
@@ -118,10 +118,10 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 	private final List<MergeGroup> mergedChildren;
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
-	private final SchemaNodeConfigurationContext<?> context;
+	private final SchemaNodeConfigurationContext context;
 	private TypeToken<?> inputTarget;
 
-	public HidingChildrenConfigurator(SchemaNodeConfigurationContext<?> context) {
+	public HidingChildrenConfigurator(SchemaNodeConfigurationContext context) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
@@ -132,7 +132,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			int index = 0;
 
 			for (ChildNode<?, ?> child : overriddenNode.children())
-				index = merge(overriddenNode.getName(), child.effective(), index, false);
+				index = merge(overriddenNode.name(), child.effective(), index, false);
 		}
 
 		this.context = context;
@@ -142,7 +142,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 	}
 
 	private int merge(QualifiedName parentName, ChildNode.Effective<?, ?> child, int index, boolean override) {
-		QualifiedName name = child.getName();
+		QualifiedName name = child.name();
 
 		if (name != null) {
 			MergeGroup group = namedMergeGroups.get(name);
@@ -231,35 +231,35 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		assertUnblocked();
 		blocked = true;
 
-		SchemaNodeConfigurationContext<ChildNode<?, ?>> context = new SchemaNodeConfigurationContext<ChildNode<?, ?>>() {
+		SchemaNodeConfigurationContext childContext = new SchemaNodeConfigurationContext() {
 			@Override
 			public BoundSet boundSet() {
-				return HidingChildrenConfigurator.this.context.boundSet();
+				return context.boundSet();
 			}
 
 			@Override
 			public DataLoader dataLoader() {
-				return HidingChildrenConfigurator.this.context.dataLoader();
+				return context.dataLoader();
 			}
 
 			@Override
 			public Imports imports() {
-				return HidingChildrenConfigurator.this.context.imports();
+				return context.imports();
 			}
 
 			@Override
 			public Namespace namespace() {
-				return HidingChildrenConfigurator.this.context.namespace();
+				return context.namespace();
 			}
 
 			@Override
 			public boolean isAbstract() {
-				return HidingChildrenConfigurator.this.context.isAbstract();
+				return context.isAbstract();
 			}
 
 			@Override
 			public boolean isInputDataOnly() {
-				return HidingChildrenConfigurator.this.context.isInputDataOnly();
+				return context.isInputDataOnly();
 			}
 
 			@Override
@@ -269,22 +269,22 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
-				return HidingChildrenConfigurator.this.context.overriddenNodes();
+				return context.overriddenNodes();
 			}
 
 			@Override
 			public boolean isInputExpected() {
-				return HidingChildrenConfigurator.this.context.isInputExpected();
+				return context.isInputExpected();
 			}
 
 			@Override
 			public boolean isConstructorExpected() {
-				return HidingChildrenConfigurator.this.context.isConstructorExpected() && children.isEmpty();
+				return context.isConstructorExpected() && children.isEmpty();
 			}
 
 			@Override
 			public boolean isStaticMethodExpected() {
-				return HidingChildrenConfigurator.this.context.isStaticMethodExpected() && children.isEmpty();
+				return context.isStaticMethodExpected() && children.isEmpty();
 			}
 
 			@Override
@@ -297,7 +297,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public TypeToken<?> outputSourceType() {
-				return HidingChildrenConfigurator.this.context.outputSourceType();
+				return context.outputSourceType();
 			}
 
 			@Override
@@ -307,34 +307,34 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 			@Override
 			public SchemaNode<?, ?> parentNodeProxy() {
-				return HidingChildrenConfigurator.this.context.parentNodeProxy();
+				return context.parentNodeProxy();
 			}
 		};
 
 		return new ChildBuilder() {
 			@Override
 			public InputSequenceNodeConfigurator inputSequence() {
-				return new InputSequenceNodeConfiguratorImpl(context);
+				return new InputSequenceNodeConfiguratorImpl(childContext);
 			}
 
 			@Override
 			public DataNodeConfigurator<Object> data() {
-				return new DataNodeConfiguratorImpl<>(context);
+				return new DataNodeConfiguratorImpl<>(childContext);
 			}
 
 			@Override
 			public ChoiceNodeConfigurator choice() {
-				return new ChoiceNodeConfiguratorImpl(context);
+				return new ChoiceNodeConfiguratorImpl(childContext);
 			}
 
 			@Override
 			public SequenceNodeConfigurator sequence() {
-				return new SequenceNodeConfiguratorImpl(context);
+				return new SequenceNodeConfiguratorImpl(childContext);
 			}
 
 			@Override
 			public ComplexNodeConfigurator<Object> complex() {
-				return new ComplexNodeConfiguratorImpl<>(context);
+				return new ComplexNodeConfiguratorImpl<>(childContext);
 			}
 		};
 	}

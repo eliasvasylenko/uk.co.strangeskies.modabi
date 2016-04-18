@@ -34,7 +34,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N, ?>, T>
 		extends BindingNodeConfiguratorImpl<S, N, T> implements BindingChildNodeConfigurator<S, N, T> {
-	private final SchemaNodeConfigurationContext<? super N> context;
+	private final SchemaNodeConfigurationContext context;
 
 	private TypeToken<?> postInputClass;
 	private Range<Integer> occurrences;
@@ -49,13 +49,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Boolean inMethodUnchecked;
 	private Boolean extensible;
 
-	public BindingChildNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super N> parent) {
+	public BindingChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		this.context = parent;
 
 		addResultListener(result -> parent.addChild(result));
 	}
 
-	protected final SchemaNodeConfigurationContext<? super N> getContext() {
+	protected final SchemaNodeConfigurationContext getContext() {
 		return context;
 	}
 

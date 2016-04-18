@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.io.InputStream;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -31,10 +30,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
@@ -93,8 +90,8 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 		}
 	}
 
-	private final SchemaManagerImpl manager;
-	private final BindingBlocksImpl blocks;
+	private final ProcessingContextImpl context;
+
 	private final FutureTask<BindingSource<T>> sourceFuture;
 	private final FutureTask<T> dataFuture;
 	private final FutureTask<Model<T>> modelFuture;
@@ -102,10 +99,9 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	private Binding<T> bindingResult;
 	private boolean cancelled;
 
-	public BindingFutureImpl(SchemaManagerImpl manager, BindingBlocksImpl blocks, ClassLoader classLoader,
-			Set<Provider> providers, Supplier<BindingSource<T>> modelSupplier) {
-		this.manager = manager;
-		this.blocks = blocks;
+	public BindingFutureImpl(ProcessingContextImpl context, ClassLoader classLoader,
+			Supplier<BindingSource<T>> modelSupplier) {
+		this.context = context;
 
 		cancelled = false;
 
@@ -115,17 +111,15 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			return sourceFuture.get().getModel();
 		});
 
-		ClassLoader classLoaderFinal = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
-
 		dataFuture = new FutureTask<>(() -> {
-			Thread.currentThread().setContextClassLoader(classLoaderFinal);
-			blocks.addParticipatingThread(Thread.currentThread());
+			Thread.currentThread().setContextClassLoader(classLoader);
+			context.bindingFutureBlocker().addParticipatingThread(Thread.currentThread());
 
 			modelFuture.run();
 
 			T binding = bind(sourceFuture.get());
 
-			blocks.complete();
+			context.bindingFutureBlocker().complete();
 
 			return binding;
 		});
@@ -134,13 +128,13 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
-		synchronized (blocks) {
+		synchronized (context.bindingFutureBlocker()) {
 			if (bindingResult == null && !cancelled) {
 				Exception exception = new SchemaException("Cancellation of " + this + " requested");
-				for (BindingBlock block : blocks.getBlocks()) {
+				for (BindingBlock block : context.bindingFutureBlocker().getBlocks()) {
 					block.fail(exception);
 				}
-				for (Thread thread : blocks.getParticipatingThreads()) {
+				for (Thread thread : context.bindingFutureBlocker().getParticipatingThreads()) {
 					thread.interrupt();
 				}
 				cancelled = true;
@@ -173,7 +167,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	private Binding<T> tryGet(TryGet<BindingSource<T>> getModel, TryGet<T> getData) {
-		synchronized (blocks) {
+		synchronized (context.bindingFutureBlocker()) {
 			if (bindingResult != null) {
 				return bindingResult;
 			}
@@ -190,7 +184,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			BindingSource<T> source = getModel.tryGet();
 			Model<T> model = source.getModel();
 
-			modelString = " with model '" + model.getName() + "'";
+			modelString = " with model '" + model.name() + "'";
 
 			input = source.getName();
 
@@ -215,29 +209,29 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public BindingBlocks blocks() {
-		return blocks;
+		return context.bindingFutureBlocker();
 	}
 
 	private T bind(BindingSource<T> source) {
 		Model.Effective<T> model = source.getModel();
 		return source.withData((StructuredDataSource input) -> {
-			ProcessingContextImpl context = manager.getProcessingContext().withInput(input).withBindingFutureBlocker(blocks);
+			ProcessingContextImpl context = this.context.withInput(input);
 
 			/*
 			 * Processing should always have access to the contents of the schema
 			 * owning the associated model.
 			 */
 			for (Model<?> schemaModel : model.schema().getModels()) {
-				context.bindings().add(manager.getMetaSchema().getMetaModel(), schemaModel);
+				context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
 			}
 			for (DataType<?> schemaDataType : model.schema().getDataTypes()) {
-				context.bindings().add(manager.getMetaSchema().getDataTypeModel(), schemaDataType);
+				context.bindings().add(context.manager().getMetaSchema().getDataTypeModel(), schemaDataType);
 			}
 
 			QualifiedName inputRoot = input.startNextChild();
-			if (!inputRoot.equals(model.getName()))
+			if (!inputRoot.equals(model.name()))
 				throw new ProcessingException(
-						"Model '" + model.getName() + "' does not match root input node '" + inputRoot + "'", context);
+						"Model '" + model.name() + "' does not match root input node '" + inputRoot + "'", context);
 
 			try {
 				return new BindingNodeBinder(context).bind(model);

@@ -117,7 +117,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		registeredModels = manager.registeredModels();
 		registeredTypes = manager.registeredTypes();
 
-		bindingFutureBlocker = null;
+		bindingFutureBlocker = new BindingBlocksImpl();
 	}
 
 	public ProcessingContextImpl(ProcessingContext parentContext) {
@@ -471,9 +471,5 @@ public class ProcessingContextImpl implements ProcessingContext {
 	@Override
 	public DataTypes registeredTypes() {
 		return registeredTypes;
-	}
-
-	public ProcessingContextImpl withBindingFutureBlocker(BindingBlocker blocker) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, exhaustive, blocker);
 	}
 }

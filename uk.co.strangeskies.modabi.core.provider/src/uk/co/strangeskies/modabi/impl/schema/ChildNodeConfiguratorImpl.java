@@ -33,19 +33,19 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
 		extends SchemaNodeConfiguratorImpl<S, N> implements ChildNodeConfigurator<S, N> {
-	private final SchemaNodeConfigurationContext<? super N> context;
+	private final SchemaNodeConfigurationContext context;
 
 	private Range<Integer> occurrences;
 	private Boolean ordered;
 	private TypeToken<?> postInputClass;
 
-	public ChildNodeConfiguratorImpl(SchemaNodeConfigurationContext<? super N> parent) {
+	public ChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		this.context = parent;
 
 		addResultListener(result -> parent.addChild(result));
 	}
 
-	protected SchemaNodeConfigurationContext<? super N> getContext() {
+	protected SchemaNodeConfigurationContext getContext() {
 		return context;
 	}
 
