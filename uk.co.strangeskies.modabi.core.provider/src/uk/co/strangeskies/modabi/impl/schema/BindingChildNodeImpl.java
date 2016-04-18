@@ -138,7 +138,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 		private boolean hasOutMethod(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
 			return !"null".equals(outMethodName) && !(overrideMerge.configurator().getContext().isAbstract()
-					&& abstractness().isAtMost(Abstractness.RESOLVED) && (outMethodName == null || "this".equals(outMethodName)));
+					&& abstractness().isMoreThan(Abstractness.RESOLVED)
+					&& (outMethodName == null || "this".equals(outMethodName)));
 		}
 
 		@Override
@@ -217,26 +218,44 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@SuppressWarnings("unchecked")
-		private static <U> TypeToken<Iterable<? extends U>> getIteratorType(TypeToken<U> type) {
+		private static <U> TypeToken<Iterable<? extends U>> getIteratorType(BindingChildNode.Effective<U, ?, ?> node) {
+			boolean outMethodCast = node.isOutMethodCast() != null && node.isOutMethodCast();
+
+			TypeToken<U> type = outMethodCast ? (TypeToken<U>) TypeToken.over(new InferenceVariable()) : node.getDataType();
 			if (type == null) {
 				type = (TypeToken<U>) new TypeToken<Object>() {};
 			}
-			return new TypeToken<Iterable<? extends U>>() {}.withTypeArgument(new TypeParameter<U>() {},
-					type.wrapPrimitive());
+
+			/*
+			 * TODO properly put inference variable into bounds...
+			 */
+			
+			System.out.println();
+			System.out.println(node.name());
+			System.out.println(node.abstractness());
+			System.out.println(type);
+			System.out.println(type.getResolver().getBounds());
+			System.out.println(type.getRelatedInferenceVariables());
+
+			TypeToken<Iterable<? extends U>> iterableType = new TypeToken<Iterable<? extends U>>() {}
+					.withTypeArgument(new TypeParameter<U>() {}, type.wrapPrimitive());
+
+			System.out.println("££££££££");
+
+			return iterableType;
 		}
 
 		protected static Invokable<?, ?> getOutMethod(BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
 				TypeToken<?> receiverType, BoundSet bounds) {
-			if (receiverType == null)
+			if (receiverType == null) {
 				throw new SchemaException(
 						"Can't find out method for node '" + node.name() + "' as target class cannot be found");
+			}
 
 			boolean outMethodCast = node.isOutMethodCast() != null && node.isOutMethodCast();
 
 			TypeToken<?> resultType = ((node.isOutMethodIterable() != null && node.isOutMethodIterable())
-					? getIteratorType(
-							(TypeToken<?>) (outMethodCast ? TypeToken.over(new InferenceVariable()) : node.getDataType()))
-					: node.getDataType());
+					? getIteratorType(node) : node.getDataType());
 
 			if (node.isOutMethodUnchecked() != null && node.isOutMethodUnchecked())
 				resultType = TypeToken.over(resultType.getRawType());

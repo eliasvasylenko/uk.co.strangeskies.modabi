@@ -32,6 +32,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
@@ -76,8 +77,9 @@ public class SchemaTest {
 	@Test
 	public void abstractChoiceNodeTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
-		schemaManager.getSchemaConfigurator().qualifiedName(new QualifiedName("choiceNodeTest"))
-				.addModel("choiceNodeTestModel", m -> m.isAbstract(true).addChild(c -> c.choice().isAbstract(true)));
+		schemaManager.getSchemaConfigurator().qualifiedName(new QualifiedName("choiceNodeTest")).addModel(
+				"choiceNodeTestModel",
+				m -> m.abstractness(Abstractness.ABSTRACT).addChild(c -> c.choice().abstractness(Abstractness.ABSTRACT)));
 	}
 
 	@Test
@@ -176,7 +178,7 @@ public class SchemaTest {
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object>model((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
+								.<Object> model((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.effective().getDataType());
@@ -241,7 +243,7 @@ public class SchemaTest {
 																										.type(schemaManager.getBaseSchema()
 																												.primitiveType(Primitive.STRING)))
 																								.addChild(vv -> vv.complex().name("value")
-																										.<Object>model((Model<Object>) schemaManager.getBaseSchema()
+																										.<Object> model((Model<Object>) schemaManager.getBaseSchema()
 																												.models().simpleModel())
 																										.addChild(cc -> cc.data().name("content").type(schemaManager
 																												.getBaseSchema().primitiveType(Primitive.INT)))))))))

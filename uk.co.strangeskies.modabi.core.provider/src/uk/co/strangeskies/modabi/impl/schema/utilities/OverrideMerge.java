@@ -66,7 +66,15 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 
 		public OverrideOptional<T> orMerged(Function<? super Collection<T>, ? extends T> merge) {
 			if (values != null && !values.isEmpty()) {
-				return or(() -> merge.apply(values));
+				return or(() -> {
+					T merged = merge.apply(values);
+
+					if (merged == null) {
+						throw new SchemaException("Cannot merge overridden properties '" + values + "'");
+					}
+
+					return merged;
+				});
 			} else {
 				return this;
 			}

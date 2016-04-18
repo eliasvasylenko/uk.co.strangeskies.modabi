@@ -125,15 +125,15 @@ public class MetaSchemaImpl implements MetaSchema {
 								.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
 						.addChild(n -> n.data().format(Format.PROPERTY).type(base.primitiveType(Primitive.QUALIFIED_NAME))
 								.name("name").inMethod("name").optional(true))
-						.addChild(n -> n.data().format(Format.PROPERTY).type(base.primitiveType(Primitive.BOOLEAN)).name("abstract")
-								.inMethod("isAbstract").optional(true)));
+						.addChild(n -> n.data().format(Format.PROPERTY).type(base.derivedTypes().enumType())
+								.dataType(Abstractness.class).name("abstractness").optional(true)));
 
 		Model<ChildNode<?, ?>> childBaseModel = factory.apply("childBase", m -> m.abstractness(Abstractness.ABSTRACT)
 				.dataType(new TypeToken<ChildNode<?, ?>>() {}).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
 
 		Model<SchemaNode<?, ?>> branchModel = factory.apply("branch",
 				m -> m.abstractness(Abstractness.ABSTRACT).baseModel(nodeModel).addChild(n -> n.data().name("name"))
-						.addChild(n -> n.data().name("abstract"))
+						.addChild(n -> n.data().name("abstractness"))
 						.addChild(n -> n.complex().name("child").outMethod("children").inMethod("null")
 								.abstractness(Abstractness.ABSTRACT).extensible(true).model(childBaseModel)
 								.occurrences(Range.between(0, null)))

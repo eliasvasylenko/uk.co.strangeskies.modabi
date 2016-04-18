@@ -123,7 +123,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
@@ -220,8 +220,32 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
-			TypeToken<?> resultType = overrideMerge.getOverride(InputNode::getPostInputType)
-					.validate(TypeToken::isAssignableTo).tryGet();
+			TypeToken<?> resultType = overrideMerge.<TypeToken<?>> getOverride(InputNode::getPostInputType)
+					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
+						/*
+						 * If only one of the values is proper give precedence to it,
+						 * otherwise choose arbitrarily:
+						 */
+						TypeToken<?> first;
+						TypeToken<?> second;
+						if (a.isProper()) {
+							first = a;
+							second = b;
+						} else {
+							first = b;
+							second = a;
+						}
+
+						try {
+							return first.withLooseCompatibilityTo(second);
+						} catch (Exception e) {}
+
+						try {
+							return second.withLooseCompatibilityTo(first);
+						} catch (Exception e) {}
+
+						return null;
+					}).tryGet();
 
 			return resultType != null ? resultType : TypeToken.over(Object.class);
 		} else {
