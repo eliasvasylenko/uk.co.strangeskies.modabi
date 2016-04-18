@@ -50,10 +50,6 @@ public interface SchemaNodeConfigurationContext {
 
 	BoundSet boundSet();
 
-	default void resetBoundSetIncorporations() {
-		throw new UnsupportedOperationException();
-	}
-
 	TypeToken<?> inputTargetType();
 
 	TypeToken<?> outputSourceType();

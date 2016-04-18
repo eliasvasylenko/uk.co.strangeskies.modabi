@@ -55,7 +55,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		private final Boolean outMethodUnchecked;
 		private final Boolean outMethodCast;
 
-		private String inMethodName;
+		private final String inMethodName;
 		private final Executable inMethod;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
@@ -66,8 +66,13 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		private final TypeToken<?> preInputType;
 		protected TypeToken<?> postInputType;
 
-		protected Effective(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-			super(overrideMerge);
+		protected Effective(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, T>> overrideMerge) {
+			this(overrideMerge, null);
+		}
+
+		protected <N extends BindingChildNodeConfiguratorImpl<?, S, T>> Effective(OverrideMerge<S, N> overrideMerge,
+				Callback<T, N, S> callback) {
+			super(overrideMerge, callback);
 
 			parent = overrideMerge.configurator().getContext().parentNodeProxy().effective();
 
