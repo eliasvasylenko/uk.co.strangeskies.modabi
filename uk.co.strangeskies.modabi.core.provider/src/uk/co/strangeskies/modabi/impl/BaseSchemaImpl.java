@@ -161,7 +161,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.inMethod("apply").inMethodChained(true).outMethod("null")
 									.postInputType(new @Infer TypeToken<Function<DataSource, ?>>() {}))
 							.addChild(d -> d.data().name("data").type(bufferedDataType).inMethod("apply").inMethodChained(true)
-									.outMethod("this")));
+									.outMethod("this").abstractness(Abstractness.UNINFERRED)));
 
 			referenceType = factory.apply("reference",
 					t -> t.baseType(referenceBaseType).abstractness(Abstractness.ABSTRACT)
@@ -239,18 +239,21 @@ public class BaseSchemaImpl implements BaseSchema {
 					.apply("include",
 							t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).unbindingType(IncludeTarget.class)
 									.bindingStrategy(BindingStrategy.TARGET_ADAPTOR).unbindingStrategy(UnbindingStrategy.PASS_TO_PROVIDED)
-									.unbindingMethod("include").providedUnbindingMethodParameters("targetModel", "this")
-									.unbindingMethodUnchecked(
-											true)
-									.abstractness(Abstractness.ABSTRACT)
-									.addChild(c -> c.data().name("targetModel").type(referenceType).abstractness(Abstractness.ABSTRACT)
-											.outMethod("null").inMethod("null").valueResolution(ValueResolution.REGISTRATION_TIME)
+									.unbindingMethod("include")
+									.providedUnbindingMethodParameters("targetModel",
+											"this")
+									.unbindingMethodUnchecked(true).abstractness(Abstractness.ABSTRACT)
+									.addChild(c -> c.data().name("targetModel").type(referenceType).dataType(new TypeToken<Model<?>>() {})
+											.abstractness(Abstractness.ABSTRACT).outMethod("null").inMethod("null")
+											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.addChild(d -> d.data().name("targetModel")
 													.provideValue(new BufferingDataTarget()
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-											.addChild(d -> d.data().name("targetId")
-													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
+											.addChild(
+													d -> d.data().name("targetId")
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
+																	.buffer())))
 									.addChild(
 											c -> c.data()
 													.name(
@@ -304,7 +307,11 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			importType = factory
 					.apply("import",
-							t -> t.dataType(Object.class).abstractness(Abstractness.ABSTRACT)
+							t -> t
+									.dataType(
+											Object.class)
+									.abstractness(
+											Abstractness.ABSTRACT)
 									.bindingStrategy(
 											BindingStrategy.SOURCE_ADAPTOR)
 									.unbindingStrategy(
@@ -317,23 +324,20 @@ public class BaseSchemaImpl implements BaseSchema {
 													.bindingStrategy(BindingStrategy.PROVIDED).unbindingFactoryType(ImportTarget.class)
 													.unbindingType(DataSource.class).unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
 													.unbindingMethod("dereferenceImport").unbindingMethodUnchecked(true)
-													.providedUnbindingMethodParameters("targetModel", "targetId", "this")
+													.providedUnbindingMethodParameters("targetModel", "targetId",
+															"this")
 													.addChild(c -> c.data().name("targetModel").type(referenceType)
-															.abstractness(Abstractness.ABSTRACT).outMethod("null").inMethod("null").valueResolution(
-																	ValueResolution.REGISTRATION_TIME)
+															.dataType(new TypeToken<Model<?>>() {}).abstractness(Abstractness.ABSTRACT)
+															.outMethod("null").inMethod("null").valueResolution(ValueResolution.REGISTRATION_TIME)
 															.addChild(d -> d.data().name("targetModel")
 																	.provideValue(new BufferingDataTarget()
 																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-															.addChild(
-																	d -> d.data().name("targetId")
-																			.provideValue(new BufferingDataTarget()
-																					.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
-																					.buffer())))
+															.addChild(d -> d.data().name("targetId")
+																	.provideValue(new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
 													.addChild(
 															d -> d.data().type(primitives.get(Primitive.QUALIFIED_NAME))
-																	.abstractness(Abstractness.ABSTRACT)
-																	.name(
-																			"targetId")
+																	.abstractness(Abstractness.ABSTRACT).name("targetId")
 																	.valueResolution(
 																			ValueResolution.REGISTRATION_TIME)
 																	.outMethod(

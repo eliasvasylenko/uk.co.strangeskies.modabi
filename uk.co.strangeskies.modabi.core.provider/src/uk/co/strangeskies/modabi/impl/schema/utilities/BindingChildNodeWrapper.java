@@ -18,17 +18,14 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
-
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingChildNode.Effective<? super T, ?, ?>, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
-		extends BindingNodeWrapper<T, C, B, S, E> implements
-		BindingChildNode.Effective<T, S, E> {
+		extends BindingNodeWrapper<T, C, B, S, E> implements BindingChildNode.Effective<T, S, E> {
 	public BindingChildNodeWrapper(C component) {
 		super(component);
 	}
@@ -48,7 +45,7 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
-	public final Method getOutMethod() {
+	public final Invokable<?, ?> getOutMethod() {
 		return getBase() == null ? null : getBase().getOutMethod();
 	}
 
@@ -88,7 +85,7 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	}
 
 	@Override
-	public final Executable getInMethod() {
+	public final Invokable<?, ?> getInMethod() {
 		return getBase() == null ? null : getBase().getInMethod();
 	}
 
@@ -110,5 +107,10 @@ public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective
 	@Override
 	public final TypeToken<?> getPostInputType() {
 		return getBase() == null ? null : getBase().getPostInputType();
+	}
+
+	@Override
+	public Boolean nullIfOmitted() {
+		return getBase() == null ? null : getBase().nullIfOmitted();
 	}
 }

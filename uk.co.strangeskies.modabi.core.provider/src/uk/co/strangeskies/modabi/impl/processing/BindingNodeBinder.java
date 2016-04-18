@@ -103,8 +103,8 @@ public class BindingNodeBinder {
 			break;
 		case STATIC_FACTORY:
 			if (children.isEmpty())
-				throw new SchemaException("Node '" + node.name() + "' with binding strategy '"
-						+ BindingStrategy.STATIC_FACTORY + "' should contain at least one child");
+				throw new SchemaException("Node '" + node.name() + "' with binding strategy '" + BindingStrategy.STATIC_FACTORY
+						+ "' should contain at least one child");
 
 			do {
 				firstChild = children.get(0);
@@ -187,17 +187,17 @@ public class BindingNodeBinder {
 		node.process(new NodeProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				result.set(node.getInMethod());
+				result.set(node.getInMethod().getExecutable());
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.set(node.getInMethod());
+				result.set(node.getInMethod().getExecutable());
 			}
 
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
-				result.set(node.getInMethod());
+				result.set(node.getInMethod().getExecutable());
 			}
 		});
 		return result.get();

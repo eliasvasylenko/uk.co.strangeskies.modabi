@@ -57,7 +57,8 @@ public class BindingNodeUnbinder {
 	}
 
 	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
-		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node).withNestedProvisionScope();
+		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node)
+				.withNestedProvisionScope();
 		context.provisions().add(Provider.over(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node));
 
 		TypeToken<?> unbindingType = node.getUnbindingType() != null ? node.getUnbindingType() : node.getDataType();
@@ -231,7 +232,7 @@ public class BindingNodeUnbinder {
 			if (node.getOutMethodName() != null && node.getOutMethodName().equals("this"))
 				iterable = (Iterable<U>) parent;
 			else
-				iterable = (Iterable<U>) invokeMethod(node.getOutMethod(), context, parent);
+				iterable = (Iterable<U>) invokeMethod((Method) node.getOutMethod().getExecutable(), context, parent);
 
 			itemList = StreamSupport.stream(iterable.spliterator(), false).filter(Objects::nonNull)
 					.collect(Collectors.toList());
@@ -245,7 +246,7 @@ public class BindingNodeUnbinder {
 			if (node.getOutMethodName() != null && node.getOutMethodName().equals("this"))
 				item = (U) parent;
 			else
-				item = (U) invokeMethod(node.getOutMethod(), context, parent);
+				item = (U) invokeMethod((Method) node.getOutMethod().getExecutable(), context, parent);
 
 			if (item == null)
 				itemList = null;

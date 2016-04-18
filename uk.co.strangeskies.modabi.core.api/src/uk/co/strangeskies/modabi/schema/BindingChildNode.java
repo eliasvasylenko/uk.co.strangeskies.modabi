@@ -18,14 +18,13 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.lang.reflect.Method;
+import uk.co.strangeskies.reflection.Invokable;
 
 public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNode<T, S, E>, InputNode<S, E> {
 	interface Effective<T, S extends BindingChildNode<T, S, E>, E extends Effective<T, S, E>>
-			extends BindingChildNode<T, S, E>, BindingNode.Effective<T, S, E>,
-			InputNode.Effective<S, E> {
-		Method getOutMethod();
+			extends BindingChildNode<T, S, E>, BindingNode.Effective<T, S, E>, InputNode.Effective<S, E> {
+		Invokable<?, ?> getOutMethod();
 	}
 
 	Boolean isOutMethodUnchecked();
@@ -43,4 +42,6 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	Boolean isOutMethodCast();
 
 	Boolean isExtensible();
+
+	Boolean nullIfOmitted();
 }

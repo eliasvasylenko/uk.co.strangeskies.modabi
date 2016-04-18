@@ -113,8 +113,6 @@ public interface DataNode<T>
 		return Arrays.asList(type());
 	}
 
-	Boolean nullIfOmitted();
-
 	@Override
 	default TypeToken<DataNode<T>> getThisType() {
 		return new TypeToken<DataNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());

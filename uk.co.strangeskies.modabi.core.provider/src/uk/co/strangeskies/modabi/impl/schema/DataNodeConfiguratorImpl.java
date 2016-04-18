@@ -40,8 +40,6 @@ public class DataNodeConfiguratorImpl<T> extends
 	private DataSource providedBufferedValue;
 	private ValueResolution resolution;
 
-	private Boolean nullIfOmitted;
-
 	public DataNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
 	}
@@ -114,18 +112,6 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	public ValueResolution getResolution() {
 		return resolution;
-	}
-
-	@Override
-	public final DataNodeConfigurator<T> nullIfOmitted(boolean nullIfOmitted) {
-		assertConfigurable(this.nullIfOmitted);
-		this.nullIfOmitted = nullIfOmitted;
-
-		return this;
-	}
-
-	public Boolean getNullIfOmitted() {
-		return nullIfOmitted;
 	}
 
 	@Override

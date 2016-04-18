@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -46,33 +45,34 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			extends BindingNodeImpl.Effective<T, S, E> implements BindingChildNode.Effective<T, S, E> {
 		private final SchemaNode.Effective<?, ?> parent;
 
+		private final Boolean nullIfOmitted;
 		private final Range<Integer> occurrences;
 		private final Boolean ordered;
 
 		private final Boolean iterable;
 		private String outMethodName;
-		private final Method outMethod;
+		private Invokable<?, ?> outMethod;
 		private final Boolean outMethodUnchecked;
 		private final Boolean outMethodCast;
 
-		private final String inMethodName;
-		private final Executable inMethod;
-		private final Boolean inMethodChained;
-		private final Boolean allowInMethodResultCast;
-		private final Boolean inMethodUnchecked;
+		private String inMethodName;
+		private Invokable<?, ?> inMethod;
+		private Boolean inMethodChained;
+		private Boolean allowInMethodResultCast;
+		private Boolean inMethodUnchecked;
+
+		private TypeToken<?> preInputType;
+		private TypeToken<?> postInputType;
 
 		private final Boolean extensible;
 
-		private final TypeToken<?> preInputType;
-		protected TypeToken<?> postInputType;
-
 		protected Effective(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, T>> overrideMerge) {
-			this(overrideMerge, null);
+			this(overrideMerge, true);
 		}
 
-		protected <N extends BindingChildNodeConfiguratorImpl<?, S, T>> Effective(OverrideMerge<S, N> overrideMerge,
-				Callback<T, N, S> callback) {
-			super(overrideMerge, callback);
+		protected Effective(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, T>> overrideMerge,
+				boolean integrateIO) {
+			super(overrideMerge);
 
 			parent = overrideMerge.configurator().getContext().parentNodeProxy().effective();
 
@@ -106,18 +106,44 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 			outMethodName = overrideMerge.getOverride(BindingChildNode::getOutMethodName).tryGet();
 
-			Method overriddenOutMethod = overrideMerge
-					.getOverride(n -> n.effective() == null ? null : n.effective().getOutMethod()).tryGet();
+			/*
+			 * Determine effective 'null if omitted' property. Must be true for nodes
+			 * which form part of an inputSequence, or which bind their data into a
+			 * constructor or static factory.
+			 * 
+			 * TODO or maybe it should throw an exception in those cases if not true?
+			 */
+			boolean mustBeNullIfOmitted = !overrideMerge.configurator().getContext().isInputExpected()
+					|| overrideMerge.configurator().getContext().isConstructorExpected()
+					|| overrideMerge.configurator().getContext().isStaticMethodExpected();
+			nullIfOmitted = overrideMerge.getOverride(BindingChildNode::nullIfOmitted).validate((n, o) -> o || !n)
+					.orDefault(mustBeNullIfOmitted).get();
+			if (nullIfOmitted != null && !nullIfOmitted && mustBeNullIfOmitted) {
+				throw new SchemaException("'Null if omitted' property must be true for node '" + name() + "'");
+			}
 
-			Invokable<?, ?> outInvokable = hasOutMethod(overrideMerge)
+			if (integrateIO) {
+				integrateIO(overrideMerge);
+			}
+		}
+
+		public void integrateIO(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, T>> overrideMerge) {
+			Method overriddenOutMethod = overrideMerge.getOverride(
+
+					n -> n.effective() == null ? null
+
+							: n.effective().getOutMethod() == null ? null
+
+									: (Method) n.effective().getOutMethod().getExecutable())
+					.tryGet();
+
+			outMethod = hasOutMethod(overrideMerge)
 					? getOutMethod(this, overriddenOutMethod, overrideMerge.configurator().getContext().outputSourceType(),
 							overrideMerge.configurator().getContext().boundSet())
 					: null;
 
-			outMethod = outInvokable == null ? null : (Method) outInvokable.getExecutable();
-
 			if (outMethodName == null && hasOutMethod(overrideMerge))
-				outMethodName = outMethod.getName();
+				outMethodName = outMethod.getExecutable().getName();
 
 			InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<>(abstractness(), name(),
 					overrideMerge, overrideMerge.configurator().getContext(), Arrays.asList(getDataType()));
@@ -125,10 +151,15 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			inMethodChained = inputNodeHelper.isInMethodChained();
 			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 			inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-			inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper.getInMethod().getExecutable() : null;
+			inMethod = inputNodeHelper.getInMethod();
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputType = inputNodeHelper.getPreInputType();
 			postInputType = inputNodeHelper.getPostInputType();
+		}
+
+		@Override
+		public final Boolean nullIfOmitted() {
+			return nullIfOmitted;
 		}
 
 		@Override
@@ -173,7 +204,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@Override
-		public final Method getOutMethod() {
+		public final Invokable<?, ?> getOutMethod() {
 			return outMethod;
 		}
 
@@ -198,7 +229,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@Override
-		public final Executable getInMethod() {
+		public final Invokable<?, ?> getInMethod() {
 			return inMethod;
 		}
 
@@ -229,18 +260,9 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			/*
 			 * TODO properly put inference variable into bounds...
 			 */
-			
-			System.out.println();
-			System.out.println(node.name());
-			System.out.println(node.abstractness());
-			System.out.println(type);
-			System.out.println(type.getResolver().getBounds());
-			System.out.println(type.getRelatedInferenceVariables());
 
 			TypeToken<Iterable<? extends U>> iterableType = new TypeToken<Iterable<? extends U>>() {}
 					.withTypeArgument(new TypeParameter<U>() {}, type.wrapPrimitive());
-
-			System.out.println("££££££££");
 
 			return iterableType;
 		}
@@ -332,6 +354,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 	private final TypeToken<?> postInputClass;
 
 	private final Range<Integer> occurrences;
+	private final Boolean nullIfOmitted;
 
 	private final Boolean iterable;
 	private final Boolean outMethodUnchecked;
@@ -356,6 +379,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		extensible = configurator.getExtensible();
 		ordered = configurator.getOrdered();
 		occurrences = configurator.getOccurrences();
+		nullIfOmitted = configurator.getNullIfOmitted();
+
 		iterable = configurator.getOutMethodIterable();
 		outMethodUnchecked = configurator.getOutMethodUnchecked();
 		outMethodCast = configurator.getOutMethodCast();
@@ -365,6 +390,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		inMethodChained = configurator.getInMethodChained();
 		allowInMethodResultCast = configurator.getInMethodCast();
 		inMethodUnchecked = configurator.getInMethodUnchecked();
+	}
+
+	@Override
+	public final Boolean nullIfOmitted() {
+		return nullIfOmitted;
 	}
 
 	@Override

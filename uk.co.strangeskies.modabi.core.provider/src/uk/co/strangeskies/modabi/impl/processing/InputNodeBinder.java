@@ -25,7 +25,6 @@ import java.util.Arrays;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.InputNode;
-import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
@@ -44,14 +43,14 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 				TypeToken<?> postInputType = getNode().getPostInputType();
 				if (postInputType == null) {
 					if (getNode().isInMethodChained()) {
-						postInputType = Invokable.over(getNode().getInMethod()).withTargetType(target.getType()).getReturnType();
+						postInputType = getNode().getInMethod().withTargetType(target.getType()).getReturnType();
 					} else {
 						postInputType = target.getType();
 					}
 				}
 
 				result = TypedObject.castInto(postInputType,
-						((Method) getNode().getInMethod()).invoke(target.getObject(), parameters));
+						((Method) getNode().getInMethod().getExecutable()).invoke(target.getObject(), parameters));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
 				throw new ProcessingException(
 						"Unable to call method '" + getNode().getInMethod() + "' with parameters '" + Arrays.toString(parameters),

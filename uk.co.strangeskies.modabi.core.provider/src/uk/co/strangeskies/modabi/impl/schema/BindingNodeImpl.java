@@ -46,10 +46,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		extends SchemaNodeImpl<S, E> implements BindingNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 			extends SchemaNodeImpl.Effective<S, E> implements BindingNode.Effective<T, S, E> {
-		interface Callback<T, N extends BindingNodeConfiguratorImpl<?, S, T>, S extends BindingNode<T, S, ?>> {
-			TypeToken<T> callback(S node, OverrideMerge<S, N> overrideMerge);
-		}
-
 		protected TypeToken<T> dataType;
 		private final TypeToken<?> bindingType;
 		private final TypeToken<?> unbindingType;
@@ -65,11 +61,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		private final List<DataNode.Effective<?>> providedUnbindingParameters;
 
 		protected Effective(OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, T>> overrideMerge) {
-			this(overrideMerge, null);
-		}
-
-		protected <N extends BindingNodeConfiguratorImpl<?, S, T>> Effective(OverrideMerge<S, N> overrideMerge,
-				Callback<T, N, S> callback) {
 			super(overrideMerge);
 
 			BoundSet bounds = overrideMerge.configurator().getInferenceBounds();
@@ -81,7 +72,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 					.orDefault(UnbindingStrategy.SIMPLE).get();
 
 			providedUnbindingParameterNames = overrideMerge.getOverride(BindingNode::getProvidedUnbindingMethodParameterNames)
-					.orDefault(Collections.<QualifiedName> emptyList()).get();
+					.orDefault(Collections.<QualifiedName>emptyList()).get();
 
 			/*
 			 * TODO refactor to make this final.
@@ -93,9 +84,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			unbindingMethodUnchecked = overrideMerge.getOverride(BindingNode::isUnbindingMethodUnchecked).tryGet();
 
-			// TODO remove:
 			dataType = inferDataType(overrideMerge.configurator().getEffectiveDataType(), bounds);
-
 			bindingType = inferDataType(overrideMerge.configurator().getEffectiveBindingType(), bounds);
 			unbindingType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingType(), bounds);
 			unbindingFactoryType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingFactoryType(), bounds);
@@ -105,12 +94,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			if (unbindingMethodName == null && abstractness().isLessThan(Abstractness.ABSTRACT)
 					&& unbindingStrategy != UnbindingStrategy.SIMPLE && unbindingStrategy != UnbindingStrategy.CONSTRUCTOR)
 				unbindingMethodName = unbindingMethod.getName();
-
-			dataType = inferDataType(callback != null
-
-					? callback.callback(getThis(), overrideMerge)
-
-					: overrideMerge.configurator().getEffectiveDataType(), bounds);
 		}
 
 		protected <U> TypeToken<U> inferDataType(TypeToken<U> exactDataType, BoundSet bounds) {

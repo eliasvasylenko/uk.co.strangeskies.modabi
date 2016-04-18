@@ -50,7 +50,7 @@ public final class DataNodeWrapper<T> extends
 
 		DataType.Effective<? super T> check = component;
 		while (!check.equals(base.type())) {
-			check = (DataType.Effective<? super T>) check.baseType();
+			check = check.baseType();
 			if (check == null)
 				throw new SchemaException(message);
 		}
@@ -80,11 +80,6 @@ public final class DataNodeWrapper<T> extends
 	@Override
 	public DataType.Effective<T> type() {
 		return getComponent();
-	}
-
-	@Override
-	public Boolean nullIfOmitted() {
-		return getBase() == null ? null : getBase().nullIfOmitted();
 	}
 
 	@Override

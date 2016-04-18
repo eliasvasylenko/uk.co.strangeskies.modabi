@@ -40,7 +40,7 @@ public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effect
 		default List<DataType.Effective<? super T>> base() {
 			List<DataType.Effective<? super T>> base = new ArrayList<>();
 
-			DataType.Effective<? super T> baseComponent = baseType();
+			DataType.Effective<? super T> baseComponent = this;
 			do {
 				base.add(baseComponent);
 				baseComponent = baseComponent.baseType();

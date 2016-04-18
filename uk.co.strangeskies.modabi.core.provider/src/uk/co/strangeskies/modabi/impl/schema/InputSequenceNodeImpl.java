@@ -18,13 +18,13 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequenceNode.Effective>
@@ -32,7 +32,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 	private static class Effective extends ChildNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
 			implements InputSequenceNode.Effective {
 		private final String inMethodName;
-		private final Executable inMethod;
+		private final Invokable<?, ?> inMethod;
 		private final Boolean inMethodChained;
 		private final Boolean allowInMethodResultCast;
 		private final Boolean inMethodUnchecked;
@@ -56,7 +56,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 			inMethodChained = inputNodeHelper.isInMethodChained();
 			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 			inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-			inMethod = inputNodeHelper.getInMethod() != null ? inputNodeHelper.getInMethod().getExecutable() : null;
+			inMethod = inputNodeHelper.getInMethod();
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputClass = inputNodeHelper.getPreInputType();
 			postInputClass = inputNodeHelper.getPostInputType();
@@ -68,7 +68,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 		}
 
 		@Override
-		public Executable getInMethod() {
+		public Invokable<?, ?> getInMethod() {
 			return inMethod;
 		}
 

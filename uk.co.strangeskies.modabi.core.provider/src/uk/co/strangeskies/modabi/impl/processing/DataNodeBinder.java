@@ -76,7 +76,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			results.addAll(node.providedValues().stream().map(b -> new ChildNodeBinding<>(node, b)).collect(toList()));
 		} else {
 			/*
-			 * Value is not yet bound, so we must determind the data source
+			 * Value is not yet bound, so we must determine the data source
 			 */
 
 			if (node.isValueProvided()) {
@@ -95,7 +95,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
 					else if (node.nullIfOmitted())
-						results.add(new ChildNodeBinding<U>(node, null));
+						results.add(new ChildNodeBinding<>(node, null));
 
 					break;
 				case PROPERTY:
@@ -104,7 +104,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					if (dataSource != null)
 						results.add(bindWithDataSource(dataSource, context, node));
 					else if (node.nullIfOmitted())
-						results.add(new ChildNodeBinding<U>(node, null));
+						results.add(new ChildNodeBinding<>(node, null));
 
 					break;
 				case SIMPLE:

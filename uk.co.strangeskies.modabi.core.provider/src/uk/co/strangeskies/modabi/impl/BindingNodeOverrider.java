@@ -220,8 +220,8 @@ public class BindingNodeOverrider {
 				configurator = configurator.bindingStrategy(parentBindingStrategy.get());
 			}
 
-			if (node.getOutMethod().getDeclaringClass() != null) {
-				configurator = configurator.unbindingType(node.getOutMethod().getDeclaringClass());
+			if (node.getOutMethod().getDeclaringType() != null) {
+				configurator = configurator.unbindingType(node.getOutMethod().getDeclaringType());
 			} else {
 				configurator = configurator.unbindingType(parentUnbindingType.get());
 			}

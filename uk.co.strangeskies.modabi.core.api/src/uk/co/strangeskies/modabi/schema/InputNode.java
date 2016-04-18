@@ -18,13 +18,12 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.lang.reflect.Executable;
+import uk.co.strangeskies.reflection.Invokable;
 
-public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effective<S, E>>
-		extends ChildNode<S, E> {
+public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effective<S, E>> extends ChildNode<S, E> {
 	interface Effective<S extends InputNode<S, E>, E extends Effective<S, E>>
 			extends InputNode<S, E>, ChildNode.Effective<S, E> {
-		Executable getInMethod();
+		Invokable<?, ?> getInMethod();
 	}
 
 	Boolean isInMethodUnchecked();

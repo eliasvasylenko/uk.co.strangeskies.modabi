@@ -38,6 +38,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	private TypeToken<?> postInputClass;
 	private Range<Integer> occurrences;
+	private Boolean nullIfOmitted;
 	private Boolean ordered;
 	private Boolean outMethodIterable;
 	private Boolean outMethodCast;
@@ -53,6 +54,18 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		this.context = parent;
 
 		addResultListener(result -> parent.addChild(result));
+	}
+
+	@Override
+	public final S nullIfOmitted(boolean nullIfOmitted) {
+		assertConfigurable(this.nullIfOmitted);
+		this.nullIfOmitted = nullIfOmitted;
+
+		return getThis();
+	}
+
+	public Boolean getNullIfOmitted() {
+		return nullIfOmitted;
 	}
 
 	protected final SchemaNodeConfigurationContext getContext() {

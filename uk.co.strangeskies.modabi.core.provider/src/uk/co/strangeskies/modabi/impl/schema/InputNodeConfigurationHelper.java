@@ -123,7 +123,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
@@ -143,7 +143,6 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				 */
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
-
 			} catch (Exception e) {
 				throw new SchemaException("Cannot find input method for node '" + name + "' on class '" + inputTargetType
 						+ "' with parameters '" + parameters + "'", e);
@@ -179,7 +178,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	 * TODO handle some sort of constructor 'pseudo-override' behaviour
 	 */
 	private Invokable<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
-		Executable inExecutable = overrideMerge.getOverride(n -> n.effective() == null ? null : n.effective().getInMethod())
+		Executable inExecutable = overrideMerge.getOverride(
+
+				n -> n.effective() == null ? null
+
+						: n.effective().getInMethod() == null ? null
+
+								: n.effective().getInMethod().getExecutable())
 				.tryGet();
 
 		Invokable<?, ?> inInvokable;
@@ -220,7 +225,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
-			TypeToken<?> resultType = overrideMerge.<TypeToken<?>> getOverride(InputNode::getPostInputType)
+			TypeToken<?> resultType = overrideMerge.<TypeToken<?>>getOverride(InputNode::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,

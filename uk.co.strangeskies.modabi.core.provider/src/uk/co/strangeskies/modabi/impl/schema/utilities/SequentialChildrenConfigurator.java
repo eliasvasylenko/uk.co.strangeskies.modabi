@@ -186,6 +186,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 	@Override
 	public ChildrenContainer create() {
+		System.out.println("well fuck you too mister president");
+		if (!mergedChildren.isEmpty()) {
+			System.out.println("well fuck you too mister president");
+			checkRequiredOverrides(null, mergedChildren.size());
+		}
+
 		List<ChildNode.Effective<?, ?>> effectiveChildren = mergedChildren.stream().map(MergeGroup::getChild)
 				.collect(Collectors.toList());
 
@@ -211,20 +217,32 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
 
-			for (; childIndex < mergeGroup.getIndex(); childIndex++) {
-				ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex).getChild();
-
-				if (!context.isAbstract() && skippedChild.abstractness().isAtLeast(Abstractness.RESOLVED)) {
-					throw new SchemaException(
-							"Must override abstract node '" + skippedChild.name() + "' before node '" + id + "'");
-				}
-			}
-
 			if (childIndex > 0)
 				inputTarget = mergedChildren.get(childIndex - 1).getChild().getPostInputType();
+
+			checkRequiredOverrides(id, mergeGroup.getIndex());
 		}
 
 		return (List<U>) overriddenNodes;
+	}
+
+	private void checkRequiredOverrides(QualifiedName id, int indexReached) {
+		for (; childIndex < indexReached; childIndex++) {
+			ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex).getChild();
+
+			System.out.println("? " + id + " " + skippedChild + " ::: " + skippedChild.abstractness());
+
+			if (!context.isAbstract()) {
+				if (skippedChild.abstractness() == Abstractness.UNINFERRED) {
+					System.out.println("THIS LITTLE BITCH NEEDS INFERRING HERE!!!!   " + skippedChild);
+					System.out.println("  from preInput: " + inputTarget);
+				} else if (skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)) {
+					String context = (id != null) ? (" before node '" + id + "'") : "";
+
+					throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
+				}
+			}
+		}
 	}
 
 	private void addChild(ChildNode<?, ?> result) {
