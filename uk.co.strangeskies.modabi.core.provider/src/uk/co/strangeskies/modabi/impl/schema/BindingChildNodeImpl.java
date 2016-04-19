@@ -128,14 +128,15 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		public void integrateIO(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, T>> overrideMerge) {
-			Method overriddenOutMethod = overrideMerge.getOverride(
+			Method overriddenOutMethod = (Method) overrideMerge.getOverride(n -> {
+				if (n.effective() == null)
+					return null;
 
-					n -> n.effective() == null ? null
+				if (n.effective().getOutMethod() == null)
+					return null;
 
-							: n.effective().getOutMethod() == null ? null
-
-									: (Method) n.effective().getOutMethod().getExecutable())
-					.tryGet();
+				return n.effective().getOutMethod().getExecutable();
+			}).tryGet();
 
 			outMethod = hasOutMethod(overrideMerge)
 					? getOutMethod(this, overriddenOutMethod, overrideMerge.configurator().getContext().outputSourceType(),

@@ -37,6 +37,7 @@ import uk.co.strangeskies.modabi.impl.schema.ComplexNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.SequenceNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
@@ -184,11 +185,14 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		return group;
 	}
 
+	private void assertUnblocked() {
+		if (blocked)
+			throw new SchemaException("Blocked from adding children");
+	}
+
 	@Override
 	public ChildrenContainer create() {
-		System.out.println("well fuck you too mister president");
 		if (!mergedChildren.isEmpty()) {
-			System.out.println("well fuck you too mister president");
 			checkRequiredOverrides(null, mergedChildren.size());
 		}
 
@@ -196,11 +200,6 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 				.collect(Collectors.toList());
 
 		return new ChildrenContainer(children, effectiveChildren);
-	}
-
-	private void assertUnblocked() {
-		if (blocked)
-			throw new SchemaException("Blocked from adding children");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -217,8 +216,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
 
-			if (childIndex > 0)
-				inputTarget = mergedChildren.get(childIndex - 1).getChild().getPostInputType();
+		//	System.out.println("do child: " + id);
 
 			checkRequiredOverrides(id, mergeGroup.getIndex());
 		}
@@ -227,21 +225,30 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	}
 
 	private void checkRequiredOverrides(QualifiedName id, int indexReached) {
+		if (childIndex > 0) {
+			inputTarget = mergedChildren.get(childIndex - 1).getChild().getPostInputType();
+	//		System.out.println("     inta: " + inputTarget);
+		}
+
 		for (; childIndex < indexReached; childIndex++) {
 			ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex).getChild();
 
-			System.out.println("? " + id + " " + skippedChild + " ::: " + skippedChild.abstractness());
-
+	//		System.out.println("  skipping: " + skippedChild);
 			if (!context.isAbstract()) {
 				if (skippedChild.abstractness() == Abstractness.UNINFERRED) {
 					System.out.println("THIS LITTLE BITCH NEEDS INFERRING HERE!!!!   " + skippedChild);
 					System.out.println("  from preInput: " + inputTarget);
-				} else if (skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)) {
+				} else if (skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
+						&& !(skippedChild instanceof BindingChildNode
+								&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).isExtensible()))) {
 					String context = (id != null) ? (" before node '" + id + "'") : "";
 
 					throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
 				}
 			}
+
+			inputTarget = mergedChildren.get(childIndex).getChild().getPostInputType();
+		//	System.out.println("     inta: " + inputTarget);
 		}
 	}
 

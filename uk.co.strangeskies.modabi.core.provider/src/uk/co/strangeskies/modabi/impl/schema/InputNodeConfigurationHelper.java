@@ -123,7 +123,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
@@ -178,14 +178,15 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	 * TODO handle some sort of constructor 'pseudo-override' behaviour
 	 */
 	private Invokable<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
-		Executable inExecutable = overrideMerge.getOverride(
+		Executable inExecutable = overrideMerge.getOverride(n -> {
+			if (n.effective() == null)
+				return null;
 
-				n -> n.effective() == null ? null
+			if (n.effective().getInMethod() == null)
+				return null;
 
-						: n.effective().getInMethod() == null ? null
-
-								: n.effective().getInMethod().getExecutable())
-				.tryGet();
+			return n.effective().getInMethod().getExecutable();
+		}).tryGet();
 
 		Invokable<?, ?> inInvokable;
 
@@ -225,7 +226,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
-			TypeToken<?> resultType = overrideMerge.<TypeToken<?>>getOverride(InputNode::getPostInputType)
+			TypeToken<?> resultType = overrideMerge.<TypeToken<?>> getOverride(InputNode::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -306,7 +307,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> preInputType() {
 		return (abstractness.isMoreThan(Abstractness.RESOLVED) || "null".equals(inMethodName)) ? null
-				: TypeToken.over(inMethod.getExecutable().getDeclaringClass());
+				: inMethod.getReceiverType();
 	}
 
 	private TypeToken<?> postInputType() {

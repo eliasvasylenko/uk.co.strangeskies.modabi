@@ -38,6 +38,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	private Range<Integer> occurrences;
 	private Boolean ordered;
 	private TypeToken<?> postInputClass;
+	private List<N> overriddenNodes;
 
 	public ChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		this.context = parent;
@@ -51,7 +52,11 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	public List<N> getOverriddenNodes() {
-		return getName() == null ? Collections.emptyList() : getContext().overrideChild(getName(), getNodeClass());
+		if (overriddenNodes == null) {
+			overriddenNodes = getName() == null ? Collections.emptyList()
+					: getContext().overrideChild(getName(), getNodeClass());
+		}
+		return overriddenNodes;
 	}
 
 	@Override

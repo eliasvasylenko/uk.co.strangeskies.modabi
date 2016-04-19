@@ -133,7 +133,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<SchemaNode<?, ?>> branchModel = factory.apply("branch",
 				m -> m.abstractness(Abstractness.ABSTRACT).baseModel(nodeModel).addChild(n -> n.data().name("name"))
-						.addChild(n -> n.data().name("abstractness"))
+						.addChild(n -> n.data().name("abstract"))
 						.addChild(n -> n.complex().name("child").outMethod("children").inMethod("null")
 								.abstractness(Abstractness.ABSTRACT).extensible(true).model(childBaseModel)
 								.occurrences(Range.between(0, null)))

@@ -49,6 +49,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Boolean inMethodCast;
 	private Boolean inMethodUnchecked;
 	private Boolean extensible;
+	private List<N> overriddenNodes;
 
 	public BindingChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		this.context = parent;
@@ -225,7 +226,11 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public List<N> getOverriddenNodes() {
-		return getName() == null ? Collections.emptyList() : getContext().overrideChild(getName(), getNodeClass());
+		if (overriddenNodes == null) {
+			overriddenNodes = getName() == null ? Collections.emptyList()
+					: getContext().overrideChild(getName(), getNodeClass());
+		}
+		return overriddenNodes;
 	}
 
 	@Override
