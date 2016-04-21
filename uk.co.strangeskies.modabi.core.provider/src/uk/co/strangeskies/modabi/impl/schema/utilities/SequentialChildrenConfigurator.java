@@ -38,6 +38,7 @@ import uk.co.strangeskies.modabi.impl.schema.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
@@ -216,8 +217,6 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
 
-		//	System.out.println("do child: " + id);
-
 			checkRequiredOverrides(id, mergeGroup.getIndex());
 		}
 
@@ -227,17 +226,19 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private void checkRequiredOverrides(QualifiedName id, int indexReached) {
 		if (childIndex > 0) {
 			inputTarget = mergedChildren.get(childIndex - 1).getChild().getPostInputType();
-	//		System.out.println("     inta: " + inputTarget);
 		}
 
 		for (; childIndex < indexReached; childIndex++) {
 			ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex).getChild();
 
-	//		System.out.println("  skipping: " + skippedChild);
+			inputTarget = mergedChildren.get(childIndex).getChild().getPostInputType();
+			
 			if (!context.isAbstract()) {
 				if (skippedChild.abstractness() == Abstractness.UNINFERRED) {
+					System.out.println();
 					System.out.println("THIS LITTLE BITCH NEEDS INFERRING HERE!!!!   " + skippedChild);
-					System.out.println("  from preInput: " + inputTarget);
+					System.out.println("  " + skippedChild.getPostInputType().withBoundsFrom(inputTarget.getResolver()).infer());
+					System.out.println();
 				} else if (skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
 						&& !(skippedChild instanceof BindingChildNode
 								&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).isExtensible()))) {
@@ -246,9 +247,6 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 					throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
 				}
 			}
-
-			inputTarget = mergedChildren.get(childIndex).getChild().getPostInputType();
-		//	System.out.println("     inta: " + inputTarget);
 		}
 	}
 

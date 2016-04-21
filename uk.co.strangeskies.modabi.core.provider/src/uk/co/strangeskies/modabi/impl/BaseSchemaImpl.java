@@ -146,7 +146,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.addChild(c -> c.inputSequence().name("get").inMethodChained(true)));
 
 			DataType<Object> referenceBaseType = factory.apply("referenceBase",
-					t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
+					t -> t.<Object> dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
 							.abstractness(Abstractness.ABSTRACT).isPrivate(true).bindingType(DereferenceSource.class)
 							.bindingStrategy(BindingStrategy.PROVIDED).unbindingFactoryType(ReferenceTarget.class)
 							.unbindingType(DataSource.class).unbindingMethod("reference").unbindingMethodUnchecked(true)
@@ -516,19 +516,27 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			mapModel = factory
 					.apply("map",
-							c -> c.dataType(new @Infer TypeToken<Map<?, ?>>() {})
-									.addChild(e -> e.complex().name("entrySet").inline(true).inMethod("null")
-											.dataType(inferredMapEntrySet).bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
-											.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
-											.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
-													.outMethod("this").bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
-													.bindingType(BaseSchemaImpl.class).unbindingMethod("mapEntry").dataType(inferredMapEntry)
-													.addChild(k -> k.data().name("key").inMethod("null").format(Format.PROPERTY)
-															.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-															.abstractness(Abstractness.ABSTRACT).extensible(true))
-													.addChild(v -> v.complex().name("value").inMethod("null")
-															.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-															.abstractness(Abstractness.ABSTRACT).extensible(true)))));
+							c -> c
+									.dataType(
+											new @Infer TypeToken<Map<?, ?>>() {})
+									.abstractness(
+											Abstractness.UNINFERRED)
+									.addChild(
+											e -> e.complex().name("entrySet").abstractness(Abstractness.UNINFERRED).inline(true)
+													.inMethod("null").dataType(inferredMapEntrySet)
+													.bindingStrategy(
+															BindingStrategy.TARGET_ADAPTOR)
+													.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
+													.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
+															.outMethod("this").bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE)
+															.abstractness(Abstractness.UNINFERRED).bindingType(BaseSchemaImpl.class)
+															.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+															.addChild(k -> k.data().name("key").inMethod("null").format(Format.PROPERTY)
+																	.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
+																	.abstractness(Abstractness.ABSTRACT).extensible(true))
+															.addChild(v -> v.complex().name("value").inMethod("null")
+																	.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
+																	.abstractness(Abstractness.ABSTRACT).extensible(true)))));
 		}
 
 		@Override
