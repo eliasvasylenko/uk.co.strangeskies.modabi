@@ -195,25 +195,25 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return Optional.ofNullable(output);
 	}
 
-	private <T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrideMap(
+	private <T> ComputingMap<DataType<?>, DataNode.Effective<? extends T>> getDataNodeOverrideMap(
 			DataNode.Effective<T> node) {
-		List<DataType<? extends T>> types = registeredTypes.getTypesWithBase(node).stream().map(n -> n.source())
+		List<DataType<?>> types = registeredTypes.getTypesWithBase(node).stream().map(n -> n.source())
 				.collect(Collectors.toCollection(ArrayList::new));
 
-		ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
+		ComputingMap<DataType<?>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
 				type -> getDataNodeOverride(node, type.effective()));
 		overrideMap.putAll(types);
 
 		return overrideMap;
 	}
 
-	private <T> DataNode.Effective<T> getDataNodeOverride(DataNode.Effective<? super T> node,
-			DataType.Effective<T> type) {
+	private <T> DataNode.Effective<? extends T> getDataNodeOverride(DataNode.Effective<T> node,
+			DataType.Effective<?> type) {
 		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node, type);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrideMap(
+	private <T> ComputingMap<Model<?>, ComplexNode.Effective<? extends T>> getComplexNodeOverrideMap(
 			ComplexNode.Effective<T> node) {
 		List<Model<? extends T>> models;
 
@@ -226,15 +226,15 @@ public class ProcessingContextImpl implements ProcessingContext {
 					.map(m -> (Model.Effective<? extends T>) m.effective()).collect(Collectors.toList());
 		}
 
-		ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
+		ComputingMap<Model<?>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
 				model -> getComplexNodeOverride(node, model.effective()));
 		overrideMap.putAll(models);
 
 		return overrideMap;
 	}
 
-	private <T> ComplexNode.Effective<T> getComplexNodeOverride(ComplexNode.Effective<? super T> node,
-			Model.Effective<T> model) {
+	private <T> ComplexNode.Effective<? extends T> getComplexNodeOverride(ComplexNode.Effective<T> node,
+			Model.Effective<?> model) {
 		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node,
 				model);
 	}

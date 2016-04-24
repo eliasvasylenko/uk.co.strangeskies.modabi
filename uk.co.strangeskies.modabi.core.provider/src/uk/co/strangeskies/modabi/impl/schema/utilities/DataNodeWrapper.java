@@ -28,24 +28,25 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public final class DataNodeWrapper<T> extends
-		BindingChildNodeWrapper<T, DataType.Effective<T>, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
+public final class DataNodeWrapper<T>
+		extends BindingChildNodeWrapper<T, DataNode.Effective<? super T>, DataNode<T>, DataNode.Effective<T>>
 		implements DataNode.Effective<T> {
-	public DataNodeWrapper(DataType.Effective<T> component) {
+	private final DataType.Effective<? super T> type;
+
+	protected DataNodeWrapper(DataType.Effective<T> component) {
 		super(component);
+		type = component;
 	}
 
-	public DataNodeWrapper(DataType.Effective<T> component,
-			DataNode.Effective<? super T> base) {
+	protected DataNodeWrapper(DataType.Effective<? super T> component, DataNode.Effective<? super T> base) {
 		super(component, base);
+		type = component;
 
-		String message = "Cannot override '" + base.name() + "' with '"
-				+ component.name() + "'";
+		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
-					&& !TypeToken.over(component.getDataType().getType())
-							.isAssignableFrom(providedValue.getClass()))
+					&& !TypeToken.over(component.getDataType().getType()).isAssignableFrom(providedValue.getClass()))
 				throw new SchemaException(message);
 
 		DataType.Effective<? super T> check = component;
@@ -54,6 +55,27 @@ public final class DataNodeWrapper<T> extends
 			if (check == null)
 				throw new SchemaException(message);
 		}
+	}
+
+	protected DataNodeWrapper(DataNode.Effective<T> node) {
+		super(node, node);
+		type = node.type();
+	}
+
+	public static <T> DataNodeWrapper<T> wrapType(DataType.Effective<T> component) {
+		return new DataNodeWrapper<>(component);
+	}
+
+	/*
+	 * TODO this isn't really type safe when not just inferred...
+	 */
+	public static <T> DataNodeWrapper<T> wrapNodeWithOverrideType(DataType.Effective<? super T> override,
+			DataNode.Effective<? super T> node) {
+		return new DataNodeWrapper<>(override, node);
+	}
+
+	public static <T> DataNodeWrapper<T> wrapNode(DataNode.Effective<T> node) {
+		return new DataNodeWrapper<>(node);
 	}
 
 	@Override
@@ -78,8 +100,8 @@ public final class DataNodeWrapper<T> extends
 	}
 
 	@Override
-	public DataType.Effective<T> type() {
-		return getComponent();
+	public DataType.Effective<? super T> type() {
+		return type;
 	}
 
 	@Override

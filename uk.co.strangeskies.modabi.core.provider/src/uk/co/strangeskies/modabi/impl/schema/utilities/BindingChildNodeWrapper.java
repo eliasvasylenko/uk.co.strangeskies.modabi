@@ -24,13 +24,13 @@ import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public abstract class BindingChildNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingChildNode.Effective<? super T, ?, ?>, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
-		extends BindingNodeWrapper<T, C, B, S, E> implements BindingChildNode.Effective<T, S, E> {
-	public BindingChildNodeWrapper(C component) {
+public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode.Effective<? super T, ?, ?>, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
+		extends BindingNodeWrapper<T, B, S, E> implements BindingChildNode.Effective<T, S, E> {
+	public BindingChildNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
 		super(component);
 	}
 
-	public BindingChildNodeWrapper(C component, B base) {
+	public BindingChildNodeWrapper(BindingNode.Effective<? super T, ?, ?> component, B base) {
 		super(component, base);
 	}
 

@@ -24,8 +24,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
 
-public class ModelWrapper<T> extends
-		BindingNodeWrapper<T, BindingNode.Effective<T, ?, ?>, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
+public class ModelWrapper<T> extends BindingNodeWrapper<T, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
 		implements Model.Effective<T> {
 	public ModelWrapper(BindingNode.Effective<T, ?, ?> component) {
 		super(component);

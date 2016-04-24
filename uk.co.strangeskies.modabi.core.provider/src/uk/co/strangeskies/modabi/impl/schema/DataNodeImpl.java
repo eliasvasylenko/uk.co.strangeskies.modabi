@@ -38,7 +38,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 		implements DataNode<T> {
 	public static class Effective<T> extends BindingChildNodeImpl.Effective<T, DataNode<T>, DataNode.Effective<T>>
 			implements DataNode.Effective<T> {
-		private final DataType.Effective<T> type;
+		private final DataType.Effective<? super T> type;
 		private final Format format;
 		private final DataSource providedBuffer;
 		private final ValueResolution resolution;
@@ -47,7 +47,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 		private Effective(OverrideMerge<DataNode<T>, DataNodeConfiguratorImpl<T>> overrideMerge) {
 			super(overrideMerge, false);
 
-			DataType<T> type = overrideMerge.getOverride(DataNode::type)
+			DataType<? super T> type = overrideMerge.getOverride(DataNode::type)
 					.validate((n, o) -> n.effective().base().contains(o.effective())).tryGet();
 			this.type = type == null ? null : type.effective();
 
@@ -116,7 +116,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 		}
 
 		@Override
-		public final DataType.Effective<T> type() {
+		public final DataType.Effective<? super T> type() {
 			return type;
 		}
 

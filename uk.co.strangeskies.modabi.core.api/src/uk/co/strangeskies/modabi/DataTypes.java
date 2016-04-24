@@ -71,9 +71,9 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 		}
 	}
 
-	public <T> List<DataType<? extends T>> getTypesWithBase(DataNode<T> node) {
+	public <T> List<DataType<?>> getTypesWithBase(DataNode<T> node) {
 		synchronized (getMutex()) {
-			List<DataType<? extends T>> subTypes =
+			List<DataType<?>> subTypes =
 
 					getDerivedTypes(node.effective().type())
 

@@ -33,22 +33,22 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? super T, ?, ?>, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
+public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		implements BindingNode.Effective<T, S, E> {
-	private final C component;
+	private final BindingNode.Effective<? super T, ?, ?> component;
 	private final B base;
 
 	private final TypeToken<T> dataType;
 
 	@SuppressWarnings("unchecked")
-	public BindingNodeWrapper(C component) {
+	public BindingNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
 		this.component = component;
 		base = null;
 		dataType = (TypeToken<T>) component.getDataType();
 	}
 
 	@SuppressWarnings("unchecked")
-	public BindingNodeWrapper(C component, B base) {
+	public BindingNodeWrapper(BindingNode.Effective<? super T, ?, ?> component, B base) {
 		this.component = component;
 		this.base = base;
 
@@ -89,7 +89,7 @@ public abstract class BindingNodeWrapper<T, C extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 	}
 
-	public C getComponent() {
+	public BindingNode.Effective<? super T, ?, ?> getComponent() {
 		return component;
 	}
 

@@ -42,7 +42,7 @@ public interface DataNode<T>
 		}
 
 		@Override
-		DataType.Effective<T> type();
+		DataType.Effective<? super T> type();
 
 		@Override
 		default List<DataType.Effective<? super T>> base() {
@@ -106,7 +106,7 @@ public interface DataNode<T>
 
 	ValueResolution valueResolution();
 
-	DataType<T> type();
+	DataType<? super T> type();
 
 	@Override
 	default List<? extends DataType<? super T>> base() {

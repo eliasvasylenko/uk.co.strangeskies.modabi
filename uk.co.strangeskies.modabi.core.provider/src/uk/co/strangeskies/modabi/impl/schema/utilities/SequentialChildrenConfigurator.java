@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.ChoiceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.ComplexNodeConfiguratorImpl;
@@ -38,10 +39,10 @@ import uk.co.strangeskies.modabi.impl.schema.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.InputSequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
@@ -229,16 +230,22 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		}
 
 		for (; childIndex < indexReached; childIndex++) {
-			ChildNode.Effective<?, ?> skippedChild = mergedChildren.get(childIndex).getChild();
+			MergeGroup skippedGroup = mergedChildren.get(childIndex);
+			ChildNode.Effective<?, ?> skippedChild = skippedGroup.getChild();
 
-			inputTarget = mergedChildren.get(childIndex).getChild().getPostInputType();
-			
 			if (!context.isAbstract()) {
 				if (skippedChild.abstractness() == Abstractness.UNINFERRED) {
-					System.out.println();
-					System.out.println("THIS LITTLE BITCH NEEDS INFERRING HERE!!!!   " + skippedChild);
-					System.out.println("  " + skippedChild.getPostInputType().withBoundsFrom(inputTarget.getResolver()).infer());
-					System.out.println();
+					skippedChild = skippedChild.process(new ReturningNodeProcessor<ChildNode.Effective<?, ?>>() {
+						@Override
+						public <T> ChildNode.Effective<?, ?> accept(DataNode.Effective<T> node) {
+							return new DataNodeWrapper<>(node);
+						}
+
+						@Override
+						public ChildNode.Effective<?, ?> acceptDefault(SchemaNode.Effective<?, ?> node) {
+							return (ChildNode.Effective<?, ?>) node;
+						};
+					});
 				} else if (skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
 						&& !(skippedChild instanceof BindingChildNode
 								&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).isExtensible()))) {
@@ -247,6 +254,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 					throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
 				}
 			}
+
+			inputTarget = skippedChild.getPostInputType();
 		}
 	}
 

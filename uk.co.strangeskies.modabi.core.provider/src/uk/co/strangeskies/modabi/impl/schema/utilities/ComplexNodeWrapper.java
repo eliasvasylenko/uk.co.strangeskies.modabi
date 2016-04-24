@@ -27,14 +27,14 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-public class ComplexNodeWrapper<T> extends
-		BindingChildNodeWrapper<T, BindingNode.Effective<? super T, ?, ?>, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
+public class ComplexNodeWrapper<T>
+		extends BindingChildNodeWrapper<T, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
 		implements ComplexNode.Effective<T> {
 	public ComplexNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
 		super(component);
 	}
 
-	public ComplexNodeWrapper(Model.Effective<T> component, ComplexNode.Effective<? super T> base) {
+	public ComplexNodeWrapper(Model.Effective<? super T> component, ComplexNode.Effective<? super T> base) {
 		super(component, base);
 
 		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";

@@ -78,7 +78,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		List<DataNode<T>> overriddenNodes = new ArrayList<>();
 
 		if (type != null)
-			overriddenNodes.add(new DataNodeWrapper<>(type.effective()));
+			overriddenNodes.add(DataNodeWrapper.wrapType(type.effective()));
 
 		overriddenNodes.addAll(super.getOverriddenNodes());
 
