@@ -74,13 +74,13 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public List<DataNode<T>> getOverriddenNodes() {
-		List<DataNode<T>> overriddenNodes = new ArrayList<>();
+	public List<DataNode<? super T>> getOverriddenNodes() {
+		List<DataNode<? super T>> overriddenNodes = new ArrayList<>();
 
 		if (type != null)
 			overriddenNodes.add(DataNodeWrapper.wrapType(type.effective()));
 
-		overriddenNodes.addAll(super.getOverriddenNodes());
+		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<DataNode<? super T>>() {}));
 
 		return overriddenNodes;
 	}

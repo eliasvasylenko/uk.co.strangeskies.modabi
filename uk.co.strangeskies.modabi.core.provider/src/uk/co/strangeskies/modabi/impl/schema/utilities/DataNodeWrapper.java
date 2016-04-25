@@ -38,8 +38,8 @@ public final class DataNodeWrapper<T>
 		type = component;
 	}
 
-	protected DataNodeWrapper(DataType.Effective<? super T> component, DataNode.Effective<? super T> base) {
-		super(component, base);
+	protected DataNodeWrapper(DataNode.Effective<? super T> base, DataType.Effective<? super T> component) {
+		super(base, component);
 		type = component;
 
 		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
@@ -66,12 +66,16 @@ public final class DataNodeWrapper<T>
 		return new DataNodeWrapper<>(component);
 	}
 
-	/*
-	 * TODO this isn't really type safe when not just inferred...
-	 */
-	public static <T> DataNodeWrapper<T> wrapNodeWithOverrideType(DataType.Effective<? super T> override,
-			DataNode.Effective<? super T> node) {
-		return new DataNodeWrapper<>(override, node);
+	public static <T> DataNodeWrapper<? extends T> wrapNodeWithOverrideType(DataNode.Effective<T> node,
+			DataType.Effective<?> override) {
+		/*
+		 * This cast isn't strictly going to be valid according to the exact erased
+		 * type, but the runtime checks in the constructor should ensure the types
+		 * do fit the bounds
+		 */
+		@SuppressWarnings("unchecked")
+		DataType.Effective<? super T> castOverride = (DataType.Effective<? super T>) override;
+		return new DataNodeWrapper<>(node, castOverride);
 	}
 
 	public static <T> DataNodeWrapper<T> wrapNode(DataNode.Effective<T> node) {

@@ -33,6 +33,6 @@ public class ModelWrapper<T> extends BindingNodeWrapper<T, Model.Effective<? sup
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<Model.Effective<? super T>> baseModel() {
-		return (List<Model.Effective<? super T>>) Collections.unmodifiableList(getComponent().base());
+		return Collections.unmodifiableList((List<Model.Effective<? super T>>) getComponent().base());
 	}
 }

@@ -191,7 +191,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Imports getImports();
 
-	public abstract List<N> getOverriddenNodes();
+	public abstract List<? extends SchemaNode<?, ?>> getOverriddenNodes();
 
 	protected abstract ChildrenConfigurator createChildrenConfigurator();
 

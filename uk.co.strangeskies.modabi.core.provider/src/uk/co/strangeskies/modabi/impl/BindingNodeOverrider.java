@@ -78,20 +78,19 @@ public class BindingNodeOverrider {
 	 * @return a node which overrides the given node by merging it with a model
 	 *         which extends all components of the nodes model
 	 */
-	public <T> ComplexNode.Effective<T> override(SchemaBuilder builder, ComplexNode.Effective<? super T> node,
-			Model.Effective<? super T> override) {
+	public <T> ComplexNode.Effective<? extends T> override(SchemaBuilder builder, ComplexNode.Effective<T> node,
+			Model.Effective<?> override) {
 		try {
 			if (isDirectOverridePossible(node, override))
-				return new ComplexNodeWrapper<>(override, node);
+				return ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
 			else
-				return new OverridingProcessor().process(builder, new ComplexNodeWrapper<>(override, node), override);
+				return new OverridingProcessor().process(builder, ComplexNodeWrapper.wrapNodeWithOverrideType(node, override));
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override complex node '" + node + "' with model '" + override + "'", e);
 		}
 	}
 
-	private <T> boolean isDirectOverridePossible(ComplexNode.Effective<? super T> node,
-			Model.Effective<? super T> override) {
+	private <T> boolean isDirectOverridePossible(ComplexNode.Effective<? super T> node, Model.Effective<?> override) {
 		return node.children().isEmpty() && node.abstractness().isAtMost(Abstractness.UNINFERRED)
 				&& override.abstractness().isAtMost(Abstractness.UNINFERRED);
 	}
@@ -111,22 +110,20 @@ public class BindingNodeOverrider {
 	 * @return a node which overrides the given node by merging it with a data
 	 *         type which extends its type
 	 */
-	public <T> DataNode.Effective<T> override(SchemaBuilder builder, DataNode.Effective<? super T> node,
-			DataType.Effective<? super T> override) {
+	public <T> DataNode.Effective<? extends T> override(SchemaBuilder builder, DataNode.Effective<T> node,
+			DataType.Effective<?> override) {
 		try {
 			if (isDirectOverridePossible(node, override))
-				return DataNodeWrapper.wrapNodeWithOverrideType(override, node);
+				return DataNodeWrapper.wrapNodeWithOverrideType(node, override);
 			else
-				return new OverridingProcessor().<T>process(builder,
-						DataNodeWrapper.<T>wrapNodeWithOverrideType(override, node), override);
+				return new OverridingProcessor().process(builder, DataNodeWrapper.wrapNodeWithOverrideType(node, override));
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override data node '" + node + "' with data binding type '" + override + "'",
 					e);
 		}
 	}
 
-	private <T> boolean isDirectOverridePossible(DataNode.Effective<? super T> node,
-			DataType.Effective<? super T> override) {
+	private <T> boolean isDirectOverridePossible(DataNode.Effective<? super T> node, DataType.Effective<?> override) {
 		return node.children().isEmpty() && node.abstractness().isAtMost(Abstractness.UNINFERRED)
 				&& override.abstractness().isAtMost(Abstractness.UNINFERRED);
 	}
@@ -154,8 +151,8 @@ public class BindingNodeOverrider {
 		 * Configure the parent, or "base", node for the overriding node we are
 		 * building.
 		 */
-		private <T, C extends BindingNodeConfigurator<C, ?, ?>> C configureParentNode(C configurator,
-				BindingChildNodeWrapper<T, ?, ?, ?> node) {
+		private <C extends BindingNodeConfigurator<C, ?, Object>> C configureParentNode(C configurator,
+				BindingChildNodeWrapper<?, ?, ?, ?> node) {
 			configurator = configurator.name(new QualifiedName("base")).abstractness(Abstractness.ABSTRACT);
 
 			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
@@ -233,9 +230,10 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNodeWrapper<T> node,
-				Model.Effective<? super T> override) {
-			ModelConfigurator<?> configurator = configureParentNode(builder.configure(getDataLoader()).addModel(), node);
+		public <T> ComplexNode.Effective<T> process(SchemaBuilder builder, ComplexNodeWrapper<T> node) {
+			Model.Effective<? super T> override = node.model().get(0);
+
+			ModelConfigurator<Object> configurator = configureParentNode(builder.configure(getDataLoader()).addModel(), node);
 
 			List<Model<? super T>> models = new ArrayList<>(override.source().baseModel());
 			models.add(0, new ModelWrapper<>(node));
@@ -252,9 +250,10 @@ public class BindingNodeOverrider {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNodeWrapper<T> node,
-				DataType.Effective<? super T> override) {
-			DataTypeConfigurator<?> configurator = configureParentNode(builder.configure(getDataLoader()).addDataType(),
+		public <T> DataNode.Effective<T> process(SchemaBuilder builder, DataNodeWrapper<T> node) {
+			DataType.Effective<? super T> override = node.type();
+
+			DataTypeConfigurator<Object> configurator = configureParentNode(builder.configure(getDataLoader()).addDataType(),
 					node);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()

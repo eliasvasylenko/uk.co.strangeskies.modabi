@@ -59,14 +59,14 @@ public class ComplexNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public List<ComplexNode<T>> getOverriddenNodes() {
-		List<ComplexNode<T>> overriddenNodes = new ArrayList<>();
+	public List<ComplexNode<? super T>> getOverriddenNodes() {
+		List<ComplexNode<? super T>> overriddenNodes = new ArrayList<>();
 
 		if (baseModel != null)
 			for (Model<? super T> base : baseModel)
-				overriddenNodes.add(new ComplexNodeWrapper<>(base.effective()));
+				overriddenNodes.add(ComplexNodeWrapper.wrapType(base.effective()));
 
-		overriddenNodes.addAll(super.getOverriddenNodes());
+		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {}));
 
 		return overriddenNodes;
 	}

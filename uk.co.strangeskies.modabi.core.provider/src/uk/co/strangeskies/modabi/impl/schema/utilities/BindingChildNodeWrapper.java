@@ -26,12 +26,12 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode.Effective<? super T, ?, ?>, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 		extends BindingNodeWrapper<T, B, S, E> implements BindingChildNode.Effective<T, S, E> {
-	public BindingChildNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
+	public BindingChildNodeWrapper(BindingNode.Effective<T, ?, ?> component) {
 		super(component);
 	}
 
-	public BindingChildNodeWrapper(BindingNode.Effective<? super T, ?, ?> component, B base) {
-		super(component, base);
+	public BindingChildNodeWrapper(B base, BindingNode.Effective<?, ?, ?> component) {
+		super(base, component);
 	}
 
 	@Override

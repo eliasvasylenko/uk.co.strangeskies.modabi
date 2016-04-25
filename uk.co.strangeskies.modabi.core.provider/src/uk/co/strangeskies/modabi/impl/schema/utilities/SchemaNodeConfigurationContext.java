@@ -58,7 +58,7 @@ public interface SchemaNodeConfigurationContext {
 		throw new UnsupportedOperationException();
 	}
 
-	default <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
+	default <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
 		throw new UnsupportedOperationException();
 	}
 

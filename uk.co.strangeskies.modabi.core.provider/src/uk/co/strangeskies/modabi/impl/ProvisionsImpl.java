@@ -46,8 +46,10 @@ public final class ProvisionsImpl extends ScopedObservableSet<Provisions, Provid
 
 	@Override
 	public <T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state) {
-		return new TypedObject<>(type, visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull)
-				.findFirst().orElseThrow(() -> new SchemaException("No provider exists for the type '" + type + "'")));
+		return new TypedObject<>(type,
+				visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull).findFirst()
+						.<SchemaException> orElseThrow(
+								() -> new SchemaException("No provider exists for the type '" + type + "'")));
 	}
 
 	@Override

@@ -64,48 +64,69 @@ public class ReferenceTest {
 			SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator()
 					.qualifiedName(new QualifiedName("testReferences", Namespace.getDefault()));
 
+			System.out.println();
 			System.out.println("!");
+			System.out.println("! List Type 1");
 			System.out.println("!");
-			System.out.println("!");
-			DataType<List<?>> intListType = generatedSchema.addDataType()
-					.name("intReference",
-							Schema.MODABI_NAMESPACE)
-					.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
-					.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().derivedTypes().referenceType())
-							.addChild(p -> p.data().name("targetModel")
-									.provideValue(new BufferingDataTarget()
+			printInfo(
+					generatedSchema.addDataType().name("intReference", Schema.MODABI_NAMESPACE)
+							.baseType(
+									schemaManager.getBaseSchema().derivedTypes()
+											.listType())
+							.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().derivedTypes().referenceType())
+									.addChild(p -> p.data().name("targetModel").provideValue(new BufferingDataTarget()
 											.put(Primitive.QUALIFIED_NAME, new QualifiedName("schema", Schema.MODABI_NAMESPACE)).buffer()))
-							.addChild(p -> p.data().name("targetId")
-									.provideValue(new BufferingDataTarget()
-											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", Schema.MODABI_NAMESPACE)).buffer()))
-							.addChild(d -> d.data().name("data")))
-					.create();
+									.addChild(p -> p.data().name("targetId")
+											.provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", Schema.MODABI_NAMESPACE)).buffer()))
+									.addChild(d -> d.data().name("data")))
+							.create());
 
-			// target model types
 			System.out.println();
-
-			System.out.println(((DataNode<?>) intListType.effective().child("element", "targetModel")).getPostInputType());
-			System.out
-					.println(((DataNode<?>) intListType.effective().child("element", "targetModel")).getPostInputType().infer());
-
-			System.out.println(((DataNode<?>) intListType.effective().child("element", "targetModel")).getDataType());
-			System.out.println(((DataNode<?>) intListType.effective().child("element", "targetModel")).getDataType().infer());
-
-			// target id types
-			System.out.println();
-
-			System.out.println(((DataNode<?>) intListType.effective().child("element", "targetId")).getPostInputType());
-			System.out
-					.println(((DataNode<?>) intListType.effective().child("element", "targetId")).getPostInputType().infer());
-
-			System.out.println(((DataNode<?>) intListType.effective().child("element", "targetId")).getDataType());
-			System.out.println(((DataNode<?>) intListType.effective().child("element", "targetId")).getDataType().infer());
-
-			// finishing move!
-			System.out.println();
-
-			System.out.println(intListType.effective().getDataType());
-			System.out.println(intListType.effective().getDataType().infer());
+			System.out.println("!");
+			System.out.println("! List Type 2");
+			System.out.println("!");
+			printInfo(
+					generatedSchema.addDataType().name("intReference", Schema.MODABI_NAMESPACE)
+							.baseType(
+									schemaManager.getBaseSchema().derivedTypes()
+											.listType())
+							.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().derivedTypes().referenceType())
+									.addChild(p -> p.data().name("targetModel").provideValue(new BufferingDataTarget()
+											.put(Primitive.QUALIFIED_NAME, new QualifiedName("schema", Schema.MODABI_NAMESPACE)).buffer()))
+									.addChild(p -> p.data().name("targetId")
+											.provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", Schema.MODABI_NAMESPACE)).buffer())))
+							.create());
 		});
+
+		System.out.println();
+	}
+
+	private void printInfo(DataType<List<?>> listType) {
+		// target model types
+		printInfo((DataNode<?>) listType.effective().child("element", "targetModel"));
+
+		// target id types
+		printInfo((DataNode<?>) listType.effective().child("element", "targetId"));
+
+		// data types
+		printInfo((DataNode<?>) listType.effective().child("element", "data"));
+
+		// finishing move!
+		System.out.println();
+
+		System.out.println(listType.effective().getDataType());
+		System.out.println(listType.effective().getDataType().infer());
+	}
+
+	private void printInfo(DataNode<?> node) {
+		System.out.println();
+
+		System.out.println(node.getPostInputType());
+		System.out.println(node.getPostInputType().infer());
+
+		System.out.println(node.getDataType());
+		System.out.println(node.getDataType().infer());
 	}
 }

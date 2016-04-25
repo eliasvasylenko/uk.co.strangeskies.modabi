@@ -18,11 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -30,12 +29,17 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 public class ComplexNodeWrapper<T>
 		extends BindingChildNodeWrapper<T, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
 		implements ComplexNode.Effective<T> {
-	public ComplexNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
+	private final List<Model.Effective<? super T>> model;
+
+	protected ComplexNodeWrapper(Model.Effective<T> component) {
 		super(component);
+		model = component.baseModel();
 	}
 
-	public ComplexNodeWrapper(Model.Effective<? super T> component, ComplexNode.Effective<? super T> base) {
-		super(component, base);
+	protected ComplexNodeWrapper(ComplexNode.Effective<? super T> base, Model.Effective<? super T> component) {
+		super(base, component);
+		model = new ArrayList<>(component.baseModel());
+		model.add(0, component);
 
 		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
 
@@ -43,10 +47,34 @@ public class ComplexNodeWrapper<T>
 			throw new SchemaException(message);
 	}
 
-	@SuppressWarnings("unchecked")
+	protected ComplexNodeWrapper(ComplexNode.Effective<T> node) {
+		super(node, node);
+		model = node.model();
+	}
+
+	public static <T> ComplexNodeWrapper<T> wrapType(Model.Effective<T> component) {
+		return new ComplexNodeWrapper<>(component);
+	}
+
+	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(ComplexNode.Effective<T> node,
+			Model.Effective<?> override) {
+		/*
+		 * This cast isn't strictly going to be valid according to the exact erased
+		 * type, but the runtime checks in the constructor should ensure the types
+		 * do fit the bounds
+		 */
+		@SuppressWarnings("unchecked")
+		Model.Effective<? super T> castOverride = (Model.Effective<? super T>) override;
+		return new ComplexNodeWrapper<>(node, castOverride);
+	}
+
+	public static <T> ComplexNodeWrapper<T> wrapNode(ComplexNode.Effective<T> node) {
+		return new ComplexNodeWrapper<>(node);
+	}
+
 	@Override
 	public List<Model.Effective<? super T>> model() {
-		return (List<Model.Effective<? super T>>) Collections.unmodifiableList(getComponent().base());
+		return model;
 	}
 
 	@Override

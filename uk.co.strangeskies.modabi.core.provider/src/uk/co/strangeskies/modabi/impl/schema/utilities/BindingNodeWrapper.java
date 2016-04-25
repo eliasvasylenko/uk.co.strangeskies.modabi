@@ -35,20 +35,19 @@ import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		implements BindingNode.Effective<T, S, E> {
-	private final BindingNode.Effective<? super T, ?, ?> component;
+	private final BindingNode.Effective<?, ?, ?> component;
 	private final B base;
 
 	private final TypeToken<T> dataType;
 
-	@SuppressWarnings("unchecked")
-	public BindingNodeWrapper(BindingNode.Effective<? super T, ?, ?> component) {
+	public BindingNodeWrapper(BindingNode.Effective<T, ?, ?> component) {
 		this.component = component;
 		base = null;
 		dataType = (TypeToken<T>) component.getDataType();
 	}
 
 	@SuppressWarnings("unchecked")
-	public BindingNodeWrapper(BindingNode.Effective<? super T, ?, ?> component, B base) {
+	public BindingNodeWrapper(B base, BindingNode.Effective<?, ?, ?> component) {
 		this.component = component;
 		this.base = base;
 
@@ -89,7 +88,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 			throw new SchemaException(message);
 	}
 
-	public BindingNode.Effective<? super T, ?, ?> getComponent() {
+	public BindingNode.Effective<?, ?, ?> getComponent() {
 		return component;
 	}
 

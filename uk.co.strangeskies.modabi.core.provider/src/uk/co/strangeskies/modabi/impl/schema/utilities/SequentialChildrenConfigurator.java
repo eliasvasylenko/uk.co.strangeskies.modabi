@@ -41,6 +41,7 @@ import uk.co.strangeskies.modabi.impl.schema.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
@@ -205,15 +206,15 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
+	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
 		List<ChildNode.Effective<?, ?>> overriddenNodes = new ArrayList<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
-			mergeGroup.getChildren().stream().filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass())).findAny()
+			mergeGroup.getChildren().stream().filter(n -> !nodeType.getRawType().isAssignableFrom(n.getClass())).findAny()
 					.ifPresent(n -> {
 						throw new SchemaException(
-								"Cannot override with node of class '" + n.getClass() + "' with a node of class '" + nodeClass + "'");
+								"Cannot override with node of class '" + n.getClass() + "' with a node of class '" + nodeType + "'");
 					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
@@ -238,7 +239,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 					skippedChild = skippedChild.process(new ReturningNodeProcessor<ChildNode.Effective<?, ?>>() {
 						@Override
 						public <T> ChildNode.Effective<?, ?> accept(DataNode.Effective<T> node) {
-							return new DataNodeWrapper<>(node);
+							return DataNodeWrapper.wrapNode(node);
+						}
+
+						@Override
+						public <T> ChildNode.Effective<?, ?> accept(ComplexNode.Effective<T> node) {
+							return ComplexNodeWrapper.wrapNode(node);
 						}
 
 						@Override
@@ -318,8 +324,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeClass) {
-				return SequentialChildrenConfigurator.this.overrideChild(id, nodeClass);
+			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
+				return SequentialChildrenConfigurator.this.overrideChild(id, nodeType);
 			}
 
 			@Override
