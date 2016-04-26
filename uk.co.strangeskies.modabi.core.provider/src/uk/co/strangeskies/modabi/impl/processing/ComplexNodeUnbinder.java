@@ -38,13 +38,13 @@ public class ComplexNodeUnbinder {
 	public <U> void unbind(ComplexNode.Effective<U> node, List<U> data) {
 		ProcessingContextImpl context = new ProcessingContextImpl(this.context);
 
-		if (node.isExtensible()) {
+		if (node.extensible()) {
 			for (U item : data) {
 				ComputingMap<Model<? extends U>, ComplexNode.Effective<? extends U>> overrides = context
 						.getComplexNodeOverrides(node);
 
 				List<Model<? extends U>> validOverrides = overrides.keySet().stream()
-						.filter(m -> m.effective().getDataType().getRawType().isAssignableFrom(item.getClass()))
+						.filter(m -> m.effective().dataType().getRawType().isAssignableFrom(item.getClass()))
 						.collect(Collectors.toList());
 
 				if (validOverrides.isEmpty()) {
@@ -72,12 +72,12 @@ public class ComplexNodeUnbinder {
 
 	private <U> void unbindExactNode(ProcessingContextImpl context, ComplexNode.Effective<U> element, U data) {
 		try {
-			if (!element.isInline())
+			if (!element.inline())
 				context.output().get().addChild(element.name());
 
 			new BindingNodeUnbinder(context).unbind(element, data);
 
-			if (!element.isInline())
+			if (!element.inline())
 				context.output().get().endChild();
 
 			context.bindings().add(element, data);

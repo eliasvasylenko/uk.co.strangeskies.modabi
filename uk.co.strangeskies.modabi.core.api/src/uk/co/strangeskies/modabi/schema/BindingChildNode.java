@@ -24,12 +24,14 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 		extends BindingNode<T, S, E>, InputNode<S, E> {
 	interface Effective<T, S extends BindingChildNode<T, S, E>, E extends Effective<T, S, E>>
 			extends BindingChildNode<T, S, E>, BindingNode.Effective<T, S, E>, InputNode.Effective<S, E> {
-		Invokable<?, ?> getOutMethod();
+		Invokable<?, ?> outMethod();
 	}
 
-	Boolean isOutMethodUnchecked();
+	Boolean synchronous();
 
-	String getOutMethodName();
+	Boolean outMethodUnchecked();
+
+	String outMethodName();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the
@@ -37,11 +39,11 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E exte
 	 *
 	 * @return
 	 */
-	Boolean isOutMethodIterable();
+	Boolean outMethodIterable();
 
-	Boolean isOutMethodCast();
+	Boolean outMethodCast();
 
-	Boolean isExtensible();
+	Boolean extensible();
 
 	Boolean nullIfOmitted();
 }

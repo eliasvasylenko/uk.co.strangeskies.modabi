@@ -60,7 +60,7 @@ public interface DataNode<T>
 		List<T> providedValues();
 
 		default List<TypedObject<T>> typedProvidedValues() {
-			return providedValues().stream().map(getDataType()::typedObject).collect(Collectors.toList());
+			return providedValues().stream().map(dataType()::typedObject).collect(Collectors.toList());
 		}
 
 		default T providedValue() {
@@ -75,7 +75,7 @@ public interface DataNode<T>
 		}
 
 		default TypedObject<T> typedProvidedValue() {
-			return getDataType().typedObject(providedValue());
+			return dataType().typedObject(providedValue());
 		}
 	}
 
@@ -115,6 +115,6 @@ public interface DataNode<T>
 
 	@Override
 	default TypeToken<DataNode<T>> getThisType() {
-		return new TypeToken<DataNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());
+		return new TypeToken<DataNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
 }

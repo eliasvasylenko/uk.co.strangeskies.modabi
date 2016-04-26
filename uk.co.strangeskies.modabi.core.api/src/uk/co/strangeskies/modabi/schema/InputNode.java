@@ -23,12 +23,12 @@ import uk.co.strangeskies.reflection.Invokable;
 public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effective<S, E>> extends ChildNode<S, E> {
 	interface Effective<S extends InputNode<S, E>, E extends Effective<S, E>>
 			extends InputNode<S, E>, ChildNode.Effective<S, E> {
-		Invokable<?, ?> getInMethod();
+		Invokable<?, ?> inMethod();
 	}
 
-	Boolean isInMethodUnchecked();
+	Boolean inMethodUnchecked();
 
-	String getInMethodName();
+	String inMethodName();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the
@@ -36,7 +36,7 @@ public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effect
 	 *
 	 * @return
 	 */
-	Boolean isInMethodChained();
+	Boolean inMethodChained();
 
-	Boolean isInMethodCast();
+	Boolean inMethodCast();
 }

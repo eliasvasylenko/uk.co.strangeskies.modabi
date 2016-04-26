@@ -210,7 +210,7 @@ public class BindingProviders {
 			DataNode.Effective<?> idNode, DataItem<?> id) {
 		Objects.requireNonNull(bindingCandidate);
 
-		DataSource candidateId = unbindDataNode(context, idNode, new TypedObject<>(model.getDataType(), bindingCandidate));
+		DataSource candidateId = unbindDataNode(context, idNode, new TypedObject<>(model.dataType(), bindingCandidate));
 
 		if (candidateId.size() == 1) {
 			DataItem<?> candidateData = candidateId.get();
@@ -229,7 +229,7 @@ public class BindingProviders {
 		 * Should only have one raw type. Non-abstract models shouldn't be
 		 * intersection types.
 		 */
-		Class<?> rawType = model.effective().getDataType().getRawType();
+		Class<?> rawType = model.effective().dataType().getRawType();
 
 		/*
 		 * TODO check if raw type is actually proxiable...

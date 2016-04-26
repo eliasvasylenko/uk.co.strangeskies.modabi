@@ -49,6 +49,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Boolean inMethodCast;
 	private Boolean inMethodUnchecked;
 	private Boolean extensible;
+	private Boolean synchronous;
 
 	public BindingChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		this.context = parent;
@@ -62,6 +63,18 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		this.nullIfOmitted = nullIfOmitted;
 
 		return getThis();
+	}
+
+	@Override
+	public S synchronous(boolean synchronous) {
+		assertConfigurable(synchronous);
+		this.synchronous = synchronous;
+
+		return getThis();
+	}
+
+	public Boolean getSynchronous() {
+		return synchronous;
 	}
 
 	public Boolean getNullIfOmitted() {
@@ -260,10 +273,10 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				null, this);
 
 		System.out.println(
-				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).getInMethod()).tryGet());
+				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).inMethod()).tryGet());
 
 		System.out.println(
-				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).getOutMethod()).tryGet());
+				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).outMethod()).tryGet());
 
 		return null;
 	}

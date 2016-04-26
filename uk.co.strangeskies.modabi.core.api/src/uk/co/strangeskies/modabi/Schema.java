@@ -25,13 +25,13 @@ import uk.co.strangeskies.reflection.Imports;
 public interface Schema {
 	public static final Namespace MODABI_NAMESPACE = new Namespace(Schema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
-	public QualifiedName getQualifiedName();
+	public QualifiedName qualifiedName();
 
-	public Imports getImports();
+	public Imports imports();
 
-	public Schemata getDependencies();
+	public Schemata dependencies();
 
-	public DataTypes getDataTypes();
+	public DataTypes dataTypes();
 
-	public Models getModels();
+	public Models models();
 }

@@ -32,6 +32,8 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	S extensible(boolean extensible);
 
+	S synchronous(boolean synchronous);
+
 	S nullIfOmitted(boolean nullIfOmitted);
 
 	TypeToken<T> getExpectedType();

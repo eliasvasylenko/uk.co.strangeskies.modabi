@@ -46,7 +46,7 @@ public final class DataNodeWrapper<T>
 
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
-					&& !TypeToken.over(component.getDataType().getType()).isAssignableFrom(providedValue.getClass()))
+					&& !TypeToken.over(component.dataType().getType()).isAssignableFrom(providedValue.getClass()))
 				throw new SchemaException(message);
 
 		DataType.Effective<? super T> check = component;

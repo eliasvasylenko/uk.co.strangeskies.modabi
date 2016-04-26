@@ -72,7 +72,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 			Function<ProcessingContextImpl, U> bind = c -> bindExactNode(c, exactNode);
 			U binding;
 
-			if (node.isInline() && !node.occurrences().isValueBelow(count)) {
+			if (node.inline() && !node.occurrences().isValueBelow(count)) {
 				/*
 				 * If the current node is inline we cannot predetermine whether the next
 				 * input element matches by reading the name, so we must attempt to bind
@@ -115,7 +115,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 		ComplexNode.Effective<? extends U> exactNode;
 
 		if (nextElement != null) {
-			if (node.isExtensible()) {
+			if (node.extensible()) {
 				Model.Effective<?> extension = context.getModel(nextElement);
 
 				if (extension == null) {
@@ -123,7 +123,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				}
 
 				exactNode = context.getComplexNodeOverrides(node).putGet((Effective<? extends U>) extension);
-			} else if (node.isInline() || Objects.equals(nextElement, node.name())) {
+			} else if (node.inline() || Objects.equals(nextElement, node.name())) {
 				exactNode = node;
 			} else {
 				exactNode = null;
@@ -136,12 +136,12 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 	}
 
 	protected U bindExactNode(ProcessingContextImpl context, ComplexNode.Effective<? extends U> node) {
-		if (!node.isInline())
+		if (!node.inline())
 			context.input().get().startNextChild();
 
 		U binding = new BindingNodeBinder(context).bind(node);
 
-		if (!node.isInline())
+		if (!node.inline())
 			context.input().get().endChild();
 
 		return binding;

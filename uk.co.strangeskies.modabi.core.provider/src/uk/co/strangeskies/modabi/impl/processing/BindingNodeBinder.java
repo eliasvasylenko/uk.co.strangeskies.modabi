@@ -63,11 +63,11 @@ public class BindingNodeBinder {
 		TypedObject<?> binding;
 		List<ChildNode.Effective<?, ?>> children = node.children();
 
-		BindingStrategy strategy = node.getBindingStrategy();
+		BindingStrategy strategy = node.bindingStrategy();
 		if (strategy == null)
 			strategy = BindingStrategy.PROVIDED;
 
-		TypeToken<?> bindingType = node.getBindingType() != null ? node.getBindingType() : node.getDataType();
+		TypeToken<?> bindingType = node.bindingType() != null ? node.bindingType() : node.dataType();
 
 		switch (strategy) {
 		case PROVIDED:
@@ -98,7 +98,7 @@ public class BindingNodeBinder {
 				binding = TypedObject.castInto(bindingType, ((Constructor<?>) inputMethod).newInstance(parameterArray));
 			} catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
 				throw new ProcessingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
-						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
+						+ node.unbindingType() + "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
 		case STATIC_FACTORY:
@@ -123,7 +123,7 @@ public class BindingNodeBinder {
 				binding = TypedObject.castInto(bindingType, ((Method) inputMethod).invoke(null, parameterArray));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
 				throw new ProcessingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
-						+ node.getUnbindingType() + "' with parameters '" + parameters + "'", context, e);
+						+ node.unbindingType() + "' with parameters '" + parameters + "'", context, e);
 			}
 			break;
 		case IMPLEMENT_IN_PLACE:
@@ -131,9 +131,9 @@ public class BindingNodeBinder {
 			 * TODO some proxy magic with simple bean-like semantics. Remember, this
 			 * may be more complex if we want proper *generic* type safety!
 			 */
-			Set<? extends Class<?>> classes = node.getDataType().getRawTypes();
+			Set<? extends Class<?>> classes = node.dataType().getRawTypes();
 
-			binding = new TypedObject<>(node.getDataType(), (U) Proxy.newProxyInstance(getClass().getClassLoader(),
+			binding = new TypedObject<>(node.dataType(), (U) Proxy.newProxyInstance(getClass().getClassLoader(),
 					classes.toArray(new Class<?>[classes.size()]), new InvocationHandler() {
 						@Override
 						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -187,17 +187,17 @@ public class BindingNodeBinder {
 		node.process(new NodeProcessor() {
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				result.set(node.getInMethod().getExecutable());
+				result.set(node.inMethod().getExecutable());
 			}
 
 			@Override
 			public <U> void accept(DataNode.Effective<U> node) {
-				result.set(node.getInMethod().getExecutable());
+				result.set(node.inMethod().getExecutable());
 			}
 
 			@Override
 			public void accept(InputSequenceNode.Effective node) {
-				result.set(node.getInMethod().getExecutable());
+				result.set(node.inMethod().getExecutable());
 			}
 		});
 		return result.get();

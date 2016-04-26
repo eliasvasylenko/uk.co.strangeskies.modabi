@@ -61,9 +61,9 @@ public class ModabiExtender extends ExtenderManager {
 
 					Schema schema = manager.bindSchema().withClassLoader(targetClassloader).from(resource).resolve();
 
-					if (!schema.getQualifiedName().equals(schemaName)) {
+					if (!schema.qualifiedName().equals(schemaName)) {
 						throw new SchemaException(
-								"Schema bound '" + schema.getQualifiedName() + "' does not match declared name '" + schemaName + "'");
+								"Schema bound '" + schema.qualifiedName() + "' does not match declared name '" + schemaName + "'");
 					}
 
 					log(Level.INFO, "Successfully bound schema '" + schemaName + "' in Modabi extender");

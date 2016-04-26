@@ -44,7 +44,7 @@ public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTyp
 
 	/**
 	 * @param dataType
-	 *          The value to be returned by {@link DataType#getDataType()}.
+	 *          The value to be returned by {@link DataType#dataType()}.
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")

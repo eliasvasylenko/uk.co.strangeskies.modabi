@@ -46,10 +46,10 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 			baseModel.addAll(overrideMerge.node().model().stream().map(SchemaNode::effective).collect(Collectors.toSet()));
 			this.baseModel = Collections.unmodifiableList(baseModel);
 
-			Boolean inline = overrideMerge.getOverride(ComplexNode::isInline).orDefault(false).get();
+			Boolean inline = overrideMerge.getOverride(ComplexNode::inline).orDefault(false).get();
 			this.inline = inline != null && inline;
 
-			if (this.inline && isExtensible() != null && isExtensible())
+			if (this.inline && extensible() != null && extensible())
 				throw new SchemaException("Complex node '" + name() + "' cannot be both inline and extensible");
 		}
 
@@ -59,7 +59,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 		}
 
 		@Override
-		public Boolean isInline() {
+		public Boolean inline() {
 			return inline;
 		}
 
@@ -97,7 +97,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 	}
 
 	@Override
-	public Boolean isInline() {
+	public Boolean inline() {
 		return inline;
 	}
 

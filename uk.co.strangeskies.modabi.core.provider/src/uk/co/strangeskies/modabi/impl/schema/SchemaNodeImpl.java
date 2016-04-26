@@ -88,13 +88,13 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 
 					@Override
 					public <U> void accept(DataNode.Effective<U> node) {
-						if (node.isExtensible() == null || !node.isExtensible())
+						if (node.extensible() == null || !node.extensible())
 							requireNonAbstract(nodeStack);
 					}
 
 					@Override
 					public <U> void accept(ComplexNode.Effective<U> node) {
-						if (node.isExtensible() == null || !node.isExtensible())
+						if (node.extensible() == null || !node.extensible())
 							requireNonAbstract(nodeStack);
 					}
 				});

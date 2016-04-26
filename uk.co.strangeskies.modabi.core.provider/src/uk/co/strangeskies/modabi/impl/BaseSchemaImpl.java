@@ -237,7 +237,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.bindingStrategy(BindingStrategy.PROVIDED).bindingType(ProcessingContext.class)
 									.addChild(e -> e.inputSequence().name("bindingNode").inMethod("getBindingNode").inMethodChained(true)
 											.postInputType(new TypeToken<DataType.Effective<?>>() {}).inMethodCast(true))
-									.addChild(p -> p.inputSequence().name("getDataType").inMethodChained(true))
+									.addChild(p -> p.inputSequence().name("dataType").inMethodChained(true))
 									.addChild(p -> p.inputSequence().name("getRawType").inMethodChained(true).inMethodCast(true)
 											.postInputType(new TypeToken<Class<? extends Enum<?>>>() {})))
 							.addChild(o -> o.data().name("name").type(primitives.get(Primitive.STRING)))));
@@ -250,7 +250,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.bindingStrategy(BindingStrategy.PROVIDED).bindingType(ProcessingContext.class)
 									.addChild(e -> e.inputSequence().name("bindingNode").inMethod("getBindingNode").inMethodChained(true)
 											.postInputType(new TypeToken<DataType.Effective<?>>() {}).inMethodCast(true))
-									.addChild(p -> p.inputSequence().name("getDataType").inMethodChained(true))
+									.addChild(p -> p.inputSequence().name("dataType").inMethodChained(true))
 									.addChild(p -> p.inputSequence().name("getRawType").inMethodChained(true).inMethodCast(true)
 											.postInputType(new TypeToken<Class<? extends Enumeration<?>>>() {})))
 							.addChild(o -> o.data().name("name").type(primitives.get(Primitive.STRING)))));
@@ -672,30 +672,30 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	@Override
-	public BaseModels models() {
+	public BaseModels baseModels() {
 		return models;
 	}
 
 	/* Schema */
 
 	@Override
-	public QualifiedName getQualifiedName() {
-		return baseSchema.getQualifiedName();
+	public QualifiedName qualifiedName() {
+		return baseSchema.qualifiedName();
 	}
 
 	@Override
-	public Schemata getDependencies() {
-		return baseSchema.getDependencies();
+	public Schemata dependencies() {
+		return baseSchema.dependencies();
 	}
 
 	@Override
-	public DataTypes getDataTypes() {
-		return baseSchema.getDataTypes();
+	public DataTypes dataTypes() {
+		return baseSchema.dataTypes();
 	}
 
 	@Override
-	public Models getModels() {
-		return baseSchema.getModels();
+	public Models models() {
+		return baseSchema.models();
 	}
 
 	@Override
@@ -709,12 +709,12 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	@Override
-	public Imports getImports() {
+	public Imports imports() {
 		return Imports.empty();
 	}
 
 	@Override
 	public String toString() {
-		return getQualifiedName().toString();
+		return qualifiedName().toString();
 	}
 }

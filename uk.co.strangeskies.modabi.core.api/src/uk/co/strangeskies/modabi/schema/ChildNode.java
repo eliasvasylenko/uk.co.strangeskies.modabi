@@ -24,7 +24,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>> extends SchemaNode<S, E> {
 	interface Effective<S extends ChildNode<S, E>, E extends Effective<S, E>>
 			extends ChildNode<S, E>, SchemaNode.Effective<S, E> {
-		TypeToken<?> getPreInputType();
+		TypeToken<?> preInputType();
 
 		@Override
 		SchemaNode.Effective<?, ?> parent();
@@ -44,12 +44,12 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 	 *
 	 * @return
 	 */
-	Boolean isOrdered();
+	Boolean ordered();
 
-	TypeToken<?> getPostInputType();
+	TypeToken<?> postInputType();
 
-	default String getPostInputTypeString() {
-		return getPostInputType() == null ? null : getPostInputType().toString(schema().getImports());
+	default String postInputTypeString() {
+		return postInputType() == null ? null : postInputType().toString(schema().imports());
 	}
 
 	SchemaNode<?, ?> parent();

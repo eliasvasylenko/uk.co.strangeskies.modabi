@@ -219,10 +219,10 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		if (node.model() != null && !node.model().isEmpty()) {
 			models = registeredModels.getModelsWithBase(node.model()).stream().map(SchemaNode::source)
-					.filter(n -> node.getDataType().isAssignableFrom(n.effective().getDataType())).collect(Collectors.toList());
+					.filter(n -> node.dataType().isAssignableFrom(n.effective().dataType())).collect(Collectors.toList());
 		} else {
 			models = registeredModels.stream().map(SchemaNode::source)
-					.filter(c -> node.getDataType().isAssignableFrom(c.effective().getDataType()))
+					.filter(c -> node.dataType().isAssignableFrom(c.effective().dataType()))
 					.map(m -> (Model.Effective<? extends T>) m.effective()).collect(Collectors.toList());
 		}
 

@@ -47,7 +47,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 				throw new SchemaException("InputSequenceNode '" + name() + "' cannot occur in a context without input.");
 
 			List<TypeToken<?>> parameterClasses = overrideMerge.configurator().getChildrenContainer().getChildren().stream()
-					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective()).getDataType())
+					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective()).dataType())
 					.collect(Collectors.toList());
 
 			InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
@@ -63,37 +63,37 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 		}
 
 		@Override
-		public final String getInMethodName() {
+		public final String inMethodName() {
 			return inMethodName;
 		}
 
 		@Override
-		public Invokable<?, ?> getInMethod() {
+		public Invokable<?, ?> inMethod() {
 			return inMethod;
 		}
 
 		@Override
-		public final Boolean isInMethodChained() {
+		public final Boolean inMethodChained() {
 			return inMethodChained;
 		}
 
 		@Override
-		public Boolean isInMethodCast() {
+		public Boolean inMethodCast() {
 			return allowInMethodResultCast;
 		}
 
 		@Override
-		public Boolean isInMethodUnchecked() {
+		public Boolean inMethodUnchecked() {
 			return inMethodUnchecked;
 		}
 
 		@Override
-		public TypeToken<?> getPostInputType() {
+		public TypeToken<?> postInputType() {
 			return postInputClass;
 		}
 
 		@Override
-		public TypeToken<?> getPreInputType() {
+		public TypeToken<?> preInputType() {
 			return preInputClass;
 		}
 	}
@@ -119,22 +119,22 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 	}
 
 	@Override
-	public final String getInMethodName() {
+	public final String inMethodName() {
 		return inMethodName;
 	}
 
 	@Override
-	public final Boolean isInMethodChained() {
+	public final Boolean inMethodChained() {
 		return inMethodChained;
 	}
 
 	@Override
-	public Boolean isInMethodCast() {
+	public Boolean inMethodCast() {
 		return allowInMethodResultCast;
 	}
 
 	@Override
-	public Boolean isInMethodUnchecked() {
+	public Boolean inMethodUnchecked() {
 		return inMethodUnchecked;
 	}
 
@@ -144,7 +144,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 	}
 
 	@Override
-	public TypeToken<?> getPostInputType() {
+	public TypeToken<?> postInputType() {
 		return postInputClass;
 	}
 }

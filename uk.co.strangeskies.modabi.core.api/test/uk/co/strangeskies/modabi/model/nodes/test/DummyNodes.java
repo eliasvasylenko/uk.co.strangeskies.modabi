@@ -88,7 +88,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public TypeToken<?> getPostInputType() {
+			public TypeToken<?> postInputType() {
 				return TypeToken.over(Object.class);
 			}
 
@@ -131,12 +131,12 @@ public class DummyNodes {
 					}
 
 					@Override
-					public TypeToken<?> getPreInputType() {
+					public TypeToken<?> preInputType() {
 						return TypeToken.over(Object.class);
 					}
 
 					@Override
-					public TypeToken<?> getPostInputType() {
+					public TypeToken<?> postInputType() {
 						return TypeToken.over(Object.class);
 					}
 
@@ -146,7 +146,7 @@ public class DummyNodes {
 					}
 
 					@Override
-					public Boolean isOrdered() {
+					public Boolean ordered() {
 						return true;
 					}
 
@@ -173,7 +173,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Boolean isOrdered() {
+			public Boolean ordered() {
 				return true;
 			}
 
@@ -234,12 +234,12 @@ public class DummyNodes {
 			}
 
 			@Override
-			public TypeToken<?> getPreInputType() {
+			public TypeToken<?> preInputType() {
 				return TypeToken.over(Object.class);
 			}
 
 			@Override
-			public TypeToken<?> getPostInputType() {
+			public TypeToken<?> postInputType() {
 				return TypeToken.over(Object.class);
 			}
 
@@ -249,7 +249,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Boolean isOrdered() {
+			public Boolean ordered() {
 				return true;
 			}
 

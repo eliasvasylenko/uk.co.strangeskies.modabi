@@ -82,10 +82,10 @@ public class CoreSchemata {
 		}
 
 		Model<?> provideObject() {
-			Model<?> model = baseSchema.getModels().get(name);
+			Model<?> model = baseSchema.models().get(name);
 
 			if (model == null)
-				model = metaSchema.getModels().get(name);
+				model = metaSchema.models().get(name);
 
 			if (model == null)
 				throw new SchemaException("Cannot provide model '" + name + "' from base schema or metaschema.");

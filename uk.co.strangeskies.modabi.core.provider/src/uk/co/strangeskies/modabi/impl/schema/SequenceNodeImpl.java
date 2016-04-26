@@ -33,28 +33,28 @@ class SequenceNodeImpl extends ChildNodeImpl<SequenceNode, SequenceNode.Effectiv
 		public Effective(OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
 			super(overrideMerge);
 
-			preInputClass = abstractness().isLessThan(Abstractness.ABSTRACT) ? null : children().get(0).getPreInputType();
+			preInputClass = abstractness().isLessThan(Abstractness.ABSTRACT) ? null : children().get(0).preInputType();
 
-			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::getPostInputType)
+			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::postInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
 			if (postInputClass == null && abstractness().isLessThan(Abstractness.ABSTRACT)) {
 				for (ChildNode.Effective<?, ?> child : children()) {
-					if (postInputClass != null && !child.getPreInputType().isAssignableFrom(postInputClass)) {
+					if (postInputClass != null && !child.preInputType().isAssignableFrom(postInputClass)) {
 						throw new IllegalArgumentException();
 					}
-					postInputClass = child.getPostInputType();
+					postInputClass = child.postInputType();
 				}
 			}
 			this.postInputClass = postInputClass;
 		}
 
 		@Override
-		public TypeToken<?> getPreInputType() {
+		public TypeToken<?> preInputType() {
 			return preInputClass;
 		}
 
 		@Override
-		public TypeToken<?> getPostInputType() {
+		public TypeToken<?> postInputType() {
 			return postInputClass;
 		}
 	}
@@ -76,7 +76,7 @@ class SequenceNodeImpl extends ChildNodeImpl<SequenceNode, SequenceNode.Effectiv
 	}
 
 	@Override
-	public TypeToken<?> getPostInputType() {
+	public TypeToken<?> postInputType() {
 		return postInputClass;
 	}
 }

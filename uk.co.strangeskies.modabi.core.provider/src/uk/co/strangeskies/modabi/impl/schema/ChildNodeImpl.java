@@ -40,7 +40,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 
 			parent = overrideMerge.configurator().getContext().parentNodeProxy().effective();
 
-			ordered = overrideMerge.getOverride(ChildNode::isOrdered).orDefault(true).get();
+			ordered = overrideMerge.getOverride(ChildNode::ordered).orDefault(true).get();
 
 			occurrences = overrideMerge.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
 					.orDefault(Range.between(1, 1)).get();
@@ -58,7 +58,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 		}
 
 		@Override
-		public Boolean isOrdered() {
+		public Boolean ordered() {
 			return ordered;
 		}
 
@@ -99,7 +99,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 	}
 
 	@Override
-	public Boolean isOrdered() {
+	public Boolean ordered() {
 		return ordered;
 	}
 

@@ -18,21 +18,21 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.lang.reflect.Executable;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
 		extends SchemaNode<S, E> {
 	interface Effective<T, S extends BindingNode<T, S, E>, E extends Effective<T, S, E>>
 			extends BindingNode<T, S, E>, SchemaNode.Effective<S, E> {
-		Executable getUnbindingMethod();
+		Invokable<?, ?> unbindingMethod();
 
-		List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters();
+		List<DataNode.Effective<?>> providedUnbindingMethodParameters();
 
 		@Override
 		List<? extends BindingNode.Effective<? super T, ?, ?>> base();
@@ -40,37 +40,37 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	List<? extends BindingNode<? super T, ?, ?>> base();
 
-	default String getDataTypeString() {
-		return getDataType() == null ? null : getDataType().toString(schema().getImports());
+	default String dataTypeString() {
+		return dataType() == null ? null : dataType().toString(schema().imports());
 	}
 
-	TypeToken<T> getDataType();
+	TypeToken<T> dataType();
 
-	BindingStrategy getBindingStrategy();
+	BindingStrategy bindingStrategy();
 
-	default String getBindingTypeString() {
-		return getBindingType() == null ? null : getBindingType().toString(schema().getImports());
+	default String bindingTypeString() {
+		return bindingType() == null ? null : bindingType().toString(schema().imports());
 	}
 
-	TypeToken<?> getBindingType();
+	TypeToken<?> bindingType();
 
-	UnbindingStrategy getUnbindingStrategy();
+	UnbindingStrategy unbindingStrategy();
 
-	default String getUnbindingTypeString() {
-		return getUnbindingType() == null ? null : getUnbindingType().toString(schema().getImports());
+	default String unbindingTypeString() {
+		return unbindingType() == null ? null : unbindingType().toString(schema().imports());
 	}
 
-	TypeToken<?> getUnbindingType();
+	TypeToken<?> unbindingType();
 
-	String getUnbindingMethodName();
+	String unbindingMethodName();
 
-	Boolean isUnbindingMethodUnchecked();
+	Boolean unbindingMethodUnchecked();
 
-	default String getUnbindingFactoryTypeString() {
-		return getUnbindingFactoryType() == null ? null : getUnbindingFactoryType().toString(schema().getImports());
+	default String unbindingFactoryTypeString() {
+		return unbindingFactoryType() == null ? null : unbindingFactoryType().toString(schema().imports());
 	}
 
-	TypeToken<?> getUnbindingFactoryType();
+	TypeToken<?> unbindingFactoryType();
 
-	List<QualifiedName> getProvidedUnbindingMethodParameterNames();
+	List<QualifiedName> providedUnbindingMethodParameterNames();
 }

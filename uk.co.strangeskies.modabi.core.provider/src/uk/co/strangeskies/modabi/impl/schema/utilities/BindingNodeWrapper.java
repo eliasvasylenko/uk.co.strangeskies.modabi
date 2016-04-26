@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import java.lang.reflect.Executable;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Abstractness;
@@ -30,6 +29,7 @@ import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
@@ -43,7 +43,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	public BindingNodeWrapper(BindingNode.Effective<T, ?, ?> component) {
 		this.component = component;
 		base = null;
-		dataType = (TypeToken<T>) component.getDataType();
+		dataType = (TypeToken<T>) component.dataType();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -54,34 +54,34 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
 
 		try {
-			if (base.getDataType() != null) {
-				dataType = (TypeToken<T>) component.getDataType().withLooseCompatibilityTo(base.getDataType()).infer();
+			if (base.dataType() != null) {
+				dataType = (TypeToken<T>) component.dataType().withLooseCompatibilityTo(base.dataType()).infer();
 			} else {
-				dataType = (TypeToken<T>) component.getDataType().infer();
+				dataType = (TypeToken<T>) component.dataType().infer();
 			}
 		} catch (Exception e) {
 			throw new SchemaException(message, e);
 		}
 
-		if (base.getBindingStrategy() != null && base.getBindingStrategy() != component.getBindingStrategy())
+		if (base.bindingStrategy() != null && base.bindingStrategy() != component.bindingStrategy())
 			throw new SchemaException(message);
 
-		if (base.getUnbindingStrategy() != null && base.getUnbindingStrategy() != component.getUnbindingStrategy())
+		if (base.unbindingStrategy() != null && base.unbindingStrategy() != component.unbindingStrategy())
 			throw new SchemaException(message);
 
-		if (base.getBindingType() != null
-				&& !Types.isAssignable(component.getBindingType().getType(), base.getBindingType().getType()))
+		if (base.bindingType() != null
+				&& !Types.isAssignable(component.bindingType().getType(), base.bindingType().getType()))
 			throw new SchemaException(message);
 
-		if (base.getUnbindingType() != null
-				&& !Types.isAssignable(component.getUnbindingType().getType(), base.getUnbindingType().getType()))
+		if (base.unbindingType() != null
+				&& !Types.isAssignable(component.unbindingType().getType(), base.unbindingType().getType()))
 			throw new SchemaException(message);
 
-		if (base.getUnbindingMethodName() != null && base.getUnbindingMethodName() != component.getUnbindingMethodName())
+		if (base.unbindingMethodName() != null && base.unbindingMethodName() != component.unbindingMethodName())
 			throw new SchemaException(message);
 
-		if (base.getProvidedUnbindingMethodParameterNames() != null
-				&& base.getProvidedUnbindingMethodParameterNames() != component.getProvidedUnbindingMethodParameterNames())
+		if (base.providedUnbindingMethodParameterNames() != null
+				&& base.providedUnbindingMethodParameterNames() != component.providedUnbindingMethodParameterNames())
 			throw new SchemaException(message);
 
 		if (!component.children().containsAll(base.children()))
@@ -102,48 +102,48 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final TypeToken<T> getDataType() {
+	public final TypeToken<T> dataType() {
 		return dataType;
 	}
 
 	@Override
-	public final BindingStrategy getBindingStrategy() {
-		return component.getBindingStrategy();
+	public final BindingStrategy bindingStrategy() {
+		return component.bindingStrategy();
 	}
 
 	@Override
-	public final TypeToken<?> getBindingType() {
-		return component.getBindingType();
+	public final TypeToken<?> bindingType() {
+		return component.bindingType();
 	}
 
 	@Override
-	public final UnbindingStrategy getUnbindingStrategy() {
-		return component.getUnbindingStrategy();
+	public final UnbindingStrategy unbindingStrategy() {
+		return component.unbindingStrategy();
 	}
 
 	@Override
-	public final TypeToken<?> getUnbindingType() {
-		return component.getUnbindingType();
+	public final TypeToken<?> unbindingType() {
+		return component.unbindingType();
 	}
 
 	@Override
-	public final String getUnbindingMethodName() {
-		return component.getUnbindingMethodName();
+	public final String unbindingMethodName() {
+		return component.unbindingMethodName();
 	}
 
 	@Override
-	public Boolean isUnbindingMethodUnchecked() {
-		return component.isUnbindingMethodUnchecked();
+	public Boolean unbindingMethodUnchecked() {
+		return component.unbindingMethodUnchecked();
 	}
 
 	@Override
-	public final Executable getUnbindingMethod() {
-		return component.getUnbindingMethod();
+	public final Invokable<?, ?> unbindingMethod() {
+		return component.unbindingMethod();
 	}
 
 	@Override
-	public final TypeToken<?> getUnbindingFactoryType() {
-		return component.getUnbindingFactoryType();
+	public final TypeToken<?> unbindingFactoryType() {
+		return component.unbindingFactoryType();
 	}
 
 	@Override
@@ -157,13 +157,13 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final List<QualifiedName> getProvidedUnbindingMethodParameterNames() {
-		return component.getProvidedUnbindingMethodParameterNames();
+	public final List<QualifiedName> providedUnbindingMethodParameterNames() {
+		return component.providedUnbindingMethodParameterNames();
 	}
 
 	@Override
-	public final List<DataNode.Effective<?>> getProvidedUnbindingMethodParameters() {
-		return component.getProvidedUnbindingMethodParameters();
+	public final List<DataNode.Effective<?>> providedUnbindingMethodParameters() {
+		return component.providedUnbindingMethodParameters();
 	}
 
 	@SuppressWarnings("unchecked")

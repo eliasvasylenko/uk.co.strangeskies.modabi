@@ -65,7 +65,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 		derivedModels.addToAll(model.effective().baseModel().stream().map(Model::name).collect(Collectors.toSet()), model);
 
 		if (model.effective().abstractness().isLessThan(Abstractness.UNINFERRED))
-			classModels.add(model.effective().getDataType().getType(), model);
+			classModels.add(model.effective().dataType().getType(), model);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -87,7 +87,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 			@SuppressWarnings("unchecked")
 			Model<T> model = (Model<T>) get(name);
 
-			if (!model.getDataType().isAssignableFrom(dataType)) {
+			if (!model.dataType().isAssignableFrom(dataType)) {
 				throw new SchemaException("Cannot bind type " + dataType + " with model " + name);
 			}
 

@@ -66,6 +66,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 		private final Boolean extensible;
 
+		private final Boolean synchronous;
+
 		protected Effective(OverrideMerge<S, ? extends BindingChildNodeConfiguratorImpl<?, S, T>> overrideMerge) {
 			this(overrideMerge, true);
 		}
@@ -74,23 +76,25 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				boolean integrateIO) {
 			super(overrideMerge);
 
+			synchronous = overrideMerge.getOverride(BindingChildNode::synchronous).orDefault(false).get();
+
 			parent = overrideMerge.configurator().getContext().parentNodeProxy().effective();
 
-			extensible = overrideMerge.node().isExtensible() == null ? false : overrideMerge.node().isExtensible();
+			extensible = overrideMerge.node().extensible() == null ? false : overrideMerge.node().extensible();
 
 			if (abstractness().isMoreThan(Abstractness.UNINFERRED) && !overrideMerge.configurator().getContext().isAbstract()
-					&& !isExtensible())
+					&& !extensible())
 				throw new SchemaException(
 						"Node '" + name() + "' has no abstract or extensible parents, so cannot be abstract.");
 
-			ordered = overrideMerge.getOverride(BindingChildNode::isOrdered).orDefault(true).get();
+			ordered = overrideMerge.getOverride(BindingChildNode::ordered).orDefault(true).get();
 
 			occurrences = overrideMerge.getOverride(BindingChildNode::occurrences).validate((v, o) -> o.contains(v))
 					.orDefault(Range.between(1, 1)).get();
 
 			iterable = overrideMerge.getOverride(n -> {
-				if (n.isOutMethodIterable() != null) {
-					return n.isOutMethodIterable();
+				if (n.outMethodIterable() != null) {
+					return n.outMethodIterable();
 				}
 
 				if (n.occurrences() != null && !n.occurrences().isValueAbove(2)) {
@@ -100,11 +104,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				return null;
 			}).orDefault(false).get();
 
-			outMethodUnchecked = overrideMerge.getOverride(BindingChildNode::isOutMethodUnchecked).orDefault(false).get();
+			outMethodUnchecked = overrideMerge.getOverride(BindingChildNode::outMethodUnchecked).orDefault(false).get();
 
-			outMethodCast = overrideMerge.getOverride(BindingChildNode::isOutMethodCast).orDefault(false).get();
+			outMethodCast = overrideMerge.getOverride(BindingChildNode::outMethodCast).orDefault(false).get();
 
-			outMethodName = overrideMerge.getOverride(BindingChildNode::getOutMethodName).tryGet();
+			outMethodName = overrideMerge.getOverride(BindingChildNode::outMethodName).tryGet();
 
 			/*
 			 * Determine effective 'null if omitted' property. Must be true for nodes
@@ -132,10 +136,10 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				if (n.effective() == null)
 					return null;
 
-				if (n.effective().getOutMethod() == null)
+				if (n.effective().outMethod() == null)
 					return null;
 
-				return n.effective().getOutMethod().getExecutable();
+				return n.effective().outMethod().getExecutable();
 			}).tryGet();
 
 			outMethod = hasOutMethod(overrideMerge)
@@ -147,7 +151,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 				outMethodName = outMethod.getExecutable().getName();
 
 			InputNodeConfigurationHelper<S, E> inputNodeHelper = new InputNodeConfigurationHelper<>(abstractness(), name(),
-					overrideMerge, overrideMerge.configurator().getContext(), Arrays.asList(getDataType()));
+					overrideMerge, overrideMerge.configurator().getContext(), Arrays.asList(dataType()));
 
 			inMethodChained = inputNodeHelper.isInMethodChained();
 			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
@@ -156,6 +160,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			inMethodName = inputNodeHelper.getInMethodName();
 			preInputType = inputNodeHelper.getPreInputType();
 			postInputType = inputNodeHelper.getPostInputType();
+		}
+
+		@Override
+		public Boolean synchronous() {
+			return synchronous;
 		}
 
 		@Override
@@ -175,22 +184,22 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@Override
-		public TypeToken<?> getPreInputType() {
+		public TypeToken<?> preInputType() {
 			return preInputType;
 		}
 
 		@Override
-		public TypeToken<?> getPostInputType() {
+		public TypeToken<?> postInputType() {
 			return postInputType;
 		}
 
 		@Override
-		public Boolean isOrdered() {
+		public Boolean ordered() {
 			return ordered;
 		}
 
 		@Override
-		public final Boolean isExtensible() {
+		public final Boolean extensible() {
 			return extensible;
 		}
 
@@ -200,60 +209,60 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@Override
-		public final String getOutMethodName() {
+		public final String outMethodName() {
 			return outMethodName;
 		}
 
 		@Override
-		public final Invokable<?, ?> getOutMethod() {
+		public final Invokable<?, ?> outMethod() {
 			return outMethod;
 		}
 
 		@Override
-		public final Boolean isOutMethodIterable() {
+		public final Boolean outMethodIterable() {
 			return iterable;
 		}
 
 		@Override
-		public Boolean isOutMethodUnchecked() {
+		public Boolean outMethodUnchecked() {
 			return outMethodUnchecked;
 		}
 
 		@Override
-		public Boolean isOutMethodCast() {
+		public Boolean outMethodCast() {
 			return outMethodCast;
 		}
 
 		@Override
-		public final String getInMethodName() {
+		public final String inMethodName() {
 			return inMethodName;
 		}
 
 		@Override
-		public final Invokable<?, ?> getInMethod() {
+		public final Invokable<?, ?> inMethod() {
 			return inMethod;
 		}
 
 		@Override
-		public final Boolean isInMethodChained() {
+		public final Boolean inMethodChained() {
 			return inMethodChained;
 		}
 
 		@Override
-		public Boolean isInMethodCast() {
+		public Boolean inMethodCast() {
 			return allowInMethodResultCast;
 		}
 
 		@Override
-		public Boolean isInMethodUnchecked() {
+		public Boolean inMethodUnchecked() {
 			return inMethodUnchecked;
 		}
 
 		@SuppressWarnings("unchecked")
 		private static <U> TypeToken<Iterable<? extends U>> getIteratorType(BindingChildNode.Effective<U, ?, ?> node) {
-			boolean outMethodCast = node.isOutMethodCast() != null && node.isOutMethodCast();
+			boolean outMethodCast = node.outMethodCast() != null && node.outMethodCast();
 
-			TypeToken<U> type = outMethodCast ? (TypeToken<U>) TypeToken.over(new InferenceVariable()) : node.getDataType();
+			TypeToken<U> type = outMethodCast ? (TypeToken<U>) TypeToken.over(new InferenceVariable()) : node.dataType();
 			if (type == null) {
 				type = (TypeToken<U>) new TypeToken<Object>() {};
 			}
@@ -275,12 +284,12 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 						"Can't find out method for node '" + node.name() + "' as target class cannot be found");
 			}
 
-			boolean outMethodCast = node.isOutMethodCast() != null && node.isOutMethodCast();
+			boolean outMethodCast = node.outMethodCast() != null && node.outMethodCast();
 
-			TypeToken<?> resultType = ((node.isOutMethodIterable() != null && node.isOutMethodIterable())
-					? getIteratorType(node) : node.getDataType());
+			TypeToken<?> resultType = ((node.outMethodIterable() != null && node.outMethodIterable())
+					? getIteratorType(node) : node.dataType());
 
-			if (node.isOutMethodUnchecked() != null && node.isOutMethodUnchecked())
+			if (node.outMethodUnchecked() != null && node.outMethodUnchecked())
 				resultType = TypeToken.over(resultType.getRawType());
 
 			if (resultType == null)
@@ -288,7 +297,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 						"Can't find out method for node '" + node.name() + "' as result class cannot be found");
 
 			Invokable<?, ?> outMethod;
-			if ("this".equals(node.getOutMethodName())) {
+			if ("this".equals(node.outMethodName())) {
 				if (!resultType.isAssignableFrom(receiverType.resolve())) {
 					throw new SchemaException("Can't use out method 'this' for node '" + node.name() + "', as result class '"
 							+ resultType + "' cannot be assigned from target class '" + receiverType + "'");
@@ -329,11 +338,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		private static List<String> generateOutMethodNames(BindingChildNode.Effective<?, ?, ?> node, Class<?> resultClass) {
 			List<String> names;
 
-			if (node.getOutMethodName() != null)
-				names = Arrays.asList(node.getOutMethodName());
+			if (node.outMethodName() != null)
+				names = Arrays.asList(node.outMethodName());
 			else
 				names = generateUnbindingMethodNames(node.name().getName(),
-						node.isOutMethodIterable() != null && node.isOutMethodIterable(), resultClass);
+						node.outMethodIterable() != null && node.outMethodIterable(), resultClass);
 
 			return names;
 		}
@@ -370,6 +379,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 	private final Boolean extensible;
 	private final Boolean ordered;
 
+	private final Boolean synchronous;
+
 	BindingChildNodeImpl(BindingChildNodeConfiguratorImpl<?, ?, T> configurator) {
 		super(configurator);
 
@@ -391,6 +402,13 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		inMethodChained = configurator.getInMethodChained();
 		allowInMethodResultCast = configurator.getInMethodCast();
 		inMethodUnchecked = configurator.getInMethodUnchecked();
+
+		synchronous = configurator.getSynchronous();
+	}
+
+	@Override
+	public Boolean synchronous() {
+		return synchronous;
 	}
 
 	@Override
@@ -409,12 +427,12 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 	}
 
 	@Override
-	public Boolean isOrdered() {
+	public Boolean ordered() {
 		return ordered;
 	}
 
 	@Override
-	public final Boolean isExtensible() {
+	public final Boolean extensible() {
 		return extensible;
 	}
 
@@ -424,47 +442,47 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 	}
 
 	@Override
-	public final String getOutMethodName() {
+	public final String outMethodName() {
 		return outMethodName;
 	}
 
 	@Override
-	public final Boolean isOutMethodIterable() {
+	public final Boolean outMethodIterable() {
 		return iterable;
 	}
 
 	@Override
-	public Boolean isOutMethodUnchecked() {
+	public Boolean outMethodUnchecked() {
 		return outMethodUnchecked;
 	}
 
 	@Override
-	public Boolean isOutMethodCast() {
+	public Boolean outMethodCast() {
 		return outMethodCast;
 	}
 
 	@Override
-	public final String getInMethodName() {
+	public final String inMethodName() {
 		return inMethodName;
 	}
 
 	@Override
-	public final Boolean isInMethodChained() {
+	public final Boolean inMethodChained() {
 		return inMethodChained;
 	}
 
 	@Override
-	public Boolean isInMethodCast() {
+	public Boolean inMethodCast() {
 		return allowInMethodResultCast;
 	}
 
 	@Override
-	public Boolean isInMethodUnchecked() {
+	public Boolean inMethodUnchecked() {
 		return inMethodUnchecked;
 	}
 
 	@Override
-	public TypeToken<?> getPostInputType() {
+	public TypeToken<?> postInputType() {
 		return postInputClass;
 	}
 

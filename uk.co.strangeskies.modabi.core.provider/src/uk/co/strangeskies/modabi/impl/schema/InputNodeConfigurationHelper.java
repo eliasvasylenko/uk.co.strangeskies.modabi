@@ -61,12 +61,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		this.overrideMerge = overrideMerge;
 		this.context = context;
 
-		inMethodChained = overrideMerge.getOverride(InputNode::isInMethodChained)
+		inMethodChained = overrideMerge.getOverride(InputNode::inMethodChained)
 				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected(), Abstractness.RESOLVED).get();
-		inMethodUnchecked = overrideMerge.getOverride(InputNode::isInMethodUnchecked)
+		inMethodUnchecked = overrideMerge.getOverride(InputNode::inMethodUnchecked)
 				.orDefault(false, Abstractness.RESOLVED).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: overrideMerge.getOverride(InputNode::isInMethodCast).orDefault(false, Abstractness.RESOLVED).get();
+				: overrideMerge.getOverride(InputNode::inMethodCast).orDefault(false, Abstractness.RESOLVED).get();
 
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
@@ -182,10 +182,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			if (n.effective() == null)
 				return null;
 
-			if (n.effective().getInMethod() == null)
+			if (n.effective().inMethod() == null)
 				return null;
 
-			return n.effective().getInMethod().getExecutable();
+			return n.effective().inMethod().getExecutable();
 		}).tryGet();
 
 		Invokable<?, ?> inInvokable;
@@ -213,7 +213,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private String getGivenInMethodName() {
-		String givenInMethodName = overrideMerge.getOverride(InputNode::getInMethodName).tryGet();
+		String givenInMethodName = overrideMerge.getOverride(InputNode::inMethodName).tryGet();
 
 		if (!context.isInputExpected())
 			if (givenInMethodName == null)
@@ -226,7 +226,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
-			TypeToken<?> resultType = overrideMerge.<TypeToken<?>> getOverride(InputNode::getPostInputType)
+			TypeToken<?> resultType = overrideMerge.<TypeToken<?>> getOverride(InputNode::postInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -294,7 +294,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private String inMethodName() {
-		String inMethodName = overrideMerge.getOverride(InputNode::getInMethodName).tryGet();
+		String inMethodName = overrideMerge.getOverride(InputNode::inMethodName).tryGet();
 
 		if (!context.isInputExpected() && inMethodName == null)
 			inMethodName = "null";
@@ -316,7 +316,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		if ("null".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = inputTargetType();
 		} else if (abstractness.isMoreThan(Abstractness.RESOLVED) || inMethodChained == null) {
-			postInputClass = overrideMerge.getOverride(n -> n.getPostInputType() == null ? null : n.getPostInputType())
+			postInputClass = overrideMerge.getOverride(n -> n.postInputType() == null ? null : n.postInputType())
 					.validate(TypeToken::isAssignableTo).tryGet();
 		} else {
 			TypeToken<?> methodReturn;
@@ -329,12 +329,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 								methodReturn.getResolver().getBounds()))
 						.withBoundsFrom(methodReturn.getResolver());
 
-			TypeToken<?> localPostInputClass = overrideMerge.node().getPostInputType();
+			TypeToken<?> localPostInputClass = overrideMerge.node().postInputType();
 
 			if (localPostInputClass == null || localPostInputClass.isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge.getOverride(n -> n.getPostInputType(), localPostInputClass)
+			postInputClass = overrideMerge.getOverride(n -> n.postInputType(), localPostInputClass)
 					.validate(TypeToken::isAssignableTo).get();
 		}
 

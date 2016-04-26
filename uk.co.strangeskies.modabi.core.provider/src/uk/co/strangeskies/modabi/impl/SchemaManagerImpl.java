@@ -191,10 +191,10 @@ public class SchemaManagerImpl implements SchemaManager {
 	public SchemaConfigurator getSchemaConfigurator() {
 		ProcessingContextImpl context = getProcessingContext();
 
-		for (Model<?> schemaModel : getMetaSchema().getModels()) {
+		for (Model<?> schemaModel : getMetaSchema().models()) {
 			context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
 		}
-		for (DataType<?> schemaDataType : getMetaSchema().getDataTypes()) {
+		for (DataType<?> schemaDataType : getMetaSchema().dataTypes()) {
 			context.bindings().add(context.manager().getMetaSchema().getDataTypeModel(), schemaDataType);
 		}
 
@@ -220,13 +220,13 @@ public class SchemaManagerImpl implements SchemaManager {
 
 	private void registerSchemata(Set<Schema> added) {
 		for (Schema schema : added) {
-			for (Model<?> model : schema.getModels())
+			for (Model<?> model : schema.models())
 				registerModel(model);
 
-			for (DataType<?> type : schema.getDataTypes())
+			for (DataType<?> type : schema.dataTypes())
 				registerDataType(type);
 
-			for (Schema dependency : schema.getDependencies())
+			for (Schema dependency : schema.dependencies())
 				registeredSchemata.add(dependency);
 
 			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel().effective(), schema));

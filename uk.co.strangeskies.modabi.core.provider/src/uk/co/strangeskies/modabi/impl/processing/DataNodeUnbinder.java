@@ -119,7 +119,7 @@ public class DataNodeUnbinder {
 
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data, ProcessingContextImpl context,
 			Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap) {
-		if (node.isExtensible() != null && node.isExtensible()) {
+		if (node.extensible() != null && node.extensible()) {
 			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 
@@ -131,7 +131,7 @@ public class DataNodeUnbinder {
 			context
 					.<DataType<? extends U>>attemptUnbindingUntilSuccessful(
 							overrides.keySet().stream()
-									.filter(m -> m.effective().getDataType().getRawType().isAssignableFrom(data.getClass()))
+									.filter(m -> m.effective().dataType().getRawType().isAssignableFrom(data.getClass()))
 									.collect(Collectors.toList()),
 							(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
 							l -> new ProcessingException(
@@ -147,7 +147,7 @@ public class DataNodeUnbinder {
 	@SuppressWarnings("unchecked")
 	private <U extends V, V> void unbindExactNode(ProcessingContextImpl context, DataNode.Effective<U> element, V data) {
 		try {
-			new BindingNodeUnbinder(context).unbind(element, (U) element.getDataType().getRawType().cast(data));
+			new BindingNodeUnbinder(context).unbind(element, (U) element.dataType().getRawType().cast(data));
 		} catch (ClassCastException e) {
 			throw new ProcessingException("Cannot unbind data at this node.", context, e);
 		}

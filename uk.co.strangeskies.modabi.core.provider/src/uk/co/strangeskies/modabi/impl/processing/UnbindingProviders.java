@@ -56,7 +56,7 @@ public class UnbindingProviders {
 						.filter(c -> c.name().equals(idDomain) && c instanceof DataNode.Effective<?>).findAny().orElseThrow(
 								() -> new SchemaException("Can't fine child '" + idDomain + "' to target for model '" + model + "'"));
 
-				return unbindDataNode(context, node, new TypedObject<>(model.getDataType(), object));
+				return unbindDataNode(context, node, new TypedObject<>(model.dataType(), object));
 			}
 		};
 	}

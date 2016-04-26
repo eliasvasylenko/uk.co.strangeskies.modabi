@@ -35,38 +35,43 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode.Effe
 	}
 
 	@Override
-	public final Boolean isOrdered() {
-		return getBase() == null ? null : getBase().isOrdered();
+	public final Boolean ordered() {
+		return getBase() == null ? null : getBase().ordered();
 	}
 
 	@Override
-	public final Boolean isExtensible() {
-		return getBase() == null ? null : getBase().isExtensible();
+	public final Boolean extensible() {
+		return getBase() == null ? null : getBase().extensible();
 	}
 
 	@Override
-	public final Invokable<?, ?> getOutMethod() {
-		return getBase() == null ? null : getBase().getOutMethod();
+	public Boolean synchronous() {
+		return getBase() == null ? null : getBase().synchronous();
 	}
 
 	@Override
-	public final String getOutMethodName() {
-		return getBase() == null ? null : getBase().getOutMethodName();
+	public final Invokable<?, ?> outMethod() {
+		return getBase() == null ? null : getBase().outMethod();
 	}
 
 	@Override
-	public final Boolean isOutMethodIterable() {
-		return getBase() == null ? null : getBase().isOutMethodIterable();
+	public final String outMethodName() {
+		return getBase() == null ? null : getBase().outMethodName();
 	}
 
 	@Override
-	public final Boolean isOutMethodUnchecked() {
-		return getBase() == null ? null : getBase().isOutMethodUnchecked();
+	public final Boolean outMethodIterable() {
+		return getBase() == null ? null : getBase().outMethodIterable();
 	}
 
 	@Override
-	public final Boolean isOutMethodCast() {
-		return getBase() == null ? null : getBase().isOutMethodCast();
+	public final Boolean outMethodUnchecked() {
+		return getBase() == null ? null : getBase().outMethodUnchecked();
+	}
+
+	@Override
+	public final Boolean outMethodCast() {
+		return getBase() == null ? null : getBase().outMethodCast();
 	}
 
 	@Override
@@ -75,38 +80,38 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode.Effe
 	}
 
 	@Override
-	public Boolean isInMethodCast() {
-		return getBase() == null ? null : getBase().isInMethodCast();
+	public Boolean inMethodCast() {
+		return getBase() == null ? null : getBase().inMethodCast();
 	}
 
 	@Override
-	public final String getInMethodName() {
-		return getBase() == null ? null : getBase().getInMethodName();
+	public final String inMethodName() {
+		return getBase() == null ? null : getBase().inMethodName();
 	}
 
 	@Override
-	public final Invokable<?, ?> getInMethod() {
-		return getBase() == null ? null : getBase().getInMethod();
+	public final Invokable<?, ?> inMethod() {
+		return getBase() == null ? null : getBase().inMethod();
 	}
 
 	@Override
-	public final Boolean isInMethodChained() {
-		return getBase() == null ? null : getBase().isInMethodChained();
+	public final Boolean inMethodChained() {
+		return getBase() == null ? null : getBase().inMethodChained();
 	}
 
 	@Override
-	public final Boolean isInMethodUnchecked() {
-		return getBase() == null ? null : getBase().isInMethodUnchecked();
+	public final Boolean inMethodUnchecked() {
+		return getBase() == null ? null : getBase().inMethodUnchecked();
 	}
 
 	@Override
-	public final TypeToken<?> getPreInputType() {
-		return getBase() == null ? null : getBase().getPreInputType();
+	public final TypeToken<?> preInputType() {
+		return getBase() == null ? null : getBase().preInputType();
 	}
 
 	@Override
-	public final TypeToken<?> getPostInputType() {
-		return getBase() == null ? null : getBase().getPostInputType();
+	public final TypeToken<?> postInputType() {
+		return getBase() == null ? null : getBase().postInputType();
 	}
 
 	@Override

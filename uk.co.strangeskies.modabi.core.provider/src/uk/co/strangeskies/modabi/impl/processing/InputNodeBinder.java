@@ -36,28 +36,28 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 	protected Object invokeInMethod(Object... parameters) {
 		TypedObject<?> target = getContext().getBindingObject();
 
-		if (!"null".equals(getNode().getInMethodName())) {
+		if (!"null".equals(getNode().inMethodName())) {
 			TypedObject<?> result;
 
 			try {
-				TypeToken<?> postInputType = getNode().getPostInputType();
+				TypeToken<?> postInputType = getNode().postInputType();
 				if (postInputType == null) {
-					if (getNode().isInMethodChained()) {
-						postInputType = getNode().getInMethod().withTargetType(target.getType()).getReturnType();
+					if (getNode().inMethodChained()) {
+						postInputType = getNode().inMethod().withTargetType(target.getType()).getReturnType();
 					} else {
 						postInputType = target.getType();
 					}
 				}
 
 				result = TypedObject.castInto(postInputType,
-						((Method) getNode().getInMethod().getExecutable()).invoke(target.getObject(), parameters));
+						((Method) getNode().inMethod().getExecutable()).invoke(target.getObject(), parameters));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
 				throw new ProcessingException(
-						"Unable to call method '" + getNode().getInMethod() + "' with parameters '" + Arrays.toString(parameters),
+						"Unable to call method '" + getNode().inMethod() + "' with parameters '" + Arrays.toString(parameters),
 						getContext(), e);
 			}
 
-			if (getNode().isInMethodChained()) {
+			if (getNode().inMethodChained()) {
 				setContext(getContext().withReplacementBindingObject(result));
 				target = result;
 			}

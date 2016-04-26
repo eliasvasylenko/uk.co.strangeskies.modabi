@@ -49,6 +49,6 @@ public interface Model<T> extends BindingNode<T, Model<T>, Model.Effective<T>> {
 
 	@Override
 	default TypeToken<Model<T>> getThisType() {
-		return new TypeToken<Model<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());
+		return new TypeToken<Model<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
 }

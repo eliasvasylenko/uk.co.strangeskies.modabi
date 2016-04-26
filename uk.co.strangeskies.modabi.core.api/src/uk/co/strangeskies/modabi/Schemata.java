@@ -24,7 +24,7 @@ public class Schemata extends NamedSet<Schemata, QualifiedName, Schema> {
 	}
 
 	public Schemata(Schemata parent) {
-		super(Schema::getQualifiedName, parent);
+		super(Schema::qualifiedName, parent);
 	}
 
 	@Override

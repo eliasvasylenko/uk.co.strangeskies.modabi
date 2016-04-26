@@ -123,27 +123,27 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 			schemaProperty.set(new Schema() {
 				@Override
-				public DataTypes getDataTypes() {
+				public DataTypes dataTypes() {
 					return types;
 				}
 
 				@Override
-				public QualifiedName getQualifiedName() {
+				public QualifiedName qualifiedName() {
 					return qualifiedName;
 				}
 
 				@Override
-				public Models getModels() {
+				public Models models() {
 					return models;
 				}
 
 				@Override
-				public Schemata getDependencies() {
+				public Schemata dependencies() {
 					return dependencies;
 				}
 
 				@Override
-				public Imports getImports() {
+				public Imports imports() {
 					return imports;
 				}
 
@@ -157,20 +157,20 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 					Schema other = (Schema) obj;
 
-					return getQualifiedName().equals(other.getQualifiedName()) && getModels().equals(other.getModels())
-							&& getDataTypes().equals(other.getDataTypes()) && getDependencies().equals(other.getDependencies())
-							&& getImports().equals(other.getImports());
+					return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
+							&& dataTypes().equals(other.dataTypes()) && dependencies().equals(other.dependencies())
+							&& imports().equals(other.imports());
 				}
 
 				@Override
 				public int hashCode() {
-					return getDataTypes().hashCode() ^ getQualifiedName().hashCode() ^ getModels().hashCode()
-							^ getDependencies().hashCode() ^ getImports().hashCode();
+					return dataTypes().hashCode() ^ qualifiedName().hashCode() ^ models().hashCode()
+							^ dependencies().hashCode() ^ imports().hashCode();
 				}
 
 				@Override
 				public String toString() {
-					return getQualifiedName().toString();
+					return qualifiedName().toString();
 				}
 			});
 			return schemaProperty.get();

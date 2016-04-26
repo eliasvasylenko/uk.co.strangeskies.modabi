@@ -221,10 +221,10 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			 * Processing should always have access to the contents of the schema
 			 * owning the associated model.
 			 */
-			for (Model<?> schemaModel : model.schema().getModels()) {
+			for (Model<?> schemaModel : model.schema().models()) {
 				context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
 			}
-			for (DataType<?> schemaDataType : model.schema().getDataTypes()) {
+			for (DataType<?> schemaDataType : model.schema().dataTypes()) {
 				context.bindings().add(context.manager().getMetaSchema().getDataTypeModel(), schemaDataType);
 			}
 

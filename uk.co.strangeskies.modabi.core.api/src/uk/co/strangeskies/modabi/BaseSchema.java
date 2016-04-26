@@ -100,5 +100,5 @@ public interface BaseSchema extends Schema {
 
 	DerivedTypes derivedTypes();
 
-	BaseModels models();
+	BaseModels baseModels();
 }

@@ -78,8 +78,8 @@ public class ComplexNodeWrapper<T>
 	}
 
 	@Override
-	public Boolean isInline() {
-		return getBase() == null ? false : getBase().isInline();
+	public Boolean inline() {
+		return getBase() == null ? false : getBase().inline();
 	}
 
 	@Override

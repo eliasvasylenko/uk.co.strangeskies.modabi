@@ -208,7 +208,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 	private static <U> ChildNodeBinding<? extends U> bindExactNode(ProcessingContextImpl context,
 			DataNode.Effective<U> node) {
-		if (node.isExtensible()) {
+		if (node.extensible()) {
 			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
 					.getDataNodeOverrides(node);
 

@@ -123,7 +123,7 @@ public class SchemaTest {
 			System.out.println("Success: " + success);
 
 			@SuppressWarnings("unchecked")
-			Model<Schema> schemaModel = (Model<Schema>) metaSchema.getModels()
+			Model<Schema> schemaModel = (Model<Schema>) metaSchema.models()
 					.get(new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 			System.out.println();
@@ -141,7 +141,7 @@ public class SchemaTest {
 			metaSchema = schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered).resolve();
 
 			@SuppressWarnings("unchecked")
-			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.getModels()
+			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.models()
 					.get(new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 			System.out.println();
@@ -165,7 +165,7 @@ public class SchemaTest {
 				.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
 				.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))
 				.create();
-		System.out.println(intListType.effective().getDataType());
+		System.out.println(intListType.effective().dataType());
 
 		Map<String, Integer> stringIntMap = new HashMap<>();
 		stringIntMap.put("first", 1);
@@ -181,8 +181,8 @@ public class SchemaTest {
 								.<Object> model((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
-		System.out.println(stringIntMapModel.effective().getDataType());
-		System.out.println("    ~# " + stringIntMapModel.effective().getDataType().getResolver().getBounds());
+		System.out.println(stringIntMapModel.effective().dataType());
+		System.out.println("    ~# " + stringIntMapModel.effective().dataType().getResolver().getBounds());
 
 		schemaManager.unbind(stringIntMapModel, stringIntMap)
 				.to(schemaManager.registeredFormats().get("xml").saveData(System.out));
@@ -248,7 +248,7 @@ public class SchemaTest {
 																										.addChild(cc -> cc.data().name("content").type(schemaManager
 																												.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
-		System.out.println(mapModel3.effective().getDataType());
-		System.out.println(mapModel3.effective().getDataType().getResolver().getBounds());
+		System.out.println(mapModel3.effective().dataType());
+		System.out.println(mapModel3.effective().dataType().getResolver().getBounds());
 	}
 }

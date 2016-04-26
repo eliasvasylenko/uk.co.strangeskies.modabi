@@ -196,15 +196,15 @@ public class BindingNodeOverrider {
 				}
 
 				private void acceptParent(BindingNode.Effective<?, ?, ?> parent) {
-					parentUnbindingType.set(parent.getUnbindingType());
+					parentUnbindingType.set(parent.unbindingType());
 
 					if (node.getBase() == parent.children().get(0)) {
-						parentBindingStrategy.set(parent.getBindingStrategy());
+						parentBindingStrategy.set(parent.bindingStrategy());
 
-						if (parent.getBindingType() != null) {
-							parentBindingType.set(parent.getBindingType());
+						if (parent.bindingType() != null) {
+							parentBindingType.set(parent.bindingType());
 						} else {
-							parentBindingType.set(parent.getDataType());
+							parentBindingType.set(parent.dataType());
 						}
 					}
 				}
@@ -212,16 +212,16 @@ public class BindingNodeOverrider {
 
 			if (parentBindingType.get() != null) {
 				configurator = configurator.bindingType(parentBindingType.get());
-			} else if (node.getPreInputType() != null) {
-				configurator = configurator.bindingType(node.getPreInputType());
+			} else if (node.preInputType() != null) {
+				configurator = configurator.bindingType(node.preInputType());
 			}
 
 			if (parentBindingStrategy.get() != null) {
 				configurator = configurator.bindingStrategy(parentBindingStrategy.get());
 			}
 
-			if (node.getOutMethod().getDeclaringType() != null) {
-				configurator = configurator.unbindingType(node.getOutMethod().getDeclaringType());
+			if (node.outMethod().getDeclaringType() != null) {
+				configurator = configurator.unbindingType(node.outMethod().getDeclaringType());
 			} else {
 				configurator = configurator.unbindingType(parentUnbindingType.get());
 			}
@@ -292,22 +292,22 @@ public class BindingNodeOverrider {
 		private <N extends ChildNode<N, ?>, C extends ChildNodeConfigurator<C, N>> N processChildNode(N node, C c) {
 			c = tryProperty(node.abstractness(), C::abstractness, c);
 			c = tryProperty(node.occurrences(), C::occurrences, c);
-			c = tryProperty(node.isOrdered(), C::ordered, c);
+			c = tryProperty(node.ordered(), C::ordered, c);
 
 			return doChildren(node.children(), c.name(node.name()));
 		}
 
 		@SuppressWarnings("unchecked")
 		public <U, C extends BindingNodeConfigurator<C, ?, U>> C processBindingNode(BindingNode<U, ?, ?> node, C c) {
-			c = tryProperty(node.effective().getDataType(), (cc, a) -> (C) cc.dataType(a), c);
-			c = tryProperty(node.getBindingType(), (cc, t) -> cc.bindingType(t), c);
-			c = tryProperty(node.getBindingStrategy(), C::bindingStrategy, c);
-			c = tryProperty(node.getUnbindingType(), (cc, t) -> cc.unbindingType(t), c);
-			c = tryProperty(node.getUnbindingFactoryType(), (cc, t) -> cc.unbindingFactoryType(t), c);
-			c = tryProperty(node.getUnbindingMethodName(), C::unbindingMethod, c);
-			c = tryProperty(node.isUnbindingMethodUnchecked(), C::unbindingMethodUnchecked, c);
-			c = tryProperty(node.getUnbindingStrategy(), C::unbindingStrategy, c);
-			c = tryProperty(node.getProvidedUnbindingMethodParameterNames(),
+			c = tryProperty(node.effective().dataType(), (cc, a) -> (C) cc.dataType(a), c);
+			c = tryProperty(node.bindingType(), (cc, t) -> cc.bindingType(t), c);
+			c = tryProperty(node.bindingStrategy(), C::bindingStrategy, c);
+			c = tryProperty(node.unbindingType(), (cc, t) -> cc.unbindingType(t), c);
+			c = tryProperty(node.unbindingFactoryType(), (cc, t) -> cc.unbindingFactoryType(t), c);
+			c = tryProperty(node.unbindingMethodName(), C::unbindingMethod, c);
+			c = tryProperty(node.unbindingMethodUnchecked(), C::unbindingMethodUnchecked, c);
+			c = tryProperty(node.unbindingStrategy(), C::unbindingStrategy, c);
+			c = tryProperty(node.providedUnbindingMethodParameterNames(),
 					(cc, m) -> cc.providedUnbindingMethodParameters(m), c);
 
 			return c;
@@ -315,20 +315,20 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?, ?> node, C c) {
-			c = tryProperty(node.getOutMethodName(), C::outMethod, c);
-			c = tryProperty(node.isOutMethodIterable(), C::outMethodIterable, c);
-			c = tryProperty(node.isOutMethodUnchecked(), C::outMethodUnchecked, c);
-			c = tryProperty(node.isOutMethodCast(), C::outMethodCast, c);
+			c = tryProperty(node.outMethodName(), C::outMethod, c);
+			c = tryProperty(node.outMethodIterable(), C::outMethodIterable, c);
+			c = tryProperty(node.outMethodUnchecked(), C::outMethodUnchecked, c);
+			c = tryProperty(node.outMethodCast(), C::outMethodCast, c);
 
 			return processInputNode(node, c);
 		}
 
 		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(InputNode<?, ?> node, C c) {
-			c = tryProperty(node.isInMethodCast(), C::inMethodCast, c);
-			c = tryProperty(node.isInMethodUnchecked(), C::inMethodUnchecked, c);
-			c = tryProperty(node.getInMethodName(), C::inMethod, c);
-			c = tryProperty(node.isInMethodChained(), C::inMethodChained, c);
-			c = tryProperty(node.getPostInputType(), (cc, t) -> cc.postInputType(t), c);
+			c = tryProperty(node.inMethodCast(), C::inMethodCast, c);
+			c = tryProperty(node.inMethodUnchecked(), C::inMethodUnchecked, c);
+			c = tryProperty(node.inMethodName(), C::inMethod, c);
+			c = tryProperty(node.inMethodChained(), C::inMethodChained, c);
+			c = tryProperty(node.postInputType(), (cc, t) -> cc.postInputType(t), c);
 
 			return c;
 		}
@@ -342,10 +342,10 @@ public class BindingNodeOverrider {
 			 * by folding the node as an overridden model rather than continuing to
 			 * propagate through the tree of children manually.
 			 */
-			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex).extensible(node.isExtensible())
+			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex).extensible(node.extensible())
 					.model(node.source().model());
 
-			c = tryProperty(source.isInline(), ComplexNodeConfigurator::inline, c);
+			c = tryProperty(source.inline(), ComplexNodeConfigurator::inline, c);
 
 			processChildNode(source, processBindingNode(source, processBindingChildNode(source, c)));
 		}
@@ -360,7 +360,7 @@ public class BindingNodeOverrider {
 			c = tryProperty(source.format(), DataNodeConfigurator::format, c);
 			c = tryProperty(source.providedValueBuffer(), DataNodeConfigurator::provideValue, c);
 			c = tryProperty(source.valueResolution(), DataNodeConfigurator::valueResolution, c);
-			c = tryProperty(source.isExtensible(), DataNodeConfigurator::extensible, c);
+			c = tryProperty(source.extensible(), DataNodeConfigurator::extensible, c);
 
 			currentProvidedValue = node.providedValues();
 

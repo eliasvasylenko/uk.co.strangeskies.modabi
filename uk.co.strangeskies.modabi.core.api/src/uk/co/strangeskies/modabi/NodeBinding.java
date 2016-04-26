@@ -39,7 +39,7 @@ public abstract class NodeBinding<T, N extends BindingNode.Effective<T, ?, ?>> {
 	}
 
 	public TypedObject<T> getTypedData() {
-		return TypedObject.castInto(node.getDataType(), data);
+		return TypedObject.castInto(node.dataType(), data);
 	}
 
 	@Override

@@ -49,10 +49,10 @@ public interface ComplexNode<T> extends BindingNode<T, ComplexNode<T>, ComplexNo
 		return model();
 	}
 
-	Boolean isInline();
+	Boolean inline();
 
 	@Override
 	default TypeToken<ComplexNode<T>> getThisType() {
-		return new TypeToken<ComplexNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, getDataType());
+		return new TypeToken<ComplexNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
 }

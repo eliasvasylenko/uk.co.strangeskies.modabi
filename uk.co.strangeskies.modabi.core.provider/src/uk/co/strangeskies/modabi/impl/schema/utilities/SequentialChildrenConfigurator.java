@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.ChoiceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.ComplexNodeConfiguratorImpl;
@@ -41,9 +40,7 @@ import uk.co.strangeskies.modabi.impl.schema.SequenceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
@@ -232,7 +229,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 	private void checkRequiredOverrides(QualifiedName id, int indexReached) {
 		if (childIndex > 0) {
-			inputTarget = mergedChildren.get(childIndex - 1).getChild().getPostInputType();
+			inputTarget = mergedChildren.get(childIndex - 1).getChild().postInputType();
 		}
 
 		for (; childIndex < indexReached; childIndex++) {
@@ -241,13 +238,13 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			if (!context.isAbstract() && skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
 					&& !(skippedChild instanceof BindingChildNode
-							&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).isExtensible()))) {
+							&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).extensible()))) {
 				String context = (id != null) ? (" before node '" + id + "'") : "";
 
 				throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
 			}
 
-			inputTarget = skippedChild.getPostInputType();
+			inputTarget = skippedChild.postInputType();
 		}
 	}
 
@@ -261,13 +258,13 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		group.override(effective);
 		childIndex = group.getIndex() + 1;
 
-		inputTarget = effective.getPostInputType();
+		inputTarget = effective.postInputType();
 
 		if ((constructorExpected || staticMethodExpected)
 
 				&& effective instanceof InputNode
 
-				&& !"null".equals(((InputNode<?, ?>) effective).getInMethodName())) {
+				&& !"null".equals(((InputNode<?, ?>) effective).inMethodName())) {
 
 			constructorExpected = staticMethodExpected = false;
 		}
