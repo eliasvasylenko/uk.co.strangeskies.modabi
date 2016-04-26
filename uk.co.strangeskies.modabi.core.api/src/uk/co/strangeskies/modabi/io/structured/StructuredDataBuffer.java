@@ -361,7 +361,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>>
 				tailStack.push(child);
 
 				int remove = indexIterator.next();
-				if (!previouslyRemoved && startIndex.size() > depth)
+				if (!previouslyRemoved && startIndex.size() >= depth)
 					remove -= startIndex.get(depth);
 				if (remove > 0)
 					previouslyRemoved = true;

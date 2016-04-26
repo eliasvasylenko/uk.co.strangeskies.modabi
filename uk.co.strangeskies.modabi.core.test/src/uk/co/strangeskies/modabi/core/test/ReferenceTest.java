@@ -66,7 +66,7 @@ public class ReferenceTest {
 	}
 
 	@Test
-	public void loadScriptTestSchema() {
+	public void loadReferenceTestSchema() {
 		SchemaManager manager = getService(SchemaManager.class);
 
 		Assert.assertNotNull(getNamedValueModel(manager));

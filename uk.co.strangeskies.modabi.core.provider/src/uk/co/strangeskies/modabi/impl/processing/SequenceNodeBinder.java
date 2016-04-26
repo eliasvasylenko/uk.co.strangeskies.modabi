@@ -23,23 +23,21 @@ import java.util.function.Consumer;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public class SequenceNodeBinder
-		extends ChildNodeBinder<SequenceNode.Effective> {
-	public SequenceNodeBinder(ProcessingContextImpl context,
-			SequenceNode.Effective node) {
-		super(context, node);
+public class SequenceNodeBinder extends ChildNodeBinder<SequenceNode.Effective> {
+	public SequenceNodeBinder(ProcessingContextImpl parentContext, SequenceNode.Effective node) {
+		super(parentContext, node);
 
-		Consumer<ProcessingContextImpl> bind = c -> {
+		Consumer<ProcessingContextImpl> bind = context -> {
 			for (ChildNode.Effective<?, ?> child : node.children())
 				bind(context, child);
 		};
 
 		repeatNode(count -> {
 			if (node.occurrences().isValueBelow(count)) {
-				bind.accept(context);
+				bind.accept(parentContext);
 			} else {
 				try {
-					context.attemptBinding(bind);
+					parentContext.attemptBinding(bind);
 				} catch (Exception e) {
 					return false;
 				}

@@ -206,10 +206,6 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
-
-			int index = mergedChildren.indexOf(mergeGroup);
-			if (index > 0)
-				inputTarget = mergedChildren.get(index - 1).getChild().postInputType();
 		}
 
 		return (List<U>) overriddenNodes;
@@ -227,8 +223,6 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		ChildNode.Effective<?, ?> effective = result.effective();
 
 		childIndex = merge(new QualifiedName("?", Namespace.getDefault()), effective, childIndex, true);
-
-		inputTarget = effective.postInputType();
 	}
 
 	@Override

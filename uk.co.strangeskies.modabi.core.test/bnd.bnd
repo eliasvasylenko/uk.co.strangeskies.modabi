@@ -57,6 +57,7 @@ Test-Cases: ${test-cases}
 	${req;org.apache.felix.gogo.shell},\
 	${req;uk.co.strangeskies.modabi.io.json},\
 	${req;uk.co.strangeskies.modabi.io.xml},\
+	${req;uk.co.strangeskies.modabi.extender},\
 	${req;uk.co.strangeskies.modabi.core.provider},\
 	${req;uk.co.strangeskies.modabi.core.api}
 
@@ -78,9 +79,11 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.mathematics;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
+	uk.co.strangeskies.modabi.extender;version=snapshot,\
 	uk.co.strangeskies.modabi.io.json;version=snapshot,\
 	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
 	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.osgi.utilities;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 

@@ -12,7 +12,7 @@
 	</dependencies>
 
 	<types>
-		<type
+		<!--type
 			name="stringReferences"
 			baseType="list">
 			<data
@@ -25,11 +25,11 @@
 					name="targetId"
 					value="name" />
 			</data>
-		</type>
+		</type-->
 	</types>
 
 	<models>
-		<model
+		<!-- model
 			name="namedValue"
 			dataType="NamedValue"
 			bindingStrategy="IMPLEMENT_IN_PLACE">
@@ -39,6 +39,6 @@
 			<content
 				name="value"
 				type="string" />
-		</model>
+		</model -->
 	</models>
 </schema>

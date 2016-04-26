@@ -28,40 +28,33 @@ import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class Methods {
-	public static <T> Invokable<? super T, ? extends T> findConstructor(
-			TypeToken<T> receiver, TypeToken<?>... parameters)
-					throws NoSuchMethodException {
+	public static <T> Invokable<? super T, ? extends T> findConstructor(TypeToken<T> receiver, TypeToken<?>... parameters)
+			throws NoSuchMethodException {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
-	public static <T> Invokable<? super T, ? extends T> findConstructor(
-			TypeToken<T> receiver, List<TypeToken<?>> parameters)
-					throws NoSuchMethodException {
+	public static <T> Invokable<? super T, ? extends T> findConstructor(TypeToken<T> receiver,
+			List<TypeToken<?>> parameters) throws NoSuchMethodException {
 		Invokable<? super T, ? extends T> constructor;
 		try {
 			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
-			throw new SchemaException("Cannot find constructor for class '" + receiver
-					+ "' with parameters '" + parameters + "'", e);
+			throw new SchemaException(
+					"Cannot find constructor for class '" + receiver + "' with parameters '" + parameters + "'", e);
 		}
 
 		return constructor;
 	}
 
-	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
-			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
-			boolean allowCast, TypeToken<?>... parameters)
-					throws NoSuchMethodException {
-		return findMethod(names, receiver, isStatic, result, allowCast,
-				Arrays.asList(parameters));
+	public static <T> Invokable<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver, boolean isStatic,
+			TypeToken<?> result, boolean allowCast, TypeToken<?>... parameters) throws NoSuchMethodException {
+		return findMethod(names, receiver, isStatic, result, allowCast, Arrays.asList(parameters));
 	}
 
-	public static <T> Invokable<? super T, ?> resolveMethodOverload(
-			TypeToken<T> type, List<String> names,
+	public static <T> Invokable<? super T, ?> resolveMethodOverload(TypeToken<T> type, List<String> names,
 			List<? extends TypeToken<?>> arguments) {
 		Set<? extends Invokable<? super T, ? extends Object>> candidates = type
-				.getMethods(m -> names.contains(m.getName())
-						&& isArgumentCountValid(m, arguments.size()));
+				.getMethods(m -> names.contains(m.getName()) && isArgumentCountValid(m, arguments.size()));
 
 		if (candidates.isEmpty())
 			throw new SchemaException("Cannot find any applicable methods");
@@ -71,24 +64,19 @@ public class Methods {
 		return Invokable.resolveMostSpecificInvokable(candidates);
 	}
 
-	private static boolean isArgumentCountValid(Executable method,
-			int arguments) {
-		return (method.isVarArgs() ? method.getParameterCount() <= arguments + 1
-				: method.getParameterCount() == arguments);
+	private static boolean isArgumentCountValid(Executable method, int arguments) {
+		return (method.isVarArgs() ? method.getParameterCount() <= arguments + 1 : method.getParameterCount() == arguments);
 	}
 
-	public static <T> Invokable<? super T, ?> findMethod(List<String> names,
-			TypeToken<T> receiver, boolean isStatic, TypeToken<?> result,
-			boolean allowCast, List<TypeToken<?>> parameters)
-					throws NoSuchMethodException {
+	public static <T> Invokable<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver, boolean isStatic,
+			TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) throws NoSuchMethodException {
 		Invokable<? super T, ?> method = null;
 
 		try {
 			method = resolveMethodOverload(receiver, names, parameters);
 		} catch (Exception e) {
-			throw new SchemaException("Cannot find " + (isStatic ? "static " : "")
-					+ "method for class '" + receiver + "' with parameters '" + parameters
-					+ "' and any name of '" + names + "'", e);
+			throw new SchemaException("Cannot find " + (isStatic ? "static " : "") + "method for class '" + receiver
+					+ "' with parameters '" + parameters + "' and any name of '" + names + "'", e);
 		}
 
 		if (result != null) {

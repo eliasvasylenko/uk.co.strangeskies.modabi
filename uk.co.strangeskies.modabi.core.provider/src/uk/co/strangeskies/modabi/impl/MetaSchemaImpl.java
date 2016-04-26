@@ -35,6 +35,7 @@ import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
@@ -295,9 +296,22 @@ public class MetaSchemaImpl implements MetaSchema {
 										.type(base.primitiveType(Primitive.BOOLEAN)))
 								.addChild(n -> n.data().format(Format.PROPERTY).name("valueResolution").optional(true)
 										.type(base.derivedTypes().enumType()).dataType(ValueResolution.class))
-								.addChild(o -> o.data().format(Format.PROPERTY).name("value").optional(true).inMethod("provideValue")
-										.outMethod("providedValueBuffer").type(base.derivedTypes().bufferedDataType())));
+								.addChild(n -> n.complex().name("value").inMethod("provideValue").outMethod("providedValueBuffer")
+										.dataType(DataSource.class).unbindingType(DataSource.class).bindingType(Function.class)
+										.bindingStrategy(BindingStrategy.STATIC_FACTORY).inline(true).optional(true)
+										.addChild(o -> o.inputSequence().name("identity"))
+										.addChild(o -> o.choice().name("valueFormat")
+												.addChild(p -> p.data().format(Format.PROPERTY).name("value").inMethodChained(true)
+														.type(base.derivedTypes().bufferedDataType()).outMethod("this").inMethod("apply"))
+												.addChild(p -> p.data().format(Format.CONTENT).name("valueContent").inMethodChained(true)
+														.type(base.derivedTypes().bufferedDataType()).outMethod("this").inMethod("apply")))));
 
+		/*-
+		
+		.addChild(o -> o.data().format(Format.PROPERTY).name("value").optional(true).inMethod("provideValue")
+			.outMethod("providedValueBuffer").type(base.derivedTypes().bufferedDataType())));
+		
+		*/
 		factory.apply("content", m -> m.baseModel(typedDataModel).addChild(n -> n.data().name("format").optional(false)
 				.provideValue(new BufferingDataTarget().put(Primitive.STRING, "CONTENT").buffer())));
 
@@ -350,11 +364,10 @@ public class MetaSchemaImpl implements MetaSchema {
 								.bindingType(SchemaConfigurator.class)
 								.inMethod(
 										"null")
-								.addChild(n -> n.data().name("importsIn").inMethod("imports").outMethod("null")
-										.type(
-												base.derivedTypes().setType())
-										.addChild(
-												e -> e.data().name("element").type(base.derivedTypes().classType())))
+								.addChild(
+										n -> n.data().name("importsIn").inMethod("imports").outMethod("null")
+												.type(base.derivedTypes().setType()).addChild(
+														e -> e.data().name("element").type(base.derivedTypes().classType())))
 								.addChild(
 										n -> n.data().name("importsOut").inMethod("null").optional(true)
 												.outMethod(
@@ -364,8 +377,7 @@ public class MetaSchemaImpl implements MetaSchema {
 												.addChild(
 														s -> s.data().name("imports").outMethod("getImportedClasses").inMethod("null")
 																.type(
-																		base.derivedTypes()
-																				.setType())
+																		base.derivedTypes().setType())
 																.addChild(
 																		e -> e.data().name("element").type(base.derivedTypes().classType())))))
 				.addChild(n -> n.data().format(Format.SIMPLE).name("dependencies").occurrences(Range.between(0, 1))
