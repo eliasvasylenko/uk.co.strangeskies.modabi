@@ -67,7 +67,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public S synchronous(boolean synchronous) {
-		assertConfigurable(synchronous);
+		assertConfigurable(this.synchronous);
 		this.synchronous = synchronous;
 
 		return getThis();

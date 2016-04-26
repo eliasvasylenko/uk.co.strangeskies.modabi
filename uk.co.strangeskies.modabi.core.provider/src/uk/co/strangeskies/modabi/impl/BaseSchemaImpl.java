@@ -124,7 +124,7 @@ public class BaseSchemaImpl implements BaseSchema {
 			collectionType = factory.apply("collection",
 					t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).bindingStrategy(BindingStrategy.PROVIDED)
 							.unbindingStrategy(UnbindingStrategy.SIMPLE).abstractness(Abstractness.UNINFERRED)
-							.addChild(c -> c.data().name("element").inMethod("add").outMethod("this")
+							.addChild(c -> c.data().name("element").inMethod("add").outMethod("this").synchronous(true)
 									.abstractness(Abstractness.ABSTRACT).extensible(true).occurrences(Range.between(0, null))));
 
 			listType = factory.apply("list", t -> t.dataType(new @Infer TypeToken<List<?>>() {}).baseType(collectionType)
