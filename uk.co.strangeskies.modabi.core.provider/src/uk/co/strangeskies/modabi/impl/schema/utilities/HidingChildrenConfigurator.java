@@ -215,6 +215,11 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		return (List<U>) overriddenNodes;
 	}
 
+	@Override
+	public TypeToken<?> getPostInputType() {
+		return inputTarget;
+	}
+
 	private void addChild(ChildNode<?, ?> result) {
 		blocked = false;
 		children.add(result);

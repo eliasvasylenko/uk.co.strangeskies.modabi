@@ -55,6 +55,8 @@ public interface BaseSchema extends Schema {
 
 		DataType<Object> referenceType();
 
+		DataType<Object> bindingReferenceType();
+
 		DataType<DataSource> bufferedDataType();
 
 		DataType<DataItem<?>> bufferedDataItemType();

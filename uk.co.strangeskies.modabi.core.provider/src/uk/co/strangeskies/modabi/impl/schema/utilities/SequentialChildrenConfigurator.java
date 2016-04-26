@@ -225,6 +225,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		return (List<U>) overriddenNodes;
 	}
 
+	@Override
+	public TypeToken<?> getPostInputType() {
+		return inputTarget;
+	}
+
 	private void checkRequiredOverrides(QualifiedName id, int indexReached) {
 		if (childIndex > 0) {
 			inputTarget = mergedChildren.get(childIndex - 1).getChild().getPostInputType();

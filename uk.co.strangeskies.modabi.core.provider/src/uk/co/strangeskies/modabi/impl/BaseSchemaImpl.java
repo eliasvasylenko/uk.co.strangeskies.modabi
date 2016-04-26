@@ -84,6 +84,7 @@ public class BaseSchemaImpl implements BaseSchema {
 
 	private class DerivedTypesImpl implements DerivedTypes {
 		private final DataType<Object> referenceType;
+		private final DataType<Object> bindingReferenceType;
 		private final DataType<DataSource> bufferedDataType;
 		private final DataType<DataItem<?>> bufferedDataItemType;
 
@@ -146,7 +147,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.addChild(c -> c.inputSequence().name("get").inMethodChained(true)));
 
 			DataType<Object> referenceBaseType = factory.apply("referenceBase",
-					t -> t.<Object> dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
+					t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
 							.abstractness(Abstractness.ABSTRACT).isPrivate(true).bindingType(DereferenceSource.class)
 							.bindingStrategy(BindingStrategy.PROVIDED).unbindingFactoryType(ReferenceTarget.class)
 							.unbindingType(DataSource.class).unbindingMethod("reference").unbindingMethodUnchecked(true)
@@ -181,19 +182,37 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
 											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
+			/*- TODO
+			bindingReferenceType = factory
+					.apply("bindingReference",
+							t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
+									.abstractness(Abstractness.ABSTRACT).bindingType(DereferenceSource.class)
+									.bindingStrategy(BindingStrategy.PROVIDED)
+									.unbindingFactoryType(
+											ReferenceTarget.class)
+									.unbindingType(DataSource.class).unbindingMethod("reference").unbindingMethodUnchecked(true)
+									.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
+									.providedUnbindingMethodParameters("targetModel", "targetId", "this")
+									.addChild(c -> c.data().name("targetNode").type(referenceType)
+											.addChild(d -> d.data().name("targetModel")
+													.provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
+											.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
+			 */
+			bindingReferenceType = null;
+
 			packageType = factory.apply("package",
 					t -> t.dataType(new TypeToken<Package>() {}).bindingStrategy(BindingStrategy.STATIC_FACTORY)
 							.addChild(p -> p.data().type(primitives.get(Primitive.STRING)).name("name").inMethod("getPackage")));
-
-			classType = factory.apply("class",
-					t -> t.dataType(new TypeToken<Class<?>>() {}).bindingStrategy(BindingStrategy.STATIC_FACTORY)
-							.bindingType(Types.class).addChild(p -> p.data().type(primitives.get(Primitive.STRING)).name("name")
-									.inMethod("fromString").inMethodCast(true)));
 
 			typeType = factory.apply("type",
 					t -> t.dataType(Type.class).bindingStrategy(BindingStrategy.STATIC_FACTORY).bindingType(Types.class)
 							.addChild(p -> p.data().type(primitives.get(Primitive.STRING)).name("name").inMethod("fromString")
 									.outMethod("toString")));
+
+			classType = factory.apply("class", t -> t.baseType(typeType).dataType(new TypeToken<Class<?>>() {})
+					.addChild(p -> p.data().name("name").postInputType(new TypeToken<Class<?>>() {}).inMethodCast(true)));
 
 			annotatedTypeType = factory.apply("annotatedType",
 					t -> t.dataType(AnnotatedType.class).bindingStrategy(BindingStrategy.STATIC_FACTORY)
@@ -214,7 +233,8 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(e -> e.inputSequence().name("bindingNode").inMethod("getBindingNode").inMethodChained(true)
 											.postInputType(new TypeToken<DataType.Effective<?>>() {}).inMethodCast(true))
 									.addChild(p -> p.inputSequence().name("getDataType").inMethodChained(true))
-									.addChild(p -> p.inputSequence().name("getRawType").inMethodChained(true)))
+									.addChild(p -> p.inputSequence().name("getRawType").inMethodChained(true).inMethodCast(true)
+											.postInputType(new TypeToken<Class<? extends Enum<?>>>() {})))
 							.addChild(o -> o.data().name("name").type(primitives.get(Primitive.STRING)))));
 
 			enumerationType = factory.apply("enumeration", t -> t.baseType(enumerationBaseType)
@@ -226,7 +246,8 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(e -> e.inputSequence().name("bindingNode").inMethod("getBindingNode").inMethodChained(true)
 											.postInputType(new TypeToken<DataType.Effective<?>>() {}).inMethodCast(true))
 									.addChild(p -> p.inputSequence().name("getDataType").inMethodChained(true))
-									.addChild(p -> p.inputSequence().name("getType").inMethodChained(true)))
+									.addChild(p -> p.inputSequence().name("getRawType").inMethodChained(true).inMethodCast(true)
+											.postInputType(new TypeToken<Class<? extends Enumeration<?>>>() {})))
 							.addChild(o -> o.data().name("name").type(primitives.get(Primitive.STRING)))));
 
 			rangeType = factory.apply("range",
@@ -297,7 +318,8 @@ public class BaseSchemaImpl implements BaseSchema {
 																											new QualifiedName("targetModel", namespace)).buffer())
 																									.postInputType(new TypeToken<DataNode.Effective<?>>() {})
 																									.inMethodCast(true))
-																					.addChild(f -> f.inputSequence().name("providedValue").inMethodChained(true)))
+																					.addChild(f -> f.inputSequence().name("providedValue").inMethodChained(true)
+																							.inMethodCast(true).postInputType(new TypeToken<Model<?>>() {})))
 																	.addChild(e -> e.data().name("object").dataType(Collection.class).outMethod("null")
 																			.bindingStrategy(BindingStrategy.PROVIDED).bindingType(ProcessingContext.class)
 																			.addChild(f -> f.data().name("bindingObject").inMethod("getBindingObject")
@@ -438,6 +460,11 @@ public class BaseSchemaImpl implements BaseSchema {
 		@Override
 		public DataType<Object> referenceType() {
 			return referenceType;
+		}
+
+		@Override
+		public DataType<Object> bindingReferenceType() {
+			return bindingReferenceType;
 		}
 
 		@Override

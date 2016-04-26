@@ -84,7 +84,32 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			unbindingMethodUnchecked = overrideMerge.getOverride(BindingNode::isUnbindingMethodUnchecked).tryGet();
 
-			dataType = inferDataType(overrideMerge.configurator().getEffectiveDataType(), bounds);
+			TypeToken<T> dataType = overrideMerge.configurator().getEffectiveDataType();
+			if (abstractness().isAtMost(Abstractness.CONCRETE)) {
+				try {
+					dataType = dataType == null ? null
+							: dataType.withLooseCompatibilityFrom(
+									overrideMerge.configurator().getChildrenConfigurator().getPostInputType());
+				} catch (Exception e) {
+					/*
+					 * 
+					 * 
+					 * 
+					 * 
+					 * 
+					 * 
+					 * TODO THIS IS A TEMPORARY MEASURE!!!!! NEEDS FIXING PROPERLY!!!!
+					 * 
+					 * 
+					 * 
+					 * 
+					 * 
+					 * 
+					 * 
+					 */
+				}
+			}
+			this.dataType = inferDataType(dataType, bounds);
 			bindingType = inferDataType(overrideMerge.configurator().getEffectiveBindingType(), bounds);
 			unbindingType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingType(), bounds);
 			unbindingFactoryType = inferDataType(overrideMerge.configurator().getEffectiveUnbindingFactoryType(), bounds);

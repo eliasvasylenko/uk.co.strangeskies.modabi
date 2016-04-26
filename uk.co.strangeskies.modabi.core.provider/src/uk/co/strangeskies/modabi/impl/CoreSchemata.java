@@ -37,6 +37,7 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataType;
@@ -57,6 +58,9 @@ public class CoreSchemata {
 			switch (name.getName()) {
 			case "model":
 				type = modelOf(new TypeToken<Model<?>>() {});
+				break;
+			case "binding":
+				type = modelOf(new TypeToken<BindingNode<?, ?, ?>>() {});
 				break;
 			case "type":
 				type = modelOf(new TypeToken<DataType<?>>() {});
