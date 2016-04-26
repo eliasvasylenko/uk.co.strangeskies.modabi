@@ -174,11 +174,11 @@ public class SchemaTest {
 
 		@SuppressWarnings("unchecked")
 		Model<Map<?, ?>> stringIntMapModel = generatedSchema.addModel().name("stringIntMap", Namespace.getDefault())
-				.baseModel(schemaManager.getBaseSchema().models().mapModel())
+				.baseModel(schemaManager.getBaseSchema().baseModels().mapModel())
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object> model((Model<Object>) schemaManager.getBaseSchema().models().simpleModel()).addChild(
+								.<Object> model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.effective().dataType());
@@ -212,13 +212,11 @@ public class SchemaTest {
 						e -> e.complex().name("entrySet").inline(true).inMethod("null")
 								.dataType(
 										inferredMapEntrySet)
-								.bindingStrategy(BindingStrategy.TARGET_ADAPTOR)
+								.bindingStrategy(
+										BindingStrategy.TARGET_ADAPTOR)
 								.addChild(
-										s -> s.inputSequence()
-												.name(
-														"entrySet")
-												.inMethodChained(
-														true))
+										s -> s.inputSequence().name("entrySet")
+												.inMethodChained(true))
 								.addChild(
 										f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add").outMethod("this")
 												.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE).bindingType(BaseSchema.class)
@@ -231,22 +229,21 @@ public class SchemaTest {
 												.addChild(
 														v -> v.complex().name("value").inMethod("null")
 																.model(
-																		schemaManager.getBaseSchema().models()
+																		schemaManager.getBaseSchema().baseModels()
 																				.mapModel())
 																.addChild(
 																		s -> s.complex()
 																				.name(
 																						"entrySet")
-																				.addChild(
-																						ee -> ee.complex().name("entry")
-																								.addChild(k -> k.data().name("key")
-																										.type(schemaManager.getBaseSchema()
-																												.primitiveType(Primitive.STRING)))
-																								.addChild(vv -> vv.complex().name("value")
-																										.<Object> model((Model<Object>) schemaManager.getBaseSchema()
-																												.models().simpleModel())
-																										.addChild(cc -> cc.data().name("content").type(schemaManager
-																												.getBaseSchema().primitiveType(Primitive.INT)))))))))
+																				.addChild(ee -> ee.complex().name("entry")
+																						.addChild(k -> k.data().name("key")
+																								.type(schemaManager.getBaseSchema()
+																										.primitiveType(Primitive.STRING)))
+																						.addChild(vv -> vv.complex().name("value")
+																								.<Object> model((Model<Object>) schemaManager.getBaseSchema()
+																										.baseModels().simpleModel())
+																								.addChild(cc -> cc.data().name("content").type(
+																										schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
 		System.out.println(mapModel3.effective().dataType());
 		System.out.println(mapModel3.effective().dataType().getResolver().getBounds());
