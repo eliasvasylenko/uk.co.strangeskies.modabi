@@ -46,6 +46,7 @@ import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Effective;
@@ -116,24 +117,17 @@ public class BindingProviders {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						/*
-						 * 
-						 * 
-						 * 
-						 * 
-						 * TODO context.bindings().get(model) should return a (synchronized)
-						 * observable set rather than needing a separate changes method.
-						 * 
-						 * 
-						 * 
-						 * 
-						 */
 						synchronized (context.bindings()) {
 							context.bindings().changes(model).addTerminatingObserver(listener);
 							return context.bindings().getModelBindings(model);
 						}
 					}
 				}, idDomain, id, false);
+			}
+
+			public <T> T dereference(BindingNode<T, ?, ?> node) {
+				// TODO
+				return null;
 			}
 		};
 	}

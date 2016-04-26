@@ -33,10 +33,20 @@ Test-Cases: ${test-cases}
 	tester.dir=testdir
 
 -dependson: \
+	uk.co.strangeskies.modabi.bnd,\
 	uk.co.strangeskies.modabi.io.json,\
 	uk.co.strangeskies.modabi.io.xml,\
 	uk.co.strangeskies.modabi.core.api,\
 	uk.co.strangeskies.modabi.core.provider
+
+-pluginpath: \
+	${pluginpath.modabi;xml}
+
+-plugin: \
+	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+
+-includeresource: \
+	META-INF/schemata=schemata
 
 -runrequires: \
 	${req;biz.aQute.tester},\

@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="ScriptingTestSchema">
+
+	<imports>
+		uk.co.strangeskies.modabi.core.test.NamedValue
+	</imports>
+
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
+	<types>
+		<type
+			name="stringReferences"
+			baseType="list">
+			<data
+				name="element"
+				type="reference">
+				<data
+					name="targetModel"
+					value="namedValue" />
+				<data
+					name="targetId"
+					value="name" />
+			</data>
+		</type>
+	</types>
+
+	<models>
+		<model
+			name="namedValue"
+			dataType="NamedValue"
+			bindingStrategy="IMPLEMENT_IN_PLACE">
+			<property
+				name="name"
+				type="string" />
+			<content
+				name="value"
+				type="string" />
+		</model>
+	</models>
+</schema>

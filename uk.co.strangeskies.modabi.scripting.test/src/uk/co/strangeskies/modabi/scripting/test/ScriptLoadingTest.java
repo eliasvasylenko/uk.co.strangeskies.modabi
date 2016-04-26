@@ -35,6 +35,7 @@ import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 
 public class ScriptLoadingTest {
+	private static final int TIMEOUT_MILLISECONDS = 2000;
 	protected static final String XML_POSTFIX = ".xml";
 
 	private BundleContext getBundleContext() {
@@ -90,14 +91,14 @@ public class ScriptLoadingTest {
 		Assert.assertNotNull(getFunctionScriptModel(manager));
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void loadRunnableScriptTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
 		manager.bind().from(() -> this.getResouce("RunnableScript")).resolve(1000);
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void executeRunnableScriptTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
@@ -107,14 +108,14 @@ public class ScriptLoadingTest {
 		runnable.run();
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void loadFunctionScriptPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
 		manager.bind().from(() -> this.getResouce("RunnableScript")).resolve(1000);
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void executeFunctionScriptPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
@@ -127,14 +128,14 @@ public class ScriptLoadingTest {
 		Assert.assertEquals(result, "CAPITALISE ME");
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void loadFunctionPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
 		manager.bind().from(() -> this.getResouce("FunctionProperty")).resolve(1000);
 	}
 
-	@Test(timeout = 2000)
+	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void executeFunctionPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 

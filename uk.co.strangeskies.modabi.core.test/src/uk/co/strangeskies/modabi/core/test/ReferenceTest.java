@@ -18,26 +18,24 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
+import java.io.InputStream;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
 
-import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.BufferingDataTarget;
-import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.modabi.schema.Model;
 
 public class ReferenceTest {
 	private static final int TIMEOUT_MILLISECONDS = 2000;
+	protected static final String XML_POSTFIX = ".xml";
 
 	private <T> T getService(Class<T> clazz) {
 		try {
@@ -56,77 +54,26 @@ public class ReferenceTest {
 		}
 	}
 
-	@Test(timeout = TIMEOUT_MILLISECONDS)
-	public void referenceTypeTest() {
-		SchemaManager schemaManager = getService(SchemaManager.class);
-
-		new ContextClassLoaderRunner(getClass().getClassLoader()).run(() -> {
-			SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator()
-					.qualifiedName(new QualifiedName("testReferences", Namespace.getDefault()));
-
-			System.out.println();
-			System.out.println("!");
-			System.out.println("! List Type 1");
-			System.out.println("!");
-			printInfo(
-					generatedSchema.addDataType().name("intReference", Schema.MODABI_NAMESPACE)
-							.baseType(
-									schemaManager.getBaseSchema().derivedTypes()
-											.listType())
-							.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().derivedTypes().referenceType())
-									.addChild(p -> p.data().name("targetModel").provideValue(new BufferingDataTarget()
-											.put(Primitive.QUALIFIED_NAME, new QualifiedName("schema", Schema.MODABI_NAMESPACE)).buffer()))
-									.addChild(p -> p.data().name("targetId")
-											.provideValue(new BufferingDataTarget()
-													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", Schema.MODABI_NAMESPACE)).buffer()))
-									.addChild(d -> d.data().name("data")))
-							.create());
-
-			System.out.println();
-			System.out.println("!");
-			System.out.println("! List Type 2");
-			System.out.println("!");
-			printInfo(
-					generatedSchema.addDataType().name("intReference", Schema.MODABI_NAMESPACE)
-							.baseType(
-									schemaManager.getBaseSchema().derivedTypes()
-											.listType())
-							.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().derivedTypes().referenceType())
-									.addChild(p -> p.data().name("targetModel").provideValue(new BufferingDataTarget()
-											.put(Primitive.QUALIFIED_NAME, new QualifiedName("schema", Schema.MODABI_NAMESPACE)).buffer()))
-									.addChild(p -> p.data().name("targetId")
-											.provideValue(new BufferingDataTarget()
-													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", Schema.MODABI_NAMESPACE)).buffer())))
-							.create());
-		});
-
-		System.out.println();
+	@SuppressWarnings("unchecked")
+	private Model<NamedValue> getNamedValueModel(SchemaManager manager) {
+		return (Model<NamedValue>) manager.registeredModels().get(new QualifiedName("namedValue", Schema.MODABI_NAMESPACE));
 	}
 
-	private void printInfo(DataType<List<?>> listType) {
-		// target model types
-		printInfo((DataNode<?>) listType.effective().child("element", "targetModel"));
-
-		// target id types
-		printInfo((DataNode<?>) listType.effective().child("element", "targetId"));
-
-		// data types
-		printInfo((DataNode<?>) listType.effective().child("element", "data"));
-
-		// finishing move!
-		System.out.println();
-
-		System.out.println(listType.effective().getDataType());
-		System.out.println(listType.effective().getDataType().infer());
+	@SuppressWarnings("unchecked")
+	private DataType<List<NamedValue>> getStringReferencesType(SchemaManager manager) {
+		return (DataType<List<NamedValue>>) manager.registeredTypes()
+				.get(new QualifiedName("stringReferences", Schema.MODABI_NAMESPACE));
 	}
 
-	private void printInfo(DataNode<?> node) {
-		System.out.println();
+	@Test
+	public void loadScriptTestSchema() {
+		SchemaManager manager = getService(SchemaManager.class);
 
-		System.out.println(node.getPostInputType());
-		System.out.println(node.getPostInputType().infer());
+		Assert.assertNotNull(getNamedValueModel(manager));
+		Assert.assertNotNull(getStringReferencesType(manager));
+	}
 
-		System.out.println(node.getDataType());
-		System.out.println(node.getDataType().infer());
+	private InputStream getResouce(String resource) {
+		return getClass().getResourceAsStream(resource + XML_POSTFIX);
 	}
 }

@@ -18,6 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.unbounded;
+import static uk.co.strangeskies.reflection.Annotations.from;
+import static uk.co.strangeskies.reflection.TypeToken.over;
+
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -147,7 +151,7 @@ public class BaseSchemaImpl implements BaseSchema {
 							.addChild(c -> c.inputSequence().name("get").inMethodChained(true)));
 
 			DataType<Object> referenceBaseType = factory.apply("referenceBase",
-					t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
+					t -> t.<Object> dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
 							.abstractness(Abstractness.ABSTRACT).isPrivate(true).bindingType(DereferenceSource.class)
 							.bindingStrategy(BindingStrategy.PROVIDED).unbindingFactoryType(ReferenceTarget.class)
 							.unbindingType(DataSource.class).unbindingMethod("reference").unbindingMethodUnchecked(true)
@@ -182,25 +186,25 @@ public class BaseSchemaImpl implements BaseSchema {
 									.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
 											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
-			/*- TODO
 			bindingReferenceType = factory
 					.apply("bindingReference",
-							t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
-									.abstractness(Abstractness.ABSTRACT).bindingType(DereferenceSource.class)
-									.bindingStrategy(BindingStrategy.PROVIDED)
-									.unbindingFactoryType(
-											ReferenceTarget.class)
-									.unbindingType(DataSource.class).unbindingMethod("reference").unbindingMethodUnchecked(true)
-									.unbindingStrategy(UnbindingStrategy.PROVIDED_FACTORY)
-									.providedUnbindingMethodParameters("targetModel", "targetId", "this")
-									.addChild(c -> c.data().name("targetNode").type(referenceType)
-											.addChild(d -> d.data().name("targetModel")
-													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
-											.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
-													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
-			 */
-			bindingReferenceType = null;
+							t -> t
+									.abstractness(
+											Abstractness.ABSTRACT)
+									.bindingType(
+											DereferenceSource.class)
+									.<Object> dataType(
+											over(
+													unbounded(
+															from(
+																	Infer.class))))
+									.bindingStrategy(BindingStrategy.PROVIDED).addChild(
+											c -> c.data().name("targetNode").type(referenceType).outMethod("null").inMethod("dereference")
+													.addChild(d -> d.data().name("targetModel")
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
+													.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
 			packageType = factory.apply("package",
 					t -> t.dataType(new TypeToken<Package>() {}).bindingStrategy(BindingStrategy.STATIC_FACTORY)
@@ -208,8 +212,9 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			typeType = factory.apply("type",
 					t -> t.dataType(Type.class).bindingStrategy(BindingStrategy.STATIC_FACTORY).bindingType(Types.class)
-							.addChild(p -> p.data().type(primitives.get(Primitive.STRING)).name("name").inMethod("fromString")
-									.outMethod("toString")));
+							.unbindingStrategy(UnbindingStrategy.STATIC_FACTORY).unbindingType(String.class)
+							.unbindingFactoryType(Types.class).unbindingMethod("toString").addChild(p -> p.data()
+									.type(primitives.get(Primitive.STRING)).name("name").inMethod("fromString").outMethod("this")));
 
 			classType = factory.apply("class", t -> t.baseType(typeType).dataType(new TypeToken<Class<?>>() {})
 					.addChild(p -> p.data().name("name").postInputType(new TypeToken<Class<?>>() {}).inMethodCast(true)));

@@ -23,16 +23,12 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface DereferenceSource {
 	<T> T dereference(Model<T> model, QualifiedName idDomain, DataSource id);
 
-	/*
-	 * TODO if we restructure like the following, the supplier can be bound at
-	 * registration time, which means the type will be known during registration
-	 * and we can have better type safety, maybe!
-	 */
 	default <T> Function<DataSource, T> dereference(Model<T> model, QualifiedName idDomain) {
 		Objects.requireNonNull(model);
 		Objects.requireNonNull(idDomain);
@@ -42,4 +38,6 @@ public interface DereferenceSource {
 	default <T> Function<QualifiedName, Function<DataSource, T>> dereference(Model<T> model) {
 		return idDomain -> dereference(model, idDomain);
 	}
+
+	<T> T dereference(BindingNode<T, ?, ?> node);
 }

@@ -239,31 +239,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			MergeGroup skippedGroup = mergedChildren.get(childIndex);
 			ChildNode.Effective<?, ?> skippedChild = skippedGroup.getChild();
 
-			if (!context.isAbstract()) {
-				if (skippedChild.abstractness() == Abstractness.UNINFERRED) {
-					skippedChild = skippedChild.process(new ReturningNodeProcessor<ChildNode.Effective<?, ?>>() {
-						@Override
-						public <T> ChildNode.Effective<?, ?> accept(DataNode.Effective<T> node) {
-							return DataNodeWrapper.wrapNode(node);
-						}
+			if (!context.isAbstract() && skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
+					&& !(skippedChild instanceof BindingChildNode
+							&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).isExtensible()))) {
+				String context = (id != null) ? (" before node '" + id + "'") : "";
 
-						@Override
-						public <T> ChildNode.Effective<?, ?> accept(ComplexNode.Effective<T> node) {
-							return ComplexNodeWrapper.wrapNode(node);
-						}
-
-						@Override
-						public ChildNode.Effective<?, ?> acceptDefault(SchemaNode.Effective<?, ?> node) {
-							return (ChildNode.Effective<?, ?>) node;
-						};
-					});
-				} else if (skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
-						&& !(skippedChild instanceof BindingChildNode
-								&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).isExtensible()))) {
-					String context = (id != null) ? (" before node '" + id + "'") : "";
-
-					throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
-				}
+				throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
 			}
 
 			inputTarget = skippedChild.getPostInputType();
