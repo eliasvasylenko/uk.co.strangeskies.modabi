@@ -65,24 +65,30 @@ public class ComplexNodeUnbinder {
 												+ "' for object '" + item + "' to be unbound",
 										context, l));
 			}
-		} else
-			for (U item : data)
+		} else {
+			for (U item : data) {
 				unbindExactNode(context, node, item);
+			}
+		}
 	}
 
 	private <U> void unbindExactNode(ProcessingContextImpl context, ComplexNode.Effective<U> element, U data) {
 		try {
-			if (!element.inline())
-				context.output().get().addChild(element.name());
+			try {
+				if (!element.inline())
+					context.output().get().addChild(element.name());
 
-			new BindingNodeUnbinder(context).unbind(element, data);
+				new BindingNodeUnbinder(context).unbind(element, data);
 
-			if (!element.inline())
-				context.output().get().endChild();
+				if (!element.inline())
+					context.output().get().endChild();
 
-			context.bindings().add(element, data);
-		} catch (ClassCastException e) {
-			throw new ProcessingException("Cannot unbind data at this node.", context, e);
+				context.bindings().add(element, data);
+			} catch (ClassCastException e) {
+				throw new ProcessingException("Cannot unbind data at this node.", context, e);
+			}
+		} catch (Exception e) {
+			throw e;
 		}
 	}
 }

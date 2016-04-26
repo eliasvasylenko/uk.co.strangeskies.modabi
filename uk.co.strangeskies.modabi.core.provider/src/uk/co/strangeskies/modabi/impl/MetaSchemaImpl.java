@@ -302,24 +302,18 @@ public class MetaSchemaImpl implements MetaSchema {
 										.addChild(o -> o.inputSequence().name("identity"))
 										.addChild(o -> o.choice().name("valueFormat")
 												.addChild(p -> p.data().format(Format.PROPERTY).name("value").inMethodChained(true)
-														.type(base.derivedTypes().bufferedDataType()).outMethod("this").inMethod("apply"))
+														.type(base.derivedTypes().bufferedDataType()).outMethod("copy").inMethod("apply"))
 												.addChild(p -> p.data().format(Format.CONTENT).name("valueContent").inMethodChained(true)
-														.type(base.derivedTypes().bufferedDataType()).outMethod("this").inMethod("apply")))));
+														.type(base.derivedTypes().bufferedDataType()).outMethod("copy").inMethod("apply")))));
 
-		/*-
-		
-		.addChild(o -> o.data().format(Format.PROPERTY).name("value").optional(true).inMethod("provideValue")
-			.outMethod("providedValueBuffer").type(base.derivedTypes().bufferedDataType())));
-		
-		*/
 		factory.apply("content", m -> m.baseModel(typedDataModel).addChild(n -> n.data().name("format").optional(false)
-				.provideValue(new BufferingDataTarget().put(Primitive.STRING, "CONTENT").buffer())));
+				.provideValue(new BufferingDataTarget().put(Primitive.STRING, Format.CONTENT.toString()).buffer())));
 
 		factory.apply("property", m -> m.baseModel(typedDataModel).addChild(n -> n.data().name("format").optional(false)
-				.provideValue(new BufferingDataTarget().put(Primitive.STRING, "PROPERTY").buffer())));
+				.provideValue(new BufferingDataTarget().put(Primitive.STRING, Format.PROPERTY.toString()).buffer())));
 
 		factory.apply("simple", m -> m.baseModel(typedDataModel).addChild(n -> n.data().name("format").optional(false)
-				.provideValue(new BufferingDataTarget().put(Primitive.STRING, "SIMPLE").buffer())));
+				.provideValue(new BufferingDataTarget().put(Primitive.STRING, Format.SIMPLE.toString()).buffer())));
 
 		factory.apply("data",
 				m -> m.baseModel(typedDataModel).addChild(n -> n.data().name("format").occurrences(Range.between(0, 0))));

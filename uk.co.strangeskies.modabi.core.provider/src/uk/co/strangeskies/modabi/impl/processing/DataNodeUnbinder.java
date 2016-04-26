@@ -69,52 +69,49 @@ public class DataNodeUnbinder {
 
 		BufferingDataTarget target = null;
 
-		if (data != null) {
-			if (node.isValueProvided()) {
-				switch (node.valueResolution()) {
-				case PROCESSING_TIME:
+		if (node.isValueProvided()) {
+			switch (node.valueResolution()) {
+			case PROCESSING_TIME:
 
-					break;
-				case REGISTRATION_TIME:
-				case POST_REGISTRATION:
-					if (!node.providedValues().equals(data)) {
-						throw new SchemaException("Provided value '" + node.providedValues() + "'does not match unbinding object '"
-								+ data + "' for node '" + node.name() + "'");
-					}
-					break;
+				break;
+			case REGISTRATION_TIME:
+			case POST_REGISTRATION:
+				if (!node.providedValues().equals(data)) {
+					throw new SchemaException("Provided value '" + node.providedValues() + "'does not match unbinding object '"
+							+ data + "' for node '" + node.name() + "'");
 				}
-			} else {
-				for (U item : data) {
-					if (format != null) {
-						target = new BufferingDataTarget();
-						BufferingDataTarget finalTarget = target;
-						context = context.withNestedProvisionScope();
-						context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, () -> finalTarget));
-					}
+				break;
+			}
+		} else {
+			for (U item : data) {
+				if (format != null) {
+					target = new BufferingDataTarget();
+					BufferingDataTarget finalTarget = target;
+					context = context.withNestedProvisionScope();
+					context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, () -> finalTarget));
+				}
 
-					unbindToContext(node, item, context, attemptedOverrideMap);
+				unbindToContext(node, item, context, attemptedOverrideMap);
 
-					if (format != null) {
-						DataSource bufferedTarget = target.buffer();
+				if (format != null) {
+					DataSource bufferedTarget = target.buffer();
 
-						if (bufferedTarget.size() > 0)
-							switch (format) {
-							case PROPERTY:
-								bufferedTarget.pipe(context.output().get().writeProperty(node.name())).terminate();
-								break;
-							case SIMPLE:
-								context.output().get().addChild(node.name());
-								bufferedTarget.pipe(context.output().get().writeContent()).terminate();
-								context.output().get().endChild();
-								break;
-							case CONTENT:
-								bufferedTarget.pipe(context.output().get().writeContent()).terminate();
-							}
-					}
+					if (bufferedTarget.size() > 0)
+						switch (format) {
+						case PROPERTY:
+							bufferedTarget.pipe(context.output().get().writeProperty(node.name())).terminate();
+							break;
+						case SIMPLE:
+							context.output().get().addChild(node.name());
+							bufferedTarget.pipe(context.output().get().writeContent()).terminate();
+							context.output().get().endChild();
+							break;
+						case CONTENT:
+							bufferedTarget.pipe(context.output().get().writeContent()).terminate();
+						}
 				}
 			}
-		} else if (!node.occurrences().contains(0))
-			throw new SchemaException("Non-optional node '" + node.name() + "' cannot omit data for unbinding");
+		}
 	}
 
 	private <U> void unbindToContext(DataNode.Effective<U> node, U data, ProcessingContextImpl context,

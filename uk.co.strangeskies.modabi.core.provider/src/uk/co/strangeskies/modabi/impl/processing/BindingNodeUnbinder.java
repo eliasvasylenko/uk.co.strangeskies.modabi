@@ -33,6 +33,7 @@ import java.util.stream.StreamSupport;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.Provider;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
@@ -114,9 +115,25 @@ public class BindingNodeUnbinder {
 
 	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(ProcessingContextImpl context) {
 		NodeProcessor processor = new NodeProcessor() {
+			private <U> boolean checkData(BindingChildNode.Effective<U, ?, ?> node, List<U> data) {
+				if (data == null) {
+					if (!node.occurrences().contains(0)) {
+						throw new SchemaException("Non-optional node '" + node.name() + "' cannot omit data for unbinding");
+					} else {
+						return false;
+					}
+				} else {
+					return true;
+				}
+			}
+
 			@Override
 			public <U> void accept(ComplexNode.Effective<U> node) {
-				new ComplexNodeUnbinder(context).unbind(node, getData(node, context));
+				List<U> data = getData(node, context);
+
+				if (checkData(node, data)) {
+					new ComplexNodeUnbinder(context).unbind(node, data);
+				}
 			}
 
 			@Override
@@ -127,7 +144,9 @@ public class BindingNodeUnbinder {
 							|| node.valueResolution() == ValueResolution.POST_REGISTRATION)
 						data = getData(node, context);
 
-					new DataNodeUnbinder(context).unbind(node, data);
+					if (checkData(node, data)) {
+						new DataNodeUnbinder(context).unbind(node, data);
+					}
 				}
 			}
 
@@ -238,8 +257,8 @@ public class BindingNodeUnbinder {
 			itemList = StreamSupport.stream(iterable.spliterator(), false).filter(Objects::nonNull)
 					.collect(Collectors.toList());
 			U failedCast = itemList.stream()
-					.filter(o -> !Types.isLooseInvocationContextCompatible(o.getClass(), node.dataType().getRawType()))
-					.findAny().orElse(null);
+					.filter(o -> !Types.isLooseInvocationContextCompatible(o.getClass(), node.dataType().getRawType())).findAny()
+					.orElse(null);
 			if (failedCast != null)
 				throw new ClassCastException("Cannot cast " + failedCast.getClass() + " to " + node.dataType());
 		} else {
