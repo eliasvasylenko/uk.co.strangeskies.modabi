@@ -47,4 +47,9 @@ public class ModelConfiguratorDecorator<T> extends BindingNodeConfiguratorDecora
 	public <V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> bindingClass) {
 		return (ModelConfigurator<V>) super.dataType(bindingClass);
 	}
+
+	@Override
+	public String toString() {
+		return getComponent().toString();
+	}
 }

@@ -228,4 +228,9 @@ public class BindingBlocksImpl implements BindingBlocker {
 			waitForAll();
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return blocks.toString();
+	}
 }

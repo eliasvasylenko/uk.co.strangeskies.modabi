@@ -51,4 +51,9 @@ public class DataTypeConfiguratorDecorator<T> extends
 	public <V extends T> DataTypeConfigurator<V> dataType(TypeToken<? extends V> bindingClass) {
 		return (DataTypeConfigurator<V>) super.dataType(bindingClass);
 	}
+
+	@Override
+	public String toString() {
+		return getComponent().toString();
+	}
 }

@@ -194,11 +194,14 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			return bindingResult;
 		} catch (InterruptedException e) {
-			throw new SchemaException("Unexpected interrupt during binding of '" + input + "'" + modelString, e);
+			throw new SchemaException(
+					"Unexpected interrupt during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, e);
 		} catch (ExecutionException e) {
-			throw new SchemaException("Exception during binding of '" + input + "'" + modelString, e);
+			throw new SchemaException(
+					"Exception during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, e);
 		} catch (TimeoutException e) {
-			throw new SchemaException("Timed out waiting for binding of '" + input + "'" + modelString, e);
+			throw new SchemaException(
+					"Timed out waiting for binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, e);
 		}
 	}
 
@@ -230,8 +233,8 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			QualifiedName inputRoot = input.startNextChild();
 			if (!inputRoot.equals(model.name()))
-				throw new ProcessingException(
-						"Model '" + model.name() + "' does not match root input node '" + inputRoot + "'", context);
+				throw new ProcessingException("Model '" + model.name() + "' does not match root input node '" + inputRoot + "'",
+						context);
 
 			try {
 				return new BindingNodeBinder(context).bind(model);

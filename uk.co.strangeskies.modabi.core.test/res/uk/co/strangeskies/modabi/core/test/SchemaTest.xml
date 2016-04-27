@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <schema
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
-	name="ReferenceTestSchema">
+	name="SchemaTest">
 
 	<dependencies>
 		BaseSchema
@@ -12,7 +12,7 @@
 	</imports>
 
 	<types>
-		<!-- type
+		<type
 			name="stringReferences"
 			baseType="list">
 
@@ -27,7 +27,7 @@
 					name="targetId"
 					value="name" />
 			</data>
-		</type -->
+		</type>
 	</types>
 
 	<models>

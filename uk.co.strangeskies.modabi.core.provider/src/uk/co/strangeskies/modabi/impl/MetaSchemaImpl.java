@@ -294,7 +294,7 @@ public class MetaSchemaImpl implements MetaSchema {
 										.type(base.primitiveType(BOOLEAN)))
 								.addChild(n -> n.data().format(PROPERTY).name("valueResolution").optional(true)
 										.type(base.derivedTypes().enumType()).dataType(ValueResolution.class))
-								.addChild(n -> n.complex().name("value").inMethod("provideValue").outMethod("providedValueBuffer")
+								.addChild(n -> n.complex().name("valueInline").inMethod("provideValue").outMethod("providedValueBuffer")
 										.dataType(DataSource.class).unbindingType(DataSource.class).bindingType(Function.class)
 										.bindingStrategy(STATIC_FACTORY).inline(true).optional(true)
 										.addChild(o -> o.inputSequence().name("identity"))
