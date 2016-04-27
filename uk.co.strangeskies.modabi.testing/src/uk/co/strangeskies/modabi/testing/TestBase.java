@@ -40,7 +40,7 @@ import uk.co.strangeskies.reflection.TypeToken;
  */
 public abstract class TestBase {
 	protected static final int SERVICE_TIMEOUT_MILLISECONDS = 2000;
-	protected static final int TEST_TIMEOUT_MILLISECONDS = 2000;
+	protected static final int TEST_TIMEOUT_MILLISECONDS = 3000;
 	protected static final String XML_POSTFIX = ".xml";
 
 	private final Namespace defaultNamespace;

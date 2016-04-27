@@ -24,15 +24,14 @@ import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 
 public class ChoiceNodeBinder extends ChildNodeBinder<ChoiceNode.Effective> {
-	public ChoiceNodeBinder(ProcessingContextImpl parentContext, ChildNodeBinder<?> parentBinder,
-			ChoiceNode.Effective node) {
-		super(parentContext, parentBinder, node);
+	public ChoiceNodeBinder(ProcessingContextImpl parentContext, ChoiceNode.Effective node) {
+		super(parentContext, node);
 
 		Consumer<ProcessingContextImpl> bind = context -> {
 			if (node.children().size() == 1) {
-				bind(context, this, node.children().iterator().next());
+				setContext(bind(context, node.children().iterator().next()));
 			} else if (!node.children().isEmpty()) {
-				context.attemptBindingUntilSuccessful(node.children(), (c, n) -> bind(c, this, n),
+				context.attemptBindingUntilSuccessful(node.children(), (c, n) -> setContext(bind(c, n)),
 						n -> new ProcessingException("Option '" + n + "' under choice node '" + node + "' could not be unbound",
 								context, n));
 			}

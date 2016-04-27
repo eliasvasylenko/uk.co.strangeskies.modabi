@@ -156,7 +156,7 @@ public class BindingNodeBinder {
 		context = context.withBindingObject(binding);
 
 		for (ChildNode.Effective<?, ?> child : children) {
-			context = ChildNodeBinder.bind(context, null, child);
+			context = ChildNodeBinder.bind(context, child);
 			binding = context.getBindingObject();
 		}
 

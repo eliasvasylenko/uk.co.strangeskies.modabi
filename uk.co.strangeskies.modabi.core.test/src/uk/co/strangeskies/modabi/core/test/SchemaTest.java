@@ -103,7 +103,7 @@ public class SchemaTest extends TestBase {
 		Assert.assertNotNull(manager());
 	}
 
-	@Test(timeout = 240)
+	@Test
 	public void schemaUnbindingTest() {
 		new ContextClassLoaderRunner(getClass().getClassLoader()).run(() -> {
 			SchemaManager schemaManager = getService(SchemaManager.class);

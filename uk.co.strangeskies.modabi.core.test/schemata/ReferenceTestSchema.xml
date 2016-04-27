@@ -12,18 +12,16 @@
 	</imports>
 
 	<types>
-		<!--type
+		<!-- type
 			name="stringReferences"
 			baseType="list">
+
 			<data
 				name="element"
 				type="reference">
-				<data
-					name="targetModel"
-					value="namedValue" />
-				<data
-					name="targetId"
-					value="name" />
+
+				<data name="targetModel">namedValue</data>
+				<data name="targetId">name</data>
 			</data>
 		</type-->
 	</types>
@@ -33,12 +31,14 @@
 			name="namedValue"
 			dataType="NamedValue"
 			bindingStrategy="IMPLEMENT_IN_PLACE">
+
 			<property
 				name="name"
 				type="string" />
+
 			<content
 				name="value"
 				type="string" />
-		</model -->
+		</model-->
 	</models>
 </schema>

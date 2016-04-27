@@ -57,14 +57,17 @@
 				bindingStrategy="PROVIDED"
 				bindingType="ProcessingContext"
 				outMethod="null">
+
 				<data
 					name="getBindingNode"
 					outMethod="null"
 					type="int"
-					value="1"
 					postInputType="Model{?}"
 					inMethodChained="true"
-					inMethodCast="true" />
+					inMethodCast="true">
+					1
+				</data>
+
 				<inputSequence
 					name="dataType"
 					inMethodChained="true" />
