@@ -3,6 +3,11 @@
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="ScriptingTestSchema">
 
+	<dependencies>
+		BaseSchema,
+		ScriptingSchema
+	</dependencies>
+
 	<imports>
 		uk.co.strangeskies.reflection.TypeToken.Infer,
 		java.lang.String,
@@ -10,11 +15,6 @@
 		java.util.function.Function,
 		uk.co.strangeskies.utilities.IdentityProperty
 	</imports>
-
-	<dependencies>
-		BaseSchema,
-		ScriptingSchema
-	</dependencies>
 
 	<types />
 

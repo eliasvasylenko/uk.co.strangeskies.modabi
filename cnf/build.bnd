@@ -9,7 +9,7 @@ javac.target: 1.8
 ## Bnd Options
 -sources: true
 
-bnd-release = https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact/dist/bundles
+bnd-release = https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact
 
 copyright.year = ${tstamp;yyyy}
 copyright = Copyright (c) Strange Skies (2014, ${copyright.year}). All Rights Reserved.

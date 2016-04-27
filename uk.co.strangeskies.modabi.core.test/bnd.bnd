@@ -11,6 +11,7 @@ Bundle-Description: \
 	${ss;reflection},\
 	${ss;mathematics},\
 	uk.co.strangeskies.modabi.core.api;version=project,\
+	uk.co.strangeskies.modabi.testing;version=project,\
 	org.apache.commons.lang3,\
 	${testpath.base}
 
@@ -59,7 +60,8 @@ Test-Cases: ${test-cases}
 	${req;uk.co.strangeskies.modabi.io.xml},\
 	${req;uk.co.strangeskies.modabi.extender},\
 	${req;uk.co.strangeskies.modabi.core.provider},\
-	${req;uk.co.strangeskies.modabi.core.api}
+	${req;uk.co.strangeskies.modabi.core.api},\
+	${req;uk.co.strangeskies.modabi.testing}
 
 -runfw: org.apache.felix.framework;version='[5.2.0,5.2.0]'
 
@@ -82,6 +84,7 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.modabi.extender;version=snapshot,\
 	uk.co.strangeskies.modabi.io.json;version=snapshot,\
 	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
+	uk.co.strangeskies.modabi.testing;version=snapshot,\
 	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.osgi.utilities;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\

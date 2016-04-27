@@ -36,11 +36,11 @@ public class InputSequenceNodeBinder extends InputNodeBinder<InputSequenceNode.E
 			} else {
 				try {
 					context.attemptBinding(bind);
-				} catch (Exception e) {
-					return false;
+				} catch (RuntimeException e) {
+					return e;
 				}
 			}
-			return true;
+			return null;
 		});
 	}
 }

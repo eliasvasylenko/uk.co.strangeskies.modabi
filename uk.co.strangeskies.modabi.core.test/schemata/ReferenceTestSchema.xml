@@ -3,13 +3,13 @@
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="ScriptingTestSchema">
 
-	<imports>
-		uk.co.strangeskies.modabi.core.test.NamedValue
-	</imports>
-
 	<dependencies>
 		BaseSchema
 	</dependencies>
+
+	<imports>
+		uk.co.strangeskies.modabi.core.test.NamedValue
+	</imports>
 
 	<types>
 		<!--type

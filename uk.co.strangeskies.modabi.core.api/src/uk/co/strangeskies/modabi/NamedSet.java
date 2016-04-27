@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.function.Function;
 
+import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Scoped;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.collection.ScopedObservableSet;
@@ -32,6 +33,7 @@ import uk.co.strangeskies.utilities.function.SetTransformationView;
 
 public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @ReadOnly */ScopedObservableSet<S, T>
 		implements Scoped<S> {
+	private final Function<T, N> namingFunction;
 	private final LinkedHashMap<N, T> elements;
 	private final Object mutex;
 
@@ -44,7 +46,7 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 	}
 
 	private NamedSet(Function<T, N> namingFunction, S parent, LinkedHashMap<N, T> elements) {
-		this(parent, elements, SynchronizedObservableSet
+		this(parent, namingFunction, elements, SynchronizedObservableSet
 				.over(ObservableSet.over(new SetTransformationView<T, T>(elements.values(), identity()) {
 					@Override
 					public boolean add(T e) {
@@ -66,11 +68,17 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 				})));
 	}
 
-	private NamedSet(S parent, LinkedHashMap<N, T> elements, SynchronizedObservableSet<?, T> set) {
+	private NamedSet(S parent, Function<T, N> namingFunction, LinkedHashMap<N, T> elements,
+			SynchronizedObservableSet<?, T> set) {
 		super(parent, set);
 
+		this.namingFunction = namingFunction;
 		this.elements = elements;
 		this.mutex = set.getMutex();
+	}
+
+	public N nameOf(T element) {
+		return namingFunction.apply(element);
 	}
 
 	protected Object getMutex() {
@@ -85,6 +93,73 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 			}
 			return element;
 		}
+	}
+
+	public T waitForGet(N name) throws InterruptedException {
+		return waitForGet(name, () -> {});
+	}
+
+	public T waitForGet(N name, Runnable onPresent) throws InterruptedException {
+		return waitForGet(name, onPresent, -1);
+	}
+
+	public T waitForGet(N name, int timeoutMilliseconds) throws InterruptedException {
+		return waitForGet(name, () -> {}, timeoutMilliseconds);
+	}
+
+	public T waitForGet(N name, Runnable onPresent, int timeoutMilliseconds) throws InterruptedException {
+		IdentityProperty<T> result = new IdentityProperty<>();
+
+		synchronized (getMutex()) {
+			Function<Change<T>, Boolean> observer = c -> {
+				synchronized (getMutex()) {
+					if (result.get() != null) {
+						return true;
+					}
+
+					for (T element : c.added()) {
+						if (nameOf(element).equals(name)) {
+							onPresent.run();
+
+							result.set(element);
+							getMutex().notifyAll();
+
+							return true;
+						}
+					}
+
+					return false;
+				}
+			};
+
+			changes().addTerminatingObserver(observer);
+
+			T element = get(name);
+
+			if (element != null) {
+				onPresent.run();
+
+				result.set(element);
+				changes().removeTerminatingObserver(observer);
+			} else {
+				try {
+					do {
+						if (timeoutMilliseconds < 0) {
+							getMutex().wait();
+						} else {
+							getMutex().wait(timeoutMilliseconds);
+						}
+					} while (result.get() == null);
+				} catch (InterruptedException e) {
+					if (result.get() == null) {
+						changes().removeTerminatingObserver(observer);
+						throw e;
+					}
+				}
+			}
+		}
+
+		return result.get();
 	}
 
 	@Override

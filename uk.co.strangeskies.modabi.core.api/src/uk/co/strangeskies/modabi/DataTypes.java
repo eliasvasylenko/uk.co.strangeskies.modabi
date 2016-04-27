@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -50,6 +51,45 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 
 			return added;
 		}
+	}
+
+	public <T> DataType<T> get(QualifiedName name, TypeToken<T> dataType) {
+		@SuppressWarnings("unchecked")
+		DataType<T> model = (DataType<T>) get(name);
+
+		checkType(model, dataType);
+
+		return model;
+	}
+
+	private <T> void checkType(DataType<T> model, TypeToken<T> dataType) {
+		if (model != null && !model.dataType().isAssignableFrom(dataType)) {
+			throw new SchemaException("Cannot match type " + dataType + " with model " + model.name());
+		}
+	}
+
+	public <T> DataType<T> waitForGet(QualifiedName name, TypeToken<T> dataType) throws InterruptedException {
+		return waitForGet(name, dataType, () -> {});
+	}
+
+	public <T> DataType<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent)
+			throws InterruptedException {
+		return waitForGet(name, dataType, onPresent, -1);
+	}
+
+	public <T> DataType<T> waitForGet(QualifiedName name, TypeToken<T> dataType, int timeoutMilliseconds)
+			throws InterruptedException {
+		return waitForGet(name, dataType, () -> {}, timeoutMilliseconds);
+	}
+
+	public <T> DataType<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent,
+			int timeoutMilliseconds) throws InterruptedException {
+		@SuppressWarnings("unchecked")
+		DataType<T> model = (DataType<T>) waitForGet(name);
+
+		checkType(model, dataType);
+
+		return model;
 	}
 
 	private void mapType(DataType<?> type) {

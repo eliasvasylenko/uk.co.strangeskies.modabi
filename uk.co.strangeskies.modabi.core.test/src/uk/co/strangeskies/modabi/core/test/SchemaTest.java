@@ -27,19 +27,19 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.modabi.io.BufferingDataTarget;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
@@ -48,31 +48,22 @@ import uk.co.strangeskies.modabi.processing.BindingStrategy;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.testing.TestBase;
 import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
 import uk.co.strangeskies.reflection.Annotations;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
+import uk.co.strangeskies.utilities.IdentityProperty;
+import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
 
-public class SchemaTest {
-	private <T> T getService(Class<T> clazz) {
-		try {
-			BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+public class SchemaTest extends TestBase {
+	private static final String INLINE_DATA = "inlineData";
+	private static final TypeToken<IdentityProperty<DataSource>> INLINE_DATA_TYPE = new TypeToken<IdentityProperty<DataSource>>() {};
 
-			ServiceTracker<T, T> st = new ServiceTracker<>(context, clazz, null);
-			st.open();
-			try {
-				return st.waitForService(1000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			throw t;
-		}
-	}
+	private static final String INLINE_PROPERTY_RESOURCE = "InlineProperty";
 
 	@Test
 	public void abstractChoiceNodeTest() {
@@ -82,12 +73,37 @@ public class SchemaTest {
 				m -> m.abstractness(Abstractness.ABSTRACT).addChild(c -> c.choice().abstractness(Abstractness.ABSTRACT)));
 	}
 
-	@Test
-	public void schemaManagerServiceTest() {
-		Assert.assertNotNull(getService(SchemaManager.class));
+	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
+	public void inlineDataSchemaTest() {
+		Model<IdentityProperty<DataSource>> inlineData = getModel(INLINE_DATA, INLINE_DATA_TYPE);
+
+		Assert.assertNotNull(inlineData);
 	}
 
-	@Test
+	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
+	public void inlinePropertyTest() {
+		Property<DataSource, DataSource> inlineProperty = manager().bind(getModel(INLINE_DATA, INLINE_DATA_TYPE))
+				.withProvider(Provider.over(INLINE_DATA_TYPE, () -> new IdentityProperty<>()))
+				.from(() -> this.getResouce(INLINE_PROPERTY_RESOURCE)).resolve(1000);
+
+		DataSource expectedValue = new BufferingDataTarget()
+
+				.put(Primitive.STRING, "test")
+
+				.put(Primitive.STRING, "value")
+
+				.put(Primitive.STRING, "list").buffer();
+
+		Assert.assertNotNull(inlineProperty);
+		Assert.assertEquals(expectedValue, inlineProperty.get());
+	}
+
+	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
+	public void schemaManagerServiceTest() {
+		Assert.assertNotNull(manager());
+	}
+
+	@Test(timeout = 240)
 	public void schemaUnbindingTest() {
 		new ContextClassLoaderRunner(getClass().getClassLoader()).run(() -> {
 			SchemaManager schemaManager = getService(SchemaManager.class);
@@ -154,7 +170,7 @@ public class SchemaTest {
 		});
 	}
 
-	@Test
+	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void manualSchemaCreationTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
 

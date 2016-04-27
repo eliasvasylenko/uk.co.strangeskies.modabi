@@ -83,16 +83,42 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	}
 
 	public <T> Model<T> get(QualifiedName name, TypeToken<T> dataType) {
-		synchronized (getMutex()) {
-			@SuppressWarnings("unchecked")
-			Model<T> model = (Model<T>) get(name);
+		@SuppressWarnings("unchecked")
+		Model<T> model = (Model<T>) get(name);
 
-			if (!model.dataType().isAssignableFrom(dataType)) {
-				throw new SchemaException("Cannot bind type " + dataType + " with model " + name);
-			}
+		checkType(model, dataType);
 
-			return model;
+		return model;
+	}
+
+	private <T> void checkType(Model<T> model, TypeToken<T> dataType) {
+		if (model != null && !model.dataType().isAssignableFrom(dataType)) {
+			throw new SchemaException("Cannot match type " + dataType + " with model " + model.name());
 		}
+	}
+
+	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType) throws InterruptedException {
+		return waitForGet(name, dataType, () -> {});
+	}
+
+	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent)
+			throws InterruptedException {
+		return waitForGet(name, dataType, onPresent, -1);
+	}
+
+	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, int timeoutMilliseconds)
+			throws InterruptedException {
+		return waitForGet(name, dataType, () -> {}, timeoutMilliseconds);
+	}
+
+	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent, int timeoutMilliseconds)
+			throws InterruptedException {
+		@SuppressWarnings("unchecked")
+		Model<T> model = (Model<T>) waitForGet(name);
+
+		checkType(model, dataType);
+
+		return model;
 	}
 
 	@SuppressWarnings("unchecked")

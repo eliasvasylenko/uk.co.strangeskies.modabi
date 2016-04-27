@@ -32,15 +32,25 @@ import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 	private ProcessingContext context;
+	private final ChildNodeBinder<?> parentBinder;
 	private final T node;
 
 	public ChildNodeBinder(ProcessingContext context, T node) {
+		this(context, null, node);
+	}
+
+	public ChildNodeBinder(ProcessingContext context, ChildNodeBinder<?> parentBinder, T node) {
 		this.context = context;
+		this.parentBinder = parentBinder;
 		this.node = node;
 	}
 
-	protected void setContext(ProcessingContextImpl context) {
+	protected void setContext(ProcessingContext context) {
 		this.context = context;
+		if (parentBinder != null) {
+			System.out.println("GRRRRRRRRREAT!!!!!");
+			parentBinder.setContext(context);
+		}
 	}
 
 	public ProcessingContextImpl getContext() {
@@ -51,11 +61,14 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 		return node;
 	}
 
-	protected void repeatNode(Function<Integer, Boolean> repeatAtCount) {
+	protected <E extends Exception> void repeatNode(Function<Integer, E> repeatAtCount) throws E {
 		int count = 0;
+		E exception = null;
+
 		try {
 			do {
-				if (!repeatAtCount.apply(count)) {
+				exception = repeatAtCount.apply(count);
+				if (exception != null) {
 					break;
 				}
 
@@ -67,12 +80,14 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 		}
 
 		if (!node.occurrences().contains(count)) {
-			throw new ProcessingException("Node '" + node.name() + "' occurrences '" + count + "' should be within range '"
-					+ node.occurrences() + "'", getContext());
+			throw new ProcessingException(
+					"Node '" + node.name() + "' occurrences '" + count + "' should be within range '" + node.occurrences() + "'",
+					getContext(), exception);
 		}
 	}
 
-	public static ProcessingContextImpl bind(ProcessingContextImpl parentContext, ChildNode.Effective<?, ?> next) {
+	public static ProcessingContextImpl bind(ProcessingContextImpl parentContext, ChildNodeBinder<?> parentBinder,
+			ChildNode.Effective<?, ?> next) {
 		ProcessingContextImpl context = parentContext.withBindingNode(next);
 
 		ReturningNodeProcessor<ChildNodeBinder<?>> childProcessor = new ReturningNodeProcessor<ChildNodeBinder<?>>() {
@@ -93,12 +108,12 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 
 			@Override
 			public ChildNodeBinder<?> accept(SequenceNode.Effective node) {
-				return new SequenceNodeBinder(context, node);
+				return new SequenceNodeBinder(context, parentBinder, node);
 			}
 
 			@Override
 			public ChildNodeBinder<?> accept(ChoiceNode.Effective node) {
-				return new ChoiceNodeBinder(context, node);
+				return new ChoiceNodeBinder(context, parentBinder, node);
 			}
 		};
 

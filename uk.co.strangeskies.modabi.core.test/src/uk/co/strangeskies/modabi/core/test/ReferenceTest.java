@@ -18,62 +18,21 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
-import java.io.InputStream;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
 
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.testing.TestBase;
+import uk.co.strangeskies.reflection.TypeToken;
 
-public class ReferenceTest {
-	private static final int TIMEOUT_MILLISECONDS = 2000;
-	protected static final String XML_POSTFIX = ".xml";
+public class ReferenceTest extends TestBase {
+	private static final String NAMED_VALUE_MODEL = "namedValue";
+	private static final String STRING_REFERENCS_TYPE = "stringReferences";
 
-	private <T> T getService(Class<T> clazz) {
-		try {
-			BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-
-			ServiceTracker<T, T> st = new ServiceTracker<>(context, clazz, null);
-			st.open();
-			try {
-				return st.waitForService(1000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			throw t;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private Model<NamedValue> getNamedValueModel(SchemaManager manager) {
-		return (Model<NamedValue>) manager.registeredModels().get(new QualifiedName("namedValue", Schema.MODABI_NAMESPACE));
-	}
-
-	@SuppressWarnings("unchecked")
-	private DataType<List<NamedValue>> getStringReferencesType(SchemaManager manager) {
-		return (DataType<List<NamedValue>>) manager.registeredTypes()
-				.get(new QualifiedName("stringReferences", Schema.MODABI_NAMESPACE));
-	}
-
-	@Test
+	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void loadReferenceTestSchema() {
-		SchemaManager manager = getService(SchemaManager.class);
-
-		Assert.assertNotNull(getNamedValueModel(manager));
-		Assert.assertNotNull(getStringReferencesType(manager));
-	}
-
-	private InputStream getResouce(String resource) {
-		return getClass().getResourceAsStream(resource + XML_POSTFIX);
+		Assert.assertNotNull(getModel(NAMED_VALUE_MODEL, new TypeToken<NamedValue>() {}));
+		Assert.assertNotNull(getType(STRING_REFERENCS_TYPE, new TypeToken<List<NamedValue>>() {}));
 	}
 }

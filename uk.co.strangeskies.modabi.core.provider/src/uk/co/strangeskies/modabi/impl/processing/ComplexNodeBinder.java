@@ -25,6 +25,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -40,8 +41,9 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 	}
 
 	public ComplexNodeBinder<U> bindToTarget() {
-		for (ChildNodeBinding<? extends U> item : getBinding())
+		for (ChildNodeBinding<? extends U> item : getBinding()) {
 			invokeInMethod(item.getData());
+		}
 
 		return this;
 	}
@@ -56,7 +58,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 
 		List<ChildNodeBinding<? extends U>> result = new ArrayList<>();
 
-		repeatNode(count -> {
+		this.repeatNode(count -> {
 			ProcessingContextImpl context = getContext();
 			ComplexNode.Effective<? extends U> exactNode = getExactNode(context, node);
 
@@ -67,7 +69,8 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 			 * element to this node.
 			 */
 			if (exactNode == null)
-				return false;
+				return new SchemaException(
+						"Input element " + context.input().get().peekNextChild() + " cannot be matched to node " + node);
 
 			Function<ProcessingContextImpl, U> bind = c -> bindExactNode(c, exactNode);
 			U binding;
@@ -86,8 +89,8 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				 */
 				try {
 					binding = context.attemptBinding(bind);
-				} catch (Exception e) {
-					return false;
+				} catch (RuntimeException e) {
+					return e;
 				}
 			} else {
 				binding = bind.apply(context);
@@ -96,7 +99,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 			result.add(getNodeBinding(exactNode, binding));
 			context.bindings().add((ComplexNode.Effective<U>) exactNode, binding);
 
-			return true;
+			return null;
 		});
 
 		return result;
@@ -114,7 +117,9 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 
 		ComplexNode.Effective<? extends U> exactNode;
 
-		if (nextElement != null) {
+		if (node.inline()) {
+			exactNode = node;
+		} else if (nextElement != null) {
 			if (node.extensible()) {
 				Model.Effective<?> extension = context.getModel(nextElement);
 
@@ -123,7 +128,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				}
 
 				exactNode = context.getComplexNodeOverrides(node).putGet((Effective<? extends U>) extension);
-			} else if (node.inline() || Objects.equals(nextElement, node.name())) {
+			} else if (Objects.equals(nextElement, node.name())) {
 				exactNode = node;
 			} else {
 				exactNode = null;

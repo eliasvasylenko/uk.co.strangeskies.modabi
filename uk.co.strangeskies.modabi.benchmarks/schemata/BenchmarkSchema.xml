@@ -3,16 +3,16 @@
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="BenchmarkSchema">
 
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
 	<imports>
 		uk.co.strangeskies.modabi.benchmark.PersonType,
 		uk.co.strangeskies.modabi.benchmark.PersonsType,
 		uk.co.strangeskies.reflection.TypeToken.Infer,
 		java.util.List
 	</imports>
-
-	<dependencies>
-		BaseSchema
-	</dependencies>
 
 	<types />
 

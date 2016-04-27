@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="TestSchema">
+
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
+	<imports>
+		java.util.function.Function,
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.modabi.io.DataSource,
+		uk.co.strangeskies.modabi.core.test.NamedValue,
+		uk.co.strangeskies.utilities.IdentityProperty
+	</imports>
+
+	<types>
+	</types>
+
+	<models>
+		<model
+			name="inlineData"
+			dataType="@Infer IdentityProperty{?}">
+
+			<inline
+				name="value"
+				dataType="DataSource"
+				unbindingType="DataSource"
+				bindingType="Function"
+				bindingStrategy="STATIC_FACTORY"
+				optional="true">
+
+				<inputSequence name="identity" />
+
+				<choice name="valueFormat">
+					<property
+						name="value"
+						type="bufferedData"
+						inMethod="apply"
+						inMethodChained="true"
+						outMethod="copy" />
+
+					<content
+						name="valueContent"
+						type="bufferedData"
+						inMethod="apply"
+						inMethodChained="true"
+						outMethod="copy" />
+				</choice>
+			</inline>
+		</model>
+	</models>
+</schema>

@@ -24,12 +24,13 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public class SequenceNodeBinder extends ChildNodeBinder<SequenceNode.Effective> {
-	public SequenceNodeBinder(ProcessingContextImpl parentContext, SequenceNode.Effective node) {
-		super(parentContext, node);
+	public SequenceNodeBinder(ProcessingContextImpl parentContext, ChildNodeBinder<?> parentBinder,
+			SequenceNode.Effective node) {
+		super(parentContext, parentBinder, node);
 
 		Consumer<ProcessingContextImpl> bind = context -> {
 			for (ChildNode.Effective<?, ?> child : node.children())
-				bind(context, child);
+				bind(context, this, child);
 		};
 
 		repeatNode(count -> {
@@ -38,11 +39,11 @@ public class SequenceNodeBinder extends ChildNodeBinder<SequenceNode.Effective> 
 			} else {
 				try {
 					parentContext.attemptBinding(bind);
-				} catch (Exception e) {
-					return false;
+				} catch (RuntimeException e) {
+					return e;
 				}
 			}
-			return true;
+			return null;
 		});
 	}
 }

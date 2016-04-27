@@ -3,6 +3,10 @@
 	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
 	name="ScriptingSchema">
 
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
 	<imports>
 		java.lang.Object,
 
@@ -18,10 +22,6 @@
 		uk.co.strangeskies.modabi.processing.ProcessingContext,
 		uk.co.strangeskies.modabi.schema.Model
 	</imports>
-
-	<dependencies>
-		BaseSchema
-	</dependencies>
 
 	<types />
 
