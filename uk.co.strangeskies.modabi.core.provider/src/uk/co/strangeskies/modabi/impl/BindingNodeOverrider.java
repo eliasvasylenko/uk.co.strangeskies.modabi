@@ -81,18 +81,19 @@ public class BindingNodeOverrider {
 	public <T> ComplexNode.Effective<? extends T> override(SchemaBuilder builder, ComplexNode.Effective<T> node,
 			Model.Effective<?> override) {
 		try {
-			if (isDirectOverridePossible(node, override))
+			if (isDirectOverridePossible(node, override)) {
 				return ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
-			else
+			} else {
 				return new OverridingProcessor().process(builder, ComplexNodeWrapper.wrapNodeWithOverrideType(node, override));
+			}
 		} catch (Exception e) {
 			throw new SchemaException("Cannot override complex node '" + node + "' with model '" + override + "'", e);
 		}
 	}
 
 	private <T> boolean isDirectOverridePossible(ComplexNode.Effective<? super T> node, Model.Effective<?> override) {
-		return node.children().isEmpty() && node.abstractness().isAtMost(Abstractness.UNINFERRED)
-				&& override.abstractness().isAtMost(Abstractness.UNINFERRED);
+		return node.children().isEmpty() && (node.abstractness().isAtMost(Abstractness.UNINFERRED)
+				|| override.abstractness().isAtMost(Abstractness.UNINFERRED));
 	}
 
 	/**
@@ -124,8 +125,8 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(DataNode.Effective<? super T> node, DataType.Effective<?> override) {
-		return node.children().isEmpty() && node.abstractness().isAtMost(Abstractness.UNINFERRED)
-				&& override.abstractness().isAtMost(Abstractness.UNINFERRED);
+		return node.children().isEmpty() && (node.abstractness().isAtMost(Abstractness.UNINFERRED)
+				|| override.abstractness().isAtMost(Abstractness.UNINFERRED));
 	}
 
 	private class OverridingProcessor implements NodeProcessor {
@@ -307,8 +308,8 @@ public class BindingNodeOverrider {
 			c = tryProperty(node.unbindingMethodName(), C::unbindingMethod, c);
 			c = tryProperty(node.unbindingMethodUnchecked(), C::unbindingMethodUnchecked, c);
 			c = tryProperty(node.unbindingStrategy(), C::unbindingStrategy, c);
-			c = tryProperty(node.providedUnbindingMethodParameterNames(),
-					(cc, m) -> cc.providedUnbindingMethodParameters(m), c);
+			c = tryProperty(node.providedUnbindingMethodParameterNames(), (cc, m) -> cc.providedUnbindingMethodParameters(m),
+					c);
 
 			return c;
 		}

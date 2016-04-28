@@ -61,6 +61,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	}
 
 	private List<ChildNodeBinding<? extends U>> bind() {
+		System.out.println("  d-" + getNode() + "       :      " + getNode().getThisType());
+
 		ProcessingContextImpl context = getContext();
 		DataNode.Effective<U> node = getNode();
 
@@ -112,12 +114,14 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					while (node.name().equals(context.input().get().peekNextChild())) {
 						context.input().get().startNextChild(node.name());
 
-						dataSource = context.input().get().readContent();
+						try {
+							dataSource = context.input().get().readContent();
 
-						ChildNodeBinding<? extends U> result = bindWithDataSource(dataSource, context, node);
-						results.add(result);
-
-						context.input().get().endChild();
+							ChildNodeBinding<? extends U> result = bindWithDataSource(dataSource, context, node);
+							results.add(result);
+						} finally {
+							context.input().get().endChild();
+						}
 					}
 					break;
 				default:

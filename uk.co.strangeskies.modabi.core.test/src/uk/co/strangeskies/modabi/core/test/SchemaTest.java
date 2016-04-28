@@ -83,6 +83,13 @@ public class SchemaTest extends TestBase {
 	@Test(timeout = 5000)
 	public void schemaTest() throws InterruptedException {
 		Thread.sleep(1000);
+
+		System.out.println();
+		System.out.println();
+		System.out.println("*");
+		System.out.println();
+		System.out.println();
+		
 		manager().bindSchema().withClassLoader(getClass().getClassLoader()).from(() -> this.getResouce("SchemaTest"))
 				.resolve(5000);
 	}
@@ -201,7 +208,7 @@ public class SchemaTest extends TestBase {
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object>model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
+								.<Object> model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.effective().dataType());
@@ -263,7 +270,7 @@ public class SchemaTest extends TestBase {
 																								.type(schemaManager.getBaseSchema()
 																										.primitiveType(Primitive.STRING)))
 																						.addChild(vv -> vv.complex().name("value")
-																								.<Object>model((Model<Object>) schemaManager.getBaseSchema()
+																								.<Object> model((Model<Object>) schemaManager.getBaseSchema()
 																										.baseModels().simpleModel())
 																								.addChild(cc -> cc.data().name("content").type(
 																										schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))

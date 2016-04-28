@@ -47,7 +47,7 @@
 			<complex
 				name="function"
 				extensible="true"
-				abstract="true"
+				abstractness="ABSTRACT"
 				occurrences="1..1"
 				dataType="Function{String\, String}" />
 		</model>

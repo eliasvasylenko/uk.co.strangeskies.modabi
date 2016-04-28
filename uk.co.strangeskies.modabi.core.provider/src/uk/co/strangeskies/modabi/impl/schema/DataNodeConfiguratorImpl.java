@@ -42,6 +42,8 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	public DataNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
+		
+		System.out.println("?");
 	}
 
 	@Override
@@ -94,6 +96,8 @@ public class DataNodeConfiguratorImpl<T> extends
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource) {
 		assertConfigurable(providedBufferedValue);
 		providedBufferedValue = dataSource;
+		
+		System.out.println("    Providing VALUE:::   " + dataSource);
 
 		return this;
 	}

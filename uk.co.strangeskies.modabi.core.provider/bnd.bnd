@@ -26,8 +26,7 @@ Export-Package: \
 	uk.co.strangeskies.modabi.impl.processing,\
 	uk.co.strangeskies.modabi.impl.schema,\
 	uk.co.strangeskies.modabi.impl.schema.building,\
-	uk.co.strangeskies.modabi.impl.schema.utilities,\
-	uk.co.strangeskies.modabi.impl.schema.wrapping
+	uk.co.strangeskies.modabi.impl.schema.utilities
 
 Bundle-Name: Modabi :: Core :: Provider
 Bundle-Description: \

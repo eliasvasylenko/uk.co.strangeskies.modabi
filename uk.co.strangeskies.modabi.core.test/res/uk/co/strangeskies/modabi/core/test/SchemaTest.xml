@@ -22,7 +22,7 @@
 
 				<data
 					name="targetModel"
-					value="model" />
+					value="namedValue" />
 				<data
 					name="targetId"
 					value="name" />
@@ -31,7 +31,7 @@
 	</types>
 
 	<models>
-		<!-- model
+		<model
 			name="namedValue"
 			dataType="NamedValue"
 			bindingStrategy="IMPLEMENT_IN_PLACE">
@@ -43,6 +43,6 @@
 			<content
 				name="value"
 				type="string" />
-		</model -->
+		</model>
 	</models>
 </schema>

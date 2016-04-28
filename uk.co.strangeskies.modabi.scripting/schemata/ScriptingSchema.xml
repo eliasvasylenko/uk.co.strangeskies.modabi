@@ -36,7 +36,7 @@
 			unbindingType="ScriptObject"
 			unbindingMethod="cast"
 			extensible="true"
-			abstract="true">
+			abstractness="ABSTRACT">
 
 			<inputSequence name="build" />
 
@@ -64,9 +64,8 @@
 					type="int"
 					postInputType="Model{?}"
 					inMethodChained="true"
-					inMethodCast="true">
-					1
-				</data>
+					inMethodCast="true"
+					value="1" />
 
 				<inputSequence
 					name="dataType"
