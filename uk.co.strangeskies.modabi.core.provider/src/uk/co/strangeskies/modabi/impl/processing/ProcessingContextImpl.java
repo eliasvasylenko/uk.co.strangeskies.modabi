@@ -403,7 +403,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 			context = context.withNestedProvisionScope();
 			context.provisions().add(Provider.over(new TypeToken<DataSource>() {}, () -> finalSource));
 		}
-		System.out.println("INPUT INDEX: " + this.input.index());
 		StructuredDataSource input = this.input.split();
 		context = context.withInput(input);
 

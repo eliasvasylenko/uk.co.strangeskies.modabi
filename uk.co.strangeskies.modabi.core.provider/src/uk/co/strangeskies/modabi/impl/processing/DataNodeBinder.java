@@ -61,8 +61,6 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 	}
 
 	private List<ChildNodeBinding<? extends U>> bind() {
-		System.out.println("  d-" + getNode() + "       :      " + getNode().getThisType());
-
 		ProcessingContextImpl context = getContext();
 		DataNode.Effective<U> node = getNode();
 

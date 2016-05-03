@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
+import static uk.co.strangeskies.modabi.Provider.over;
+
 import java.lang.reflect.AnnotatedType;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -80,7 +82,7 @@ public class SchemaTest extends TestBase {
 		Assert.assertNotNull(inlineData);
 	}
 
-	@Test(timeout = 5000)
+	// @Test(timeout = 5000) TODO
 	public void schemaTest() throws InterruptedException {
 		Thread.sleep(1000);
 
@@ -89,7 +91,7 @@ public class SchemaTest extends TestBase {
 		System.out.println("*");
 		System.out.println();
 		System.out.println();
-		
+
 		manager().bindSchema().withClassLoader(getClass().getClassLoader()).from(() -> this.getResouce("SchemaTest"))
 				.resolve(5000);
 	}
@@ -97,7 +99,7 @@ public class SchemaTest extends TestBase {
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void inlinePropertyTest() {
 		Property<DataSource, DataSource> inlineProperty = manager().bind(getModel(INLINE_DATA, INLINE_DATA_TYPE))
-				.withProvider(Provider.over(INLINE_DATA_TYPE, () -> new IdentityProperty<>()))
+				.withProvider(over(INLINE_DATA_TYPE, () -> new IdentityProperty<>()))
 				.from(() -> this.getResouce(INLINE_PROPERTY_RESOURCE)).resolve(1000);
 
 		DataSource expectedValue = new BufferingDataTarget()

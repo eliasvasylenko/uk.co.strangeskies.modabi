@@ -54,15 +54,11 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 
 	@SuppressWarnings("unchecked")
 	private List<ChildNodeBinding<? extends U>> bind() {
-		System.out.println(" c-" + getNode() + "       :      " + getNode().getThisType());
-		System.out.println("    " + getNode().children() + ", inline=" + getNode().inline());
-
 		ComplexNode.Effective<U> node = getNode();
 
 		List<ChildNodeBinding<? extends U>> result = new ArrayList<>();
 
 		this.repeatNode(count -> {
-			System.out.println("        do complex:");
 			ProcessingContextImpl context = getContext();
 			ComplexNode.Effective<? extends U> exactNode = getExactNode(context, node);
 
@@ -75,8 +71,6 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 			if (exactNode == null)
 				return new SchemaException(
 						"Input element " + context.input().get().peekNextChild() + " cannot be matched to node " + node);
-
-			System.out.println("         exact node: " + exactNode.name());
 
 			Function<ProcessingContextImpl, U> bind = c -> bindExactNode(c, exactNode);
 			U binding;
@@ -96,7 +90,6 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 				try {
 					binding = context.attemptBinding(bind);
 				} catch (RuntimeException e) {
-					e.printStackTrace();
 					return e;
 				}
 			} else {

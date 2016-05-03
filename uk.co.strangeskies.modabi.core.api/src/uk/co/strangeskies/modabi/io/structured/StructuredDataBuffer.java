@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
+import static java.util.Collections.newSetFromMap;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -116,7 +119,6 @@ public class StructuredDataBuffer extends BufferingStructuredDataTarget<Structur
 }
 
 class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> extends StructuredDataTargetImpl<S> {
-
 	private final List<WeakReference<BufferedStructuredDataSourceImpl>> buffers;
 	private final Deque<Integer> indexStack;
 
@@ -136,7 +138,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 				buffers.clear();
 			}
 		} else {
-			Set<StructuredData> bufferHeads = new TreeSet<>(new EqualityComparator<>((a, b) -> a == b));
+			Set<StructuredData> bufferHeads = newSetFromMap(new IdentityHashMap<>());
 			forEachBuffer(buffer -> {
 				StructuredData bufferHead = buffer.component().peekHead();
 				if (bufferHeads.add(bufferHead)) {
@@ -237,7 +239,6 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 
 		@Override
 		public BufferedStructuredDataSourceImpl split() {
-			System.out.println(" INPUT INDEX: " + index());
 			return new BufferedStructuredDataSourceImpl(component.getSplit());
 		}
 
@@ -313,7 +314,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 			this.consumable = consumable;
 
 			if (consumeOnConstruction)
-				consumeToIndex(startIndex);
+				consumeToIndex();
 
 			if (consumable)
 				startIndex = index;
@@ -334,7 +335,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 			}
 		}
 
-		private void consumeToIndex(List<Integer> startIndex) {
+		private void consumeToIndex() {
 			Deque<StructuredData> tailStack = new ArrayDeque<>(this.tailStack.size() + 8);
 
 			Iterator<Integer> indexIterator = index.iterator();
@@ -343,20 +344,9 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 
 			boolean previouslyRemoved = false;
 
-			System.out.println();
-			System.out.println(startIndex);
-			System.out.println(index);
-			System.out.println(this.tailStack.size());
-
 			int depth = 0;
-			System.out.println(" c: " + previousChild.name + " -> " + previousChild.children.size());
 			while (tailIterator.hasNext()) {
 				StructuredData child = new StructuredData(tailIterator.next());
-				System.out.println(" c: " + child.name + " -> " + child.children.size() + " = "
-						+ child.children.stream().map(c -> c.name.toString()).collect(Collectors.joining(", ")));
-
-				System.out.println(" cc: " + child.children.get(0).name + " -> " + child.children.get(0).children.size() + " = "
-						+ child.children.get(0).children.stream().map(c -> c.name.toString()).collect(Collectors.joining(", ")));
 
 				tailStack.push(child);
 
