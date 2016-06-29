@@ -24,7 +24,6 @@ import uk.co.strangeskies.utilities.text.AppendToLocalizationKey;
 import uk.co.strangeskies.utilities.text.LocalizedString;
 import uk.co.strangeskies.utilities.text.LocalizedText;
 
-@LocalizationResource("OSGI-INF/l10n/bundle")
 public interface ModabiExceptionText extends LocalizedText<ModabiExceptionText> {
 	enum ExecutableType {
 		METHOD, STATIC_METHOD, CONSTRUCTOR

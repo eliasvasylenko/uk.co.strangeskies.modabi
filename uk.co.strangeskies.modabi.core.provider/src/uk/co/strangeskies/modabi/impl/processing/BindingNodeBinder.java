@@ -153,12 +153,10 @@ public class BindingNodeBinder {
 
 		context = context.withBindingObject(binding);
 
-		System.out.println("{");
 		for (ChildNode.Effective<?, ?> child : children) {
 			context = ChildNodeBinder.bind(context, child);
 			binding = context.getBindingObject();
 		}
-		System.out.println("}");
 
 		return (U) binding.getObject();
 	}
