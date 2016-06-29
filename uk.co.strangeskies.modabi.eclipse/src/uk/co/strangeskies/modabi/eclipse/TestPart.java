@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.eclipse;
 
+import static uk.co.strangeskies.fx.FXMLLoadBuilder.buildWith;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
@@ -29,7 +31,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import uk.co.strangeskies.fx.FXUtilities;
 
 public class TestPart {
 	@Inject
@@ -43,6 +44,6 @@ public class TestPart {
 
 	@PostConstruct
 	void initialise(BorderPane container, @LocalInstance FXMLLoader loader) {
-		container.setCenter(FXUtilities.loadIntoController(loader, this));
+		container.setCenter(buildWith(loader).controller(this).loadRoot());
 	}
 }

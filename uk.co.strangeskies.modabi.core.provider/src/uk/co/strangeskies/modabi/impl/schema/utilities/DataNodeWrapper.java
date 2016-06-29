@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -42,19 +41,14 @@ public final class DataNodeWrapper<T>
 		super(base, component);
 		type = component;
 
-		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
-
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
 					&& !TypeToken.over(component.dataType().getType()).isAssignableFrom(providedValue.getClass()))
-				throw new SchemaException(message);
+				throw this.<Object>getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
+						null);
 
-		DataType.Effective<? super T> check = component;
-		while (!check.equals(base.type())) {
-			check = check.baseType();
-			if (check == null)
-				throw new SchemaException(message);
-		}
+		if (!component.base().containsAll(base.base()))
+			throw this.<Object>getOverrideException(DataNode::type, base.base(), component.base(), null);
 	}
 
 	protected DataNodeWrapper(DataNode.Effective<T> node) {

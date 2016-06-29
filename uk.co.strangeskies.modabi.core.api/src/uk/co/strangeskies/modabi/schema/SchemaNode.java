@@ -20,15 +20,13 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
@@ -109,10 +107,8 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name) {
-		return children().stream().filter(c -> c.name().equals(name)).findAny().orElseThrow(
-				() -> new SchemaException("Cannot find child '" + name + "' for node '" + name() + "' amongst children '["
-						+ children().stream().map(SchemaNode::name).map(Objects::toString).collect(Collectors.joining(", "))
-						+ "]."));
+		return children().stream().filter(c -> c.name().equals(name)).findAny()
+				.orElseThrow(() -> new ModabiException(t -> t.noChildFound(Arrays.asList(name), name(), children())));
 	}
 
 	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {
@@ -124,7 +120,7 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 
 	default ChildNode<?, ?> child(List<QualifiedName> names) {
 		if (names.isEmpty())
-			throw new IllegalArgumentException();
+			throw new ModabiException(t -> t.noChildFound(names, name(), children()));
 
 		if (names.size() == 1)
 			return child(names.get(0));

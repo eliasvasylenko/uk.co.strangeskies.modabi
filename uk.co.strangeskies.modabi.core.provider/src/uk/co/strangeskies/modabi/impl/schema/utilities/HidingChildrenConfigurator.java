@@ -24,13 +24,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.ChoiceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.ComplexNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.DataNodeConfiguratorImpl;
@@ -84,10 +83,13 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			return name;
 		}
 
+		public int getIndex() {
+			return mergedChildren.indexOf(this);
+		}
+
 		public ChildNode.Effective<?, ?> getChild() {
 			if (children.size() > 1)
-				throw new SchemaException(
-						"Node '" + getName() + "' is inherited multiple times and must be explicitly overridden.");
+				throw new ModabiException(t -> t.mustOverrideMultiplyInherited(getName()));
 
 			return children.stream().findAny().get();
 		}
@@ -98,13 +100,13 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 		public boolean addChild(ChildNode.Effective<?, ?> child) {
 			if (overridden)
-				throw new SchemaException(""); // TODO ################
+				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			return children.add(child);
 		}
 
 		public void override(ChildNode.Effective<?, ?> result) {
 			if (overridden)
-				throw new SchemaException(""); // TODO ################
+				throw new ModabiException(t -> t.cannotOverrideNodeWhenOverridden(getName()));
 			children.clear();
 			addChild(result);
 			overridden = true;
@@ -132,7 +134,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			int index = 0;
 
 			for (ChildNode<?, ?> child : overriddenNode.children())
-				index = merge(overriddenNode.name(), child.effective(), index, false);
+				index = merge(child.effective(), index, false);
 		}
 
 		this.context = context;
@@ -141,7 +143,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = 0;
 	}
 
-	private int merge(QualifiedName parentName, ChildNode.Effective<?, ?> child, int index, boolean override) {
+	private int merge(ChildNode.Effective<?, ?> child, int index, boolean override) {
 		QualifiedName name = child.name();
 
 		if (name != null) {
@@ -154,19 +156,12 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			} else {
 				int newIndex = mergedChildren.indexOf(group) + 1;
 
-				List<String> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName).map(Objects::toString)
-						.collect(Collectors.toCollection(ArrayList::new));
-				nodesSoFar.add(newIndex, "*");
+				if (newIndex < index) {
+					List<QualifiedName> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName).limit(group.getIndex())
+							.collect(Collectors.toCollection(ArrayList::new));
 
-				String nodesSoFarMessage = "Nodes so far: [" + nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
-
-				if (newIndex < index)
-					if (override)
-						throw new SchemaException("The child node '" + name + "' declared by '" + parentName
-								+ "' cannot be merged into the overridden nodes with order preservation. " + nodesSoFarMessage);
-					else
-						throw new SchemaException("The child node '" + name + "' inherited from the overridden node '" + parentName
-								+ "' cannot be merged with order preservation. " + nodesSoFarMessage);
+					throw new ModabiException(t -> t.cannotOverrideNodeOutOfOrder(name, nodesSoFar));
+				}
 
 				if (override)
 					group.override(child);
@@ -190,7 +185,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 	private void assertUnblocked() {
 		if (blocked)
-			throw new SchemaException("Blocked from adding children");
+			throw new ModabiException(t -> t.cannotAddChild());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -201,8 +196,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		if (mergeGroup != null) {
 			mergeGroup.getChildren().stream().filter(n -> !nodeClass.getRawType().isAssignableFrom(n.getClass())).findAny()
 					.ifPresent(n -> {
-						throw new SchemaException(
-								"Cannot override with node of class '" + n.getClass() + "' with a node of class '" + nodeClass + "'");
+						throw new ModabiException(t -> t.cannotOverrideNodeWithClass(id, n.getClass(), nodeClass.getRawType()));
 					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
@@ -222,7 +216,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		childIndex = merge(new QualifiedName("?", Namespace.getDefault()), effective, childIndex, true);
+		childIndex = merge(effective, childIndex, true);
 	}
 
 	@Override

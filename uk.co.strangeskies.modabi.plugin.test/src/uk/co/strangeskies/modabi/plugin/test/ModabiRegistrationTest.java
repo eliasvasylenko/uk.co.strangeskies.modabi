@@ -35,7 +35,7 @@ import org.osgi.util.tracker.ServiceTracker;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
@@ -172,7 +172,7 @@ public class ModabiRegistrationTest {
 		runSimpleTest(createSimpleContext(asList("EmptyDep"), asList("Empty")));
 	}
 
-	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = ModabiException.class)
 	public void failLoadEmptyDependent() {
 		runSimpleTest(createSimpleContext(asList("EmptyDep"), emptySet()));
 	}
@@ -187,17 +187,17 @@ public class ModabiRegistrationTest {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), asList("Types")));
 	}
 
-	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = ModabiException.class)
 	public void failLoadTypesDependent() {
 		runSimpleTest(createSimpleContext(asList("TypesDep"), emptySet()));
 	}
 
-	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = ModabiException.class)
 	public void missingDependency() {
 		runSimpleTest(createSimpleContext(asList("MissingDep"), emptySet()));
 	}
 
-	@Test(timeout = TIMEOUT_MILLISECONDS, expected = SchemaException.class)
+	@Test(timeout = TIMEOUT_MILLISECONDS, expected = ModabiException.class)
 	public void namedMissingDependency() {
 		runSimpleTest(createSimpleContext(asList("MissingDep"), asList("Missing")));
 	}

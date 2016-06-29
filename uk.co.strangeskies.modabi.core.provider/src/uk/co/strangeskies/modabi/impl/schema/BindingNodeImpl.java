@@ -26,12 +26,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
+import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -49,8 +50,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		private final TypeToken<?> unbindingType;
 		private final TypeToken<?> unbindingFactoryType;
 
-		private final BindingStrategy bindingStrategy;
-		private final UnbindingStrategy unbindingStrategy;
+		private final InputBindingStrategy bindingStrategy;
+		private final OutputBindingStrategy unbindingStrategy;
 		private String unbindingMethodName;
 		private final Boolean unbindingMethodUnchecked;
 		private final Invokable<?, ?> unbindingMethod;
@@ -63,14 +64,14 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 			BoundSet bounds = overrideMerge.configurator().getInferenceBounds();
 
-			bindingStrategy = overrideMerge.getOverride(BindingNode::bindingStrategy).orDefault(BindingStrategy.PROVIDED)
+			bindingStrategy = overrideMerge.getOverride(BindingNode::bindingStrategy).orDefault(InputBindingStrategy.PROVIDED)
 					.get();
 
-			unbindingStrategy = overrideMerge.getOverride(BindingNode::unbindingStrategy)
-					.orDefault(UnbindingStrategy.SIMPLE).get();
+			unbindingStrategy = overrideMerge.getOverride(BindingNode::unbindingStrategy).orDefault(OutputBindingStrategy.SIMPLE)
+					.get();
 
 			providedUnbindingParameterNames = overrideMerge.getOverride(BindingNode::providedUnbindingMethodParameterNames)
-					.orDefault(Collections.<QualifiedName> emptyList()).get();
+					.orDefault(Collections.<QualifiedName>emptyList()).get();
 
 			/*
 			 * TODO refactor to make this final.
@@ -115,7 +116,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			unbindingMethod = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null : findUnbindingMethod(overrideMerge);
 
 			if (unbindingMethodName == null && abstractness().isLessThan(Abstractness.ABSTRACT)
-					&& unbindingStrategy != UnbindingStrategy.SIMPLE && unbindingStrategy != UnbindingStrategy.CONSTRUCTOR)
+					&& unbindingStrategy != OutputBindingStrategy.SIMPLE && unbindingStrategy != OutputBindingStrategy.CONSTRUCTOR)
 				unbindingMethodName = unbindingMethod.getExecutable().getName();
 		}
 
@@ -132,7 +133,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 					try {
 						exactDataType = exactDataType.infer();
 					} catch (TypeException e) {
-						throw new SchemaException("Cannot infer data type '" + exactDataType + "' at node '" + this + "'", e);
+						TypeToken<?> exactDataTypeFinal = exactDataType;
+						throw new ModabiException(t -> t.cannotInferDataType(this, exactDataTypeFinal), e);
 					}
 				}
 			}
@@ -146,7 +148,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		}
 
 		@Override
-		public BindingStrategy bindingStrategy() {
+		public InputBindingStrategy bindingStrategy() {
 			return bindingStrategy;
 		}
 
@@ -156,7 +158,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		}
 
 		@Override
-		public UnbindingStrategy unbindingStrategy() {
+		public OutputBindingStrategy unbindingStrategy() {
 			return unbindingStrategy;
 		}
 
@@ -197,9 +199,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 
 		private Invokable<?, ?> findUnbindingMethod(
 				OverrideMerge<S, ? extends BindingNodeConfiguratorImpl<?, S, ?>> overrideMerge) {
-			UnbindingStrategy unbindingStrategy = unbindingStrategy();
+			OutputBindingStrategy unbindingStrategy = unbindingStrategy();
 			if (unbindingStrategy == null)
-				unbindingStrategy = UnbindingStrategy.SIMPLE;
+				unbindingStrategy = OutputBindingStrategy.SIMPLE;
 
 			switch (unbindingStrategy) {
 			case SIMPLE:
@@ -231,22 +233,19 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 							return null;
 						else {
 							ChildNode.Effective<?, ?> effective = node.children().stream().filter(c -> c.name().equals(p)).findAny()
-									.orElseThrow(() -> new SchemaException("Cannot find node for unbinding parameter: '" + p + "'"));
+									.orElseThrow(() -> new ModabiException(t -> t.cannotFindUnbindingParameter(p)));
 
-							if (!(effective instanceof DataNode.Effective))
-								throw new SchemaException(
-										"Unbinding parameter node '" + effective + "' for '" + p + "' is not a data node.");
+							if (!(effective instanceof BindingChildNode.Effective))
+								throw new ModabiException(t -> t.unbindingParameterMustBeDataNode(effective, p));
 
 							DataNode.Effective<?> dataNode = (DataNode.Effective<?>) effective;
 
 							if (dataNode.occurrences() != null
 									&& (dataNode.occurrences().getTo() != 1 || dataNode.occurrences().getFrom() != 1))
-								throw new SchemaException(
-										"Unbinding parameter node '" + effective + "' for '" + p + "' must occur exactly once.");
+								throw new ModabiException(t -> t.unbindingParameterMustOccurOnce(effective, p));
 
 							if (node.abstractness().isAtMost(Abstractness.ABSTRACT) && !dataNode.isValueProvided())
-								throw new SchemaException(
-										"Unbinding parameter node '" + dataNode + "' for '" + p + "' must provide a value.");
+								throw new ModabiException(t -> t.unbindingParameterMustProvideValue(effective, p));
 
 							return dataNode;
 						}
@@ -261,14 +260,10 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			List<DataNode.Effective<?>> parameters = providedUnbindingMethodParameters();
 			if (parameters != null) {
 				for (DataNode.Effective<?> parameter : parameters) {
-					if (parameter == null)
-						if (addedNodeClass)
-							throw new SchemaException();
-						else {
-							addedNodeClass = true;
-							classList.add(nodeClass.apply(this));
-						}
-					else {
+					if (parameter == null) {
+						addedNodeClass = true;
+						classList.add(nodeClass.apply(this));
+					} else {
 						classList.add(parameter.dataType());
 					}
 				}
@@ -312,14 +307,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 				}
 
 				List<String> names = generateUnbindingMethodNames(result);
-				try {
-					return Methods.findMethod(names, receiver, bindingStrategy() == BindingStrategy.STATIC_FACTORY, result,
-							false, parameters);
-				} catch (NoSuchMethodException | SchemaException | SecurityException e) {
-					throw new SchemaException("Cannot find unbinding method for node '" + this + "' of class '" + result
-							+ "', reveiver '" + receiver + "', and parameters '" + parameters + "' with any name of '" + names + "'",
-							e);
-				}
+				return Methods.findMethod(names, receiver, bindingStrategy() == InputBindingStrategy.STATIC_FACTORY, result, false,
+						parameters);
 			}
 		}
 
@@ -370,8 +359,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 	private final TypeToken<?> bindingClass;
 	private final TypeToken<?> unbindingClass;
 	private final TypeToken<?> unbindingFactoryType;
-	private final BindingStrategy bindingStrategy;
-	private final UnbindingStrategy unbindingStrategy;
+	private final InputBindingStrategy bindingStrategy;
+	private final OutputBindingStrategy unbindingStrategy;
 	private final String unbindingMethodName;
 	private final Boolean unbindingMethodUnchecked;
 
@@ -404,12 +393,12 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 	}
 
 	@Override
-	public BindingStrategy bindingStrategy() {
+	public InputBindingStrategy bindingStrategy() {
 		return bindingStrategy;
 	}
 
 	@Override
-	public UnbindingStrategy unbindingStrategy() {
+	public OutputBindingStrategy unbindingStrategy() {
 		return unbindingStrategy;
 	}
 

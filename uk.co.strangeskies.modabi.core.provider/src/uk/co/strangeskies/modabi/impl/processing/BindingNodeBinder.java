@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Set;
 
 import uk.co.strangeskies.modabi.ChildNodeBinding;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
-import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -63,9 +63,9 @@ public class BindingNodeBinder {
 		TypedObject<?> binding;
 		List<ChildNode.Effective<?, ?>> children = node.children();
 
-		BindingStrategy strategy = node.bindingStrategy();
+		InputBindingStrategy strategy = node.bindingStrategy();
 		if (strategy == null)
-			strategy = BindingStrategy.PROVIDED;
+			strategy = InputBindingStrategy.PROVIDED;
 
 		TypeToken<?> bindingType = node.bindingType() != null ? node.bindingType() : node.dataType();
 
@@ -76,8 +76,7 @@ public class BindingNodeBinder {
 			break;
 		case CONSTRUCTOR:
 			if (children.isEmpty())
-				throw new SchemaException("Node '" + node.name() + "' with binding strategy '" + BindingStrategy.CONSTRUCTOR
-						+ "' should contain at least one child");
+				throw new ProcessingException(t -> t.mustHaveChildren(node.name(), InputBindingStrategy.CONSTRUCTOR), context);
 
 			ChildNode.Effective<?, ?> firstChild;
 			List<ChildNodeBinding<?>> parameters;
@@ -97,14 +96,13 @@ public class BindingNodeBinder {
 				Object[] parameterArray = parameters.stream().map(ChildNodeBinding::getData).toArray();
 				binding = TypedObject.castInto(bindingType, ((Constructor<?>) inputMethod).newInstance(parameterArray));
 			} catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
-				throw new ProcessingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
-						+ node.unbindingType() + "' with parameters '" + parameters + "'", context, e);
+				List<ChildNodeBinding<?>> parameterList = parameters;
+				throw new ProcessingException(t -> t.cannotInvoke(inputMethod, bindingType, node, parameterList), context, e);
 			}
 			break;
 		case STATIC_FACTORY:
 			if (children.isEmpty())
-				throw new SchemaException("Node '" + node.name() + "' with binding strategy '" + BindingStrategy.STATIC_FACTORY
-						+ "' should contain at least one child");
+				throw new ProcessingException(t -> t.mustHaveChildren(node.name(), InputBindingStrategy.STATIC_FACTORY), context);
 
 			do {
 				firstChild = children.get(0);
@@ -121,9 +119,9 @@ public class BindingNodeBinder {
 			try {
 				Object[] parameterArray = parameters.stream().map(ChildNodeBinding::getData).toArray();
 				binding = TypedObject.castInto(bindingType, ((Method) inputMethod).invoke(null, parameterArray));
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
-				throw new ProcessingException("Cannot invoke static factory method '" + inputMethod + "' on class '"
-						+ node.unbindingType() + "' with parameters '" + parameters + "'", context, e);
+			} catch (IllegalAccessException | ModabiException | InvocationTargetException | SecurityException e) {
+				List<ChildNodeBinding<?>> parameterList = parameters;
+				throw new ProcessingException(t -> t.cannotInvoke(inputMethod, bindingType, node, parameterList), context, e);
 			}
 			break;
 		case IMPLEMENT_IN_PLACE:
@@ -250,7 +248,7 @@ public class BindingNodeBinder {
 				if (!results.isEmpty()) {
 					result.set(results.get(0));
 				} else if (!node.occurrences().contains(0)) {
-					throw new ProcessingException("Node must be bound data", context);
+					throw new ProcessingException(t -> t.mustHaveData(node.name()), context);
 				} else {
 					result.set(new ChildNodeBinding<>(null, node));
 				}

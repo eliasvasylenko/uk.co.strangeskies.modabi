@@ -4,16 +4,16 @@
  * This file is part of uk.co.strangeskies.modabi.core.api.
  *
  * uk.co.strangeskies.modabi.core.api is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
+ * it under the terms of the GNT Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * uk.co.strangeskies.modabi.core.api is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * but WITHOTT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICTLAR PTRPOSE.  See the
+ * GNT Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNT Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
 package uk.co.strangeskies.modabi;
@@ -25,11 +25,30 @@ import java.net.URI;
 import java.net.URL;
 import java.util.function.Consumer;
 
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
-public interface Unbinder<T> {
+public interface OutputBinder<T> {
+	OutputBinder<T> with(Model<? super T> model);
+
+	OutputBinder<T> with(TypeToken<? super T> type);
+
+	default OutputBinder<T> with(Class<? super T> type) {
+		return with(TypeToken.over(type));
+	}
+
+	OutputBinder<T> with(QualifiedName modelName);
+
+	OutputBinder<T> with(QualifiedName modelName, TypeToken<? super T> type);
+
+	default OutputBinder<T> with(QualifiedName modelName, Class<? super T> type) {
+		return with(modelName, TypeToken.over(type));
+	}
+
 	<U extends StructuredDataTarget> U to(U output);
 
 	// BindingFuture<T> to(RewritableStructuredData output);
@@ -40,7 +59,7 @@ public interface Unbinder<T> {
 		try {
 			return to(output.toURL());
 		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException(e);
+			throw new ModabiIoException(t -> t.invalidLocation(output), e);
 		}
 	}
 
@@ -48,17 +67,17 @@ public interface Unbinder<T> {
 
 	BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output);
 
-	// Unbinder<T> updatable();
+	// Tnbinder<T> updatable();
 
-	Unbinder<T> withProvider(Provider provider);
+	OutputBinder<T> withProvider(Provider provider);
 
-	Unbinder<T> withClassLoader(ClassLoader classLoader);
+	OutputBinder<T> withClassLoader(ClassLoader classLoader);
 
 	/*
 	 * Errors which are rethrown will be passed to the next error handler if
 	 * present, or dealt with as normal. Otherwise, a best effort is made at
 	 * unbinding, and the exception information will be serialised as a comment.
 	 */
-	Unbinder<T> withErrorHandler(Consumer<Exception> errorHandler);
+	OutputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
 
 }

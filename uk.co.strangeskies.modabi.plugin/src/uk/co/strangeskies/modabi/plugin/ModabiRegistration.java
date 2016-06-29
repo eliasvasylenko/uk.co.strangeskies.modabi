@@ -33,9 +33,9 @@ import java.util.stream.Collectors;
 import org.osgi.framework.Constants;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
@@ -192,8 +192,8 @@ public class ModabiRegistration {
 			Set<BindingBlock> missingDependencies = resolvingSchemata.stream().flatMap(f -> f.blocks().getBlocks().stream())
 					.collect(toSet());
 
-			SchemaException deadlockException = new SchemaException(
-					"Cannot bind " + providedSchemata.keySet() + "; Cannot resolve dependencies " + missingDependencies);
+			ModabiException deadlockException = new ModabiException(
+					t -> t.missingDependencies(providedSchemata.keySet(), missingDependencies));
 			for (BindingFuture<?> future : resolvingSchemata) {
 				for (BindingBlock block : future.blocks().getBlocks()) {
 					block.fail(deadlockException);

@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.DiscardingStructuredDataTarget;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
@@ -57,8 +58,9 @@ public class Profiler {
 		ClassLoader classLoader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
 
 		try {
-			log(Level.INFO, manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema())
-					.withClassLoader(classLoader).to(new DiscardingStructuredDataTarget()).toString());
+			log(Level.INFO,
+					manager.bindOutput((Schema) manager.getMetaSchema()).with(manager.getMetaSchema().getSchemaModel())
+							.withClassLoader(classLoader).to(new DiscardingStructuredDataTarget()).toString());
 
 			warmUpProfiling(WARMUP_ROUNDS, classLoader);
 
@@ -77,8 +79,8 @@ public class Profiler {
 
 	private long bindingProfile(int profileRounds, ClassLoader classLoader) {
 		StructuredDataBuffer.Navigable buffer = StructuredDataBuffer.singleBuffer();
-		manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).withClassLoader(classLoader)
-				.to(buffer);
+		manager.bindOutput((Schema) manager.getMetaSchema()).with(manager.getMetaSchema().getSchemaModel())
+				.withClassLoader(classLoader).to(buffer);
 
 		log(Level.INFO, "Binding Profiling");
 
@@ -88,8 +90,8 @@ public class Profiler {
 				log(Level.INFO, "  working... (" + i + " / " + profileRounds + ")");
 
 			buffer.getBuffer().reset();
-			manager.bind(manager.getMetaSchema().getSchemaModel()).withClassLoader(classLoader).from(buffer.getBuffer())
-					.resolve();
+			manager.bindInput().with(manager.getMetaSchema().getSchemaModel()).withClassLoader(classLoader)
+					.from(buffer.getBuffer()).resolve();
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
 
@@ -106,8 +108,8 @@ public class Profiler {
 			if (i % OUTPUT_RESOLUTION == 0)
 				log(Level.INFO, "  working... (" + i + " / " + profileRounds + ")");
 
-			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).withClassLoader(classLoader)
-					.to(StructuredDataBuffer.singleBuffer());
+			manager.bindOutput((Schema) manager.getMetaSchema()).with(manager.getMetaSchema().getSchemaModel())
+					.withClassLoader(classLoader).to(StructuredDataBuffer.singleBuffer());
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
 
@@ -124,12 +126,12 @@ public class Profiler {
 				log(Level.INFO, "  working... (" + i + " / " + warmupRounds + ")");
 
 			StructuredDataBuffer.Navigable buffer = StructuredDataBuffer.singleBuffer();
-			manager.unbind(manager.getMetaSchema().getSchemaModel(), manager.getMetaSchema()).withClassLoader(classLoader)
-					.to(buffer);
+			manager.bindOutput((Schema) manager.getMetaSchema()).with(manager.getMetaSchema().getSchemaModel())
+					.withClassLoader(classLoader).to(buffer);
 
 			buffer.getBuffer().reset();
-			manager.bind(manager.getMetaSchema().getSchemaModel()).withClassLoader(classLoader).from(buffer.getBuffer())
-					.resolve();
+			manager.bindInput().with(manager.getMetaSchema().getSchemaModel()).withClassLoader(classLoader)
+					.from(buffer.getBuffer()).resolve();
 		}
 
 		log(Level.INFO, "  done       (" + warmupRounds + " / " + warmupRounds + ")");

@@ -23,8 +23,8 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 
 public interface StructuredDataSource {
 	public StructuredDataState currentState();
@@ -42,8 +42,7 @@ public interface StructuredDataSource {
 	public default StructuredDataSource startNextChild(QualifiedName name) {
 		QualifiedName nextName = peekNextChild();
 		if (!nextName.equals(name)) {
-			throw new SchemaException("Next child '" + nextName
-					+ "' does not match expected name '" + name + "'");
+			throw new ModabiIoException(t -> t.unexpectedInputItem(nextName, name));
 		}
 		startNextChild();
 		return this;
@@ -92,8 +91,8 @@ public interface StructuredDataSource {
 
 		int depth = 0;
 		do {
-			while (output.currentState() != StructuredDataState.ELEMENT_WITH_CONTENT
-					&& (childElement = startNextChild()) != null) {
+			while (output.currentState() != StructuredDataState.ELEMENT_WITH_CONTENT && hasNextChild()) {
+				childElement = startNextChild();
 				output.addChild(childElement);
 
 				pipeDataAtChild(output);
@@ -110,8 +109,7 @@ public interface StructuredDataSource {
 		return output;
 	}
 
-	public default <T extends StructuredDataTarget> T pipeNamespaceHints(
-			T output) {
+	public default <T extends StructuredDataTarget> T pipeNamespaceHints(T output) {
 		if (getDefaultNamespaceHint() != null)
 			output.registerDefaultNamespaceHint(getDefaultNamespaceHint());
 		for (Namespace hint : getNamespaceHints())

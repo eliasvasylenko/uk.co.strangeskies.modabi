@@ -25,11 +25,30 @@ import java.net.URI;
 import java.net.URL;
 import java.util.function.Consumer;
 
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
-public interface Binder<T> {
+public interface InputBinder<T> {
+	<U> InputBinder<U> with(Model<U> model);
+
+	<U> InputBinder<U> with(TypeToken<U> type);
+
+	default <U> InputBinder<U> with(Class<U> type) {
+		return with(TypeToken.over(type));
+	}
+
+	InputBinder<?> with(QualifiedName modelName);
+
+	<U> InputBinder<U> with(QualifiedName modelName, TypeToken<U> type);
+
+	default <U> InputBinder<U> with(QualifiedName modelName, Class<U> type) {
+		return with(modelName, TypeToken.over(type));
+	}
+
 	BindingFuture<T> from(StructuredDataSource input);
 
 	// BindingFuture<T> from(RewritableStructuredData input);
@@ -42,7 +61,7 @@ public interface Binder<T> {
 		try {
 			return from(input.toURL());
 		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException(e);
+			throw new ModabiIoException(t -> t.invalidLocation(input), e);
 		}
 	}
 
@@ -54,14 +73,14 @@ public interface Binder<T> {
 
 	// Binder<T> updatable();
 
-	Binder<T> withProvider(Provider provider);
+	InputBinder<T> withProvider(Provider provider);
 
-	Binder<T> withClassLoader(ClassLoader classLoader);
+	InputBinder<T> withClassLoader(ClassLoader classLoader);
 
 	/*
 	 * Errors which are rethrown will be passed to the next error handler if
 	 * present, or dealt with as normal. Otherwise, a best effort is made at
 	 * binding.
 	 */
-	Binder<T> withErrorHandler(Consumer<Exception> errorHandler);
+	InputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
 }

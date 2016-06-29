@@ -172,13 +172,13 @@ public class BenchmarkRunner {
 			persons.getPerson().add(person);
 		}
 
-		manager.unbind(PersonsType.class, persons).to(new File(fileName));
+		manager.bindOutput(persons).to(new File(fileName));
 	}
 
 	private void readLargeXmlWithModabi(File file) throws FileNotFoundException, IOException {
 		long start = System.currentTimeMillis();
 
-		manager.bind().from(file).resolve();
+		manager.bindInput().from(file).resolve();
 
 		long end = System.currentTimeMillis();
 

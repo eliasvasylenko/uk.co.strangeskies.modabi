@@ -25,13 +25,12 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -105,9 +104,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 
 		protected void requireNonAbstract(Deque<SchemaNode.Effective<?, ?>> nodeStack) {
 			if (nodeStack.peek().abstractness().isMoreThan(Abstractness.UNINFERRED))
-				throw new SchemaException("Inherited descendent '"
-						+ nodeStack.stream().map(n -> n.name().toString()).collect(Collectors.joining(" < "))
-						+ "' must be overridden");
+				throw new ModabiException(t -> t.mustOverrideDescendant(nodeStack));
 
 			requireNonAbstractDescendents(nodeStack);
 		}

@@ -33,7 +33,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.ModabiIOException;
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 
 public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
@@ -59,7 +59,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			out.setNamespaceContext(namespaces);
 			out.writeStartDocument();
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new ModabiIOException(e);
+			throw new ModabiIoException("Cannot start XML document for writing", e);
 		}
 	}
 
@@ -67,8 +67,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 		this(createXMLStreamWriter(out, formatted));
 	}
 
-	private static XMLStreamWriter createXMLStreamWriter(OutputStream out,
-			boolean formatted) {
+	private static XMLStreamWriter createXMLStreamWriter(OutputStream out, boolean formatted) {
 		try {
 			XMLOutputFactory factory = XMLOutputFactory.newInstance();
 			XMLStreamWriter writer = factory.createXMLStreamWriter(out);
@@ -76,7 +75,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				writer = new IndentingXMLStreamWriter(writer);
 			return writer;
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new ModabiIOException(e);
+			throw new ModabiIoException("Cannot open XML stream for writing", e);
 		}
 	}
 
@@ -101,26 +100,21 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			if (done) {
 				// write start of element
 				if (selfClosing) {
-					out.writeEmptyElement(currentChild.getNamespace().toHttpString(),
-							currentChild.getName());
+					out.writeEmptyElement(currentChild.getNamespace().toHttpString(), currentChild.getName());
 				} else {
-					out.writeStartElement(currentChild.getNamespace().toHttpString(),
-							currentChild.getName());
+					out.writeStartElement(currentChild.getNamespace().toHttpString(), currentChild.getName());
 				}
 
 				// write namespaces
 				if (namespaces.getAliasSet().getDefaultNamespace() != null)
-					out.writeDefaultNamespace(
-							namespaces.getDefaultNamespace().toHttpString());
+					out.writeDefaultNamespace(namespaces.getDefaultNamespace().toHttpString());
 				for (Namespace namespace : namespaces.getAliasSet().getNamespaces())
-					out.writeNamespace(namespaces.getNamespaceAlias(namespace),
-							namespace.toHttpString());
+					out.writeNamespace(namespaces.getNamespaceAlias(namespace), namespace.toHttpString());
 				namespaces.push();
 
 				// write properties
 				for (QualifiedName property : properties.keySet())
-					out.writeAttribute(property.getNamespace().toHttpString(),
-							property.getName(), properties.get(property));
+					out.writeAttribute(property.getNamespace().toHttpString(), property.getName(), properties.get(property));
 				properties.clear();
 
 				// write comments
@@ -138,12 +132,12 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 
 			return done;
 		} catch (XMLStreamException e) {
-			throw new ModabiIOException(e);
+			throw new ModabiIoException("Cannot start element in XML document", e);
 		}
 	}
 
 	@Override
-	public void nextChildImpl(QualifiedName name) {
+	public void addChildImpl(QualifiedName name) {
 		outputCurrentChild(false);
 		currentChild = name;
 	}
@@ -154,7 +148,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			if (!outputCurrentChild(true))
 				out.writeEndElement();
 		} catch (XMLStreamException e) {
-			throw new ModabiIOException(e);
+			throw new ModabiIoException("Cannot end element in XML document ", e);
 		}
 
 		namespaces.pop();
@@ -163,14 +157,13 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				out.writeEndDocument();
 				out.flush();
 			} catch (XMLStreamException e) {
-				throw new ModabiIOException(e);
+				throw new ModabiIoException("Cannot end XML document", e);
 			}
 	}
 
 	@Override
 	public DataTarget writePropertyImpl(QualifiedName name) {
-		return DataTarget.composeString(s -> properties.put(name, s),
-				this::composeName);
+		return DataTarget.composeString(s -> properties.put(name, s), this::composeName);
 	}
 
 	@Override
@@ -181,9 +174,9 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			try {
 				out.writeCharacters(s);
 			} catch (XMLStreamException e) {
-				throw new ModabiIOException(e);
+				throw new ModabiIoException("Cannot write element content in XML document", e);
 			}
-		} , this::composeName);
+		}, this::composeName);
 	}
 
 	private String composeName(QualifiedName name) {
@@ -198,7 +191,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 		try {
 			out.writeComment(comment);
 		} catch (XMLStreamException e) {
-			throw new ModabiIOException(e);
+			throw new ModabiIoException("Cannot write comment in XML document", e);
 		}
 	}
 }

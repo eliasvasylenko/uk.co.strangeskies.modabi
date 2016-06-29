@@ -22,13 +22,11 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.ChildNodeBinding;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
@@ -139,20 +137,12 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 
 	private void validateResults(DataNode.Effective<?> node, List<?> results, Exception cause) {
 		if (results.isEmpty() && !node.occurrences().contains(0) && !node.occurrences().contains(0)) {
-			String message = "Node '" + node.name() + "' must be bound data.";
-			if (cause != null)
-				throw new ProcessingException(message, getContext(), cause);
-			else
-				throw new ProcessingException(message, getContext());
+			throw new ProcessingException(t -> t.mustHaveData(node.name()), getContext(), cause);
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
-			String message = "Node '" + node.name() + "' binding results '" + results
-					+ "' must be bound data within range of '" + Range.compose(node.occurrences()) + "' occurrences.";
-			if (cause != null)
-				throw new ProcessingException(message, getContext(), cause);
-			else
-				throw new ProcessingException(message, getContext());
+			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node),
+					getContext(), cause);
 		}
 	}
 
@@ -178,17 +168,15 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				if (dataSource != null)
 					successfulIndex = dataSource.index();
 			}
-		} catch (SchemaException e) {
+		} catch (ModabiException e) {
 			if (dataSource != null) {
 				dataSource.reset();
 				while (dataSource.index() < successfulIndex)
 					dataSource.get();
 
 				if (context.isExhaustive() && !dataSource.isComplete()) {
-					throw new ProcessingException(
-							"Failed to bind all of data source, with ["
-									+ dataSource.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "] remaining",
-							context, e);
+					DataSource dataSourceFinal = dataSource;
+					throw new ProcessingException(t -> t.cannotBindRemainingData(dataSourceFinal), context, e);
 				}
 			}
 
@@ -217,7 +205,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
-				throw new SchemaException("Unable to find type to satisfy data node '" + node.name() + "' with type '"
+				throw new ModabiException("Unable to find type to satisfy data node '" + node.name() + "' with type '"
 						+ node.effective().type() + "'");
 
 			IdentityProperty<ChildNodeBinding<? extends U>> result = new IdentityProperty<>();

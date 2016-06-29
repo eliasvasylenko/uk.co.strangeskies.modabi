@@ -22,8 +22,8 @@ Export-Package: uk.co.strangeskies.modabi.ui
 -pluginpath: \
 	${pluginpath.modabi;xml}
 
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+#-plugin: \
+#	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
 
 -includeresource: \
 	META-INF/schemata=schemata

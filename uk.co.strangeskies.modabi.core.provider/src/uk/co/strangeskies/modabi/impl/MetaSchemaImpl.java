@@ -23,8 +23,8 @@ import static uk.co.strangeskies.modabi.Abstractness.ABSTRACT;
 import static uk.co.strangeskies.modabi.ValueResolution.REGISTRATION_TIME;
 import static uk.co.strangeskies.modabi.io.Primitive.BOOLEAN;
 import static uk.co.strangeskies.modabi.io.Primitive.STRING;
-import static uk.co.strangeskies.modabi.processing.BindingStrategy.STATIC_FACTORY;
-import static uk.co.strangeskies.modabi.processing.BindingStrategy.TARGET_ADAPTOR;
+import static uk.co.strangeskies.modabi.processing.InputBindingStrategy.STATIC_FACTORY;
+import static uk.co.strangeskies.modabi.processing.InputBindingStrategy.TARGET_ADAPTOR;
 import static uk.co.strangeskies.modabi.schema.DataNode.Format.CONTENT;
 import static uk.co.strangeskies.modabi.schema.DataNode.Format.PROPERTY;
 import static uk.co.strangeskies.modabi.schema.DataNode.Format.SIMPLE;
@@ -48,8 +48,8 @@ import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -132,7 +132,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<SchemaNode<?, ?>> nodeModel = factory.apply("node",
 				m -> m.abstractness(ABSTRACT).dataType(new TypeToken<SchemaNode<?, ?>>() {})
-						.unbindingStrategy(UnbindingStrategy.SIMPLE)
+						.unbindingStrategy(OutputBindingStrategy.SIMPLE)
 						.addChild(n -> n.inputSequence().name("configure").abstractness(ABSTRACT)
 								.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
 						.addChild(n -> n.data().format(PROPERTY).type(base.primitiveType(Primitive.QUALIFIED_NAME)).name("name")
@@ -173,11 +173,11 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(o -> o.data().format(PROPERTY).name("dataType").optional(true).type(base.primitiveType(STRING))
 								.outMethod("dataTypeString"))
 						.addChild(o -> o.data().format(PROPERTY).name("bindingStrategy").type(base.derivedTypes().enumType())
-								.dataType(BindingStrategy.class).optional(true))
+								.dataType(InputBindingStrategy.class).optional(true))
 						.addChild(n -> n.data().format(PROPERTY).name("bindingType").optional(true).type(base.primitiveType(STRING))
 								.outMethod("bindingTypeString"))
 						.addChild(o -> o.data().format(PROPERTY).name("unbindingStrategy").type(base.derivedTypes().enumType())
-								.dataType(UnbindingStrategy.class).optional(true))
+								.dataType(OutputBindingStrategy.class).optional(true))
 						.addChild(o -> o.data().format(PROPERTY).name("unbindingMethod").outMethod("unbindingMethodName")
 								.type(base.primitiveType(STRING)).optional(true))
 						.addChild(n -> n.data().format(PROPERTY).name("unbindingType").optional(true)

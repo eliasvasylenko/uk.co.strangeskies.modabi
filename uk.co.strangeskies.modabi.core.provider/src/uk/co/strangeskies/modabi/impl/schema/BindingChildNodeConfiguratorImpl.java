@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -121,7 +121,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	public final S inMethod(String inMethodName) {
 		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
-			throw new SchemaException("No input method should be specified on this node.");
+			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
 
 		assertConfigurable(this.inMethodName);
 		this.inMethodName = inMethodName;

@@ -22,7 +22,6 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Reified;
-import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Scoped;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 
@@ -46,57 +45,9 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 	 */
 	SchemaConfigurator getSchemaConfigurator();
 
-	default Binder<?> bind(QualifiedName modelName) {
-		return bind(registeredModels().get(modelName));
-	}
-
-	default <T> Binder<T> bind(QualifiedName modelName, TypeToken<T> type) {
-		return bind(registeredModels().get(modelName, type));
-	}
-
-	default <T> Binder<T> bind(QualifiedName modelName, Class<T> type) {
-		return bind(registeredModels().get(modelName, TypeToken.over(type)));
-	}
-
-	<T> Binder<T> bind(Model<T> model);
-
-	<T> Binder<T> bind(TypeToken<T> dataClass);
-
-	default <T> Binder<T> bind(Class<T> dataClass) {
-		return bind(TypeToken.over(dataClass));
-	}
-
-	Binder<?> bind();
-
-	default Binder<Schema> bindSchema() {
-		return bind(getMetaSchema().getSchemaModel());
-	}
-
 	<T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model);
 
 	<T> ObservableSet<?, Binding<T>> getBindings(Model<T> model);
-
-	<T> Unbinder<T> unbind(Model<T> model, T data);
-
-	<T> Unbinder<T> unbind(TypeToken<T> dataClass, T data);
-
-	default <T> Unbinder<T> unbind(Class<T> dataClass, T data) {
-		return unbind(TypeToken.over(dataClass), data);
-	}
-
-	default <T> Unbinder<T> unbind(QualifiedName modelName, TypeToken<T> type, T data) {
-		return unbind(registeredModels().get(modelName, type), data);
-	}
-
-	default <T> Unbinder<T> unbind(QualifiedName modelName, Class<T> type, T data) {
-		return unbind(registeredModels().get(modelName, TypeToken.over(type)), data);
-	}
-
-	default <T extends Reified<T>> Unbinder<T> unbind(T data) {
-		return unbind(data.getThisType(), data);
-	}
-
-	<T> Unbinder<T> unbind(T data);
 
 	Provisions provisions();
 
@@ -107,4 +58,16 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 	DataTypes registeredTypes();
 
 	DataFormats registeredFormats();
+
+	InputBinder<?> bindInput();
+
+	default InputBinder<Schema> bindSchema() {
+		return bindInput().with(getMetaSchema().getSchemaModel());
+	}
+
+	<T> OutputBinder<T> bindOutput(T data);
+
+	default <T extends Reified<T>> OutputBinder<T> bindOutput(T data) {
+		return bindOutput(data).with(data.getThisType());
+	}
 }

@@ -209,7 +209,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	private <T> DataNode.Effective<? extends T> getDataNodeOverride(DataNode.Effective<T> node,
 			DataType.Effective<?> type) {
-		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node, type);
+		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, type);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -235,8 +235,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 	private <T> ComplexNode.Effective<? extends T> getComplexNodeOverride(ComplexNode.Effective<T> node,
 			Model.Effective<?> model) {
-		return new BindingNodeOverrider().override(provisions().provide(SchemaBuilder.class, this).getObject(), node,
-				model);
+		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, model);
 	}
 
 	@Override
@@ -367,7 +366,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	public <I> I attemptUnbindingUntilSuccessful(Iterable<I> attemptItems,
 			BiConsumer<ProcessingContextImpl, I> unbindingMethod, Function<Set<Exception>, ProcessingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new ProcessingException("Must supply items for unbinding attempt", this);
+			throw new ProcessingException(t -> t.mustSupplyAttemptItems(), this);
 
 		Set<Exception> failures = new HashSet<>();
 
@@ -430,7 +429,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	public <I> I attemptBindingUntilSuccessful(Iterable<I> attemptItems,
 			BiConsumer<ProcessingContextImpl, I> bindingMethod, Function<Set<Exception>, ProcessingException> onFailure) {
 		if (!attemptItems.iterator().hasNext())
-			throw new ProcessingException("Must supply items for binding attempt", this);
+			throw new ProcessingException(t -> t.mustSupplyAttemptItems(), this);
 
 		Set<Exception> failures = new HashSet<>();
 

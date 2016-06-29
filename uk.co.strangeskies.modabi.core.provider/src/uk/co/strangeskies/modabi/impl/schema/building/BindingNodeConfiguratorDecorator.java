@@ -22,8 +22,8 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
@@ -51,7 +51,7 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	}
 
 	@Override
-	public S bindingStrategy(BindingStrategy strategy) {
+	public S bindingStrategy(InputBindingStrategy strategy) {
 		component = component.bindingStrategy(strategy);
 		return getThis();
 	}
@@ -69,7 +69,7 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	}
 
 	@Override
-	public S unbindingStrategy(UnbindingStrategy strategy) {
+	public S unbindingStrategy(OutputBindingStrategy strategy) {
 		component = component.unbindingStrategy(strategy);
 		return getThis();
 	}

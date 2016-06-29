@@ -27,11 +27,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.DataFormats;
+import uk.co.strangeskies.modabi.InputBinder;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
 import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
 import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
@@ -40,7 +40,9 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
@@ -48,24 +50,88 @@ import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.collection.ObservableSet.Change;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
-public class BinderImpl<T> implements Binder<T> {
+public class InputBinderImpl<T> implements InputBinder<T> {
 	private static final QualifiedName FORMAT_BLOCK_NAMESPACE = new QualifiedName("structuredDataFormat",
 			Schema.MODABI_NAMESPACE);
 
-	private final SchemaManagerImpl manager;
-	private final Function<StructuredDataSource, Model<T>> bindingModelFunction;
-	private final Consumer<BindingFuture<?>> addFuture;
-
 	private final ProcessingContextImpl context;
+	private final DataFormats formats;
+	private final Consumer<BindingFuture<?>> complete;
+
+	private final Function<StructuredDataSource, Model<T>> bindingModelFunction;
+
 	private ClassLoader classLoader;
 
-	public BinderImpl(SchemaManagerImpl manager, Function<StructuredDataSource, Model<T>> bindingModelFunction,
-			Consumer<BindingFuture<?>> addFuture) {
-		this.manager = manager;
-		this.bindingModelFunction = bindingModelFunction;
-		this.addFuture = addFuture;
+	protected InputBinderImpl(ProcessingContextImpl context, DataFormats formats, Consumer<BindingFuture<?>> complete,
+			Function<StructuredDataSource, Model<T>> bindingModelFunction) {
+		this.context = context;
+		this.formats = formats;
+		this.complete = complete;
 
-		context = manager.getProcessingContext();
+		this.bindingModelFunction = bindingModelFunction;
+	}
+
+	public static InputBinder<?> bind(ProcessingContextImpl context, DataFormats formats,
+			Consumer<BindingFuture<?>> complete) {
+		return new InputBinderImpl<>(context, formats, complete, data -> {
+			try {
+				return context.registeredModels().waitForGet(data.peekNextChild());
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	protected <U> InputBinder<U> with(Function<StructuredDataSource, Model<U>> bindingModelFunction) {
+		return new InputBinderImpl<>(context, formats, complete, bindingModelFunction);
+	}
+
+	@Override
+	public <U> InputBinder<U> with(Model<U> model) {
+		return with(data -> {
+			if (!context.registeredModels().contains(model)) {
+				throw new ProcessingException("", context);
+			}
+
+			if (!data.peekNextChild().equals(model.name())) {
+				throw new ProcessingException("", context);
+			}
+
+			return model;
+		});
+	}
+
+	@Override
+	public <U> InputBinder<U> with(TypeToken<U> type) {
+		return with(data -> {
+			try {
+				return context.registeredModels().waitForGet(data.peekNextChild(), type);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	@Override
+	public InputBinder<?> with(QualifiedName name) {
+		return with(data -> {
+			try {
+				return context.registeredModels().waitForGet(name);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	@Override
+	public <U> InputBinder<U> with(QualifiedName name, TypeToken<U> type) {
+		return with(data -> {
+			try {
+				return context.registeredModels().waitForGet(name, type);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	@Override
@@ -104,7 +170,7 @@ public class BinderImpl<T> implements Binder<T> {
 				: Thread.currentThread().getContextClassLoader();
 		BindingFuture<T> bindingFuture = new BindingFutureImpl<>(context, classLoader, modelSupplier);
 
-		addFuture.accept(bindingFuture);
+		complete.accept(bindingFuture);
 
 		return bindingFuture;
 	}
@@ -125,9 +191,8 @@ public class BinderImpl<T> implements Binder<T> {
 						exception.set(e);
 
 						if (!canRetry) {
-							throw new SchemaException(
-									"Could not bind input with any file loader registered" + (formatId == null ? "" : " for " + formatId),
-									exception.get());
+							throw new ProcessingException(t -> formatId == null ? t.noFormatFound() : t.noFormatFoundFor(formatId),
+									context, exception.get());
 						}
 					}
 				}
@@ -150,8 +215,8 @@ public class BinderImpl<T> implements Binder<T> {
 		};
 
 		synchronized (registeredFormats) {
-			manager.registeredFormats().changes().addWeakObserver(observer);
-			registeredFormats.addAll(manager.registeredFormats());
+			formats.changes().addWeakObserver(observer);
+			registeredFormats.addAll(formats);
 		}
 
 		try {
@@ -174,24 +239,24 @@ public class BinderImpl<T> implements Binder<T> {
 			if (exception.get() == null)
 				exception.set(e);
 
-			throw new SchemaException("Could not bind input with any registered file loaders", exception.get());
+			throw new ProcessingException(t -> t.noFormatFoundFor(formatId), context, exception.get());
 		}
 	}
 
 	@Override
-	public Binder<T> withProvider(Provider provider) {
+	public InputBinder<T> withProvider(Provider provider) {
 		context.provisions().add(provider);
 		return this;
 	}
 
 	@Override
-	public Binder<T> withErrorHandler(Consumer<Exception> errorHandler) {
+	public InputBinder<T> withErrorHandler(Consumer<Exception> errorHandler) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Binder<T> withClassLoader(ClassLoader classLoader) {
+	public InputBinder<T> withClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 		return this;
 	}

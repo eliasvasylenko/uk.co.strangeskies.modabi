@@ -36,7 +36,7 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
  * @author Elias N Vasylenko
  *
  */
-public enum BindingStrategy {
+public enum InputBindingStrategy {
 	/**
 	 * The schema binder should attempt to find an implementation for which a
 	 * factory has been provided externally, for example programmatically, through

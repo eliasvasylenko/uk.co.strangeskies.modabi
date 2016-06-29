@@ -24,14 +24,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.ChoiceNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.ComplexNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.DataNodeConfiguratorImpl;
@@ -96,8 +95,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		public ChildNode.Effective<?, ?> getChild() {
 			if (children.size() > 1)
-				throw new SchemaException(
-						"Node '" + getName() + "' is inherited multiple times and must be explicitly overridden.");
+				throw new ModabiException(t -> t.mustOverrideMultiplyInherited(getName()));
 
 			return children.stream().findAny().get();
 		}
@@ -108,15 +106,13 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		public boolean addChild(ChildNode.Effective<?, ?> child) {
 			if (overridden)
-				throw new SchemaException("Cannot add contributing node '" + child + "' to override group, as override '"
-						+ children.iterator().next() + "' already found");
+				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			return children.add(child);
 		}
 
 		public void override(ChildNode.Effective<?, ?> result) {
 			if (overridden)
-				throw new SchemaException("Cannot specify override '" + result + "' for override group, as override '"
-						+ children.iterator().next() + "' already found");
+				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			children.clear();
 			addChild(result);
 			overridden = true;
@@ -147,7 +143,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			int index = 0;
 
 			for (ChildNode.Effective<?, ?> child : overriddenNode.effective().children()) {
-				MergeGroup group = merge(overriddenNode.name(), child.name(), index);
+				MergeGroup group = merge(child.name(), index);
 				group.addChild(child);
 				index = group.getIndex() + 1;
 			}
@@ -164,7 +160,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		childIndex = 0;
 	}
 
-	private MergeGroup merge(QualifiedName parentName, QualifiedName name, int index) {
+	private MergeGroup merge(QualifiedName name, int index) {
 		MergeGroup group;
 
 		group = namedMergeGroups.get(name);
@@ -172,14 +168,10 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		if (group == null) {
 			group = new MergeGroup(name, index);
 		} else if (group.getIndex() < index) {
-			List<String> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName).map(Objects::toString)
+			List<QualifiedName> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName).limit(group.getIndex())
 					.collect(Collectors.toCollection(ArrayList::new));
-			nodesSoFar.add(group.getIndex() + 1, "*");
 
-			String nodesSoFarMessage = "Nodes so far: [" + nodesSoFar.stream().collect(Collectors.joining(", ")) + "]";
-
-			throw new SchemaException("The child node '" + name + "' declared by '" + parentName
-					+ "' cannot be merged into the overridden nodes with order preservation. " + nodesSoFarMessage);
+			throw new ModabiException(t -> t.cannotOverrideNodeOutOfOrder(name, nodesSoFar));
 		}
 
 		return group;
@@ -187,7 +179,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 	private void assertUnblocked() {
 		if (blocked)
-			throw new SchemaException("Blocked from adding children");
+			throw new ModabiException(t -> t.cannotAddChild());
 	}
 
 	@Override
@@ -210,8 +202,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		if (mergeGroup != null) {
 			mergeGroup.getChildren().stream().filter(n -> !nodeType.getRawType().isAssignableFrom(n.getClass())).findAny()
 					.ifPresent(n -> {
-						throw new SchemaException(
-								"Cannot override with node of class '" + n.getClass() + "' with a node of class '" + nodeType + "'");
+						throw new ModabiException(t -> t.cannotOverrideNodeWithClass(id, n.getClass(), nodeType.getRawType()));
 					});
 
 			overriddenNodes.addAll(mergeGroup.getChildren());
@@ -239,9 +230,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			if (!context.isAbstract() && skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
 					&& !(skippedChild instanceof BindingChildNode
 							&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).extensible()))) {
-				String context = (id != null) ? (" before node '" + id + "'") : "";
-
-				throw new SchemaException("Must override abstract node '" + skippedChild.name() + "'" + context);
+				throw new ModabiException(t -> t.mustOverrideAbstractNode(skippedChild.name(), id));
 			}
 
 			inputTarget = skippedChild.postInputType();
@@ -254,7 +243,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		ChildNode.Effective<?, ?> effective = result.effective();
 
-		MergeGroup group = merge(new QualifiedName("?", Namespace.getDefault()), effective.name(), childIndex);
+		MergeGroup group = merge(effective.name(), childIndex);
 		group.override(effective);
 		childIndex = group.getIndex() + 1;
 

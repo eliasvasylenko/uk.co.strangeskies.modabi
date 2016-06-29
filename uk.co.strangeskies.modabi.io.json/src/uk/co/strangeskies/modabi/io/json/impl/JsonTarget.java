@@ -86,7 +86,7 @@ public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
 	protected void commentImpl(String comment) {}
 
 	@Override
-	protected void nextChildImpl(QualifiedName name) {
+	protected void addChildImpl(QualifiedName name) {
 		JSONObject object = new JSONObject();
 		jsonObjectStack.peek().put(formatQualifiedName(name), object);
 		jsonObjectStack.push(object);

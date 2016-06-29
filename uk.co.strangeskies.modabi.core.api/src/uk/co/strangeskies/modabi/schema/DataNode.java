@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.reflection.TypeParameter;
@@ -65,8 +65,7 @@ public interface DataNode<T>
 
 		default T providedValue() {
 			if (!Range.between(0, 1).contains(occurrences()))
-				throw new SchemaException(
-						"Cannot request single value from node '" + name() + "' with occurrences '" + occurrences() + "'");
+				throw new ModabiException(t -> t.cannotProvideSingleValue(name(), occurrences()));
 
 			if (providedValues() == null || providedValues().isEmpty())
 				return null;

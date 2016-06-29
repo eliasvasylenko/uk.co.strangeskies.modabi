@@ -18,72 +18,82 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
+import static java.lang.System.lineSeparator;
+import static uk.co.strangeskies.utilities.text.LocalizedString.forStaticLocale;
+import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
+
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
+import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
+import uk.co.strangeskies.utilities.text.LocalizedString;
 
-public class ProcessingException extends SchemaException {
+public class ProcessingException extends ModabiException {
 	private static final long serialVersionUID = 1L;
 
 	private final ProcessingContext state;
+	private final LocalizedString bindingObjects;
+	private final LocalizedString bindingNodes;
 
-	private final Collection<? extends Exception> multiCause;
+	private final Collection<? extends Throwable> multiCause;
 
-	public ProcessingException(String message, ProcessingContext state, Collection<? extends Exception> cause) {
-		super(message + getBindingStateString(state), cause.iterator().next());
+	private ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state,
+			Collection<? extends Throwable> cause, ProcessingExceptionText text) {
+		super(message.apply(text), cause.iterator().next());
 
 		multiCause = cause;
 		this.state = state;
+
+		bindingObjects = text.bindingObjects(state.getBindingObjectStack());
+		bindingNodes = text.bindingNodes(state.getBindingNodeStack());
 	}
 
-	public ProcessingException(String message, ProcessingContext state, Exception cause) {
-		super(message + getBindingStateString(state), cause);
+	public ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state,
+			Collection<? extends Throwable> cause) {
+		this(message, state, cause, getDefaultLocalizer().getLocalization(ProcessingExceptionText.class));
+	}
 
-		multiCause = Arrays.asList(cause);
-		this.state = state;
+	public ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state,
+			Throwable cause) {
+		this(message, state, Arrays.asList(cause));
+	}
+
+	public ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state) {
+		this(message, state, (Throwable) null);
+	}
+
+	/*
+	 * TODO remove {
+	 */
+	public ProcessingException(String message, ProcessingContext state, Throwable cause) {
+		this(t -> forStaticLocale(message, Locale.ENGLISH), state, cause);
 	}
 
 	public ProcessingException(String message, ProcessingContext state) {
-		super(message + getBindingStateString(state));
-
-		multiCause = null;
-		this.state = state;
+		this(message, state, (Exception) null);
 	}
 
-	public Collection<? extends Exception> getMultipleCauses() {
+	public ProcessingException(String message, ProcessingContext state, Collection<? extends Throwable> cause) {
+		this(t -> forStaticLocale(message, Locale.ENGLISH), state, cause);
+	}
+	/*
+	 * TODO } remove
+	 */
+
+	@Override
+	public String getMessage() {
+		return super.getMessage() + lineSeparator() + bindingObjects + lineSeparator() + bindingNodes;
+	}
+
+	@Override
+	public String getLocalizedMessage() {
+		return super.getLocalizedMessage() + lineSeparator() + bindingObjects + lineSeparator() + bindingNodes;
+	}
+
+	public Collection<? extends Throwable> getMultipleCauses() {
 		return multiCause;
-	}
-
-	private static String getBindingStateString(ProcessingContext state) {
-		/*
-		 * binding target may be proxied, and so throw an exception...
-		 */
-		String bindingTarget;
-		try {
-			bindingTarget = state.getBindingObject().toString();
-		} catch (Exception e) {
-			bindingTarget = "Unknown";
-		}
-
-		return getNodeContext(state) + " with binding object '" + bindingTarget + "'";
-	}
-
-	private static String getNodeContext(ProcessingContext state) {
-		String nodeContext;
-
-		if (state.getBindingNodeStack().isEmpty()) {
-			nodeContext = " at root";
-		} else {
-			nodeContext = " at node '" + state.getBindingNode().name() + "'";
-
-			if (state.getBindingNodeStack().size() > 1) {
-				nodeContext = nodeContext + " at node '"
-						+ (state.getBindingNodeStack().get(state.getBindingNodeStack().size() - 2)).name() + "'";
-			}
-		}
-
-		return nodeContext;
 	}
 
 	public ProcessingContext getState() {

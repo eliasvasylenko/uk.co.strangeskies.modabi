@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -41,10 +40,8 @@ public class ComplexNodeWrapper<T>
 		model = new ArrayList<>(component.baseModel());
 		model.add(0, component);
 
-		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
-
-		if (!component.baseModel().containsAll(base.model()))
-			throw new SchemaException(message);
+		if (!component.base().containsAll(base.base()))
+			throw this.<Object>getOverrideException(ComplexNode::model, base.base(), component.base(), null);
 	}
 
 	protected ComplexNodeWrapper(ComplexNode.Effective<T> node) {

@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.io;
 import java.text.ParseException;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.utilities.Enumeration;
 
@@ -55,10 +56,12 @@ class TypedDataItem<T> extends AbstractDataItem<T> {
 		this.data = data;
 	}
 
+	@Override
 	public Primitive<T> type() {
 		return type;
 	}
 
+	@Override
 	public T data() {
 		return data;
 	}
@@ -86,14 +89,17 @@ class StringDataItem extends AbstractDataItem<String> {
 		this.qualifiedNameParser = qualifiedNameParser;
 	}
 
+	@Override
 	public Primitive<String> type() {
 		return Primitive.STRING;
 	}
 
+	@Override
 	public String data() {
 		return data;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <U> DataItem<U> convert(Primitive<U> to) {
 		if (to == Primitive.QUALIFIED_NAME)
@@ -103,15 +109,15 @@ class StringDataItem extends AbstractDataItem<String> {
 		try {
 			return DataItem.forDataOfType(to, to.parse(data));
 		} catch (ParseException e) {
-			throw new IllegalArgumentException(
-					"Cannot convert type '" + type() + "' to type '" + to + "'", e);
+			throw new ModabiException(
+					t -> t.incompatibleTypes(type().dataClass(), to.dataClass()), e);
 		}
 	}
 }
 
 public interface DataItem<T> {
 	static <T> DataItem<T> forDataOfType(Primitive<T> type, T data) {
-		return new TypedDataItem<T>(type, data);
+		return new TypedDataItem<>(type, data);
 	}
 
 	static DataItem<?> forString(String data,

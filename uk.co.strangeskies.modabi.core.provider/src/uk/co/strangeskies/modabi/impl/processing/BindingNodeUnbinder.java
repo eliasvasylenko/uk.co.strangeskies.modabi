@@ -30,10 +30,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
@@ -117,8 +116,8 @@ public class BindingNodeUnbinder {
 		NodeProcessor processor = new NodeProcessor() {
 			private <U> boolean checkData(BindingChildNode.Effective<U, ?, ?> node, List<U> data) {
 				if (data == null) {
-					if (!node.occurrences().contains(0)) {
-						throw new SchemaException("Non-optional node '" + node.name() + "' cannot omit data for unbinding");
+					if (!node.occurrences().contains(0) && !node.nullIfOmitted()) {
+						throw new ProcessingException(t -> t.mustHaveData(node.name()), context);
 					} else {
 						return false;
 					}
@@ -182,11 +181,7 @@ public class BindingNodeUnbinder {
 		};
 
 		return node -> {
-			try {
-				node.process(processor);
-			} catch (Exception e) {
-				throw new ProcessingException("Failed to unbind node '" + node + "'", context, e);
-			}
+			node.process(processor);
 		};
 	}
 
@@ -212,7 +207,7 @@ public class BindingNodeUnbinder {
 	private static Object invokeMethod(Method method, ProcessingContext context, Object receiver, Object... parameters) {
 		try {
 			return method.invoke(receiver, parameters);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException
+		} catch (IllegalAccessException | ModabiException | InvocationTargetException | SecurityException
 				| NullPointerException e) {
 			throw new ProcessingException(
 					"Cannot invoke method '" + method + "' on '" + receiver + "' with arguments '["
@@ -224,7 +219,7 @@ public class BindingNodeUnbinder {
 	private static Object invokeConstructor(Constructor<?> method, ProcessingContext context, Object... parameters) {
 		try {
 			return method.newInstance(parameters);
-		} catch (NullPointerException | InstantiationException | IllegalAccessException | IllegalArgumentException
+		} catch (NullPointerException | InstantiationException | IllegalAccessException | ModabiException
 				| InvocationTargetException e) {
 			throw new ProcessingException(
 					"Cannot invoke method '" + method + "' with arguments '["
@@ -279,8 +274,7 @@ public class BindingNodeUnbinder {
 		}
 
 		if (itemList != null && node.occurrences() != null && !node.occurrences().contains(itemList.size()))
-			throw new ProcessingException("Output list '" + itemList + "' must contain a number of items within range '"
-					+ Range.compose(node.occurrences()) + "' to be unbound by node '" + node + "'", context);
+			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node), context);
 
 		return itemList;
 	}

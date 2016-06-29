@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,9 +64,10 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 		return model;
 	}
 
-	private <T> void checkType(DataType<T> model, TypeToken<T> dataType) {
-		if (model != null && !model.dataType().isAssignableFrom(dataType)) {
-			throw new SchemaException("Cannot match type " + dataType + " with model " + model.name());
+	private <T> void checkType(DataType<T> type, TypeToken<T> dataType) {
+		if (type != null && !type.dataType().isAssignableFrom(dataType)) {
+			throw new ModabiException(getDefaultLocalizer().getLocalization(ModabiExceptionText.class)
+					.noTypeFoundForType(type.name(), dataType.getType()));
 		}
 	}
 

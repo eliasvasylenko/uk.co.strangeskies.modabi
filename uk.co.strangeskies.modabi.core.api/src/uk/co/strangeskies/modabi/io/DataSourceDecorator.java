@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.io;
 
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 
 public class DataSourceDecorator implements DataSource {
 	private final DataSource component;
@@ -28,7 +28,7 @@ public class DataSourceDecorator implements DataSource {
 		this.component = component;
 
 		if (component == null)
-			throw new SchemaException("FLIPPER");
+			throw new ModabiException(t -> t.invalidDataSource(null));
 
 		currentState = DataStreamState.UNSTARTED;
 	}

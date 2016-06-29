@@ -23,7 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
+import uk.co.strangeskies.modabi.ModabiExceptionText.ExecutableType;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -39,25 +40,24 @@ public class Methods {
 		try {
 			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
-			throw new SchemaException(
-					"Cannot find constructor for class '" + receiver + "' with parameters '" + parameters + "'", e);
+			throw new ModabiException(t -> t.noMethodFound(receiver, parameters, ExecutableType.CONSTRUCTOR), e);
 		}
 
 		return constructor;
 	}
 
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver, boolean isStatic,
-			TypeToken<?> result, boolean allowCast, TypeToken<?>... parameters) throws NoSuchMethodException {
+			TypeToken<?> result, boolean allowCast, TypeToken<?>... parameters) {
 		return findMethod(names, receiver, isStatic, result, allowCast, Arrays.asList(parameters));
 	}
 
-	public static <T> Invokable<? super T, ?> resolveMethodOverload(TypeToken<T> type, List<String> names,
+	private static <T> Invokable<? super T, ?> resolveMethodOverload(TypeToken<T> type, List<String> names,
 			List<? extends TypeToken<?>> arguments) {
 		Set<? extends Invokable<? super T, ? extends Object>> candidates = type
 				.getMethods(m -> names.contains(m.getName()) && isArgumentCountValid(m, arguments.size()));
 
 		if (candidates.isEmpty())
-			throw new SchemaException("Cannot find any applicable methods");
+			throw new ModabiException(t -> t.noMethodCandidatesFoundForNames(names));
 
 		candidates = Invokable.resolveApplicableInvokables(candidates, arguments);
 
@@ -69,14 +69,14 @@ public class Methods {
 	}
 
 	public static <T> Invokable<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver, boolean isStatic,
-			TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) throws NoSuchMethodException {
+			TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) {
 		Invokable<? super T, ?> method = null;
 
 		try {
 			method = resolveMethodOverload(receiver, names, parameters);
 		} catch (Exception e) {
-			throw new SchemaException("Cannot find " + (isStatic ? "static " : "") + "method for class '" + receiver
-					+ "' with parameters '" + parameters + "' and any name of '" + names + "'", e);
+			ExecutableType type = isStatic ? ExecutableType.STATIC_METHOD : ExecutableType.METHOD;
+			throw new ModabiException(t -> t.noMethodFound(receiver, parameters, type), e);
 		}
 
 		if (result != null) {

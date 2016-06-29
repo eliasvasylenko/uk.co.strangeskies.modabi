@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
@@ -77,7 +77,7 @@ public class DataNodeUnbinder {
 			case REGISTRATION_TIME:
 			case POST_REGISTRATION:
 				if (!node.providedValues().equals(data)) {
-					throw new SchemaException("Provided value '" + node.providedValues() + "'does not match unbinding object '"
+					throw new ModabiException("Provided value '" + node.providedValues() + "'does not match unbinding object '"
 							+ data + "' for node '" + node.name() + "'");
 				}
 				break;
@@ -121,7 +121,7 @@ public class DataNodeUnbinder {
 					.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty()) {
-				throw new SchemaException("Unable to find concrete type to satisfy data node '" + node.name() + "' with type '"
+				throw new ModabiException("Unable to find concrete type to satisfy data node '" + node.name() + "' with type '"
 						+ node.effective().type().name() + "' for object '" + data + "' to be unbound");
 			}
 

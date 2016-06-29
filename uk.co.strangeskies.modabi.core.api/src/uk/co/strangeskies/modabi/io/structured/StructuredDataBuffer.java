@@ -41,8 +41,8 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.ModabiIOException;
-import uk.co.strangeskies.utilities.EqualityComparator;
+import uk.co.strangeskies.modabi.io.ModabiIoException;
+import uk.co.strangeskies.utilities.EquivalenceComparator;
 
 /**
  * It shouldn't matter in what order attributes are added to a child, or whether
@@ -116,7 +116,6 @@ public class StructuredDataBuffer extends BufferingStructuredDataTarget<Structur
 }
 
 class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> extends StructuredDataTargetImpl<S> {
-
 	private final List<WeakReference<BufferedStructuredDataSourceImpl>> buffers;
 	private final Deque<Integer> indexStack;
 
@@ -136,7 +135,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 				buffers.clear();
 			}
 		} else {
-			Set<StructuredData> bufferHeads = new TreeSet<>(new EqualityComparator<>((a, b) -> a == b));
+			Set<StructuredData> bufferHeads = new TreeSet<>(new EquivalenceComparator<>((a, b) -> a == b));
 			forEachBuffer(buffer -> {
 				StructuredData bufferHead = buffer.component().peekHead();
 				if (bufferHeads.add(bufferHead)) {
@@ -188,7 +187,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 	}
 
 	@Override
-	public void nextChildImpl(QualifiedName name) {
+	public void addChildImpl(QualifiedName name) {
 		StructuredData child = new StructuredData(name);
 		forEachBuffer(b -> b.component().pushHead(child));
 
@@ -444,7 +443,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 			StructuredData child = peekTail().getChild(getActualTailIndex(), consumable);
 
 			if (child == null)
-				return null;
+				throw new IllegalStateException("Next child does not exist");
 
 			tailStack.add(child);
 			index.add(0);
@@ -455,7 +454,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 		@Override
 		public StructuredDataSource endChild() {
 			if (!peekTail().isEnded())
-				throw new IllegalStateException();
+				throw new IllegalStateException("Root has already ended");
 
 			tailStack.remove(tailStack.size() - 1);
 			index.remove(index.size() - 1);
@@ -502,7 +501,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 
 		@Override
 		public boolean hasNextChild() {
-			return peekTail().hasChild(peekIndex());
+			return (index.isEmpty() && !root().children.isEmpty()) || peekTail().hasChild(peekIndex());
 		}
 
 		@Override
@@ -617,7 +616,7 @@ class BufferingStructuredDataTarget<S extends BufferingStructuredDataTarget<S>> 
 				throw new IllegalStateException();
 
 			if (defaultNamespaceHint != null)
-				throw new ModabiIOException("Cannot register multiple default namespace hints at any given location.");
+				throw new ModabiIoException(t -> t.overlappingDefaultNamespaceHints());
 			defaultNamespaceHint = namespace;
 		}
 

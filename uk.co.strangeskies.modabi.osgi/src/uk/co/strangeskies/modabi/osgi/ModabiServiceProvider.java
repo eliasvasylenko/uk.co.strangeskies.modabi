@@ -25,9 +25,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 
-import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.InputBinder;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -58,7 +58,7 @@ public abstract class ModabiServiceProvider<T> {
 				.resolveType(new TypeParameter<T>() {});
 
 		if (!type.isProper()) {
-			throw new SchemaException(
+			throw new ModabiException(
 					"Class " + getClass() + " cannot be bound with service, as type parameter of superclass "
 							+ ModabiServiceInstance.class + " is not proper");
 		}
@@ -69,11 +69,11 @@ public abstract class ModabiServiceProvider<T> {
 		SchemaManager manager = this.manager;
 		this.manager = null;
 
-		Binder<T> binder = (schema != null)
+		InputBinder<T> binder = (schema != null)
 
-				? manager.bind(schema, type)
+				? manager.bindInput().with(schema, type)
 
-				: manager.bind(type);
+				: manager.bindInput().with(type);
 
 		T service = binder.from(location).resolve();
 

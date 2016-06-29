@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
@@ -70,7 +70,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 					T merged = merge.apply(values);
 
 					if (merged == null) {
-						throw new SchemaException("Cannot merge overridden properties '" + values + "'");
+						throw new ModabiException(t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, node, values));
 					}
 
 					return merged;
@@ -103,7 +103,8 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 			if (isOverridden() && validation != null) {
 				for (T value : values) {
 					if (!validation.test(override, value)) {
-						throw new SchemaException("Cannot override incompatible property '" + value + "' with '" + override + "'");
+						throw new ModabiException(
+								t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, node, value, override), null);
 					}
 				}
 			}
@@ -116,8 +117,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 
 			if (override == null && node != null
 					&& (node.abstractness() == null || node.abstractness().isAtMost(Abstractness.UNINFERRED)))
-				throw new SchemaException(
-						"No value '" + valueFunction + "' available for non-abstract node '" + node.name() + "'");
+				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, node));
 
 			return override;
 		}
@@ -129,7 +129,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 				if (values.size() == 1) {
 					override = values.iterator().next();
 				} else if (values.size() > 1) {
-					throw new SchemaException("No override provided for incompatible properties '" + values + "'");
+					throw new ModabiException(t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, node, values));
 				}
 			}
 

@@ -38,12 +38,7 @@ class SequenceNodeImpl extends ChildNodeImpl<SequenceNode, SequenceNode.Effectiv
 			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::postInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
 			if (postInputClass == null && abstractness().isLessThan(Abstractness.ABSTRACT)) {
-				for (ChildNode.Effective<?, ?> child : children()) {
-					if (postInputClass != null && !child.preInputType().isAssignableFrom(postInputClass)) {
-						throw new IllegalArgumentException();
-					}
-					postInputClass = child.postInputType();
-				}
+				postInputClass = children().get(children().size() - 1).postInputType();
 			}
 			this.postInputClass = postInputClass;
 		}

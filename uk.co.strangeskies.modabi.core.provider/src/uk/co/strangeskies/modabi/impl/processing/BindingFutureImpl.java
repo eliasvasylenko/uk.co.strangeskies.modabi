@@ -30,8 +30,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
@@ -130,7 +130,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	public boolean cancel(boolean mayInterruptIfRunning) {
 		synchronized (context.bindingFutureBlocker()) {
 			if (bindingResult == null && !cancelled) {
-				Exception exception = new SchemaException("Cancellation of " + this + " requested");
+				Exception exception = new ModabiException(t -> t.cancelled(this));
 				for (BindingBlock block : context.bindingFutureBlocker().getBlocks()) {
 					block.fail(exception);
 				}
@@ -194,14 +194,21 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			return bindingResult;
 		} catch (InterruptedException e) {
-			throw new SchemaException(
-					"Unexpected interrupt during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, e);
+			throw new ProcessingException(
+					"Unexpected interrupt during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString,
+					context, e);
 		} catch (ExecutionException e) {
-			throw new SchemaException(
-					"Exception during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, e);
+			try {
+				throw e.getCause();
+			} catch (RuntimeException x) {
+				throw x;
+			} catch (Throwable x) {
+				throw new ProcessingException(
+						"Exception during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context, x);
+			}
 		} catch (TimeoutException e) {
-			throw new SchemaException(
-					"Timed out waiting for binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, e);
+			throw new ProcessingException(
+					"Timed out waiting for binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context, e);
 		}
 	}
 
@@ -238,10 +245,10 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			try {
 				return new BindingNodeBinder(context).bind(model);
-			} catch (SchemaException e) {
+			} catch (ModabiException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new ProcessingException("Unexpected problem during binding", context, e);
+				throw new ProcessingException(t -> t.unexpectedProblemProcessing(source, model), context, e);
 			}
 		});
 	}

@@ -106,12 +106,12 @@ public abstract class StructuredDataTargetImpl<S extends StructuredDataTargetImp
 	public S addChild(QualifiedName name) {
 		index.push(0);
 		enterState(StructuredDataState.ELEMENT_START);
-		nextChildImpl(name);
+		addChildImpl(name);
 
 		return getThis();
 	}
 
-	protected abstract void nextChildImpl(QualifiedName name);
+	protected abstract void addChildImpl(QualifiedName name);
 
 	@Override
 	public DataTarget writeProperty(QualifiedName name) {

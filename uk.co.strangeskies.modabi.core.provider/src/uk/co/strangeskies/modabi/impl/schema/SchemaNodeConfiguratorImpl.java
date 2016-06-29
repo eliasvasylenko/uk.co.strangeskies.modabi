@@ -30,9 +30,9 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenContainer;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
@@ -160,12 +160,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 										new HashSet<>(Arrays.asList(method.getReturnType())));
 							}
 
-							throw new SchemaException(
-									"Cannot invoke method '" + method + "' on node '" + getFinalName() + "' before instantiation");
+							throw new ModabiException(t -> t.cannotInvokeOnProxyNode(method, getFinalName()));
 						}
 					}
 
-					private Object getFinalName() {
+					private QualifiedName getFinalName() {
 						return getName() != null ? getName() : defaultName();
 					}
 				});

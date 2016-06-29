@@ -43,8 +43,8 @@ Test-Cases: ${test-cases}
 -pluginpath: \
 	${pluginpath.modabi;xml}
 
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+#-plugin: \
+#	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
 
 -includeresource: \
 	META-INF/schemata=schemata
@@ -52,7 +52,7 @@ Test-Cases: ${test-cases}
 -runrequires: \
 	${req;biz.aQute.tester},\
 	${req;osgi.enroute.logger.simple.provider},\
-	${req;uk.co.strangeskies.osgi.consolelog},\
+	${req;uk.co.strangeskies.osgi.provider},\
 	${req;org.apache.felix.gogo.command},\
 	${req;org.apache.felix.gogo.runtime},\
 	${req;org.apache.felix.gogo.shell},\
@@ -68,6 +68,7 @@ Test-Cases: ${test-cases}
 -runbundles: \
 	biz.aQute.tester;version='[3.0.0,3.0.1)',\
 	net.minidev.json-smart;version='[2.2.0,2.2.1)',\
+	org.apache.felix.configadmin;version='[1.8.6,1.8.7)',\
 	org.apache.felix.gogo.command;version='[0.14.0,0.14.1)',\
 	org.apache.felix.gogo.runtime;version='[0.16.2,0.16.3)',\
 	org.apache.felix.gogo.shell;version='[0.10.0,0.10.1)',\
@@ -80,13 +81,14 @@ Test-Cases: ${test-cases}
 	osgi.enroute.logger.simple.provider;version='[1.2.1,1.2.2)',\
 	uk.co.strangeskies.mathematics;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
+	uk.co.strangeskies.modabi.core.provider;version='[1.0.0,1.0.1)',\
 	uk.co.strangeskies.modabi.core.provider;version=snapshot,\
 	uk.co.strangeskies.modabi.extender;version=snapshot,\
 	uk.co.strangeskies.modabi.io.json;version=snapshot,\
 	uk.co.strangeskies.modabi.io.xml;version=snapshot,\
 	uk.co.strangeskies.modabi.testing;version=snapshot,\
-	uk.co.strangeskies.osgi.consolelog;version='[1.0.13,1.0.14)',\
-	uk.co.strangeskies.osgi.utilities;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.osgi.api;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.osgi.provider;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 

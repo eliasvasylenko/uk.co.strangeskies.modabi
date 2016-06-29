@@ -26,16 +26,16 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.BindingChildNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -63,6 +63,12 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeOverrider {
+	private final SchemaBuilder builder;
+
+	public BindingNodeOverrider(SchemaBuilder builder) {
+		this.builder = builder;
+	}
+
 	/**
 	 * Override an extensible complex node in some node tree with a given model.
 	 * Each {@link Model model node} which forms a part of the complex node's
@@ -78,16 +84,11 @@ public class BindingNodeOverrider {
 	 * @return a node which overrides the given node by merging it with a model
 	 *         which extends all components of the nodes model
 	 */
-	public <T> ComplexNode.Effective<? extends T> override(SchemaBuilder builder, ComplexNode.Effective<T> node,
-			Model.Effective<?> override) {
-		try {
-			if (isDirectOverridePossible(node, override)) {
-				return ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
-			} else {
-				return new OverridingProcessor().process(builder, ComplexNodeWrapper.wrapNodeWithOverrideType(node, override));
-			}
-		} catch (Exception e) {
-			throw new SchemaException("Cannot override complex node '" + node + "' with model '" + override + "'", e);
+	public <T> ComplexNode.Effective<? extends T> override(ComplexNode.Effective<T> node, Model.Effective<?> override) {
+		if (isDirectOverridePossible(node, override)) {
+			return ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
+		} else {
+			return new OverridingProcessor().process(builder, ComplexNodeWrapper.wrapNodeWithOverrideType(node, override));
 		}
 	}
 
@@ -111,17 +112,11 @@ public class BindingNodeOverrider {
 	 * @return a node which overrides the given node by merging it with a data
 	 *         type which extends its type
 	 */
-	public <T> DataNode.Effective<? extends T> override(SchemaBuilder builder, DataNode.Effective<T> node,
-			DataType.Effective<?> override) {
-		try {
-			if (isDirectOverridePossible(node, override))
-				return DataNodeWrapper.wrapNodeWithOverrideType(node, override);
-			else
-				return new OverridingProcessor().process(builder, DataNodeWrapper.wrapNodeWithOverrideType(node, override));
-		} catch (Exception e) {
-			throw new SchemaException("Cannot override data node '" + node + "' with data binding type '" + override + "'",
-					e);
-		}
+	public <T> DataNode.Effective<? extends T> override(DataNode.Effective<T> node, DataType.Effective<?> override) {
+		if (isDirectOverridePossible(node, override))
+			return DataNodeWrapper.wrapNodeWithOverrideType(node, override);
+		else
+			return new OverridingProcessor().process(builder, DataNodeWrapper.wrapNodeWithOverrideType(node, override));
 	}
 
 	private <T> boolean isDirectOverridePossible(DataNode.Effective<? super T> node, DataType.Effective<?> override) {
@@ -158,7 +153,7 @@ public class BindingNodeOverrider {
 
 			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
 			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
-			IdentityProperty<BindingStrategy> parentBindingStrategy = new IdentityProperty<>();
+			IdentityProperty<InputBindingStrategy> parentBindingStrategy = new IdentityProperty<>();
 			SchemaNode.Effective<?, ?> parent = node.parent();
 			parent.process(new NodeProcessor() {
 				@Override
@@ -261,7 +256,7 @@ public class BindingNodeOverrider {
 					.name(override.name()).outMethodCast(true).type(override.source().baseType())
 					.nullIfOmitted(node.nullIfOmitted());
 
-			dataNodeConfigurator = tryProperty(node.format(), DataNodeConfigurator::format, dataNodeConfigurator);
+			dataNodeConfigurator = tryProperty(node, DataNode::format, DataNodeConfigurator::format, dataNodeConfigurator);
 
 			dataNodeConfigurator = processBindingNode(node, dataNodeConfigurator);
 			dataNodeConfigurator = processBindingChildNode(node, dataNodeConfigurator);
@@ -279,57 +274,54 @@ public class BindingNodeOverrider {
 				SchemaNodeConfigurator<?, ? extends N> configurator) {
 			configuratorStack.push(configurator);
 
-			for (ChildNode<?, ?> child : children)
-				try {
-					child.effective().process(this);
-				} catch (Exception e) {
-					throw new SchemaException("Cannot override child '" + child + "'", e);
-				}
+			for (ChildNode<?, ?> child : children) {
+				child.effective().process(this);
+			}
 
 			configuratorStack.pop();
 			return configurator.create();
 		}
 
 		private <N extends ChildNode<N, ?>, C extends ChildNodeConfigurator<C, N>> N processChildNode(N node, C c) {
-			c = tryProperty(node.abstractness(), C::abstractness, c);
-			c = tryProperty(node.occurrences(), C::occurrences, c);
-			c = tryProperty(node.ordered(), C::ordered, c);
+			c = tryProperty(node, ChildNode::abstractness, C::abstractness, c);
+			c = tryProperty(node, ChildNode::occurrences, C::occurrences, c);
+			c = tryProperty(node, ChildNode::ordered, C::ordered, c);
 
 			return doChildren(node.children(), c.name(node.name()));
 		}
 
 		@SuppressWarnings("unchecked")
 		public <U, C extends BindingNodeConfigurator<C, ?, U>> C processBindingNode(BindingNode<U, ?, ?> node, C c) {
-			c = tryProperty(node.effective().dataType(), (cc, a) -> (C) cc.dataType(a), c);
-			c = tryProperty(node.bindingType(), (cc, t) -> cc.bindingType(t), c);
-			c = tryProperty(node.bindingStrategy(), C::bindingStrategy, c);
-			c = tryProperty(node.unbindingType(), (cc, t) -> cc.unbindingType(t), c);
-			c = tryProperty(node.unbindingFactoryType(), (cc, t) -> cc.unbindingFactoryType(t), c);
-			c = tryProperty(node.unbindingMethodName(), C::unbindingMethod, c);
-			c = tryProperty(node.unbindingMethodUnchecked(), C::unbindingMethodUnchecked, c);
-			c = tryProperty(node.unbindingStrategy(), C::unbindingStrategy, c);
-			c = tryProperty(node.providedUnbindingMethodParameterNames(), (cc, m) -> cc.providedUnbindingMethodParameters(m),
-					c);
+			c = tryProperty(node, n -> n.effective().dataType(), (cc, a) -> (C) cc.dataType(a), c);
+			c = tryProperty(node, BindingNode::bindingType, (cc, t) -> cc.bindingType(t), c);
+			c = tryProperty(node, BindingNode::bindingStrategy, C::bindingStrategy, c);
+			c = tryProperty(node, BindingNode::unbindingType, (cc, t) -> cc.unbindingType(t), c);
+			c = tryProperty(node, BindingNode::unbindingFactoryType, (cc, t) -> cc.unbindingFactoryType(t), c);
+			c = tryProperty(node, BindingNode::unbindingMethodName, C::unbindingMethod, c);
+			c = tryProperty(node, BindingNode::unbindingMethodUnchecked, C::unbindingMethodUnchecked, c);
+			c = tryProperty(node, BindingNode::unbindingStrategy, C::unbindingStrategy, c);
+			c = tryProperty(node, BindingNode::providedUnbindingMethodParameterNames,
+					(cc, m) -> cc.providedUnbindingMethodParameters(m), c);
 
 			return c;
 		}
 
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?, ?> node, C c) {
-			c = tryProperty(node.outMethodName(), C::outMethod, c);
-			c = tryProperty(node.outMethodIterable(), C::outMethodIterable, c);
-			c = tryProperty(node.outMethodUnchecked(), C::outMethodUnchecked, c);
-			c = tryProperty(node.outMethodCast(), C::outMethodCast, c);
+			c = tryProperty(node, BindingChildNode::outMethodName, C::outMethod, c);
+			c = tryProperty(node, BindingChildNode::outMethodIterable, C::outMethodIterable, c);
+			c = tryProperty(node, BindingChildNode::outMethodUnchecked, C::outMethodUnchecked, c);
+			c = tryProperty(node, BindingChildNode::outMethodCast, C::outMethodCast, c);
 
 			return processInputNode(node, c);
 		}
 
 		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(InputNode<?, ?> node, C c) {
-			c = tryProperty(node.inMethodCast(), C::inMethodCast, c);
-			c = tryProperty(node.inMethodUnchecked(), C::inMethodUnchecked, c);
-			c = tryProperty(node.inMethodName(), C::inMethod, c);
-			c = tryProperty(node.inMethodChained(), C::inMethodChained, c);
-			c = tryProperty(node.postInputType(), (cc, t) -> cc.postInputType(t), c);
+			c = tryProperty(node, InputNode::inMethodCast, C::inMethodCast, c);
+			c = tryProperty(node, InputNode::inMethodUnchecked, C::inMethodUnchecked, c);
+			c = tryProperty(node, InputNode::inMethodName, C::inMethod, c);
+			c = tryProperty(node, InputNode::inMethodChained, C::inMethodChained, c);
+			c = tryProperty(node, InputNode::postInputType, (cc, t) -> cc.postInputType(t), c);
 
 			return c;
 		}
@@ -346,7 +338,7 @@ public class BindingNodeOverrider {
 			ComplexNodeConfigurator<U> c = next(ChildBuilder::complex).extensible(node.extensible())
 					.model(node.source().model());
 
-			c = tryProperty(source.inline(), ComplexNodeConfigurator::inline, c);
+			c = tryProperty(source, ComplexNode::inline, ComplexNodeConfigurator::inline, c);
 
 			processChildNode(source, processBindingNode(source, processBindingChildNode(source, c)));
 		}
@@ -358,10 +350,10 @@ public class BindingNodeOverrider {
 
 			DataNodeConfigurator<Object> c = next(ChildBuilder::data);
 
-			c = tryProperty(source.format(), DataNodeConfigurator::format, c);
-			c = tryProperty(source.providedValueBuffer(), DataNodeConfigurator::provideValue, c);
-			c = tryProperty(source.valueResolution(), DataNodeConfigurator::valueResolution, c);
-			c = tryProperty(source.extensible(), DataNodeConfigurator::extensible, c);
+			c = tryProperty(source, DataNode::format, DataNodeConfigurator::format, c);
+			c = tryProperty(source, DataNode::providedValueBuffer, DataNodeConfigurator::provideValue, c);
+			c = tryProperty(source, DataNode::valueResolution, DataNodeConfigurator::valueResolution, c);
+			c = tryProperty(source, DataNode::extensible, DataNodeConfigurator::extensible, c);
 
 			currentProvidedValue = node.providedValues();
 
@@ -396,11 +388,20 @@ public class BindingNodeOverrider {
 			processChildNode(source, next(ChildBuilder::choice));
 		}
 
-		private <U, C extends SchemaNodeConfigurator<?, ?>> C tryProperty(U property, BiFunction<C, U, C> consumer, C c) {
-			if (property != null)
-				return consumer.apply(c, property);
-			else
+		private <N extends SchemaNode<?, ?>, U, C extends SchemaNodeConfigurator<?, ?>> C tryProperty(N node,
+				Function<N, U> property, BiFunction<C, U, C> consumer, C c) {
+			U value = property.apply(node);
+
+			if (value != null) {
+				try {
+					return consumer.apply(c, value);
+				} catch (Exception e) {
+					throw new ModabiException(
+							t -> t.cannotOverrideIncompatibleProperty(property::apply, node, configuratorStack, value), e);
+				}
+			} else {
 				return c;
+			}
 		}
 	}
 }

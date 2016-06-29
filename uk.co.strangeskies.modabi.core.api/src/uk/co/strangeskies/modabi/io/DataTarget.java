@@ -55,7 +55,7 @@ public interface DataTarget {
 			@Override
 			public <T> DataTarget put(DataItem<T> item) {
 				if (terminated)
-					throw new ModabiIOException();
+					throw new ModabiIoException(t -> t.illegalState(DataStreamState.TERMINATED));
 
 				if (item.type() == Primitive.QUALIFIED_NAME) {
 					next(qualifiedNameFormat.apply((QualifiedName) item.data()));
@@ -92,7 +92,7 @@ public interface DataTarget {
 			@Override
 			public <T> DataTarget put(DataItem<T> item) {
 				if (terminated)
-					throw new ModabiIOException();
+					throw new ModabiIoException(t -> t.illegalState(DataStreamState.TERMINATED));
 
 				if (item.type() == Primitive.QUALIFIED_NAME) {
 					next(qualifiedNameFormat.apply((QualifiedName) item.data()));

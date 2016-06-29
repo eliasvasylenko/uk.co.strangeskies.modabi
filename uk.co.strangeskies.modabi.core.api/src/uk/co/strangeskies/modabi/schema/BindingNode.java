@@ -21,8 +21,8 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -46,7 +46,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	TypeToken<T> dataType();
 
-	BindingStrategy bindingStrategy();
+	InputBindingStrategy bindingStrategy();
 
 	default String bindingTypeString() {
 		return bindingType() == null ? null : bindingType().toString(schema().imports());
@@ -54,7 +54,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	TypeToken<?> bindingType();
 
-	UnbindingStrategy unbindingStrategy();
+	OutputBindingStrategy unbindingStrategy();
 
 	default String unbindingTypeString() {
 		return unbindingType() == null ? null : unbindingType().toString(schema().imports());

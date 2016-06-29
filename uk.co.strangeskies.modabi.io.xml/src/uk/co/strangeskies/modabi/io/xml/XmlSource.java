@@ -34,11 +34,11 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.ModabiIOException;
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 import uk.co.strangeskies.modabi.io.structured.BufferableStructuredDataSourceImpl;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
@@ -80,7 +80,7 @@ public class XmlSource implements StructuredDataSource {
 		try {
 			return XMLInputFactory.newInstance().createXMLStreamReader(in);
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new SchemaException(e);
+			throw new ModabiException("", e);
 		}
 	}
 
@@ -129,7 +129,7 @@ public class XmlSource implements StructuredDataSource {
 			try {
 				code = in.next();
 			} catch (XMLStreamException e) {
-				throw new ModabiIOException(e);
+				throw new ModabiIoException("Problem reading from XML document", e);
 			}
 
 			switch (code) {
@@ -204,7 +204,7 @@ public class XmlSource implements StructuredDataSource {
 			Namespace namespace = namespaceStack.getNamespace(prefix);
 
 			if (namespace == null)
-				throw new IllegalArgumentException(
+				throw new ModabiException(
 						"Cannot find namespace with prefix '" + prefix + "' for name '" + name + "' in current context");
 
 			return new QualifiedName(splitName[splitName.length - 1], namespace);

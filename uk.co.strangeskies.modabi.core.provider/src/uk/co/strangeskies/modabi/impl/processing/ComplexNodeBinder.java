@@ -25,7 +25,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -73,7 +73,7 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode.Effective<
 			 * element to this node.
 			 */
 			if (exactNode == null)
-				return new SchemaException(
+				return new ModabiException(
 						"Input element " + context.input().get().peekNextChild() + " cannot be matched to node " + node);
 
 			System.out.println("         exact node: " + exactNode.name());

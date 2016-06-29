@@ -39,7 +39,7 @@ import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
@@ -201,7 +201,7 @@ final class BndRegistrationContext implements RegistrationContext {
 			jarPaths = getJarPaths(analyzer);
 		} catch (MalformedURLException e) {
 			log.log(Level.ERROR, "Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
-			throw new SchemaException("Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
+			throw new ModabiException("Failed to load build path for bundle " + analyzer.getBundleSymbolicName(), e);
 		}
 
 		log.log(Level.INFO, "Classpath: " + jarPaths);
