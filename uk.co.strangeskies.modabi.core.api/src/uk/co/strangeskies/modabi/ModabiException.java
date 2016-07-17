@@ -18,36 +18,34 @@
  */
 package uk.co.strangeskies.modabi;
 
-import static uk.co.strangeskies.utilities.text.LocalizedString.forStaticLocale;
-import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
-
 import java.util.Locale;
 import java.util.function.Function;
 
-import uk.co.strangeskies.utilities.text.LocalizedRuntimeException;
-import uk.co.strangeskies.utilities.text.LocalizedString;
+import uk.co.strangeskies.text.properties.Localized;
+import uk.co.strangeskies.text.properties.LocalizedRuntimeException;
+import uk.co.strangeskies.text.properties.PropertyLoader;
 
 public class ModabiException extends LocalizedRuntimeException {
 	private static final long serialVersionUID = 1L;
 
-	public ModabiException(LocalizedString message) {
+	public ModabiException(Localized<String> message) {
 		super(message);
 	}
 
-	public ModabiException(LocalizedString message, Throwable cause) {
+	public ModabiException(Localized<String> message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ModabiException(Function<ModabiExceptionText, LocalizedString> message) {
-		this(message.apply(getDefaultLocalizer().getLocalization(ModabiExceptionText.class)));
+	public ModabiException(Function<ModabiExceptionText, Localized<String>> message) {
+		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiExceptionText.class)));
 	}
 
-	public ModabiException(Function<ModabiExceptionText, LocalizedString> message, Throwable cause) {
-		this(message.apply(getDefaultLocalizer().getLocalization(ModabiExceptionText.class)), cause);
+	public ModabiException(Function<ModabiExceptionText, Localized<String>> message, Throwable cause) {
+		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiExceptionText.class)), cause);
 	}
 
 	public ModabiException(String message, Throwable cause) {
-		this(forStaticLocale(message, Locale.ENGLISH), cause);
+		this(Localized.forStaticLocale(message, Locale.ENGLISH), cause);
 	}
 
 	public ModabiException(String message) {

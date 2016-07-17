@@ -139,8 +139,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
-			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node),
-					getContext(), cause);
+			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node), getContext(), cause);
 		}
 	}
 

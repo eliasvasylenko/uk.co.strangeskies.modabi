@@ -40,7 +40,7 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
 import uk.co.strangeskies.utilities.Log;
-import uk.co.strangeskies.utilities.classpath.Attribute;
+import uk.co.strangeskies.text.manifest.Attribute;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 

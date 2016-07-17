@@ -32,10 +32,8 @@ import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public interface DataNode<T>
-		extends BindingChildNode<T, DataNode<T>, DataNode.Effective<T>>, ChildNode<DataNode<T>, DataNode.Effective<T>> {
-	interface Effective<T> extends DataNode<T>, BindingChildNode.Effective<T, DataNode<T>, Effective<T>>,
-			ChildNode<DataNode<T>, Effective<T>> {
+public interface DataNode<T> extends BindingChildNode<T, DataNode<T>, DataNode.Effective<T>> {
+	interface Effective<T> extends DataNode<T>, BindingChildNode.Effective<T, DataNode<T>, Effective<T>> {
 		@Override
 		default void process(NodeProcessor context) {
 			context.accept(this);

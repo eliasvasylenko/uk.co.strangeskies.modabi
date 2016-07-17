@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi;
 
-import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
-
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -59,6 +57,6 @@ public interface ReturningNodeProcessor<T> {
 	}
 
 	default T acceptDefault(SchemaNode.Effective<?, ?> node) {
-		throw new ModabiException(getDefaultLocalizer().getLocalization(ModabiExceptionText.class).unexpectedNodeType());
+		throw new ModabiException(t -> t.unexpectedNodeType());
 	}
 }

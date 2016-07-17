@@ -8,6 +8,7 @@ Bundle-Description: \
 
 -buildpath: \
 	${ss;utilities},\
+	${ss;text},\
 	${ss;mathematics},\
 	${ss;reflection},\
 	${ss;bnd},\

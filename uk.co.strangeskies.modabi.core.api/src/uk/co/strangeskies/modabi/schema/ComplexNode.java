@@ -24,10 +24,9 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ComplexNode<T> extends BindingNode<T, ComplexNode<T>, ComplexNode.Effective<T>>,
-		BindingChildNode<T, ComplexNode<T>, ComplexNode.Effective<T>> {
-	interface Effective<T> extends ComplexNode<T>, BindingNode.Effective<T, ComplexNode<T>, Effective<T>>,
-			BindingChildNode.Effective<T, ComplexNode<T>, Effective<T>> {
+public interface ComplexNode<T> extends BindingChildNode<T, ComplexNode<T>, ComplexNode.Effective<T>> {
+	interface Effective<T>
+			extends ComplexNode<T>, BindingChildNode.Effective<T, ComplexNode<T>, ComplexNode.Effective<T>> {
 		@Override
 		default void process(NodeProcessor context) {
 			context.accept(this);

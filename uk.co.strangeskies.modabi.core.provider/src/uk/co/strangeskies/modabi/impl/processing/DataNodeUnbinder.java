@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;

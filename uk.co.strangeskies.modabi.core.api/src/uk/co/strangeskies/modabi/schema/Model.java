@@ -25,7 +25,7 @@ import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface Model<T> extends BindingNode<T, Model<T>, Model.Effective<T>> {
-	interface Effective<T> extends Model<T>, BindingNode.Effective<T, Model<T>, Effective<T>> {
+	interface Effective<T> extends Model<T>, BindingNode.Effective<T, Model<T>, Model.Effective<T>> {
 		@Override
 		default void process(NodeProcessor context) {
 			context.accept(this);

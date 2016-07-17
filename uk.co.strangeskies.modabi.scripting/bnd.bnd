@@ -8,6 +8,7 @@ Bundle-Description: \
 
 -buildpath: \
 	${ss;utilities},\
+	${ss;text},\
 	${ss;reflection},\
 	${ss;mathematics},\
 	${mdb;core.api}

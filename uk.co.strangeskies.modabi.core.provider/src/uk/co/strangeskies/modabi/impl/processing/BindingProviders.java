@@ -125,6 +125,7 @@ public class BindingProviders {
 				}, idDomain, id, false);
 			}
 
+			@Override
 			public <T> T dereference(BindingNode<T, ?, ?> node) {
 				// TODO
 				return null;

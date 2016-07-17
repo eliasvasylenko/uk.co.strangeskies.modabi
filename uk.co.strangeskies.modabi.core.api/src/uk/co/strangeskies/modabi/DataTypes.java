@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi;
 
-import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,8 +64,7 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 
 	private <T> void checkType(DataType<T> type, TypeToken<T> dataType) {
 		if (type != null && !type.dataType().isAssignableFrom(dataType)) {
-			throw new ModabiException(getDefaultLocalizer().getLocalization(ModabiExceptionText.class)
-					.noTypeFoundForType(type.name(), dataType.getType()));
+			throw new ModabiException(t -> t.noTypeFoundForType(type.name(), dataType.getType()));
 		}
 	}
 

@@ -42,10 +42,10 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.text.manifest.Attribute;
+import uk.co.strangeskies.text.manifest.AttributeProperty;
+import uk.co.strangeskies.text.manifest.PropertyType;
 import uk.co.strangeskies.utilities.Log.Level;
-import uk.co.strangeskies.utilities.classpath.Attribute;
-import uk.co.strangeskies.utilities.classpath.AttributeProperty;
-import uk.co.strangeskies.utilities.classpath.PropertyType;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 

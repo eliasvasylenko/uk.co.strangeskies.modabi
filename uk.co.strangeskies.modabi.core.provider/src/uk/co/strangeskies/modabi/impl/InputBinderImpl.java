@@ -46,7 +46,6 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
-import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 import uk.co.strangeskies.utilities.collection.ObservableSet.Change;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
@@ -136,7 +135,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 
 	@Override
 	public BindingFuture<T> from(URL input) {
-		String extension = ManifestUtilities.getResourceExtension(input.getPath());
+		String extension = input.getPath().substring(0, input.getPath().lastIndexOf("."));
 
 		if (extension != null) {
 			return fromExtension(extension, input::openStream);

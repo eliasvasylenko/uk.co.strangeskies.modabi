@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2016 Elias N Vasylenko <eliasvasylenko@gmail.com>
+ *
+ * This file is part of uk.co.strangeskies.modabi.core.api.
+ *
+ * uk.co.strangeskies.modabi.core.api is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * uk.co.strangeskies.modabi.core.api is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package uk.co.strangeskies.modabi;
 
 import java.lang.reflect.Constructor;
@@ -20,51 +38,50 @@ import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.text.AppendToLocalizationKey;
-import uk.co.strangeskies.utilities.text.LocalizedString;
-import uk.co.strangeskies.utilities.text.LocalizedText;
+import uk.co.strangeskies.text.properties.Localized;
+import uk.co.strangeskies.text.properties.Properties;
 
-public interface ModabiExceptionText extends LocalizedText<ModabiExceptionText> {
+public interface ModabiExceptionText extends Properties<ModabiExceptionText> {
 	enum ExecutableType {
 		METHOD, STATIC_METHOD, CONSTRUCTOR
 	}
 
-	LocalizedString noTypeFoundForType(QualifiedName dataType, Type type);
+	Localized<String> noTypeFoundForType(QualifiedName dataType, Type type);
 
-	LocalizedString noModelFoundForType(QualifiedName model, Type type);
+	Localized<String> noModelFoundForType(QualifiedName model, Type type);
 
-	LocalizedString unexpectedNodeType();
+	Localized<String> unexpectedNodeType();
 
-	LocalizedString missingDependencies(BindingBlocks blockingBindings);
+	Localized<String> missingDependencies(BindingBlocks blockingBindings);
 
-	LocalizedString missingDependencies(Collection<? extends BindingFuture<?>> futures,
+	Localized<String> missingDependencies(Collection<? extends BindingFuture<?>> futures,
 			Collection<? extends BindingBlock> missingDependencies);
 
-	LocalizedString cannotProvideSingleValue(QualifiedName name, Range<Integer> occurrences);
+	Localized<String> cannotProvideSingleValue(QualifiedName name, Range<Integer> occurrences);
 
-	default LocalizedString noChildFound(List<QualifiedName> child, QualifiedName parent,
+	default Localized<String> noChildFound(List<QualifiedName> child, QualifiedName parent,
 			List<? extends ChildNode<?, ?>> children) {
 		return noChildFound(child, parent,
 				children.stream().map(SchemaNode::name).map(Objects::toString).collect(Collectors.joining(", ")));
 	}
 
-	LocalizedString noChildFound(List<QualifiedName> child, QualifiedName parent, String children);
+	Localized<String> noChildFound(List<QualifiedName> child, QualifiedName parent, String children);
 
-	LocalizedString invalidDataSource(Object source);
+	Localized<String> invalidDataSource(Object source);
 
-	LocalizedString incompatibleTypes(Type dataClass, Type dataClass2);
+	Localized<String> incompatibleTypes(Type dataClass, Type dataClass2);
 
-	LocalizedString invalidNamespace(String namespace);
+	Localized<String> invalidNamespace(String namespace);
 
-	LocalizedString unknownBlockingError(BindingBlock block);
+	Localized<String> unknownBlockingError(BindingBlock block);
 
-	LocalizedString unresolvableDependencies(Collection<? extends BindingBlock> values);
+	Localized<String> unresolvableDependencies(Collection<? extends BindingBlock> values);
 
-	LocalizedString cancelled(BindingFuture<?> binding);
+	Localized<String> cancelled(BindingFuture<?> binding);
 
-	LocalizedString noBootstrapModelFound(QualifiedName name);
+	Localized<String> noBootstrapModelFound(QualifiedName name);
 
-	LocalizedString noBootstrapValueFound(QualifiedName name);
+	Localized<String> noBootstrapValueFound(QualifiedName name);
 
 	/*
 	 * Property overriding
@@ -74,109 +91,125 @@ public interface ModabiExceptionText extends LocalizedText<ModabiExceptionText> 
 		return "#" + Methods.findMethod((Class<N>) node.getThisType().getRawType(), propertyGetter).getName();
 	}
 
-	default <N extends SchemaNode<?, ?>, T> LocalizedString cannotOverrideIncompatibleProperty(
+	default <N extends SchemaNode<?, ?>, T> Localized<String> cannotOverrideIncompatibleProperty(
 			Consumer<? super N> propertyGetter, N node, T base, T override) {
 		return cannotOverrideIncompatibleProperty(getPropertyName(propertyGetter, node), node, base, override);
 	}
 
-	<T> LocalizedString cannotOverrideIncompatibleProperty(String propertyName, Object target, T base, T override);
+	<T> Localized<String> cannotOverrideIncompatibleProperty(String propertyName, Object target, T base, T override);
 
-	default <N extends SchemaNode<?, ?>> LocalizedString cannotMergeIncompatibleProperties(
+	default <N extends SchemaNode<?, ?>> Localized<String> cannotMergeIncompatibleProperties(
 			Consumer<? super N> propertyGetter, N node, Collection<?> values) {
 		return cannotMergeIncompatibleProperties(getPropertyName(propertyGetter, node), node, values);
 	}
 
-	LocalizedString cannotMergeIncompatibleProperties(String propertyName, Object target, Collection<?> values);
+	Localized<String> cannotMergeIncompatibleProperties(String propertyName, Object target, Collection<?> values);
 
-	default <N extends SchemaNode<?, ?>> LocalizedString mustOverrideIncompatibleProperties(
+	default <N extends SchemaNode<?, ?>> Localized<String> mustOverrideIncompatibleProperties(
 			Consumer<? super N> propertyGetter, N node, Collection<?> values) {
 		return mustOverrideIncompatibleProperties(getPropertyName(propertyGetter, node), node, values);
 	}
 
-	LocalizedString mustOverrideIncompatibleProperties(String propertyName, Object target, Collection<?> values);
+	Localized<String> mustOverrideIncompatibleProperties(String propertyName, Object target, Collection<?> values);
 
-	default <N extends SchemaNode<?, ?>> LocalizedString mustProvideValueForNonAbstract(
+	default <N extends SchemaNode<?, ?>> Localized<String> mustProvideValueForNonAbstract(
 			Consumer<? super N> propertyGetter, N node) {
 		return mustProvideValueForNonAbstract(getPropertyName(propertyGetter, node), node);
 	}
 
-	LocalizedString mustProvideValueForNonAbstract(String propertyName, Object target);
+	Localized<String> mustProvideValueForNonAbstract(String propertyName, Object target);
 
-	LocalizedString unexpectedOverrideError(BindingNode<?, ?, ?> base);
+	Localized<String> unexpectedOverrideError(BindingNode<?, ?, ?> base);
 
 	/*
 	 * Executables
 	 */
-	default LocalizedString executableType(Executable executable) {
+	default Localized<String> executableType(Executable executable) {
 		return executableType((executable instanceof Constructor<?>) ? ExecutableType.CONSTRUCTOR
 				: ((Modifier.isStatic(executable.getModifiers()) ? ExecutableType.STATIC_METHOD : ExecutableType.METHOD)));
 	}
 
-	LocalizedString executableType(@AppendToLocalizationKey ExecutableType type);
+	default Localized<String> executableType(ExecutableType type) {
+		switch (type) {
+		case CONSTRUCTOR:
+			return executableTypeConstructor();
+		case METHOD:
+			return executableTypeMethod();
+		case STATIC_METHOD:
+			return executableTypeStaticMethod();
+		}
+		throw new AssertionError();
+	}
 
-	LocalizedString noMethodCandidatesFoundForNames(Collection<String> names);
+	Localized<String> executableTypeStaticMethod();
 
-	default LocalizedString noMethodFound(TypeToken<?> receiver, List<TypeToken<?>> parameters, ExecutableType type) {
+	Localized<String> executableTypeMethod();
+
+	Localized<String> executableTypeConstructor();
+
+	Localized<String> noMethodCandidatesFoundForNames(Collection<String> names);
+
+	default Localized<String> noMethodFound(TypeToken<?> receiver, List<TypeToken<?>> parameters, ExecutableType type) {
 		return noMethodFound(executableType(type), receiver, parameters);
 	}
 
-	LocalizedString noMethodFound(LocalizedString type, TypeToken<?> receiver, List<TypeToken<?>> parameters);
+	Localized<String> noMethodFound(Localized<String> type, TypeToken<?> receiver, List<TypeToken<?>> parameters);
 
-	default LocalizedString inMethodMustBeChained(QualifiedName name, ExecutableType type) {
+	default Localized<String> inMethodMustBeChained(QualifiedName name, ExecutableType type) {
 		return inMethodMustBeChained(executableType(type), name);
 	}
 
-	LocalizedString inMethodMustBeChained(LocalizedString type, QualifiedName name);
+	Localized<String> inMethodMustBeChained(Localized<String> type, QualifiedName name);
 
 	/*
 	 * Schema
 	 */
-	LocalizedString mustOverrideMultiplyInherited(QualifiedName overrideGroup);
+	Localized<String> mustOverrideMultiplyInherited(QualifiedName overrideGroup);
 
-	LocalizedString cannotAddInheritedNodeWhenOverridden(QualifiedName overrideGroup);
+	Localized<String> cannotAddInheritedNodeWhenOverridden(QualifiedName overrideGroup);
 
-	LocalizedString cannotOverrideNodeWhenOverridden(QualifiedName overrideGroup);
+	Localized<String> cannotOverrideNodeWhenOverridden(QualifiedName overrideGroup);
 
-	default LocalizedString mustOverrideAbstractNode(QualifiedName abstractNode, QualifiedName beforeThisNode) {
+	default Localized<String> mustOverrideAbstractNode(QualifiedName abstractNode, QualifiedName beforeThisNode) {
 		return (beforeThisNode == null) ? mustOverrideAbstractNode(abstractNode)
 				: mustOverrideAbstractNodeBefore(abstractNode, beforeThisNode);
 	}
 
-	LocalizedString mustOverrideAbstractNode(QualifiedName abstractNode);
+	Localized<String> mustOverrideAbstractNode(QualifiedName abstractNode);
 
-	LocalizedString mustOverrideAbstractNodeBefore(QualifiedName abstractNode, QualifiedName beforeThisNode);
+	Localized<String> mustOverrideAbstractNodeBefore(QualifiedName abstractNode, QualifiedName beforeThisNode);
 
-	LocalizedString cannotAddChild();
+	Localized<String> cannotAddChild();
 
-	LocalizedString cannotOverrideNodeWithClass(QualifiedName name, Class<?> nodeClass, Class<?> overrideClass);
+	Localized<String> cannotOverrideNodeWithClass(QualifiedName name, Class<?> nodeClass, Class<?> overrideClass);
 
-	LocalizedString cannotOverrideNodeOutOfOrder(QualifiedName name, List<QualifiedName> nodesSoFar);
+	Localized<String> cannotOverrideNodeOutOfOrder(QualifiedName name, List<QualifiedName> nodesSoFar);
 
-	LocalizedString mustOverrideDescendant(Collection<? extends SchemaNode<?, ?>> nodeStack);
+	Localized<String> mustOverrideDescendant(Collection<? extends SchemaNode<?, ?>> nodeStack);
 
-	LocalizedString cannotInvokeOnProxyNode(Method method, QualifiedName node);
+	Localized<String> cannotInvokeOnProxyNode(Method method, QualifiedName node);
 
-	LocalizedString cannotDefineInputInContext(QualifiedName name);
+	Localized<String> cannotDefineInputInContext(QualifiedName name);
 
-	LocalizedString inMethodMustBeThis();
+	Localized<String> inMethodMustBeThis();
 
-	LocalizedString cannotAcceptFormat(QualifiedName name);
+	Localized<String> cannotAcceptFormat(QualifiedName name);
 
-	LocalizedString cannotBeInlineExtensible(QualifiedName name);
+	Localized<String> cannotBeInlineExtensible(QualifiedName name);
 
-	LocalizedString cannotBeAbstract(SchemaNode<?, ?> node);
+	Localized<String> cannotBeAbstract(SchemaNode<?, ?> node);
 
-	LocalizedString cannotFindOutMethodWithoutResultType(SchemaNode<?, ?> node);
+	Localized<String> cannotFindOutMethodWithoutResultType(SchemaNode<?, ?> node);
 
-	LocalizedString cannotFindOutMethodWithoutTargetType(SchemaNode<?, ?> node);
+	Localized<String> cannotFindOutMethodWithoutTargetType(SchemaNode<?, ?> node);
 
-	LocalizedString cannotInferDataType(SchemaNode<?, ?> effective, TypeToken<?> exactDataType);
+	Localized<String> cannotInferDataType(SchemaNode<?, ?> effective, TypeToken<?> exactDataType);
 
-	LocalizedString cannotFindUnbindingParameter(QualifiedName p);
+	Localized<String> cannotFindUnbindingParameter(QualifiedName p);
 
-	LocalizedString unbindingParameterMustBeDataNode(ChildNode<?, ?> node, QualifiedName p);
+	Localized<String> unbindingParameterMustBeDataNode(ChildNode<?, ?> node, QualifiedName p);
 
-	LocalizedString unbindingParameterMustOccurOnce(ChildNode<?, ?> effective, QualifiedName p);
+	Localized<String> unbindingParameterMustOccurOnce(ChildNode<?, ?> effective, QualifiedName p);
 
-	LocalizedString unbindingParameterMustProvideValue(ChildNode<?, ?> effective, QualifiedName p);
+	Localized<String> unbindingParameterMustProvideValue(ChildNode<?, ?> effective, QualifiedName p);
 }

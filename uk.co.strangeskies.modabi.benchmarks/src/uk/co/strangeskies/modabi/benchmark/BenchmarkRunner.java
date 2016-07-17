@@ -44,7 +44,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.log.LogService;
 
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classloading.ContextClassLoaderRunner;
 
 @Component
 public class BenchmarkRunner {

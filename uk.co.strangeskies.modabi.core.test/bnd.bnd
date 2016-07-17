@@ -1,4 +1,5 @@
 Bundle-Name: Modabi :: Core :: Test
+
 Bundle-Description: \
 	Simple integration tests for Modabi core.\
 \
@@ -35,6 +36,7 @@ Test-Cases: ${test-cases}
 
 -dependson: \
 	uk.co.strangeskies.modabi.bnd,\
+	uk.co.strangeskies.modabi.extender,\
 	uk.co.strangeskies.modabi.io.json,\
 	uk.co.strangeskies.modabi.io.xml,\
 	uk.co.strangeskies.modabi.core.api,\
@@ -90,6 +92,7 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.osgi.api;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.osgi.provider;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
+	uk.co.strangeskies.text;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)'
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000

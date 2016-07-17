@@ -19,8 +19,6 @@
 package uk.co.strangeskies.modabi.processing;
 
 import static java.lang.System.lineSeparator;
-import static uk.co.strangeskies.utilities.text.LocalizedString.forStaticLocale;
-import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,18 +26,19 @@ import java.util.Locale;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.utilities.text.LocalizedString;
+import uk.co.strangeskies.text.properties.Localized;
+import uk.co.strangeskies.text.properties.PropertyLoader;
 
 public class ProcessingException extends ModabiException {
 	private static final long serialVersionUID = 1L;
 
 	private final ProcessingContext state;
-	private final LocalizedString bindingObjects;
-	private final LocalizedString bindingNodes;
+	private final Localized<String> bindingObjects;
+	private final Localized<String> bindingNodes;
 
 	private final Collection<? extends Throwable> multiCause;
 
-	private ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state,
+	private ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state,
 			Collection<? extends Throwable> cause, ProcessingExceptionText text) {
 		super(message.apply(text), cause.iterator().next());
 
@@ -50,17 +49,17 @@ public class ProcessingException extends ModabiException {
 		bindingNodes = text.bindingNodes(state.getBindingNodeStack());
 	}
 
-	public ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state,
+	public ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state,
 			Collection<? extends Throwable> cause) {
-		this(message, state, cause, getDefaultLocalizer().getLocalization(ProcessingExceptionText.class));
+		this(message, state, cause, PropertyLoader.getDefaultPropertyLoader().getProperties(ProcessingExceptionText.class));
 	}
 
-	public ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state,
+	public ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state,
 			Throwable cause) {
 		this(message, state, Arrays.asList(cause));
 	}
 
-	public ProcessingException(Function<ProcessingExceptionText, LocalizedString> message, ProcessingContext state) {
+	public ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state) {
 		this(message, state, (Throwable) null);
 	}
 
@@ -68,7 +67,7 @@ public class ProcessingException extends ModabiException {
 	 * TODO remove {
 	 */
 	public ProcessingException(String message, ProcessingContext state, Throwable cause) {
-		this(t -> forStaticLocale(message, Locale.ENGLISH), state, cause);
+		this(t -> Localized.forStaticLocale(message, Locale.ENGLISH), state, cause);
 	}
 
 	public ProcessingException(String message, ProcessingContext state) {
@@ -76,7 +75,7 @@ public class ProcessingException extends ModabiException {
 	}
 
 	public ProcessingException(String message, ProcessingContext state, Collection<? extends Throwable> cause) {
-		this(t -> forStaticLocale(message, Locale.ENGLISH), state, cause);
+		this(t -> Localized.forStaticLocale(message, Locale.ENGLISH), state, cause);
 	}
 	/*
 	 * TODO } remove

@@ -37,16 +37,16 @@ import org.osgi.framework.Constants;
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
+import uk.co.strangeskies.text.manifest.Attribute;
+import uk.co.strangeskies.text.manifest.ManifestUtilities;
 import uk.co.strangeskies.utilities.Log;
-import uk.co.strangeskies.utilities.classpath.Attribute;
-import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 
 final class BndRegistrationContext implements RegistrationContext {
 	private final Log log;

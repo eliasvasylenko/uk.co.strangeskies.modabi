@@ -57,7 +57,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
-import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classloading.ContextClassLoaderRunner;
 
 public class SchemaTest extends TestBase {
 	private static final String INLINE_DATA = "inlineData";
@@ -233,49 +233,29 @@ public class SchemaTest extends TestBase {
 				.over(AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
 						Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> mapModel3 = generatedSchema.addModel()
-				.name("map3",
-						Namespace
-								.getDefault())
-				.dataType(
-						new @Infer TypeToken<Map<?, ?>>() {})
-				.addChild(
-						e -> e.complex().name("entrySet").inline(true).inMethod("null")
-								.dataType(
-										inferredMapEntrySet)
-								.bindingStrategy(
-										InputBindingStrategy.TARGET_ADAPTOR)
+		Model<Map<?, ?>> mapModel3 = generatedSchema.addModel().name("map3", Namespace.getDefault())
+				.dataType(new @Infer TypeToken<Map<?, ?>>() {})
+				.addChild(e -> e.complex().name("entrySet").inline(true).inMethod("null").dataType(inferredMapEntrySet)
+						.bindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
+						.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
+						.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
+								.outMethod("this").bindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE)
+								.bindingType(BaseSchema.class).unbindingMethod("mapEntry").dataType(inferredMapEntry)
 								.addChild(
-										s -> s.inputSequence().name("entrySet")
-												.inMethodChained(
-														true))
-								.addChild(
-										f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add").outMethod("this")
-												.bindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE).bindingType(BaseSchema.class)
-												.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+										k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
+												.type(schemaManager.getBaseSchema().derivedTypes().listType())
 												.addChild(
-														k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
-																.type(schemaManager.getBaseSchema().derivedTypes().listType()).addChild(
-																		l -> l.data().name("element")
-																				.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
-												.addChild(
-														v -> v.complex().name("value").inMethod("null")
-																.model(
-																		schemaManager.getBaseSchema().baseModels()
-																				.mapModel())
-																.addChild(
-																		s -> s.complex()
-																				.name(
-																						"entrySet")
-																				.addChild(ee -> ee.complex().name("entry")
-																						.addChild(k -> k.data().name("key")
-																								.type(schemaManager.getBaseSchema()
-																										.primitiveType(Primitive.STRING)))
-																						.addChild(vv -> vv.complex().name("value")
-																								.<Object>model((Model<Object>) schemaManager.getBaseSchema()
-																										.baseModels().simpleModel())
-																								.addChild(cc -> cc.data().name("content").type(
-																										schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
+														l -> l.data().name("element")
+																.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
+								.addChild(v -> v.complex().name("value").inMethod("null")
+										.model(schemaManager.getBaseSchema().baseModels()
+												.mapModel())
+										.addChild(s -> s.complex().name("entrySet").addChild(ee -> ee.complex().name("entry").addChild(
+												k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
+												.addChild(vv -> vv.complex().name("value")
+														.<Object>model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
+														.addChild(cc -> cc.data().name("content")
+																.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
 		System.out.println(mapModel3.effective().dataType());
 		System.out.println(mapModel3.effective().dataType().getResolver().getBounds());

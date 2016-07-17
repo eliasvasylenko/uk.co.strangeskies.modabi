@@ -18,31 +18,30 @@
  */
 package uk.co.strangeskies.modabi.io;
 
-import static uk.co.strangeskies.utilities.text.Localizer.getDefaultLocalizer;
-
 import java.util.Locale;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.utilities.text.LocalizedString;
+import uk.co.strangeskies.text.properties.Localized;
+import uk.co.strangeskies.text.properties.PropertyLoader;
 
 public class ModabiIoException extends ModabiException {
 	private static final long serialVersionUID = 1L;
 
-	public ModabiIoException(LocalizedString message, Throwable cause) {
+	public ModabiIoException(Localized<String> message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ModabiIoException(LocalizedString message) {
+	public ModabiIoException(Localized<String> message) {
 		super(message);
 	}
 
-	public ModabiIoException(Function<ModabiIoExceptionText, LocalizedString> message) {
-		this(message.apply(getDefaultLocalizer().getLocalization(ModabiIoExceptionText.class)));
+	public ModabiIoException(Function<ModabiIoExceptionText, Localized<String>> message) {
+		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiIoExceptionText.class)));
 	}
 
-	public ModabiIoException(Function<ModabiIoExceptionText, LocalizedString> message, Throwable cause) {
-		this(message.apply(getDefaultLocalizer().getLocalization(ModabiIoExceptionText.class)), cause);
+	public ModabiIoException(Function<ModabiIoExceptionText, Localized<String>> message, Throwable cause) {
+		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiIoExceptionText.class)), cause);
 	}
 
 	public ModabiIoException(String message) {
@@ -50,6 +49,6 @@ public class ModabiIoException extends ModabiException {
 	}
 
 	public ModabiIoException(String message, Throwable cause) {
-		this(LocalizedString.forStaticLocale(message, Locale.ENGLISH), cause);
+		this(Localized.forStaticLocale(message, Locale.ENGLISH), cause);
 	}
 }

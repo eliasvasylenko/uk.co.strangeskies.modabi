@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.schema;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, ?, ?>, T>
-		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N>, ChildNodeConfigurator<S, N> {
+		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N> {
 	S outMethod(String methodName);
 
 	S outMethodUnchecked(boolean unchecked);

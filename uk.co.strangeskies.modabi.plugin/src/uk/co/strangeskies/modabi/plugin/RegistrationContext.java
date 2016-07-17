@@ -25,8 +25,8 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
+import uk.co.strangeskies.text.manifest.Attribute;
 import uk.co.strangeskies.utilities.Log;
-import uk.co.strangeskies.utilities.classpath.Attribute;
 
 public interface RegistrationContext extends Log {
 	void addAttributes(String attributeName, List<Attribute> attributes);
