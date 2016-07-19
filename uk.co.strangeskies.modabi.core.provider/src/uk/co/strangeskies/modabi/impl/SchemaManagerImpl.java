@@ -226,7 +226,7 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (Schema dependency : schema.dependencies())
 				registeredSchemata.add(dependency);
 
-			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel().effective(), schema));
+			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel(), schema));
 		}
 	}
 
@@ -268,7 +268,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	<T> BindingFuture<T> addBindingFuture(BindingFuture<T> bindingFuture) {
 		new Thread(() -> {
 			try {
-				Model.Effective<T> model = bindingFuture.getModelFuture().get().effective();
+				Model<T> model = bindingFuture.getModelFuture().get();
 				QualifiedName modelName = model.name();
 
 				bindingFutures.get(modelName).add(bindingFuture);
@@ -297,16 +297,16 @@ public class SchemaManagerImpl implements SchemaManager {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model) {
-		synchronized (bindingFutures.get(model.effective().name())) {
-			return (ObservableSet) bindingFutures.get(model.effective().name());
+		synchronized (bindingFutures.get(model.name())) {
+			return (ObservableSet) bindingFutures.get(model.name());
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <T> ObservableSet<?, Binding<T>> getBindings(Model<T> model) {
-		synchronized (bindings.get(model.effective().name())) {
-			return (ObservableSet) bindings.get(model.effective().name());
+		synchronized (bindings.get(model.name())) {
+			return (ObservableSet) bindings.get(model.name());
 		}
 	}
 

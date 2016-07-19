@@ -23,8 +23,8 @@ import java.util.function.Consumer;
 import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
-public class InputSequenceNodeBinder extends InputNodeBinder<InputSequenceNode.Effective> {
-	public InputSequenceNodeBinder(ProcessingContextImpl context, InputSequenceNode.Effective node) {
+public class InputSequenceNodeBinder extends InputNodeBinder<InputSequenceNode> {
+	public InputSequenceNodeBinder(ProcessingContextImpl context, InputSequenceNode node) {
 		super(context, node);
 
 		Consumer<ProcessingContextImpl> bind = c -> invokeInMethod(

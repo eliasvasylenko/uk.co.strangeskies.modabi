@@ -225,14 +225,14 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 			throw new AssertionError();
 		}
 
-		private static List<DataNode.Effective<?>> findProvidedUnbindingParameters(BindingNode.Effective<?, ?, ?> node) {
+		private static List<DataNode.Effective<?>> findProvidedUnbindingParameters(BindingNode< ?, ?> node) {
 			return node.providedUnbindingMethodParameterNames() == null
 					? node.unbindingMethodName() == null ? null : new ArrayList<>()
 					: node.providedUnbindingMethodParameterNames().stream().map(p -> {
 						if (p.getName().equals("this"))
 							return null;
 						else {
-							ChildNode.Effective<?, ?> effective = node.children().stream().filter(c -> c.name().equals(p)).findAny()
+							ChildNode< ?> effective = node.children().stream().filter(c -> c.name().equals(p)).findAny()
 									.orElseThrow(() -> new ModabiException(t -> t.cannotFindUnbindingParameter(p)));
 
 							if (!(effective instanceof BindingChildNode.Effective))
@@ -253,7 +253,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S, E>, E extends Bind
 		}
 
 		private List<TypeToken<?>> findUnbindingMethodParameterClasses(
-				Function<BindingNodeImpl.Effective<?, ?, ?>, TypeToken<?>> nodeClass) {
+				Function<BindingNodeImpl< ?, ?>, TypeToken<?>> nodeClass) {
 			List<TypeToken<?>> classList = new ArrayList<>();
 
 			boolean addedNodeClass = false;

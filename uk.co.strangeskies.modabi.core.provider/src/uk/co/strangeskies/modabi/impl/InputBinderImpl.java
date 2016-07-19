@@ -146,7 +146,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 
 	@Override
 	public BindingFuture<T> from(StructuredDataSource input) {
-		return createBindingFuture(() -> new BindingSource<>(bindingModelFunction.apply(input).effective(), input));
+		return createBindingFuture(() -> new BindingSource<>(bindingModelFunction.apply(input), input));
 	}
 
 	@Override
@@ -183,7 +183,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 				if (formatPredicate.test(format)) {
 					try (InputStream inputStream = input.get()) {
 						StructuredDataSource source = format.loadData(inputStream);
-						Model.Effective<T> model = bindingModelFunction.apply(source).effective();
+						Model<T> model = bindingModelFunction.apply(source);
 
 						return new BindingSource<>(model, input, format);
 					} catch (Exception e) {

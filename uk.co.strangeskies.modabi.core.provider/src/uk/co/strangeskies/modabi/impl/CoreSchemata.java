@@ -66,7 +66,7 @@ public class CoreSchemata {
 				type = modelOf(new TypeToken<Model<?>>() {});
 				break;
 			case "binding":
-				type = modelOf(new TypeToken<BindingNode<?, ?, ?>>() {});
+				type = modelOf(new TypeToken<BindingNode<?, ?>>() {});
 				break;
 			case "type":
 				type = modelOf(new TypeToken<DataType<?>>() {});

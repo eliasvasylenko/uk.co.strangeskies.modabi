@@ -19,46 +19,34 @@
 package uk.co.strangeskies.modabi.schema;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface DataType<T> extends BindingNode<T, DataType<T>, DataType.Effective<T>> {
-	interface Effective<T> extends DataType<T>, BindingNode.Effective<T, DataType<T>, Effective<T>> {
-		@Override
-		default void process(NodeProcessor context) {
-			context.accept(this);
-		}
+public interface DataType<T> extends BindingNode<T, DataType<T>> {
+	@Override
+	default void process(NodeProcessor context) {
+		context.accept(this);
+	}
 
-		@Override
-		DataType.Effective<? super T> baseType();
+	@Override
+	default List<DataType<? super T>> base() {
+		List<DataType<? super T>> base = new ArrayList<>();
 
-		@Override
-		default List<DataType.Effective<? super T>> base() {
-			List<DataType.Effective<? super T>> base = new ArrayList<>();
+		DataType<? super T> baseComponent = this;
+		do {
+			base.add(baseComponent);
+			baseComponent = baseComponent.baseType();
+		} while (baseComponent != null);
 
-			DataType.Effective<? super T> baseComponent = this;
-			do {
-				base.add(baseComponent);
-				baseComponent = baseComponent.baseType();
-			} while (baseComponent != null);
-
-			return base;
-		}
-
+		return base;
 	}
 
 	Boolean isPrivate();
 
 	DataType<? super T> baseType();
-
-	@Override
-	default List<? extends DataType<? super T>> base() {
-		return Arrays.asList(baseType());
-	}
 
 	@Override
 	default TypeToken<DataType<T>> getThisType() {

@@ -141,7 +141,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 		}
 
 		@Override
-		public BindingNode.Effective<?, ?, ?> root() {
+		public BindingNode< ?, ?> root() {
 			return parent().root();
 		}
 	}

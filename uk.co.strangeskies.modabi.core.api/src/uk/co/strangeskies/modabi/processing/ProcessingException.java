@@ -38,8 +38,8 @@ public class ProcessingException extends ModabiException {
 
 	private final Collection<? extends Throwable> multiCause;
 
-	private ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state,
-			Collection<? extends Throwable> cause, ProcessingExceptionText text) {
+	private ProcessingException(Function<ProcessingExceptionProperties, Localized<String>> message, ProcessingContext state,
+			Collection<? extends Throwable> cause, ProcessingExceptionProperties text) {
 		super(message.apply(text), cause.iterator().next());
 
 		multiCause = cause;
@@ -49,17 +49,17 @@ public class ProcessingException extends ModabiException {
 		bindingNodes = text.bindingNodes(state.getBindingNodeStack());
 	}
 
-	public ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state,
+	public ProcessingException(Function<ProcessingExceptionProperties, Localized<String>> message, ProcessingContext state,
 			Collection<? extends Throwable> cause) {
-		this(message, state, cause, PropertyLoader.getDefaultPropertyLoader().getProperties(ProcessingExceptionText.class));
+		this(message, state, cause, PropertyLoader.getDefaultPropertyLoader().getProperties(ProcessingExceptionProperties.class));
 	}
 
-	public ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state,
+	public ProcessingException(Function<ProcessingExceptionProperties, Localized<String>> message, ProcessingContext state,
 			Throwable cause) {
 		this(message, state, Arrays.asList(cause));
 	}
 
-	public ProcessingException(Function<ProcessingExceptionText, Localized<String>> message, ProcessingContext state) {
+	public ProcessingException(Function<ProcessingExceptionProperties, Localized<String>> message, ProcessingContext state) {
 		this(message, state, (Throwable) null);
 	}
 

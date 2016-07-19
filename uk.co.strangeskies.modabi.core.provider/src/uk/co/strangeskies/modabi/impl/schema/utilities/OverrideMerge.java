@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends SchemaNodeConfiguratorImpl<?, ? extends S>> {
+public class OverrideMerge<S extends SchemaNode<? extends S>, C extends SchemaNodeConfiguratorImpl<?, ? extends S>> {
 	public class OverrideOptional<T> {
 		private Function<S, T> valueFunction;
 		private BiPredicate<? super T, ? super T> validation;
@@ -56,8 +56,8 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 		}
 
 		public OverrideOptional<T> orDefault(T value, Abstractness defaultIfAtMost) {
-			if (node == null
-					|| (node.abstractness() == null || node.abstractness().isAtMost(defaultIfAtMost)) && !isOverridden()) {
+			if (node() == null
+					|| (node().abstractness() == null || node().abstractness().isAtMost(defaultIfAtMost)) && !isOverridden()) {
 				return or(() -> value);
 			} else {
 				return this;
@@ -70,7 +70,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 					T merged = merge.apply(values);
 
 					if (merged == null) {
-						throw new ModabiException(t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, node, values));
+						throw new ModabiException(t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, node(), values));
 					}
 
 					return merged;
@@ -96,7 +96,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 		}
 
 		private OverrideOptional<T> or() {
-			return or(() -> valueFunction.apply(node));
+			return or(() -> valueFunction.apply(node()));
 		}
 
 		public T tryGet() {
@@ -104,7 +104,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 				for (T value : values) {
 					if (!validation.test(override, value)) {
 						throw new ModabiException(
-								t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, node, value, override), null);
+								t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, node(), value, override), null);
 					}
 				}
 			}
@@ -115,9 +115,9 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 		public T get() {
 			override = tryGet();
 
-			if (override == null && node != null
-					&& (node.abstractness() == null || node.abstractness().isAtMost(Abstractness.UNINFERRED)))
-				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, node));
+			if (override == null && node() != null
+					&& (node().abstractness() == null || node().abstractness().isAtMost(Abstractness.UNINFERRED)))
+				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, node()));
 
 			return override;
 		}
@@ -129,7 +129,7 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 				if (values.size() == 1) {
 					override = values.iterator().next();
 				} else if (values.size() > 1) {
-					throw new ModabiException(t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, node, values));
+					throw new ModabiException(t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, node(), values));
 				}
 			}
 
@@ -148,16 +148,14 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 		}
 	}
 
-	private final S node;
 	private final C configurator;
 
 	public OverrideMerge(S node, C configurator) {
-		this.node = node;
 		this.configurator = configurator;
 	}
 
 	public S node() {
-		return node;
+		return configurator.getDeclaredNode();
 	}
 
 	public C configurator() {
@@ -166,8 +164,8 @@ public class OverrideMerge<S extends SchemaNode<? extends S, ?>, C extends Schem
 
 	@SuppressWarnings("unchecked")
 	public <T> Set<T> getOverridenValues(Function<S, T> valueFunction) {
-		return configurator.getOverriddenNodes().stream().map(n -> valueFunction.apply((S) n.effective()))
-				.filter(Objects::nonNull).collect(Collectors.toSet());
+		return configurator.getOverriddenNodes().stream().map(n -> valueFunction.apply((S) n)).filter(Objects::nonNull)
+				.collect(Collectors.toSet());
 	}
 
 	public <T> OverrideOptional<T> getOverride(Function<S, T> valueFunction) {

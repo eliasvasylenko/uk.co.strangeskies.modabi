@@ -39,5 +39,5 @@ public interface DereferenceSource {
 		return idDomain -> dereference(model, idDomain);
 	}
 
-	<T> T dereference(BindingNode<T, ?, ?> node);
+	<T> T dereference(BindingNode<T, ?> node);
 }

@@ -26,19 +26,12 @@ import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
-		extends SchemaNode<S, E> {
-	interface Effective<T, S extends BindingNode<T, S, E>, E extends Effective<T, S, E>>
-			extends BindingNode<T, S, E>, SchemaNode.Effective<S, E> {
-		Invokable<?, ?> unbindingMethod();
+public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<S> {
+	Invokable<?, ?> unbindingMethod();
 
-		List<DataNode.Effective<?>> providedUnbindingMethodParameters();
+	List<DataNode<?>> providedUnbindingMethodParameters();
 
-		@Override
-		List<? extends BindingNode.Effective<? super T, ?, ?>> base();
-	}
-
-	List<? extends BindingNode<? super T, ?, ?>> base();
+	List<? extends BindingNode<? super T, ?>> base();
 
 	default String dataTypeString() {
 		return dataType() == null ? null : dataType().toString(schema().imports());

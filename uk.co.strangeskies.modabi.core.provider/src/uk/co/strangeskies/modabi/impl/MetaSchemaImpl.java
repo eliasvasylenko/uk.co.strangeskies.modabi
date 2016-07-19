@@ -130,8 +130,8 @@ public class MetaSchemaImpl implements MetaSchema {
 	private void buildModels(ModelFactory factory, BaseSchema base, Namespace namespace) {
 		/* Node Models */
 
-		Model<SchemaNode<?, ?>> nodeModel = factory.apply("node",
-				m -> m.abstractness(ABSTRACT).dataType(new TypeToken<SchemaNode<?, ?>>() {})
+		Model<SchemaNode<?>> nodeModel = factory.apply("node",
+				m -> m.abstractness(ABSTRACT).dataType(new TypeToken<SchemaNode<?>>() {})
 						.unbindingStrategy(OutputBindingStrategy.SIMPLE)
 						.addChild(n -> n.inputSequence().name("configure").abstractness(ABSTRACT)
 								.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
@@ -140,10 +140,10 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(n -> n.data().format(PROPERTY).type(base.derivedTypes().enumType()).dataType(Abstractness.class)
 								.name("abstractness").optional(true)));
 
-		Model<ChildNode<?, ?>> childBaseModel = factory.apply("childBase", m -> m.abstractness(ABSTRACT)
-				.dataType(new TypeToken<ChildNode<?, ?>>() {}).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
+		Model<ChildNode<?>> childBaseModel = factory.apply("childBase", m -> m.abstractness(ABSTRACT)
+				.dataType(new TypeToken<ChildNode<?>>() {}).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
 
-		Model<SchemaNode<?, ?>> branchModel = factory.apply("branch",
+		Model<SchemaNode<?>> branchModel = factory.apply("branch",
 				m -> m.abstractness(ABSTRACT).baseModel(nodeModel).addChild(n -> n.data().name("name"))
 						.addChild(n -> n.data().name("abstractness"))
 						.addChild(n -> n.complex().name("child").outMethod("children").inMethod("null").abstractness(ABSTRACT)
@@ -151,10 +151,9 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(n -> n.inputSequence().name("create").inMethodChained(true)));
 
 		@SuppressWarnings("unchecked")
-		Model<ChildNode<?, ?>> childModel = factory.apply("child",
-				m -> m.baseModel(branchModel, childBaseModel).abstractness(ABSTRACT)
-						.dataType(new TypeToken<ChildNode<?, ?>>() {}).bindingStrategy(TARGET_ADAPTOR)
-						.bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
+		Model<ChildNode<?>> childModel = factory.apply("child",
+				m -> m.baseModel(branchModel, childBaseModel).abstractness(ABSTRACT).dataType(new TypeToken<ChildNode<?>>() {})
+						.bindingStrategy(TARGET_ADAPTOR).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
 						.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
 						.addChild(c -> c.inputSequence().name("configure").abstractness(ABSTRACT).inMethodChained(true)
 								.postInputType(new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
@@ -165,8 +164,8 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(n -> n.data().format(PROPERTY).type(base.primitiveType(STRING)).name("postInputType")
 								.optional(true).outMethod("postInputTypeString")));
 
-		Model<BindingNode<?, ?, ?>> bindingNodeModel = factory.apply("binding",
-				m -> m.baseModel(branchModel).abstractness(ABSTRACT).dataType(new TypeToken<BindingNode<?, ?, ?>>() {})
+		Model<BindingNode<?, ?>> bindingNodeModel = factory.apply("binding",
+				m -> m.baseModel(branchModel).abstractness(ABSTRACT).dataType(new TypeToken<BindingNode<?, ?>>() {})
 						.addChild(c -> c.inputSequence().name("configure").abstractness(ABSTRACT)
 								.postInputType(new TypeToken<BindingNodeConfigurator<?, ?, Object>>() {}))
 						.addChild(n -> n.data().name("name"))
@@ -189,8 +188,8 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(n -> n.data().format(PROPERTY).name("unbindingFactoryType").optional(true)
 								.type(base.primitiveType(STRING)).outMethod("unbindingFactoryTypeString")));
 
-		Model<InputNode<?, ?>> inputModel = factory.apply("input", m -> m.abstractness(ABSTRACT).baseModel(childModel)
-				.dataType(new TypeToken<InputNode<?, ?>>() {})
+		Model<InputNode<?>> inputModel = factory.apply("input", m -> m.abstractness(ABSTRACT).baseModel(childModel)
+				.dataType(new TypeToken<InputNode<?>>() {})
 				.addChild(c -> c.inputSequence().name("configure").abstractness(ABSTRACT)
 						.postInputType(new TypeToken<InputNodeConfigurator<?, ?>>() {}))
 				.addChild(n -> n.data().name("name"))
@@ -203,8 +202,8 @@ public class MetaSchemaImpl implements MetaSchema {
 						n -> n.data().format(PROPERTY).name("inMethodUnchecked").optional(true).type(base.primitiveType(BOOLEAN))));
 
 		@SuppressWarnings("unchecked")
-		Model<BindingChildNode<?, ?, ?>> bindingChildNodeModel = factory.apply("bindingChild", m -> m.abstractness(ABSTRACT)
-				.dataType(new TypeToken<BindingChildNode<?, ?, ?>>() {}).baseModel(inputModel, bindingNodeModel)
+		Model<BindingChildNode<?, ?>> bindingChildNodeModel = factory.apply("bindingChild", m -> m.abstractness(ABSTRACT)
+				.dataType(new TypeToken<BindingChildNode<?, ?>>() {}).baseModel(inputModel, bindingNodeModel)
 				.addChild(c -> c.inputSequence().name("configure").abstractness(ABSTRACT)
 						.postInputType(new TypeToken<BindingChildNodeConfigurator<?, ?, Object>>() {}))
 				.addChild(n -> n.data().name("name"))

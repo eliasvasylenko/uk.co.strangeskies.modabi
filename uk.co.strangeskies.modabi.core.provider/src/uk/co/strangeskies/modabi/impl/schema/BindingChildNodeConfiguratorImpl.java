@@ -269,14 +269,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public TypeToken<T> getExpectedType() {
-		OverrideMerge<? extends BindingChildNode<?, ?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
+		OverrideMerge<? extends BindingChildNode<?, ?>, ? extends BindingChildNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
 				null, this);
 
 		System.out.println(
-				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).inMethod()).tryGet());
+				overrideMerge.getOverride(n -> ((BindingChildNode< ?, ?>) n.effective()).inMethod()).tryGet());
 
 		System.out.println(
-				overrideMerge.getOverride(n -> ((BindingChildNode.Effective<?, ?, ?>) n.effective()).outMethod()).tryGet());
+				overrideMerge.getOverride(n -> ((BindingChildNode< ?, ?>) n.effective()).outMethod()).tryGet());
 
 		return null;
 	}

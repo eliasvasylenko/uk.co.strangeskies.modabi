@@ -64,7 +64,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 		}
 
 		@Override
-		public BindingNode.Effective<?, ?, ?> root() {
+		public BindingNode< ?, ?> root() {
 			return parent().root();
 		}
 	}

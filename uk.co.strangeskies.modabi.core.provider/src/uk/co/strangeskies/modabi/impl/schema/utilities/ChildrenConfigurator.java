@@ -18,11 +18,14 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
+import java.util.List;
+
+import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.factory.Factory;
+import uk.co.strangeskies.utilities.Factory;
 
-public interface ChildrenConfigurator extends Factory<ChildrenContainer> {
+public interface ChildrenConfigurator extends Factory<List<ChildNode<?>>> {
 	public ChildBuilder addChild();
 
 	public TypeToken<?> getPostInputType();

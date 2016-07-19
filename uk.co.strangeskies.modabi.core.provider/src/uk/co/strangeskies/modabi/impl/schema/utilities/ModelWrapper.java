@@ -24,15 +24,14 @@ import java.util.List;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
 
-public class ModelWrapper<T> extends BindingNodeWrapper<T, Model.Effective<? super T>, Model<T>, Model.Effective<T>>
-		implements Model.Effective<T> {
-	public ModelWrapper(BindingNode.Effective<T, ?, ?> component) {
+public class ModelWrapper<T> extends BindingNodeWrapper<T, Model<? super T>, Model<T>> implements Model<T> {
+	public ModelWrapper(BindingNode<T, ?> component) {
 		super(component);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Model.Effective<? super T>> baseModel() {
-		return Collections.unmodifiableList((List<Model.Effective<? super T>>) getComponent().base());
+	public List<Model<? super T>> baseModel() {
+		return Collections.unmodifiableList((List<Model<? super T>>) getComponent().base());
 	}
 }

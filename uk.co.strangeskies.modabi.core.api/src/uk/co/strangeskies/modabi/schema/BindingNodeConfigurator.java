@@ -29,7 +29,8 @@ import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T> {
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
+		extends SchemaNodeConfigurator<S, N> {
 	BindingNodeConfigurator<?, ?, ? extends T> dataType(String dataType);
 
 	<V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataType);

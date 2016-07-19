@@ -35,10 +35,10 @@ import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Bindings {
-	public final MultiMap<Model.Effective<?>, BindingNode.Effective<?, ?, ?>, Set<BindingNode.Effective<?, ?, ?>>> boundNodes;
-	public final MultiMap<BindingNode.Effective<?, ?, ?>, Object, Set<Object>> boundObjects;
+	public final MultiMap<Model<?>, BindingNode<?, ?>, Set<BindingNode<?, ?>>> boundNodes;
+	public final MultiMap<BindingNode<?, ?>, Object, Set<Object>> boundObjects;
 
-	private final MultiMap<Model.Effective<?>, Consumer<?>, Collection<Consumer<?>>> listeners;
+	private final MultiMap<Model<?>, Consumer<?>, Collection<Consumer<?>>> listeners;
 
 	public Bindings() {
 		boundNodes = new MultiHashMap<>(HashSet::new);
@@ -48,7 +48,7 @@ public class Bindings {
 	}
 
 	public synchronized <T> void add(ComplexNode<T> element, T data) {
-		ComplexNode.Effective<T> effectiveElement = element.effective();
+		ComplexNode<T> effectiveElement = element;
 
 		boundNodes.addToAll(effectiveElement.model(), effectiveElement);
 		boundObjects.add(effectiveElement, data);
@@ -57,7 +57,7 @@ public class Bindings {
 	}
 
 	public synchronized <T> void add(Model<T> model, T data) {
-		Model.Effective<T> effectiveModel = model.effective();
+		Model<T> effectiveModel = model;
 
 		if (boundNodes.add(effectiveModel, effectiveModel)) {
 			boundNodes.addToAll(effectiveModel.baseModel(), effectiveModel);
@@ -68,8 +68,8 @@ public class Bindings {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> void fire(BindingNode.Effective<T, ?, ?> node, T data) {
-		for (Model.Effective<?> model : listeners.keySet()) {
+	private <T> void fire(BindingNode<T, ?> node, T data) {
+		for (Model<?> model : listeners.keySet()) {
 			if (model.equals(node) || node.base().contains(model)) {
 				for (Consumer<?> listener : listeners.get(model)) {
 					((Consumer<? super T>) listener).accept(data);
@@ -93,21 +93,17 @@ public class Bindings {
 
 	@SuppressWarnings("unchecked")
 	public synchronized <T> Set<T> getModelBindings(Model<T> model) {
-		model = model.effective();
-
 		return boundNodes.getOrDefault(model, emptySet()).stream()
 				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized <T> Set<T> getNodeBindings(BindingNode<T, ?, ?> node) {
-		node = node.effective();
-
+	public synchronized <T> Set<T> getNodeBindings(BindingNode<T, ?> node) {
 		return boundObjects.getOrDefault(node, emptySet()).stream().map(t -> (T) t).collect(toSet());
 	}
 
 	public synchronized <T> Observable<T> changes(Model<T> model) {
-		Model.Effective<T> effectiveModel = model.effective();
+		Model<T> effectiveModel = model;
 
 		return new Observable<T>() {
 			@Override

@@ -53,7 +53,7 @@ public class BindingNodeBinder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U> U bind(BindingNode.Effective<U, ?, ?> node) {
+	public <U> U bind(BindingNode<U, ?> node) {
 		/*
 		 * We need to replace the current binding node here as it may have been
 		 * overridden in the case that this node is extensible.
@@ -61,7 +61,7 @@ public class BindingNodeBinder {
 		ProcessingContextImpl context = this.context.withReplacementBindingNode(node);
 
 		TypedObject<?> binding;
-		List<ChildNode.Effective<?, ?>> children = node.children();
+		List<ChildNode<?>> children = node.children();
 
 		InputBindingStrategy strategy = node.bindingStrategy();
 		if (strategy == null)
@@ -78,8 +78,8 @@ public class BindingNodeBinder {
 			if (children.isEmpty())
 				throw new ProcessingException(t -> t.mustHaveChildren(node.name(), InputBindingStrategy.CONSTRUCTOR), context);
 
-			ChildNode.Effective<?, ?> firstChild;
-			List<ChildNodeBinding<?>> parameters;
+			ChildNode<?> firstChild;
+			List<ChildNodeBinding<?, ?>> parameters;
 			do {
 				firstChild = children.get(0);
 				children = children.subList(1, children.size());
@@ -96,13 +96,14 @@ public class BindingNodeBinder {
 				Object[] parameterArray = parameters.stream().map(ChildNodeBinding::getData).toArray();
 				binding = TypedObject.castInto(bindingType, ((Constructor<?>) inputMethod).newInstance(parameterArray));
 			} catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
-				List<ChildNodeBinding<?>> parameterList = parameters;
+				List<ChildNodeBinding<?, ?>> parameterList = parameters;
 				throw new ProcessingException(t -> t.cannotInvoke(inputMethod, bindingType, node, parameterList), context, e);
 			}
 			break;
 		case STATIC_FACTORY:
 			if (children.isEmpty())
-				throw new ProcessingException(t -> t.mustHaveChildren(node.name(), InputBindingStrategy.STATIC_FACTORY), context);
+				throw new ProcessingException(t -> t.mustHaveChildren(node.name(), InputBindingStrategy.STATIC_FACTORY),
+						context);
 
 			do {
 				firstChild = children.get(0);
@@ -120,7 +121,7 @@ public class BindingNodeBinder {
 				Object[] parameterArray = parameters.stream().map(ChildNodeBinding::getData).toArray();
 				binding = TypedObject.castInto(bindingType, ((Method) inputMethod).invoke(null, parameterArray));
 			} catch (IllegalAccessException | ModabiException | InvocationTargetException | SecurityException e) {
-				List<ChildNodeBinding<?>> parameterList = parameters;
+				List<ChildNodeBinding<?, ?>> parameterList = parameters;
 				throw new ProcessingException(t -> t.cannotInvoke(inputMethod, bindingType, node, parameterList), context, e);
 			}
 			break;
@@ -153,7 +154,7 @@ public class BindingNodeBinder {
 
 		context = context.withBindingObject(binding);
 
-		for (ChildNode.Effective<?, ?> child : children) {
+		for (ChildNode<?> child : children) {
 			context = ChildNodeBinder.bind(context, child);
 			binding = context.getBindingObject();
 		}
@@ -161,63 +162,63 @@ public class BindingNodeBinder {
 		return (U) binding.getObject();
 	}
 
-	private static boolean isBindingNode(ChildNode.Effective<?, ?> child) {
+	private static boolean isBindingNode(ChildNode<?> child) {
 		return child.process(new ReturningNodeProcessor<Boolean>() {
 			@Override
-			public <U> Boolean accept(ComplexNode.Effective<U> node) {
+			public <U> Boolean accept(ComplexNode<U> node) {
 				return true;
 			}
 
 			@Override
-			public <U> Boolean accept(DataNode.Effective<U> node) {
+			public <U> Boolean accept(DataNode<U> node) {
 				return true;
 			}
 
 			@Override
-			public Boolean acceptDefault(SchemaNode.Effective<?, ?> node) {
+			public Boolean acceptDefault(SchemaNode<?> node) {
 				return false;
 			}
 		});
 	}
 
-	private static Executable getInputMethod(ChildNode.Effective<?, ?> node) {
+	private static Executable getInputMethod(ChildNode<?> node) {
 		IdentityProperty<Executable> result = new IdentityProperty<>();
 		node.process(new NodeProcessor() {
 			@Override
-			public <U> void accept(ComplexNode.Effective<U> node) {
+			public <U> void accept(ComplexNode<U> node) {
 				result.set(node.inMethod().getExecutable());
 			}
 
 			@Override
-			public <U> void accept(DataNode.Effective<U> node) {
+			public <U> void accept(DataNode<U> node) {
 				result.set(node.inMethod().getExecutable());
 			}
 
 			@Override
-			public void accept(InputSequenceNode.Effective node) {
+			public void accept(InputSequenceNode node) {
 				result.set(node.inMethod().getExecutable());
 			}
 		});
 		return result.get();
 	}
 
-	public static List<ChildNodeBinding<?>> getSingleBindingSequence(ChildNode.Effective<?, ?> node,
+	public static List<ChildNodeBinding<?, ?>> getSingleBindingSequence(ChildNode<?> node,
 			ProcessingContextImpl context) {
-		List<ChildNodeBinding<?>> parameters = new ArrayList<>();
+		List<ChildNodeBinding<?, ?>> parameters = new ArrayList<>();
 		node.process(new NodeProcessor() {
 			@Override
-			public void accept(InputSequenceNode.Effective node) {
-				for (ChildNode.Effective<?, ?> child : node.children())
+			public void accept(InputSequenceNode node) {
+				for (ChildNode<?> child : node.children())
 					parameters.add(getSingleBinding(child, context));
 			}
 
 			@Override
-			public <U> void accept(ComplexNode.Effective<U> node) {
+			public <U> void accept(ComplexNode<U> node) {
 				parameters.add(getSingleBinding(node, context));
 			}
 
 			@Override
-			public <U> void accept(DataNode.Effective<U> node) {
+			public <U> void accept(DataNode<U> node) {
 				parameters.add(getSingleBinding(node, context));
 			}
 		});
@@ -225,24 +226,24 @@ public class BindingNodeBinder {
 		return parameters;
 	}
 
-	public static ChildNodeBinding<?> getSingleBinding(ChildNode.Effective<?, ?> node, ProcessingContextImpl context) {
-		IdentityProperty<ChildNodeBinding<?>> result = new IdentityProperty<>();
+	public static ChildNodeBinding<?, ?> getSingleBinding(ChildNode<?> node, ProcessingContextImpl context) {
+		IdentityProperty<ChildNodeBinding<?, ?>> result = new IdentityProperty<>();
 		node.process(new NodeProcessor() {
 			@Override
-			public <U> void accept(ComplexNode.Effective<U> node) {
-				List<ChildNodeBinding<? extends U>> results = new ComplexNodeBinder<>(context, node).getBinding();
+			public <U> void accept(ComplexNode<U> node) {
+				List<ChildNodeBinding<? extends U, ?>> results = new ComplexNodeBinder<>(context, node).getBinding();
 
 				check(node, results);
 			}
 
 			@Override
-			public <U> void accept(DataNode.Effective<U> node) {
-				List<ChildNodeBinding<? extends U>> results = new DataNodeBinder<>(context, node).getBinding();
+			public <U> void accept(DataNode<U> node) {
+				List<ChildNodeBinding<? extends U, ?>> results = new DataNodeBinder<>(context, node).getBinding();
 
 				check(node, results);
 			}
 
-			private <U> void check(BindingChildNode.Effective<U, ?, ?> node, List<ChildNodeBinding<? extends U>> results) {
+			private <U> void check(BindingChildNode<U, ?> node, List<ChildNodeBinding<? extends U, ?>> results) {
 				if (!results.isEmpty()) {
 					result.set(results.get(0));
 				} else if (!node.occurrences().contains(0)) {

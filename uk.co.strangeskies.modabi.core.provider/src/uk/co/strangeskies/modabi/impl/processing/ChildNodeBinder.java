@@ -30,7 +30,7 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
+public abstract class ChildNodeBinder<T extends ChildNode<?>> {
 	private ProcessingContext context;
 	private final T node;
 
@@ -76,32 +76,32 @@ public abstract class ChildNodeBinder<T extends ChildNode.Effective<?, ?>> {
 		}
 	}
 
-	public static ProcessingContextImpl bind(ProcessingContextImpl parentContext, ChildNode.Effective<?, ?> next) {
+	public static ProcessingContextImpl bind(ProcessingContextImpl parentContext, ChildNode<?> next) {
 		ProcessingContextImpl context = parentContext.withBindingNode(next);
 
 		ReturningNodeProcessor<ChildNodeBinder<?>> childProcessor = new ReturningNodeProcessor<ChildNodeBinder<?>>() {
 			@Override
-			public <U> ChildNodeBinder<?> accept(ComplexNode.Effective<U> node) {
+			public <U> ChildNodeBinder<?> accept(ComplexNode<U> node) {
 				return new ComplexNodeBinder<>(context, node).bindToTarget();
 			}
 
 			@Override
-			public <U> ChildNodeBinder<?> accept(DataNode.Effective<U> node) {
+			public <U> ChildNodeBinder<?> accept(DataNode<U> node) {
 				return new DataNodeBinder<>(context, node).bindToTarget();
 			}
 
 			@Override
-			public ChildNodeBinder<?> accept(InputSequenceNode.Effective node) {
+			public ChildNodeBinder<?> accept(InputSequenceNode node) {
 				return new InputSequenceNodeBinder(context, node);
 			}
 
 			@Override
-			public ChildNodeBinder<?> accept(SequenceNode.Effective node) {
+			public ChildNodeBinder<?> accept(SequenceNode node) {
 				return new SequenceNodeBinder(context, node);
 			}
 
 			@Override
-			public ChildNodeBinder<?> accept(ChoiceNode.Effective node) {
+			public ChildNodeBinder<?> accept(ChoiceNode node) {
 				return new ChoiceNodeBinder(context, node);
 			}
 		};

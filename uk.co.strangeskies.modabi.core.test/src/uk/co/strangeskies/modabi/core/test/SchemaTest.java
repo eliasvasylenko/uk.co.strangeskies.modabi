@@ -196,7 +196,7 @@ public class SchemaTest extends TestBase {
 				.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
 				.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))
 				.create();
-		System.out.println(intListType.effective().dataType());
+		System.out.println(intListType.dataType());
 
 		Map<String, Integer> stringIntMap = new HashMap<>();
 		stringIntMap.put("first", 1);
@@ -212,8 +212,8 @@ public class SchemaTest extends TestBase {
 								.<Object>model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
-		System.out.println(stringIntMapModel.effective().dataType());
-		System.out.println("    ~# " + stringIntMapModel.effective().dataType().getResolver().getBounds());
+		System.out.println(stringIntMapModel.dataType());
+		System.out.println("    ~# " + stringIntMapModel.dataType().getResolver().getBounds());
 
 		schemaManager.bindOutput(stringIntMap).with(stringIntMapModel)
 				.to(schemaManager.registeredFormats().get("xml").saveData(System.out));
@@ -257,7 +257,7 @@ public class SchemaTest extends TestBase {
 														.addChild(cc -> cc.data().name("content")
 																.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
-		System.out.println(mapModel3.effective().dataType());
-		System.out.println(mapModel3.effective().dataType().getResolver().getBounds());
+		System.out.println(mapModel3.dataType());
+		System.out.println(mapModel3.dataType().getResolver().getBounds());
 	}
 }

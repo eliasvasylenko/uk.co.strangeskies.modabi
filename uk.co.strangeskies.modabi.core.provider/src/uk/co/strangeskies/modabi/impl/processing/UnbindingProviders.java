@@ -21,10 +21,10 @@ package uk.co.strangeskies.modabi.impl.processing;
 import java.util.Collection;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
@@ -52,8 +52,8 @@ public class UnbindingProviders {
 		return context -> new ImportTarget() {
 			@Override
 			public <U> DataSource dereferenceImport(Model<U> model, QualifiedName idDomain, U object) {
-				DataNode.Effective<?> node = (DataNode.Effective<?>) model.effective().children().stream()
-						.filter(c -> c.name().equals(idDomain) && c instanceof DataNode.Effective<?>).findAny().orElseThrow(
+				DataNode<?> node = (DataNode<?>) model.children().stream()
+						.filter(c -> c.name().equals(idDomain) && c instanceof DataNode<?>).findAny().orElseThrow(
 								() -> new ModabiException("Can't fine child '" + idDomain + "' to target for model '" + model + "'"));
 
 				return unbindDataNode(context, node, new TypedObject<>(model.dataType(), object));
@@ -74,7 +74,7 @@ public class UnbindingProviders {
 		};
 	}
 
-	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode.Effective<V> node, TypedObject<?> source) {
+	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode<V> node, TypedObject<?> source) {
 		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(context).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,

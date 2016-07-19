@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> extends ChildNodeBinder<T> {
+public abstract class InputNodeBinder<T extends InputNode< ?>> extends ChildNodeBinder<T> {
 	public InputNodeBinder(ProcessingContext context, T node) {
 		super(context, node);
 	}

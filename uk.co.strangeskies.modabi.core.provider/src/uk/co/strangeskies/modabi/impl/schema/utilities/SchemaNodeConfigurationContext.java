@@ -30,7 +30,7 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaNodeConfigurationContext {
-	SchemaNode<?, ?> parentNodeProxy();
+	SchemaNode<?> parentNodeProxy();
 
 	DataLoader dataLoader();
 
@@ -54,13 +54,13 @@ public interface SchemaNodeConfigurationContext {
 
 	TypeToken<?> outputSourceType();
 
-	default void addChild(ChildNode<?, ?> result) {
+	default void addChild(ChildNode<?> result) {
 		throw new UnsupportedOperationException();
 	}
 
-	default <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
+	default <U extends ChildNode<?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
 		throw new UnsupportedOperationException();
 	}
 
-	List<? extends SchemaNode<?, ?>> overriddenNodes();
+	List<? extends SchemaNode<?>> overriddenNodes();
 }

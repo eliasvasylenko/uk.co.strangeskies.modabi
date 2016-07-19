@@ -51,13 +51,13 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 	private final DataFormats formats;
 	private final T data;
 
-	private final Supplier<List<Model.Effective<? super T>>> unbindingFunction;
+	private final Supplier<List<Model<? super T>>> unbindingFunction;
 
 	private final Set<Provider> providers;
 	private ClassLoader classLoader;
 
 	protected OutputBinderImpl(ProcessingContextImpl context, DataFormats formats, T data,
-			Supplier<List<Model.Effective<? super T>>> unbindingFunction) {
+			Supplier<List<Model<? super T>>> unbindingFunction) {
 		this.context = context;
 		this.formats = formats;
 		this.data = data;
@@ -71,19 +71,18 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 		return new OutputBinderImpl<>(context, formats, data, null).with((Class<T>) data.getClass());
 	}
 
-	protected OutputBinder<T> with(Supplier<List<Model.Effective<? super T>>> unbindingFunction) {
+	protected OutputBinder<T> with(Supplier<List<Model<? super T>>> unbindingFunction) {
 		return new OutputBinderImpl<>(context, formats, data, unbindingFunction);
 	}
 
 	@Override
 	public OutputBinder<T> with(TypeToken<? super T> dataType) {
-		return with(() -> context.registeredModels().getModelsWithType(dataType).stream().map(n -> n.effective())
-				.collect(Collectors.toList()));
+		return with(() -> context.registeredModels().getModelsWithType(dataType).stream().collect(Collectors.toList()));
 	}
 
 	@Override
 	public OutputBinder<T> with(Model<? super T> model) {
-		return with(() -> Arrays.asList(model.effective()));
+		return with(() -> Arrays.asList(model));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -94,7 +93,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 
 	@Override
 	public OutputBinder<T> with(QualifiedName modelName, TypeToken<? super T> type) {
-		return with(() -> Arrays.asList(context.registeredModels().get(modelName, type).effective()));
+		return with(() -> Arrays.asList(context.registeredModels().get(modelName, type)));
 	}
 
 	@Override
@@ -146,7 +145,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 		ProcessingContextImpl context = prepareContext();
 		context = context.withOutput(output);
 
-		List<? extends Model.Effective<? super T>> models = unbindingFunction.get();
+		List<? extends Model<? super T>> models = unbindingFunction.get();
 
 		if (models.isEmpty()) {
 			throw new ProcessingException("Cannot find any model to unbind '" + data + "'", context);
@@ -168,7 +167,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends T> void unbindImpl(ProcessingContext context, Model.Effective<? super U> model,
+	private <U extends T> void unbindImpl(ProcessingContext context, Model<? super U> model,
 			StructuredDataTarget output) {
 		output.registerDefaultNamespaceHint(model.name().getNamespace());
 

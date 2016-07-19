@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public abstract class NodeBinding<T, N extends BindingNode.Effective<T, ?, ?>> {
+public abstract class NodeBinding<T, N extends BindingNode<T, N>> {
 	private final N node;
 	private final T data;
 

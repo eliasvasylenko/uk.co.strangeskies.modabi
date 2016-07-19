@@ -35,12 +35,12 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
-public interface ProcessingExceptionText extends Properties<ProcessingExceptionText> {
+public interface ProcessingExceptionProperties extends Properties<ProcessingExceptionProperties> {
 	ModabiExceptionText modabiException();
 
 	Localized<String> bindingObjects(Collection<? extends Object> bindingObjectStack);
 
-	Localized<String> bindingNodes(Collection<? extends SchemaNode<?, ?>> bindingNodeStack);
+	Localized<String> bindingNodes(Collection<? extends SchemaNode<?>> bindingNodeStack);
 
 	Localized<String> noModelFound(QualifiedName modelName);
 
@@ -48,7 +48,7 @@ public interface ProcessingExceptionText extends Properties<ProcessingExceptionT
 
 	Localized<String> mustHaveChildren(QualifiedName name, InputBindingStrategy strategy);
 
-	Localized<String> cannotInvoke(Executable inputMethod, TypeToken<?> targetType, SchemaNode<?, ?> node,
+	Localized<String> cannotInvoke(Executable inputMethod, TypeToken<?> targetType, SchemaNode<?> node,
 			List<?> parameters);
 
 	Localized<String> mustHaveData(QualifiedName node);
@@ -59,7 +59,7 @@ public interface ProcessingExceptionText extends Properties<ProcessingExceptionT
 
 	Localized<String> noProviderFound(TypeToken<?> type);
 
-	default Localized<String> mustHaveDataWithinRange(BindingChildNode<?, ?, ?> node) {
+	default Localized<String> mustHaveDataWithinRange(BindingChildNode<?, ?> node) {
 		return mustHaveDataWithinRange(node.name(), Range.compose(node.occurrences()));
 	}
 

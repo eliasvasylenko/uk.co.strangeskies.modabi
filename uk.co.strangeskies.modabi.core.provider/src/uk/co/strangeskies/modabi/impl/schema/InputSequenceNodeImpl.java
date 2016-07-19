@@ -47,7 +47,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 				throw new ModabiException(t -> t.cannotDefineInputInContext(name()));
 
 			List<TypeToken<?>> parameterClasses = overrideMerge.configurator().getChildrenContainer().getChildren().stream()
-					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective()).dataType()).collect(Collectors.toList());
+					.map(o -> ((BindingChildNodeImpl< ?, ?>) o.effective()).dataType()).collect(Collectors.toList());
 
 			InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
 					abstractness(), name(), overrideMerge, overrideMerge.configurator().getContext(), parameterClasses);

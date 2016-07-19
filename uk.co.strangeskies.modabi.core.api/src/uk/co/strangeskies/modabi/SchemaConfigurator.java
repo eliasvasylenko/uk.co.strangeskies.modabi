@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.factory.Factory;
+import uk.co.strangeskies.utilities.Factory;
 
 public interface SchemaConfigurator extends Factory<Schema> {
 	SchemaConfigurator qualifiedName(QualifiedName name);
@@ -69,7 +69,7 @@ public interface SchemaConfigurator extends Factory<Schema> {
 	}
 
 	default SchemaConfigurator generateModels(Class<?>... types) {
-		return generateModels(Arrays.stream(types).<TypeToken<?>> map(TypeToken::over).collect(Collectors.toList()));
+		return generateModels(Arrays.stream(types).<TypeToken<?>>map(TypeToken::over).collect(Collectors.toList()));
 	}
 
 	<T> Model<T> generateModel(TypeToken<T> type);
@@ -89,7 +89,7 @@ public interface SchemaConfigurator extends Factory<Schema> {
 	}
 
 	default SchemaConfigurator generateDataTypes(Class<?>... types) {
-		return generateDataTypes(Arrays.stream(types).<TypeToken<?>> map(TypeToken::over).collect(Collectors.toList()));
+		return generateDataTypes(Arrays.stream(types).<TypeToken<?>>map(TypeToken::over).collect(Collectors.toList()));
 	}
 
 	<T> DataType<T> generateDataType(TypeToken<T> type);

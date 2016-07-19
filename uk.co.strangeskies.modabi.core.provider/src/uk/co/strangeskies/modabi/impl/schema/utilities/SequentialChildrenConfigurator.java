@@ -73,7 +73,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	private class MergeGroup {
 		private final QualifiedName name;
-		private final Set<ChildNode.Effective<?, ?>> children;
+		private final Set<ChildNode<?>> children;
 		private boolean overridden;
 
 		public MergeGroup(QualifiedName name, int index) {
@@ -93,24 +93,24 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			return mergedChildren.indexOf(this);
 		}
 
-		public ChildNode.Effective<?, ?> getChild() {
+		public ChildNode<?> getChild() {
 			if (children.size() > 1)
 				throw new ModabiException(t -> t.mustOverrideMultiplyInherited(getName()));
 
 			return children.stream().findAny().get();
 		}
 
-		public Set<ChildNode.Effective<?, ?>> getChildren() {
+		public Set<ChildNode<?>> getChildren() {
 			return Collections.unmodifiableSet(children);
 		}
 
-		public boolean addChild(ChildNode.Effective<?, ?> child) {
+		public boolean addChild(ChildNode<?> child) {
 			if (overridden)
 				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			return children.add(child);
 		}
 
-		public void override(ChildNode.Effective<?, ?> result) {
+		public void override(ChildNode<?> result) {
 			if (overridden)
 				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			children.clear();
@@ -124,7 +124,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 	private final SchemaNodeConfigurationContext context;
 
-	private final List<ChildNode<?, ?>> children;
+	private final List<ChildNode<?>> children;
 	private final List<MergeGroup> mergedChildren;
 	private final Map<QualifiedName, MergeGroup> namedMergeGroups;
 
@@ -137,12 +137,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
-		List<? extends SchemaNode<?, ?>> reversedNodes = new ArrayList<>(context.overriddenNodes());
+		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(context.overriddenNodes());
 		Collections.reverse(reversedNodes);
-		for (SchemaNode<?, ?> overriddenNode : reversedNodes) {
+		for (SchemaNode<?> overriddenNode : reversedNodes) {
 			int index = 0;
 
-			for (ChildNode.Effective<?, ?> child : overriddenNode.effective().children()) {
+			for (ChildNode<?> child : overriddenNode.children()) {
 				MergeGroup group = merge(child.name(), index);
 				group.addChild(child);
 				index = group.getIndex() + 1;
@@ -183,20 +183,17 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 	}
 
 	@Override
-	public ChildrenContainer create() {
+	public List<ChildNode<?>> create() {
 		if (!mergedChildren.isEmpty()) {
 			checkRequiredOverrides(null, mergedChildren.size());
 		}
 
-		List<ChildNode.Effective<?, ?>> effectiveChildren = mergedChildren.stream().map(MergeGroup::getChild)
-				.collect(Collectors.toList());
-
-		return new ChildrenContainer(children, effectiveChildren);
+		return mergedChildren.stream().map(MergeGroup::getChild).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
-		List<ChildNode.Effective<?, ?>> overriddenNodes = new ArrayList<>();
+	private <U extends ChildNode<?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
+		List<ChildNode<?>> overriddenNodes = new ArrayList<>();
 
 		MergeGroup mergeGroup = namedMergeGroups.get(id);
 		if (mergeGroup != null) {
@@ -225,11 +222,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		for (; childIndex < indexReached; childIndex++) {
 			MergeGroup skippedGroup = mergedChildren.get(childIndex);
-			ChildNode.Effective<?, ?> skippedChild = skippedGroup.getChild();
+			ChildNode<?> skippedChild = skippedGroup.getChild();
 
 			if (!context.isAbstract() && skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
 					&& !(skippedChild instanceof BindingChildNode
-							&& Boolean.TRUE.equals(((BindingChildNode<?, ?, ?>) skippedChild).extensible()))) {
+							&& Boolean.TRUE.equals(((BindingChildNode<?, ?>) skippedChild).extensible()))) {
 				throw new ModabiException(t -> t.mustOverrideAbstractNode(skippedChild.name(), id));
 			}
 
@@ -237,23 +234,21 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		}
 	}
 
-	private void addChild(ChildNode<?, ?> result) {
+	private void addChild(ChildNode<?> result) {
 		blocked = false;
 		children.add(result);
 
-		ChildNode.Effective<?, ?> effective = result.effective();
-
-		MergeGroup group = merge(effective.name(), childIndex);
-		group.override(effective);
+		MergeGroup group = merge(result.name(), childIndex);
+		group.override(result);
 		childIndex = group.getIndex() + 1;
 
-		inputTarget = effective.postInputType();
+		inputTarget = result.postInputType();
 
 		if ((constructorExpected || staticMethodExpected)
 
-				&& effective instanceof InputNode
+				&& result instanceof InputNode
 
-				&& !"null".equals(((InputNode<?, ?>) effective).inMethodName())) {
+				&& !"null".equals(((InputNode<?>) result).inMethodName())) {
 
 			constructorExpected = staticMethodExpected = false;
 		}
@@ -296,12 +291,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public <U extends ChildNode<?, ?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
+			public <U extends ChildNode<?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
 				return SequentialChildrenConfigurator.this.overrideChild(id, nodeType);
 			}
 
 			@Override
-			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+			public List<? extends SchemaNode<?>> overriddenNodes() {
 				return context.overriddenNodes();
 			}
 
@@ -334,12 +329,12 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public void addChild(ChildNode<?, ?> result) {
+			public void addChild(ChildNode<?> result) {
 				SequentialChildrenConfigurator.this.addChild(result);
 			}
 
 			@Override
-			public SchemaNode<?, ?> parentNodeProxy() {
+			public SchemaNode<?> parentNodeProxy() {
 				return context.parentNodeProxy();
 			}
 		};

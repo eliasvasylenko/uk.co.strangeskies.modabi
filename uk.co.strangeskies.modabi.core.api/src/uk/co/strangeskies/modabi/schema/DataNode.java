@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.schema;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,48 +31,43 @@ import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public interface DataNode<T> extends BindingChildNode<T, DataNode<T>, DataNode.Effective<T>> {
-	interface Effective<T> extends DataNode<T>, BindingChildNode.Effective<T, DataNode<T>, Effective<T>> {
-		@Override
-		default void process(NodeProcessor context) {
-			context.accept(this);
-		}
+public interface DataNode<T> extends BindingChildNode<T, DataNode<T>> {
+	@Override
+	default void process(NodeProcessor context) {
+		context.accept(this);
+	}
 
-		@Override
-		DataType.Effective<? super T> type();
+	@Override
+	default List<DataType<? super T>> base() {
+		List<DataType<? super T>> base = new ArrayList<>();
 
-		@Override
-		default List<DataType.Effective<? super T>> base() {
-			List<DataType.Effective<? super T>> base = new ArrayList<>();
+		DataType<? super T> baseComponent = type();
+		do {
+			base.add(baseComponent);
+			baseComponent = baseComponent.baseType();
+		} while (baseComponent != null);
 
-			DataType.Effective<? super T> baseComponent = type();
-			do {
-				base.add(baseComponent);
-				baseComponent = baseComponent.baseType();
-			} while (baseComponent != null);
+		return base;
+	}
 
-			return base;
-		}
+	List<T> providedValues();
 
-		List<T> providedValues();
+	default List<TypedObject<T>> typedProvidedValues() {
+		return providedValues().stream().map(dataType()::typedObject).collect(Collectors.toList());
+	}
 
-		default List<TypedObject<T>> typedProvidedValues() {
-			return providedValues().stream().map(dataType()::typedObject).collect(Collectors.toList());
-		}
+	default T providedValue() {
+		if (!Range.between(0, 1).contains(occurrences()))
+			throw new ModabiException(t -> t.cannotProvideSingleValue(name(), occurrences()));
 
-		default T providedValue() {
-			if (!Range.between(0, 1).contains(occurrences()))
-				throw new ModabiException(t -> t.cannotProvideSingleValue(name(), occurrences()));
+		if (providedValues() == null || providedValues().isEmpty())
+			return null;
+		else
+			return providedValues().get(0);
+	}
 
-			if (providedValues() == null || providedValues().isEmpty())
-				return null;
-			else
-				return providedValues().get(0);
-		}
-
-		default TypedObject<T> typedProvidedValue() {
-			return dataType().typedObject(providedValue());
-		}
+	default TypedObject<T> typedProvidedValue() {
+		return dataType().typedObject(providedValue());
 	}
 
 	enum Format {
@@ -104,11 +98,6 @@ public interface DataNode<T> extends BindingChildNode<T, DataNode<T>, DataNode.E
 	ValueResolution valueResolution();
 
 	DataType<? super T> type();
-
-	@Override
-	default List<? extends DataType<? super T>> base() {
-		return Arrays.asList(type());
-	}
 
 	@Override
 	default TypeToken<DataNode<T>> getThisType() {

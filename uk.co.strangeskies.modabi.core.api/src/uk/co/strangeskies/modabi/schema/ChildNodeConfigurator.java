@@ -25,7 +25,7 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
+public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<N>>
 		extends SchemaNodeConfigurator<S, N> {
 	/**
 	 * Here we can just provide a string name instead of a fully qualified name,
@@ -39,8 +39,7 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	S occurrences(Range<Integer> occuranceRange);
 
 	default S optional(boolean optional) {
-		return optional ? occurrences(Range.between(0, 1))
-				: occurrences(Range.between(1, 1));
+		return optional ? occurrences(Range.between(0, 1)) : occurrences(Range.between(1, 1));
 	}
 
 	S ordered(boolean ordered);

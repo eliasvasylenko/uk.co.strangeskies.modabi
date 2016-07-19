@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
+public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
 		implements BindingNodeConfigurator<S, N, T> {
 	private S component;
 

@@ -35,21 +35,21 @@ import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
-		implements BindingNode.Effective<T, S, E> {
-	private final BindingNode.Effective<?, ?, ?> component;
+public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>, S extends BindingNode<T, S>>
+		implements BindingNode<T, S> {
+	private final BindingNode<?, ?> component;
 	private final B base;
 
 	private final TypeToken<T> dataType;
 
-	public BindingNodeWrapper(BindingNode.Effective<T, ?, ?> component) {
+	public BindingNodeWrapper(BindingNode<T, ?> component) {
 		this.component = component;
 		base = null;
 		dataType = component.dataType();
 	}
 
 	@SuppressWarnings("unchecked")
-	public BindingNodeWrapper(B base, BindingNode.Effective<?, ?, ?> component) {
+	public BindingNodeWrapper(B base, BindingNode<?, ?> component) {
 		this.component = component;
 		this.base = base;
 
@@ -113,7 +113,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 				t -> t.cannotOverrideIncompatibleProperty(property::apply, base, baseValue, overrideValue), cause);
 	}
 
-	public BindingNode.Effective<?, ?, ?> getComponent() {
+	public BindingNode<?, ?> getComponent() {
 		return component;
 	}
 
@@ -177,7 +177,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final List<ChildNode.Effective<?, ?>> children() {
+	public final List<ChildNode<?>> children() {
 		return component.children();
 	}
 
@@ -187,14 +187,8 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final List<DataNode.Effective<?>> providedUnbindingMethodParameters() {
+	public final List<DataNode<?>> providedUnbindingMethodParameters() {
 		return component.providedUnbindingMethodParameters();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public S source() {
-		return (S) this;
 	}
 
 	@Override
@@ -203,7 +197,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public BindingNode.Effective<?, ?, ?> root() {
+	public BindingNode<?, ?> root() {
 		return component.root();
 	}
 

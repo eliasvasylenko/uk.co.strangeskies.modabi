@@ -43,7 +43,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		extends BindingNodeImpl<T, S, E> implements BindingChildNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 			extends BindingNodeImpl.Effective<T, S, E> implements BindingChildNode.Effective<T, S, E> {
-		private final SchemaNode.Effective<?, ?> parent;
+		private final SchemaNode< ?> parent;
 
 		private final Boolean nullIfOmitted;
 		private final Range<Integer> occurrences;
@@ -159,7 +159,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@Override
-		public SchemaNode.Effective<?, ?> parent() {
+		public SchemaNode< ?> parent() {
 			return parent;
 		}
 
@@ -263,7 +263,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			return iterableType;
 		}
 
-		protected static Invokable<?, ?> getOutMethod(BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
+		protected static Invokable<?, ?> getOutMethod(BindingChildNode< ?, ?> node, Method inheritedOutMethod,
 				TypeToken<?> receiverType, BoundSet bounds) {
 			if (receiverType == null) {
 				throw new ModabiException(t -> t.cannotFindOutMethodWithoutTargetType(node));
@@ -315,7 +315,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			return outMethod;
 		}
 
-		private static List<String> generateOutMethodNames(BindingChildNode.Effective<?, ?, ?> node, Class<?> resultClass) {
+		private static List<String> generateOutMethodNames(BindingChildNode< ?, ?> node, Class<?> resultClass) {
 			List<String> names;
 
 			if (node.outMethodName() != null)
@@ -330,7 +330,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		@Override
 		public boolean equals(Object that) {
 			return super.equals(that) && that instanceof ChildNode.Effective
-					&& Objects.equals(parent(), ((ChildNode.Effective<?, ?>) that).parent());
+					&& Objects.equals(parent(), ((ChildNode< ?>) that).parent());
 		}
 
 		@Override

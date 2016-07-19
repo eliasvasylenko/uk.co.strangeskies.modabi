@@ -54,7 +54,6 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.SchemaNode.Effective;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -65,19 +64,19 @@ public class ProcessingContextImpl implements ProcessingContext {
 	private final SchemaManager manager;
 
 	private final List<TypedObject<?>> objectStack;
-	private final List<SchemaNode.Effective<?, ?>> nodeStack;
+	private final List<SchemaNode<?>> nodeStack;
 	private final Bindings bindings; // TODO erase bindings in failed sections
 
 	/*
 	 * Model and DataType caches
 	 */
-	private final Function<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode.Effective<?>>> dataTypeCache;
-	private final Function<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode.Effective<?>>> modelCache;
+	private final Function<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode<?>>> dataTypeCache;
+	private final Function<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode<?>>> modelCache;
 
 	/*
 	 * Fetch model
 	 */
-	private final Function<QualifiedName, Model.Effective<?>> getModel;
+	private final Function<QualifiedName, Model<?>> getModel;
 
 	private final Provisions provisions;
 
@@ -100,16 +99,13 @@ public class ProcessingContextImpl implements ProcessingContext {
 		nodeStack = Collections.emptyList();
 		bindings = new Bindings();
 
-		dataTypeCache = new LRUCacheComputingMap<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode.Effective<?>>>(
-				node -> getDataNodeOverrideMap(node.effective()), 150, true)::putGet;
+		dataTypeCache = new LRUCacheComputingMap<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode<?>>>(
+				node -> getDataNodeOverrideMap(node), 150, true)::putGet;
 
-		modelCache = new LRUCacheComputingMap<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode.Effective<?>>>(
-				node -> getComplexNodeOverrideMap(node.effective()), 150, true)::putGet;
+		modelCache = new LRUCacheComputingMap<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode<?>>>(
+				node -> getComplexNodeOverrideMap(node), 150, true)::putGet;
 
-		getModel = name -> {
-			Model<?> model = manager.registeredModels().get(name);
-			return model == null ? null : model.effective();
-		};
+		getModel = name -> manager.registeredModels().get(name);
 
 		provisions = manager.provisions();
 		exhaustive = true;
@@ -145,8 +141,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	protected ProcessingContextImpl(ProcessingContext parentContext, List<TypedObject<?>> objectStack,
-			List<SchemaNode.Effective<?, ?>> nodeStack, StructuredDataSource input, StructuredDataTarget output,
-			Provisions provider, boolean exhaustive, BindingBlocker blocker) {
+			List<SchemaNode<?>> nodeStack, StructuredDataSource input, StructuredDataTarget output, Provisions provider,
+			boolean exhaustive, BindingBlocker blocker) {
 		manager = parentContext.manager();
 
 		this.objectStack = objectStack;
@@ -176,7 +172,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	public List<Effective<?, ?>> getBindingNodeStack() {
+	public List<SchemaNode<?>> getBindingNodeStack() {
 		return nodeStack;
 	}
 
@@ -195,46 +191,41 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return Optional.ofNullable(output);
 	}
 
-	private <T> ComputingMap<DataType<?>, DataNode.Effective<? extends T>> getDataNodeOverrideMap(
-			DataNode.Effective<T> node) {
-		List<DataType<?>> types = registeredTypes.getTypesWithBase(node).stream().map(n -> n.source())
+	private <T> ComputingMap<DataType<?>, DataNode<? extends T>> getDataNodeOverrideMap(DataNode<T> node) {
+		List<DataType<?>> types = registeredTypes.getTypesWithBase(node).stream()
 				.collect(Collectors.toCollection(ArrayList::new));
 
-		ComputingMap<DataType<?>, DataNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
-				type -> getDataNodeOverride(node, type.effective()));
+		ComputingMap<DataType<?>, DataNode<? extends T>> overrideMap = new DeferredComputingMap<>(
+				type -> getDataNodeOverride(node, type));
 		overrideMap.putAll(types);
 
 		return overrideMap;
 	}
 
-	private <T> DataNode.Effective<? extends T> getDataNodeOverride(DataNode.Effective<T> node,
-			DataType.Effective<?> type) {
+	private <T> DataNode<? extends T> getDataNodeOverride(DataNode<T> node, DataType<?> type) {
 		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, type);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> ComputingMap<Model<?>, ComplexNode.Effective<? extends T>> getComplexNodeOverrideMap(
-			ComplexNode.Effective<T> node) {
+	private <T> ComputingMap<Model<?>, ComplexNode<? extends T>> getComplexNodeOverrideMap(ComplexNode<T> node) {
 		List<Model<? extends T>> models;
 
 		if (node.model() != null && !node.model().isEmpty()) {
-			models = registeredModels.getModelsWithBase(node.model()).stream().map(SchemaNode::source)
-					.filter(n -> node.dataType().isAssignableFrom(n.effective().dataType())).collect(Collectors.toList());
+			models = registeredModels.getModelsWithBase(node.model()).stream()
+					.filter(n -> node.dataType().isAssignableFrom(n.dataType())).collect(Collectors.toList());
 		} else {
-			models = registeredModels.stream().map(SchemaNode::source)
-					.filter(c -> node.dataType().isAssignableFrom(c.effective().dataType()))
-					.map(m -> (Model.Effective<? extends T>) m.effective()).collect(Collectors.toList());
+			models = registeredModels.stream().filter(c -> node.dataType().isAssignableFrom(c.dataType()))
+					.map(m -> (Model<? extends T>) m).collect(Collectors.toList());
 		}
 
-		ComputingMap<Model<?>, ComplexNode.Effective<? extends T>> overrideMap = new DeferredComputingMap<>(
-				model -> getComplexNodeOverride(node, model.effective()));
+		ComputingMap<Model<?>, ComplexNode<? extends T>> overrideMap = new DeferredComputingMap<>(
+				model -> getComplexNodeOverride(node, model));
 		overrideMap.putAll(models);
 
 		return overrideMap;
 	}
 
-	private <T> ComplexNode.Effective<? extends T> getComplexNodeOverride(ComplexNode.Effective<T> node,
-			Model.Effective<?> model) {
+	private <T> ComplexNode<? extends T> getComplexNodeOverride(ComplexNode<T> node, Model<?> model) {
 		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, model);
 	}
 
@@ -254,22 +245,20 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	public Model.Effective<?> getModel(QualifiedName nextElement) {
+	public Model<?> getModel(QualifiedName nextElement) {
 		return getModel.apply(nextElement);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(
-			DataNode<T> node) {
-		return (ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>>) dataTypeCache.apply(node.source());
+	public <T> ComputingMap<DataType<? extends T>, DataNode<? extends T>> getDataNodeOverrides(DataNode<T> node) {
+		return (ComputingMap<DataType<? extends T>, DataNode<? extends T>>) dataTypeCache.apply(node);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(
-			ComplexNode<T> node) {
-		return (ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>>) modelCache.apply(node.source());
+	public <T> ComputingMap<Model<? extends T>, ComplexNode<? extends T>> getComplexNodeOverrides(ComplexNode<T> node) {
+		return (ComputingMap<Model<? extends T>, ComplexNode<? extends T>>) modelCache.apply(node);
 	}
 
 	@Override
@@ -307,16 +296,16 @@ public class ProcessingContextImpl implements ProcessingContext {
 				provisions, exhaustive, bindingFutureBlocker);
 	}
 
-	public <T> ProcessingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node) {
+	public <T> ProcessingContextImpl withBindingNode(SchemaNode<?> node) {
 		return withBindingNode(node, false);
 	}
 
-	public <T> ProcessingContextImpl withReplacementBindingNode(SchemaNode.Effective<?, ?> node) {
+	public <T> ProcessingContextImpl withReplacementBindingNode(SchemaNode<?> node) {
 		return withBindingNode(node, true);
 	}
 
-	public <T> ProcessingContextImpl withBindingNode(SchemaNode.Effective<?, ?> node, boolean replace) {
-		List<SchemaNode.Effective<?, ?>> nodeStack = new ArrayList<>(this.nodeStack);
+	public <T> ProcessingContextImpl withBindingNode(SchemaNode<?> node, boolean replace) {
+		List<SchemaNode<?>> nodeStack = new ArrayList<>(this.nodeStack);
 		if (replace && !nodeStack.isEmpty()) {
 			nodeStack.set(nodeStack.size() - 1, node);
 		} else {

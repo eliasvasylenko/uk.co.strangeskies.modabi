@@ -20,12 +20,8 @@ package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.reflection.Invokable;
 
-public interface BindingChildNode<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
-		extends BindingNode<T, S, E>, InputNode<S, E> {
-	interface Effective<T, S extends BindingChildNode<T, S, E>, E extends Effective<T, S, E>>
-			extends BindingChildNode<T, S, E>, BindingNode.Effective<T, S, E>, InputNode.Effective<S, E> {
-		Invokable<?, ?> outMethod();
-	}
+public interface BindingChildNode<T, S extends BindingChildNode<T, S>> extends BindingNode<T, S>, InputNode<S> {
+	Invokable<?, ?> outMethod();
 
 	Boolean synchronous();
 

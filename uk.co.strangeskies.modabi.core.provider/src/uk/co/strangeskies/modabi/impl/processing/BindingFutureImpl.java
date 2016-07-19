@@ -69,8 +69,8 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			};
 		}
 
-		public Model.Effective<T> getModel() {
-			return model.effective();
+		public Model<T> getModel() {
+			return model;
 		}
 
 		public void withData(Consumer<StructuredDataSource> runnable) {
@@ -190,7 +190,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 			T data = getData.tryGet();
 
-			bindingResult = new Binding<>(model.effective(), data);
+			bindingResult = new Binding<>(model, data);
 
 			return bindingResult;
 		} catch (InterruptedException e) {
@@ -223,7 +223,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	private T bind(BindingSource<T> source) {
-		Model.Effective<T> model = source.getModel();
+		Model<T> model = source.getModel();
 		return source.withData((StructuredDataSource input) -> {
 			ProcessingContextImpl context = this.context.withInput(input);
 

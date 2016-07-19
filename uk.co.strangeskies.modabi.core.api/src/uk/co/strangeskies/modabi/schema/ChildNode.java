@@ -21,14 +21,8 @@ package uk.co.strangeskies.modabi.schema;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>> extends SchemaNode<S, E> {
-	interface Effective<S extends ChildNode<S, E>, E extends Effective<S, E>>
-			extends ChildNode<S, E>, SchemaNode.Effective<S, E> {
-		TypeToken<?> preInputType();
-
-		@Override
-		SchemaNode.Effective<?, ?> parent();
-	}
+public interface ChildNode<S extends ChildNode<S>> extends SchemaNode<S> {
+	TypeToken<?> preInputType();
 
 	/**
 	 * Default behaviour is as if 1..1.
@@ -52,5 +46,5 @@ public interface ChildNode<S extends ChildNode<S, E>, E extends ChildNode.Effect
 		return postInputType() == null ? null : postInputType().toString(schema().imports());
 	}
 
-	SchemaNode<?, ?> parent();
+	SchemaNode<?> parent();
 }

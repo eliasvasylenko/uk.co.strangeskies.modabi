@@ -20,8 +20,8 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.schema.Model;
 
-public class Binding<T> extends NodeBinding<T, Model.Effective<T>> {
-	public Binding(Model.Effective<T> model, T data) {
+public class Binding<T> extends NodeBinding<T, Model<T>> {
+	public Binding(Model<T> model, T data) {
 		super(model, data);
 	}
 }
