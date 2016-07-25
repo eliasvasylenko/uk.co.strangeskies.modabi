@@ -8,6 +8,7 @@ Bundle-Description: \
 
 -buildpath: \
 	${ss;utilities},\
+	${ss;text},\
 	${ss;mathematics},\
 	${ss;reflection}
 
@@ -25,3 +26,6 @@ Export-Package: \
 	uk.co.strangeskies.modabi.processing.providers,\
 	uk.co.strangeskies.modabi.schema,\
 	uk.co.strangeskies.modabi.schema.building
+
+-includeresource: \
+	OSGI-INF/l10n=l10n

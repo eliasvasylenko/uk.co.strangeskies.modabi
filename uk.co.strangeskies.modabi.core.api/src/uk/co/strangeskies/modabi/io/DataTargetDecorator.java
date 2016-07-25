@@ -39,7 +39,7 @@ public class DataTargetDecorator implements DataTarget {
 
 	private void checkTransition(DataStreamState to) {
 		if (currentState == DataStreamState.TERMINATED || to == DataStreamState.UNSTARTED)
-			throw new ModabiIOException("Cannot move to state '" + currentState + "' from state '" + to + "'");
+			throw new ModabiIoException(t -> t.illegalStateTransition(currentState, to));
 		currentState = to;
 	}
 

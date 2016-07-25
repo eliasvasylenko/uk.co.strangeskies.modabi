@@ -12,9 +12,7 @@ Bundle-Description: \
 	${ss;mathematics},\
 	${ss;scripting.management},\
 	${ss;scripting.engine.javascript},\
-	${ss;osgi.consolelog},\
-	${ss;osgi.utilities},\
-	${ss;osgi.logging},\
+	${ss;osgi.api},\
 	${mdb;core.api},\
 	${mdb;scripting},\
 	${testpath.base}
@@ -25,8 +23,8 @@ Bundle-Description: \
 -pluginpath: \
 	${pluginpath.modabi;xml}
 
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+#-plugin: \
+#	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
 
 -includeresource: \
 	META-INF/schemata=schemata
@@ -54,9 +52,9 @@ Test-Cases: ${test-cases}
 
 -runrequires: \
 	${req;biz.aQute.tester},\
-	${req;uk.co.strangeskies.engine.language.javascript},\
+	${req;uk.co.strangeskies.scripting.engine.javascript},\
 	${req;uk.co.strangeskies.modabi.scripting.test},\
-	${req;uk.co.strangeskies.osgi.consolelog},\
+	${req;uk.co.strangeskies.osgi.provider},\
 	${req;org.apache.aries.spifly.dynamic.bundle}
 
 -runbundles: \

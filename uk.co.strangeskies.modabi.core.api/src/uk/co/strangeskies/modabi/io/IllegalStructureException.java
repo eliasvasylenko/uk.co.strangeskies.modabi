@@ -18,20 +18,16 @@
  */
 package uk.co.strangeskies.modabi.io;
 
-public class ModabiIOException extends RuntimeException {
+import uk.co.strangeskies.text.properties.Localized;
+
+public class IllegalStructureException extends ModabiIoException {
 	private static final long serialVersionUID = 1L;
 
-	public ModabiIOException() {}
-
-	public ModabiIOException(String message, Throwable cause) {
+	public IllegalStructureException(Localized<String> message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ModabiIOException(String message) {
+	public IllegalStructureException(Localized<String> message) {
 		super(message);
-	}
-
-	public ModabiIOException(Throwable cause) {
-		super(cause);
 	}
 }

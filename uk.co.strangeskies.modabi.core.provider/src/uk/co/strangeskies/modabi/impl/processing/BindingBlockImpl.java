@@ -22,8 +22,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
@@ -125,7 +125,7 @@ public class BindingBlockImpl implements BindingBlock {
 			failure = cause;
 
 			if (failure == null) {
-				failure = new SchemaException("No cause of failure given for " + this);
+				failure = new ModabiException(t -> t.unknownBlockingError(this));
 			}
 
 			notifyAll();

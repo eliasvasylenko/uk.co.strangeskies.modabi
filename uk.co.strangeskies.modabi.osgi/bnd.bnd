@@ -9,7 +9,8 @@ Bundle-SymbolicName: ${p};singleton:=true
 -buildpath: \
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	${ss;reflection},\
-	${ss;utilities}
+	${ss;utilities},\
+	${ss;text}
 
 Export-Package: \
 	uk.co.strangeskies.modabi.osgi

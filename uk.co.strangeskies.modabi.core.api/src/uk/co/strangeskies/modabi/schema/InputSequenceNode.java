@@ -21,13 +21,10 @@ package uk.co.strangeskies.modabi.schema;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface InputSequenceNode extends InputNode<InputSequenceNode, InputSequenceNode.Effective>,
-		ChildNode<InputSequenceNode, InputSequenceNode.Effective> {
-	interface Effective extends InputSequenceNode, InputNode.Effective<InputSequenceNode, Effective> {
-		@Override
-		default void process(NodeProcessor context) {
-			context.accept(this);
-		}
+public interface InputSequenceNode extends InputNode<InputSequenceNode>, ChildNode<InputSequenceNode> {
+	@Override
+	default void process(NodeProcessor context) {
+		context.accept(this);
 	}
 
 	@Override

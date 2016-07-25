@@ -21,59 +21,54 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-public class ComplexNodeWrapper<T>
-		extends BindingChildNodeWrapper<T, ComplexNode.Effective<? super T>, ComplexNode<T>, ComplexNode.Effective<T>>
-		implements ComplexNode.Effective<T> {
-	private final List<Model.Effective<? super T>> model;
+public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNode<? super T>, ComplexNode<T>>
+		implements ComplexNode<T> {
+	private final List<Model<? super T>> model;
 
-	protected ComplexNodeWrapper(Model.Effective<T> component) {
+	protected ComplexNodeWrapper(Model<T> component) {
 		super(component);
 		model = component.baseModel();
 	}
 
-	protected ComplexNodeWrapper(ComplexNode.Effective<? super T> base, Model.Effective<? super T> component) {
+	protected ComplexNodeWrapper(ComplexNode<? super T> base, Model<? super T> component) {
 		super(base, component);
 		model = new ArrayList<>(component.baseModel());
 		model.add(0, component);
 
-		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
-
-		if (!component.baseModel().containsAll(base.model()))
-			throw new SchemaException(message);
+		if (!component.base().containsAll(base.base()))
+			throw this.<Object>getOverrideException(ComplexNode::model, base.base(), component.base(), null);
 	}
 
-	protected ComplexNodeWrapper(ComplexNode.Effective<T> node) {
+	protected ComplexNodeWrapper(ComplexNode<T> node) {
 		super(node, node);
 		model = node.model();
 	}
 
-	public static <T> ComplexNodeWrapper<T> wrapType(Model.Effective<T> component) {
+	public static <T> ComplexNodeWrapper<T> wrapType(Model<T> component) {
 		return new ComplexNodeWrapper<>(component);
 	}
 
-	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(ComplexNode.Effective<T> node,
-			Model.Effective<?> override) {
+	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(ComplexNode<T> node, Model<?> override) {
 		/*
 		 * This cast isn't strictly going to be valid according to the exact erased
 		 * type, but the runtime checks in the constructor should ensure the types
 		 * do fit the bounds
 		 */
 		@SuppressWarnings("unchecked")
-		Model.Effective<? super T> castOverride = (Model.Effective<? super T>) override;
+		Model<? super T> castOverride = (Model<? super T>) override;
 		return new ComplexNodeWrapper<>(node, castOverride);
 	}
 
-	public static <T> ComplexNodeWrapper<T> wrapNode(ComplexNode.Effective<T> node) {
+	public static <T> ComplexNodeWrapper<T> wrapNode(ComplexNode<T> node) {
 		return new ComplexNodeWrapper<>(node);
 	}
 
 	@Override
-	public List<Model.Effective<? super T>> model() {
+	public List<Model<? super T>> model() {
 		return model;
 	}
 
@@ -83,7 +78,7 @@ public class ComplexNodeWrapper<T>
 	}
 
 	@Override
-	public SchemaNode.Effective<?, ?> parent() {
+	public SchemaNode<?> parent() {
 		return getBase() == null ? null : getBase().parent();
 	}
 }

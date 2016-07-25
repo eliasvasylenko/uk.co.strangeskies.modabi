@@ -25,7 +25,7 @@ import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Abstractness;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -43,7 +43,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		extends BindingNodeImpl<T, S, E> implements BindingChildNode<T, S, E> {
 	protected static abstract class Effective<T, S extends BindingChildNode<T, S, E>, E extends BindingChildNode.Effective<T, S, E>>
 			extends BindingNodeImpl.Effective<T, S, E> implements BindingChildNode.Effective<T, S, E> {
-		private final SchemaNode.Effective<?, ?> parent;
+		private final SchemaNode< ?> parent;
 
 		private final Boolean nullIfOmitted;
 		private final Range<Integer> occurrences;
@@ -84,8 +84,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 			if (abstractness().isMoreThan(Abstractness.UNINFERRED) && !overrideMerge.configurator().getContext().isAbstract()
 					&& !extensible())
-				throw new SchemaException(
-						"Node '" + name() + "' has no abstract or extensible parents, so cannot be abstract.");
+				throw new ModabiException(t -> t.cannotBeAbstract(this));
 
 			ordered = overrideMerge.getOverride(BindingChildNode::ordered).orDefault(true).get();
 
@@ -110,21 +109,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 
 			outMethodName = overrideMerge.getOverride(BindingChildNode::outMethodName).tryGet();
 
-			/*
-			 * Determine effective 'null if omitted' property. Must be true for nodes
-			 * which form part of an inputSequence, or which bind their data into a
-			 * constructor or static factory.
-			 * 
-			 * TODO or maybe it should throw an exception in those cases if not true?
-			 */
-			boolean mustBeNullIfOmitted = !overrideMerge.configurator().getContext().isInputExpected()
-					|| overrideMerge.configurator().getContext().isConstructorExpected()
-					|| overrideMerge.configurator().getContext().isStaticMethodExpected();
 			nullIfOmitted = overrideMerge.getOverride(BindingChildNode::nullIfOmitted).validate((n, o) -> o || !n)
-					.orDefault(mustBeNullIfOmitted).get();
-			if (nullIfOmitted != null && !nullIfOmitted && mustBeNullIfOmitted) {
-				throw new SchemaException("'Null if omitted' property must be true for node '" + name() + "'");
-			}
+					.orDefault(false).get();
 
 			if (integrateIO) {
 				integrateIO(overrideMerge);
@@ -173,7 +159,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		}
 
 		@Override
-		public SchemaNode.Effective<?, ?> parent() {
+		public SchemaNode< ?> parent() {
 			return parent;
 		}
 
@@ -277,30 +263,28 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			return iterableType;
 		}
 
-		protected static Invokable<?, ?> getOutMethod(BindingChildNode.Effective<?, ?, ?> node, Method inheritedOutMethod,
+		protected static Invokable<?, ?> getOutMethod(BindingChildNode< ?, ?> node, Method inheritedOutMethod,
 				TypeToken<?> receiverType, BoundSet bounds) {
 			if (receiverType == null) {
-				throw new SchemaException(
-						"Can't find out method for node '" + node.name() + "' as target class cannot be found");
+				throw new ModabiException(t -> t.cannotFindOutMethodWithoutTargetType(node));
 			}
 
 			boolean outMethodCast = node.outMethodCast() != null && node.outMethodCast();
 
-			TypeToken<?> resultType = ((node.outMethodIterable() != null && node.outMethodIterable())
-					? getIteratorType(node) : node.dataType());
+			TypeToken<?> resultType = ((node.outMethodIterable() != null && node.outMethodIterable()) ? getIteratorType(node)
+					: node.dataType());
 
 			if (node.outMethodUnchecked() != null && node.outMethodUnchecked())
 				resultType = TypeToken.over(resultType.getRawType());
 
 			if (resultType == null)
-				throw new SchemaException(
-						"Can't find out method for node '" + node.name() + "' as result class cannot be found");
+				throw new ModabiException(t -> t.cannotFindOutMethodWithoutResultType(node));
 
 			Invokable<?, ?> outMethod;
 			if ("this".equals(node.outMethodName())) {
 				if (!resultType.isAssignableFrom(receiverType.resolve())) {
-					throw new SchemaException("Can't use out method 'this' for node '" + node.name() + "', as result class '"
-							+ resultType + "' cannot be assigned from target class '" + receiverType + "'");
+					TypeToken<?> resultTypeFinal = resultType;
+					throw new ModabiException(t -> t.incompatibleTypes(receiverType.getType(), resultTypeFinal.getType()));
 				}
 
 				outMethod = null;
@@ -320,12 +304,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 					outMethod = outMethod.withTargetType(resultType);
 				}
 			} else {
-				try {
-					outMethod = Methods.findMethod(generateOutMethodNames(node, resultType.getRawType()), receiverType, false,
-							resultType, outMethodCast);
-				} catch (NoSuchMethodException e) {
-					throw new SchemaException(e);
-				}
+				outMethod = Methods.findMethod(generateOutMethodNames(node, resultType.getRawType()), receiverType, false,
+						resultType, outMethodCast);
 			}
 
 			if (outMethod != null) {
@@ -335,7 +315,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 			return outMethod;
 		}
 
-		private static List<String> generateOutMethodNames(BindingChildNode.Effective<?, ?, ?> node, Class<?> resultClass) {
+		private static List<String> generateOutMethodNames(BindingChildNode< ?, ?> node, Class<?> resultClass) {
 			List<String> names;
 
 			if (node.outMethodName() != null)
@@ -350,7 +330,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		@Override
 		public boolean equals(Object that) {
 			return super.equals(that) && that instanceof ChildNode.Effective
-					&& Objects.equals(parent(), ((ChildNode.Effective<?, ?>) that).parent());
+					&& Objects.equals(parent(), ((ChildNode< ?>) that).parent());
 		}
 
 		@Override

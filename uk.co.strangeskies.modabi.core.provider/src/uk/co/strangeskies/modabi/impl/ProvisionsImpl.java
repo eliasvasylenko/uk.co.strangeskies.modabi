@@ -23,10 +23,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
@@ -46,10 +47,8 @@ public final class ProvisionsImpl extends ScopedObservableSet<Provisions, Provid
 
 	@Override
 	public <T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state) {
-		return new TypedObject<>(type,
-				visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull).findFirst()
-						.<SchemaException> orElseThrow(
-								() -> new SchemaException("No provider exists for the type '" + type + "'")));
+		return new TypedObject<>(type, visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull)
+				.findFirst().<ModabiException>orElseThrow(() -> new ProcessingException(t -> t.noProviderFound(type), state)));
 	}
 
 	@Override

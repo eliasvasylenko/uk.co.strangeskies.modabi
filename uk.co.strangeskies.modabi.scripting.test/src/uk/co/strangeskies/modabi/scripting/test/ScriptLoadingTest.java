@@ -95,15 +95,15 @@ public class ScriptLoadingTest {
 	public void loadRunnableScriptTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
-		manager.bind().from(() -> this.getResouce("RunnableScript")).resolve(1000);
+		manager.bindInput().from(() -> this.getResouce("RunnableScript")).resolve(1000);
 	}
 
 	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void executeRunnableScriptTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
-		Runnable runnable = manager.bind(getRunnableScriptModel(manager)).from(() -> this.getResouce("RunnableScript"))
-				.resolve(1000);
+		Runnable runnable = manager.bindInput().with(getRunnableScriptModel(manager))
+				.from(() -> this.getResouce("RunnableScript")).resolve(1000);
 
 		runnable.run();
 	}
@@ -112,15 +112,15 @@ public class ScriptLoadingTest {
 	public void loadFunctionScriptPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
-		manager.bind().from(() -> this.getResouce("RunnableScript")).resolve(1000);
+		manager.bindInput().from(() -> this.getResouce("RunnableScript")).resolve(1000);
 	}
 
 	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void executeFunctionScriptPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
-		Property<Function<String, String>, Function<String, String>> property = manager
-				.bind(getFunctionScriptPropertyModel(manager)).from(() -> this.getResouce("FunctionScriptProperty"))
+		Property<Function<String, String>, Function<String, String>> property = manager.bindInput()
+				.with(getFunctionScriptPropertyModel(manager)).from(() -> this.getResouce("FunctionScriptProperty"))
 				.resolve(1000);
 
 		String result = property.get().apply("capitalise me");
@@ -132,15 +132,15 @@ public class ScriptLoadingTest {
 	public void loadFunctionPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
-		manager.bind().from(() -> this.getResouce("FunctionProperty")).resolve(1000);
+		manager.bindInput().from(() -> this.getResouce("FunctionProperty")).resolve(1000);
 	}
 
 	@Test(timeout = TIMEOUT_MILLISECONDS)
 	public void executeFunctionPropertyTest() {
 		SchemaManager manager = getService(SchemaManager.class);
 
-		Property<Function<String, String>, Function<String, String>> property = manager
-				.bind(getFunctionPropertyModel(manager)).from(() -> this.getResouce("FunctionProperty")).resolve(1000);
+		Property<Function<String, String>, Function<String, String>> property = manager.bindInput()
+				.with(getFunctionPropertyModel(manager)).from(() -> this.getResouce("FunctionProperty")).resolve(1000);
 
 		String result = property.get().apply("UNCAPITALISE ME");
 

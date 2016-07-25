@@ -49,7 +49,6 @@ import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.DataNode.Effective;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
@@ -99,7 +98,7 @@ public class BindingProviders {
 		return context -> new DataLoader() {
 			@Override
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
-				return new DataNodeBinder<>(context, node.effective()).getBinding().stream().map(ChildNodeBinding::getData)
+				return new DataNodeBinder<>(context, node).getBinding().stream().map(ChildNodeBinding::getData)
 						.collect(toList());
 			}
 		};
@@ -125,7 +124,8 @@ public class BindingProviders {
 				}, idDomain, id, false);
 			}
 
-			public <T> T dereference(BindingNode<T, ?, ?> node) {
+			@Override
+			public <T> T dereference(BindingNode<T, ?> node) {
 				// TODO
 				return null;
 			}
@@ -147,10 +147,10 @@ public class BindingProviders {
 		 */
 		DataItem<?> id = idSource.get();
 
-		ChildNode<?, ?> child = model.effective().child(idDomain);
-		if (!(child instanceof DataNode.Effective<?>))
+		ChildNode<?> child = model.child(idDomain);
+		if (!(child instanceof DataNode<?>))
 			throw new ProcessingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
-		DataNode.Effective<?> idNode = (Effective<?>) child;
+		DataNode<?> idNode = (DataNode<?>) child;
 
 		/*
 		 * Resolve dependency!
@@ -207,7 +207,7 @@ public class BindingProviders {
 	}
 
 	private <U> boolean validateBindingCandidate(ProcessingContext context, U bindingCandidate, Model<U> model,
-			DataNode.Effective<?> idNode, DataItem<?> id) {
+			DataNode<?> idNode, DataItem<?> id) {
 		Objects.requireNonNull(bindingCandidate);
 
 		DataSource candidateId = unbindDataNode(context, idNode, new TypedObject<>(model.dataType(), bindingCandidate));
@@ -229,7 +229,7 @@ public class BindingProviders {
 		 * Should only have one raw type. Non-abstract models shouldn't be
 		 * intersection types.
 		 */
-		Class<?> rawType = model.effective().dataType().getRawType();
+		Class<?> rawType = model.dataType().getRawType();
 
 		/*
 		 * TODO check if raw type is actually proxiable...
@@ -261,7 +261,7 @@ public class BindingProviders {
 				});
 	}
 
-	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode.Effective<V> node, TypedObject<?> source) {
+	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode<V> node, TypedObject<?> source) {
 		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(context).withBindingObject(source);
 
 		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,

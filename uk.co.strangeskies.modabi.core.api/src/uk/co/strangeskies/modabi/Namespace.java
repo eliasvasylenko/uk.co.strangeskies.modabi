@@ -37,7 +37,7 @@ public class Namespace {
 		this.date = date;
 
 		if (!namespace.matches("[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*")) {
-			throw new IllegalArgumentException("Namespace is not valid package name: " + namespace);
+			throw new ModabiException(t -> t.invalidNamespace(namespace));
 		}
 	}
 
@@ -81,14 +81,14 @@ public class Namespace {
 
 	public static Namespace parseHttpString(String httpString) {
 		if (httpString.indexOf("http://") != 0)
-			throw new IllegalArgumentException();
+			throw new ModabiException(t -> t.invalidNamespace(httpString));
 		if (httpString.lastIndexOf('/') != httpString.length() - 1)
-			throw new IllegalArgumentException();
+			throw new ModabiException(t -> t.invalidNamespace(httpString));
 
 		String[] split = httpString.split("/");
 
 		if (split.length != 4)
-			throw new IllegalArgumentException();
+			throw new ModabiException(t -> t.invalidNamespace(httpString));
 
 		String namespace = split[2];
 		String date = split[3];

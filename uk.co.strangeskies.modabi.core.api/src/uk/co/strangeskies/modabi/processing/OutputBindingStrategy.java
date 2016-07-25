@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
-public enum UnbindingStrategy {
+public enum OutputBindingStrategy {
 	/**
 	 * The schema binder should attempt to retrieve an reference to an instance of
 	 * the data class directly from the result of the output method. No unbinding

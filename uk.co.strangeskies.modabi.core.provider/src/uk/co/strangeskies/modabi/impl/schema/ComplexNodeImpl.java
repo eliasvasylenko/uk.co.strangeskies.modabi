@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
@@ -50,7 +50,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 			this.inline = inline != null && inline;
 
 			if (this.inline && extensible() != null && extensible())
-				throw new SchemaException("Complex node '" + name() + "' cannot be both inline and extensible");
+				throw new ModabiException(t -> t.cannotBeInlineExtensible(name()));
 		}
 
 		@Override
@@ -64,7 +64,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 		}
 
 		@Override
-		public BindingNode.Effective<?, ?, ?> root() {
+		public BindingNode< ?, ?> root() {
 			return parent().root();
 		}
 	}

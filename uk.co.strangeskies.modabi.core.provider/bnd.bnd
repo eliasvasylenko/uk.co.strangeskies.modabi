@@ -1,6 +1,7 @@
 -buildpath: \
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
 	${ss;utilities},\
+	${ss;text},\
 	${ss;reflection},\
 	${ss;mathematics}
 

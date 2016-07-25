@@ -26,8 +26,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
@@ -124,8 +124,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 	private void assertResolvable() {
 		synchronized (blocks) {
 			if (isDeadlocked() && participatingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
-				throw new SchemaException(
-						"Internal dependencies unresolvable; waiting for " + participatingThreadBlocks.values());
+				throw new ModabiException(t -> t.unresolvableDependencies(participatingThreadBlocks.values()));
 			}
 		}
 	}
@@ -228,7 +227,7 @@ public class BindingBlocksImpl implements BindingBlocker {
 			waitForAll();
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return blocks.toString();

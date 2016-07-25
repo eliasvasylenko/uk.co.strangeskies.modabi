@@ -20,7 +20,7 @@ package uk.co.strangeskies.modabi.io.structured;
 
 import java.util.Arrays;
 
-import uk.co.strangeskies.modabi.io.ModabiIOException;
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 
 public enum StructuredDataState {
 	UNSTARTED, ELEMENT_START, POPULATED_ELEMENT, ELEMENT_WITH_CONTENT, PROPERTY, CONTENT, FINISHED;
@@ -31,8 +31,7 @@ public enum StructuredDataState {
 			assertExitStateValid(next, ELEMENT_START);
 			break;
 		case ELEMENT_START:
-			assertExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, PROPERTY,
-					CONTENT, FINISHED);
+			assertExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, PROPERTY, CONTENT, FINISHED);
 			break;
 		case POPULATED_ELEMENT:
 			assertExitStateValid(next, ELEMENT_START, POPULATED_ELEMENT, FINISHED);
@@ -54,16 +53,14 @@ public enum StructuredDataState {
 		return next;
 	}
 
-	private void assertExitStateValid(StructuredDataState exitState,
-			StructuredDataState... validExitState) {
+	private void assertExitStateValid(StructuredDataState exitState, StructuredDataState... validExitState) {
 		if (!Arrays.asList(validExitState).contains(exitState))
-			throw new ModabiIOException(
-					"Cannot move to state '" + exitState + "' from state '" + this + "'");
+			throw new ModabiIoException(t -> t.illegalStateTransition(exitState, this));
 	}
 
 	public void assertValid(StructuredDataState... validState) {
 		if (!checkValid(validState))
-			throw new ModabiIOException("Cannot perform action in state '" + this + "'");
+			throw new ModabiIoException(t -> t.illegalState(this));
 	}
 
 	public boolean checkValid(StructuredDataState... validState) {

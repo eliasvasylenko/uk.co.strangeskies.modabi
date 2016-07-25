@@ -30,11 +30,11 @@ import java.util.Map;
 
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -47,6 +47,12 @@ import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
+/**
+ * Class for bootstrapping core schemata, i.e. an implementation of
+ * {@link BaseSchema} and {@link MetaSchema}.
+ * 
+ * @author Elias N Vasylenko
+ */
 public class CoreSchemata {
 	private class TargetModelSkeletonObject {
 		private final QualifiedName name;
@@ -60,7 +66,7 @@ public class CoreSchemata {
 				type = modelOf(new TypeToken<Model<?>>() {});
 				break;
 			case "binding":
-				type = modelOf(new TypeToken<BindingNode<?, ?, ?>>() {});
+				type = modelOf(new TypeToken<BindingNode<?, ?>>() {});
 				break;
 			case "type":
 				type = modelOf(new TypeToken<DataType<?>>() {});
@@ -88,7 +94,7 @@ public class CoreSchemata {
 				model = metaSchema.models().get(name);
 
 			if (model == null)
-				throw new SchemaException("Cannot provide model '" + name + "' from base schema or metaschema.");
+				throw new ModabiException(t -> t.noBootstrapModelFound(name));
 
 			return model;
 		}
@@ -176,7 +182,7 @@ public class CoreSchemata {
 					}
 				}
 
-				throw new SchemaException("Unable to provide value for node '" + node + "'");
+				throw new ModabiException(t -> t.noBootstrapValueFound(node.name()));
 			}
 		};
 		baseSchema = new BaseSchemaImpl(schemaBuilder, loader);

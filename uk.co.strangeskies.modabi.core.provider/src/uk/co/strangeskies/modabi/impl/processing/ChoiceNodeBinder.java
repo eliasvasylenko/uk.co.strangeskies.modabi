@@ -23,8 +23,8 @@ import java.util.function.Consumer;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 
-public class ChoiceNodeBinder extends ChildNodeBinder<ChoiceNode.Effective> {
-	public ChoiceNodeBinder(ProcessingContextImpl parentContext, ChoiceNode.Effective node) {
+public class ChoiceNodeBinder extends ChildNodeBinder<ChoiceNode> {
+	public ChoiceNodeBinder(ProcessingContextImpl parentContext, ChoiceNode node) {
 		super(parentContext, node);
 
 		Consumer<ProcessingContextImpl> bind = context -> {

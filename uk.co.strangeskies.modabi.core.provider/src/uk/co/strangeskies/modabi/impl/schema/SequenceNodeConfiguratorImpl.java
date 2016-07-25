@@ -55,7 +55,7 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
 			@Override
-			public SchemaNode<?, ?> parentNodeProxy() {
+			public SchemaNode<?> parentNodeProxy() {
 				return getSchemaNodeProxy();
 			}
 
@@ -120,7 +120,7 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 			}
 
 			@Override
-			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+			public List<? extends SchemaNode<?>> overriddenNodes() {
 				return getOverriddenNodes();
 			}
 		});

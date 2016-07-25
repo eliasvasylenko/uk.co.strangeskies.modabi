@@ -70,7 +70,7 @@ public interface ProcessingContext {
 	 *          the name of the model to fetch
 	 * @return the model of the given name, or null if no such model exists
 	 */
-	Model.Effective<?> getModel(QualifiedName name);
+	Model<?> getModel(QualifiedName name);
 
 	/**
 	 * For a given extensible complex node, get a map from possible overriding
@@ -81,7 +81,7 @@ public interface ProcessingContext {
 	 *          the element to override with a model
 	 * @return a mapping from possible overrides to override results
 	 */
-	<T> ComputingMap<Model<? extends T>, ComplexNode.Effective<? extends T>> getComplexNodeOverrides(ComplexNode<T> node);
+	<T> ComputingMap<Model<? extends T>, ComplexNode<? extends T>> getComplexNodeOverrides(ComplexNode<T> node);
 
 	/**
 	 * For a given extensible data node, get a map from possible overriding data
@@ -92,7 +92,7 @@ public interface ProcessingContext {
 	 *          the element to override with a model
 	 * @return a mapping from possible overrides to override results
 	 */
-	<T> ComputingMap<DataType<? extends T>, DataNode.Effective<? extends T>> getDataNodeOverrides(DataNode<T> node);
+	<T> ComputingMap<DataType<? extends T>, DataNode<? extends T>> getDataNodeOverrides(DataNode<T> node);
 
 	/**
 	 * The stack of schema nodes corresponding to the processing position in a
@@ -101,12 +101,12 @@ public interface ProcessingContext {
 	 * 
 	 * @return a list representing the stack, in order from tail to head
 	 */
-	List<SchemaNode.Effective<?, ?>> getBindingNodeStack();
+	List<SchemaNode<?>> getBindingNodeStack();
 
 	/**
 	 * @return the node at the head of the {@link #getBindingNodeStack()}.
 	 */
-	default SchemaNode.Effective<?, ?> getBindingNode() {
+	default SchemaNode<?> getBindingNode() {
 		return getBindingNode(0);
 	}
 
@@ -116,7 +116,7 @@ public interface ProcessingContext {
 	 * @return the node a given number of steps back from the head of the
 	 *         {@link #getBindingNodeStack()}
 	 */
-	default SchemaNode.Effective<?, ?> getBindingNode(int parent) {
+	default SchemaNode<?> getBindingNode(int parent) {
 		int index = getBindingNodeStack().size() - (1 + parent);
 		return index >= 0 ? getBindingNodeStack().get(index) : null;
 	}

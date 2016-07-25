@@ -24,10 +24,11 @@ import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
-import uk.co.strangeskies.utilities.factory.Factory;
+import uk.co.strangeskies.utilities.Factory;
+import uk.co.strangeskies.utilities.Self;
 
-public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<?, ?>>
-		extends Factory<N> {
+public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>>
+		extends Factory<N>, Self<S> {
 	public S name(QualifiedName name);
 
 	public default S name(String name, Namespace namespace) {

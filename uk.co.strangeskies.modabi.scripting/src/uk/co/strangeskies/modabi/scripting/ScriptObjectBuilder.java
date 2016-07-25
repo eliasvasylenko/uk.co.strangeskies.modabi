@@ -32,7 +32,6 @@ import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
-import uk.co.strangeskies.utilities.classpath.ManifestUtilities;
 
 public class ScriptObjectBuilder<T> {
 	private ScriptEngineManager manager;
@@ -102,7 +101,7 @@ public class ScriptObjectBuilder<T> {
 		if (language != null) {
 			engine = manager.getEngineByName(language);
 		} else {
-			engine = manager.getEngineByExtension(ManifestUtilities.getResourceExtension(resource));
+			engine = manager.getEngineByExtension(resource.substring(resource.lastIndexOf(".")));
 		}
 		engine.eval(script);
 		Invocable invocable = (Invocable) engine;

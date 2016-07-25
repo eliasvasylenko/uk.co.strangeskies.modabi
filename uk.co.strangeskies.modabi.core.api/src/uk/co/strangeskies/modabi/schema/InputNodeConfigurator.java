@@ -18,9 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-
-
-public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N extends InputNode<?, ?>>
+public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N extends InputNode<N>>
 		extends ChildNodeConfigurator<S, N> {
 	public S inMethod(String methodName);
 

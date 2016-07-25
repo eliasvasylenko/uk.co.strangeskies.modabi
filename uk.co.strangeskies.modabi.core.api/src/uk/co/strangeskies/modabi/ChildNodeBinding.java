@@ -20,8 +20,8 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 
-public class ChildNodeBinding<T> extends NodeBinding<T, BindingChildNode.Effective<T, ?, ?>> {
-	public ChildNodeBinding(BindingChildNode.Effective<T, ?, ?> node, T data) {
+public class ChildNodeBinding<T, N extends BindingChildNode<T, N>> extends NodeBinding<T, N> {
+	public ChildNodeBinding(N node, T data) {
 		super(node, data);
 	}
 }

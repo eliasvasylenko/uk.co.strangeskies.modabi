@@ -23,7 +23,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface BindingFuture<T> extends Future<Binding<T>> {
@@ -49,7 +49,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 		BindingBlocks blockingBindings = blocks();
 
 		if (!isDone() && cancel(true))
-			throw new SchemaException("Binding has been blocked by the following missing dependencies: " + blockingBindings);
+			throw new ModabiException(l -> l.missingDependencies(blockingBindings));
 
 		return get();
 	}

@@ -8,6 +8,7 @@ Bundle-Description: \
 
 -buildpath: \
 	${ss;utilities},\
+	${ss;text},\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	org.apache.servicemix.bundles.stax-utils
 	

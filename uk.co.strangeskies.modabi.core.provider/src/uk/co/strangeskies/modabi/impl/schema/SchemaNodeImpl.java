@@ -19,19 +19,16 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -41,135 +38,73 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
-		implements SchemaNode<S, E> {
-	protected static abstract class Effective<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>>
-			implements SchemaNode.Effective<S, E> {
-		private final S source;
+public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaNode<S> {
+	private final QualifiedName name;
+	private final Abstractness abstractness;
+	private final List<ChildNode<?>> children;
 
-		private final QualifiedName name;
-		private final Abstractness abstractness;
-		private final List<ChildNode.Effective<?, ?>> children;
+	protected SchemaNodeImpl(OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
+		overrideMerge.configurator().finaliseConfiguration();
+		overrideMerge.configurator().finaliseChildren();
 
-		protected Effective(OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
-			source = overrideMerge.node().source();
+		name = overrideMerge.getOverride(SchemaNode::name).orDefault(overrideMerge.configurator().defaultName())
+				.validate((n, o) -> true).get();
 
-			name = overrideMerge.getOverride(SchemaNode::name).orDefault(overrideMerge.configurator().defaultName())
-					.validate((n, o) -> true).get();
+		abstractness = overrideMerge.node().abstractness() == null ? Abstractness.CONCRETE
+				: overrideMerge.node().abstractness();
 
-			abstractness = overrideMerge.node().abstractness() == null ? Abstractness.CONCRETE
-					: overrideMerge.node().abstractness();
+		children = overrideMerge.configurator().getChildren();
 
-			children = overrideMerge.configurator().getChildrenContainer().getEffectiveChildren();
+		if (!overrideMerge.configurator().isChildContextAbstract())
+			requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
+	}
 
-			if (!overrideMerge.configurator().isChildContextAbstract())
-				requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
-		}
+	protected void requireNonAbstractDescendents(Deque<SchemaNode<?>> nodeStack) {
+		for (ChildNode<?> child : nodeStack.peek().children()) {
+			nodeStack.push(child);
 
-		protected void requireNonAbstractDescendents(Deque<SchemaNode.Effective<?, ?>> nodeStack) {
-			for (ChildNode.Effective<?, ?> child : nodeStack.peek().children()) {
-				nodeStack.push(child);
+			child.process(new NodeProcessor() {
+				@Override
+				public void accept(ChoiceNode node) {
+					requireNonAbstract(nodeStack);
+				}
 
-				child.process(new NodeProcessor() {
-					@Override
-					public void accept(ChoiceNode.Effective node) {
+				@Override
+				public void accept(SequenceNode node) {
+					requireNonAbstract(nodeStack);
+				}
+
+				@Override
+				public void accept(InputSequenceNode node) {
+					requireNonAbstract(nodeStack);
+				}
+
+				@Override
+				public <U> void accept(DataNode<U> node) {
+					if (node.extensible() == null || !node.extensible())
 						requireNonAbstract(nodeStack);
-					}
+				}
 
-					@Override
-					public void accept(SequenceNode.Effective node) {
+				@Override
+				public <U> void accept(ComplexNode<U> node) {
+					if (node.extensible() == null || !node.extensible())
 						requireNonAbstract(nodeStack);
-					}
+				}
+			});
 
-					@Override
-					public void accept(InputSequenceNode.Effective node) {
-						requireNonAbstract(nodeStack);
-					}
-
-					@Override
-					public <U> void accept(DataNode.Effective<U> node) {
-						if (node.extensible() == null || !node.extensible())
-							requireNonAbstract(nodeStack);
-					}
-
-					@Override
-					public <U> void accept(ComplexNode.Effective<U> node) {
-						if (node.extensible() == null || !node.extensible())
-							requireNonAbstract(nodeStack);
-					}
-				});
-
-				nodeStack.pop();
-			}
-		}
-
-		protected void requireNonAbstract(Deque<SchemaNode.Effective<?, ?>> nodeStack) {
-			if (nodeStack.peek().abstractness().isMoreThan(Abstractness.UNINFERRED))
-				throw new SchemaException("Inherited descendent '"
-						+ nodeStack.stream().map(n -> n.name().toString()).collect(Collectors.joining(" < "))
-						+ "' must be overridden");
-
-			requireNonAbstractDescendents(nodeStack);
-		}
-
-		@Override
-		public S source() {
-			return source;
-		}
-
-		@Override
-		public QualifiedName name() {
-			return name;
-		}
-
-		@Override
-		public Abstractness abstractness() {
-			return abstractness;
-		}
-
-		@Override
-		public List<ChildNode.Effective<?, ?>> children() {
-			return children;
-		}
-
-		@Override
-		public boolean equals(Object that) {
-			return that instanceof SchemaNode.Effective && Objects.equals(name(), ((SchemaNode.Effective<?, ?>) that).name());
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(name());
-		}
-
-		@Override
-		public String toString() {
-			return name() != null ? name().toString() : "[Unnamed Node]";
-		}
-
-		@Override
-		public Schema schema() {
-			return root().schema();
+			nodeStack.pop();
 		}
 	}
 
-	private final QualifiedName name;
-	private final Abstractness abstractness;
-	private final List<ChildNode<?, ?>> children;
+	protected void requireNonAbstract(Deque<SchemaNode<?>> nodeStack) {
+		if (nodeStack.peek().abstractness().isMoreThan(Abstractness.UNINFERRED))
+			throw new ModabiException(t -> t.mustOverrideDescendant(nodeStack));
 
-	protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, ?> configurator) {
-		configurator.finaliseConfiguration();
-		configurator.finaliseChildren();
-
-		name = configurator.getName();
-
-		abstractness = configurator.abstractness();
-
-		children = Collections.unmodifiableList(new ArrayList<>(configurator.getChildrenContainer().getChildren()));
+		requireNonAbstractDescendents(nodeStack);
 	}
 
 	@Override
-	public final QualifiedName name() {
+	public QualifiedName name() {
 		return name;
 	}
 
@@ -179,13 +114,13 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 	}
 
 	@Override
-	public final List<? extends ChildNode<?, ?>> children() {
+	public List<ChildNode<?>> children() {
 		return children;
 	}
 
 	@Override
 	public boolean equals(Object that) {
-		return that instanceof SchemaNode && Objects.equals(name(), ((SchemaNode<?, ?>) that).name());
+		return that instanceof SchemaNode<?> && Objects.equals(name(), ((SchemaNode<?>) that).name());
 	}
 
 	@Override
@@ -195,7 +130,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S, E>, E extends Schem
 
 	@Override
 	public String toString() {
-		return effective().name().toString();
+		return name() != null ? name().toString() : "[Unnamed Node]";
 	}
 
 	@Override

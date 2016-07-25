@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -30,7 +29,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -38,22 +36,21 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.Binder;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.DataTypes;
+import uk.co.strangeskies.modabi.InputBinder;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
+import uk.co.strangeskies.modabi.OutputBinder;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.Unbinder;
 import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
 import uk.co.strangeskies.modabi.impl.processing.DataNodeBinder;
 import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
@@ -229,14 +226,13 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (Schema dependency : schema.dependencies())
 				registeredSchemata.add(dependency);
 
-			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel().effective(), schema));
+			registerBindingImpl(new Binding<>(coreSchemata.metaSchema().getSchemaModel(), schema));
 		}
 	}
 
 	private void registerModel(Model<?> model) {
 		synchronized (registeredModels) {
 			if (registeredModels.add(model)) {
-				registeredModels.notifyAll();
 
 				/*
 				 * TODO add/fetch scope on parent first if we have a parent, then add
@@ -272,7 +268,7 @@ public class SchemaManagerImpl implements SchemaManager {
 	<T> BindingFuture<T> addBindingFuture(BindingFuture<T> bindingFuture) {
 		new Thread(() -> {
 			try {
-				Model.Effective<T> model = bindingFuture.getModelFuture().get().effective();
+				Model<T> model = bindingFuture.getModelFuture().get();
 				QualifiedName modelName = model.name();
 
 				bindingFutures.get(modelName).add(bindingFuture);
@@ -289,81 +285,29 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public <T> Binder<T> bind(Model<T> model) {
-		return new BinderImpl<>(this, input -> model.effective(), this::addBindingFuture);
-	}
-
-	private Model<?> waitForModel(QualifiedName modelName) {
-		synchronized (registeredModels) {
-			Model<?> model;
-			while ((model = registeredModels.get(modelName)) == null) {
-				try {
-					registeredModels.wait();
-				} catch (InterruptedException e) {
-					throw new SchemaException("No model found to match the root element '" + modelName + "'", e);
-				}
-			}
-			return model;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> Binder<T> bind(TypeToken<T> dataClass) {
-		return new BinderImpl<>(this, input -> {
-			Model<?> model = waitForModel(input.peekNextChild());
-
-			List<Model<T>> models = registeredModels.getModelsWithType(dataClass);
-
-			if (!models.contains(model)) {
-				throw new IllegalArgumentException("None of the models '" + models + "' compatible with the class '" + dataClass
-						+ "' match the root element '" + input.peekNextChild() + "'");
-			}
-
-			/*
-			 * TODO model adapter to enforce possibly more specific generic type.
-			 */
-
-			return (Model<T>) model;
-		}, this::addBindingFuture);
+	public InputBinder<?> bindInput() {
+		return InputBinderImpl.bind(getProcessingContext(), registeredFormats(), this::addBindingFuture);
 	}
 
 	@Override
-	public Binder<?> bind() {
-		return new BinderImpl<>(this, input -> waitForModel(input.peekNextChild()).effective(), this::addBindingFuture);
+	public <T> OutputBinder<T> bindOutput(T data) {
+		return OutputBinderImpl.bind(getProcessingContext(), registeredFormats(), data);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model) {
-		synchronized (bindingFutures.get(model.effective().name())) {
-			return (ObservableSet) bindingFutures.get(model.effective().name());
+		synchronized (bindingFutures.get(model.name())) {
+			return (ObservableSet) bindingFutures.get(model.name());
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <T> ObservableSet<?, Binding<T>> getBindings(Model<T> model) {
-		synchronized (bindings.get(model.effective().name())) {
-			return (ObservableSet) bindings.get(model.effective().name());
+		synchronized (bindings.get(model.name())) {
+			return (ObservableSet) bindings.get(model.name());
 		}
-	}
-
-	@Override
-	public <T> Unbinder<T> unbind(Model<T> model, T data) {
-		return new UnbinderImpl<>(this, data, context -> Arrays.asList(model.effective()));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> Unbinder<T> unbind(T data) {
-		return unbind((TypeToken<T>) TypeToken.over(data.getClass()), data);
-	}
-
-	@Override
-	public <T> Unbinder<T> unbind(TypeToken<T> dataType, T data) {
-		return new UnbinderImpl<>(this, data, context -> registeredModels().getModelsWithType(dataType).stream()
-				.map(n -> n.effective()).collect(Collectors.toList()));
 	}
 
 	@Override

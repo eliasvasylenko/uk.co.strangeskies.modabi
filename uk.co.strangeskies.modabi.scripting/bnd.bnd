@@ -8,6 +8,7 @@ Bundle-Description: \
 
 -buildpath: \
 	${ss;utilities},\
+	${ss;text},\
 	${ss;reflection},\
 	${ss;mathematics},\
 	${mdb;core.api}
@@ -25,8 +26,8 @@ Export-Package: \
 -pluginpath: \
 	${pluginpath.modabi;xml}
 
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
+#-plugin: \
+#	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
 
 -includeresource: \
 	META-INF/schemata=schemata

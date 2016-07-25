@@ -19,13 +19,15 @@
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.List;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
@@ -33,25 +35,23 @@ import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? super T, ?, ?>, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
-		implements BindingNode.Effective<T, S, E> {
-	private final BindingNode.Effective<?, ?, ?> component;
+public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>, S extends BindingNode<T, S>>
+		implements BindingNode<T, S> {
+	private final BindingNode<?, ?> component;
 	private final B base;
 
 	private final TypeToken<T> dataType;
 
-	public BindingNodeWrapper(BindingNode.Effective<T, ?, ?> component) {
+	public BindingNodeWrapper(BindingNode<T, ?> component) {
 		this.component = component;
 		base = null;
-		dataType = (TypeToken<T>) component.dataType();
+		dataType = component.dataType();
 	}
 
 	@SuppressWarnings("unchecked")
-	public BindingNodeWrapper(B base, BindingNode.Effective<?, ?, ?> component) {
+	public BindingNodeWrapper(B base, BindingNode<?, ?> component) {
 		this.component = component;
 		this.base = base;
-
-		String message = "Cannot override '" + base.name() + "' with '" + component.name() + "'";
 
 		try {
 			if (base.dataType() != null) {
@@ -60,35 +60,60 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 				dataType = (TypeToken<T>) component.dataType().infer();
 			}
 		} catch (Exception e) {
-			throw new SchemaException(message, e);
+			throw getOverrideException(BindingNode::dataType, base.dataType(), component.dataType(), e);
 		}
 
-		if (base.bindingStrategy() != null && base.bindingStrategy() != component.bindingStrategy())
-			throw new SchemaException(message);
+		testOverrideEqual(BindingNode::bindingStrategy);
+		testOverrideEqual(BindingNode::unbindingStrategy);
 
-		if (base.unbindingStrategy() != null && base.unbindingStrategy() != component.unbindingStrategy())
-			throw new SchemaException(message);
+		testOverride(BindingNode::bindingType,
+				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
-		if (base.bindingType() != null
-				&& !Types.isAssignable(component.bindingType().getType(), base.bindingType().getType()))
-			throw new SchemaException(message);
+		testOverride(BindingNode::unbindingType,
+				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
-		if (base.unbindingType() != null
-				&& !Types.isAssignable(component.unbindingType().getType(), base.unbindingType().getType()))
-			throw new SchemaException(message);
+		testOverride(BindingNode::unbindingFactoryType,
+				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
-		if (base.unbindingMethodName() != null && base.unbindingMethodName() != component.unbindingMethodName())
-			throw new SchemaException(message);
+		testOverrideEqual(BindingNode::unbindingMethodName);
 
-		if (base.providedUnbindingMethodParameterNames() != null
-				&& base.providedUnbindingMethodParameterNames() != component.providedUnbindingMethodParameterNames())
-			throw new SchemaException(message);
+		testOverrideEqual(BindingNode::providedUnbindingMethodParameterNames);
 
-		if (!component.children().containsAll(base.children()))
-			throw new SchemaException(message);
+		testOverride(BindingNode::children, (baseValue, overrideValue) -> overrideValue.containsAll(baseValue));
 	}
 
-	public BindingNode.Effective<?, ?, ?> getComponent() {
+	protected <P> void testOverrideEqual(Function<? super B, P> property) {
+		testOverride(property, (a, b) -> a.equals(b));
+	}
+
+	protected <P> void testOverride(Function<? super B, P> property, BiPredicate<? super P, ? super P> test) {
+		P baseValue = property.apply(base);
+
+		if (baseValue != null) {
+			@SuppressWarnings("unchecked")
+			P overrideValue = property.apply((B) component);
+
+			boolean success = false;
+			Exception cause = null;
+			try {
+				success = test.test(baseValue, overrideValue);
+			} catch (Exception e) {
+				cause = e;
+			}
+
+			if (!success) {
+				throw getOverrideException(property::apply, baseValue, overrideValue, cause);
+			}
+		}
+	}
+
+	protected <P> ModabiException getOverrideException(Function<? super B, ? extends P> property, P baseValue,
+			P overrideValue, Exception cause) {
+		return new ModabiException(
+				t -> t.cannotOverrideIncompatibleProperty(property::apply, base, baseValue, overrideValue), cause);
+	}
+
+	public BindingNode<?, ?> getComponent() {
 		return component;
 	}
 
@@ -107,7 +132,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final BindingStrategy bindingStrategy() {
+	public final InputBindingStrategy bindingStrategy() {
 		return component.bindingStrategy();
 	}
 
@@ -117,7 +142,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final UnbindingStrategy unbindingStrategy() {
+	public final OutputBindingStrategy unbindingStrategy() {
 		return component.unbindingStrategy();
 	}
 
@@ -152,7 +177,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final List<ChildNode.Effective<?, ?>> children() {
+	public final List<ChildNode<?>> children() {
 		return component.children();
 	}
 
@@ -162,14 +187,8 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public final List<DataNode.Effective<?>> providedUnbindingMethodParameters() {
+	public final List<DataNode<?>> providedUnbindingMethodParameters() {
 		return component.providedUnbindingMethodParameters();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public S source() {
-		return (S) this;
 	}
 
 	@Override
@@ -178,7 +197,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode.Effective<? su
 	}
 
 	@Override
-	public BindingNode.Effective<?, ?, ?> root() {
+	public BindingNode<?, ?> root() {
 		return component.root();
 	}
 

@@ -28,12 +28,12 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import aQute.bnd.annotation.headers.ProvideCapability;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.osgi.ExtenderManager;
-import uk.co.strangeskies.utilities.classpath.DelegatingClassLoader;
+import uk.co.strangeskies.utilities.classloading.DelegatingClassLoader;
 
 @ProvideCapability(ns = ExtenderNamespace.EXTENDER_NAMESPACE, name = ModabiExtender.MODABI_EXTENDER_NAME, version = "1.0.0")
 @Component(immediate = true)
@@ -62,7 +62,7 @@ public class ModabiExtender extends ExtenderManager {
 					Schema schema = manager.bindSchema().withClassLoader(targetClassloader).from(resource).resolve();
 
 					if (!schema.qualifiedName().equals(schemaName)) {
-						throw new SchemaException(
+						throw new ModabiException(
 								"Schema bound '" + schema.qualifiedName() + "' does not match declared name '" + schemaName + "'");
 					}
 

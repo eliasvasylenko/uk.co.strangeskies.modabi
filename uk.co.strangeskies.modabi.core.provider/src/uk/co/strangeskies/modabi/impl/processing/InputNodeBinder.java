@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -28,7 +27,7 @@ import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> extends ChildNodeBinder<T> {
+public abstract class InputNodeBinder<T extends InputNode< ?>> extends ChildNodeBinder<T> {
 	public InputNodeBinder(ProcessingContext context, T node) {
 		super(context, node);
 	}
@@ -51,10 +50,9 @@ public abstract class InputNodeBinder<T extends InputNode.Effective<?, ?>> exten
 
 				result = TypedObject.castInto(postInputType,
 						((Method) getNode().inMethod().getExecutable()).invoke(target.getObject(), parameters));
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
-				throw new ProcessingException(
-						"Unable to call method '" + getNode().inMethod() + "' with parameters '" + Arrays.toString(parameters),
-						getContext(), e);
+			} catch (Exception e) {
+				throw new ProcessingException(t -> t.cannotInvoke(getNode().inMethod().getExecutable(),
+						getContext().getBindingObject().getType(), getNode(), Arrays.asList(parameters)), getContext(), e);
 			}
 
 			if (getNode().inMethodChained()) {

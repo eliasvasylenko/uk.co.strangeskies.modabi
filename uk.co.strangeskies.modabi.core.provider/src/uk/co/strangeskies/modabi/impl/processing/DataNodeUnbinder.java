@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
@@ -42,7 +42,7 @@ public class DataNodeUnbinder {
 		this.context = context;
 	}
 
-	public <U> void unbind(DataNode.Effective<U> node, List<U> data) {
+	public <U> void unbind(DataNode<U> node, List<U> data) {
 		unbindWithFormat(node, data, node.format(), context);
 	}
 
@@ -52,7 +52,7 @@ public class DataNodeUnbinder {
 	 * @param node
 	 * @param data
 	 */
-	public <U> DataSource unbindToDataBuffer(DataNode.Effective<U> node, List<U> data) {
+	public <U> DataSource unbindToDataBuffer(DataNode<U> node, List<U> data) {
 		BufferingDataTarget target = new BufferingDataTarget();
 
 		ProcessingContextImpl context = this.context.withOutput(null).withNestedProvisionScope();
@@ -63,9 +63,9 @@ public class DataNodeUnbinder {
 		return target.buffer();
 	}
 
-	private <U> void unbindWithFormat(DataNode.Effective<U> node, List<U> data, DataNode.Format format,
+	private <U> void unbindWithFormat(DataNode<U> node, List<U> data, DataNode.Format format,
 			ProcessingContextImpl context) {
-		Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap = new HashMap<>();
+		Map<QualifiedName, DataNode<?>> attemptedOverrideMap = new HashMap<>();
 
 		BufferingDataTarget target = null;
 
@@ -77,7 +77,7 @@ public class DataNodeUnbinder {
 			case REGISTRATION_TIME:
 			case POST_REGISTRATION:
 				if (!node.providedValues().equals(data)) {
-					throw new SchemaException("Provided value '" + node.providedValues() + "'does not match unbinding object '"
+					throw new ModabiException("Provided value '" + node.providedValues() + "'does not match unbinding object '"
 							+ data + "' for node '" + node.name() + "'");
 				}
 				break;
@@ -114,35 +114,30 @@ public class DataNodeUnbinder {
 		}
 	}
 
-	private <U> void unbindToContext(DataNode.Effective<U> node, U data, ProcessingContextImpl context,
-			Map<QualifiedName, DataNode.Effective<?>> attemptedOverrideMap) {
+	private <U> void unbindToContext(DataNode<U> node, U data, ProcessingContextImpl context,
+			Map<QualifiedName, DataNode<?>> attemptedOverrideMap) {
 		if (node.extensible() != null && node.extensible()) {
-			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
-					.getDataNodeOverrides(node);
+			ComputingMap<DataType<? extends U>, DataNode<? extends U>> overrides = context.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty()) {
-				throw new SchemaException("Unable to find concrete type to satisfy data node '" + node.name() + "' with type '"
-						+ node.effective().type().name() + "' for object '" + data + "' to be unbound");
+				throw new ModabiException("Unable to find concrete type to satisfy data node '" + node.name() + "' with type '"
+						+ node.type().name() + "' for object '" + data + "' to be unbound");
 			}
 
 			context
 					.<DataType<? extends U>>attemptUnbindingUntilSuccessful(
-							overrides.keySet().stream()
-									.filter(m -> m.effective().dataType().getRawType().isAssignableFrom(data.getClass()))
+							overrides.keySet().stream().filter(m -> m.dataType().getRawType().isAssignableFrom(data.getClass()))
 									.collect(Collectors.toList()),
 							(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
-							l -> new ProcessingException(
-									"Unable to unbind data node '" + node.name() + "' with type candidates '"
-											+ overrides.keySet().stream().map(m -> m.effective().name().toString())
-													.collect(Collectors.joining(", "))
-											+ "' for object '" + data + "' to be unbound",
-									context, l));
+							l -> new ProcessingException("Unable to unbind data node '" + node.name() + "' with type candidates '"
+									+ overrides.keySet().stream().map(m -> m.name().toString()).collect(Collectors.joining(", "))
+									+ "' for object '" + data + "' to be unbound", context, l));
 		} else
 			new BindingNodeUnbinder(context).unbind(node, data);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends V, V> void unbindExactNode(ProcessingContextImpl context, DataNode.Effective<U> element, V data) {
+	private <U extends V, V> void unbindExactNode(ProcessingContextImpl context, DataNode<U> element, V data) {
 		try {
 			new BindingNodeUnbinder(context).unbind(element, (U) element.dataType().getRawType().cast(data));
 		} catch (ClassCastException e) {

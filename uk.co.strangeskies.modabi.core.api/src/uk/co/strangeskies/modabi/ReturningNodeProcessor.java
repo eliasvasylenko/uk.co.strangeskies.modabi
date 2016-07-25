@@ -28,35 +28,35 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public interface ReturningNodeProcessor<T> {
-	default <U> T accept(DataType.Effective<U> node) {
+	default <U> T accept(DataType<U> node) {
 		return acceptDefault(node);
 	}
 
-	default <U> T accept(Model.Effective<U> node) {
+	default <U> T accept(Model<U> node) {
 		return acceptDefault(node);
 	}
 
-	default <U> T accept(ComplexNode.Effective<U> node) {
+	default <U> T accept(ComplexNode<U> node) {
 		return acceptDefault(node);
 	}
 
-	default <U> T accept(DataNode.Effective<U> node) {
+	default <U> T accept(DataNode<U> node) {
 		return acceptDefault(node);
 	}
 
-	default T accept(InputSequenceNode.Effective node) {
+	default T accept(InputSequenceNode node) {
 		return acceptDefault(node);
 	}
 
-	default T accept(SequenceNode.Effective node) {
+	default T accept(SequenceNode node) {
 		return acceptDefault(node);
 	}
 
-	default T accept(ChoiceNode.Effective node) {
+	default T accept(ChoiceNode node) {
 		return acceptDefault(node);
 	}
 
-	default T acceptDefault(SchemaNode.Effective<?, ?> node) {
-		throw new SchemaException("Unexpected node type '" + node.getClass() + "' for node '" + node.name() + "'");
+	default T acceptDefault(SchemaNode<?> node) {
+		throw new ModabiException(t -> t.unexpectedNodeType());
 	}
 }

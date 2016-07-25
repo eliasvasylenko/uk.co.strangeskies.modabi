@@ -37,25 +37,20 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective> imp
 			super(overrideMerge);
 
 			TypeToken<?> preInputClass = null;
-			if (abstractness().isLessThan(Abstractness.ABSTRACT))
-				for (ChildNode.Effective<?, ?> child : children()) {
-					TypeToken<?> nextInputClass = child.preInputType();
-					if (preInputClass != null)
-						if (preInputClass.isAssignableFrom(nextInputClass))
-							preInputClass = nextInputClass;
-						else if (!nextInputClass.isAssignableFrom(preInputClass))
-							throw new IllegalArgumentException();
-				}
-			this.preInputClass = preInputClass;
-
 			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::postInputType)
 					.validate(TypeToken::isAssignableTo).tryGet();
 
-			if (abstractness().isLessThan(Abstractness.ABSTRACT) && postInputClass == null) {
-				postInputClass = TypeToken.over(Types.leastUpperBound(
-						children().stream().map(ChildNode::postInputType).map(TypeToken::getType).collect(toSet())));
+			if (abstractness().isLessThan(Abstractness.ABSTRACT)) {
+				preInputClass = TypeToken.over(Types.greatestLowerBound(
+						children().stream().map(ChildNode.Effective::preInputType).map(TypeToken::getType).collect(toSet())));
+
+				if (postInputClass == null) {
+					postInputClass = TypeToken.over(Types.leastUpperBound(
+							children().stream().map(ChildNode::postInputType).map(TypeToken::getType).collect(toSet())));
+				}
 			}
 
+			this.preInputClass = preInputClass;
 			this.postInputClass = postInputClass;
 		}
 

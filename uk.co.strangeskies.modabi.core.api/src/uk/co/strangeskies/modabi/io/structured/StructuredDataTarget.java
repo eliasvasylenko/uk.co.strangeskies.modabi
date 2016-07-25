@@ -24,6 +24,7 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.io.ModabiIoException;
 
 public interface StructuredDataTarget {
 	public StructuredDataState currentState();
@@ -57,18 +58,17 @@ public interface StructuredDataTarget {
 			Function<DataTarget, DataTarget> targetOperation) {
 		DataTarget target = writeProperty(name);
 		if (target != targetOperation.apply(target))
-			throw new IllegalArgumentException();
+			throw new ModabiIoException(t -> t.invalidOperationOnProperty(name));
 		target.terminate();
 		return this;
 	}
 
 	public DataTarget writeContent();
 
-	public default StructuredDataTarget writeContent(
-			Function<DataTarget, DataTarget> targetOperation) {
+	public default StructuredDataTarget writeContent(Function<DataTarget, DataTarget> targetOperation) {
 		DataTarget target = writeContent();
 		if (target != targetOperation.apply(target))
-			throw new IllegalArgumentException();
+			throw new ModabiIoException(t -> t.invalidOperationOnContent());
 		target.terminate();
 		return this;
 	}

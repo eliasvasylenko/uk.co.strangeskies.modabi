@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
-import static uk.co.strangeskies.modabi.Provider.over;
-
 import java.lang.reflect.AnnotatedType;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,7 +44,7 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -59,7 +57,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
-import uk.co.strangeskies.utilities.classpath.ContextClassLoaderRunner;
+import uk.co.strangeskies.utilities.classloading.ContextClassLoaderRunner;
 
 public class SchemaTest extends TestBase {
 	private static final String INLINE_DATA = "inlineData";
@@ -82,7 +80,7 @@ public class SchemaTest extends TestBase {
 		Assert.assertNotNull(inlineData);
 	}
 
-	// @Test(timeout = 5000) TODO
+	@Test(timeout = 5000)
 	public void schemaTest() throws InterruptedException {
 		Thread.sleep(1000);
 
@@ -98,8 +96,9 @@ public class SchemaTest extends TestBase {
 
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void inlinePropertyTest() {
-		Property<DataSource, DataSource> inlineProperty = manager().bind(getModel(INLINE_DATA, INLINE_DATA_TYPE))
-				.withProvider(over(INLINE_DATA_TYPE, () -> new IdentityProperty<>()))
+		Property<DataSource, DataSource> inlineProperty = manager().bindInput()
+				.with(getModel(INLINE_DATA, INLINE_DATA_TYPE))
+				.withProvider(Provider.over(INLINE_DATA_TYPE, () -> new IdentityProperty<>()))
 				.from(() -> this.getResouce(INLINE_PROPERTY_RESOURCE)).resolve(1000);
 
 		DataSource expectedValue = new BufferingDataTarget()
@@ -127,7 +126,7 @@ public class SchemaTest extends TestBase {
 			System.out.println("Unbinding BaseSchema...");
 			Navigable out = StructuredDataBuffer.singleBuffer();
 			NavigableStructuredDataSource buffered = out.getBuffer();
-			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), schemaManager.getBaseSchema()).to(out);
+			schemaManager.bindOutput(schemaManager.getBaseSchema()).to(out);
 			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 
 			System.out.println();
@@ -135,7 +134,7 @@ public class SchemaTest extends TestBase {
 			System.out.println("Unbinding MetaSchema...");
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
-			schemaManager.unbind(schemaManager.getMetaSchema().getSchemaModel(), schemaManager.getMetaSchema()).to(out);
+			schemaManager.bindOutput(schemaManager.getMetaSchema()).to(out);
 
 			try {
 				System.out.println(Class.forName("uk.co.strangeskies.modabi.schema.SchemaNode"));
@@ -149,7 +148,7 @@ public class SchemaTest extends TestBase {
 			System.out.println();
 			System.out.println();
 			System.out.println("Re-binding MetaSchema...");
-			Schema metaSchema = schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered).resolve();
+			Schema metaSchema = schemaManager.bindInput().with(Schema.class).from(buffered).resolve();
 
 			boolean success = metaSchema.equals(schemaManager.getMetaSchema());
 			System.out.println("Success: " + success);
@@ -163,14 +162,14 @@ public class SchemaTest extends TestBase {
 			System.out.println("Re-unbinding MetaSchema...");
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
-			schemaManager.unbind(schemaModel, metaSchema).to(out);
+			schemaManager.bindOutput(metaSchema).with(schemaModel).to(out);
 			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 			buffered.reset();
 
 			System.out.println();
 			System.out.println();
 			System.out.println("Re-re-binding MetaSchema...");
-			metaSchema = schemaManager.bind(schemaManager.getMetaSchema().getSchemaModel()).from(buffered).resolve();
+			metaSchema = schemaManager.bindInput().with(Schema.class).from(buffered).resolve();
 
 			@SuppressWarnings("unchecked")
 			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.models()
@@ -181,7 +180,7 @@ public class SchemaTest extends TestBase {
 			System.out.println("Re-re-unbinding MetaSchema...");
 			out = StructuredDataBuffer.singleBuffer();
 			buffered = out.getBuffer();
-			schemaManager.unbind(schemaModel2, metaSchema).to(out);
+			schemaManager.bindOutput(metaSchema).with(schemaModel2).to(out);
 			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 		});
 	}
@@ -197,7 +196,7 @@ public class SchemaTest extends TestBase {
 				.baseType(schemaManager.getBaseSchema().derivedTypes().listType())
 				.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))
 				.create();
-		System.out.println(intListType.effective().dataType());
+		System.out.println(intListType.dataType());
 
 		Map<String, Integer> stringIntMap = new HashMap<>();
 		stringIntMap.put("first", 1);
@@ -210,13 +209,13 @@ public class SchemaTest extends TestBase {
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
 						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
 						.addChild(v -> v.complex().name("value")
-								.<Object> model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
+								.<Object>model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
 										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitiveType(Primitive.INT))))))
 				.create();
-		System.out.println(stringIntMapModel.effective().dataType());
-		System.out.println("    ~# " + stringIntMapModel.effective().dataType().getResolver().getBounds());
+		System.out.println(stringIntMapModel.dataType());
+		System.out.println("    ~# " + stringIntMapModel.dataType().getResolver().getBounds());
 
-		schemaManager.unbind(stringIntMapModel, stringIntMap)
+		schemaManager.bindOutput(stringIntMap).with(stringIntMapModel)
 				.to(schemaManager.registeredFormats().get("xml").saveData(System.out));
 		System.out.println();
 
@@ -234,50 +233,31 @@ public class SchemaTest extends TestBase {
 				.over(AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
 						Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 		@SuppressWarnings("unchecked")
-		Model<Map<?, ?>> mapModel3 = generatedSchema.addModel()
-				.name("map3",
-						Namespace
-								.getDefault())
-				.dataType(
-						new @Infer TypeToken<Map<?, ?>>() {})
-				.addChild(
-						e -> e.complex().name("entrySet").inline(true).inMethod("null")
-								.dataType(
-										inferredMapEntrySet)
-								.bindingStrategy(
-										BindingStrategy.TARGET_ADAPTOR)
+		Model<Map<?, ?>> mapModel3 = generatedSchema.addModel().name("map3", Namespace.getDefault())
+				.dataType(new @Infer TypeToken<Map<?, ?>>() {})
+				.addChild(e -> e.complex().name("entrySet").inline(true).inMethod("null").dataType(inferredMapEntrySet)
+						.bindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
+						.addChild(s -> s.inputSequence().name("entrySet").inMethodChained(true))
+						.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add")
+								.outMethod("this").bindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE)
+								.bindingType(BaseSchema.class).unbindingMethod("mapEntry").dataType(inferredMapEntry)
 								.addChild(
-										s -> s.inputSequence().name("entrySet")
-												.inMethodChained(true))
-								.addChild(
-										f -> f.complex().name("entry").occurrences(Range.between(0, null)).inMethod("add").outMethod("this")
-												.bindingStrategy(BindingStrategy.IMPLEMENT_IN_PLACE).bindingType(BaseSchema.class)
-												.unbindingMethod("mapEntry").dataType(inferredMapEntry)
+										k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
+												.type(schemaManager.getBaseSchema().derivedTypes().listType())
 												.addChild(
-														k -> k.data().name("key").inMethod("null").format(DataNode.Format.PROPERTY)
-																.type(schemaManager.getBaseSchema().derivedTypes().listType()).addChild(
-																		l -> l.data().name("element")
-																				.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
-												.addChild(
-														v -> v.complex().name("value").inMethod("null")
-																.model(
-																		schemaManager.getBaseSchema().baseModels()
-																				.mapModel())
-																.addChild(
-																		s -> s.complex()
-																				.name(
-																						"entrySet")
-																				.addChild(ee -> ee.complex().name("entry")
-																						.addChild(k -> k.data().name("key")
-																								.type(schemaManager.getBaseSchema()
-																										.primitiveType(Primitive.STRING)))
-																						.addChild(vv -> vv.complex().name("value")
-																								.<Object> model((Model<Object>) schemaManager.getBaseSchema()
-																										.baseModels().simpleModel())
-																								.addChild(cc -> cc.data().name("content").type(
-																										schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
+														l -> l.data().name("element")
+																.type(schemaManager.getBaseSchema().primitiveType(Primitive.BINARY))))
+								.addChild(v -> v.complex().name("value").inMethod("null")
+										.model(schemaManager.getBaseSchema().baseModels()
+												.mapModel())
+										.addChild(s -> s.complex().name("entrySet").addChild(ee -> ee.complex().name("entry").addChild(
+												k -> k.data().name("key").type(schemaManager.getBaseSchema().primitiveType(Primitive.STRING)))
+												.addChild(vv -> vv.complex().name("value")
+														.<Object>model((Model<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
+														.addChild(cc -> cc.data().name("content")
+																.type(schemaManager.getBaseSchema().primitiveType(Primitive.INT)))))))))
 				.create();
-		System.out.println(mapModel3.effective().dataType());
-		System.out.println(mapModel3.effective().dataType().getResolver().getBounds());
+		System.out.println(mapModel3.dataType());
+		System.out.println(mapModel3.dataType().getResolver().getBounds());
 	}
 }

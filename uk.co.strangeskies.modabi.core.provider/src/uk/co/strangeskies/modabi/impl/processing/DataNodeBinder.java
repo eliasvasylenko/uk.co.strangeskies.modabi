@@ -22,13 +22,11 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.ChildNodeBinding;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
@@ -40,33 +38,33 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
-	private final List<ChildNodeBinding<? extends U>> bindings;
+public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
+	private final List<ChildNodeBinding<? extends U, ?>> bindings;
 
 	public DataNodeBinder(ProcessingContext context, DataNode<U> node) {
-		super(context, node.effective());
+		super(context, node);
 
 		bindings = bind();
 	}
 
 	public DataNodeBinder<U> bindToTarget() {
-		for (ChildNodeBinding<? extends U> item : getBinding())
+		for (ChildNodeBinding<? extends U, ?> item : getBinding())
 			invokeInMethod(item.getData());
 
 		return this;
 	}
 
-	public List<ChildNodeBinding<? extends U>> getBinding() {
+	public List<ChildNodeBinding<? extends U, ?>> getBinding() {
 		return bindings;
 	}
 
-	private List<ChildNodeBinding<? extends U>> bind() {
+	private List<ChildNodeBinding<? extends U, ?>> bind() {
 		ProcessingContextImpl context = getContext();
-		DataNode.Effective<U> node = getNode();
+		DataNode<U> node = getNode();
 
 		DataSource dataSource;
 
-		List<ChildNodeBinding<? extends U>> results = new ArrayList<>();
+		List<ChildNodeBinding<? extends U, ?>> results = new ArrayList<>();
 
 		if (node.isValueProvided() && (node.valueResolution() == ValueResolution.REGISTRATION_TIME
 				|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
@@ -115,7 +113,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 						try {
 							dataSource = context.input().get().readContent();
 
-							ChildNodeBinding<? extends U> result = bindWithDataSource(dataSource, context, node);
+							ChildNodeBinding<? extends U, ?> result = bindWithDataSource(dataSource, context, node);
 							results.add(result);
 						} finally {
 							context.input().get().endChild();
@@ -135,29 +133,20 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private void validateResults(DataNode.Effective<?> node, List<?> results, Exception cause) {
+	private void validateResults(DataNode<?> node, List<?> results, Exception cause) {
 		if (results.isEmpty() && !node.occurrences().contains(0) && !node.occurrences().contains(0)) {
-			String message = "Node '" + node.name() + "' must be bound data.";
-			if (cause != null)
-				throw new ProcessingException(message, getContext(), cause);
-			else
-				throw new ProcessingException(message, getContext());
+			throw new ProcessingException(t -> t.mustHaveData(node.name()), getContext(), cause);
 		}
 
 		if (!results.isEmpty() && !node.occurrences().contains(results.size())) {
-			String message = "Node '" + node.name() + "' binding results '" + results
-					+ "' must be bound data within range of '" + Range.compose(node.occurrences()) + "' occurrences.";
-			if (cause != null)
-				throw new ProcessingException(message, getContext(), cause);
-			else
-				throw new ProcessingException(message, getContext());
+			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node), getContext(), cause);
 		}
 	}
 
-	private List<ChildNodeBinding<? extends U>> bindList(ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private List<ChildNodeBinding<? extends U, ?>> bindList(ProcessingContextImpl context, DataNode<U> node) {
 		context = context.withInput(null);
 
-		List<ChildNodeBinding<? extends U>> results = new ArrayList<>();
+		List<ChildNodeBinding<? extends U, ?>> results = new ArrayList<>();
 
 		Exception optionalException = null;
 
@@ -176,17 +165,15 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 				if (dataSource != null)
 					successfulIndex = dataSource.index();
 			}
-		} catch (SchemaException e) {
+		} catch (ModabiException e) {
 			if (dataSource != null) {
 				dataSource.reset();
 				while (dataSource.index() < successfulIndex)
 					dataSource.get();
 
 				if (context.isExhaustive() && !dataSource.isComplete()) {
-					throw new ProcessingException(
-							"Failed to bind all of data source, with ["
-									+ dataSource.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "] remaining",
-							context, e);
+					DataSource dataSourceFinal = dataSource;
+					throw new ProcessingException(t -> t.cannotBindRemainingData(dataSourceFinal), context, e);
 				}
 			}
 
@@ -198,42 +185,40 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 		return results;
 	}
 
-	private static <U> ChildNodeBinding<? extends U> bindWithDataSource(DataSource dataSource,
-			ProcessingContextImpl context, DataNode.Effective<U> node) {
+	private static <U> ChildNodeBinding<? extends U, ?> bindWithDataSource(DataSource dataSource,
+			ProcessingContextImpl context, DataNode<U> node) {
 		context = context.withNestedProvisionScope().forceExhausting();
 		context.provisions().add(Provider.over(DataSource.class, () -> dataSource));
 
-		ChildNodeBinding<? extends U> binding = bindExactNode(context, node);
+		ChildNodeBinding<? extends U, ?> binding = bindExactNode(context, node);
 
 		return binding;
 	}
 
-	private static <U> ChildNodeBinding<? extends U> bindExactNode(ProcessingContextImpl context,
-			DataNode.Effective<U> node) {
+	private static <U> ChildNodeBinding<? extends U, ?> bindExactNode(ProcessingContextImpl context, DataNode<U> node) {
 		if (node.extensible()) {
-			ComputingMap<DataType<? extends U>, DataNode.Effective<? extends U>> overrides = context
-					.getDataNodeOverrides(node);
+			ComputingMap<DataType<? extends U>, DataNode<? extends U>> overrides = context.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
-				throw new SchemaException("Unable to find type to satisfy data node '" + node.name() + "' with type '"
-						+ node.effective().type() + "'");
+				throw new ModabiException(
+						"Unable to find type to satisfy data node '" + node.name() + "' with type '" + node.type() + "'");
 
-			IdentityProperty<ChildNodeBinding<? extends U>> result = new IdentityProperty<>();
+			IdentityProperty<ChildNodeBinding<? extends U, ?>> result = new IdentityProperty<>();
 
 			context.attemptBindingUntilSuccessful(overrides.keySet(), (c, n) -> {
-				DataNode.Effective<? extends U> exactNode = overrides.putGet(n);
+				DataNode<? extends U> exactNode = overrides.putGet(n);
 				result.set(getNodeBinding(c, exactNode));
-			}, l -> new ProcessingException("Unable to bind data node '" + node.name() + "' with type candidates '"
-					+ overrides.keySet().stream().map(m -> m.effective().name().toString()).collect(Collectors.joining(", "))
-					+ "'", context, l));
+			}, l -> new ProcessingException(
+					"Unable to bind data node '" + node.name() + "' with type candidates '"
+							+ overrides.keySet().stream().map(m -> m.name().toString()).collect(Collectors.joining(", ")) + "'",
+					context, l));
 
 			return result.get();
 		} else
 			return new ChildNodeBinding<>(node, new BindingNodeBinder(context).bind(node));
 	}
 
-	private static <U> ChildNodeBinding<U> getNodeBinding(ProcessingContextImpl context,
-			DataNode.Effective<U> exactNode) {
+	private static <U> ChildNodeBinding<U, ?> getNodeBinding(ProcessingContextImpl context, DataNode<U> exactNode) {
 		return new ChildNodeBinding<>(exactNode, new BindingNodeBinder(context).bind(exactNode));
 	}
 
@@ -243,8 +228,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode.Effective<U>> {
 			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
 				ProcessingContextImpl derivedContext = context.withNestedProvisionScope().forceExhausting();
 				derivedContext.provisions().add(Provider.over(DataSource.class, () -> data));
-				return new DataNodeBinder<>(derivedContext, node.effective()).getBinding().stream()
-						.map(ChildNodeBinding::getData).collect(toList());
+				return new DataNodeBinder<>(derivedContext, node).getBinding().stream().map(ChildNodeBinding::getData)
+						.collect(toList());
 			}
 		};
 	}

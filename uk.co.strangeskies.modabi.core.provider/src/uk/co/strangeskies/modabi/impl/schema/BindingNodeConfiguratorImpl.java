@@ -29,8 +29,8 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -46,11 +46,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	private TypeToken<T> effectiveDataType;
 	private BoundSet inferenceBounds = new BoundSet();
 
-	private BindingStrategy bindingStrategy;
+	private InputBindingStrategy bindingStrategy;
 	private TypeToken<?> bindingType;
 	private TypeToken<?> effectiveBindingType;
 
-	private UnbindingStrategy unbindingStrategy;
+	private OutputBindingStrategy unbindingStrategy;
 	private TypeToken<?> unbindingType;
 	private TypeToken<?> effectiveUnbindingType;
 	private String unbindingMethod;
@@ -179,19 +179,19 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Effective binding and unbinding types.
 		 */
 
-		BindingStrategy bindingStrategy = overrideMerge.getOverride(BindingNode::bindingStrategy, this.bindingStrategy)
+		InputBindingStrategy bindingStrategy = overrideMerge.getOverride(BindingNode::bindingStrategy, this.bindingStrategy)
 				.get();
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
 			inputTarget = effectiveBindingType;
-		else if (bindingStrategy == BindingStrategy.TARGET_ADAPTOR)
+		else if (bindingStrategy == InputBindingStrategy.TARGET_ADAPTOR)
 			inputTarget = getInputTargetForTargetAdapter();
 		else if (bindingStrategy != null || !isChildContextAbstract())
 			inputTarget = effectiveDataType;
 		else
 			inputTarget = null;
 
-		UnbindingStrategy unbindingStrategy = overrideMerge
+		OutputBindingStrategy unbindingStrategy = overrideMerge
 				.getOverride(BindingNode::unbindingStrategy, this.unbindingStrategy).get();
 		TypeToken<?> outputSource;
 		if (effectiveUnbindingType != null)
@@ -229,7 +229,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			@Override
 			public boolean isInputExpected() {
-				return bindingStrategy != BindingStrategy.SOURCE_ADAPTOR;
+				return bindingStrategy != InputBindingStrategy.SOURCE_ADAPTOR;
 			}
 
 			@Override
@@ -239,12 +239,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 			@Override
 			public boolean isConstructorExpected() {
-				return bindingStrategy == BindingStrategy.CONSTRUCTOR;
+				return bindingStrategy == InputBindingStrategy.CONSTRUCTOR;
 			}
 
 			@Override
 			public boolean isStaticMethodExpected() {
-				return bindingStrategy == BindingStrategy.STATIC_FACTORY;
+				return bindingStrategy == InputBindingStrategy.STATIC_FACTORY;
 			}
 
 			@Override
@@ -274,7 +274,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			return null;
 		else
 			throw new UnsupportedOperationException(
-					"Non-abstract base binding node cannot use binding strategy " + BindingStrategy.TARGET_ADAPTOR.toString());
+					"Non-abstract base binding node cannot use binding strategy " + InputBindingStrategy.TARGET_ADAPTOR.toString());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -358,26 +358,26 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	}
 
 	@Override
-	public final S bindingStrategy(BindingStrategy strategy) {
+	public final S bindingStrategy(InputBindingStrategy strategy) {
 		assertConfigurable(bindingStrategy);
 		bindingStrategy = strategy;
 
 		return getThis();
 	}
 
-	public BindingStrategy getBindingStrategy() {
+	public InputBindingStrategy getBindingStrategy() {
 		return bindingStrategy;
 	}
 
 	@Override
-	public final S unbindingStrategy(UnbindingStrategy strategy) {
+	public final S unbindingStrategy(OutputBindingStrategy strategy) {
 		assertConfigurable(unbindingStrategy);
 		unbindingStrategy = strategy;
 
 		return getThis();
 	}
 
-	public UnbindingStrategy getUnbindingStrategy() {
+	public OutputBindingStrategy getUnbindingStrategy() {
 		return unbindingStrategy;
 	}
 

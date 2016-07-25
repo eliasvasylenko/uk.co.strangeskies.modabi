@@ -26,43 +26,34 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface DataNodeConfigurator<T> extends
-		BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T>,
-		SchemaNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>> {
+public interface DataNodeConfigurator<T> extends BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T> {
 	public <U extends T> DataNodeConfigurator<U> type(DataType<U> type);
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default public <U extends T> DataNodeConfigurator<U> dataType(
-			Class<U> dataClass) {
+	default public <U extends T> DataNodeConfigurator<U> dataType(Class<U> dataClass) {
 		Type type = dataClass;
-		return (DataNodeConfigurator<U>) BindingChildNodeConfigurator.super.dataType(
-				type);
+		return (DataNodeConfigurator<U>) BindingChildNodeConfigurator.super.dataType(type);
 	}
 
 	@Override
-	public <V extends T> DataNodeConfigurator<V> dataType(
-			TypeToken<? extends V> dataType);
+	public <V extends T> DataNodeConfigurator<V> dataType(TypeToken<? extends V> dataType);
 
 	@SuppressWarnings("unchecked")
 	@Override
-	default public DataNodeConfigurator<? extends T> dataType(
-			AnnotatedType dataType) {
-		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(
-				dataType);
+	default public DataNodeConfigurator<? extends T> dataType(AnnotatedType dataType) {
+		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public default DataNodeConfigurator<? extends T> dataType(Type dataType) {
-		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(
-				dataType);
+		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(dataType);
 	}
 
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
 
-	public DataNodeConfigurator<T> valueResolution(
-			ValueResolution valueResolution);
+	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution);
 
 	public DataNodeConfigurator<T> format(Format format);
 }

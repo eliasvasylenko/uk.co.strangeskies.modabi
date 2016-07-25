@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.declarative;
 
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 
 /**
  * This annotation marks a method inside a class or interface marked as a
@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
  *
  */
 public @interface Binding {
-	BindingStrategy bindingStrategy() default BindingStrategy.PROVIDED;
+	InputBindingStrategy bindingStrategy() default InputBindingStrategy.PROVIDED;
 
-	UnbindingStrategy unbindingStrategy() default UnbindingStrategy.SIMPLE;
+	OutputBindingStrategy unbindingStrategy() default OutputBindingStrategy.SIMPLE;
 }

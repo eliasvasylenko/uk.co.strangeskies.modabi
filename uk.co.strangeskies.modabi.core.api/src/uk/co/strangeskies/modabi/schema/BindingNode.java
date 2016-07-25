@@ -21,24 +21,17 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends BindingNode.Effective<T, S, E>>
-		extends SchemaNode<S, E> {
-	interface Effective<T, S extends BindingNode<T, S, E>, E extends Effective<T, S, E>>
-			extends BindingNode<T, S, E>, SchemaNode.Effective<S, E> {
-		Invokable<?, ?> unbindingMethod();
+public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<S> {
+	Invokable<?, ?> unbindingMethod();
 
-		List<DataNode.Effective<?>> providedUnbindingMethodParameters();
+	List<DataNode<?>> providedUnbindingMethodParameters();
 
-		@Override
-		List<? extends BindingNode.Effective<? super T, ?, ?>> base();
-	}
-
-	List<? extends BindingNode<? super T, ?, ?>> base();
+	List<? extends BindingNode<? super T, ?>> base();
 
 	default String dataTypeString() {
 		return dataType() == null ? null : dataType().toString(schema().imports());
@@ -46,7 +39,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	TypeToken<T> dataType();
 
-	BindingStrategy bindingStrategy();
+	InputBindingStrategy bindingStrategy();
 
 	default String bindingTypeString() {
 		return bindingType() == null ? null : bindingType().toString(schema().imports());
@@ -54,7 +47,7 @@ public interface BindingNode<T, S extends BindingNode<T, S, E>, E extends Bindin
 
 	TypeToken<?> bindingType();
 
-	UnbindingStrategy unbindingStrategy();
+	OutputBindingStrategy unbindingStrategy();
 
 	default String unbindingTypeString() {
 		return unbindingType() == null ? null : unbindingType().toString(schema().imports());

@@ -24,12 +24,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.processing.BindingStrategy;
-import uk.co.strangeskies.modabi.processing.UnbindingStrategy;
+import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, ?, ?>, T>
+public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
 		extends SchemaNodeConfigurator<S, N> {
 	BindingNodeConfigurator<?, ?, ? extends T> dataType(String dataType);
 
@@ -48,7 +48,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		return dataType(AnnotatedTypes.over(dataType));
 	}
 
-	S bindingStrategy(BindingStrategy strategy);
+	S bindingStrategy(InputBindingStrategy strategy);
 
 	S bindingType(String bindingType);
 
@@ -62,7 +62,7 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		return bindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
 	}
 
-	S unbindingStrategy(UnbindingStrategy strategy);
+	S unbindingStrategy(OutputBindingStrategy strategy);
 
 	S unbindingFactoryType(String factoryType);
 

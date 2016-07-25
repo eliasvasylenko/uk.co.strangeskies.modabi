@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.reflection.Invokable;
@@ -44,11 +44,10 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 			super(overrideMerge);
 
 			if (!overrideMerge.configurator().getContext().isInputExpected())
-				throw new SchemaException("InputSequenceNode '" + name() + "' cannot occur in a context without input.");
+				throw new ModabiException(t -> t.cannotDefineInputInContext(name()));
 
 			List<TypeToken<?>> parameterClasses = overrideMerge.configurator().getChildrenContainer().getChildren().stream()
-					.map(o -> ((BindingChildNodeImpl.Effective<?, ?, ?>) o.effective()).dataType())
-					.collect(Collectors.toList());
+					.map(o -> ((BindingChildNodeImpl< ?, ?>) o.effective()).dataType()).collect(Collectors.toList());
 
 			InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
 					abstractness(), name(), overrideMerge, overrideMerge.configurator().getContext(), parameterClasses);

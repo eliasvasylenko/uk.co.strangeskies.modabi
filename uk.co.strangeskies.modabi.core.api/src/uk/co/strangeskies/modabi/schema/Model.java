@@ -24,26 +24,16 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface Model<T> extends BindingNode<T, Model<T>, Model.Effective<T>> {
-	interface Effective<T> extends Model<T>, BindingNode.Effective<T, Model<T>, Effective<T>> {
-		@Override
-		default void process(NodeProcessor context) {
-			context.accept(this);
-		}
-
-		@Override
-		List<Model.Effective<? super T>> baseModel();
-
-		@Override
-		default List<Model.Effective<? super T>> base() {
-			return baseModel();
-		}
+public interface Model<T> extends BindingNode<T, Model<T>> {
+	@Override
+	default void process(NodeProcessor context) {
+		context.accept(this);
 	}
 
-	List<? extends Model<? super T>> baseModel();
+	List<Model<? super T>> baseModel();
 
 	@Override
-	default List<? extends Model<? super T>> base() {
+	default List<Model<? super T>> base() {
 		return baseModel();
 	}
 

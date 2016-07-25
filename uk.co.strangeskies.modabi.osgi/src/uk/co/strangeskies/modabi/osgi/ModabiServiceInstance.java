@@ -24,10 +24,10 @@ import java.util.concurrent.ExecutionException;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 
-import uk.co.strangeskies.modabi.Binder;
+import uk.co.strangeskies.modabi.InputBinder;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.reflection.TypeParameter;
@@ -70,13 +70,13 @@ public abstract class ModabiServiceInstance<T> {
 				.resolveType(new TypeParameter<T>() {});
 
 		if (!type.isProper()) {
-			throw new SchemaException(
+			throw new ModabiException(
 					"Class " + getClass() + " cannot be bound with service, as type parameter of superclass "
 							+ ModabiServiceInstance.class + " is not proper");
 		}
 
 		if (!type.isAssignableFrom(getClass())) {
-			throw new SchemaException("Type " + type + " must be assignable from providing service class " + getClass());
+			throw new ModabiException("Type " + type + " must be assignable from providing service class " + getClass());
 		}
 
 		return type;
@@ -88,11 +88,11 @@ public abstract class ModabiServiceInstance<T> {
 		SchemaManager manager = this.manager;
 		this.manager = null;
 
-		Binder<T> binder = (model != null)
+		InputBinder<T> binder = (model != null)
 
-				? manager.bind(model, type)
+				? manager.bindInput().with(model, type)
 
-				: manager.bind(type);
+				: manager.bindInput().with(type);
 
 		BindingFuture<T> future = binder
 				.withProvider(Provider.over(type, c -> c.getBindingNodeStack().size() == 1 ? (T) this : null)).from(location);
@@ -100,10 +100,10 @@ public abstract class ModabiServiceInstance<T> {
 
 		if (binding != this) {
 			try {
-				throw new SchemaException(
+				throw new ModabiException(
 						"Could not bind to provided instance '" + this + "' for model '" + future.getModelFuture().get() + "'");
 			} catch (InterruptedException | ExecutionException e) {
-				throw new SchemaException("Could not bind to provided instance '" + this + "'");
+				throw new ModabiException("Could not bind to provided instance '" + this + "'");
 			}
 		}
 	}

@@ -9,8 +9,9 @@ Bundle-Description: \
 -buildpath: \
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	${ss;utilities},\
+	${ss;text},\
 	${ss;reflection},\
-	${ss;osgi.utilities},\
+	${ss;osgi.api},\
 	${ss;mathematics}
 
 Private-Package: \
@@ -18,7 +19,7 @@ Private-Package: \
 
 -runrequires: \
 	${req;osgi.enroute.logger.simple.provider},\
-	${req;uk.co.strangeskies.osgi.consolelog},\
+	${req;uk.co.strangeskies.osgi.provider},\
 	${req;org.apache.felix.gogo.command},\
 	${req;org.apache.felix.gogo.runtime},\
 	${req;org.apache.felix.gogo.shell},\

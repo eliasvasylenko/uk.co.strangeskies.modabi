@@ -20,11 +20,8 @@ package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.reflection.Invokable;
 
-public interface InputNode<S extends InputNode<S, E>, E extends InputNode.Effective<S, E>> extends ChildNode<S, E> {
-	interface Effective<S extends InputNode<S, E>, E extends Effective<S, E>>
-			extends InputNode<S, E>, ChildNode.Effective<S, E> {
-		Invokable<?, ?> inMethod();
-	}
+public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
+	Invokable<?, ?> inMethod();
 
 	Boolean inMethodUnchecked();
 

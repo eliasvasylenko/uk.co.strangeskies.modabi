@@ -30,10 +30,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import uk.co.strangeskies.mathematics.Range;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
@@ -57,10 +56,10 @@ public class BindingNodeUnbinder {
 		this.context = context;
 	}
 
-	public <U> void unbind(BindingNode.Effective<U, ?, ?> node, U data) {
+	public <U> void unbind(BindingNode<U, ?> node, U data) {
 		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node)
 				.withNestedProvisionScope();
-		context.provisions().add(Provider.over(new TypeToken<BindingNode.Effective<?, ?, ?>>() {}, () -> node));
+		context.provisions().add(Provider.over(new TypeToken<BindingNode<?, ?>>() {}, () -> node));
 
 		TypeToken<?> unbindingType = node.unbindingType() != null ? node.unbindingType() : node.dataType();
 		TypeToken<?> unbindingFactoryType = node.unbindingFactoryType() != null ? node.unbindingFactoryType()
@@ -105,20 +104,19 @@ public class BindingNodeUnbinder {
 			}
 		}
 
-		Consumer<ChildNode.Effective<?, ?>> processingContext = getChildProcessor(
-				context.withBindingObject(supplier.apply(data)));
+		Consumer<ChildNode<?>> processingContext = getChildProcessor(context.withBindingObject(supplier.apply(data)));
 
-		for (ChildNode.Effective<?, ?> child : node.children()) {
+		for (ChildNode<?> child : node.children()) {
 			processingContext.accept(child);
 		}
 	}
 
-	private Consumer<ChildNode.Effective<?, ?>> getChildProcessor(ProcessingContextImpl context) {
+	private Consumer<ChildNode<?>> getChildProcessor(ProcessingContextImpl context) {
 		NodeProcessor processor = new NodeProcessor() {
-			private <U> boolean checkData(BindingChildNode.Effective<U, ?, ?> node, List<U> data) {
+			private <U> boolean checkData(BindingChildNode<U, ?> node, List<U> data) {
 				if (data == null) {
-					if (!node.occurrences().contains(0)) {
-						throw new SchemaException("Non-optional node '" + node.name() + "' cannot omit data for unbinding");
+					if (!node.occurrences().contains(0) && !node.nullIfOmitted()) {
+						throw new ProcessingException(t -> t.mustHaveData(node.name()), context);
 					} else {
 						return false;
 					}
@@ -128,7 +126,7 @@ public class BindingNodeUnbinder {
 			}
 
 			@Override
-			public <U> void accept(ComplexNode.Effective<U> node) {
+			public <U> void accept(ComplexNode<U> node) {
 				List<U> data = getData(node, context);
 
 				if (checkData(node, data)) {
@@ -137,7 +135,7 @@ public class BindingNodeUnbinder {
 			}
 
 			@Override
-			public <U> void accept(DataNode.Effective<U> node) {
+			public <U> void accept(DataNode<U> node) {
 				if (node.outMethodName() == null || !node.outMethodName().equals("null")) {
 					List<U> data = null;
 					if (!node.isValueProvided() || node.valueResolution() == ValueResolution.REGISTRATION_TIME
@@ -151,24 +149,24 @@ public class BindingNodeUnbinder {
 			}
 
 			@Override
-			public void accept(InputSequenceNode.Effective node) {
+			public void accept(InputSequenceNode node) {
 				acceptSequence(node);
 			}
 
 			@Override
-			public void accept(SequenceNode.Effective node) {
+			public void accept(SequenceNode node) {
 				acceptSequence(node);
 			}
 
-			public void acceptSequence(SchemaNode.Effective<?, ?> node) {
-				Consumer<ChildNode.Effective<?, ?>> childProcessor = getChildProcessor(context.withBindingNode(node));
+			public void acceptSequence(SchemaNode<?> node) {
+				Consumer<ChildNode<?>> childProcessor = getChildProcessor(context.withBindingNode(node));
 
-				for (ChildNode.Effective<?, ?> child : node.children())
+				for (ChildNode<?> child : node.children())
 					childProcessor.accept(child);
 			}
 
 			@Override
-			public void accept(ChoiceNode.Effective node) {
+			public void accept(ChoiceNode node) {
 				try {
 					context.withBindingNode(node).attemptUnbindingUntilSuccessful(node.children(),
 							(c, n) -> getChildProcessor(c).accept(n),
@@ -182,20 +180,16 @@ public class BindingNodeUnbinder {
 		};
 
 		return node -> {
-			try {
-				node.process(processor);
-			} catch (Exception e) {
-				throw new ProcessingException("Failed to unbind node '" + node + "'", context, e);
-			}
+			node.process(processor);
 		};
 	}
 
-	private Object[] prepareUnbingingParameterList(BindingNode.Effective<?, ?, ?> node, Object data) {
+	private Object[] prepareUnbingingParameterList(BindingNode<?, ?> node, Object data) {
 		List<Object> parameters = new ArrayList<>();
 
 		boolean addedData = false;
 		if (node.providedUnbindingMethodParameters() != null)
-			for (DataNode.Effective<?> parameter : node.providedUnbindingMethodParameters()) {
+			for (DataNode<?> parameter : node.providedUnbindingMethodParameters()) {
 				if (parameter != null) {
 					parameters.add(parameter.providedValues() == null ? null : parameter.providedValues().get(0));
 				} else {
@@ -212,7 +206,7 @@ public class BindingNodeUnbinder {
 	private static Object invokeMethod(Method method, ProcessingContext context, Object receiver, Object... parameters) {
 		try {
 			return method.invoke(receiver, parameters);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException
+		} catch (IllegalAccessException | ModabiException | InvocationTargetException | SecurityException
 				| NullPointerException e) {
 			throw new ProcessingException(
 					"Cannot invoke method '" + method + "' on '" + receiver + "' with arguments '["
@@ -224,7 +218,7 @@ public class BindingNodeUnbinder {
 	private static Object invokeConstructor(Constructor<?> method, ProcessingContext context, Object... parameters) {
 		try {
 			return method.newInstance(parameters);
-		} catch (NullPointerException | InstantiationException | IllegalAccessException | IllegalArgumentException
+		} catch (NullPointerException | InstantiationException | IllegalAccessException | ModabiException
 				| InvocationTargetException e) {
 			throw new ProcessingException(
 					"Cannot invoke method '" + method + "' with arguments '["
@@ -234,7 +228,7 @@ public class BindingNodeUnbinder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <U> List<U> getData(BindingChildNode.Effective<U, ?, ?> node, ProcessingContext context) {
+	public static <U> List<U> getData(BindingChildNode<U, ?> node, ProcessingContext context) {
 		List<U> itemList;
 
 		Object parent = context.getBindingObject().getObject();
@@ -279,8 +273,7 @@ public class BindingNodeUnbinder {
 		}
 
 		if (itemList != null && node.occurrences() != null && !node.occurrences().contains(itemList.size()))
-			throw new ProcessingException("Output list '" + itemList + "' must contain a number of items within range '"
-					+ Range.compose(node.occurrences()) + "' to be unbound by node '" + node + "'", context);
+			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node), context);
 
 		return itemList;
 	}

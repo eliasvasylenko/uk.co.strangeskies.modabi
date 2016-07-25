@@ -25,8 +25,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
+import uk.co.strangeskies.modabi.ModabiExceptionText.ExecutableType;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
@@ -63,8 +64,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		inMethodChained = overrideMerge.getOverride(InputNode::inMethodChained)
 				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected(), Abstractness.RESOLVED).get();
-		inMethodUnchecked = overrideMerge.getOverride(InputNode::inMethodUnchecked)
-				.orDefault(false, Abstractness.RESOLVED).get();
+		inMethodUnchecked = overrideMerge.getOverride(InputNode::inMethodUnchecked).orDefault(false, Abstractness.RESOLVED)
+				.get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
 				: overrideMerge.getOverride(InputNode::inMethodCast).orDefault(false, Abstractness.RESOLVED).get();
 
@@ -123,7 +124,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
@@ -144,8 +145,10 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
 			} catch (Exception e) {
-				throw new SchemaException("Cannot find input method for node '" + name + "' on class '" + inputTargetType
-						+ "' with parameters '" + parameters + "'", e);
+				List<TypeToken<?>> parametersFinal = parameters;
+				ExecutableType type = context.isStaticMethodExpected() ? ExecutableType.STATIC_METHOD
+						: (context.isConstructorExpected() ? ExecutableType.CONSTRUCTOR : ExecutableType.METHOD);
+				throw new ModabiException(t -> t.noMethodFound(inputTargetType, parametersFinal, type), e);
 			}
 		}
 
@@ -160,7 +163,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 		if (context.isConstructorExpected()) {
 			if (givenInMethodName != null && !givenInMethodName.equals("this")) {
-				throw new SchemaException("In method name cannot be anything other than \"this\" for constructor nodes");
+				throw new ModabiException(t -> t.inMethodMustBeThis());
 			}
 			return Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
 
@@ -219,14 +222,14 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			if (givenInMethodName == null)
 				givenInMethodName = "null";
 			else if (!"null".equals(givenInMethodName))
-				throw new SchemaException("In method name should not be provided for this node");
+				throw new ModabiException(t -> t.cannotDefineInputInContext(name));
 
 		return givenInMethodName;
 	}
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
-			TypeToken<?> resultType = overrideMerge.<TypeToken<?>> getOverride(InputNode::postInputType)
+			TypeToken<?> resultType = overrideMerge.<TypeToken<?>>getOverride(InputNode::postInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -256,7 +259,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 			return resultType != null ? resultType : TypeToken.over(Object.class);
 		} else {
 			if (context.isConstructorExpected() || context.isStaticMethodExpected()) {
-				throw new SchemaException("In method must be chained for this node");
+				ExecutableType type = context.isStaticMethodExpected() ? ExecutableType.STATIC_METHOD
+						: ExecutableType.CONSTRUCTOR;
+				throw new ModabiException(t -> t.inMethodMustBeChained(name, type));
 			}
 
 			return null;

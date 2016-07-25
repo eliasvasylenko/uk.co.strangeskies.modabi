@@ -23,7 +23,7 @@ import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Abstractness;
-import uk.co.strangeskies.modabi.SchemaException;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.io.DataSource;
@@ -53,7 +53,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 
 			format = overrideMerge.getOverride(DataNode::format).tryGet();
 			if (format != null && overrideMerge.configurator().getContext().isInputDataOnly())
-				throw new SchemaException("Node '" + name() + "' must not provide a format.");
+				throw new ModabiException(t -> t.cannotAcceptFormat(name()));
 
 			providedBuffer = overrideMerge.getOverride(DataNode::providedValueBuffer).tryGet();
 			ValueResolution resolution = overrideMerge.getOverride(DataNode::valueResolution)
@@ -71,7 +71,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 			if (providedBuffer == null && abstractness().isAtMost(Abstractness.UNINFERRED)
 					&& (occurrences == null || !occurrences.contains(0))
 					&& (resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION))
-				throw new SchemaException("Value must be provided at registration time for node '" + name() + "'");
+				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(DataNode::providedValueBuffer, this));
 
 			if ((resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION)
 					&& providedBuffer != null) {
@@ -141,7 +141,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>, DataNo
 		}
 
 		@Override
-		public BindingNode.Effective<?, ?, ?> root() {
+		public BindingNode< ?, ?> root() {
 			return parent().root();
 		}
 	}

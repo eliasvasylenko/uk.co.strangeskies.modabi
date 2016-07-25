@@ -35,7 +35,7 @@ public class DiscardingStructuredDataTarget
 	protected void commentImpl(String comment) {}
 
 	@Override
-	protected void nextChildImpl(QualifiedName name) {}
+	protected void addChildImpl(QualifiedName name) {}
 
 	@Override
 	protected DataTarget writePropertyImpl(QualifiedName name) {

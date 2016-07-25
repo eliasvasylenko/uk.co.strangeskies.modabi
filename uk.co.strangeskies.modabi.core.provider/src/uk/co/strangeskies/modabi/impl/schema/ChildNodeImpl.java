@@ -26,76 +26,31 @@ import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
-		extends SchemaNodeImpl<S, E> implements ChildNode<S, E> {
-	protected static abstract class Effective<S extends ChildNode<S, E>, E extends ChildNode.Effective<S, E>>
-			extends SchemaNodeImpl.Effective<S, E> implements ChildNode.Effective<S, E> {
-		private final SchemaNode.Effective<?, ?> parent;
-
-		private final Range<Integer> occurrences;
-		private final Boolean ordered;
-
-		public Effective(OverrideMerge<S, ? extends ChildNodeConfiguratorImpl<?, S>> overrideMerge) {
-			super(overrideMerge);
-
-			parent = overrideMerge.configurator().getContext().parentNodeProxy().effective();
-
-			ordered = overrideMerge.getOverride(ChildNode::ordered).orDefault(true).get();
-
-			occurrences = overrideMerge.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
-					.orDefault(Range.between(1, 1)).get();
-
-		}
-
-		@Override
-		public SchemaNode.Effective<?, ?> parent() {
-			return parent;
-		}
-
-		@Override
-		public Range<Integer> occurrences() {
-			return occurrences;
-		}
-
-		@Override
-		public Boolean ordered() {
-			return ordered;
-		}
-
-		@Override
-		public boolean equals(Object that) {
-			return super.equals(that) && that instanceof ChildNode.Effective
-					&& Objects.equals(parent(), ((ChildNode.Effective<?, ?>) that).parent());
-		}
-
-		@Override
-		public final int hashCode() {
-			return super.hashCode() ^ Objects.hashCode(parent());
-		}
-
-		@Override
-		public BindingNode.Effective<?, ?, ?> root() {
-			return parent().root();
-		}
-	}
-
-	private final SchemaNode<?, ?> parent;
+public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeImpl<S> implements ChildNode<S> {
+	private final SchemaNode<?> parent;
 
 	private final Range<Integer> occurrences;
 	private final Boolean ordered;
 
-	public ChildNodeImpl(ChildNodeConfiguratorImpl<?, ?> configurator) {
-		super(configurator);
+	public ChildNodeImpl(OverrideMerge<S, ? extends ChildNodeConfiguratorImpl<?, S>> overrideMerge) {
+		super(overrideMerge);
 
-		parent = configurator.getContext().parentNodeProxy();
+		parent = overrideMerge.configurator().getContext().parentNodeProxy();
 
-		ordered = configurator.getOrdered();
-		occurrences = configurator.getOccurrences();
+		ordered = overrideMerge.getOverride(ChildNode::ordered).orDefault(true).get();
+
+		occurrences = overrideMerge.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
+				.orDefault(Range.between(1, 1)).get();
 	}
 
 	@Override
-	public SchemaNode<?, ?> parent() {
+	public SchemaNode<?> parent() {
 		return parent;
+	}
+
+	@Override
+	public Range<Integer> occurrences() {
+		return occurrences;
 	}
 
 	@Override
@@ -104,14 +59,9 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 	}
 
 	@Override
-	public final Range<Integer> occurrences() {
-		return occurrences;
-	}
-
-	@Override
 	public boolean equals(Object that) {
-		return super.equals(that) && that instanceof ChildNode
-				&& Objects.equals(parent(), ((ChildNode<?, ?>) that).parent());
+		return super.equals(that) && that instanceof ChildNode<?>
+				&& Objects.equals(parent(), ((ChildNode<?>) that).parent());
 	}
 
 	@Override
@@ -120,7 +70,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S, E>, E extends ChildNo
 	}
 
 	@Override
-	public BindingNode<?, ?, ?> root() {
+	public BindingNode<?, ?> root() {
 		return parent().root();
 	}
 }

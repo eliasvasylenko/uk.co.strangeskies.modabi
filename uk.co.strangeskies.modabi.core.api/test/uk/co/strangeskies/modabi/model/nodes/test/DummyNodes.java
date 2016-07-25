@@ -30,6 +30,7 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -46,15 +47,15 @@ public class DummyNodes {
 				Arrays.asList(children).stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
 	}
 
-	public static SequenceNode sequenceNode(String name, ChildNode<?, ?>... children) {
+	public static SequenceNode sequenceNode(String name, ChildNode<?>... children) {
 		return sequenceNode(new QualifiedName(name), children);
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name, ChildNode<?, ?>... children) {
+	public static SequenceNode sequenceNode(QualifiedName name, ChildNode<?>... children) {
 		return sequenceNode(name, Arrays.asList(children));
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name, List<? extends ChildNode<?, ?>> children) {
+	public static SequenceNode sequenceNode(QualifiedName name, List<ChildNode<?>> children) {
 		return new SequenceNode() {
 			@Override
 			public QualifiedName name() {
@@ -67,7 +68,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public List<? extends ChildNode<?, ?>> children() {
+			public List<ChildNode<?>> children() {
 				return children;
 			}
 
@@ -93,78 +94,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Effective effective() {
-				SequenceNode thisNode = this;
-
-				return new Effective() {
-					@Override
-					public QualifiedName name() {
-						return name;
-					}
-
-					@Override
-					public boolean equals(Object object) {
-						if (!(object instanceof SequenceNode.Effective))
-							return false;
-
-						return source().equals(((SequenceNode) object).source());
-					}
-
-					@Override
-					public Abstractness abstractness() {
-						return Abstractness.CONCRETE;
-					}
-
-					@Override
-					public int hashCode() {
-						return name().hashCode() + children.hashCode();
-					}
-
-					@Override
-					public List<ChildNode.Effective<?, ?>> children() {
-						return children.stream().<ChildNode.Effective<?, ?>>map(c -> c.effective()).collect(Collectors.toList());
-					}
-
-					@Override
-					public SequenceNode source() {
-						return thisNode;
-					}
-
-					@Override
-					public TypeToken<?> preInputType() {
-						return TypeToken.over(Object.class);
-					}
-
-					@Override
-					public TypeToken<?> postInputType() {
-						return TypeToken.over(Object.class);
-					}
-
-					@Override
-					public Range<Integer> occurrences() {
-						return Range.between(1, 1);
-					}
-
-					@Override
-					public Boolean ordered() {
-						return true;
-					}
-
-					@Override
-					public SchemaNode.Effective<?, ?> parent() {
-						return null;
-					}
-
-					@Override
-					public BindingNode.Effective<?, ?, ?> root() {
-						return null;
-					}
-
-					@Override
-					public Schema schema() {
-						return null;
-					}
-				};
+			public TypeToken<?> preInputType() {
+				return TypeToken.over(Object.class);
 			}
 
 			@Override
@@ -178,17 +109,22 @@ public class DummyNodes {
 			}
 
 			@Override
-			public SchemaNode<?, ?> parent() {
+			public SchemaNode<?> parent() {
 				return null;
 			}
 
 			@Override
-			public BindingNode<?, ?, ?> root() {
+			public BindingNode<?, ?> root() {
 				return null;
 			}
 
 			@Override
 			public Schema schema() {
+				return null;
+			}
+
+			@Override
+			public SchemaNodeConfigurator<?, SequenceNode> configurator() {
 				return null;
 			}
 		};
@@ -199,20 +135,15 @@ public class DummyNodes {
 	}
 
 	public static SequenceNode sequenceNode(QualifiedName name) {
-		return new SequenceNode.Effective() {
+		return new SequenceNode() {
 			@Override
 			public QualifiedName name() {
 				return name;
 			}
 
 			@Override
-			public List<ChildNode.Effective<?, ?>> children() {
+			public List<ChildNode<?>> children() {
 				return Collections.emptyList();
-			}
-
-			@Override
-			public SequenceNode source() {
-				return this;
 			}
 
 			@Override
@@ -222,7 +153,7 @@ public class DummyNodes {
 
 			@Override
 			public boolean equals(Object object) {
-				if (!(object instanceof SequenceNode.Effective))
+				if (!(object instanceof SequenceNode))
 					return false;
 
 				return ((SequenceNode) object).name().equals(name());
@@ -254,17 +185,22 @@ public class DummyNodes {
 			}
 
 			@Override
-			public SchemaNode.Effective<?, ?> parent() {
+			public SchemaNode<?> parent() {
 				return null;
 			}
 
 			@Override
-			public BindingNode.Effective<?, ?, ?> root() {
+			public BindingNode<?, ?> root() {
 				return null;
 			}
 
 			@Override
 			public Schema schema() {
+				return null;
+			}
+
+			@Override
+			public SchemaNodeConfigurator<?, SequenceNode> configurator() {
 				return null;
 			}
 		};

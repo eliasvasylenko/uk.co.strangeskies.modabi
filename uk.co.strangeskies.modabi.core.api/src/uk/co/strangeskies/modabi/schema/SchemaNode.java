@@ -20,111 +20,85 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
+import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaException;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.utilities.IdentityProperty;
 
-public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Effective<S, E>> extends Reified<S> {
-	interface Effective<S extends SchemaNode<S, E>, E extends Effective<S, E>> extends SchemaNode<S, E> {
-		@Override
-		List<ChildNode.Effective<?, ?>> children();
+public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
+	void process(NodeProcessor context);
 
-		@SuppressWarnings("unchecked")
-		@Override
-		default E effective() {
-			return (E) this;
-		}
+	default <T> T process(ReturningNodeProcessor<T> context) {
+		IdentityProperty<T> result = new IdentityProperty<>();
 
-		@Override
-		S source();
+		process(new NodeProcessor() {
+			@Override
+			public <U> void accept(Model<U> node) {
+				result.set(context.accept(node));
+			}
 
-		@Override
-		BindingNode.Effective<?, ?, ?> root();
+			@Override
+			public <U> void accept(DataType<U> node) {
+				result.set(context.accept(node));
+			}
 
-		void process(NodeProcessor context);
+			@Override
+			public void accept(ChoiceNode node) {
+				result.set(context.accept(node));
+			}
 
-		default <T> T process(ReturningNodeProcessor<T> context) {
-			IdentityProperty<T> result = new IdentityProperty<>();
+			@Override
+			public void accept(SequenceNode node) {
+				result.set(context.accept(node));
+			}
 
-			process(new NodeProcessor() {
-				@Override
-				public <U> void accept(Model.Effective<U> node) {
-					result.set(context.accept(node));
-				}
+			@Override
+			public void accept(InputSequenceNode node) {
+				result.set(context.accept(node));
+			}
 
-				@Override
-				public <U> void accept(DataType.Effective<U> node) {
-					result.set(context.accept(node));
-				}
+			@Override
+			public <U> void accept(DataNode<U> node) {
+				result.set(context.accept(node));
+			}
 
-				@Override
-				public void accept(ChoiceNode.Effective node) {
-					result.set(context.accept(node));
-				}
+			@Override
+			public <U> void accept(ComplexNode<U> node) {
+				result.set(context.accept(node));
+			}
+		});
 
-				@Override
-				public void accept(SequenceNode.Effective node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public void accept(InputSequenceNode.Effective node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public <U> void accept(DataNode.Effective<U> node) {
-					result.set(context.accept(node));
-				}
-
-				@Override
-				public <U> void accept(ComplexNode.Effective<U> node) {
-					result.set(context.accept(node));
-				}
-			});
-
-			return result.get();
-		}
+		return result.get();
 	}
+
+	SchemaNodeConfigurator<?, S> configurator();
 
 	Abstractness abstractness();
 
 	QualifiedName name();
 
-	List<? extends ChildNode<?, ?>> children();
+	List<ChildNode<?>> children();
 
-	E effective();
-
-	@SuppressWarnings("unchecked")
-	default S source() {
-		return (S) this;
+	default ChildNode<?> child(QualifiedName name) {
+		return children().stream().filter(c -> c.name().equals(name)).findAny()
+				.orElseThrow(() -> new ModabiException(t -> t.noChildFound(Arrays.asList(name), name(), children())));
 	}
 
-	default ChildNode<?, ?> child(QualifiedName name) {
-		return children().stream().filter(c -> c.name().equals(name)).findAny().orElseThrow(
-				() -> new SchemaException("Cannot find child '" + name + "' for node '" + name() + "' amongst children '["
-						+ children().stream().map(SchemaNode::name).map(Objects::toString).collect(Collectors.joining(", "))
-						+ "]."));
-	}
-
-	default ChildNode<?, ?> child(QualifiedName name, QualifiedName... names) {
+	default ChildNode<?> child(QualifiedName name, QualifiedName... names) {
 		if (names.length == 0)
 			return child(name);
 		else
 			return child(name).child(Arrays.asList(names));
 	}
 
-	default ChildNode<?, ?> child(List<QualifiedName> names) {
+	default ChildNode<?> child(List<QualifiedName> names) {
 		if (names.isEmpty())
-			throw new IllegalArgumentException();
+			throw new ModabiException(t -> t.noChildFound(names, name(), children()));
 
 		if (names.size() == 1)
 			return child(names.get(0));
@@ -132,14 +106,14 @@ public interface SchemaNode<S extends SchemaNode<S, E>, E extends SchemaNode.Eff
 			return child(names.get(0)).child(names.subList(1, names.size()));
 	}
 
-	default ChildNode<?, ?> child(String name, String... names) {
+	default ChildNode<?> child(String name, String... names) {
 		if (names.length == 0)
 			return child(new QualifiedName(name, name().getNamespace()));
 		else
 			return child(name).child(names[0], Arrays.copyOfRange(names, 1, names.length));
 	}
 
-	BindingNode<?, ?, ?> root();
+	BindingNode<?, ?> root();
 
 	Schema schema();
 

@@ -21,21 +21,19 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 
-public class DataTypeWrapper<T>
-		extends BindingNodeWrapper<T, DataType.Effective<? super T>, DataType<T>, DataType.Effective<T>>
-		implements DataType.Effective<T> {
-	public DataTypeWrapper(DataNode.Effective<T> component) {
+public class DataTypeWrapper<T> extends BindingNodeWrapper<T, DataType<? super T>, DataType<T>> implements DataType<T> {
+	public DataTypeWrapper(DataNode<T> component) {
 		super(component);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public DataNode.Effective<? super T> getComponent() {
-		return (DataNode.Effective<? super T>) super.getComponent();
+	public DataNode<? super T> getComponent() {
+		return (DataNode<? super T>) super.getComponent();
 	}
 
 	@Override
-	public DataType.Effective<? super T> baseType() {
+	public DataType<? super T> baseType() {
 		return getComponent().type();
 	}
 
