@@ -31,4 +31,7 @@ public interface InputSequenceNode extends InputNode<InputSequenceNode>, ChildNo
 	default TypeToken<InputSequenceNode> getThisType() {
 		return new TypeToken<InputSequenceNode>() {};
 	}
+
+	@Override
+	InputSequenceNodeConfigurator configurator();
 }

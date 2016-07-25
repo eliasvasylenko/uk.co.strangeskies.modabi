@@ -25,8 +25,6 @@ public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
 
 	Boolean inMethodUnchecked();
 
-	String inMethodName();
-
 	/**
 	 * If this method returns true, the return value of any invocation of the
 	 * inMethod will replace the build class of any
@@ -36,4 +34,7 @@ public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
 	Boolean inMethodChained();
 
 	Boolean inMethodCast();
+
+	@Override
+	InputNodeConfigurator<?, S> configurator();
 }

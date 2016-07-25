@@ -43,4 +43,7 @@ public interface ComplexNode<T> extends BindingChildNode<T, ComplexNode<T>> {
 	default TypeToken<ComplexNode<T>> getThisType() {
 		return new TypeToken<ComplexNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
+
+	@Override
+	ComplexNodeConfigurator<T> configurator();
 }

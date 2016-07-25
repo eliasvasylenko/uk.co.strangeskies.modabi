@@ -45,8 +45,9 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 		return component;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	private S getThis() {
+	public S getThis() {
 		return (S) this;
 	}
 

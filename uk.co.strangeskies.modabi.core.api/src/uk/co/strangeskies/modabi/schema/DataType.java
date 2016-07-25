@@ -52,4 +52,7 @@ public interface DataType<T> extends BindingNode<T, DataType<T>> {
 	default TypeToken<DataType<T>> getThisType() {
 		return new TypeToken<DataType<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
+
+	@Override
+	DataTypeConfigurator<T> configurator();
 }

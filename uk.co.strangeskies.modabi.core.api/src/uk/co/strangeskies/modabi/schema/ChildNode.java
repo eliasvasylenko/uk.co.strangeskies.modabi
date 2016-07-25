@@ -42,9 +42,8 @@ public interface ChildNode<S extends ChildNode<S>> extends SchemaNode<S> {
 
 	TypeToken<?> postInputType();
 
-	default String postInputTypeString() {
-		return postInputType() == null ? null : postInputType().toString(schema().imports());
-	}
-
 	SchemaNode<?> parent();
+
+	@Override
+	ChildNodeConfigurator<?, S> configurator();
 }

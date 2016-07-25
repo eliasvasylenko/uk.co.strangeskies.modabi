@@ -26,6 +26,7 @@ import java.util.Objects;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -156,6 +157,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S, E>, E ex
 		@Override
 		public final Boolean nullIfOmitted() {
 			return nullIfOmitted;
+		}
+
+		@Override
+		public Schema schema() {
+			return root().schema();
 		}
 
 		@Override

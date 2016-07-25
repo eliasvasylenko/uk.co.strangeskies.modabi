@@ -19,55 +19,36 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import uk.co.strangeskies.modabi.Abstractness;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
+import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class SequenceNodeImpl extends ChildNodeImpl<SequenceNode, SequenceNode.Effective> implements SequenceNode {
-	private class Effective extends ChildNodeImpl.Effective<SequenceNode, SequenceNode.Effective>
-			implements SequenceNode.Effective {
-		private final TypeToken<?> preInputClass;
-		private final TypeToken<?> postInputClass;
-
-		public Effective(OverrideMerge<SequenceNode, SequenceNodeConfiguratorImpl> overrideMerge) {
-			super(overrideMerge);
-
-			preInputClass = abstractness().isLessThan(Abstractness.ABSTRACT) ? null : children().get(0).preInputType();
-
-			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::postInputType)
-					.validate(TypeToken::isAssignableTo).tryGet();
-			if (postInputClass == null && abstractness().isLessThan(Abstractness.ABSTRACT)) {
-				postInputClass = children().get(children().size() - 1).postInputType();
-			}
-			this.postInputClass = postInputClass;
-		}
-
-		@Override
-		public TypeToken<?> preInputType() {
-			return preInputClass;
-		}
-
-		@Override
-		public TypeToken<?> postInputType() {
-			return postInputClass;
-		}
-	}
-
-	private final Effective effective;
+public class SequenceNodeImpl extends ChildNodeImpl<SequenceNode> implements SequenceNode {
+	private final TypeToken<?> preInputClass;
 	private final TypeToken<?> postInputClass;
 
 	public SequenceNodeImpl(SequenceNodeConfiguratorImpl configurator) {
 		super(configurator);
 
-		postInputClass = configurator.getPostInputClass();
+		preInputClass = abstractness().isLessThan(Abstractness.ABSTRACT) ? null : children().get(0).preInputType();
 
-		effective = new Effective(SequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
+		TypeToken<?> postInputClass = configurator.getOverride(ChildNode::postInputType).validate(TypeToken::isAssignableTo)
+				.tryGet();
+		if (postInputClass == null && abstractness().isLessThan(Abstractness.ABSTRACT)) {
+			postInputClass = children().get(children().size() - 1).postInputType();
+		}
+		this.postInputClass = postInputClass;
 	}
 
 	@Override
-	public Effective effective() {
-		return effective;
+	public SequenceNodeConfigurator configurator() {
+		return (SequenceNodeConfigurator) super.configurator();
+	}
+
+	@Override
+	public TypeToken<?> preInputType() {
+		return preInputClass;
 	}
 
 	@Override

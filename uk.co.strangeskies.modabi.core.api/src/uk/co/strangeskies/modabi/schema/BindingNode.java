@@ -33,37 +33,22 @@ public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<
 
 	List<? extends BindingNode<? super T, ?>> base();
 
-	default String dataTypeString() {
-		return dataType() == null ? null : dataType().toString(schema().imports());
-	}
-
 	TypeToken<T> dataType();
 
 	InputBindingStrategy bindingStrategy();
-
-	default String bindingTypeString() {
-		return bindingType() == null ? null : bindingType().toString(schema().imports());
-	}
 
 	TypeToken<?> bindingType();
 
 	OutputBindingStrategy unbindingStrategy();
 
-	default String unbindingTypeString() {
-		return unbindingType() == null ? null : unbindingType().toString(schema().imports());
-	}
-
 	TypeToken<?> unbindingType();
 
-	String unbindingMethodName();
-
 	Boolean unbindingMethodUnchecked();
-
-	default String unbindingFactoryTypeString() {
-		return unbindingFactoryType() == null ? null : unbindingFactoryType().toString(schema().imports());
-	}
 
 	TypeToken<?> unbindingFactoryType();
 
 	List<QualifiedName> providedUnbindingMethodParameterNames();
+
+	@Override
+	BindingNodeConfigurator<?, S, T> configurator();
 }

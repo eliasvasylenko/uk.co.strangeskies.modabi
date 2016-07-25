@@ -30,8 +30,8 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
+import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DummyNodes {
@@ -124,7 +124,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public SchemaNodeConfigurator<?, SequenceNode> configurator() {
+			public SequenceNodeConfigurator configurator() {
 				return null;
 			}
 		};
@@ -200,7 +200,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public SchemaNodeConfigurator<?, SequenceNode> configurator() {
+			public SequenceNodeConfigurator configurator() {
 				return null;
 			}
 		};

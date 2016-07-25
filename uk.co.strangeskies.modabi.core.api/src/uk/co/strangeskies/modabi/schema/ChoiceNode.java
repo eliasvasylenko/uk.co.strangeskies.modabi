@@ -31,4 +31,7 @@ public interface ChoiceNode extends ChildNode<ChoiceNode> {
 	default TypeToken<ChoiceNode> getThisType() {
 		return new TypeToken<ChoiceNode>() {};
 	}
+
+	@Override
+	ChoiceNodeConfigurator configurator();
 }

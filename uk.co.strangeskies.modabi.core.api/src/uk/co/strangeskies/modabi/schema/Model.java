@@ -41,4 +41,7 @@ public interface Model<T> extends BindingNode<T, Model<T>> {
 	default TypeToken<Model<T>> getThisType() {
 		return new TypeToken<Model<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
+
+	@Override
+	ModelConfigurator<T> configurator();
 }

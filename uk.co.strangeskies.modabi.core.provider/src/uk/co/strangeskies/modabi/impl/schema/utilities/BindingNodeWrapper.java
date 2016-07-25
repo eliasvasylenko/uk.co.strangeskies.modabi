@@ -31,6 +31,7 @@ import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
@@ -204,5 +205,11 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	@Override
 	public Schema schema() {
 		return component.schema();
+	}
+
+	@Override
+	public SchemaNodeConfigurator<?, S> configurator() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
 	}
 }

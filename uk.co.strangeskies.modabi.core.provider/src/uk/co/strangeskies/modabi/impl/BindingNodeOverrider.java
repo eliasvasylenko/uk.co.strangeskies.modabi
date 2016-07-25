@@ -296,7 +296,7 @@ public class BindingNodeOverrider {
 			c = tryProperty(node, BindingNode::bindingStrategy, C::bindingStrategy, c);
 			c = tryProperty(node, BindingNode::unbindingType, (cc, t) -> cc.unbindingType(t), c);
 			c = tryProperty(node, BindingNode::unbindingFactoryType, (cc, t) -> cc.unbindingFactoryType(t), c);
-			c = tryProperty(node, BindingNode::unbindingMethodName, C::unbindingMethod, c);
+			c = tryProperty(node, b -> b.unbindingMethod().getExecutable().getName(), C::unbindingMethod, c);
 			c = tryProperty(node, BindingNode::unbindingMethodUnchecked, C::unbindingMethodUnchecked, c);
 			c = tryProperty(node, BindingNode::unbindingStrategy, C::unbindingStrategy, c);
 			c = tryProperty(node, BindingNode::providedUnbindingMethodParameterNames,
@@ -307,7 +307,7 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?> node, C c) {
-			c = tryProperty(node, BindingChildNode::outMethodName, C::outMethod, c);
+			c = tryProperty(node, b -> b.outMethod().getExecutable().getName(), C::outMethod, c);
 			c = tryProperty(node, BindingChildNode::outMethodIterable, C::outMethodIterable, c);
 			c = tryProperty(node, BindingChildNode::outMethodUnchecked, C::outMethodUnchecked, c);
 			c = tryProperty(node, BindingChildNode::outMethodCast, C::outMethodCast, c);
@@ -318,7 +318,7 @@ public class BindingNodeOverrider {
 		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(InputNode<?> node, C c) {
 			c = tryProperty(node, InputNode::inMethodCast, C::inMethodCast, c);
 			c = tryProperty(node, InputNode::inMethodUnchecked, C::inMethodUnchecked, c);
-			c = tryProperty(node, InputNode::inMethodName, C::inMethod, c);
+			c = tryProperty(node, b -> b.inMethod().getExecutable().getName(), C::inMethod, c);
 			c = tryProperty(node, InputNode::inMethodChained, C::inMethodChained, c);
 			c = tryProperty(node, InputNode::postInputType, (cc, t) -> cc.postInputType(t), c);
 

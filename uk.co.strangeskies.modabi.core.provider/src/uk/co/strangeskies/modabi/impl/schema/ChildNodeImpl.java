@@ -21,9 +21,10 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeImpl<S> implements ChildNode<S> {
@@ -32,15 +33,20 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	private final Range<Integer> occurrences;
 	private final Boolean ordered;
 
-	public ChildNodeImpl(OverrideMerge<S, ? extends ChildNodeConfiguratorImpl<?, S>> overrideMerge) {
-		super(overrideMerge);
+	public ChildNodeImpl(ChildNodeConfiguratorImpl<?, S> configurator) {
+		super(configurator);
 
-		parent = overrideMerge.configurator().getContext().parentNodeProxy();
+		parent = configurator.getContext().parentNodeProxy();
 
-		ordered = overrideMerge.getOverride(ChildNode::ordered).orDefault(true).get();
+		ordered = configurator.getOverride(ChildNode::ordered).orDefault(true).get();
 
-		occurrences = overrideMerge.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
+		occurrences = configurator.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
 				.orDefault(Range.between(1, 1)).get();
+	}
+
+	@Override
+	public ChildNodeConfigurator<?, S> configurator() {
+		return (ChildNodeConfigurator<?, S>) super.configurator();
 	}
 
 	@Override
@@ -67,6 +73,11 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	@Override
 	public final int hashCode() {
 		return super.hashCode() ^ Objects.hashCode(parent());
+	}
+
+	@Override
+	public Schema schema() {
+		return root().schema();
 	}
 
 	@Override

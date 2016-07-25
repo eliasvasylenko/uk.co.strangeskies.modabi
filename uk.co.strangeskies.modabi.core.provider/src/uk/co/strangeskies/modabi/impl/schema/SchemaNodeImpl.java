@@ -28,34 +28,35 @@ import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
 public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaNode<S> {
+	private final SchemaNodeConfiguratorImpl<?, S> configurator;
+
 	private final QualifiedName name;
 	private final Abstractness abstractness;
 	private final List<ChildNode<?>> children;
 
-	protected SchemaNodeImpl(OverrideMerge<S, ? extends SchemaNodeConfiguratorImpl<?, S>> overrideMerge) {
-		overrideMerge.configurator().finaliseConfiguration();
-		overrideMerge.configurator().finaliseChildren();
+	protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, S> configurator) {
+		this.configurator = configurator;
+		configurator.finaliseConfiguration();
+		configurator.finaliseChildren();
 
-		name = overrideMerge.getOverride(SchemaNode::name).orDefault(overrideMerge.configurator().defaultName())
-				.validate((n, o) -> true).get();
+		name = configurator.getOverride(SchemaNode::name).orDefault(configurator.defaultName()).validate((n, o) -> true)
+				.get();
 
-		abstractness = overrideMerge.node().abstractness() == null ? Abstractness.CONCRETE
-				: overrideMerge.node().abstractness();
+		abstractness = configurator.abstractness() == null ? Abstractness.CONCRETE : configurator.abstractness();
 
-		children = overrideMerge.configurator().getChildren();
+		children = configurator.getChildren();
 
-		if (!overrideMerge.configurator().isChildContextAbstract())
+		if (!configurator.isChildContextAbstract())
 			requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
 	}
 
@@ -134,7 +135,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 	}
 
 	@Override
-	public Schema schema() {
-		return root().schema();
+	public SchemaNodeConfigurator<?, S> configurator() {
+		return configurator;
 	}
 }

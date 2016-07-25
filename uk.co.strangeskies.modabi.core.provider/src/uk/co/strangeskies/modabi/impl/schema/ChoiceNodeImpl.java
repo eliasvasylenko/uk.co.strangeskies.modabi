@@ -21,69 +21,49 @@ package uk.co.strangeskies.modabi.impl.schema;
 import static java.util.stream.Collectors.toSet;
 
 import uk.co.strangeskies.modabi.Abstractness;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode, ChoiceNode.Effective> implements ChoiceNode {
-	private static class Effective extends ChildNodeImpl.Effective<ChoiceNode, ChoiceNode.Effective>
-			implements ChoiceNode.Effective {
-		private final TypeToken<?> preInputClass;
-		private final TypeToken<?> postInputClass;
-
-		public Effective(OverrideMerge<ChoiceNode, ChoiceNodeConfiguratorImpl> overrideMerge) {
-			super(overrideMerge);
-
-			TypeToken<?> preInputClass = null;
-			TypeToken<?> postInputClass = overrideMerge.getOverride(ChildNode::postInputType)
-					.validate(TypeToken::isAssignableTo).tryGet();
-
-			if (abstractness().isLessThan(Abstractness.ABSTRACT)) {
-				preInputClass = TypeToken.over(Types.greatestLowerBound(
-						children().stream().map(ChildNode.Effective::preInputType).map(TypeToken::getType).collect(toSet())));
-
-				if (postInputClass == null) {
-					postInputClass = TypeToken.over(Types.leastUpperBound(
-							children().stream().map(ChildNode::postInputType).map(TypeToken::getType).collect(toSet())));
-				}
-			}
-
-			this.preInputClass = preInputClass;
-			this.postInputClass = postInputClass;
-		}
-
-		@Override
-		public TypeToken<?> preInputType() {
-			return preInputClass;
-		}
-
-		@Override
-		public TypeToken<?> postInputType() {
-			return postInputClass;
-		}
-	}
-
-	private final ChoiceNodeImpl.Effective effective;
-
+class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode> implements ChoiceNode {
+	private final TypeToken<?> preInputClass;
 	private final TypeToken<?> postInputClass;
 
 	public ChoiceNodeImpl(ChoiceNodeConfiguratorImpl configurator) {
 		super(configurator);
 
-		postInputClass = configurator.getPostInputClass();
+		TypeToken<?> preInputClass = null;
+		TypeToken<?> postInputClass = configurator.getOverride(ChildNode::postInputType).validate(TypeToken::isAssignableTo)
+				.tryGet();
 
-		effective = new Effective(ChoiceNodeConfiguratorImpl.overrideMerge(this, configurator));
+		if (abstractness().isLessThan(Abstractness.ABSTRACT)) {
+			preInputClass = TypeToken.over(Types.greatestLowerBound(
+					children().stream().map(ChildNode::preInputType).map(TypeToken::getType).collect(toSet())));
+
+			if (postInputClass == null) {
+				postInputClass = TypeToken.over(Types.leastUpperBound(
+						children().stream().map(ChildNode::postInputType).map(TypeToken::getType).collect(toSet())));
+			}
+		}
+
+		this.preInputClass = preInputClass;
+		this.postInputClass = postInputClass;
 	}
 
 	@Override
-	public ChoiceNodeImpl.Effective effective() {
-		return effective;
+	public TypeToken<?> preInputType() {
+		return preInputClass;
 	}
 
 	@Override
 	public TypeToken<?> postInputType() {
 		return postInputClass;
+	}
+	
+	@Override
+	public ChoiceNodeConfigurator configurator() {
+		return (ChoiceNodeConfigurator) super.configurator();
 	}
 }

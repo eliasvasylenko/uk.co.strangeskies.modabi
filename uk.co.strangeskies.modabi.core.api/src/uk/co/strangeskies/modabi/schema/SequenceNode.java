@@ -31,4 +31,7 @@ public interface SequenceNode extends ChildNode<SequenceNode> {
 	default TypeToken<SequenceNode> getThisType() {
 		return new TypeToken<SequenceNode>() {};
 	}
+
+	@Override
+	SequenceNodeConfigurator configurator();
 }

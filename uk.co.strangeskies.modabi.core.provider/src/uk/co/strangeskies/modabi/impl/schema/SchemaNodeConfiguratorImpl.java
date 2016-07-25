@@ -20,12 +20,15 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
@@ -152,11 +155,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return childrenConfigurator.addChild();
 	}
 
-	protected static <S extends SchemaNode<S>, C extends SchemaNodeConfiguratorImpl<?, ? extends S>> OverrideMerge<S, C> overrideMerge(
-			S node, C configurator) {
-		return new OverrideMerge<>(node, configurator);
-	}
-
 	protected boolean isChildContextAbstract() {
 		return abstractness() != null && abstractness().isAtLeast(Abstractness.RESOLVED);
 	}
@@ -169,5 +167,19 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected TypeToken<?> parseTypeWithSubstitutedBrackets(String typeName, Imports imports) {
 		return TypeToken.fromString(typeName.replace('(', '<').replace(')', '>').replace('{', '<').replace('}', '>'),
 				imports);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> Set<T> getOverridenValues(Function<N, T> valueFunction) {
+		return getOverriddenNodes().stream().map(n -> valueFunction.apply((N) n)).filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+	}
+
+	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction) {
+		return new OverrideBuilder<>(this, valueFunction).or();
+	}
+
+	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, T override) {
+		return new OverrideBuilder<>(this, valueFunction).or(() -> override);
 	}
 }

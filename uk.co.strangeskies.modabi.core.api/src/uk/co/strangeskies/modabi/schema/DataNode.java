@@ -103,4 +103,7 @@ public interface DataNode<T> extends BindingChildNode<T, DataNode<T>> {
 	default TypeToken<DataNode<T>> getThisType() {
 		return new TypeToken<DataNode<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType());
 	}
+
+	@Override
+	DataNodeConfigurator<T> configurator();
 }

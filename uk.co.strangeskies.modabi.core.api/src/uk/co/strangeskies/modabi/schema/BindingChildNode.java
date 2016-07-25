@@ -27,8 +27,6 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S>> extends B
 
 	Boolean outMethodUnchecked();
 
-	String outMethodName();
-
 	/**
 	 * If this method returns true, the return value of any invocation of the
 	 * inMethod will replace the build class of any
@@ -42,4 +40,7 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S>> extends B
 	Boolean extensible();
 
 	Boolean nullIfOmitted();
+
+	@Override
+	BindingChildNodeConfigurator<?, S, T> configurator();
 }
