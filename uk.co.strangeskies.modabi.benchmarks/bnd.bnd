@@ -16,6 +16,6 @@ Bundle-Description: \
 	${ss;reflection},\
 	${ss;mathematics},\
 	${mdb;core.api},\
-	org.apache.commons.lang3
+	org.apache.commons.lang3;version=3.4.0
 
 -runvm: -XX:MaxJavaStackTraceDepth=1000000

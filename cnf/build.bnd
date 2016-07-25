@@ -29,21 +29,42 @@ Bundle-Version: ${modabi-version}.${tstamp}
 
 ## To enable baselining, uncomment the following lines:
 # -baseline: *
+-buildrepo: Local
 -releaserepo: Release
+-pom: true,\
+		version = ${versionmask;===;${@version}}-SNAPSHOT
 
--pluginpath.base:\
-	${pluginpath.aether}
+-plugin.Managed: \
+\
+        aQute.bnd.deployer.repository.LocalIndexedRepo; \
+            name                =       Managed ; \
+            pretty              =       true ; \
+            local               =       ${build}/local
 
--plugin.7.StrangeSkies:\
-	${plugin.strangeskies}
+-plugin.Local: \
+\
+		aQute.bnd.repository.maven.provider.MavenBndRepository; \
+			name				=		Local; \
+			index				=		${.}/local.maven
 
--plugin.8.Eclipse:\
-	${plugin.eclipse.sdk},\
-	${plugin.eclipse.wtp},\
-	${plugin.eclipse.fx}
+-plugin.StrangeSkies: \
+\
+		aQute.bnd.repository.maven.provider.MavenBndRepository; \
+			name				=		StrangeSkies; \
+			index				=		${.}/strangeskies.maven; \
+			releaseUrl			=		http://oss.jfrog.org/libs-snapshot/
 
-mdb.override: uk.co.strangeskies.modabi.${1}\;version=snapshot
-plugin.modabi.override:
+-plugin.Release: \
+\
+		aQute.bnd.repository.maven.provider.MavenBndRepository; \
+			name				=		Modabi; \
+			index				=		${.}/modabi.maven; \
+			releaseUrl			=		http://oss.jfrog.org/libs-snapshot/
+
+ss: uk.co.strangeskies.${1};version=latest
+mdb: uk.co.strangeskies.modabi.${1};version=snapshot
+
+include.ss: jar:file:///${replace;${repo;uk.co.strangeskies.build;latest};%;%25}!/include
 
 pluginpath.modabi: \
 	${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar

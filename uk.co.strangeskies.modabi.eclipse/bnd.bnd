@@ -8,8 +8,11 @@ Bundle-Description: \
 
 Bundle-SymbolicName: ${p};singleton:=true
 
+-include: \
+	${include.ss}/eclipse.platform.neon.bnd,\
+	${include.ss}/eclipse.fx.2.4.0.bnd
+
 -buildpath: \
-	${buildpath.eclipse},\
 	${ss;fx},\
 	${ss;eclipse}
 

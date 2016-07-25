@@ -36,12 +36,12 @@ public class ModabiException extends LocalizedRuntimeException {
 		super(message, cause);
 	}
 
-	public ModabiException(Function<ModabiExceptionText, Localized<String>> message) {
-		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiExceptionText.class)));
+	public ModabiException(Function<ModabiProperties, Localized<String>> message) {
+		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiProperties.class)));
 	}
 
-	public ModabiException(Function<ModabiExceptionText, Localized<String>> message, Throwable cause) {
-		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiExceptionText.class)), cause);
+	public ModabiException(Function<ModabiProperties, Localized<String>> message, Throwable cause) {
+		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiProperties.class)), cause);
 	}
 
 	public ModabiException(String message, Throwable cause) {

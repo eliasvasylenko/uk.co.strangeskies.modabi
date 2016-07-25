@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.io.xml;
 
+import static uk.co.strangeskies.text.properties.PropertyLoader.getDefaultProperties;
+
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -59,7 +61,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			out.setNamespaceContext(namespaces);
 			out.writeStartDocument();
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new ModabiIoException("Cannot start XML document for writing", e);
+			throw xmlException(e);
 		}
 	}
 
@@ -75,12 +77,16 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				writer = new IndentingXMLStreamWriter(writer);
 			return writer;
 		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new ModabiIoException("Cannot open XML stream for writing", e);
+			throw xmlException(e);
 		}
 	}
 
 	public XmlTarget(OutputStream out) {
 		this(out, true);
+	}
+
+	private static ModabiIoException xmlException(Throwable e) {
+		return new ModabiIoException(getDefaultProperties(ModabiXmlProperties.class).problemReadingFromXmlDocument(), e);
 	}
 
 	@Override
@@ -132,7 +138,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 
 			return done;
 		} catch (XMLStreamException e) {
-			throw new ModabiIoException("Cannot start element in XML document", e);
+			throw xmlException(e);
 		}
 	}
 
@@ -148,7 +154,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			if (!outputCurrentChild(true))
 				out.writeEndElement();
 		} catch (XMLStreamException e) {
-			throw new ModabiIoException("Cannot end element in XML document ", e);
+			throw xmlException(e);
 		}
 
 		namespaces.pop();
@@ -157,7 +163,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 				out.writeEndDocument();
 				out.flush();
 			} catch (XMLStreamException e) {
-				throw new ModabiIoException("Cannot end XML document", e);
+				throw xmlException(e);
 			}
 	}
 
@@ -174,7 +180,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 			try {
 				out.writeCharacters(s);
 			} catch (XMLStreamException e) {
-				throw new ModabiIoException("Cannot write element content in XML document", e);
+				throw xmlException(e);
 			}
 		}, this::composeName);
 	}
@@ -191,7 +197,7 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 		try {
 			out.writeComment(comment);
 		} catch (XMLStreamException e) {
-			throw new ModabiIoException("Cannot write comment in XML document", e);
+			throw xmlException(e);
 		}
 	}
 }

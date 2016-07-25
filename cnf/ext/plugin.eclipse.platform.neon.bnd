@@ -1,0 +1,9 @@
+-plugin.eclipse.platform.neon:\
+\
+		aQute.bnd.repository.p2.provider.P2Repository;\
+			name				=		"Eclipse Neon Updates";\
+			url					=		http://download.eclipse.org/eclipse/updates/4.6,\
+\
+		aQute.bnd.repository.p2.provider.P2Repository;\
+			name				=		"Eclipse Neon Simultaneous Release";\
+			url					=		http://download.eclipse.org/releases/neon/ 

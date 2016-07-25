@@ -35,4 +35,5 @@ Export-Package: uk.co.strangeskies.modabi.io.xml
 	uk.co.strangeskies.reflection;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities;version='[1.0.13,1.0.14)',\
 	uk.co.strangeskies.utilities.osgi.consolelog;version='[1.0.13,1.0.14)'
+
 -runfw: org.eclipse.osgi

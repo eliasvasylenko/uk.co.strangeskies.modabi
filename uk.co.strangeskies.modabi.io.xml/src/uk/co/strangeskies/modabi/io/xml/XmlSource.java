@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.io.xml;
 
+import static uk.co.strangeskies.text.properties.PropertyLoader.getDefaultProperties;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,7 +131,7 @@ public class XmlSource implements StructuredDataSource {
 			try {
 				code = in.next();
 			} catch (XMLStreamException e) {
-				throw new ModabiIoException("Problem reading from XML document", e);
+				throw new ModabiIoException(getDefaultProperties(ModabiXmlProperties.class).problemReadingFromXmlDocument(), e);
 			}
 
 			switch (code) {

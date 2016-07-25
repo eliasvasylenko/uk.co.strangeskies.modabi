@@ -1,0 +1,15 @@
+uk.co.strangeskies:uk.co.strangeskies.bnd:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.build:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.eclipse:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.expressions:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.fx:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.mathematics:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.mathematics.geometry:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.osgi.api:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.osgi.provider:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.reflection:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.scripting.engine.javascript:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.scripting.management:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.templates:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.text:1.0.13-SNAPSHOT
+uk.co.strangeskies:uk.co.strangeskies.utilities:1.0.13-SNAPSHOT

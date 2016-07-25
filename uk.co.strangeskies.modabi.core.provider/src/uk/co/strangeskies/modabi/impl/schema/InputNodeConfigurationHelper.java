@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.ModabiExceptionText.ExecutableType;
+import uk.co.strangeskies.modabi.ModabiProperties.ExecutableType;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;

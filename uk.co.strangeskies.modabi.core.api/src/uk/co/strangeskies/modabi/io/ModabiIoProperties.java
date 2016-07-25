@@ -20,12 +20,15 @@ package uk.co.strangeskies.modabi.io;
 
 import java.net.URI;
 
+import uk.co.strangeskies.modabi.ModabiProperties;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
-public interface ModabiIoExceptionText extends Properties<ModabiIoExceptionText> {
+public interface ModabiIoProperties extends Properties<ModabiIoProperties> {
+	ModabiProperties modabiProperties();
+
 	Localized<String> nextChildDoesNotExist();
 
 	Localized<String> overlappingDefaultNamespaceHints();

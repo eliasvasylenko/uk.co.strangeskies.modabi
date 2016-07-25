@@ -41,7 +41,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
-public interface ModabiExceptionText extends Properties<ModabiExceptionText> {
+public interface ModabiProperties extends Properties<ModabiProperties> {
 	enum ExecutableType {
 		METHOD, STATIC_METHOD, CONSTRUCTOR
 	}

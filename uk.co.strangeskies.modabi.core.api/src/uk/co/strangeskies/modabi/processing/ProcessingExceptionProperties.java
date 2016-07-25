@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.ModabiExceptionText;
+import uk.co.strangeskies.modabi.ModabiProperties;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -36,7 +36,7 @@ import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
 public interface ProcessingExceptionProperties extends Properties<ProcessingExceptionProperties> {
-	ModabiExceptionText modabiException();
+	ModabiProperties modabiException();
 
 	Localized<String> bindingObjects(Collection<? extends Object> bindingObjectStack);
 
