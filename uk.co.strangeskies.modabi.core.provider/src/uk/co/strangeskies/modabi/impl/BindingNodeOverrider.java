@@ -296,7 +296,7 @@ public class BindingNodeOverrider {
 			c = tryProperty(node, BindingNode::inputBindingStrategy, C::inputBindingStrategy, c);
 			c = tryProperty(node, BindingNode::outputBindingType, (cc, t) -> cc.outputBindingType(t), c);
 			c = tryProperty(node, BindingNode::outputBindingFactoryType, (cc, t) -> cc.outputBindingFactoryType(t), c);
-			c = tryProperty(node, b -> b.outputBindingMethod().getExecutable().getName(), C::outputBindingMethod, c);
+			c = tryProperty(node, b -> b.outputBindingMethod().getName(), C::outputBindingMethod, c);
 			c = tryProperty(node, BindingNode::outputBindingMethodUnchecked, C::outputBindingMethodUnchecked, c);
 			c = tryProperty(node, BindingNode::outputBindingStrategy, C::outputBindingStrategy, c);
 			c = tryProperty(node, BindingNode::providedOutputBindingMethodParameterNames,
@@ -307,7 +307,7 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?> node, C c) {
-			c = tryProperty(node, b -> b.outMethod().getExecutable().getName(), C::outMethod, c);
+			c = tryProperty(node, b -> b.outMethod().getName(), C::outMethod, c);
 			c = tryProperty(node, BindingChildNode::outMethodIterable, C::outMethodIterable, c);
 			c = tryProperty(node, BindingChildNode::outMethodUnchecked, C::outMethodUnchecked, c);
 			c = tryProperty(node, BindingChildNode::outMethodCast, C::outMethodCast, c);
@@ -318,7 +318,7 @@ public class BindingNodeOverrider {
 		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(InputNode<?> node, C c) {
 			c = tryProperty(node, InputNode::inMethodCast, C::inMethodCast, c);
 			c = tryProperty(node, InputNode::inMethodUnchecked, C::inMethodUnchecked, c);
-			c = tryProperty(node, b -> b.inMethod().getExecutable().getName(), C::inMethod, c);
+			c = tryProperty(node, b -> b.inMethod().getName(), C::inMethod, c);
 			c = tryProperty(node, InputNode::inMethodChained, C::inMethodChained, c);
 			c = tryProperty(node, InputNode::postInputType, (cc, t) -> cc.postInputType(t), c);
 

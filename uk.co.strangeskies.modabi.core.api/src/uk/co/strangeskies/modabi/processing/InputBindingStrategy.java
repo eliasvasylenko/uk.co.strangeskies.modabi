@@ -58,7 +58,7 @@ public enum InputBindingStrategy {
 	 * The arguments passed to the constructor will be determined by way of the
 	 * first child node which is an input node, and which has an
 	 * {@link InputNode.Effective#getInMethod() in method} other than an explicit
-	 * {@code "null"}. The only valid in method string for this node is
+	 * {@code "void"}. The only valid in method string for this node is
 	 * {@code "this"}, though it may be omitted. No input may be bound to the
 	 * target by any node, or the child of any node, appearing before this one.
 	 * <p>
@@ -82,7 +82,7 @@ public enum InputBindingStrategy {
 	 * The arguments passed to the method will be determined by way of the first
 	 * child node which is an input node, and which has an
 	 * {@link InputNode.Effective#getInMethod() in method} other than an explicit
-	 * {@code "null"}. No input may be bound to the target by any node, or the
+	 * {@code "void"}. No input may be bound to the target by any node, or the
 	 * child of any node, appearing before this one.
 	 * <p>
 	 * This node may be an {@link InputSequenceNode input sequence}, in which case

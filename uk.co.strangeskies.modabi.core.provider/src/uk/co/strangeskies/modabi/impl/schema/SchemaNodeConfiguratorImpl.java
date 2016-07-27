@@ -94,6 +94,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return getThis();
 	}
 
+	@Override
 	public final QualifiedName getName() {
 		return name;
 	}
@@ -109,6 +110,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return getThis();
 	}
 
+	@Override
 	public Abstractness getAbstractness() {
 		return abstractness;
 	}
@@ -150,14 +152,5 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
 		return new OverrideBuilder<>(this, valueFunction, givenValueFunction).or();
-	}
-
-	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, T override) {
-		return new OverrideBuilder<>(this, valueFunction).or(override);
-	}
-
-	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction,
-			T override) {
-		return new OverrideBuilder<>(this, valueFunction, givenValueFunction).or(override);
 	}
 }

@@ -85,14 +85,15 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		/*
 		 * Get declared data types, or overridden types thereof.
 		 */
-		effectiveDataType = getOverride(BindingNode::dataType, this.dataType).orMerged((o, n) -> o.withEquality(n))
-				.validate((o, n) -> true).get();
-		effectiveBindingType = getOverride(BindingNode::inputBindingType, this.bindingType)
+		effectiveDataType = getOverride(BindingNode::dataType, BindingNodeConfigurator::getDataType)
 				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
-		effectiveUnbindingType = getOverride(BindingNode::outputBindingType, this.unbindingType)
+		effectiveBindingType = getOverride(BindingNode::inputBindingType, BindingNodeConfigurator::getInputBindingType)
 				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
-		effectiveUnbindingFactoryType = getOverride(BindingNode::outputBindingFactoryType, this.unbindingFactoryType)
+		effectiveUnbindingType = getOverride(BindingNode::outputBindingType, BindingNodeConfigurator::getOutputBindingType)
 				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
+		effectiveUnbindingFactoryType = getOverride(BindingNode::outputBindingFactoryType,
+				BindingNodeConfigurator::getOutputBindingFactoryType).orMerged((o, n) -> o.withEquality(n))
+						.validate((o, n) -> true).get();
 
 		/*
 		 * Incorporate bounds from inherited types.
@@ -103,7 +104,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			if (this.dataType != null) {
 				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::dataType)) {
 					/*
-					 * only perform more complex type override behaviour if not already
+					 * only perform more complex type override behavior if not already
 					 * directly assignable
 					 */
 					if (!overriddenType.isProper()
@@ -174,7 +175,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Effective binding and unbinding types.
 		 */
 
-		InputBindingStrategy bindingStrategy = getOverride(BindingNode::inputBindingStrategy, this.bindingStrategy).get();
+		InputBindingStrategy bindingStrategy = getOverride(BindingNode::inputBindingStrategy,
+				BindingNodeConfigurator::getInputBindingStrategy).get();
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
 			inputTarget = effectiveBindingType;
@@ -185,8 +187,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			inputTarget = null;
 
-		OutputBindingStrategy unbindingStrategy = getOverride(BindingNode::outputBindingStrategy, this.unbindingStrategy)
-				.get();
+		OutputBindingStrategy unbindingStrategy = getOverride(BindingNode::outputBindingStrategy,
+				BindingNodeConfigurator::getOutputBindingStrategy).get();
 		TypeToken<?> outputSource;
 		if (effectiveUnbindingType != null)
 			outputSource = effectiveUnbindingType;

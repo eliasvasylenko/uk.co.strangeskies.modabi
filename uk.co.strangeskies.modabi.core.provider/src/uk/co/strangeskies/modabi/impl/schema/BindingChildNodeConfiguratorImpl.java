@@ -29,7 +29,6 @@ import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N>, T>
@@ -63,6 +62,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getNullIfOmitted() {
 		return nullIfOmitted;
 	}
@@ -74,6 +74,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getSynchronous() {
 		return synchronous;
 	}
@@ -110,6 +111,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Range<Integer> getOccurrences() {
 		return occurrences;
 	}
@@ -128,7 +130,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public final S inMethod(String inMethodName) {
-		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
+		if (!getContext().isInputExpected() && !inMethodName.equals("void"))
 			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
 
 		this.inMethodName = inMethodName;
@@ -136,6 +138,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public String getInMethod() {
 		return inMethodName;
 	}
@@ -146,6 +149,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getInMethodChained() {
 		return inMethodChained;
 	}
@@ -157,6 +161,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getInMethodCast() {
 		return inMethodCast;
 	}
@@ -168,6 +173,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getInMethodUnchecked() {
 		return inMethodUnchecked;
 	}
@@ -178,6 +184,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public String getOutMethod() {
 		return outMethodName;
 	}
@@ -188,6 +195,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getOutMethodIterable() {
 		return outMethodIterable;
 	}
@@ -198,6 +206,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getOutMethodCast() {
 		return outMethodCast;
 	}
@@ -208,6 +217,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getOutMethodUnchecked() {
 		return outMethodUnchecked;
 	}
@@ -219,6 +229,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getExtensible() {
 		return extensible;
 	}
@@ -230,6 +241,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public Boolean getOrdered() {
 		return ordered;
 	}
@@ -255,6 +267,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return getThis();
 	}
 
+	@Override
 	public TypeToken<?> getPostInputType() {
 		return postInputClass;
 	}
@@ -266,9 +279,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public TypeToken<T> getExpectedType() {
-		System.out.println(getOverride(BindingChildNode::inMethod, (Invokable<?, ?>) null).tryGet());
+		System.out.println(getOverride(BindingChildNode::inMethod, c -> null).tryGet());
 
-		System.out.println(getOverride(BindingChildNode::outMethod, (Invokable<?, ?>) null).tryGet());
+		System.out.println(getOverride(BindingChildNode::outMethod, c -> null).tryGet());
 
 		return null;
 	}

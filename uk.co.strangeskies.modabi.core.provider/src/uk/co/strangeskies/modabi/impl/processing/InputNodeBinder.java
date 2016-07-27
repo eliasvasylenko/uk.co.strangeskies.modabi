@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static uk.co.strangeskies.modabi.schema.InputNode.noInMethod;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -27,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public abstract class InputNodeBinder<T extends InputNode< ?>> extends ChildNodeBinder<T> {
+public abstract class InputNodeBinder<T extends InputNode<?>> extends ChildNodeBinder<T> {
 	public InputNodeBinder(ProcessingContext context, T node) {
 		super(context, node);
 	}
@@ -35,7 +37,7 @@ public abstract class InputNodeBinder<T extends InputNode< ?>> extends ChildNode
 	protected Object invokeInMethod(Object... parameters) {
 		TypedObject<?> target = getContext().getBindingObject();
 
-		if (!"null".equals(getNode().inMethodName())) {
+		if (!noInMethod().equals(getNode().inMethod())) {
 			TypedObject<?> result;
 
 			try {

@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -32,6 +33,11 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? su
 
 	public BindingChildNodeWrapper(B base, BindingNode<?, ?> component) {
 		super(base, component);
+	}
+
+	@Override
+	public BindingChildNodeConfigurator<?, S, T> configurator() {
+		return (BindingChildNodeConfigurator<?, S, T>) super.configurator();
 	}
 
 	@Override

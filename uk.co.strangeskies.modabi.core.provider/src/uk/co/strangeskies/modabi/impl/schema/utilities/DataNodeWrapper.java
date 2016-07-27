@@ -23,6 +23,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -43,16 +44,22 @@ public final class DataNodeWrapper<T> extends BindingChildNodeWrapper<T, DataNod
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
 					&& !TypeToken.over(component.dataType().getType()).isAssignableFrom(providedValue.getClass()))
-				throw this.<Object>getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
+				throw this.<Object> getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
 						null);
 
 		if (!component.base().containsAll(base.base()))
-			throw this.<Object>getOverrideException(DataNode::type, base.base(), component.base(), null);
+			throw this.<Object> getOverrideException(DataNode::type, base.base(), component.base(), null);
 	}
 
 	protected DataNodeWrapper(DataNode<T> node) {
 		super(node, node);
 		type = node.type();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public DataNodeConfigurator<T> configurator() {
+		return (DataNodeConfigurator<T>) super.configurator();
 	}
 
 	public static <T> DataNodeWrapper<T> wrapType(DataType<T> component) {

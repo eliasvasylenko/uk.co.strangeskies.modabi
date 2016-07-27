@@ -29,9 +29,9 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
+import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
@@ -76,7 +76,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 		testOverride(BindingNode::outputBindingFactoryType,
 				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
-		testOverrideEqual(BindingNode::unbindingMethodName);
+		testOverrideEqual(BindingNode::outputBindingMethod);
 
 		testOverrideEqual(BindingNode::providedOutputBindingMethodParameterNames);
 
@@ -110,8 +110,11 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 
 	protected <P> ModabiException getOverrideException(Function<? super B, ? extends P> property, P baseValue,
 			P overrideValue, Exception cause) {
+		@SuppressWarnings("unchecked")
+		Class<B> baseClass = (Class<B>) (Class<?>) base.getThisType().getRawType();
+
 		return new ModabiException(
-				t -> t.cannotOverrideIncompatibleProperty(property::apply, base, baseValue, overrideValue), cause);
+				t -> t.cannotOverrideIncompatibleProperty(property::apply, baseClass, baseValue, overrideValue), cause);
 	}
 
 	public BindingNode<?, ?> getComponent() {
@@ -120,6 +123,12 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 
 	public B getBase() {
 		return base;
+	}
+
+	@Override
+	public BindingNodeConfigurator<?, S, T> configurator() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -150,11 +159,6 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	@Override
 	public final TypeToken<?> outputBindingType() {
 		return component.outputBindingType();
-	}
-
-	@Override
-	public final String unbindingMethodName() {
-		return component.unbindingMethodName();
 	}
 
 	@Override
@@ -207,9 +211,4 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 		return component.schema();
 	}
 
-	@Override
-	public SchemaNodeConfigurator<?, S> configurator() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
-	}
 }

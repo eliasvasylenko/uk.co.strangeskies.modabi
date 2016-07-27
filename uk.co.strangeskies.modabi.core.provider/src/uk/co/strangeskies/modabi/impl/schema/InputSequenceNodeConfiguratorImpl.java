@@ -57,7 +57,7 @@ public class InputSequenceNodeConfiguratorImpl
 
 	@Override
 	public InputSequenceNodeConfigurator inMethod(String methodName) {
-		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
+		if (!getContext().isInputExpected() && !inMethodName.equals("void"))
 			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
 
 		inMethodName = methodName;
@@ -65,6 +65,7 @@ public class InputSequenceNodeConfiguratorImpl
 		return this;
 	}
 
+	@Override
 	public String getInMethod() {
 		return inMethodName;
 	}
@@ -76,6 +77,7 @@ public class InputSequenceNodeConfiguratorImpl
 		return this;
 	}
 
+	@Override
 	public Boolean getInMethodChained() {
 		return inMethodChained;
 	}
@@ -87,6 +89,7 @@ public class InputSequenceNodeConfiguratorImpl
 		return this;
 	}
 
+	@Override
 	public Boolean getInMethodCast() {
 		return inMethodCast;
 	}
@@ -98,6 +101,7 @@ public class InputSequenceNodeConfiguratorImpl
 		return getThis();
 	}
 
+	@Override
 	public Boolean getInMethodUnchecked() {
 		return inMethodUnchecked;
 	}

@@ -62,7 +62,7 @@ import uk.co.strangeskies.reflection.TypeToken;
  * Early priority means, for example, that merging the sequence ["a", "b", "c",
  * "d"] with the lower priority sequence ["1", "a", "2", "3", "c", "4"] will
  * result in the sequence ["1", "a", "b", "2", "3", "c", "d", "4"], as higher
- * priority sequences are prioritised for earlier placement wherever compatible
+ * priority sequences are prioritized for earlier placement wherever compatible
  * with sequence ordering preservation.
  *
  * @author Elias N Vasylenko
@@ -293,11 +293,6 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			@Override
 			public void addChild(ChildNode<?> result) {
 				HidingChildrenConfigurator.this.addChild(result);
-			}
-
-			@Override
-			public SchemaNode<?> parentNodeProxy() {
-				return context.parentNodeProxy();
 			}
 		};
 

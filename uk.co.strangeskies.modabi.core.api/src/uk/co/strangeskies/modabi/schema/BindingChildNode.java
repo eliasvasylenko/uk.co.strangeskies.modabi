@@ -23,6 +23,10 @@ import uk.co.strangeskies.reflection.Invokable;
 public interface BindingChildNode<T, S extends BindingChildNode<T, S>> extends BindingNode<T, S>, InputNode<S> {
 	Invokable<?, ?> outMethod();
 
+	static Invokable<Void, Void> noOutMethod() {
+		return InputNode.noInMethod();
+	}
+
 	Boolean synchronous();
 
 	Boolean outMethodUnchecked();

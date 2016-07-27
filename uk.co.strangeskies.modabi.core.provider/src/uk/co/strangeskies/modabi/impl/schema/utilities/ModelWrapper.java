@@ -23,10 +23,17 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 
 public class ModelWrapper<T> extends BindingNodeWrapper<T, Model<? super T>, Model<T>> implements Model<T> {
 	public ModelWrapper(BindingNode<T, ?> component) {
 		super(component);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ModelConfigurator<T> configurator() {
+		return (ModelConfigurator<T>) super.configurator();
 	}
 
 	@SuppressWarnings("unchecked")

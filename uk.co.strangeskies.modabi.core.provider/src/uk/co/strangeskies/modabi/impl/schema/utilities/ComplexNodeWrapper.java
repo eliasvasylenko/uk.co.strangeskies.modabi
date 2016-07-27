@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
@@ -46,6 +47,12 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 	protected ComplexNodeWrapper(ComplexNode<T> node) {
 		super(node, node);
 		model = node.model();
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public ComplexNodeConfigurator<T> configurator() {
+		return (ComplexNodeConfigurator<T>) super.configurator();
 	}
 
 	public static <T> ComplexNodeWrapper<T> wrapType(Model<T> component) {

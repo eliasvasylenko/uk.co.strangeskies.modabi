@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
+import static uk.co.strangeskies.modabi.schema.InputNode.noInMethod;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -248,7 +250,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 				&& result instanceof InputNode
 
-				&& !"null".equals(((InputNode<?>) result).inMethodName())) {
+				&& !noInMethod().equals(((InputNode<?>) result).configurator().getInMethod())) {
 
 			constructorExpected = staticMethodExpected = false;
 		}
@@ -331,11 +333,6 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			@Override
 			public void addChild(ChildNode<?> result) {
 				SequentialChildrenConfigurator.this.addChild(result);
-			}
-
-			@Override
-			public SchemaNode<?> parentNodeProxy() {
-				return context.parentNodeProxy();
 			}
 		};
 

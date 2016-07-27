@@ -116,7 +116,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 
 		TypeToken<?> inputTargetType = inputTargetType();
 
-		if (abstractness.isMoreThan(Abstractness.RESOLVED) || "null".equals(givenInMethodName)) {
+		if ("void".equals(givenInMethodName)) {
+			inInvokable = InputNode.noInMethod();
+		} else if (abstractness.isMoreThan(Abstractness.RESOLVED)) {
 			inInvokable = null;
 		} else {
 			try {
@@ -184,7 +186,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	 */
 	private Invokable<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
 		Executable inExecutable = configurator
-				.getOverride(n -> n.inMethod() == null ? null : n.inMethod().getExecutable(), (Executable) null).tryGet();
+				.getOverride(n -> n.inMethod() == null ? null : n.inMethod().getExecutable(), c -> null).tryGet();
 
 		Invokable<?, ?> inInvokable;
 
@@ -211,13 +213,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	}
 
 	private String getGivenInMethodName() {
-		String givenInMethodName = configurator
-				.getOverride(n -> n.inMethod().getExecutable().getName(), InputNodeConfigurator::getInMethod).tryGet();
+		String givenInMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInMethod)
+				.tryGet();
 
 		if (!context.isInputExpected())
 			if (givenInMethodName == null)
-				givenInMethodName = "null";
-			else if (!"null".equals(givenInMethodName))
+				givenInMethodName = "void";
+			else if (!"void".equals(givenInMethodName))
 				throw new ModabiException(t -> t.cannotDefineInputInContext(name));
 
 		return givenInMethodName;
@@ -296,27 +298,27 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	}
 
 	private String inMethodName() {
-		String inMethodName = configurator
-				.getOverride(n -> n.inMethod().getExecutable().getName(), InputNodeConfigurator::getInMethod).tryGet();
+		String inMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInMethod)
+				.tryGet();
 
 		if (!context.isInputExpected() && inMethodName == null)
-			inMethodName = "null";
+			inMethodName = "void";
 
 		if (context.isInputExpected() && inMethodName == null && abstractness.isAtMost(Abstractness.RESOLVED))
-			inMethodName = inMethod.getExecutable().getName();
+			inMethodName = inMethod.getName();
 
 		return inMethodName;
 	}
 
 	private TypeToken<?> preInputType() {
-		return (abstractness.isMoreThan(Abstractness.RESOLVED) || "null".equals(inMethodName)) ? null
+		return (abstractness.isMoreThan(Abstractness.RESOLVED) || "void".equals(inMethodName)) ? null
 				: inMethod.getReceiverType();
 	}
 
 	private TypeToken<?> postInputType() {
 		TypeToken<?> postInputClass;
 
-		if ("null".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
+		if ("void".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = inputTargetType();
 		} else if (abstractness.isMoreThan(Abstractness.RESOLVED) || inMethodChained == null) {
 			postInputClass = configurator.getOverride(n -> n.postInputType() == null ? null : n.postInputType(),
@@ -332,12 +334,15 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 								methodReturn.getResolver().getBounds()))
 						.withBoundsFrom(methodReturn.getResolver());
 
-			TypeToken<?> localPostInputClass = configurator.getThis().getPostInputType();
+			TypeToken<?> localPostInputType = configurator.getThis().getPostInputType();
 
-			if (localPostInputClass == null || localPostInputClass.isAssignableFrom(methodReturn))
-				localPostInputClass = methodReturn;
+			if (localPostInputType == null || localPostInputType.isAssignableFrom(methodReturn))
+				localPostInputType = methodReturn;
 
-			postInputClass = configurator.getOverride(n -> n.postInputType(), localPostInputClass)
+			TypeToken<?> finalPostInputType = localPostInputType;
+
+			postInputClass = configurator
+					.getOverride(n -> n.postInputType(), c -> c == configurator ? finalPostInputType : null)
 					.validate(TypeToken::isAssignableTo).get();
 		}
 

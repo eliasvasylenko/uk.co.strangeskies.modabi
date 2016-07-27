@@ -76,8 +76,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		/*
 		 * TODO refactor to make this final.
 		 */
-		unbindingMethodName = configurator.getOverride(b -> b.outputBindingMethod().getExecutable().getName(),
-				BindingNodeConfigurator::getOutputBindingMethod).tryGet();
+		unbindingMethodName = configurator
+				.getOverride(b -> b.outputBindingMethod().getName(), BindingNodeConfigurator::getOutputBindingMethod).tryGet();
 
 		providedUnbindingParameters = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null
 				: findProvidedUnbindingParameters(this);
@@ -118,7 +118,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 
 		if (unbindingMethodName == null && abstractness().isLessThan(Abstractness.ABSTRACT)
 				&& unbindingStrategy != OutputBindingStrategy.SIMPLE && unbindingStrategy != OutputBindingStrategy.CONSTRUCTOR)
-			unbindingMethodName = unbindingMethod.getExecutable().getName();
+			unbindingMethodName = unbindingMethod.getName();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -283,8 +283,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	@SuppressWarnings("unchecked")
 	private <U> Invokable<?, ?> findUnbindingMethod(TypeToken<?> result, TypeToken<U> receiver,
 			List<TypeToken<?>> parameters, BindingNodeConfiguratorImpl<?, S, T> configurator) {
-		Invokable<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, (Invokable<?, ?>) null)
-				.tryGet();
+		Invokable<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
 
 		if (overridden != null) {
 			Invokable<U, ?> invokable = (Invokable<U, ?>) overridden.withLooseApplicability(parameters);

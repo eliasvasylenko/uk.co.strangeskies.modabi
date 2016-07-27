@@ -24,13 +24,6 @@ public enum Abstractness {
 	 * resolved, and the unspecified properties of the type are instantiated with
 	 * defaults.
 	 */
-	FINAL,
-
-	/**
-	 * The type is inferred, all input / output / binding / unbinding methods are
-	 * resolved, and the unspecified properties of the type are instantiated with
-	 * defaults.
-	 */
 	CONCRETE,
 
 	/**

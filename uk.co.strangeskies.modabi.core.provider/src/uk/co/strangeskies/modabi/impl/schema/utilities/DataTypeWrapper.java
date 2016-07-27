@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 
 public class DataTypeWrapper<T> extends BindingNodeWrapper<T, DataType<? super T>, DataType<T>> implements DataType<T> {
 	public DataTypeWrapper(DataNode<T> component) {
@@ -35,6 +36,12 @@ public class DataTypeWrapper<T> extends BindingNodeWrapper<T, DataType<? super T
 	@Override
 	public DataType<? super T> baseType() {
 		return getComponent().type();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public DataTypeConfigurator<T> configurator() {
+		return (DataTypeConfigurator<T>) super.configurator();
 	}
 
 	@Override

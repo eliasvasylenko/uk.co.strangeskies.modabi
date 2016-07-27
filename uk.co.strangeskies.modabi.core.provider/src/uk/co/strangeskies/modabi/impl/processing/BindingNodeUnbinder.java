@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static uk.co.strangeskies.modabi.schema.BindingChildNode.noOutMethod;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -87,12 +89,14 @@ public class BindingNodeUnbinder {
 				};
 				break;
 			case CONSTRUCTOR:
-				supplier = u -> TypedObject.castInto(unbindingType, invokeConstructor(
-						(Constructor<?>) node.outputBindingMethod().getExecutable(), context, prepareUnbingingParameterList(node, u)));
+				supplier = u -> TypedObject.castInto(unbindingType,
+						invokeConstructor((Constructor<?>) node.outputBindingMethod().getExecutable(), context,
+								prepareUnbingingParameterList(node, u)));
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> TypedObject.castInto(unbindingFactoryType, invokeMethod(
-						(Method) node.outputBindingMethod().getExecutable(), context, null, prepareUnbingingParameterList(node, u)));
+				supplier = u -> TypedObject.castInto(unbindingFactoryType,
+						invokeMethod((Method) node.outputBindingMethod().getExecutable(), context, null,
+								prepareUnbingingParameterList(node, u)));
 				break;
 			case PROVIDED_FACTORY:
 				supplier = u -> TypedObject.castInto(unbindingFactoryType,
@@ -136,7 +140,7 @@ public class BindingNodeUnbinder {
 
 			@Override
 			public <U> void accept(DataNode<U> node) {
-				if (node.outMethodName() == null || !node.outMethodName().equals("null")) {
+				if (!noOutMethod().equals(node.outMethod())) {
 					List<U> data = null;
 					if (!node.isValueProvided() || node.valueResolution() == ValueResolution.REGISTRATION_TIME
 							|| node.valueResolution() == ValueResolution.POST_REGISTRATION)

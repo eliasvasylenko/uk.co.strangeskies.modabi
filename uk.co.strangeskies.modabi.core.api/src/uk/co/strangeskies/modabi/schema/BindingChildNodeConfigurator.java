@@ -24,6 +24,10 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N> {
 	S outMethod(String methodName);
 
+	static String noOutMethod() {
+		return InputNodeConfigurator.noInMethod();
+	}
+
 	String getOutMethod();
 
 	S outMethodUnchecked(boolean unchecked);

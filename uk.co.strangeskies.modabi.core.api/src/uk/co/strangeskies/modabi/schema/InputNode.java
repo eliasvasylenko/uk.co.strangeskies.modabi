@@ -23,6 +23,14 @@ import uk.co.strangeskies.reflection.Invokable;
 public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
 	Invokable<?, ?> inMethod();
 
+	static Invokable<Void, Void> noInMethod() {
+		try {
+			return Invokable.over(Void.class.getDeclaredConstructor());
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	Boolean inMethodUnchecked();
 
 	/**

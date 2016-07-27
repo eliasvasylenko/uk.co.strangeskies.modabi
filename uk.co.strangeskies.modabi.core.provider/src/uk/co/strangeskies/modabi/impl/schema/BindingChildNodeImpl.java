@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -111,8 +110,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 				.getOverride(BindingChildNode::outMethodCast, BindingChildNodeConfigurator::getOutMethodCast).orDefault(false)
 				.get();
 
-		outMethodName = configurator
-				.getOverride(n -> n.outMethod().getExecutable().getName(), BindingChildNodeConfigurator::getOutMethod).tryGet();
+		outMethodName = configurator.getOverride(n -> n.outMethod().getName(), BindingChildNodeConfigurator::getOutMethod)
+				.tryGet();
 
 		nullIfOmitted = configurator
 				.getOverride(BindingChildNode::nullIfOmitted, BindingChildNodeConfigurator::getNullIfOmitted)
@@ -125,13 +124,13 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 
 	public void integrateIO(BindingChildNodeConfiguratorImpl<?, S, T> configurator) {
 		Method overriddenOutMethod = (Method) configurator
-				.getOverride(n -> n.outMethod() == null ? null : n.outMethod().getExecutable(), (Executable) null).tryGet();
+				.getOverride(n -> n.outMethod() == null ? null : n.outMethod().getExecutable(), c -> null).tryGet();
 
 		outMethod = hasOutMethod(configurator) ? getOutMethod(this, overriddenOutMethod,
 				configurator.getContext().outputSourceType(), configurator.getContext().boundSet()) : null;
 
 		if (outMethodName == null && hasOutMethod(configurator))
-			outMethodName = outMethod.getExecutable().getName();
+			outMethodName = outMethod.getName();
 
 		InputNodeConfigurationHelper<S> inputNodeHelper = new InputNodeConfigurationHelper<>(abstractness(), name(),
 				configurator, configurator.getContext(), Arrays.asList(dataType()));
@@ -170,7 +169,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	}
 
 	private boolean hasOutMethod(BindingChildNodeConfiguratorImpl<?, S, T> configurator) {
-		return !"null".equals(outMethodName) && !(configurator.getContext().isAbstract()
+		return !"void".equals(outMethodName) && !(configurator.getContext().isAbstract()
 				&& abstractness().isMoreThan(Abstractness.RESOLVED) && (outMethodName == null || "this".equals(outMethodName)));
 	}
 

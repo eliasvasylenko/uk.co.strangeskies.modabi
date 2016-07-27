@@ -22,6 +22,10 @@ public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N 
 		extends ChildNodeConfigurator<S, N> {
 	public S inMethod(String methodName);
 
+	static String noInMethod() {
+		return "void";
+	}
+
 	String getInMethod();
 
 	public S inMethodChained(boolean chained);
