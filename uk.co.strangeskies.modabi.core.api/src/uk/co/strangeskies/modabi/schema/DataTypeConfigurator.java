@@ -22,25 +22,18 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
-	/**
-	 * @param isAbstract
-	 *          The value to be returned by {@link DataType#isAbstract()}.
-	 * @return
-	 */
-	@Override
-	DataTypeConfigurator<T> abstractness(Abstractness abstractness);
-
 	/**
 	 * @param hidden
 	 *          The value to be returned by {@link DataType#isPrivate()}.
 	 * @return
 	 */
 	DataTypeConfigurator<T> isPrivate(boolean hidden);
+
+	Boolean getPrivate();
 
 	/**
 	 * @param dataType
@@ -80,4 +73,9 @@ public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTyp
 
 	@Override
 	ChildBuilder addChild();
+
+	@Override
+	default TypeToken<DataType<T>> getNodeType() {
+		return new TypeToken<DataType<T>>() {};
+	}
 }

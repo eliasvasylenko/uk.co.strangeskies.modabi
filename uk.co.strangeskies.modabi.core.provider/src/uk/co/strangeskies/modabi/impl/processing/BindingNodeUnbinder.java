@@ -61,19 +61,19 @@ public class BindingNodeUnbinder {
 				.withNestedProvisionScope();
 		context.provisions().add(Provider.over(new TypeToken<BindingNode<?, ?>>() {}, () -> node));
 
-		TypeToken<?> unbindingType = node.unbindingType() != null ? node.unbindingType() : node.dataType();
-		TypeToken<?> unbindingFactoryType = node.unbindingFactoryType() != null ? node.unbindingFactoryType()
+		TypeToken<?> unbindingType = node.outputBindingType() != null ? node.outputBindingType() : node.dataType();
+		TypeToken<?> unbindingFactoryType = node.outputBindingFactoryType() != null ? node.outputBindingFactoryType()
 				: unbindingType;
 
 		Function<Object, TypedObject<?>> supplier = u -> TypedObject.castInto(unbindingType, u);
-		if (node.unbindingStrategy() != null) {
-			switch (node.unbindingStrategy()) {
+		if (node.outputBindingStrategy() != null) {
+			switch (node.outputBindingStrategy()) {
 			case SIMPLE:
 				break;
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					TypedObject<?> o = context.provide(unbindingType);
-					invokeMethod((Method) node.unbindingMethod().getExecutable(), context, o.getObject(),
+					invokeMethod((Method) node.outputBindingMethod().getExecutable(), context, o.getObject(),
 							prepareUnbingingParameterList(node, u));
 					return o;
 				};
@@ -81,22 +81,22 @@ public class BindingNodeUnbinder {
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					TypedObject<?> o = context.provide(unbindingType);
-					invokeMethod((Method) node.unbindingMethod().getExecutable(), context, u,
+					invokeMethod((Method) node.outputBindingMethod().getExecutable(), context, u,
 							prepareUnbingingParameterList(node, o.getObject()));
 					return o;
 				};
 				break;
 			case CONSTRUCTOR:
 				supplier = u -> TypedObject.castInto(unbindingType, invokeConstructor(
-						(Constructor<?>) node.unbindingMethod().getExecutable(), context, prepareUnbingingParameterList(node, u)));
+						(Constructor<?>) node.outputBindingMethod().getExecutable(), context, prepareUnbingingParameterList(node, u)));
 				break;
 			case STATIC_FACTORY:
 				supplier = u -> TypedObject.castInto(unbindingFactoryType, invokeMethod(
-						(Method) node.unbindingMethod().getExecutable(), context, null, prepareUnbingingParameterList(node, u)));
+						(Method) node.outputBindingMethod().getExecutable(), context, null, prepareUnbingingParameterList(node, u)));
 				break;
 			case PROVIDED_FACTORY:
 				supplier = u -> TypedObject.castInto(unbindingFactoryType,
-						invokeMethod((Method) node.unbindingMethod().getExecutable(), context,
+						invokeMethod((Method) node.outputBindingMethod().getExecutable(), context,
 								context.provide(unbindingFactoryType).getObject(), prepareUnbingingParameterList(node, u)));
 				break;
 			default:
@@ -188,8 +188,8 @@ public class BindingNodeUnbinder {
 		List<Object> parameters = new ArrayList<>();
 
 		boolean addedData = false;
-		if (node.providedUnbindingMethodParameters() != null)
-			for (DataNode<?> parameter : node.providedUnbindingMethodParameters()) {
+		if (node.providedOutputBindingMethodParameters() != null)
+			for (DataNode<?> parameter : node.providedOutputBindingMethodParameters()) {
 				if (parameter != null) {
 					parameters.add(parameter.providedValues() == null ? null : parameter.providedValues().get(0));
 				} else {

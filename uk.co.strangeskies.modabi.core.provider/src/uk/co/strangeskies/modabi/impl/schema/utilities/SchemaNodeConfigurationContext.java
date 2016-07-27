@@ -30,8 +30,6 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaNodeConfigurationContext {
-	SchemaNode<?> parentNodeProxy();
-
 	DataLoader dataLoader();
 
 	Imports imports();

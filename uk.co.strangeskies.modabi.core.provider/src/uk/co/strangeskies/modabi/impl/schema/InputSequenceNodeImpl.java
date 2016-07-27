@@ -22,104 +22,48 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
-class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequenceNode.Effective>
-		implements InputSequenceNode {
-	private static class Effective extends ChildNodeImpl.Effective<InputSequenceNode, InputSequenceNode.Effective>
-			implements InputSequenceNode.Effective {
-		private final String inMethodName;
-		private final Invokable<?, ?> inMethod;
-		private final Boolean inMethodChained;
-		private final Boolean allowInMethodResultCast;
-		private final Boolean inMethodUnchecked;
-
-		private final TypeToken<?> preInputClass;
-		private final TypeToken<?> postInputClass;
-
-		protected Effective(OverrideMerge<InputSequenceNode, InputSequenceNodeConfiguratorImpl> overrideMerge) {
-			super(overrideMerge);
-
-			if (!overrideMerge.configurator().getContext().isInputExpected())
-				throw new ModabiException(t -> t.cannotDefineInputInContext(name()));
-
-			List<TypeToken<?>> parameterClasses = overrideMerge.configurator().getChildrenContainer().getChildren().stream()
-					.map(o -> ((BindingChildNodeImpl< ?, ?>) o.effective()).dataType()).collect(Collectors.toList());
-
-			InputNodeConfigurationHelper<InputSequenceNode, InputSequenceNode.Effective> inputNodeHelper = new InputNodeConfigurationHelper<>(
-					abstractness(), name(), overrideMerge, overrideMerge.configurator().getContext(), parameterClasses);
-
-			inMethodChained = inputNodeHelper.isInMethodChained();
-			allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-			inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-			inMethod = inputNodeHelper.getInMethod();
-			inMethodName = inputNodeHelper.getInMethodName();
-			preInputClass = inputNodeHelper.getPreInputType();
-			postInputClass = inputNodeHelper.getPostInputType();
-		}
-
-		@Override
-		public final String inMethodName() {
-			return inMethodName;
-		}
-
-		@Override
-		public Invokable<?, ?> inMethod() {
-			return inMethod;
-		}
-
-		@Override
-		public final Boolean inMethodChained() {
-			return inMethodChained;
-		}
-
-		@Override
-		public Boolean inMethodCast() {
-			return allowInMethodResultCast;
-		}
-
-		@Override
-		public Boolean inMethodUnchecked() {
-			return inMethodUnchecked;
-		}
-
-		@Override
-		public TypeToken<?> postInputType() {
-			return postInputClass;
-		}
-
-		@Override
-		public TypeToken<?> preInputType() {
-			return preInputClass;
-		}
-	}
-
-	private final InputSequenceNodeImpl.Effective effective;
-
-	private final TypeToken<?> postInputClass;
-	private final String inMethodName;
+class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements InputSequenceNode {
+	private final Invokable<?, ?> inMethod;
 	private final Boolean inMethodChained;
 	private final Boolean allowInMethodResultCast;
 	private final Boolean inMethodUnchecked;
 
-	public InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
+	private final TypeToken<?> preInputClass;
+	private final TypeToken<?> postInputClass;
+
+	protected InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
 		super(configurator);
 
-		postInputClass = configurator.getPostInputClass();
-		inMethodName = configurator.getInMethodName();
-		inMethodChained = configurator.getInMethodChained();
-		allowInMethodResultCast = configurator.getInMethodCast();
-		inMethodUnchecked = configurator.getInMethodUnchecked();
+		if (!configurator.getContext().isInputExpected())
+			throw new ModabiException(t -> t.cannotDefineInputInContext(name()));
 
-		effective = new Effective(InputSequenceNodeConfiguratorImpl.overrideMerge(this, configurator));
+		List<TypeToken<?>> parameterClasses = configurator.getChildren().stream()
+				.map(o -> ((BindingChildNodeImpl<?, ?>) o).dataType()).collect(Collectors.toList());
+
+		InputNodeConfigurationHelper<InputSequenceNode> inputNodeHelper = new InputNodeConfigurationHelper<>(abstractness(),
+				name(), configurator, configurator.getContext(), parameterClasses);
+
+		inMethodChained = inputNodeHelper.isInMethodChained();
+		allowInMethodResultCast = inputNodeHelper.isInMethodCast();
+		inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
+		inMethod = inputNodeHelper.getInMethod();
+		preInputClass = inputNodeHelper.getPreInputType();
+		postInputClass = inputNodeHelper.getPostInputType();
 	}
 
 	@Override
-	public final String inMethodName() {
-		return inMethodName;
+	public InputSequenceNodeConfigurator configurator() {
+		return (InputSequenceNodeConfigurator) super.configurator();
+	}
+
+	@Override
+	public Invokable<?, ?> inMethod() {
+		return inMethod;
 	}
 
 	@Override
@@ -138,12 +82,12 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode, InputSequen
 	}
 
 	@Override
-	public InputSequenceNodeImpl.Effective effective() {
-		return effective;
+	public TypeToken<?> postInputType() {
+		return postInputClass;
 	}
 
 	@Override
-	public TypeToken<?> postInputType() {
-		return postInputClass;
+	public TypeToken<?> preInputType() {
+		return preInputClass;
 	}
 }

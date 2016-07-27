@@ -57,26 +57,24 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	}
 
 	@Override
-	protected DataType<T> tryCreateImpl() {
+	public DataType<T> create() {
 		return new DataTypeImpl<>(this);
 	}
 
 	@Override
 	public DataTypeConfigurator<T> isPrivate(boolean isPrivate) {
-		assertConfigurable(this.isPrivate);
 		this.isPrivate = isPrivate;
 
 		return this;
 	}
 
-	public Boolean getIsPrivate() {
+	public Boolean getPrivate() {
 		return isPrivate;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <U extends T> DataTypeConfigurator<U> baseType(DataType<? super U> baseType) {
-		assertConfigurable(this.baseType);
 		this.baseType = (DataType<? super T>) baseType;
 
 		return (DataTypeConfigurator<U>) this;
@@ -100,11 +98,6 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	@Override
 	protected boolean isDataContext() {
 		return true;
-	}
-
-	@Override
-	protected TypeToken<DataType<T>> getNodeClass() {
-		return new TypeToken<DataType<T>>() {};
 	}
 
 	@Override

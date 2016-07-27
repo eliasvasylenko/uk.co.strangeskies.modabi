@@ -27,7 +27,9 @@ import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataNodeConfigurator<T> extends BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T> {
-	public <U extends T> DataNodeConfigurator<U> type(DataType<U> type);
+	<U extends T> DataNodeConfigurator<U> type(DataType<U> type);
+
+	DataType<T> getType();
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -37,7 +39,7 @@ public interface DataNodeConfigurator<T> extends BindingChildNodeConfigurator<Da
 	}
 
 	@Override
-	public <V extends T> DataNodeConfigurator<V> dataType(TypeToken<? extends V> dataType);
+	<V extends T> DataNodeConfigurator<V> dataType(TypeToken<? extends V> dataType);
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -47,13 +49,24 @@ public interface DataNodeConfigurator<T> extends BindingChildNodeConfigurator<Da
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public default DataNodeConfigurator<? extends T> dataType(Type dataType) {
+	default DataNodeConfigurator<? extends T> dataType(Type dataType) {
 		return (DataNodeConfigurator<? extends T>) BindingChildNodeConfigurator.super.dataType(dataType);
 	}
 
-	public DataNodeConfigurator<T> provideValue(DataSource dataSource);
+	DataNodeConfigurator<T> provideValue(DataSource dataSource);
 
-	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution);
+	DataSource getProvidedValue();
 
-	public DataNodeConfigurator<T> format(Format format);
+	DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution);
+
+	ValueResolution getValueResolution();
+
+	DataNodeConfigurator<T> format(Format format);
+
+	Format getFormat();
+
+	@Override
+	default TypeToken<DataNode<T>> getNodeType() {
+		return new TypeToken<DataNode<T>>() {};
+	}
 }

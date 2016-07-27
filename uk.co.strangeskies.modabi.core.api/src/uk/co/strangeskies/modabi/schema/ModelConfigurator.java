@@ -66,4 +66,9 @@ public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfi
 		propertyConfiguration.apply(addChild()).create();
 		return this;
 	}
+
+	@Override
+	default TypeToken<Model<T>> getNodeType() {
+		return new TypeToken<Model<T>>() {};
+	}
 }

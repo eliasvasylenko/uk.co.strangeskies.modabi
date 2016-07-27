@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -33,8 +34,9 @@ public class SequenceNodeImpl extends ChildNodeImpl<SequenceNode> implements Seq
 
 		preInputClass = abstractness().isLessThan(Abstractness.ABSTRACT) ? null : children().get(0).preInputType();
 
-		TypeToken<?> postInputClass = configurator.getOverride(ChildNode::postInputType).validate(TypeToken::isAssignableTo)
-				.tryGet();
+		TypeToken<?> postInputClass = configurator
+				.getOverride(ChildNode::postInputType, ChildNodeConfigurator::getPostInputType)
+				.validate(TypeToken::isAssignableTo).tryGet();
 		if (postInputClass == null && abstractness().isLessThan(Abstractness.ABSTRACT)) {
 			postInputClass = children().get(children().size() - 1).postInputType();
 		}

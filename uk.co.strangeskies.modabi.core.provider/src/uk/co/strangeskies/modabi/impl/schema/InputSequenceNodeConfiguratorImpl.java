@@ -51,7 +51,7 @@ public class InputSequenceNodeConfiguratorImpl
 	}
 
 	@Override
-	public InputSequenceNode tryCreateImpl() {
+	public InputSequenceNode create() {
 		return new InputSequenceNodeImpl(this);
 	}
 
@@ -60,19 +60,17 @@ public class InputSequenceNodeConfiguratorImpl
 		if (!getContext().isInputExpected() && !inMethodName.equals("null"))
 			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
 
-		assertConfigurable(inMethodName);
 		inMethodName = methodName;
 
 		return this;
 	}
 
-	public String getInMethodName() {
+	public String getInMethod() {
 		return inMethodName;
 	}
 
 	@Override
 	public InputSequenceNodeConfigurator inMethodChained(boolean chained) {
-		assertConfigurable(inMethodChained);
 		inMethodChained = chained;
 
 		return this;
@@ -84,7 +82,6 @@ public class InputSequenceNodeConfiguratorImpl
 
 	@Override
 	public InputSequenceNodeConfigurator inMethodCast(boolean allowInMethodResultCast) {
-		assertConfigurable(this.inMethodCast);
 		this.inMethodCast = allowInMethodResultCast;
 
 		return this;
@@ -96,7 +93,6 @@ public class InputSequenceNodeConfiguratorImpl
 
 	@Override
 	public final InputSequenceNodeConfigurator inMethodUnchecked(boolean unchecked) {
-		assertConfigurable(inMethodUnchecked);
 		inMethodUnchecked = unchecked;
 
 		return getThis();
@@ -107,20 +103,10 @@ public class InputSequenceNodeConfiguratorImpl
 	}
 
 	@Override
-	protected TypeToken<InputSequenceNode> getNodeClass() {
-		return TypeToken.over(InputSequenceNode.class);
-	}
-
-	@Override
 	public ChildrenConfigurator createChildrenConfigurator() {
 		TypeToken<?> outputTarget = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
-			@Override
-			public SchemaNode<?, ?> parentNodeProxy() {
-				return getSchemaNodeProxy();
-			}
-
 			@Override
 			public BoundSet boundSet() {
 				return getContext().boundSet();
@@ -177,7 +163,7 @@ public class InputSequenceNodeConfiguratorImpl
 			}
 
 			@Override
-			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+			public List<? extends SchemaNode<?>> overriddenNodes() {
 				return getOverriddenNodes();
 			}
 		}) {

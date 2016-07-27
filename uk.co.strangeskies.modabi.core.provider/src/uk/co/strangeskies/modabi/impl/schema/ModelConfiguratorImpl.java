@@ -59,7 +59,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	protected DataLoader getDataLoader() {
 		return loader;
 	}
-	
+
 	@Override
 	protected Imports getImports() {
 		return imports;
@@ -78,7 +78,6 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> ModelConfigurator<V> baseModel(List<? extends Model<? super V>> base) {
-		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
 		return (ModelConfigurator<V>) this;
@@ -91,8 +90,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<Model<T>> getOverriddenNodes() {
-		return baseModel != null
-				? new ArrayList<>(baseModel.stream().map(m -> (Model<T>) m.effective()).collect(Collectors.toList()))
+		return baseModel != null ? new ArrayList<>(baseModel.stream().map(m -> (Model<T>) m).collect(Collectors.toList()))
 				: Collections.emptyList();
 	}
 
@@ -103,12 +101,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	}
 
 	@Override
-	public Model<T> tryCreateImpl() {
+	public Model<T> create() {
 		return new ModelImpl<>(this);
-	}
-
-	@Override
-	protected TypeToken<Model<T>> getNodeClass() {
-		return new TypeToken<Model<T>>() {};
 	}
 }

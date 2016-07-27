@@ -64,21 +64,21 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 			throw getOverrideException(BindingNode::dataType, base.dataType(), component.dataType(), e);
 		}
 
-		testOverrideEqual(BindingNode::bindingStrategy);
-		testOverrideEqual(BindingNode::unbindingStrategy);
+		testOverrideEqual(BindingNode::inputBindingStrategy);
+		testOverrideEqual(BindingNode::outputBindingStrategy);
 
-		testOverride(BindingNode::bindingType,
+		testOverride(BindingNode::inputBindingType,
 				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
-		testOverride(BindingNode::unbindingType,
+		testOverride(BindingNode::outputBindingType,
 				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
-		testOverride(BindingNode::unbindingFactoryType,
+		testOverride(BindingNode::outputBindingFactoryType,
 				(baseValue, overrideValue) -> Types.isAssignable(overrideValue.getType(), baseValue.getType()));
 
 		testOverrideEqual(BindingNode::unbindingMethodName);
 
-		testOverrideEqual(BindingNode::providedUnbindingMethodParameterNames);
+		testOverrideEqual(BindingNode::providedOutputBindingMethodParameterNames);
 
 		testOverride(BindingNode::children, (baseValue, overrideValue) -> overrideValue.containsAll(baseValue));
 	}
@@ -133,23 +133,23 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public final InputBindingStrategy bindingStrategy() {
-		return component.bindingStrategy();
+	public final InputBindingStrategy inputBindingStrategy() {
+		return component.inputBindingStrategy();
 	}
 
 	@Override
-	public final TypeToken<?> bindingType() {
-		return component.bindingType();
+	public final TypeToken<?> inputBindingType() {
+		return component.inputBindingType();
 	}
 
 	@Override
-	public final OutputBindingStrategy unbindingStrategy() {
-		return component.unbindingStrategy();
+	public final OutputBindingStrategy outputBindingStrategy() {
+		return component.outputBindingStrategy();
 	}
 
 	@Override
-	public final TypeToken<?> unbindingType() {
-		return component.unbindingType();
+	public final TypeToken<?> outputBindingType() {
+		return component.outputBindingType();
 	}
 
 	@Override
@@ -158,18 +158,18 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public Boolean unbindingMethodUnchecked() {
-		return component.unbindingMethodUnchecked();
+	public Boolean outputBindingMethodUnchecked() {
+		return component.outputBindingMethodUnchecked();
 	}
 
 	@Override
-	public final Invokable<?, ?> unbindingMethod() {
-		return component.unbindingMethod();
+	public final Invokable<?, ?> outputBindingMethod() {
+		return component.outputBindingMethod();
 	}
 
 	@Override
-	public final TypeToken<?> unbindingFactoryType() {
-		return component.unbindingFactoryType();
+	public final TypeToken<?> outputBindingFactoryType() {
+		return component.outputBindingFactoryType();
 	}
 
 	@Override
@@ -183,13 +183,13 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public final List<QualifiedName> providedUnbindingMethodParameterNames() {
-		return component.providedUnbindingMethodParameterNames();
+	public final List<QualifiedName> providedOutputBindingMethodParameterNames() {
+		return component.providedOutputBindingMethodParameterNames();
 	}
 
 	@Override
-	public final List<DataNode<?>> providedUnbindingMethodParameters() {
-		return component.providedUnbindingMethodParameters();
+	public final List<DataNode<?>> providedOutputBindingMethodParameters() {
+		return component.providedOutputBindingMethodParameters();
 	}
 
 	@Override

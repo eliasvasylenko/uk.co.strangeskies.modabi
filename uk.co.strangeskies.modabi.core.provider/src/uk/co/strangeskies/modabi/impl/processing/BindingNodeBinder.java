@@ -63,11 +63,11 @@ public class BindingNodeBinder {
 		TypedObject<?> binding;
 		List<ChildNode<?>> children = node.children();
 
-		InputBindingStrategy strategy = node.bindingStrategy();
+		InputBindingStrategy strategy = node.inputBindingStrategy();
 		if (strategy == null)
 			strategy = InputBindingStrategy.PROVIDED;
 
-		TypeToken<?> bindingType = node.bindingType() != null ? node.bindingType() : node.dataType();
+		TypeToken<?> bindingType = node.inputBindingType() != null ? node.inputBindingType() : node.dataType();
 
 		switch (strategy) {
 		case PROVIDED:

@@ -55,11 +55,6 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? su
 	}
 
 	@Override
-	public final String outMethodName() {
-		return getBase() == null ? null : getBase().outMethodName();
-	}
-
-	@Override
 	public final Boolean outMethodIterable() {
 		return getBase() == null ? null : getBase().outMethodIterable();
 	}
@@ -82,11 +77,6 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? su
 	@Override
 	public Boolean inMethodCast() {
 		return getBase() == null ? null : getBase().inMethodCast();
-	}
-
-	@Override
-	public final String inMethodName() {
-		return getBase() == null ? null : getBase().inMethodName();
 	}
 
 	@Override

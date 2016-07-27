@@ -37,6 +37,8 @@ public interface ComplexNodeConfigurator<T>
 
 	<V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> baseModel);
 
+	List<Model<? super T>> getModel();
+
 	@SuppressWarnings("unchecked")
 	@Override
 	default <V extends T> ComplexNodeConfigurator<V> dataType(Class<V> dataType) {
@@ -59,4 +61,11 @@ public interface ComplexNodeConfigurator<T>
 	<V extends T> ComplexNodeConfigurator<V> dataType(TypeToken<? extends V> dataClass);
 
 	ComplexNodeConfigurator<T> inline(boolean inline);
+
+	Boolean getInline();
+
+	@Override
+	default TypeToken<ComplexNode<T>> getNodeType() {
+		return new TypeToken<ComplexNode<T>>() {};
+	}
 }

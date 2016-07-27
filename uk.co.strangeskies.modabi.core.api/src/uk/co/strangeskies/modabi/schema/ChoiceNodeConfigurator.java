@@ -18,6 +18,12 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-public interface ChoiceNodeConfigurator
-		extends ChildNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode>,
-		SchemaNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode> {}
+import uk.co.strangeskies.reflection.TypeToken;
+
+public interface ChoiceNodeConfigurator extends ChildNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode>,
+		SchemaNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode> {
+	@Override
+	default TypeToken<ChoiceNode> getNodeType() {
+		return TypeToken.over(ChoiceNode.class);
+	}
+}

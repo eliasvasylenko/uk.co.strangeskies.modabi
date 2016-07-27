@@ -14,25 +14,46 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 
 public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>> {
-	private final S configurator;
+	private final SchemaNodeConfiguratorImpl<S, N> configurator;
 
-	private Function<N, T> valueFunction;
-	private BiPredicate<? super T, ? super T> validation;
+	private final Function<N, T> valueFunction;
+	private final Function<S, T> givenValueFunction;
 
+	private final Set<T> values;
+
+	private final BiPredicate<? super T, ? super T> validation;
 	private T override;
-	private Set<T> values;
 
 	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<N, T> valueFunction) {
-		this.configurator = configurator.getThis();
-		this.valueFunction = valueFunction;
-
-		values = configurator.getOverridenValues(valueFunction);
+		this(configurator, valueFunction, s -> null);
 	}
 
-	private OverrideBuilder(S configurator, OverrideBuilder<T, S, N> from) {
+	@SuppressWarnings("unchecked")
+	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<N, T> valueFunction,
+			Function<S, T> givenValueFunction) {
 		this.configurator = configurator;
-		override = from.override;
+		this.valueFunction = n -> {
+			T value = valueFunction.apply(n);
+			return value != null ? value : givenValueFunction.apply((S) n.configurator());
+		};
+		this.givenValueFunction = givenValueFunction;
+
+		values = configurator.getOverridenValues(valueFunction);
+
+		validation = null;
+		override = null;
+	}
+
+	private OverrideBuilder(OverrideBuilder<T, S, N> from, BiPredicate<? super T, ? super T> validation, T override) {
+		configurator = from.configurator;
+
+		valueFunction = from.valueFunction;
+		givenValueFunction = from.givenValueFunction;
+
 		values = from.values;
+
+		this.validation = validation;
+		this.override = override;
 	}
 
 	public OverrideBuilder<T, S, N> orDefault(T value) {
@@ -40,8 +61,8 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 	}
 
 	public OverrideBuilder<T, S, N> orDefault(T value, Abstractness defaultIfAtMost) {
-		if (configurator.node() == null
-				|| (configurator.node().abstractness() == null || configurator.node().abstractness().isAtMost(defaultIfAtMost))
+		if (givenValueFunction == null
+				|| (configurator.getAbstractness() == null || configurator.getAbstractness().isAtMost(defaultIfAtMost))
 						&& !isOverridden()) {
 			return or(() -> value);
 		} else {
@@ -56,7 +77,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 
 				if (merged == null) {
 					throw new ModabiException(
-							t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, configurator.node(), values));
+							t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, getNodeClass(), values));
 				}
 
 				return merged;
@@ -66,23 +87,29 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private Class<N> getNodeClass() {
+		return (Class<N>) configurator.getNodeType().getRawType();
+	}
+
 	public OverrideBuilder<T, S, N> orMerged(BinaryOperator<T> merge) {
 		return orMerged(s -> s.stream().reduce(merge).get());
 	}
 
+	public OverrideBuilder<T, S, N> or(T value) {
+		return or(() -> value);
+	}
+
 	public OverrideBuilder<T, S, N> or(Supplier<T> supplier) {
 		if (override == null) {
-			OverrideBuilder<T, S, N> optional = new OverrideBuilder<>(configurator, this);
-			optional.override = supplier.get();
-
-			return optional;
+			return new OverrideBuilder<>(this, validation, supplier.get());
 		} else {
 			return this;
 		}
 	}
 
 	public OverrideBuilder<T, S, N> or() {
-		return or(() -> valueFunction.apply(configurator.node()));
+		return or(givenValueFunction.apply(configurator.getThis()));
 	}
 
 	public T tryGet() {
@@ -90,8 +117,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 			for (T value : values) {
 				if (!validation.test(override, value)) {
 					throw new ModabiException(
-							t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, configurator.node(), value, override),
-							null);
+							t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, getNodeClass(), value, override), null);
 				}
 			}
 		}
@@ -100,13 +126,13 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 	}
 
 	public T get() {
-		override = tryGet();
+		T value = tryGet();
 
-		if (override == null && configurator.node() != null && (configurator.node().abstractness() == null
-				|| configurator.node().abstractness().isAtMost(Abstractness.UNINFERRED)))
-			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, configurator.node()));
+		if (value == null && givenValueFunction != null
+				&& (configurator.getAbstractness() == null || configurator.getAbstractness().isAtMost(Abstractness.UNINFERRED)))
+			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()));
 
-		return override;
+		return value;
 	}
 
 	private boolean isOverridden() {
@@ -117,7 +143,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 				override = values.iterator().next();
 			} else if (values.size() > 1) {
 				throw new ModabiException(
-						t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, configurator.node(), values));
+						t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, getNodeClass(), values));
 			}
 		}
 
@@ -125,13 +151,12 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 	}
 
 	public OverrideBuilder<T, S, N> validate(BiPredicate<? super T, ? super T> validation) {
-		OverrideBuilder<T, S, N> optional = new OverrideBuilder<>(configurator, this);
-		if (optional.validation == null) {
-			optional.validation = validation;
-		} else {
-			optional.validation = (a, b) -> validation.test(a, b) && optional.validation.test(a, b);
+		BiPredicate<? super T, ? super T> newValidation = validation;
+
+		if (this.validation != null) {
+			newValidation = (a, b) -> validation.test(a, b) && this.validation.test(a, b);
 		}
 
-		return optional;
+		return new OverrideBuilder<T, S, N>(this, newValidation, override);
 	}
 }

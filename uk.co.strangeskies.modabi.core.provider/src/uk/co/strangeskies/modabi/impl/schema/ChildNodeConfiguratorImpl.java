@@ -31,19 +31,18 @@ import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<?, ?>>
+public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<S, N>, N extends ChildNode<N>>
 		extends SchemaNodeConfiguratorImpl<S, N> implements ChildNodeConfigurator<S, N> {
 	private final SchemaNodeConfigurationContext context;
 
 	private Range<Integer> occurrences;
 	private Boolean ordered;
+	private Boolean optional;
 	private TypeToken<?> postInputClass;
 	private List<N> overriddenNodes;
 
 	public ChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		this.context = parent;
-
-		addResultListener(result -> parent.addChild(result));
 	}
 
 	protected SchemaNodeConfigurationContext getContext() {
@@ -54,7 +53,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	public List<N> getOverriddenNodes() {
 		if (overriddenNodes == null) {
 			overriddenNodes = getName() == null ? Collections.emptyList()
-					: getContext().overrideChild(getName(), getNodeClass());
+					: getContext().overrideChild(getName(), getNodeType());
 		}
 		return overriddenNodes;
 	}
@@ -80,25 +79,36 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	}
 
 	@Override
+	public S optional(boolean optional) {
+		this.optional = optional;
+
+		return ChildNodeConfigurator.super.optional(optional);
+	}
+
+	@Override
+	public Boolean getOptional() {
+		return optional;
+	}
+
+	@Override
 	public S postInputType(String postInputType) {
 		return postInputType(parseTypeWithSubstitutedBrackets(postInputType, getImports()));
 	}
 
 	@Override
 	public S postInputType(TypeToken<?> postInputClass) {
-		assertConfigurable(this.postInputClass);
 		this.postInputClass = postInputClass;
 
 		return getThis();
 	}
 
-	protected TypeToken<?> getPostInputClass() {
+	@Override
+	public TypeToken<?> getPostInputType() {
 		return postInputClass;
 	}
 
 	@Override
 	public final S occurrences(Range<Integer> range) {
-		assertConfigurable(occurrences);
 		occurrences = range;
 
 		return getThis();
@@ -110,7 +120,6 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	public final S ordered(boolean ordered) {
-		assertConfigurable(this.ordered);
 		this.ordered = ordered;
 
 		return getThis();
@@ -119,5 +128,4 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	public Boolean getOrdered() {
 		return ordered;
 	}
-
 }

@@ -8,6 +8,8 @@ import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.LocalizedRuntimeException;
 
 public class ModabiIoException extends LocalizedRuntimeException {
+	private static final long serialVersionUID = 1L;
+
 	public ModabiIoException(Localized<String> message) {
 		super(message);
 	}

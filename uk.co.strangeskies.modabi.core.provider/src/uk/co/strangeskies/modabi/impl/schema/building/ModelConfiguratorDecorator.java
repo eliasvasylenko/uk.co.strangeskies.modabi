@@ -52,4 +52,9 @@ public class ModelConfiguratorDecorator<T> extends BindingNodeConfiguratorDecora
 	public String toString() {
 		return getComponent().toString();
 	}
+
+	@Override
+	public ModelConfigurator<T> copy() {
+		return new ModelConfiguratorDecorator<>(getComponent());
+	}
 }

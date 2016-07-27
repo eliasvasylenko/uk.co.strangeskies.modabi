@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toSet;
 
 import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -35,8 +36,9 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode> implements ChoiceNode {
 		super(configurator);
 
 		TypeToken<?> preInputClass = null;
-		TypeToken<?> postInputClass = configurator.getOverride(ChildNode::postInputType).validate(TypeToken::isAssignableTo)
-				.tryGet();
+		TypeToken<?> postInputClass = configurator
+				.getOverride(ChildNode::postInputType, ChildNodeConfigurator::getPostInputType)
+				.validate(TypeToken::isAssignableTo).tryGet();
 
 		if (abstractness().isLessThan(Abstractness.ABSTRACT)) {
 			preInputClass = TypeToken.over(Types.greatestLowerBound(
@@ -61,7 +63,7 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode> implements ChoiceNode {
 	public TypeToken<?> postInputType() {
 		return postInputClass;
 	}
-	
+
 	@Override
 	public ChoiceNodeConfigurator configurator() {
 		return (ChoiceNodeConfigurator) super.configurator();

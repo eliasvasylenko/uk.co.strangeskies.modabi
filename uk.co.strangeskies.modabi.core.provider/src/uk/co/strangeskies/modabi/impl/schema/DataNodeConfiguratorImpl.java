@@ -51,7 +51,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public QualifiedName defaultName() {
-		return type == null ? null : type.effective().name();
+		return type == null ? null : type.name();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -63,7 +63,6 @@ public class DataNodeConfiguratorImpl<T> extends
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <U extends T> DataNodeConfigurator<U> type(DataType<U> type) {
-		assertConfigurable(this.type);
 		this.type = (DataType<T>) type;
 
 		return (DataNodeConfigurator<U>) getThis();
@@ -78,7 +77,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		List<DataNode<? super T>> overriddenNodes = new ArrayList<>();
 
 		if (type != null)
-			overriddenNodes.add(DataNodeWrapper.wrapType(type.effective()));
+			overriddenNodes.add(DataNodeWrapper.wrapType(type));
 
 		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<DataNode<? super T>>() {}));
 
@@ -92,31 +91,28 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@Override
 	public DataNodeConfigurator<T> provideValue(DataSource dataSource) {
-		assertConfigurable(providedBufferedValue);
 		providedBufferedValue = dataSource;
 
 		return this;
 	}
 
-	public DataSource getProvidedBufferedValue() {
+	public DataSource getProvidedValue() {
 		return providedBufferedValue;
 	}
 
 	@Override
 	public DataNodeConfigurator<T> valueResolution(ValueResolution valueResolution) {
-		assertConfigurable(this.resolution);
 		this.resolution = valueResolution;
 
 		return this;
 	}
 
-	public ValueResolution getResolution() {
+	public ValueResolution getValueResolution() {
 		return resolution;
 	}
 
 	@Override
 	public final DataNodeConfigurator<T> format(Format format) {
-		assertConfigurable(this.format);
 		this.format = format;
 
 		return this;
@@ -127,12 +123,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	protected final TypeToken<DataNode<T>> getNodeClass() {
-		return new TypeToken<DataNode<T>>() {};
-	}
-
-	@Override
-	protected final DataNode<T> tryCreateImpl() {
-		return new DataNodeImpl<>(this);
+	public DataNode<T> create() {
+		return new DataNodeImpl<T>(this);
 	}
 }

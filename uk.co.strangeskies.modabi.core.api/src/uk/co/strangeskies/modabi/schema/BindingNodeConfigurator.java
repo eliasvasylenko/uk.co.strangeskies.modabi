@@ -48,55 +48,73 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		return dataType(AnnotatedTypes.over(dataType));
 	}
 
-	S bindingStrategy(InputBindingStrategy strategy);
+	TypeToken<T> getDataType();
 
-	S bindingType(String bindingType);
+	S inputBindingStrategy(InputBindingStrategy strategy);
 
-	S bindingType(TypeToken<?> bindingType);
+	InputBindingStrategy getInputBindingStrategy();
 
-	default S bindingType(AnnotatedType bindingType) {
-		return bindingType(TypeToken.over(bindingType));
+	S inputBindingType(String bindingType);
+
+	S inputBindingType(TypeToken<?> bindingType);
+
+	default S inputBindingType(AnnotatedType bindingType) {
+		return inputBindingType(TypeToken.over(bindingType));
 	}
 
-	default S bindingType(Type bindingType) {
-		return bindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
+	default S inputBindingType(Type bindingType) {
+		return inputBindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
 	}
 
-	S unbindingStrategy(OutputBindingStrategy strategy);
+	TypeToken<?> getInputBindingType();
 
-	S unbindingFactoryType(String factoryType);
+	S outputBindingStrategy(OutputBindingStrategy strategy);
 
-	S unbindingFactoryType(TypeToken<?> factoryType);
+	OutputBindingStrategy getOutputBindingStrategy();
 
-	default S unbindingFactoryType(AnnotatedType factoryType) {
-		return unbindingFactoryType(TypeToken.over(factoryType));
+	S outputBindingFactoryType(String factoryType);
+
+	S outputBindingFactoryType(TypeToken<?> factoryType);
+
+	default S outputBindingFactoryType(AnnotatedType factoryType) {
+		return outputBindingFactoryType(TypeToken.over(factoryType));
 	}
 
-	default S unbindingFactoryType(Type factoryType) {
-		return unbindingFactoryType(TypeToken.over(AnnotatedTypes.over(factoryType)));
+	default S outputBindingFactoryType(Type factoryType) {
+		return outputBindingFactoryType(TypeToken.over(AnnotatedTypes.over(factoryType)));
 	}
 
-	S unbindingType(String unbindingType);
+	TypeToken<?> getOutputBindingFactoryType();
 
-	S unbindingType(TypeToken<?> unbindingType);
+	S outputBindingType(String unbindingType);
 
-	default S unbindingType(AnnotatedType unbindingType) {
-		return unbindingType(TypeToken.over(unbindingType));
+	S outputBindingType(TypeToken<?> unbindingType);
+
+	default S outputBindingType(AnnotatedType unbindingType) {
+		return outputBindingType(TypeToken.over(unbindingType));
 	}
 
-	default S unbindingType(Type bindingType) {
-		return unbindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
+	default S outputBindingType(Type bindingType) {
+		return outputBindingType(TypeToken.over(AnnotatedTypes.over(bindingType)));
 	}
 
-	S unbindingMethod(String unbindingMethod);
+	TypeToken<?> getOutputBindingType();
 
-	S unbindingMethodUnchecked(boolean unchecked);
+	S outputBindingMethod(String unbindingMethod);
 
-	S providedUnbindingMethodParameters(List<QualifiedName> parameterNames);
+	String getOutputBindingMethod();
 
-	default S providedUnbindingMethodParameters(QualifiedName... parameterNames) {
-		return providedUnbindingMethodParameters(Arrays.asList(parameterNames));
+	S outputBindingMethodUnchecked(boolean unchecked);
+
+	Boolean getOutputBindingMethodUnchecked();
+
+	S providedOutputBindingMethodParameters(List<QualifiedName> parameterNames);
+
+	default S providedOutputBindingMethodParameters(QualifiedName... parameterNames) {
+		return providedOutputBindingMethodParameters(Arrays.asList(parameterNames));
 	}
 
-	S providedUnbindingMethodParameters(String... parameterNames);
+	S providedOutputBindingMethodParameters(String... parameterNames);
+
+	List<QualifiedName> getProvidedOutputBindingMethodParameters();
 }

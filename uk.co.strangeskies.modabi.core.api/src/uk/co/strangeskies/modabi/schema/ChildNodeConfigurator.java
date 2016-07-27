@@ -38,11 +38,17 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 
 	S occurrences(Range<Integer> occuranceRange);
 
+	Range<Integer> getOccurrences();
+
 	default S optional(boolean optional) {
 		return optional ? occurrences(Range.between(0, 1)) : occurrences(Range.between(1, 1));
 	}
 
+	Boolean getOptional();
+
 	S ordered(boolean ordered);
+
+	Boolean getOrdered();
 
 	S postInputType(String postInputType);
 
@@ -55,4 +61,6 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	default S postInputType(Type bindingType) {
 		return postInputType(TypeToken.over(AnnotatedTypes.over(bindingType)));
 	}
+
+	TypeToken<?> getPostInputType();
 }

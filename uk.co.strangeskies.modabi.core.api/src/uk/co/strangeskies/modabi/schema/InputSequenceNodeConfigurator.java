@@ -18,10 +18,14 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import uk.co.strangeskies.reflection.TypeToken;
 
-
-public interface InputSequenceNodeConfigurator extends
-		ChildNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
+public interface InputSequenceNodeConfigurator
+		extends ChildNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
 		SchemaNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
 		InputNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode> {
+	@Override
+	default TypeToken<InputSequenceNode> getNodeType() {
+		return TypeToken.over(InputSequenceNode.class);
+	}
 }

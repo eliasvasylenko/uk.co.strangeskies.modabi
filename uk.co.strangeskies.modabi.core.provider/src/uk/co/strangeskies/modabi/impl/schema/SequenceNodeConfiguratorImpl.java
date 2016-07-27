@@ -39,13 +39,8 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 	}
 
 	@Override
-	public SequenceNode tryCreateImpl() {
+	public SequenceNode create() {
 		return new SequenceNodeImpl(this);
-	}
-
-	@Override
-	protected TypeToken<SequenceNode> getNodeClass() {
-		return TypeToken.over(SequenceNode.class);
 	}
 
 	@Override
@@ -54,11 +49,6 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
-			@Override
-			public SchemaNode<?> parentNodeProxy() {
-				return getSchemaNodeProxy();
-			}
-
 			@Override
 			public BoundSet boundSet() {
 				return getContext().boundSet();

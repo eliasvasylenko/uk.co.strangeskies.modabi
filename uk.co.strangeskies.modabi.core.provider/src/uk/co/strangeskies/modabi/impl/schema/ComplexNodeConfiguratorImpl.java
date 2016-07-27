@@ -48,13 +48,12 @@ public class ComplexNodeConfiguratorImpl<T>
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> base) {
-		assertConfigurable(this.baseModel);
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
 
 		return (ComplexNodeConfigurator<V>) this;
 	}
 
-	public List<Model<? super T>> getBaseModel() {
+	public List<Model<? super T>> getModel() {
 		return baseModel;
 	}
 
@@ -64,7 +63,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 		if (baseModel != null)
 			for (Model<? super T> base : baseModel)
-				overriddenNodes.add(ComplexNodeWrapper.wrapType(base.effective()));
+				overriddenNodes.add(ComplexNodeWrapper.wrapType(base));
 
 		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {}));
 
@@ -83,23 +82,18 @@ public class ComplexNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	protected TypeToken<ComplexNode<T>> getNodeClass() {
-		return new TypeToken<ComplexNode<T>>() {};
-	}
-
-	@Override
-	protected ComplexNode<T> tryCreateImpl() {
+	public ComplexNode<T> create() {
 		return new ComplexNodeImpl<>(this);
 	}
 
 	@Override
 	public ComplexNodeConfigurator<T> inline(boolean inline) {
-		assertConfigurable(this.inline);
 		this.inline = inline;
 
 		return this;
 	}
 
+	@Override
 	public Boolean getInline() {
 		return inline;
 	}

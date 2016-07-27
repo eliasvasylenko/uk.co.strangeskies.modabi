@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
@@ -40,7 +39,7 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N, ?>, T>
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements BindingNodeConfigurator<S, N, T> {
 	private TypeToken<T> dataType;
 	private TypeToken<T> effectiveDataType;
@@ -83,20 +82,16 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
-		OverrideMerge<? extends BindingNode<T, ?, ?>, ? extends BindingNodeConfigurator<?, ?, ?>> overrideMerge = overrideMerge(
-				null, this);
-
 		/*
 		 * Get declared data types, or overridden types thereof.
 		 */
-		effectiveDataType = overrideMerge.getOverride(BindingNode::dataType, this.dataType)
+		effectiveDataType = getOverride(BindingNode::dataType, this.dataType).orMerged((o, n) -> o.withEquality(n))
+				.validate((o, n) -> true).get();
+		effectiveBindingType = getOverride(BindingNode::inputBindingType, this.bindingType)
 				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
-		effectiveBindingType = overrideMerge.getOverride(BindingNode::bindingType, this.bindingType)
+		effectiveUnbindingType = getOverride(BindingNode::outputBindingType, this.unbindingType)
 				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
-		effectiveUnbindingType = overrideMerge.getOverride(BindingNode::unbindingType, this.unbindingType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
-		effectiveUnbindingFactoryType = overrideMerge
-				.getOverride(BindingNode::unbindingFactoryType, this.unbindingFactoryType)
+		effectiveUnbindingFactoryType = getOverride(BindingNode::outputBindingFactoryType, this.unbindingFactoryType)
 				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
 
 		/*
@@ -106,7 +101,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveDataType = effectiveDataType.deepCopy();
 
 			if (this.dataType != null) {
-				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::dataType)) {
+				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::dataType)) {
 					/*
 					 * only perform more complex type override behaviour if not already
 					 * directly assignable
@@ -124,7 +119,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveBindingType = effectiveBindingType.deepCopy();
 
 			if (this.bindingType != null) {
-				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::bindingType)) {
+				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::inputBindingType)) {
 					/*
 					 * only perform more complex type override behaviour if not already
 					 * directly assignable
@@ -142,7 +137,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveUnbindingType = effectiveUnbindingType.deepCopy();
 
 			if (this.unbindingType != null) {
-				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::unbindingType)) {
+				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::outputBindingType)) {
 					/*
 					 * only perform more complex type override behaviour if not already
 					 * directly assignable
@@ -160,7 +155,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			effectiveUnbindingFactoryType = effectiveUnbindingFactoryType.deepCopy();
 
 			if (this.unbindingFactoryType != null) {
-				for (TypeToken<?> overriddenType : overrideMerge.getOverridenValues(BindingNode::unbindingFactoryType)) {
+				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::outputBindingFactoryType)) {
 					/*
 					 * only perform more complex type override behaviour if not already
 					 * directly assignable
@@ -179,8 +174,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Effective binding and unbinding types.
 		 */
 
-		InputBindingStrategy bindingStrategy = overrideMerge.getOverride(BindingNode::bindingStrategy, this.bindingStrategy)
-				.get();
+		InputBindingStrategy bindingStrategy = getOverride(BindingNode::inputBindingStrategy, this.bindingStrategy).get();
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
 			inputTarget = effectiveBindingType;
@@ -191,8 +185,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			inputTarget = null;
 
-		OutputBindingStrategy unbindingStrategy = overrideMerge
-				.getOverride(BindingNode::unbindingStrategy, this.unbindingStrategy).get();
+		OutputBindingStrategy unbindingStrategy = getOverride(BindingNode::outputBindingStrategy, this.unbindingStrategy)
+				.get();
 		TypeToken<?> outputSource;
 		if (effectiveUnbindingType != null)
 			outputSource = effectiveUnbindingType;
@@ -202,11 +196,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			outputSource = null;
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
-			@Override
-			public SchemaNode<?, ?> parentNodeProxy() {
-				return getSchemaNodeProxy();
-			}
-
 			@Override
 			public BoundSet boundSet() {
 				return inferenceBounds;
@@ -263,7 +252,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
-			public List<? extends SchemaNode<?, ?>> overriddenNodes() {
+			public List<? extends SchemaNode<?>> overriddenNodes() {
 				return getOverriddenNodes();
 			}
 		});
@@ -273,8 +262,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		if (isChildContextAbstract())
 			return null;
 		else
-			throw new UnsupportedOperationException(
-					"Non-abstract base binding node cannot use binding strategy " + InputBindingStrategy.TARGET_ADAPTOR.toString());
+			throw new UnsupportedOperationException("Non-abstract base binding node cannot use binding strategy "
+					+ InputBindingStrategy.TARGET_ADAPTOR.toString());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -286,13 +275,12 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> dataType) {
-		assertConfigurable(this.dataType);
-
 		this.dataType = (TypeToken<T>) dataType;
 
 		return (BindingNodeConfigurator<?, ?, V>) this;
 	}
 
+	@Override
 	public TypeToken<T> getDataType() {
 		return dataType;
 	}
@@ -300,119 +288,123 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	protected abstract boolean isDataContext();
 
 	@Override
-	public S bindingType(String bindingType) {
-		return bindingType(parseTypeWithSubstitutedBrackets(bindingType, getImports()));
+	public S inputBindingType(String bindingType) {
+		return inputBindingType(parseTypeWithSubstitutedBrackets(bindingType, getImports()));
 	}
 
 	@Override
-	public final S bindingType(TypeToken<?> bindingClass) {
-		assertConfigurable(this.bindingType);
+	public final S inputBindingType(TypeToken<?> bindingClass) {
 		this.bindingType = bindingClass;
 
 		return getThis();
 	}
 
-	public TypeToken<?> getBindingType() {
+	@Override
+	public TypeToken<?> getInputBindingType() {
 		return bindingType;
 	}
 
 	@Override
-	public S unbindingType(String unbindingType) {
-		return unbindingType(parseTypeWithSubstitutedBrackets(unbindingType, getImports()));
+	public S outputBindingType(String unbindingType) {
+		return outputBindingType(parseTypeWithSubstitutedBrackets(unbindingType, getImports()));
 	}
 
 	@Override
-	public S unbindingType(TypeToken<?> unbindingClass) {
-		assertConfigurable(this.unbindingType);
+	public S outputBindingType(TypeToken<?> unbindingClass) {
 		this.unbindingType = unbindingClass;
 
 		return getThis();
 	}
 
-	public TypeToken<?> getUnbindingType() {
+	@Override
+	public TypeToken<?> getOutputBindingType() {
 		return unbindingType;
 	}
 
 	@Override
-	public S unbindingMethod(String unbindingMethod) {
-		assertConfigurable(this.unbindingMethod);
+	public S outputBindingMethod(String unbindingMethod) {
 		this.unbindingMethod = unbindingMethod;
 
 		return getThis();
 	}
 
-	public String getUnbindingMethod() {
+	@Override
+	public String getOutputBindingMethod() {
 		return unbindingMethod;
 	}
 
 	@Override
-	public S unbindingMethodUnchecked(boolean unchecked) {
-		assertConfigurable(this.unbindingMethodUnchecked);
+	public S outputBindingMethodUnchecked(boolean unchecked) {
 		this.unbindingMethodUnchecked = unchecked;
 
 		return getThis();
 	}
 
-	public Boolean getUnbindingMethodUnchecked() {
+	@Override
+	public Boolean getOutputBindingMethodUnchecked() {
 		return unbindingMethodUnchecked;
 	}
 
 	@Override
-	public final S bindingStrategy(InputBindingStrategy strategy) {
-		assertConfigurable(bindingStrategy);
+	public final S inputBindingStrategy(InputBindingStrategy strategy) {
 		bindingStrategy = strategy;
 
 		return getThis();
 	}
 
-	public InputBindingStrategy getBindingStrategy() {
+	@Override
+	public InputBindingStrategy getInputBindingStrategy() {
 		return bindingStrategy;
 	}
 
 	@Override
-	public final S unbindingStrategy(OutputBindingStrategy strategy) {
-		assertConfigurable(unbindingStrategy);
+	public final S outputBindingStrategy(OutputBindingStrategy strategy) {
 		unbindingStrategy = strategy;
 
 		return getThis();
 	}
 
-	public OutputBindingStrategy getUnbindingStrategy() {
+	@Override
+	public OutputBindingStrategy getOutputBindingStrategy() {
 		return unbindingStrategy;
 	}
 
 	@Override
-	public S unbindingFactoryType(String factoryType) {
-		return unbindingFactoryType(TypeToken.fromString(factoryType, getImports()));
+	public S outputBindingFactoryType(String factoryType) {
+		return outputBindingFactoryType(TypeToken.fromString(factoryType, getImports()));
 	}
 
 	@Override
-	public S unbindingFactoryType(TypeToken<?> factoryClass) {
-		assertConfigurable(unbindingFactoryType);
+	public S outputBindingFactoryType(TypeToken<?> factoryClass) {
 		unbindingFactoryType = factoryClass;
 
 		return getThis();
 	}
 
-	public TypeToken<?> getUnbindingFactoryType() {
+	@Override
+	public TypeToken<?> getOutputBindingFactoryType() {
 		return unbindingFactoryType;
 	}
 
 	@Override
-	public final S providedUnbindingMethodParameters(List<QualifiedName> parameterNames) {
-		assertConfigurable(unbindingParameterNames);
+	public final S providedOutputBindingMethodParameters(List<QualifiedName> parameterNames) {
 		unbindingParameterNames = new ArrayList<>(parameterNames);
 
 		return getThis();
 	}
 
-	public List<QualifiedName> getUnbindingParameterNames() {
+	@Override
+	public List<QualifiedName> getProvidedOutputBindingMethodParameters() {
 		return unbindingParameterNames;
 	}
 
 	@Override
-	public S providedUnbindingMethodParameters(String... parameterNames) {
-		return providedUnbindingMethodParameters(Arrays.asList(parameterNames).stream()
+	public S providedOutputBindingMethodParameters(String... parameterNames) {
+		return providedOutputBindingMethodParameters(Arrays.asList(parameterNames).stream()
 				.map(n -> new QualifiedName(n, getName().getNamespace())).collect(Collectors.toList()));
+	}
+
+	public Boolean getExtensible() {
+		return false;
 	}
 }

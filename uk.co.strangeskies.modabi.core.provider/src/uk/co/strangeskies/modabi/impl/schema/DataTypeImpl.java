@@ -19,48 +19,10 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 
-public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Effective<T>> implements DataType<T> {
-	private static class Effective<T> extends BindingNodeImpl.Effective<T, DataType<T>, DataType.Effective<T>>
-			implements DataType.Effective<T> {
-		private final Boolean isPrivate;
-
-		private final DataType.Effective<? super T> baseType;
-
-		public Effective(OverrideMerge<DataType<T>, DataTypeConfiguratorImpl<T>> overrideMerge) {
-			super(overrideMerge);
-
-			isPrivate = overrideMerge.node().isPrivate() != null && overrideMerge.node().isPrivate();
-
-			baseType = overrideMerge.configurator().getBaseType() == null ? null
-					: overrideMerge.configurator().getBaseType().effective();
-		}
-
-		@Override
-		public Boolean isPrivate() {
-			return isPrivate;
-		}
-
-		@Override
-		public DataType.Effective<? super T> baseType() {
-			return baseType;
-		}
-
-		@Override
-		public DataType.Effective<T> root() {
-			return this;
-		}
-
-		@Override
-		public Schema schema() {
-			return source().schema();
-		}
-	}
-
-	private final DataTypeImpl.Effective<T> effective;
-
+public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>> implements DataType<T> {
 	private final Boolean isPrivate;
 
 	private final DataType<? super T> baseType;
@@ -70,13 +32,17 @@ public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Ef
 	public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
-		isPrivate = configurator.getIsPrivate();
+		isPrivate = configurator.getPrivate() != null && configurator.getPrivate();
 
 		baseType = configurator.getBaseType();
 
-		effective = new DataTypeImpl.Effective<>(DataTypeConfiguratorImpl.overrideMerge(this, configurator));
-
 		schema = configurator.getSchema();
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public DataTypeConfigurator<T> configurator() {
+		return (DataTypeConfigurator<T>) super.configurator();
 	}
 
 	@Override
@@ -87,11 +53,6 @@ public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>, DataType.Ef
 	@Override
 	public DataType<? super T> baseType() {
 		return baseType;
-	}
-
-	@Override
-	public DataTypeImpl.Effective<T> effective() {
-		return effective;
 	}
 
 	@Override

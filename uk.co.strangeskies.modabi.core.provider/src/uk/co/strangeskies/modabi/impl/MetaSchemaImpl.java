@@ -132,7 +132,7 @@ public class MetaSchemaImpl implements MetaSchema {
 
 		Model<SchemaNode<?>> nodeModel = factory.apply("node",
 				m -> m.abstractness(ABSTRACT).dataType(new TypeToken<SchemaNode<?>>() {})
-						.unbindingStrategy(OutputBindingStrategy.SIMPLE)
+						.outputBindingStrategy(OutputBindingStrategy.SIMPLE)
 						.addChild(n -> n.inputSequence().name("configure").abstractness(ABSTRACT)
 								.postInputType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}))
 						.addChild(n -> n.data().format(PROPERTY).type(base.primitiveType(Primitive.QUALIFIED_NAME)).name("name")
@@ -141,7 +141,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.name("abstractness").optional(true)));
 
 		Model<ChildNode<?>> childBaseModel = factory.apply("childBase", m -> m.abstractness(ABSTRACT)
-				.dataType(new TypeToken<ChildNode<?>>() {}).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
+				.dataType(new TypeToken<ChildNode<?>>() {}).inputBindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}));
 
 		Model<SchemaNode<?>> branchModel = factory.apply("branch",
 				m -> m.abstractness(ABSTRACT).baseModel(nodeModel).addChild(n -> n.data().name("name"))
@@ -153,7 +153,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		@SuppressWarnings("unchecked")
 		Model<ChildNode<?>> childModel = factory.apply("child",
 				m -> m.baseModel(branchModel, childBaseModel).abstractness(ABSTRACT).dataType(new TypeToken<ChildNode<?>>() {})
-						.bindingStrategy(TARGET_ADAPTOR).bindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
+						.inputBindingStrategy(TARGET_ADAPTOR).inputBindingType(new TypeToken<SchemaNodeConfigurator<?, ?>>() {}.getType())
 						.addChild(c -> c.inputSequence().name("addChild").inMethodChained(true))
 						.addChild(c -> c.inputSequence().name("configure").abstractness(ABSTRACT).inMethodChained(true)
 								.postInputType(new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
@@ -245,8 +245,8 @@ public class MetaSchemaImpl implements MetaSchema {
 								.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())));
 
 		metaModel = factory.apply("model",
-				m -> m.baseModel(bindingNodeModel).dataType(new TypeToken<Model<?>>() {}).bindingType(SchemaConfigurator.class)
-						.bindingStrategy(TARGET_ADAPTOR)
+				m -> m.baseModel(bindingNodeModel).dataType(new TypeToken<Model<?>>() {}).inputBindingType(SchemaConfigurator.class)
+						.inputBindingStrategy(TARGET_ADAPTOR)
 						.addChild(c -> c.inputSequence().name("configure").inMethodChained(true).inMethod("addModel"))
 						.addChild(n -> n.data().name("name").optional(false))
 						.addChild(n -> baseModelConfiguration.apply(n.data().name("baseModel"))));
@@ -287,8 +287,8 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChild(n -> n.data().format(PROPERTY).name("valueResolution").optional(true)
 								.type(base.derivedTypes().enumType()).dataType(ValueResolution.class))
 						.addChild(n -> n.complex().name("valueInline").inMethod("provideValue").outMethod("providedValueBuffer")
-								.dataType(DataSource.class).unbindingType(DataSource.class).bindingType(Function.class)
-								.bindingStrategy(STATIC_FACTORY).inline(true).optional(true)
+								.dataType(DataSource.class).outputBindingType(DataSource.class).inputBindingType(Function.class)
+								.inputBindingStrategy(STATIC_FACTORY).inline(true).optional(true)
 								.addChild(o -> o.inputSequence().name("identity"))
 								.addChild(o -> o.choice().name("valueFormat")
 										.addChild(p -> p.data().format(PROPERTY).name("value").inMethodChained(true)
@@ -311,7 +311,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Type Models */
 
 		dataTypeModel = factory.apply("type", m -> m.baseModel(bindingNodeModel).dataType(new TypeToken<DataType<?>>() {})
-				.bindingType(SchemaConfigurator.class).bindingStrategy(TARGET_ADAPTOR)
+				.inputBindingType(SchemaConfigurator.class).inputBindingStrategy(TARGET_ADAPTOR)
 				.addChild(c -> c.inputSequence().name("configure").inMethodChained(true).inMethod("addDataType"))
 				.addChild(n -> n.data().format(PROPERTY).name("private").inMethod("isPrivate").optional(true)
 						.type(base.primitiveType(BOOLEAN)))
@@ -325,7 +325,7 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Schema Models */
 
 		schemaModel = factory.apply("schema",
-				m -> m.dataType(Schema.class).bindingType(SchemaConfigurator.class)
+				m -> m.dataType(Schema.class).inputBindingType(SchemaConfigurator.class)
 						.addChild(n -> n.data().format(PROPERTY).name("name").inMethod("qualifiedName").outMethod("qualifiedName")
 								.type(base.primitiveType(Primitive.QUALIFIED_NAME)))
 						.addChild(
@@ -344,17 +344,17 @@ public class MetaSchemaImpl implements MetaSchema {
 																				.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
 														.addChild(
 																p -> p.data().name("dataTypes").inMethod("null").type(base.derivedTypes().includeType())
-																		.bindingType(Schema.class)
+																		.inputBindingType(Schema.class)
 																		.addChild(q -> q.inputSequence().name("dataTypes").inMethodChained(true))
 																		.addChild(q -> q.data().name("targetModel").provideValue(new BufferingDataTarget()
 																				.put(Primitive.QUALIFIED_NAME, new QualifiedName("type", namespace)).buffer())))
 														.addChild(p -> p.data().name("models").inMethod("null")
-																.type(base.derivedTypes().includeType()).bindingType(Schema.class)
+																.type(base.derivedTypes().includeType()).inputBindingType(Schema.class)
 																.addChild(q -> q.inputSequence().name("models").inMethodChained(true))
 																.addChild(q -> q.data().name("targetModel").provideValue(new BufferingDataTarget()
 																		.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer())))))
-						.addChild(i -> i.data().format(SIMPLE).name("imports").optional(true).bindingStrategy(TARGET_ADAPTOR)
-								.outMethod("this").dataType(Schema.class).bindingType(SchemaConfigurator.class).inMethod("null")
+						.addChild(i -> i.data().format(SIMPLE).name("imports").optional(true).inputBindingStrategy(TARGET_ADAPTOR)
+								.outMethod("this").dataType(Schema.class).inputBindingType(SchemaConfigurator.class).inMethod("null")
 								.addChild(n -> n.data().name("importsIn").inMethod("imports").outMethod("null")
 										.type(base.derivedTypes().setType())
 										.addChild(e -> e.data().name("element").type(base.derivedTypes().classType())))
@@ -365,14 +365,14 @@ public class MetaSchemaImpl implements MetaSchema {
 														e -> e.data().name("element").type(base.derivedTypes().classType())))))
 						.addChild(
 								n -> n.complex().name("types").outMethod("this").occurrences(Range.between(0, 1)).dataType(Schema.class)
-										.bindingType(SchemaConfigurator.class).inMethod("null").bindingStrategy(TARGET_ADAPTOR)
-										.addChild(o -> o.complex().model(dataTypeModel).inMethod("null").bindingStrategy(TARGET_ADAPTOR)
+										.inputBindingType(SchemaConfigurator.class).inMethod("null").inputBindingStrategy(TARGET_ADAPTOR)
+										.addChild(o -> o.complex().model(dataTypeModel).inMethod("null").inputBindingStrategy(TARGET_ADAPTOR)
 												.outMethod("dataTypes").name("type").dataType(new TypeToken<DataType<?>>() {})
 												.occurrences(Range.between(0, null))))
 						.addChild(n -> n.complex().name("models").outMethod("this").occurrences(Range.between(0, 1))
-								.dataType(Schema.class).bindingType(SchemaConfigurator.class).inMethod("null")
-								.bindingStrategy(TARGET_ADAPTOR)
-								.addChild(o -> o.complex().model(metaModel).inMethod("null").bindingStrategy(TARGET_ADAPTOR)
+								.dataType(Schema.class).inputBindingType(SchemaConfigurator.class).inMethod("null")
+								.inputBindingStrategy(TARGET_ADAPTOR)
+								.addChild(o -> o.complex().model(metaModel).inMethod("null").inputBindingStrategy(TARGET_ADAPTOR)
 										.outMethod("models").occurrences(Range.between(0, null))))
 						.addChild(n -> n.inputSequence().name("create").inMethodChained(true)));
 	}

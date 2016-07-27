@@ -21,78 +21,42 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
 
-class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, ComplexNode.Effective<T>>
-		implements ComplexNode<T> {
-	private static class Effective<T> extends BindingChildNodeImpl.Effective<T, ComplexNode<T>, ComplexNode.Effective<T>>
-			implements ComplexNode.Effective<T> {
-		private final List<Model.Effective<? super T>> baseModel;
-
-		private final boolean inline;
-
-		protected Effective(OverrideMerge<ComplexNode<T>, ComplexNodeConfiguratorImpl<T>> overrideMerge) {
-			super(overrideMerge);
-
-			List<Model.Effective<? super T>> baseModel = new ArrayList<>();
-			overrideMerge.configurator().getOverriddenNodes().forEach(n -> baseModel.addAll(n.effective().model()));
-			baseModel.addAll(overrideMerge.node().model().stream().map(SchemaNode::effective).collect(Collectors.toSet()));
-			this.baseModel = Collections.unmodifiableList(baseModel);
-
-			Boolean inline = overrideMerge.getOverride(ComplexNode::inline).orDefault(false).get();
-			this.inline = inline != null && inline;
-
-			if (this.inline && extensible() != null && extensible())
-				throw new ModabiException(t -> t.cannotBeInlineExtensible(name()));
-		}
-
-		@Override
-		public List<Model.Effective<? super T>> model() {
-			return baseModel;
-		}
-
-		@Override
-		public Boolean inline() {
-			return inline;
-		}
-
-		@Override
-		public BindingNode< ?, ?> root() {
-			return parent().root();
-		}
-	}
-
-	private final ComplexNodeImpl.Effective<T> effective;
-
+class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> implements ComplexNode<T> {
 	private final List<Model<? super T>> baseModel;
 
-	private final Boolean inline;
+	private final boolean inline;
 
-	public ComplexNodeImpl(ComplexNodeConfiguratorImpl<T> configurator) {
+	protected ComplexNodeImpl(ComplexNodeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
-		baseModel = configurator.getBaseModel() == null ? Collections.emptyList()
-				: Collections.unmodifiableList(new ArrayList<>(configurator.getBaseModel()));
+		List<Model<? super T>> baseModel = new ArrayList<>();
+		configurator.getOverriddenNodes().forEach(n -> baseModel.addAll(n.model()));
+		baseModel.addAll(configurator.getModel());
+		this.baseModel = Collections.unmodifiableList(baseModel);
 
-		inline = configurator.getInline();
+		Boolean inline = configurator.getOverride(ComplexNode::inline, ComplexNodeConfigurator::getInline).orDefault(false)
+				.get();
+		this.inline = inline != null && inline;
 
-		effective = new ComplexNodeImpl.Effective<>(ComplexNodeConfiguratorImpl.overrideMerge(this, configurator));
+		if (this.inline && extensible() != null && extensible())
+			throw new ModabiException(t -> t.cannotBeInlineExtensible(name()));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ComplexNodeConfigurator<T> configurator() {
+		return (ComplexNodeConfigurator<T>) super.configurator();
 	}
 
 	@Override
-	public ComplexNodeImpl.Effective<T> effective() {
-		return effective;
-	}
-
-	@Override
-	public final List<Model<? super T>> model() {
+	public List<Model<? super T>> model() {
 		return baseModel;
 	}
 
@@ -102,7 +66,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>, Complex
 	}
 
 	@Override
-	public BindingNode<?, ?, ?> root() {
+	public BindingNode<?, ?> root() {
 		return parent().root();
 	}
 }

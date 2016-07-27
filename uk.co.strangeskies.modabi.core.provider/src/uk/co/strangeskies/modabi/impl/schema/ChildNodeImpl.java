@@ -36,12 +36,13 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	public ChildNodeImpl(ChildNodeConfiguratorImpl<?, S> configurator) {
 		super(configurator);
 
-		parent = configurator.getContext().parentNodeProxy();
+		parent = configurator.getResult();
+		configurator.getContext().addChild(this);
 
-		ordered = configurator.getOverride(ChildNode::ordered).orDefault(true).get();
+		ordered = configurator.getOverride(ChildNode::ordered, ChildNodeConfigurator::getOrdered).orDefault(true).get();
 
-		occurrences = configurator.getOverride(ChildNode::occurrences).validate((v, o) -> o.contains(v))
-				.orDefault(Range.between(1, 1)).get();
+		occurrences = configurator.getOverride(ChildNode::occurrences, ChildNodeConfigurator::getOccurrences)
+				.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
 	}
 
 	@Override

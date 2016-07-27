@@ -46,81 +46,126 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	}
 
 	@Override
+	public QualifiedName getName() {
+		return component.getName();
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public S getThis() {
 		return (S) this;
 	}
 
 	@Override
-	public S bindingStrategy(InputBindingStrategy strategy) {
-		component = component.bindingStrategy(strategy);
+	public S inputBindingStrategy(InputBindingStrategy strategy) {
+		component = component.inputBindingStrategy(strategy);
 		return getThis();
 	}
 
 	@Override
-	public S bindingType(String bindingType) {
-		component = component.bindingType(bindingType);
+	public InputBindingStrategy getInputBindingStrategy() {
+		return component.getInputBindingStrategy();
+	}
+
+	@Override
+	public S inputBindingType(String bindingType) {
+		component = component.inputBindingType(bindingType);
 		return getThis();
 	}
 
 	@Override
-	public S bindingType(TypeToken<?> bindingType) {
-		component = component.bindingType(bindingType);
+	public S inputBindingType(TypeToken<?> bindingType) {
+		component = component.inputBindingType(bindingType);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingStrategy(OutputBindingStrategy strategy) {
-		component = component.unbindingStrategy(strategy);
+	public TypeToken<?> getInputBindingType() {
+		return component.getInputBindingType();
+	}
+
+	@Override
+	public S outputBindingStrategy(OutputBindingStrategy strategy) {
+		component = component.outputBindingStrategy(strategy);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingFactoryType(String factoryType) {
-		component = component.unbindingFactoryType(factoryType);
+	public OutputBindingStrategy getOutputBindingStrategy() {
+		return component.getOutputBindingStrategy();
+	}
+
+	@Override
+	public S outputBindingFactoryType(String factoryType) {
+		component = component.outputBindingFactoryType(factoryType);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingFactoryType(TypeToken<?> factoryType) {
-		component = component.unbindingFactoryType(factoryType);
+	public S outputBindingFactoryType(TypeToken<?> factoryType) {
+		component = component.outputBindingFactoryType(factoryType);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingType(String unbindingType) {
-		component = component.unbindingType(unbindingType);
+	public TypeToken<?> getOutputBindingFactoryType() {
+		return component.getOutputBindingFactoryType();
+	}
+
+	@Override
+	public S outputBindingType(String unbindingType) {
+		component = component.outputBindingType(unbindingType);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingType(TypeToken<?> unbindingType) {
-		component = component.unbindingType(unbindingType);
+	public S outputBindingType(TypeToken<?> unbindingType) {
+		component = component.outputBindingType(unbindingType);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingMethod(String unbindingMethod) {
-		component = component.unbindingMethod(unbindingMethod);
+	public TypeToken<?> getOutputBindingType() {
+		return component.getOutputBindingType();
+	}
+
+	@Override
+	public S outputBindingMethod(String unbindingMethod) {
+		component = component.outputBindingMethod(unbindingMethod);
 		return getThis();
 	}
 
 	@Override
-	public S unbindingMethodUnchecked(boolean unchecked) {
-		component = component.unbindingMethodUnchecked(unchecked);
+	public String getOutputBindingMethod() {
+		return component.getOutputBindingMethod();
+	}
+
+	@Override
+	public S outputBindingMethodUnchecked(boolean unchecked) {
+		component = component.outputBindingMethodUnchecked(unchecked);
 		return getThis();
 	}
 
 	@Override
-	public S providedUnbindingMethodParameters(List<QualifiedName> parameterNames) {
-		component = component.providedUnbindingMethodParameters(parameterNames);
+	public Boolean getOutputBindingMethodUnchecked() {
+		return component.getOutputBindingMethodUnchecked();
+	}
+
+	@Override
+	public S providedOutputBindingMethodParameters(List<QualifiedName> parameterNames) {
+		component = component.providedOutputBindingMethodParameters(parameterNames);
 		return getThis();
 	}
 
 	@Override
-	public S providedUnbindingMethodParameters(String... parameterNames) {
-		component = component.providedUnbindingMethodParameters(parameterNames);
+	public S providedOutputBindingMethodParameters(String... parameterNames) {
+		component = component.providedOutputBindingMethodParameters(parameterNames);
 		return getThis();
+	}
+
+	@Override
+	public List<QualifiedName> getProvidedOutputBindingMethodParameters() {
+		return component.getProvidedOutputBindingMethodParameters();
 	}
 
 	@Override
@@ -133,6 +178,11 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	public S abstractness(Abstractness abstractness) {
 		component = component.abstractness(abstractness);
 		return getThis();
+	}
+
+	@Override
+	public Abstractness getAbstractness() {
+		return component.getAbstractness();
 	}
 
 	@Override
@@ -152,5 +202,10 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	public <V extends T> BindingNodeConfigurator<?, ?, V> dataType(TypeToken<? extends V> bindingClass) {
 		component = (S) component.dataType(bindingClass);
 		return (BindingNodeConfigurator<?, ?, V>) this;
+	}
+
+	@Override
+	public TypeToken<T> getDataType() {
+		return component.getDataType();
 	}
 }

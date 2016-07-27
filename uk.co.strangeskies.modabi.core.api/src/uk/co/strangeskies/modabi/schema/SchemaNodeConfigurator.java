@@ -24,22 +24,29 @@ import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
+import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Factory;
 import uk.co.strangeskies.utilities.Self;
 
 public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>>
 		extends Factory<N>, Self<S> {
-	public S name(QualifiedName name);
+	TypeToken<N> getNodeType();
 
-	public default S name(String name, Namespace namespace) {
+	S name(QualifiedName name);
+
+	default S name(String name, Namespace namespace) {
 		return name(new QualifiedName(name, namespace));
 	}
 
+	QualifiedName getName();
+
 	S abstractness(Abstractness abstractness);
 
-	public ChildBuilder addChild();
+	Abstractness getAbstractness();
 
-	public default SchemaNodeConfigurator<?, N> addChild(Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> builder) {
+	ChildBuilder addChild();
+
+	default SchemaNodeConfigurator<?, N> addChild(Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> builder) {
 		builder.apply(addChild()).create();
 
 		return this;

@@ -192,13 +192,13 @@ public class BindingNodeOverrider {
 				}
 
 				private void acceptParent(BindingNode<?, ?> parent) {
-					parentUnbindingType.set(parent.unbindingType());
+					parentUnbindingType.set(parent.outputBindingType());
 
 					if (node.getBase() == parent.children().get(0)) {
-						parentBindingStrategy.set(parent.bindingStrategy());
+						parentBindingStrategy.set(parent.inputBindingStrategy());
 
-						if (parent.bindingType() != null) {
-							parentBindingType.set(parent.bindingType());
+						if (parent.inputBindingType() != null) {
+							parentBindingType.set(parent.inputBindingType());
 						} else {
 							parentBindingType.set(parent.dataType());
 						}
@@ -207,19 +207,19 @@ public class BindingNodeOverrider {
 			});
 
 			if (parentBindingType.get() != null) {
-				configurator = configurator.bindingType(parentBindingType.get());
+				configurator = configurator.inputBindingType(parentBindingType.get());
 			} else if (node.preInputType() != null) {
-				configurator = configurator.bindingType(node.preInputType());
+				configurator = configurator.inputBindingType(node.preInputType());
 			}
 
 			if (parentBindingStrategy.get() != null) {
-				configurator = configurator.bindingStrategy(parentBindingStrategy.get());
+				configurator = configurator.inputBindingStrategy(parentBindingStrategy.get());
 			}
 
 			if (node.outMethod().getDeclaringType() != null) {
-				configurator = configurator.unbindingType(node.outMethod().getDeclaringType());
+				configurator = configurator.outputBindingType(node.outMethod().getDeclaringType());
 			} else {
-				configurator = configurator.unbindingType(parentUnbindingType.get());
+				configurator = configurator.outputBindingType(parentUnbindingType.get());
 			}
 
 			return configurator;
@@ -292,15 +292,15 @@ public class BindingNodeOverrider {
 		@SuppressWarnings("unchecked")
 		public <U, C extends BindingNodeConfigurator<C, ?, U>> C processBindingNode(BindingNode<U, ?> node, C c) {
 			c = tryProperty(node, n -> n.dataType(), (cc, a) -> (C) cc.dataType(a), c);
-			c = tryProperty(node, BindingNode::bindingType, (cc, t) -> cc.bindingType(t), c);
-			c = tryProperty(node, BindingNode::bindingStrategy, C::bindingStrategy, c);
-			c = tryProperty(node, BindingNode::unbindingType, (cc, t) -> cc.unbindingType(t), c);
-			c = tryProperty(node, BindingNode::unbindingFactoryType, (cc, t) -> cc.unbindingFactoryType(t), c);
-			c = tryProperty(node, b -> b.unbindingMethod().getExecutable().getName(), C::unbindingMethod, c);
-			c = tryProperty(node, BindingNode::unbindingMethodUnchecked, C::unbindingMethodUnchecked, c);
-			c = tryProperty(node, BindingNode::unbindingStrategy, C::unbindingStrategy, c);
-			c = tryProperty(node, BindingNode::providedUnbindingMethodParameterNames,
-					(cc, m) -> cc.providedUnbindingMethodParameters(m), c);
+			c = tryProperty(node, BindingNode::inputBindingType, (cc, t) -> cc.inputBindingType(t), c);
+			c = tryProperty(node, BindingNode::inputBindingStrategy, C::inputBindingStrategy, c);
+			c = tryProperty(node, BindingNode::outputBindingType, (cc, t) -> cc.outputBindingType(t), c);
+			c = tryProperty(node, BindingNode::outputBindingFactoryType, (cc, t) -> cc.outputBindingFactoryType(t), c);
+			c = tryProperty(node, b -> b.outputBindingMethod().getExecutable().getName(), C::outputBindingMethod, c);
+			c = tryProperty(node, BindingNode::outputBindingMethodUnchecked, C::outputBindingMethodUnchecked, c);
+			c = tryProperty(node, BindingNode::outputBindingStrategy, C::outputBindingStrategy, c);
+			c = tryProperty(node, BindingNode::providedOutputBindingMethodParameterNames,
+					(cc, m) -> cc.providedOutputBindingMethodParameters(m), c);
 
 			return c;
 		}
@@ -384,8 +384,10 @@ public class BindingNodeOverrider {
 				try {
 					return consumer.apply(c, value);
 				} catch (Exception e) {
+					@SuppressWarnings("unchecked")
+					Class<N> nodeClass = (Class<N>) node.getThisType().getRawType();
 					throw new ModabiException(
-							t -> t.cannotOverrideIncompatibleProperty(property::apply, node, configuratorStack, value), e);
+							t -> t.cannotOverrideIncompatibleProperty(property::apply, nodeClass, configuratorStack, value), e);
 				}
 			} else {
 				return c;

@@ -25,13 +25,11 @@ import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
 /**
- * <p>
  * This enumeration describes the different ways a {@link Schema} can request a
  * {@link SchemaManager} should provide implementations of classes and
  * interfaces to bind to. All binding strategies can be applied when binding to
  * concrete classes, abstract classes, or interfaces, unless otherwise
  * specified.
- * </p>
  *
  * @author Elias N Vasylenko
  *
@@ -41,7 +39,7 @@ public enum InputBindingStrategy {
 	 * The schema binder should attempt to find an implementation for which a
 	 * factory has been provided externally, for example programmatically, through
 	 * dependency injection, or as an OSGI service. This is the default binding
-	 * behaviour.
+	 * behavior.
 	 */
 	PROVIDED,
 

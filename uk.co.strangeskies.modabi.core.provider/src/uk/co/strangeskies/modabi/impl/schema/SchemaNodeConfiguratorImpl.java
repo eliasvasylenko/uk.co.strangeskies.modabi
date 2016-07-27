@@ -36,87 +36,66 @@ import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.IdentityProperty;
 
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>>
 		implements SchemaNodeConfigurator<S, N> {
-	private final IdentityProperty<N> finalNode;
+	private N node;
 
 	private ChildrenConfigurator childrenConfigurator;
 	private List<ChildNode<?>> children;
 
-	private final QualifiedName name;
-	private final Abstractness abstractness;
+	private QualifiedName name;
+	private Abstractness abstractness;
 
 	public SchemaNodeConfiguratorImpl() {
 		this(null, null);
 	}
 
 	protected SchemaNodeConfiguratorImpl(QualifiedName name, Abstractness abstractness) {
-		finalNode = new IdentityProperty<>();
-
 		this.name = name;
 		this.abstractness = abstractness;
 	}
 
-	final void finaliseConfiguration() {
-		if (childrenConfigurator == null)
-			childrenConfigurator = createChildrenConfigurator();
+	protected void setResult(N node) {
+		this.node = node;
 	}
 
-	public void finaliseChildren() {
-		if (children == null) {
-			finaliseConfiguration();
-			children = childrenConfigurator.create();
-		}
+	protected N getResult() {
+		return node;
 	}
 
 	public List<ChildNode<?>> getChildren() {
+		if (children == null) {
+			children = getChildrenConfigurator().create();
+		}
+
 		return children;
 	}
 
 	public ChildrenConfigurator getChildrenConfigurator() {
+		if (childrenConfigurator == null)
+			childrenConfigurator = createChildrenConfigurator();
+
 		return childrenConfigurator;
 	}
 
 	@Override
-	protected final N tryCreate() {
-		finalNode.set(tryCreateImpl());
-		return finalNode.get();
-	}
-
-	protected abstract N tryCreateImpl();
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public final S getThis() {
-		return SchemaNodeConfigurator.super.getThis();
-	}
-
-	@Override
 	public S copy() {
-		return getThis();
+		/*
+		 * TODO
+		 */
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public final S name(QualifiedName name) {
-		if (Objects.equals(this.name, name))
-			return getThis();
-		else {
-			/*
-			 * TODO here go ALL checks to make sure new settings will be valid
-			 */
-			return copyImpl().setNameImpl(name);
-		}
+		this.name = name;
+
+		return getThis();
 	}
 
 	public final QualifiedName getName() {
 		return name;
-	}
-
-	public N getDeclaredNode() {
-		return null; // TODO return a partial node implementation over declared
-									// values
 	}
 
 	public QualifiedName defaultName() {
@@ -125,18 +104,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	@Override
 	public final S abstractness(Abstractness abstractness) {
-		if (Objects.equals(this.abstractness, abstractness))
-			return getThis();
-		else {
-			return copyImpl().setAbstractnessImpl(abstractness);
-		}
+		this.abstractness = abstractness;
+
+		return getThis();
 	}
 
-	protected Abstractness abstractness() {
+	public Abstractness getAbstractness() {
 		return abstractness;
 	}
-
-	protected abstract TypeToken<N> getNodeClass();
 
 	protected abstract DataLoader getDataLoader();
 
@@ -150,18 +125,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	@Override
 	public ChildBuilder addChild() {
-		finaliseConfiguration();
-
-		return childrenConfigurator.addChild();
+		return getChildrenConfigurator().addChild();
 	}
 
 	protected boolean isChildContextAbstract() {
-		return abstractness() != null && abstractness().isAtLeast(Abstractness.RESOLVED);
+		return getAbstractness() != null && getAbstractness().isAtLeast(Abstractness.RESOLVED);
 	}
 
 	@Override
 	public String toString() {
-		return getNodeClass().getRawType().getSimpleName() + " configurator: " + getName();
+		return getNodeType().getRawType().getSimpleName() + " configurator: " + getName();
 	}
 
 	protected TypeToken<?> parseTypeWithSubstitutedBrackets(String typeName, Imports imports) {
@@ -175,11 +148,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				.collect(Collectors.toSet());
 	}
 
-	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction) {
-		return new OverrideBuilder<>(this, valueFunction).or();
+	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
+		return new OverrideBuilder<>(this, valueFunction, givenValueFunction).or();
 	}
 
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, T override) {
-		return new OverrideBuilder<>(this, valueFunction).or(() -> override);
+		return new OverrideBuilder<>(this, valueFunction).or(override);
+	}
+
+	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction,
+			T override) {
+		return new OverrideBuilder<>(this, valueFunction, givenValueFunction).or(override);
 	}
 }

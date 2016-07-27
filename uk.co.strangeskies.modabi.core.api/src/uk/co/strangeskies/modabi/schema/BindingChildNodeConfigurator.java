@@ -24,17 +24,31 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N> {
 	S outMethod(String methodName);
 
+	String getOutMethod();
+
 	S outMethodUnchecked(boolean unchecked);
+
+	Boolean getOutMethodUnchecked();
 
 	S outMethodIterable(boolean iterable);
 
+	Boolean getOutMethodIterable();
+
 	S outMethodCast(boolean cast);
+
+	Boolean getOutMethodCast();
 
 	S extensible(boolean extensible);
 
+	Boolean getExtensible();
+
 	S synchronous(boolean synchronous);
 
+	Boolean getSynchronous();
+
 	S nullIfOmitted(boolean nullIfOmitted);
+
+	Boolean getNullIfOmitted();
 
 	TypeToken<T> getExpectedType();
 }

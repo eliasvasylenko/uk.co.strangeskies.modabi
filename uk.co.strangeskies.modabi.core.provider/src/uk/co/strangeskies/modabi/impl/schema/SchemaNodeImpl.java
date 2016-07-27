@@ -46,13 +46,12 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 
 	protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, S> configurator) {
 		this.configurator = configurator;
-		configurator.finaliseConfiguration();
-		configurator.finaliseChildren();
+		configurator.setResult(getThis());
 
-		name = configurator.getOverride(SchemaNode::name).orDefault(configurator.defaultName()).validate((n, o) -> true)
-				.get();
+		name = configurator.getOverride(SchemaNode::name, SchemaNodeConfigurator::getName)
+				.orDefault(configurator.defaultName()).validate((n, o) -> true).get();
 
-		abstractness = configurator.abstractness() == null ? Abstractness.CONCRETE : configurator.abstractness();
+		abstractness = configurator.getAbstractness() == null ? Abstractness.CONCRETE : configurator.getAbstractness();
 
 		children = configurator.getChildren();
 

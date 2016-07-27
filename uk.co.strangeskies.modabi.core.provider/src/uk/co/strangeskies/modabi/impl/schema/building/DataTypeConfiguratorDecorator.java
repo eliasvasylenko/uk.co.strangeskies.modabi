@@ -39,6 +39,11 @@ public class DataTypeConfiguratorDecorator<T> extends
 		return this;
 	}
 
+	@Override
+	public Boolean getPrivate() {
+		return getComponent().getPrivate();
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends T> DataTypeConfigurator<U> baseType(DataType<? super U> baseType) {
@@ -55,5 +60,10 @@ public class DataTypeConfiguratorDecorator<T> extends
 	@Override
 	public String toString() {
 		return getComponent().toString();
+	}
+
+	@Override
+	public DataTypeConfigurator<T> copy() {
+		return new DataTypeConfiguratorDecorator<>(getComponent().copy());
 	}
 }

@@ -86,34 +86,33 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 	/*
 	 * Property overriding
 	 */
-	@SuppressWarnings("unchecked")
-	default <N extends SchemaNode<?>> String getPropertyName(Consumer<? super N> propertyGetter, N node) {
-		return "#" + Methods.findMethod((Class<N>) node.getThisType().getRawType(), propertyGetter).getName();
+	default <N extends SchemaNode<?>> String getPropertyName(Consumer<? super N> propertyGetter, Class<N> node) {
+		return "#" + Methods.findMethod(node, propertyGetter).getName();
 	}
 
 	default <N extends SchemaNode<?>, T> Localized<String> cannotOverrideIncompatibleProperty(
-			Consumer<? super N> propertyGetter, N node, T base, T override) {
+			Consumer<? super N> propertyGetter, Class<N> node, T base, T override) {
 		return cannotOverrideIncompatibleProperty(getPropertyName(propertyGetter, node), node, base, override);
 	}
 
 	<T> Localized<String> cannotOverrideIncompatibleProperty(String propertyName, Object target, T base, T override);
 
 	default <N extends SchemaNode<?>> Localized<String> cannotMergeIncompatibleProperties(
-			Consumer<? super N> propertyGetter, N node, Collection<?> values) {
+			Consumer<? super N> propertyGetter, Class<N> node, Collection<?> values) {
 		return cannotMergeIncompatibleProperties(getPropertyName(propertyGetter, node), node, values);
 	}
 
 	Localized<String> cannotMergeIncompatibleProperties(String propertyName, Object target, Collection<?> values);
 
 	default <N extends SchemaNode<?>> Localized<String> mustOverrideIncompatibleProperties(
-			Consumer<? super N> propertyGetter, N node, Collection<?> values) {
+			Consumer<? super N> propertyGetter, Class<N> node, Collection<?> values) {
 		return mustOverrideIncompatibleProperties(getPropertyName(propertyGetter, node), node, values);
 	}
 
 	Localized<String> mustOverrideIncompatibleProperties(String propertyName, Object target, Collection<?> values);
 
 	default <N extends SchemaNode<?>> Localized<String> mustProvideValueForNonAbstract(Consumer<? super N> propertyGetter,
-			N node) {
+			Class<N> node) {
 		return mustProvideValueForNonAbstract(getPropertyName(propertyGetter, node), node);
 	}
 

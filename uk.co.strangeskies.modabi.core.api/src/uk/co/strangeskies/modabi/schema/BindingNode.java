@@ -27,27 +27,27 @@ import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<S> {
-	Invokable<?, ?> unbindingMethod();
+	Invokable<?, ?> outputBindingMethod();
 
-	List<DataNode<?>> providedUnbindingMethodParameters();
+	List<DataNode<?>> providedOutputBindingMethodParameters();
 
 	List<? extends BindingNode<? super T, ?>> base();
 
 	TypeToken<T> dataType();
 
-	InputBindingStrategy bindingStrategy();
+	InputBindingStrategy inputBindingStrategy();
 
-	TypeToken<?> bindingType();
+	TypeToken<?> inputBindingType();
 
-	OutputBindingStrategy unbindingStrategy();
+	OutputBindingStrategy outputBindingStrategy();
 
-	TypeToken<?> unbindingType();
+	TypeToken<?> outputBindingType();
 
-	Boolean unbindingMethodUnchecked();
+	Boolean outputBindingMethodUnchecked();
 
-	TypeToken<?> unbindingFactoryType();
+	TypeToken<?> outputBindingFactoryType();
 
-	List<QualifiedName> providedUnbindingMethodParameterNames();
+	List<QualifiedName> providedOutputBindingMethodParameterNames();
 
 	@Override
 	BindingNodeConfigurator<?, S, T> configurator();

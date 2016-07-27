@@ -22,9 +22,17 @@ public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N 
 		extends ChildNodeConfigurator<S, N> {
 	public S inMethod(String methodName);
 
+	String getInMethod();
+
 	public S inMethodChained(boolean chained);
+
+	Boolean getInMethodChained();
 
 	public S inMethodUnchecked(boolean unchecked);
 
+	Boolean getInMethodUnchecked();
+
 	public S inMethodCast(boolean cast);
+
+	Boolean getInMethodCast();
 }

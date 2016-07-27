@@ -29,16 +29,16 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ModabiProperties.ExecutableType;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideMerge;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
 import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 
-public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends InputNode.Effective<N, E>> {
+public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	private final QualifiedName name;
 	private final Abstractness abstractness;
 
@@ -51,23 +51,25 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	private final TypeToken<?> preInputType;
 	private final TypeToken<?> postInputType;
 
-	private final OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge;
+	private final SchemaNodeConfiguratorImpl<? extends InputNodeConfigurator<?, ?>, N> configurator;
 	private final SchemaNodeConfigurationContext context;
 
 	public InputNodeConfigurationHelper(Abstractness abstractness, QualifiedName name,
-			OverrideMerge<N, ? extends ChildNodeConfigurator<?, N>> overrideMerge, SchemaNodeConfigurationContext context,
-			List<TypeToken<?>> inMethodParameters) {
+			SchemaNodeConfiguratorImpl<? extends InputNodeConfigurator<?, ?>, N> configurator,
+			SchemaNodeConfigurationContext context, List<TypeToken<?>> inMethodParameters) {
 		this.abstractness = abstractness;
 		this.name = name;
-		this.overrideMerge = overrideMerge;
+		this.configurator = configurator;
 		this.context = context;
 
-		inMethodChained = overrideMerge.getOverride(InputNode::inMethodChained)
+		inMethodChained = configurator.getOverride(InputNode::inMethodChained, InputNodeConfigurator::getInMethodChained)
 				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected(), Abstractness.RESOLVED).get();
-		inMethodUnchecked = overrideMerge.getOverride(InputNode::inMethodUnchecked).orDefault(false, Abstractness.RESOLVED)
-				.get();
+		inMethodUnchecked = configurator
+				.getOverride(InputNode::inMethodUnchecked, InputNodeConfigurator::getInMethodUnchecked)
+				.orDefault(false, Abstractness.RESOLVED).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: overrideMerge.getOverride(InputNode::inMethodCast).orDefault(false, Abstractness.RESOLVED).get();
+				: configurator.getOverride(InputNode::inMethodCast, InputNodeConfigurator::getInMethodCast)
+						.orDefault(false, Abstractness.RESOLVED).get();
 
 		inMethod = inMethod(inMethodParameters);
 		inMethodName = inMethodName();
@@ -124,7 +126,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
@@ -178,18 +180,11 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	 * resolve the inherited in method or constructor, and make sure it is
 	 * properly overridden if necessary
 	 * 
-	 * TODO handle some sort of constructor 'pseudo-override' behaviour
+	 * TODO handle some sort of constructor 'pseudo-override' behavior
 	 */
 	private Invokable<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
-		Executable inExecutable = overrideMerge.getOverride(n -> {
-			if (n.effective() == null)
-				return null;
-
-			if (n.effective().inMethod() == null)
-				return null;
-
-			return n.effective().inMethod().getExecutable();
-		}).tryGet();
+		Executable inExecutable = configurator
+				.getOverride(n -> n.inMethod() == null ? null : n.inMethod().getExecutable(), (Executable) null).tryGet();
 
 		Invokable<?, ?> inInvokable;
 
@@ -216,7 +211,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private String getGivenInMethodName() {
-		String givenInMethodName = overrideMerge.getOverride(InputNode::inMethodName).tryGet();
+		String givenInMethodName = configurator
+				.getOverride(n -> n.inMethod().getExecutable().getName(), InputNodeConfigurator::getInMethod).tryGet();
 
 		if (!context.isInputExpected())
 			if (givenInMethodName == null)
@@ -229,7 +225,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
-			TypeToken<?> resultType = overrideMerge.<TypeToken<?>>getOverride(InputNode::postInputType)
+			TypeToken<?> resultType = configurator
+					.<TypeToken<?>> getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -299,7 +296,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 	}
 
 	private String inMethodName() {
-		String inMethodName = overrideMerge.getOverride(InputNode::inMethodName).tryGet();
+		String inMethodName = configurator
+				.getOverride(n -> n.inMethod().getExecutable().getName(), InputNodeConfigurator::getInMethod).tryGet();
 
 		if (!context.isInputExpected() && inMethodName == null)
 			inMethodName = "null";
@@ -321,8 +319,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 		if ("null".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = inputTargetType();
 		} else if (abstractness.isMoreThan(Abstractness.RESOLVED) || inMethodChained == null) {
-			postInputClass = overrideMerge.getOverride(n -> n.postInputType() == null ? null : n.postInputType())
-					.validate(TypeToken::isAssignableTo).tryGet();
+			postInputClass = configurator.getOverride(n -> n.postInputType() == null ? null : n.postInputType(),
+					InputNodeConfigurator::getPostInputType).validate(TypeToken::isAssignableTo).tryGet();
 		} else {
 			TypeToken<?> methodReturn;
 
@@ -334,12 +332,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N, E>, E extends I
 								methodReturn.getResolver().getBounds()))
 						.withBoundsFrom(methodReturn.getResolver());
 
-			TypeToken<?> localPostInputClass = overrideMerge.node().postInputType();
+			TypeToken<?> localPostInputClass = configurator.getThis().getPostInputType();
 
 			if (localPostInputClass == null || localPostInputClass.isAssignableFrom(methodReturn))
 				localPostInputClass = methodReturn;
 
-			postInputClass = overrideMerge.getOverride(n -> n.postInputType(), localPostInputClass)
+			postInputClass = configurator.getOverride(n -> n.postInputType(), localPostInputClass)
 					.validate(TypeToken::isAssignableTo).get();
 		}
 
