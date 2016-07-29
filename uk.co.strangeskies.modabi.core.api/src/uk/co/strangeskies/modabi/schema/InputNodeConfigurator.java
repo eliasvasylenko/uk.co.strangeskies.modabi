@@ -18,25 +18,29 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
+
 public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N extends InputNode<N>>
 		extends ChildNodeConfigurator<S, N> {
-	public S inMethod(String methodName);
+	S inputNone();
 
-	static String noInMethod() {
-		return "void";
-	}
+	S inputMethod(String methodName);
 
-	String getInMethod();
+	S inputField(String fieldName);
 
-	public S inMethodChained(boolean chained);
+	InputMemberType getInputMemberType();
 
-	Boolean getInMethodChained();
+	String getInputMember();
 
-	public S inMethodUnchecked(boolean unchecked);
+	S chainedInput(boolean chained);
 
-	Boolean getInMethodUnchecked();
+	Boolean getChainedInput();
 
-	public S inMethodCast(boolean cast);
+	S uncheckedInput(boolean unchecked);
 
-	Boolean getInMethodCast();
+	Boolean getUncheckedInput();
+
+	S castInput(boolean cast);
+
+	Boolean getCastInput();
 }

@@ -28,6 +28,7 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigu
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -41,10 +42,11 @@ import uk.co.strangeskies.reflection.TypeToken;
 public class InputSequenceNodeConfiguratorImpl
 		extends ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
 		implements InputSequenceNodeConfigurator {
-	private String inMethodName;
-	private Boolean inMethodChained;
-	private Boolean inMethodCast;
-	private Boolean inMethodUnchecked;
+	private String inputMember;
+	private InputMemberType inputMemberType;
+	private Boolean chainedInput;
+	private Boolean castIntput;
+	private Boolean uncheckedInput;
 
 	public InputSequenceNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
 		super(parent);
@@ -56,54 +58,75 @@ public class InputSequenceNodeConfiguratorImpl
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator inMethod(String methodName) {
-		if (!getContext().isInputExpected() && !inMethodName.equals("void"))
+	public final InputSequenceNodeConfigurator inputMethod(String methodName) {
+		checkInputAllowed();
+		this.inputMember = methodName;
+		this.inputMemberType = InputMemberType.METHOD;
+		return getThis();
+	}
+
+	@Override
+	public final InputSequenceNodeConfigurator inputField(String fieldName) {
+		checkInputAllowed();
+		this.inputMember = fieldName;
+		this.inputMemberType = InputMemberType.FIELD;
+		return getThis();
+	}
+
+	@Override
+	public InputSequenceNodeConfigurator inputNone() {
+		this.inputMemberType = InputMemberType.NONE;
+		return getThis();
+	}
+
+	private void checkInputAllowed() {
+		if (!getContext().isInputExpected())
 			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
-
-		inMethodName = methodName;
-
-		return this;
 	}
 
 	@Override
-	public String getInMethod() {
-		return inMethodName;
+	public String getInputMember() {
+		return inputMember;
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator inMethodChained(boolean chained) {
-		inMethodChained = chained;
-
-		return this;
+	public InputMemberType getInputMemberType() {
+		return inputMemberType;
 	}
 
 	@Override
-	public Boolean getInMethodChained() {
-		return inMethodChained;
+	public final InputSequenceNodeConfigurator chainedInput(boolean chained) {
+		this.chainedInput = chained;
+		return getThis();
 	}
 
 	@Override
-	public InputSequenceNodeConfigurator inMethodCast(boolean allowInMethodResultCast) {
-		this.inMethodCast = allowInMethodResultCast;
-
-		return this;
+	public Boolean getChainedInput() {
+		return chainedInput;
 	}
 
 	@Override
-	public Boolean getInMethodCast() {
-		return inMethodCast;
-	}
-
-	@Override
-	public final InputSequenceNodeConfigurator inMethodUnchecked(boolean unchecked) {
-		inMethodUnchecked = unchecked;
+	public final InputSequenceNodeConfigurator castInput(boolean allowInMethodResultCast) {
+		this.castIntput = allowInMethodResultCast;
 
 		return getThis();
 	}
 
 	@Override
-	public Boolean getInMethodUnchecked() {
-		return inMethodUnchecked;
+	public Boolean getCastInput() {
+		return castIntput;
+	}
+
+	@Override
+	public final InputSequenceNodeConfigurator uncheckedInput(boolean unchecked) {
+		uncheckedInput = unchecked;
+
+		return getThis();
+	}
+
+	@Override
+	public Boolean getUncheckedInput() {
+		return uncheckedInput;
 	}
 
 	@Override

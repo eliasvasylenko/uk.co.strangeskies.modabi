@@ -114,6 +114,16 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 		return providedOutputBindingMethodParameters(Arrays.asList(parameterNames));
 	}
 
+	/*
+	 * TODO Replace this with a model based on (forgotten the term I made up for
+	 * it ...) static references where the reference target node is resolved at
+	 * schema loading time, rather than schema application time like normal
+	 * references. "modabi.namespace:this" can be a special reference id for the
+	 * direct parent node.
+	 * 
+	 * It may also be possible to solve certain other issues in this manner.
+	 * 
+	 */
 	S providedOutputBindingMethodParameters(String... parameterNames);
 
 	List<QualifiedName> getProvidedOutputBindingMethodParameters();

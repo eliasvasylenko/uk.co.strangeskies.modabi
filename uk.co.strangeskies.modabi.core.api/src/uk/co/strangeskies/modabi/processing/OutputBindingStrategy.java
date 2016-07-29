@@ -23,7 +23,7 @@ public enum OutputBindingStrategy {
 	 * The schema binder should attempt to retrieve an reference to an instance of
 	 * the data class directly from the result of the output method. No unbinding
 	 * class or unbinding method should be specified. This is the default
-	 * unbinding behaviour.
+	 * unbinding behavior.
 	 */
 	SIMPLE,
 

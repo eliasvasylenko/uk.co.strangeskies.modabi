@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -235,7 +237,7 @@ public class BindingNodeOverrider {
 			models.add(0, new ModelWrapper<>(node));
 
 			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild().complex().name(override.name())
-					.outMethodCast(true).model(models);
+					.castOutput(true).model(models);
 
 			elementConfigurator = processBindingNode(node, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
@@ -253,7 +255,7 @@ public class BindingNodeOverrider {
 					node);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()
-					.name(override.name()).outMethodCast(true).type(override.baseType()).nullIfOmitted(node.nullIfOmitted());
+					.name(override.name()).castOutput(true).type(override.baseType()).nullIfOmitted(node.nullIfOmitted());
 
 			dataNodeConfigurator = tryProperty(node, DataNode::format, DataNodeConfigurator::format, dataNodeConfigurator);
 
@@ -299,7 +301,8 @@ public class BindingNodeOverrider {
 			c = tryProperty(node, b -> b.outputBindingMethod().getName(), C::outputBindingMethod, c);
 			c = tryProperty(node, BindingNode::outputBindingMethodUnchecked, C::outputBindingMethodUnchecked, c);
 			c = tryProperty(node, BindingNode::outputBindingStrategy, C::outputBindingStrategy, c);
-			c = tryProperty(node, BindingNode::providedOutputBindingMethodParameterNames,
+			c = tryProperty(node,
+					b -> b.providedOutputBindingMethodParameters().stream().map(DataNode::name).collect(toList()),
 					(cc, m) -> cc.providedOutputBindingMethodParameters(m), c);
 
 			return c;
@@ -307,19 +310,19 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?> node, C c) {
-			c = tryProperty(node, b -> b.outMethod().getName(), C::outMethod, c);
-			c = tryProperty(node, BindingChildNode::outMethodIterable, C::outMethodIterable, c);
-			c = tryProperty(node, BindingChildNode::outMethodUnchecked, C::outMethodUnchecked, c);
-			c = tryProperty(node, BindingChildNode::outMethodCast, C::outMethodCast, c);
+			c = tryProperty(node, b -> b.outMethod().getName(), C::outputMethod, c);
+			c = tryProperty(node, BindingChildNode::outMethodIterable, C::iterableOutput, c);
+			c = tryProperty(node, BindingChildNode::outMethodUnchecked, C::uncheckedOutput, c);
+			c = tryProperty(node, BindingChildNode::outMethodCast, C::castOutput, c);
 
 			return processInputNode(node, c);
 		}
 
 		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(InputNode<?> node, C c) {
-			c = tryProperty(node, InputNode::inMethodCast, C::inMethodCast, c);
-			c = tryProperty(node, InputNode::inMethodUnchecked, C::inMethodUnchecked, c);
-			c = tryProperty(node, b -> b.inMethod().getName(), C::inMethod, c);
-			c = tryProperty(node, InputNode::inMethodChained, C::inMethodChained, c);
+			c = tryProperty(node, InputNode::inMethodCast, C::castInput, c);
+			c = tryProperty(node, InputNode::inMethodUnchecked, C::uncheckedInput, c);
+			c = tryProperty(node, b -> b.inMethod().getName(), C::inputMethod, c);
+			c = tryProperty(node, InputNode::inMethodChained, C::chainedInput, c);
 			c = tryProperty(node, InputNode::postInputType, (cc, t) -> cc.postInputType(t), c);
 
 			return c;

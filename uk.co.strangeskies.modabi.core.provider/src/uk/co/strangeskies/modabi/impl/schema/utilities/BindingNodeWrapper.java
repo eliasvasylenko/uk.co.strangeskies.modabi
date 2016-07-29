@@ -78,7 +78,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 
 		testOverrideEqual(BindingNode::outputBindingMethod);
 
-		testOverrideEqual(BindingNode::providedOutputBindingMethodParameterNames);
+		testOverrideEqual(BindingNode::providedOutputBindingMethodParameters);
 
 		testOverride(BindingNode::children, (baseValue, overrideValue) -> overrideValue.containsAll(baseValue));
 	}
@@ -184,11 +184,6 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	@Override
 	public final List<ChildNode<?>> children() {
 		return component.children();
-	}
-
-	@Override
-	public final List<QualifiedName> providedOutputBindingMethodParameterNames() {
-		return component.providedOutputBindingMethodParameterNames();
 	}
 
 	@Override

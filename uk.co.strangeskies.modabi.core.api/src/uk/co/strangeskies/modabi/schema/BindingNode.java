@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.reflection.Invokable;
@@ -46,8 +45,6 @@ public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<
 	Boolean outputBindingMethodUnchecked();
 
 	TypeToken<?> outputBindingFactoryType();
-
-	List<QualifiedName> providedOutputBindingMethodParameterNames();
 
 	@Override
 	BindingNodeConfigurator<?, S, T> configurator();

@@ -250,7 +250,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 				&& result instanceof InputNode
 
-				&& !noInMethod().equals(((InputNode<?>) result).configurator().getInMethod())) {
+				&& !noInMethod().equals(((InputNode<?>) result).configurator().getInputMember())) {
 
 			constructorExpected = staticMethodExpected = false;
 		}

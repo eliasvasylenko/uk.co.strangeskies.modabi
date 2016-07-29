@@ -21,6 +21,10 @@ package uk.co.strangeskies.modabi.schema;
 import uk.co.strangeskies.reflection.Invokable;
 
 public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
+	enum InputMemberType {
+		FIELD, METHOD, NONE
+	}
+
 	Invokable<?, ?> inMethod();
 
 	static Invokable<Void, Void> noInMethod() {

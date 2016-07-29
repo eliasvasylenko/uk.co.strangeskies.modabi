@@ -52,7 +52,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private final Boolean unbindingMethodUnchecked;
 	private final Invokable<?, ?> unbindingMethod;
 
-	private final List<QualifiedName> providedUnbindingParameterNames;
 	private final List<DataNode<?>> providedUnbindingParameters;
 
 	protected BindingNodeImpl(BindingNodeConfiguratorImpl<?, S, T> configurator) {
@@ -68,11 +67,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 				.getOverride(BindingNode::outputBindingStrategy, BindingNodeConfigurator::getOutputBindingStrategy)
 				.orDefault(OutputBindingStrategy.SIMPLE).get();
 
-		providedUnbindingParameterNames = configurator
-				.getOverride(BindingNode::providedOutputBindingMethodParameterNames,
-						BindingNodeConfigurator::getProvidedOutputBindingMethodParameters)
-				.orDefault(Collections.<QualifiedName> emptyList()).get();
-
 		/*
 		 * TODO refactor to make this final.
 		 */
@@ -80,7 +74,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 				.getOverride(b -> b.outputBindingMethod().getName(), BindingNodeConfigurator::getOutputBindingMethod).tryGet();
 
 		providedUnbindingParameters = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null
-				: findProvidedUnbindingParameters(this);
+				: findProvidedUnbindingParameters(this,
+						configurator.getOverride(BindingNodeConfigurator::getProvidedOutputBindingMethodParameters)
+								.orDefault(Collections.<QualifiedName> emptyList()).get());
 
 		unbindingMethodUnchecked = configurator.getOverride(BindingNode::outputBindingMethodUnchecked,
 				BindingNodeConfigurator::getOutputBindingMethodUnchecked).tryGet();
@@ -194,11 +190,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		return providedUnbindingParameters;
 	}
 
-	@Override
-	public List<QualifiedName> providedOutputBindingMethodParameterNames() {
-		return providedUnbindingParameterNames;
-	}
-
 	private Invokable<?, ?> findUnbindingMethod(BindingNodeConfiguratorImpl<?, S, T> configurator) {
 		OutputBindingStrategy unbindingStrategy = outputBindingStrategy();
 		if (unbindingStrategy == null)
@@ -227,10 +218,11 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		throw new AssertionError();
 	}
 
-	private static List<DataNode<?>> findProvidedUnbindingParameters(BindingNode<?, ?> node) {
-		return node.providedOutputBindingMethodParameterNames() == null
+	private static List<DataNode<?>> findProvidedUnbindingParameters(BindingNode<?, ?> node,
+			List<QualifiedName> providedOutputBindingMethodParameterNames) {
+		return providedOutputBindingMethodParameterNames == null
 				? node.configurator().getOutputBindingMethod() == null ? null : new ArrayList<>()
-				: node.providedOutputBindingMethodParameterNames().stream().map(p -> {
+				: providedOutputBindingMethodParameterNames.stream().map(p -> {
 					if (p.getName().equals("this"))
 						return null;
 					else {

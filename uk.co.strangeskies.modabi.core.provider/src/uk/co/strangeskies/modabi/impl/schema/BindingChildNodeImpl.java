@@ -91,8 +91,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 				.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
 
 		iterable = configurator.getOverride(BindingChildNode::outMethodIterable, c -> {
-			if (c.getOutMethodIterable() != null) {
-				return c.getOutMethodIterable();
+			if (c.getIterableOutput() != null) {
+				return c.getIterableOutput();
 			}
 
 			if (c.getOccurrences() != null && !c.getOccurrences().isValueAbove(2)) {
@@ -103,14 +103,14 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		}).orDefault(false).get();
 
 		outMethodUnchecked = configurator
-				.getOverride(BindingChildNode::outMethodUnchecked, BindingChildNodeConfigurator::getOutMethodUnchecked)
+				.getOverride(BindingChildNode::outMethodUnchecked, BindingChildNodeConfigurator::getUncheckedOutput)
 				.orDefault(false).get();
 
 		outMethodCast = configurator
-				.getOverride(BindingChildNode::outMethodCast, BindingChildNodeConfigurator::getOutMethodCast).orDefault(false)
+				.getOverride(BindingChildNode::outMethodCast, BindingChildNodeConfigurator::getCastOutput).orDefault(false)
 				.get();
 
-		outMethodName = configurator.getOverride(n -> n.outMethod().getName(), BindingChildNodeConfigurator::getOutMethod)
+		outMethodName = configurator.getOverride(n -> n.outMethod().getName(), BindingChildNodeConfigurator::getOutputMember)
 				.tryGet();
 
 		nullIfOmitted = configurator
@@ -276,7 +276,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 			throw new ModabiException(t -> t.cannotFindOutMethodWithoutResultType(node));
 
 		Invokable<?, ?> outMethod;
-		if ("this".equals(node.configurator().getOutMethod())) {
+		if ("this".equals(node.configurator().getOutputMember())) {
 			if (!resultType.isAssignableFrom(receiverType.resolve())) {
 				TypeToken<?> resultTypeFinal = resultType;
 				throw new ModabiException(t -> t.incompatibleTypes(receiverType.getType(), resultTypeFinal.getType()));
@@ -313,8 +313,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	private static List<String> generateOutMethodNames(BindingChildNode<?, ?> node, Class<?> resultClass) {
 		List<String> names;
 
-		if (node.configurator().getOutMethod() != null)
-			names = Arrays.asList(node.configurator().getOutMethod());
+		if (node.configurator().getOutputMember() != null)
+			names = Arrays.asList(node.configurator().getOutputMember());
 		else
 			names = generateUnbindingMethodNames(node.name().getName(),
 					node.outMethodIterable() != null && node.outMethodIterable(), resultClass);

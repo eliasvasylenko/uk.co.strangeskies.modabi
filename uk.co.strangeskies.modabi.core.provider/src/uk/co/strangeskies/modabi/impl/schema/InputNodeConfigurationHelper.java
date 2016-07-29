@@ -62,13 +62,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		this.configurator = configurator;
 		this.context = context;
 
-		inMethodChained = configurator.getOverride(InputNode::inMethodChained, InputNodeConfigurator::getInMethodChained)
+		inMethodChained = configurator.getOverride(InputNode::inMethodChained, InputNodeConfigurator::getChainedInput)
 				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected(), Abstractness.RESOLVED).get();
 		inMethodUnchecked = configurator
-				.getOverride(InputNode::inMethodUnchecked, InputNodeConfigurator::getInMethodUnchecked)
+				.getOverride(InputNode::inMethodUnchecked, InputNodeConfigurator::getUncheckedInput)
 				.orDefault(false, Abstractness.RESOLVED).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: configurator.getOverride(InputNode::inMethodCast, InputNodeConfigurator::getInMethodCast)
+				: configurator.getOverride(InputNode::inMethodCast, InputNodeConfigurator::getCastInput)
 						.orDefault(false, Abstractness.RESOLVED).get();
 
 		inMethod = inMethod(inMethodParameters);
@@ -213,7 +213,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	}
 
 	private String getGivenInMethodName() {
-		String givenInMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInMethod)
+		String givenInMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInputMember)
 				.tryGet();
 
 		if (!context.isInputExpected())
@@ -298,7 +298,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	}
 
 	private String inMethodName() {
-		String inMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInMethod)
+		String inMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInputMember)
 				.tryGet();
 
 		if (!context.isInputExpected() && inMethodName == null)

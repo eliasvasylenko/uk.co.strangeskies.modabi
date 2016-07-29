@@ -18,29 +18,34 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import uk.co.strangeskies.modabi.schema.BindingChildNode.OutputMemberType;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N>, T>
 		extends BindingNodeConfigurator<S, N, T>, InputNodeConfigurator<S, N> {
-	S outMethod(String methodName);
+	S outputSelf();
 
-	static String noOutMethod() {
-		return InputNodeConfigurator.noInMethod();
-	}
+	S outputNone();
 
-	String getOutMethod();
+	S outputMethod(String methodName);
 
-	S outMethodUnchecked(boolean unchecked);
+	S outputField(String fieldName);
 
-	Boolean getOutMethodUnchecked();
+	OutputMemberType getOutputMemberType();
 
-	S outMethodIterable(boolean iterable);
+	String getOutputMember();
 
-	Boolean getOutMethodIterable();
+	S uncheckedOutput(boolean unchecked);
 
-	S outMethodCast(boolean cast);
+	Boolean getUncheckedOutput();
 
-	Boolean getOutMethodCast();
+	S iterableOutput(boolean iterable);
+
+	Boolean getIterableOutput();
+
+	S castOutput(boolean cast);
+
+	Boolean getCastOutput();
 
 	S extensible(boolean extensible);
 

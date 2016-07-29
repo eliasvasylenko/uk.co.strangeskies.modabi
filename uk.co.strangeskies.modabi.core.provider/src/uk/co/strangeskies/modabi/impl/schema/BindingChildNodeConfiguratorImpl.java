@@ -26,7 +26,9 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.BindingChildNode.OutputMemberType;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -40,14 +42,18 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	private Boolean optional;
 	private Boolean nullIfOmitted;
 	private Boolean ordered;
-	private Boolean outMethodIterable;
-	private Boolean outMethodCast;
-	private Boolean outMethodUnchecked;
-	private String outMethodName;
-	private String inMethodName;
-	private Boolean inMethodChained;
-	private Boolean inMethodCast;
-	private Boolean inMethodUnchecked;
+
+	private Boolean iterableOutput;
+	private Boolean castOutput;
+	private Boolean uncheckedOutput;
+	private OutputMemberType outputMemberType;
+	private String outputMember;
+
+	private String inputMember;
+	private InputMemberType inputMemberType;
+	private Boolean chainedInput;
+	private Boolean castIntput;
+	private Boolean uncheckedInput;
 	private Boolean extensible;
 	private Boolean synchronous;
 
@@ -119,7 +125,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	public S optional(boolean optional) {
 		this.optional = optional;
-
 		return BindingChildNodeConfigurator.super.optional(optional);
 	}
 
@@ -129,97 +134,146 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public final S inMethod(String inMethodName) {
-		if (!getContext().isInputExpected() && !inMethodName.equals("void"))
+	public final S inputMethod(String methodName) {
+		checkInputAllowed();
+		this.inputMember = methodName;
+		this.inputMemberType = InputMemberType.METHOD;
+		return getThis();
+	}
+
+	@Override
+	public final S inputField(String fieldName) {
+		checkInputAllowed();
+		this.inputMember = fieldName;
+		this.inputMemberType = InputMemberType.FIELD;
+		return getThis();
+	}
+
+	@Override
+	public S inputNone() {
+		this.inputMemberType = InputMemberType.NONE;
+		return getThis();
+	}
+
+	private void checkInputAllowed() {
+		if (!getContext().isInputExpected())
 			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
+	}
 
-		this.inMethodName = inMethodName;
+	@Override
+	public String getInputMember() {
+		return inputMember;
+	}
+
+	@Override
+	public InputMemberType getInputMemberType() {
+		return inputMemberType;
+	}
+
+	@Override
+	public final S chainedInput(boolean chained) {
+		this.chainedInput = chained;
+		return getThis();
+	}
+
+	@Override
+	public Boolean getChainedInput() {
+		return chainedInput;
+	}
+
+	@Override
+	public final S castInput(boolean allowInMethodResultCast) {
+		this.castIntput = allowInMethodResultCast;
 
 		return getThis();
 	}
 
 	@Override
-	public String getInMethod() {
-		return inMethodName;
+	public Boolean getCastInput() {
+		return castIntput;
 	}
 
 	@Override
-	public final S inMethodChained(boolean chained) {
-		this.inMethodChained = chained;
-		return getThis();
-	}
-
-	@Override
-	public Boolean getInMethodChained() {
-		return inMethodChained;
-	}
-
-	@Override
-	public final S inMethodCast(boolean allowInMethodResultCast) {
-		this.inMethodCast = allowInMethodResultCast;
+	public final S uncheckedInput(boolean unchecked) {
+		uncheckedInput = unchecked;
 
 		return getThis();
 	}
 
 	@Override
-	public Boolean getInMethodCast() {
-		return inMethodCast;
+	public Boolean getUncheckedInput() {
+		return uncheckedInput;
 	}
 
 	@Override
-	public final S inMethodUnchecked(boolean unchecked) {
-		inMethodUnchecked = unchecked;
-
+	public final S outputMethod(String methodName) {
+		this.outputMember = methodName;
+		this.outputMemberType = OutputMemberType.METHOD;
 		return getThis();
 	}
 
 	@Override
-	public Boolean getInMethodUnchecked() {
-		return inMethodUnchecked;
-	}
-
-	@Override
-	public final S outMethod(String outMethodName) {
-		this.outMethodName = outMethodName;
+	public S outputField(String fieldName) {
+		this.outputMember = fieldName;
+		this.outputMemberType = OutputMemberType.FIELD;
 		return getThis();
 	}
 
 	@Override
-	public String getOutMethod() {
-		return outMethodName;
-	}
-
-	@Override
-	public final S outMethodIterable(boolean iterable) {
-		this.outMethodIterable = iterable;
+	public S outputNone() {
+		this.outputMember = null;
+		this.outputMemberType = OutputMemberType.NONE;
 		return getThis();
 	}
 
 	@Override
-	public Boolean getOutMethodIterable() {
-		return outMethodIterable;
-	}
-
-	@Override
-	public final S outMethodCast(boolean cast) {
-		this.outMethodCast = cast;
+	public S outputSelf() {
+		this.outputMember = null;
+		this.outputMemberType = OutputMemberType.SELF;
 		return getThis();
 	}
 
 	@Override
-	public Boolean getOutMethodCast() {
-		return outMethodCast;
+	public String getOutputMember() {
+		return outputMember;
 	}
 
 	@Override
-	public S outMethodUnchecked(boolean unchecked) {
-		this.outMethodUnchecked = unchecked;
+	public OutputMemberType getOutputMemberType() {
+		return outputMemberType;
+	}
+
+	@Override
+	public final S iterableOutput(boolean iterable) {
+		this.iterableOutput = iterable;
 		return getThis();
 	}
 
 	@Override
-	public Boolean getOutMethodUnchecked() {
-		return outMethodUnchecked;
+	public Boolean getIterableOutput() {
+		return iterableOutput;
+	}
+
+	@Override
+	public final S castOutput(boolean cast) {
+		this.castOutput = cast;
+		return getThis();
+	}
+
+	@Override
+	public Boolean getCastOutput() {
+		return castOutput;
+	}
+
+	@Override
+	public S uncheckedOutput(boolean unchecked) {
+		this.uncheckedOutput = unchecked;
+		return getThis();
+	}
+
+	@Override
+	public Boolean getUncheckedOutput() {
+		return uncheckedOutput;
 	}
 
 	@Override

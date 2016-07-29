@@ -153,4 +153,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
 		return new OverrideBuilder<>(this, valueFunction, givenValueFunction).or();
 	}
+
+	protected <T> OverrideBuilder<T, S, N> getOverride(Function<S, T> givenValueFunction) {
+		return new OverrideBuilder<>(this, n -> null, givenValueFunction).or();
+	}
 }
