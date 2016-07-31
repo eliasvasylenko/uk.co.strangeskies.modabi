@@ -22,6 +22,7 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 
 /**
@@ -57,10 +58,9 @@ public enum InputBindingStrategy {
 	 * <p>
 	 * The arguments passed to the constructor will be determined by way of the
 	 * first child node which is an input node, and which has an
-	 * {@link InputNode.Effective#getInMethod() in method} other than an explicit
-	 * {@code "void"}. The only valid in method string for this node is
-	 * {@code "this"}, though it may be omitted. No input may be bound to the
-	 * target by any node, or the child of any node, appearing before this one.
+	 * {@link InputNode#inputMemberType() input type} of
+	 * {@link InputMemberType#CONSTRUCTOR}. No input may be bound to the target by
+	 * any node, or the child of any node, appearing before this one.
 	 * <p>
 	 * This node may be an {@link InputSequenceNode input sequence}, in which case
 	 * any data its children bind will be passed to the constructor as parameters
@@ -81,9 +81,9 @@ public enum InputBindingStrategy {
 	 * <p>
 	 * The arguments passed to the method will be determined by way of the first
 	 * child node which is an input node, and which has an
-	 * {@link InputNode.Effective#getInMethod() in method} other than an explicit
-	 * {@code "void"}. No input may be bound to the target by any node, or the
-	 * child of any node, appearing before this one.
+	 * {@link InputNode#inputMemberType() input type} of
+	 * {@link InputMemberType#METHOD}. No input may be bound to the target by any
+	 * node, or the child of any node, appearing before this one.
 	 * <p>
 	 * This node may be an {@link InputSequenceNode input sequence}, in which case
 	 * any data its children bind will be passed to the method as parameters in

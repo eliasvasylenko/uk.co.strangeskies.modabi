@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
@@ -45,15 +44,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private List<ChildNode<?>> children;
 
 	private QualifiedName name;
-	private Abstractness abstractness;
+	private Boolean concrete;
 
 	public SchemaNodeConfiguratorImpl() {
 		this(null, null);
 	}
 
-	protected SchemaNodeConfiguratorImpl(QualifiedName name, Abstractness abstractness) {
+	protected SchemaNodeConfiguratorImpl(QualifiedName name, Boolean concrete) {
 		this.name = name;
-		this.abstractness = abstractness;
+		this.concrete = concrete;
 	}
 
 	protected void setResult(N node) {
@@ -104,15 +103,15 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@Override
-	public final S abstractness(Abstractness abstractness) {
-		this.abstractness = abstractness;
+	public final S concrete(boolean concrete) {
+		this.concrete = concrete;
 
 		return getThis();
 	}
 
 	@Override
-	public Abstractness getAbstractness() {
-		return abstractness;
+	public Boolean getConcrete() {
+		return concrete;
 	}
 
 	protected abstract DataLoader getDataLoader();
@@ -131,7 +130,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	protected boolean isChildContextAbstract() {
-		return getAbstractness() != null && getAbstractness().isAtLeast(Abstractness.RESOLVED);
+		return getConcrete() != null && !getConcrete();
 	}
 
 	@Override

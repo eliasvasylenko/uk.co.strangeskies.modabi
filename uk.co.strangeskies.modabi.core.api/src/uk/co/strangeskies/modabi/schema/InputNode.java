@@ -18,24 +18,21 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
+import uk.co.strangeskies.reflection.FieldMember;
 
 public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
 	enum InputMemberType {
-		FIELD, METHOD, NONE
+		FIELD, METHOD, STATIC_METHOD, CONSTRUCTOR, NONE
 	}
 
-	Invokable<?, ?> inMethod();
+	InputMemberType inputMemberType();
 
-	static Invokable<Void, Void> noInMethod() {
-		try {
-			return Invokable.over(Void.class.getDeclaredConstructor());
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new RuntimeException(e);
-		}
-	}
+	ExecutableMember<?, ?> inputExecutable();
 
-	Boolean inMethodUnchecked();
+	FieldMember<?, ?> inputField();
+
+	Boolean uncheckedInput();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the
@@ -43,9 +40,9 @@ public interface InputNode<S extends InputNode<S>> extends ChildNode<S> {
 	 *
 	 * @return
 	 */
-	Boolean inMethodChained();
+	Boolean chainedInput();
 
-	Boolean inMethodCast();
+	Boolean castInput();
 
 	@Override
 	InputNodeConfigurator<?, S> configurator();

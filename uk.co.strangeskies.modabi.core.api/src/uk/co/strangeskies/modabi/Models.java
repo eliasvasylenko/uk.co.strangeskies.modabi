@@ -62,7 +62,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	private void mapModel(Model<?> model) {
 		derivedModels.addToAll(model.baseModel().stream().map(Model::name).collect(Collectors.toSet()), model);
 
-		if (model.abstractness().isLessThan(Abstractness.UNINFERRED))
+		if (model.concrete())
 			classModels.add(model.dataType().getType(), model);
 	}
 
@@ -140,13 +140,14 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 					.iterator();
 
 			List<Model<? extends T>> subModels = new ArrayList<>(getDerivedModels(modelIterator.next()));
-			while (modelIterator.hasNext())
-				subModels.retainAll(getDerivedModels(modelIterator.next()));
 
 			modelIterator = subModels.iterator();
 			while (modelIterator.hasNext())
-				if (modelIterator.next().abstractness().isMoreThan(Abstractness.UNINFERRED))
+				if (!modelIterator.next().concrete())
 					modelIterator.remove();
+
+			while (modelIterator.hasNext())
+				subModels.retainAll(getDerivedModels(modelIterator.next()));
 
 			getParentScope().ifPresent(p -> subModels.addAll(p.getModelsWithBase(baseModel)));
 

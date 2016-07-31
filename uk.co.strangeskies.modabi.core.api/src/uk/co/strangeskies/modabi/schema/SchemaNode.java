@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -105,7 +104,7 @@ public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
 	 */
 	SchemaNodeConfigurator<?, S> configurator();
 
-	Abstractness abstractness();
+	boolean concrete();
 
 	/**
 	 * @return the fully qualified name of the schema node, which where applicable

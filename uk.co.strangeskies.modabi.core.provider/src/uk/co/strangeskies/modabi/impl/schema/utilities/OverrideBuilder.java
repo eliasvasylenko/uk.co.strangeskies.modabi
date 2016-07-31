@@ -7,7 +7,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -57,13 +56,8 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 	}
 
 	public OverrideBuilder<T, S, N> orDefault(T value) {
-		return orDefault(value, Abstractness.UNINFERRED);
-	}
-
-	public OverrideBuilder<T, S, N> orDefault(T value, Abstractness defaultIfAtMost) {
 		if (givenValueFunction == null
-				|| (configurator.getAbstractness() == null || configurator.getAbstractness().isAtMost(defaultIfAtMost))
-						&& !isOverridden()) {
+				|| (configurator.getConcrete() == null || configurator.getConcrete()) && !isOverridden()) {
 			return or(() -> value);
 		} else {
 			return this;
@@ -129,7 +123,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		T value = tryGet();
 
 		if (value == null && givenValueFunction != null
-				&& (configurator.getAbstractness() == null || configurator.getAbstractness().isAtMost(Abstractness.UNINFERRED)))
+				&& (configurator.getConcrete() == null || configurator.getConcrete()))
 			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()));
 
 		return value;
@@ -157,6 +151,6 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 			newValidation = (a, b) -> validation.test(a, b) && this.validation.test(a, b);
 		}
 
-		return new OverrideBuilder<T, S, N>(this, newValidation, override);
+		return new OverrideBuilder<>(this, newValidation, override);
 	}
 }

@@ -117,7 +117,7 @@ public class DataTypes extends NamedSet<DataTypes, QualifiedName, DataType<?>> {
 
 					getDerivedTypes(node.type())
 
-							.stream().filter(m -> m.abstractness().isAtMost(Abstractness.UNINFERRED)).collect(Collectors.toList());
+							.stream().filter(m -> m.concrete()).collect(Collectors.toList());
 
 			getParentScope().ifPresent(p -> subTypes.addAll(p.getTypesWithBase(node)));
 

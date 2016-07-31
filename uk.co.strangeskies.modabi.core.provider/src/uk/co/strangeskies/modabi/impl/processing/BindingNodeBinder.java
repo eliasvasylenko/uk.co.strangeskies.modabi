@@ -186,17 +186,17 @@ public class BindingNodeBinder {
 		node.process(new NodeProcessor() {
 			@Override
 			public <U> void accept(ComplexNode<U> node) {
-				result.set(node.inMethod().getExecutable());
+				result.set(node.inputExecutable().getMember());
 			}
 
 			@Override
 			public <U> void accept(DataNode<U> node) {
-				result.set(node.inMethod().getExecutable());
+				result.set(node.inputExecutable().getMember());
 			}
 
 			@Override
 			public void accept(InputSequenceNode node) {
-				result.set(node.inMethod().getExecutable());
+				result.set(node.inputExecutable().getMember());
 			}
 		});
 		return result.get();

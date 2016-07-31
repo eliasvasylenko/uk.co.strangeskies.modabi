@@ -333,9 +333,9 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public TypeToken<T> getExpectedType() {
-		System.out.println(getOverride(BindingChildNode::inMethod, c -> null).tryGet());
+		System.out.println(getOverride(BindingChildNode::inputExecutable, c -> null).tryGet());
 
-		System.out.println(getOverride(BindingChildNode::outMethod, c -> null).tryGet());
+		System.out.println(getOverride(BindingChildNode::outputMethod, c -> null).tryGet());
 
 		return null;
 	}

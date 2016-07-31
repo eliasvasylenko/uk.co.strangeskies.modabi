@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
@@ -36,7 +35,7 @@ import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.BoundSet;
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeException;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -50,11 +49,12 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private final OutputBindingStrategy unbindingStrategy;
 	private String unbindingMethodName;
 	private final Boolean unbindingMethodUnchecked;
-	private final Invokable<?, ?> unbindingMethod;
+	private final ExecutableMember<?, ?> unbindingMethod;
 
 	private final List<DataNode<?>> providedUnbindingParameters;
 
-	protected BindingNodeImpl(BindingNodeConfiguratorImpl<?, S, T> configurator) {
+	protected <C extends BindingNodeConfigurator<C, S, T>> BindingNodeImpl(
+			BindingNodeConfiguratorImpl<C, S, T> configurator) {
 		super(configurator);
 
 		BoundSet bounds = configurator.getInferenceBounds();
@@ -73,16 +73,16 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		unbindingMethodName = configurator
 				.getOverride(b -> b.outputBindingMethod().getName(), BindingNodeConfigurator::getOutputBindingMethod).tryGet();
 
-		providedUnbindingParameters = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null
+		providedUnbindingParameters = !concrete() ? null
 				: findProvidedUnbindingParameters(this,
 						configurator.getOverride(BindingNodeConfigurator::getProvidedOutputBindingMethodParameters)
-								.orDefault(Collections.<QualifiedName> emptyList()).get());
+								.orDefault(Collections.<QualifiedName>emptyList()).get());
 
 		unbindingMethodUnchecked = configurator.getOverride(BindingNode::outputBindingMethodUnchecked,
 				BindingNodeConfigurator::getOutputBindingMethodUnchecked).tryGet();
 
 		TypeToken<T> dataType = configurator.getEffectiveDataType();
-		if (abstractness().isAtMost(Abstractness.CONCRETE)) {
+		if (concrete()) {
 			try {
 				dataType = dataType == null ? null
 						: dataType.withLooseCompatibilityFrom(configurator.getChildrenConfigurator().getPostInputType());
@@ -110,10 +110,10 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		unbindingType = inferDataType(configurator.getEffectiveUnbindingType(), bounds);
 		unbindingFactoryType = inferDataType(configurator.getEffectiveUnbindingFactoryType(), bounds);
 
-		unbindingMethod = abstractness().isAtLeast(Abstractness.ABSTRACT) ? null : findUnbindingMethod(configurator);
+		unbindingMethod = !concrete() ? null : findUnbindingMethod(configurator);
 
-		if (unbindingMethodName == null && abstractness().isLessThan(Abstractness.ABSTRACT)
-				&& unbindingStrategy != OutputBindingStrategy.SIMPLE && unbindingStrategy != OutputBindingStrategy.CONSTRUCTOR)
+		if (unbindingMethodName == null && concrete() && unbindingStrategy != OutputBindingStrategy.SIMPLE
+				&& unbindingStrategy != OutputBindingStrategy.CONSTRUCTOR)
 			unbindingMethodName = unbindingMethod.getName();
 	}
 
@@ -131,10 +131,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		if (exactDataType != null && !exactDataType.isProper()) {
 			exactDataType = exactDataType.withBounds(bounds).resolve();
 
-			if (abstractness().isLessThan(Abstractness.UNINFERRED)
-					&& !((BindingNodeConfiguratorImpl<?, S, T>) configurator()).getExtensible()) {
+			if (concrete() && !((BindingNodeConfiguratorImpl<?, S, T>) configurator()).getExtensible()) {
 				try {
-					exactDataType = exactDataType.infer();
+					// exactDataType = exactDataType.infer(); TODO
 				} catch (TypeException e) {
 					TypeToken<?> exactDataTypeFinal = exactDataType;
 					throw new ModabiException(t -> t.cannotInferDataType(this, exactDataTypeFinal), e);
@@ -176,7 +175,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	}
 
 	@Override
-	public Invokable<?, ?> outputBindingMethod() {
+	public ExecutableMember<?, ?> outputBindingMethod() {
 		return unbindingMethod;
 	}
 
@@ -190,7 +189,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		return providedUnbindingParameters;
 	}
 
-	private Invokable<?, ?> findUnbindingMethod(BindingNodeConfiguratorImpl<?, S, T> configurator) {
+	private ExecutableMember<?, ?> findUnbindingMethod(BindingNodeConfiguratorImpl<?, S, T> configurator) {
 		OutputBindingStrategy unbindingStrategy = outputBindingStrategy();
 		if (unbindingStrategy == null)
 			unbindingStrategy = OutputBindingStrategy.SIMPLE;
@@ -238,7 +237,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 								&& (dataNode.occurrences().getTo() != 1 || dataNode.occurrences().getFrom() != 1))
 							throw new ModabiException(t -> t.unbindingParameterMustOccurOnce(effective, p));
 
-						if (node.abstractness().isAtMost(Abstractness.ABSTRACT) && !dataNode.isValueProvided())
+						if (node.concrete() && !dataNode.isValueProvided())
 							throw new ModabiException(t -> t.unbindingParameterMustProvideValue(effective, p));
 
 						return dataNode;
@@ -273,16 +272,16 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U> Invokable<?, ?> findUnbindingMethod(TypeToken<?> result, TypeToken<U> receiver,
+	private <U> ExecutableMember<?, ?> findUnbindingMethod(TypeToken<?> result, TypeToken<U> receiver,
 			List<TypeToken<?>> parameters, BindingNodeConfiguratorImpl<?, S, T> configurator) {
-		Invokable<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
+		ExecutableMember<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
 
 		if (overridden != null) {
-			Invokable<U, ?> invokable = (Invokable<U, ?>) overridden.withLooseApplicability(parameters);
+			ExecutableMember<U, ?> ExecutableMember = (ExecutableMember<U, ?>) overridden.withLooseApplicability(parameters);
 			if (receiver != null)
-				invokable = invokable.withReceiverType(receiver);
+				ExecutableMember = ExecutableMember.withOwnerType(receiver);
 			if (result != null)
-				invokable = invokable.withTargetType(result);
+				ExecutableMember = ExecutableMember.withTargetType(result);
 
 			return overridden;
 		} else {

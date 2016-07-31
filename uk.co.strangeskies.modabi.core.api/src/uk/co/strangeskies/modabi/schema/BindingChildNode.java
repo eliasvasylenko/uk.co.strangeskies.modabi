@@ -18,22 +18,23 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
+import uk.co.strangeskies.reflection.FieldMember;
 
 public interface BindingChildNode<T, S extends BindingChildNode<T, S>> extends BindingNode<T, S>, InputNode<S> {
 	enum OutputMemberType {
 		FIELD, METHOD, NONE, SELF
 	}
 
-	Invokable<?, ?> outMethod();
+	OutputMemberType outputMemberType();
 
-	static Invokable<Void, Void> noOutMethod() {
-		return InputNode.noInMethod();
-	}
+	ExecutableMember<?, ?> outputMethod();
+
+	FieldMember<?, ?> outputField();
 
 	Boolean synchronous();
 
-	Boolean outMethodUnchecked();
+	Boolean uncheckedOutput();
 
 	/**
 	 * If this method returns true, the return value of any invocation of the
@@ -41,9 +42,9 @@ public interface BindingChildNode<T, S extends BindingChildNode<T, S>> extends B
 	 *
 	 * @return
 	 */
-	Boolean outMethodIterable();
+	Boolean iterableOutput();
 
-	Boolean outMethodCast();
+	Boolean castOutput();
 
 	Boolean extensible();
 

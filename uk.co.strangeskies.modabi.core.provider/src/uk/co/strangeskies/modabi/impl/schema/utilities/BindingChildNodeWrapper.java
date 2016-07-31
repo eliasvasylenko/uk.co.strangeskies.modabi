@@ -22,7 +22,8 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.BindingNode;
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
+import uk.co.strangeskies.reflection.FieldMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? super T, B>, S extends BindingChildNode<T, S>>
@@ -56,23 +57,33 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? su
 	}
 
 	@Override
-	public final Invokable<?, ?> outMethod() {
-		return getBase() == null ? null : getBase().outMethod();
+	public OutputMemberType outputMemberType() {
+		return getBase() == null ? null : getBase().outputMemberType();
 	}
 
 	@Override
-	public final Boolean outMethodIterable() {
-		return getBase() == null ? null : getBase().outMethodIterable();
+	public final ExecutableMember<?, ?> outputMethod() {
+		return getBase() == null ? null : getBase().outputMethod();
 	}
 
 	@Override
-	public final Boolean outMethodUnchecked() {
-		return getBase() == null ? null : getBase().outMethodUnchecked();
+	public final FieldMember<?, ?> outputField() {
+		return getBase() == null ? null : getBase().outputField();
 	}
 
 	@Override
-	public final Boolean outMethodCast() {
-		return getBase() == null ? null : getBase().outMethodCast();
+	public final Boolean iterableOutput() {
+		return getBase() == null ? null : getBase().iterableOutput();
+	}
+
+	@Override
+	public final Boolean uncheckedOutput() {
+		return getBase() == null ? null : getBase().uncheckedOutput();
+	}
+
+	@Override
+	public final Boolean castOutput() {
+		return getBase() == null ? null : getBase().castOutput();
 	}
 
 	@Override
@@ -81,23 +92,33 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? su
 	}
 
 	@Override
-	public Boolean inMethodCast() {
-		return getBase() == null ? null : getBase().inMethodCast();
+	public Boolean castInput() {
+		return getBase() == null ? null : getBase().castInput();
 	}
 
 	@Override
-	public final Invokable<?, ?> inMethod() {
-		return getBase() == null ? null : getBase().inMethod();
+	public InputMemberType inputMemberType() {
+		return getBase() == null ? null : getBase().inputMemberType();
 	}
 
 	@Override
-	public final Boolean inMethodChained() {
-		return getBase() == null ? null : getBase().inMethodChained();
+	public final ExecutableMember<?, ?> inputExecutable() {
+		return getBase() == null ? null : getBase().inputExecutable();
 	}
 
 	@Override
-	public final Boolean inMethodUnchecked() {
-		return getBase() == null ? null : getBase().inMethodUnchecked();
+	public final FieldMember<?, ?> inputField() {
+		return getBase() == null ? null : getBase().inputField();
+	}
+
+	@Override
+	public final Boolean chainedInput() {
+		return getBase() == null ? null : getBase().chainedInput();
+	}
+
+	@Override
+	public final Boolean uncheckedInput() {
+		return getBase() == null ? null : getBase().uncheckedInput();
 	}
 
 	@Override

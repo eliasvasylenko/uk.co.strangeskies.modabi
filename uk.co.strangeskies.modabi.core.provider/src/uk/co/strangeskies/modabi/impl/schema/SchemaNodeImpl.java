@@ -24,7 +24,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -41,54 +40,54 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 	private final SchemaNodeConfiguratorImpl<?, S> configurator;
 
 	private final QualifiedName name;
-	private final Abstractness abstractness;
+	private final boolean concrete;
 	private final List<ChildNode<?>> children;
 
-	protected SchemaNodeImpl(SchemaNodeConfiguratorImpl<?, S> configurator) {
+	protected <C extends SchemaNodeConfigurator<C, S>> SchemaNodeImpl(SchemaNodeConfiguratorImpl<C, S> configurator) {
 		this.configurator = configurator;
 		configurator.setResult(getThis());
 
 		name = configurator.getOverride(SchemaNode::name, SchemaNodeConfigurator::getName)
 				.orDefault(configurator.defaultName()).validate((n, o) -> true).get();
 
-		abstractness = configurator.getAbstractness() == null ? Abstractness.CONCRETE : configurator.getAbstractness();
+		concrete = configurator.getConcrete() == null || configurator.getConcrete();
 
 		children = configurator.getChildren();
 
 		if (!configurator.isChildContextAbstract())
-			requireNonAbstractDescendents(new ArrayDeque<>(Arrays.asList(this)));
+			requireConcreteDescendents(new ArrayDeque<>(Arrays.asList(this)));
 	}
 
-	protected void requireNonAbstractDescendents(Deque<SchemaNode<?>> nodeStack) {
+	protected void requireConcreteDescendents(Deque<SchemaNode<?>> nodeStack) {
 		for (ChildNode<?> child : nodeStack.peek().children()) {
 			nodeStack.push(child);
 
 			child.process(new NodeProcessor() {
 				@Override
 				public void accept(ChoiceNode node) {
-					requireNonAbstract(nodeStack);
+					requireConcrete(nodeStack);
 				}
 
 				@Override
 				public void accept(SequenceNode node) {
-					requireNonAbstract(nodeStack);
+					requireConcrete(nodeStack);
 				}
 
 				@Override
 				public void accept(InputSequenceNode node) {
-					requireNonAbstract(nodeStack);
+					requireConcrete(nodeStack);
 				}
 
 				@Override
 				public <U> void accept(DataNode<U> node) {
 					if (node.extensible() == null || !node.extensible())
-						requireNonAbstract(nodeStack);
+						requireConcrete(nodeStack);
 				}
 
 				@Override
 				public <U> void accept(ComplexNode<U> node) {
 					if (node.extensible() == null || !node.extensible())
-						requireNonAbstract(nodeStack);
+						requireConcrete(nodeStack);
 				}
 			});
 
@@ -96,11 +95,11 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 		}
 	}
 
-	protected void requireNonAbstract(Deque<SchemaNode<?>> nodeStack) {
-		if (nodeStack.peek().abstractness().isMoreThan(Abstractness.UNINFERRED))
+	protected void requireConcrete(Deque<SchemaNode<?>> nodeStack) {
+		if (!nodeStack.peek().concrete())
 			throw new ModabiException(t -> t.mustOverrideDescendant(nodeStack));
 
-		requireNonAbstractDescendents(nodeStack);
+		requireConcreteDescendents(nodeStack);
 	}
 
 	@Override
@@ -109,8 +108,8 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 	}
 
 	@Override
-	public Abstractness abstractness() {
-		return abstractness;
+	public boolean concrete() {
+		return concrete;
 	}
 
 	@Override

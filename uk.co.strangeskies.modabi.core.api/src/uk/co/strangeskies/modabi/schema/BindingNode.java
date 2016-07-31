@@ -22,11 +22,11 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<S> {
-	Invokable<?, ?> outputBindingMethod();
+	ExecutableMember<?, ?> outputBindingMethod();
 
 	List<DataNode<?>> providedOutputBindingMethodParameters();
 

@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import static uk.co.strangeskies.modabi.schema.InputNode.noInMethod;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -44,6 +41,7 @@ import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
@@ -67,7 +65,7 @@ import uk.co.strangeskies.reflection.TypeToken;
  * Early priority means, for example, that merging the sequence ["a", "b", "c",
  * "d"] with the lower priority sequence ["1", "a", "2", "3", "c", "4"] will
  * result in the sequence ["1", "a", "b", "2", "3", "c", "d", "4"], as higher
- * priority sequences are prioritised for earlier placement wherever compatible
+ * priority sequences are prioritized for earlier placement wherever compatible
  * with sequence ordering preservation.
  *
  * @author Elias N Vasylenko
@@ -226,9 +224,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			MergeGroup skippedGroup = mergedChildren.get(childIndex);
 			ChildNode<?> skippedChild = skippedGroup.getChild();
 
-			if (!context.isAbstract() && skippedChild.abstractness().isMoreThan(Abstractness.UNINFERRED)
-					&& !(skippedChild instanceof BindingChildNode
-							&& Boolean.TRUE.equals(((BindingChildNode<?, ?>) skippedChild).extensible()))) {
+			if (!context.isAbstract() && !skippedChild.concrete() && !(skippedChild instanceof BindingChildNode
+					&& Boolean.TRUE.equals(((BindingChildNode<?, ?>) skippedChild).extensible()))) {
 				throw new ModabiException(t -> t.mustOverrideAbstractNode(skippedChild.name(), id));
 			}
 
@@ -250,7 +247,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 				&& result instanceof InputNode
 
-				&& !noInMethod().equals(((InputNode<?>) result).configurator().getInputMember())) {
+				&& ((InputNode<?>) result).inputMemberType() != InputMemberType.NONE) {
 
 			constructorExpected = staticMethodExpected = false;
 		}

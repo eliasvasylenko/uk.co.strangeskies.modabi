@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
@@ -40,9 +39,9 @@ public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, 
 
 	QualifiedName getName();
 
-	S abstractness(Abstractness abstractness);
+	S concrete(boolean concrete);
 
-	Abstractness getAbstractness();
+	Boolean getConcrete();
 
 	ChildBuilder addChild();
 

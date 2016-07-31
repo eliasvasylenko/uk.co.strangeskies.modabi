@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -95,8 +94,7 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(ComplexNode<? super T> node, Model<?> override) {
-		return node.children().isEmpty() && (node.abstractness().isAtMost(Abstractness.UNINFERRED)
-				|| override.abstractness().isAtMost(Abstractness.UNINFERRED));
+		return node.children().isEmpty() && (node.concrete() || override.concrete());
 	}
 
 	/**
@@ -122,8 +120,7 @@ public class BindingNodeOverrider {
 	}
 
 	private <T> boolean isDirectOverridePossible(DataNode<? super T> node, DataType<?> override) {
-		return node.children().isEmpty() && (node.abstractness().isAtMost(Abstractness.UNINFERRED)
-				|| override.abstractness().isAtMost(Abstractness.UNINFERRED));
+		return node.children().isEmpty() && (node.concrete() || override.concrete());
 	}
 
 	private class OverridingProcessor implements NodeProcessor {
@@ -151,7 +148,7 @@ public class BindingNodeOverrider {
 		 */
 		private <C extends BindingNodeConfigurator<C, ?, Object>> C configureParentNode(C configurator,
 				BindingChildNodeWrapper<?, ?, ?> node) {
-			configurator = configurator.name(new QualifiedName("base")).abstractness(Abstractness.ABSTRACT);
+			configurator = configurator.name(new QualifiedName("base")).concrete(false);
 
 			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
 			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
@@ -218,8 +215,8 @@ public class BindingNodeOverrider {
 				configurator = configurator.inputBindingStrategy(parentBindingStrategy.get());
 			}
 
-			if (node.outMethod().getDeclaringType() != null) {
-				configurator = configurator.outputBindingType(node.outMethod().getDeclaringType());
+			if (node.outputMethod().getDeclaringType() != null) {
+				configurator = configurator.outputBindingType(node.outputMethod().getDeclaringType());
 			} else {
 				configurator = configurator.outputBindingType(parentUnbindingType.get());
 			}
@@ -284,7 +281,7 @@ public class BindingNodeOverrider {
 		}
 
 		private <N extends ChildNode<N>, C extends ChildNodeConfigurator<C, N>> N processChildNode(N node, C c) {
-			c = tryProperty(node, ChildNode::abstractness, C::abstractness, c);
+			c = tryProperty(node, ChildNode::concrete, C::concrete, c);
 			c = tryProperty(node, ChildNode::occurrences, C::occurrences, c);
 			c = tryProperty(node, ChildNode::ordered, C::ordered, c);
 
@@ -310,19 +307,19 @@ public class BindingNodeOverrider {
 
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?> node, C c) {
-			c = tryProperty(node, b -> b.outMethod().getName(), C::outputMethod, c);
-			c = tryProperty(node, BindingChildNode::outMethodIterable, C::iterableOutput, c);
-			c = tryProperty(node, BindingChildNode::outMethodUnchecked, C::uncheckedOutput, c);
-			c = tryProperty(node, BindingChildNode::outMethodCast, C::castOutput, c);
+			c = tryProperty(node, b -> b.outputMethod().getName(), C::outputMethod, c);
+			c = tryProperty(node, BindingChildNode::iterableOutput, C::iterableOutput, c);
+			c = tryProperty(node, BindingChildNode::uncheckedOutput, C::uncheckedOutput, c);
+			c = tryProperty(node, BindingChildNode::castOutput, C::castOutput, c);
 
 			return processInputNode(node, c);
 		}
 
 		public <C extends InputNodeConfigurator<C, ?>> C processInputNode(InputNode<?> node, C c) {
-			c = tryProperty(node, InputNode::inMethodCast, C::castInput, c);
-			c = tryProperty(node, InputNode::inMethodUnchecked, C::uncheckedInput, c);
-			c = tryProperty(node, b -> b.inMethod().getName(), C::inputMethod, c);
-			c = tryProperty(node, InputNode::inMethodChained, C::chainedInput, c);
+			c = tryProperty(node, InputNode::castInput, C::castInput, c);
+			c = tryProperty(node, InputNode::uncheckedInput, C::uncheckedInput, c);
+			c = tryProperty(node, b -> b.inputExecutable().getName(), C::inputMethod, c);
+			c = tryProperty(node, InputNode::chainedInput, C::chainedInput, c);
 			c = tryProperty(node, InputNode::postInputType, (cc, t) -> cc.postInputType(t), c);
 
 			return c;

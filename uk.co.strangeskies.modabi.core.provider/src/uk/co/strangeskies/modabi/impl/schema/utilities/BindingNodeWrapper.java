@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
@@ -32,7 +31,7 @@ import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
@@ -132,8 +131,8 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public Abstractness abstractness() {
-		return component.abstractness();
+	public boolean concrete() {
+		return component.concrete();
 	}
 
 	@Override
@@ -167,7 +166,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public final Invokable<?, ?> outputBindingMethod() {
+	public final ExecutableMember<?, ?> outputBindingMethod() {
 		return component.outputBindingMethod();
 	}
 

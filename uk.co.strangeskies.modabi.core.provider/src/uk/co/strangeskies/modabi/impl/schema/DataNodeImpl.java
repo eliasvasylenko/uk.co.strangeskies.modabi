@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
@@ -71,8 +70,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 
 		@SuppressWarnings("unchecked")
 		Class<DataNode<T>> nodeType = (Class<DataNode<T>>) getThisType().getRawType();
-		if (providedBuffer == null && abstractness().isAtMost(Abstractness.UNINFERRED)
-				&& (occurrences == null || !occurrences.contains(0))
+		if (providedBuffer == null && concrete() && (occurrences == null || !occurrences.contains(0))
 				&& (resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION))
 			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(DataNode::providedValueBuffer, nodeType));
 

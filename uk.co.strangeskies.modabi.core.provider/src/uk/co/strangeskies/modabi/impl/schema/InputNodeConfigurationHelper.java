@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ModabiProperties.ExecutableType;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -32,18 +31,19 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.InputNode;
+import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
+import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.IntersectionType;
-import uk.co.strangeskies.reflection.Invokable;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 
 public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	private final QualifiedName name;
-	private final Abstractness abstractness;
+	private final boolean concrete;
 
-	private final String inMethodName;
-	private final Invokable<?, ?> inMethod;
+	private final ExecutableMember<?, ?> inMethod;
+	private final InputMemberType inputMemberType;
 	private final Boolean inMethodChained;
 	private final Boolean allowInMethodResultCast;
 	private final Boolean inMethodUnchecked;
@@ -54,27 +54,39 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	private final SchemaNodeConfiguratorImpl<? extends InputNodeConfigurator<?, ?>, N> configurator;
 	private final SchemaNodeConfigurationContext context;
 
-	public InputNodeConfigurationHelper(Abstractness abstractness, QualifiedName name,
+	public InputNodeConfigurationHelper(boolean concrete, QualifiedName name,
 			SchemaNodeConfiguratorImpl<? extends InputNodeConfigurator<?, ?>, N> configurator,
 			SchemaNodeConfigurationContext context, List<TypeToken<?>> inMethodParameters) {
-		this.abstractness = abstractness;
+		this.concrete = concrete;
 		this.name = name;
 		this.configurator = configurator;
 		this.context = context;
 
-		inMethodChained = configurator.getOverride(InputNode::inMethodChained, InputNodeConfigurator::getChainedInput)
-				.orDefault(context.isConstructorExpected() || context.isStaticMethodExpected(), Abstractness.RESOLVED).get();
-		inMethodUnchecked = configurator
-				.getOverride(InputNode::inMethodUnchecked, InputNodeConfigurator::getUncheckedInput)
-				.orDefault(false, Abstractness.RESOLVED).get();
+		inputMemberType = configurator.getOverride(InputNode::inputMemberType, InputNodeConfigurator::getInputMemberType)
+				.get();
+		inMethodChained = configurator.getOverride(InputNode::chainedInput, InputNodeConfigurator::getChainedInput)
+				.orDefault(ifResolved(context.isConstructorExpected() || context.isStaticMethodExpected())).get();
+		inMethodUnchecked = configurator.getOverride(InputNode::uncheckedInput, InputNodeConfigurator::getUncheckedInput)
+				.orDefault(ifResolved(false)).get();
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: configurator.getOverride(InputNode::inMethodCast, InputNodeConfigurator::getCastInput)
-						.orDefault(false, Abstractness.RESOLVED).get();
+				: configurator.getOverride(InputNode::castInput, InputNodeConfigurator::getCastInput)
+						.orDefault(ifResolved(false)).get();
 
-		inMethod = inMethod(inMethodParameters);
-		inMethodName = inMethodName();
+		inMethod = inputMethod(inMethodParameters);
 		preInputType = preInputType();
 		postInputType = postInputType();
+	}
+
+	private boolean isResolved() {
+		return concrete;
+	}
+
+	private <T> T ifResolved(T t) {
+		return isResolved() ? t : null;
+	}
+
+	public InputMemberType getInputMemberType() {
+		return inputMemberType;
 	}
 
 	public Boolean isInMethodChained() {
@@ -89,7 +101,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		return inMethodUnchecked;
 	}
 
-	public Invokable<?, ?> getInMethod() {
+	public ExecutableMember<?, ?> getInputMember() {
 		return inMethod;
 	}
 
@@ -101,26 +113,17 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		return postInputType;
 	}
 
-	public String getInMethodName() {
-		return inMethodName;
-	}
+	private ExecutableMember<?, ?> inputMethod(List<TypeToken<?>> parameters) {
+		ExecutableMember<?, ?> inExecutableMember;
 
-	private TypeToken<?> inputTargetType() {
-		return context.inputTargetType();
-	}
-
-	private Invokable<?, ?> inMethod(List<TypeToken<?>> parameters) {
-		Invokable<?, ?> inInvokable;
-
-		String givenInMethodName = getGivenInMethodName();
-
-		TypeToken<?> inputTargetType = inputTargetType();
-
-		if ("void".equals(givenInMethodName)) {
-			inInvokable = InputNode.noInMethod();
-		} else if (abstractness.isMoreThan(Abstractness.RESOLVED)) {
-			inInvokable = null;
+		if (!isResolved() || inputMemberType != InputMemberType.METHOD) {
+			inExecutableMember = null;
 		} else {
+			String givenInMethodName = configurator
+					.getOverride(n -> n.inputExecutable().getName(), InputNodeConfigurator::getInputMember).tryGet();
+
+			TypeToken<?> inputTargetType = context.inputTargetType();
+
 			try {
 				TypeToken<?> result = getResultType();
 
@@ -128,18 +131,18 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
 				 * first try to find and validate an inherited in method ...
 				 */
-				inInvokable = resolveOverriddenInMethod(inputTargetType, parameters);
+				inExecutableMember = resolveOverriddenInMethod(inputTargetType, parameters);
 				/*
 				 * ... then if none exists, resolve one from scratch
 				 */
-				if (inInvokable == null) {
-					inInvokable = resolveInMethod(givenInMethodName, inputTargetType, result, parameters);
+				if (inExecutableMember == null) {
+					inExecutableMember = resolveInMethod(givenInMethodName, inputTargetType, result, parameters);
 				}
 
 				/*
@@ -147,7 +150,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 				 * by accounting for reified provided values!
 				 */
 
-				context.boundSet().incorporate(inInvokable.getResolver().getBounds());
+				context.boundSet().incorporate(inExecutableMember.getResolver().getBounds());
 			} catch (Exception e) {
 				List<TypeToken<?>> parametersFinal = parameters;
 				ExecutableType type = context.isStaticMethodExpected() ? ExecutableType.STATIC_METHOD
@@ -156,14 +159,14 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 			}
 		}
 
-		return inInvokable;
+		return inExecutableMember;
 	}
 
 	/*
 	 * resolve the exact in method overload
 	 */
-	private Invokable<?, ?> resolveInMethod(String givenInMethodName, TypeToken<?> inputTargetType, TypeToken<?> result,
-			List<TypeToken<?>> parameters) throws NoSuchMethodException {
+	private ExecutableMember<?, ?> resolveInMethod(String givenInMethodName, TypeToken<?> inputTargetType,
+			TypeToken<?> result, List<TypeToken<?>> parameters) throws NoSuchMethodException {
 
 		if (context.isConstructorExpected()) {
 			if (givenInMethodName != null && !givenInMethodName.equals("this")) {
@@ -184,22 +187,23 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	 * 
 	 * TODO handle some sort of constructor 'pseudo-override' behavior
 	 */
-	private Invokable<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
+	private ExecutableMember<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType,
+			List<TypeToken<?>> parameters) {
 		Executable inExecutable = configurator
-				.getOverride(n -> n.inMethod() == null ? null : n.inMethod().getExecutable(), c -> null).tryGet();
+				.getOverride(n -> n.inputExecutable() == null ? null : n.inputExecutable().getMember(), c -> null).tryGet();
 
-		Invokable<?, ?> inInvokable;
+		ExecutableMember<?, ?> inExecutableMember;
 
 		if (inExecutable == null) {
-			inInvokable = null;
+			inExecutableMember = null;
 		} else {
-			inInvokable = Invokable.over(inExecutable, inputTargetType);
+			inExecutableMember = ExecutableMember.over(inExecutable, inputTargetType);
 			try {
-				inInvokable = inInvokable.withLooseApplicability(parameters);
+				inExecutableMember = inExecutableMember.withLooseApplicability(parameters);
 			} catch (Exception e) {
-				if (inInvokable.isVariableArity()) {
+				if (inExecutableMember.isVariableArity()) {
 					try {
-						inInvokable = inInvokable.withVariableArityApplicability(parameters);
+						inExecutableMember = inExecutableMember.withVariableArityApplicability(parameters);
 					} catch (Exception e2) {
 						throw e;
 					}
@@ -209,26 +213,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 			}
 		}
 
-		return inInvokable;
-	}
-
-	private String getGivenInMethodName() {
-		String givenInMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInputMember)
-				.tryGet();
-
-		if (!context.isInputExpected())
-			if (givenInMethodName == null)
-				givenInMethodName = "void";
-			else if (!"void".equals(givenInMethodName))
-				throw new ModabiException(t -> t.cannotDefineInputInContext(name));
-
-		return givenInMethodName;
+		return inExecutableMember;
 	}
 
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
 			TypeToken<?> resultType = configurator
-					.<TypeToken<?>> getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
+					.<TypeToken<?>>getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -297,30 +288,24 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		return string == "" ? "" : Character.toUpperCase(string.charAt(0)) + string.substring(1);
 	}
 
-	private String inMethodName() {
-		String inMethodName = configurator.getOverride(n -> n.inMethod().getName(), InputNodeConfigurator::getInputMember)
-				.tryGet();
-
-		if (!context.isInputExpected() && inMethodName == null)
-			inMethodName = "void";
-
-		if (context.isInputExpected() && inMethodName == null && abstractness.isAtMost(Abstractness.RESOLVED))
-			inMethodName = inMethod.getName();
-
-		return inMethodName;
-	}
-
 	private TypeToken<?> preInputType() {
-		return (abstractness.isMoreThan(Abstractness.RESOLVED) || "void".equals(inMethodName)) ? null
-				: inMethod.getReceiverType();
+		if (inputMemberType == InputMemberType.NONE) {
+			return null;
+
+		} else if (inMethod == null) {
+			return null;
+
+		} else {
+			return inMethod.getDeclaringType();
+		}
 	}
 
 	private TypeToken<?> postInputType() {
 		TypeToken<?> postInputClass;
 
-		if ("void".equals(inMethodName) || (inMethodChained != null && !inMethodChained)) {
-			postInputClass = inputTargetType();
-		} else if (abstractness.isMoreThan(Abstractness.RESOLVED) || inMethodChained == null) {
+		if (inputMemberType == InputMemberType.NONE || (inMethodChained != null && !inMethodChained)) {
+			postInputClass = context.inputTargetType();
+		} else if (!isResolved() || inMethodChained == null) {
 			postInputClass = configurator.getOverride(n -> n.postInputType() == null ? null : n.postInputType(),
 					InputNodeConfigurator::getPostInputType).validate(TypeToken::isAssignableTo).tryGet();
 		} else {

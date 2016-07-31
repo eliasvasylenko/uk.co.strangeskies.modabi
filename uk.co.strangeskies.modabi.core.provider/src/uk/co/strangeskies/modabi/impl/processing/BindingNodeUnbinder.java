@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
-import static uk.co.strangeskies.modabi.schema.BindingChildNode.noOutMethod;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,6 +37,7 @@ import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.BindingChildNode.OutputMemberType;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -75,7 +74,7 @@ public class BindingNodeUnbinder {
 			case PASS_TO_PROVIDED:
 				supplier = u -> {
 					TypedObject<?> o = context.provide(unbindingType);
-					invokeMethod((Method) node.outputBindingMethod().getExecutable(), context, o.getObject(),
+					invokeMethod((Method) node.outputBindingMethod().getMember(), context, o.getObject(),
 							prepareUnbingingParameterList(node, u));
 					return o;
 				};
@@ -83,24 +82,22 @@ public class BindingNodeUnbinder {
 			case ACCEPT_PROVIDED:
 				supplier = u -> {
 					TypedObject<?> o = context.provide(unbindingType);
-					invokeMethod((Method) node.outputBindingMethod().getExecutable(), context, u,
+					invokeMethod((Method) node.outputBindingMethod().getMember(), context, u,
 							prepareUnbingingParameterList(node, o.getObject()));
 					return o;
 				};
 				break;
 			case CONSTRUCTOR:
-				supplier = u -> TypedObject.castInto(unbindingType,
-						invokeConstructor((Constructor<?>) node.outputBindingMethod().getExecutable(), context,
-								prepareUnbingingParameterList(node, u)));
+				supplier = u -> TypedObject.castInto(unbindingType, invokeConstructor(
+						(Constructor<?>) node.outputBindingMethod().getMember(), context, prepareUnbingingParameterList(node, u)));
 				break;
 			case STATIC_FACTORY:
-				supplier = u -> TypedObject.castInto(unbindingFactoryType,
-						invokeMethod((Method) node.outputBindingMethod().getExecutable(), context, null,
-								prepareUnbingingParameterList(node, u)));
+				supplier = u -> TypedObject.castInto(unbindingFactoryType, invokeMethod(
+						(Method) node.outputBindingMethod().getMember(), context, null, prepareUnbingingParameterList(node, u)));
 				break;
 			case PROVIDED_FACTORY:
 				supplier = u -> TypedObject.castInto(unbindingFactoryType,
-						invokeMethod((Method) node.outputBindingMethod().getExecutable(), context,
+						invokeMethod((Method) node.outputBindingMethod().getMember(), context,
 								context.provide(unbindingFactoryType).getObject(), prepareUnbingingParameterList(node, u)));
 				break;
 			default:
@@ -140,7 +137,7 @@ public class BindingNodeUnbinder {
 
 			@Override
 			public <U> void accept(DataNode<U> node) {
-				if (!noOutMethod().equals(node.outMethod())) {
+				if (node.outputMemberType() != OutputMemberType.NONE) {
 					List<U> data = null;
 					if (!node.isValueProvided() || node.valueResolution() == ValueResolution.REGISTRATION_TIME
 							|| node.valueResolution() == ValueResolution.POST_REGISTRATION)
@@ -241,16 +238,17 @@ public class BindingNodeUnbinder {
 			throw new ProcessingException(
 					"Cannot unbind node '" + node.name() + "' from object '" + parent + "' with no data class.", context);
 
-		if (node.outMethod() == null && (node.outMethodName() == null || !node.outMethodName().equals("this")))
+		if ((node.outputMethod() == null && node.outputMemberType() == OutputMemberType.METHOD)
+				|| (node.outputField() == null && node.outputMemberType() == OutputMemberType.FIELD))
 			throw new ProcessingException(
-					"Cannot unbind node '" + node.name() + "' from object '" + parent + "' with no out method.", context);
+					"Cannot unbind node '" + node.name() + "' from object '" + parent + "' with no output member.", context);
 
-		if (node.outMethodIterable() != null && node.outMethodIterable()) {
+		if (node.iterableOutput() != null && node.iterableOutput()) {
 			Iterable<U> iterable = null;
-			if (node.outMethodName() != null && node.outMethodName().equals("this"))
+			if (node.outputMemberType() == OutputMemberType.SELF)
 				iterable = (Iterable<U>) parent;
 			else
-				iterable = (Iterable<U>) invokeMethod((Method) node.outMethod().getExecutable(), context, parent);
+				iterable = (Iterable<U>) invokeMethod((Method) node.outputMethod().getMember(), context, parent);
 
 			itemList = StreamSupport.stream(iterable.spliterator(), false).filter(Objects::nonNull)
 					.collect(Collectors.toList());
@@ -261,10 +259,10 @@ public class BindingNodeUnbinder {
 				throw new ClassCastException("Cannot cast " + failedCast.getClass() + " to " + node.dataType());
 		} else {
 			U item;
-			if (node.outMethodName() != null && node.outMethodName().equals("this"))
+			if (node.outputMemberType() == OutputMemberType.SELF)
 				item = (U) parent;
 			else
-				item = (U) invokeMethod((Method) node.outMethod().getExecutable(), context, parent);
+				item = (U) invokeMethod((Method) node.outputMethod().getMember(), context, parent);
 
 			if (item == null)
 				itemList = null;

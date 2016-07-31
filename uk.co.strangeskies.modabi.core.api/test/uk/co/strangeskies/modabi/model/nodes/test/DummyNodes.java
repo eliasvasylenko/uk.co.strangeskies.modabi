@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.Abstractness;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.BindingNode;
@@ -63,8 +62,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Abstractness abstractness() {
-				return Abstractness.CONCRETE;
+			public boolean concrete() {
+				return true;
 			}
 
 			@Override
@@ -147,8 +146,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Abstractness abstractness() {
-				return Abstractness.CONCRETE;
+			public boolean concrete() {
+				return true;
 			}
 
 			@Override

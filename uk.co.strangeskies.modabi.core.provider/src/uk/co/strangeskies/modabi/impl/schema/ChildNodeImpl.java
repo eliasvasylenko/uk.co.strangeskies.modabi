@@ -33,7 +33,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	private final Range<Integer> occurrences;
 	private final Boolean ordered;
 
-	public ChildNodeImpl(ChildNodeConfiguratorImpl<?, S> configurator) {
+	public <C extends ChildNodeConfigurator<C, S>> ChildNodeImpl(ChildNodeConfiguratorImpl<C, S> configurator) {
 		super(configurator);
 
 		parent = configurator.getResult();

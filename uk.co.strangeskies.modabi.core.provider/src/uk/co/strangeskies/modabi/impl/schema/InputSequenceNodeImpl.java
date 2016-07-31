@@ -24,11 +24,14 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
-import uk.co.strangeskies.reflection.Invokable;
+import uk.co.strangeskies.reflection.ExecutableMember;
+import uk.co.strangeskies.reflection.FieldMember;
+import uk.co.strangeskies.reflection.TypeMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
 class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements InputSequenceNode {
-	private final Invokable<?, ?> inMethod;
+	private final InputMemberType inputMemberType;
+	private final TypeMember<?> inputMember;
 	private final Boolean inMethodChained;
 	private final Boolean allowInMethodResultCast;
 	private final Boolean inMethodUnchecked;
@@ -45,13 +48,14 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 		List<TypeToken<?>> parameterClasses = configurator.getChildren().stream()
 				.map(o -> ((BindingChildNodeImpl<?, ?>) o).dataType()).collect(Collectors.toList());
 
-		InputNodeConfigurationHelper<InputSequenceNode> inputNodeHelper = new InputNodeConfigurationHelper<>(abstractness(),
+		InputNodeConfigurationHelper<InputSequenceNode> inputNodeHelper = new InputNodeConfigurationHelper<>(concrete(),
 				name(), configurator, configurator.getContext(), parameterClasses);
 
 		inMethodChained = inputNodeHelper.isInMethodChained();
 		allowInMethodResultCast = inputNodeHelper.isInMethodCast();
 		inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-		inMethod = inputNodeHelper.getInMethod();
+		inputMemberType = inputNodeHelper.getInputMemberType();
+		inputMember = inputNodeHelper.getInputMember();
 		preInputClass = inputNodeHelper.getPreInputType();
 		postInputClass = inputNodeHelper.getPostInputType();
 	}
@@ -62,22 +66,32 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 	}
 
 	@Override
-	public Invokable<?, ?> inMethod() {
-		return inMethod;
+	public InputMemberType inputMemberType() {
+		return inputMemberType;
 	}
 
 	@Override
-	public final Boolean inMethodChained() {
+	public final ExecutableMember<?, ?> inputExecutable() {
+		return inputMemberType == InputMemberType.METHOD ? (ExecutableMember<?, ?>) inputMember : null;
+	}
+
+	@Override
+	public FieldMember<?, ?> inputField() {
+		return inputMemberType == InputMemberType.FIELD ? (FieldMember<?, ?>) inputMember : null;
+	}
+
+	@Override
+	public final Boolean chainedInput() {
 		return inMethodChained;
 	}
 
 	@Override
-	public Boolean inMethodCast() {
+	public Boolean castInput() {
 		return allowInMethodResultCast;
 	}
 
 	@Override
-	public Boolean inMethodUnchecked() {
+	public Boolean uncheckedInput() {
 		return inMethodUnchecked;
 	}
 
