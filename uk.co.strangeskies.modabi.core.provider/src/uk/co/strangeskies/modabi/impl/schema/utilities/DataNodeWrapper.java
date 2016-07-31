@@ -44,11 +44,11 @@ public final class DataNodeWrapper<T> extends BindingChildNodeWrapper<T, DataNod
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
 					&& !TypeToken.over(component.dataType().getType()).isAssignableFrom(providedValue.getClass()))
-				throw this.<Object> getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
+				throw this.<Object>getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
 						null);
 
 		if (!component.base().containsAll(base.base()))
-			throw this.<Object> getOverrideException(DataNode::type, base.base(), component.base(), null);
+			throw this.<Object>getOverrideException(DataNode::type, base.base(), component.base(), null);
 	}
 
 	protected DataNodeWrapper(DataNode<T> node) {
@@ -59,7 +59,14 @@ public final class DataNodeWrapper<T> extends BindingChildNodeWrapper<T, DataNod
 	@SuppressWarnings("unchecked")
 	@Override
 	public DataNodeConfigurator<T> configurator() {
-		return (DataNodeConfigurator<T>) super.configurator();
+		DataNodeConfigurator<T> baseConfigurator;
+		if (getBase() != null) {
+			baseConfigurator = (DataNodeConfigurator<T>) getBase().configurator();
+		} else {
+			baseConfigurator = null;
+		}
+
+		return baseConfigurator.type(type);
 	}
 
 	public static <T> DataNodeWrapper<T> wrapType(DataType<T> component) {

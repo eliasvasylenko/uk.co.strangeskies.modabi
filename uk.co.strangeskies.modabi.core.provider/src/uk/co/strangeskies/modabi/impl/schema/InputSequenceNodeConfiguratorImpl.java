@@ -52,6 +52,21 @@ public class InputSequenceNodeConfiguratorImpl
 		super(parent);
 	}
 
+	public InputSequenceNodeConfiguratorImpl(InputSequenceNodeConfiguratorImpl copy) {
+		super(copy);
+
+		this.inputMember = copy.inputMember;
+		this.inputMemberType = copy.inputMemberType;
+		this.chainedInput = copy.chainedInput;
+		this.castIntput = copy.castIntput;
+		this.uncheckedInput = copy.uncheckedInput;
+	}
+
+	@Override
+	public InputSequenceNodeConfigurator copy() {
+		return new InputSequenceNodeConfiguratorImpl(this);
+	}
+
 	@Override
 	public InputSequenceNode create() {
 		return new InputSequenceNodeImpl(this);
@@ -134,6 +149,11 @@ public class InputSequenceNodeConfiguratorImpl
 		TypeToken<?> outputTarget = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public SchemaNode<?> parent() {
+				return getResult();
+			}
+
 			@Override
 			public BoundSet boundSet() {
 				return getContext().boundSet();

@@ -44,6 +44,19 @@ public class DataNodeConfiguratorImpl<T> extends
 		super(parent);
 	}
 
+	public DataNodeConfiguratorImpl(DataNodeConfiguratorImpl<T> copy) {
+		super(copy);
+
+		this.type = copy.type;
+		this.providedBufferedValue = copy.providedBufferedValue;
+		this.resolution = copy.resolution;
+	}
+
+	@Override
+	public DataNodeConfigurator<T> copy() {
+		return new DataNodeConfiguratorImpl<>(this);
+	}
+
 	@Override
 	public DataNodeConfigurator<T> name(String name) {
 		return name(new QualifiedName(name, getContext().namespace()));
@@ -62,12 +75,13 @@ public class DataNodeConfiguratorImpl<T> extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <U extends T> DataNodeConfigurator<U> type(DataType<U> type) {
+	public final <U extends T> DataNodeConfigurator<U> type(DataType<? super U> type) {
 		this.type = (DataType<T>) type;
 
 		return (DataNodeConfigurator<U>) getThis();
 	}
 
+	@Override
 	public DataType<T> getType() {
 		return type;
 	}
@@ -96,6 +110,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		return this;
 	}
 
+	@Override
 	public DataSource getProvidedValue() {
 		return providedBufferedValue;
 	}
@@ -107,6 +122,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		return this;
 	}
 
+	@Override
 	public ValueResolution getValueResolution() {
 		return resolution;
 	}
@@ -118,12 +134,13 @@ public class DataNodeConfiguratorImpl<T> extends
 		return this;
 	}
 
+	@Override
 	public Format getFormat() {
 		return format;
 	}
 
 	@Override
 	public DataNode<T> create() {
-		return new DataNodeImpl<T>(this);
+		return new DataNodeImpl<>(this);
 	}
 }

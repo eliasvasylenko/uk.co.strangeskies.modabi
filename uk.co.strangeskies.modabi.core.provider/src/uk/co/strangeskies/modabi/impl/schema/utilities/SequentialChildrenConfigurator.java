@@ -260,6 +260,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 		SchemaNodeConfigurationContext childContext = new SchemaNodeConfigurationContext() {
 			@Override
+			public SchemaNode<?> parent() {
+				return context.parent();
+			}
+
+			@Override
 			public BoundSet boundSet() {
 				return context.boundSet();
 			}

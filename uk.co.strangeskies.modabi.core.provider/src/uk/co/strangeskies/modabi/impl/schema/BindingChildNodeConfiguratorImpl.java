@@ -61,6 +61,32 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		this.context = parent;
 	}
 
+	public BindingChildNodeConfiguratorImpl(BindingChildNodeConfiguratorImpl<S, N, T> copy) {
+		super(copy);
+
+		this.context = copy.context;
+
+		this.postInputClass = copy.postInputClass;
+		this.occurrences = copy.occurrences;
+		this.optional = copy.optional;
+		this.nullIfOmitted = copy.nullIfOmitted;
+		this.ordered = copy.ordered;
+
+		this.iterableOutput = copy.iterableOutput;
+		this.castOutput = copy.castOutput;
+		this.uncheckedOutput = copy.uncheckedOutput;
+		this.outputMemberType = copy.outputMemberType;
+		this.outputMember = copy.outputMember;
+
+		this.inputMember = copy.inputMember;
+		this.inputMemberType = copy.inputMemberType;
+		this.chainedInput = copy.chainedInput;
+		this.castIntput = copy.castIntput;
+		this.uncheckedInput = copy.uncheckedInput;
+		this.extensible = copy.extensible;
+		this.synchronous = copy.synchronous;
+	}
+
 	@Override
 	public final S nullIfOmitted(boolean nullIfOmitted) {
 		this.nullIfOmitted = nullIfOmitted;

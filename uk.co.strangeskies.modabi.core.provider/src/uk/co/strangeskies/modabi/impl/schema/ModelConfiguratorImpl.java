@@ -46,6 +46,21 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 		this.imports = imports;
 	}
 
+	public ModelConfiguratorImpl(ModelConfiguratorImpl<T> copy) {
+		super(copy);
+
+		this.loader = copy.loader;
+		this.schema = copy.schema;
+		this.imports = copy.imports;
+
+		this.baseModel = copy.baseModel;
+	}
+
+	@Override
+	public ModelConfigurator<T> copy() {
+		return new ModelConfiguratorImpl<>(this);
+	}
+
 	public Schema getSchema() {
 		return schema;
 	}

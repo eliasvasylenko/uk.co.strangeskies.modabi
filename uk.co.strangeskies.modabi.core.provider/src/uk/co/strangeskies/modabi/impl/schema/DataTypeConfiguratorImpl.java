@@ -47,6 +47,23 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 		this.imports = imports;
 	}
 
+	public DataTypeConfiguratorImpl(DataTypeConfiguratorImpl<T> copy) {
+		super(copy);
+
+		this.loader = copy.loader;
+		this.schema = copy.schema;
+		this.imports = copy.imports;
+
+		this.isPrivate = copy.isPrivate;
+
+		this.baseType = copy.baseType;
+	}
+
+	@Override
+	public DataTypeConfigurator<T> copy() {
+		return new DataTypeConfiguratorImpl<>(this);
+	}
+
 	public Schema getSchema() {
 		return schema;
 	}
@@ -68,6 +85,7 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 		return this;
 	}
 
+	@Override
 	public Boolean getPrivate() {
 		return isPrivate;
 	}

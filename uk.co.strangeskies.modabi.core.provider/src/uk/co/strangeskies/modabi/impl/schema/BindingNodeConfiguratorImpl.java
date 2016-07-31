@@ -60,6 +60,31 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	private List<QualifiedName> unbindingParameterNames;
 
+	public BindingNodeConfiguratorImpl() {}
+
+	public BindingNodeConfiguratorImpl(BindingNodeConfiguratorImpl<S, N, T> copy) {
+		super(copy);
+
+		this.dataType = copy.dataType;
+		this.effectiveDataType = copy.effectiveDataType;
+		this.inferenceBounds = copy.inferenceBounds;
+
+		this.bindingStrategy = copy.bindingStrategy;
+		this.bindingType = copy.bindingType;
+		this.effectiveBindingType = copy.effectiveBindingType;
+
+		this.unbindingStrategy = copy.unbindingStrategy;
+		this.unbindingType = copy.unbindingType;
+		this.effectiveUnbindingType = copy.effectiveUnbindingType;
+		this.unbindingMethod = copy.unbindingMethod;
+		this.unbindingMethodUnchecked = copy.unbindingMethodUnchecked;
+
+		this.unbindingFactoryType = copy.unbindingFactoryType;
+		this.effectiveUnbindingFactoryType = copy.effectiveUnbindingFactoryType;
+
+		this.unbindingParameterNames = copy.unbindingParameterNames;
+	}
+
 	protected final BoundSet getInferenceBounds() {
 		return inferenceBounds;
 	}
@@ -86,14 +111,14 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Get declared data types, or overridden types thereof.
 		 */
 		effectiveDataType = getOverride(BindingNode::dataType, BindingNodeConfigurator::getDataType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).tryGet();
 		effectiveBindingType = getOverride(BindingNode::inputBindingType, BindingNodeConfigurator::getInputBindingType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).tryGet();
 		effectiveUnbindingType = getOverride(BindingNode::outputBindingType, BindingNodeConfigurator::getOutputBindingType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).get();
+				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).tryGet();
 		effectiveUnbindingFactoryType = getOverride(BindingNode::outputBindingFactoryType,
 				BindingNodeConfigurator::getOutputBindingFactoryType).orMerged((o, n) -> o.withEquality(n))
-						.validate((o, n) -> true).get();
+						.validate((o, n) -> true).tryGet();
 
 		/*
 		 * Incorporate bounds from inherited types.
@@ -176,7 +201,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 */
 
 		InputBindingStrategy bindingStrategy = getOverride(BindingNode::inputBindingStrategy,
-				BindingNodeConfigurator::getInputBindingStrategy).get();
+				BindingNodeConfigurator::getInputBindingStrategy).orDefault(InputBindingStrategy.PROVIDED).get();
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
 			inputTarget = effectiveBindingType;
@@ -188,7 +213,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			inputTarget = null;
 
 		OutputBindingStrategy unbindingStrategy = getOverride(BindingNode::outputBindingStrategy,
-				BindingNodeConfigurator::getOutputBindingStrategy).get();
+				BindingNodeConfigurator::getOutputBindingStrategy).orDefault(OutputBindingStrategy.SIMPLE).get();
 		TypeToken<?> outputSource;
 		if (effectiveUnbindingType != null)
 			outputSource = effectiveUnbindingType;
@@ -198,6 +223,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			outputSource = null;
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public SchemaNode<?> parent() {
+				return getResult();
+			}
+
 			@Override
 			public BoundSet boundSet() {
 				return inferenceBounds;

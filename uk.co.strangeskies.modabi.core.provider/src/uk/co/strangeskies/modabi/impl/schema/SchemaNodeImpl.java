@@ -134,6 +134,6 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 
 	@Override
 	public SchemaNodeConfigurator<?, S> configurator() {
-		return configurator;
+		return configurator.copy();
 	}
 }

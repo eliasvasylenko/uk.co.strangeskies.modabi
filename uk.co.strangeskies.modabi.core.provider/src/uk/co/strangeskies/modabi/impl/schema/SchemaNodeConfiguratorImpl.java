@@ -46,13 +46,11 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private QualifiedName name;
 	private Boolean concrete;
 
-	public SchemaNodeConfiguratorImpl() {
-		this(null, null);
-	}
+	public SchemaNodeConfiguratorImpl() {}
 
-	protected SchemaNodeConfiguratorImpl(QualifiedName name, Boolean concrete) {
-		this.name = name;
-		this.concrete = concrete;
+	protected SchemaNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<S, N> copy) {
+		name = copy.name;
+		concrete = copy.concrete;
 	}
 
 	protected void setResult(N node) {
@@ -76,14 +74,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 			childrenConfigurator = createChildrenConfigurator();
 
 		return childrenConfigurator;
-	}
-
-	@Override
-	public S copy() {
-		/*
-		 * TODO
-		 */
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

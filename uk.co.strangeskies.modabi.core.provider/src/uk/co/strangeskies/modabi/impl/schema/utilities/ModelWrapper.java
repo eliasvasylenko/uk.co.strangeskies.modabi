@@ -30,10 +30,9 @@ public class ModelWrapper<T> extends BindingNodeWrapper<T, Model<? super T>, Mod
 		super(component);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public ModelConfigurator<T> configurator() {
-		return (ModelConfigurator<T>) super.configurator();
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")

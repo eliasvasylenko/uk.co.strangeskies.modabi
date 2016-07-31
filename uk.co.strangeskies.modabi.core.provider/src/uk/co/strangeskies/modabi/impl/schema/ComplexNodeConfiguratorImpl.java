@@ -40,6 +40,18 @@ public class ComplexNodeConfiguratorImpl<T>
 		super(parent);
 	}
 
+	public ComplexNodeConfiguratorImpl(ComplexNodeConfiguratorImpl<T> copy) {
+		super(copy);
+
+		this.baseModel = copy.baseModel;
+		this.inline = copy.inline;
+	}
+
+	@Override
+	public ComplexNodeConfigurator<T> copy() {
+		return new ComplexNodeConfiguratorImpl<>(this);
+	}
+
 	@Override
 	public ComplexNodeConfigurator<T> name(String name) {
 		return name(new QualifiedName(name, getContext().namespace()));
@@ -53,6 +65,7 @@ public class ComplexNodeConfiguratorImpl<T>
 		return (ComplexNodeConfigurator<V>) this;
 	}
 
+	@Override
 	public List<Model<? super T>> getModel() {
 		return baseModel;
 	}

@@ -38,9 +38,18 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 		super(parent);
 	}
 
+	public ChoiceNodeConfiguratorImpl(ChoiceNodeConfiguratorImpl copy) {
+		super(copy);
+	}
+
 	@Override
 	public ChoiceNode create() {
 		return new ChoiceNodeImpl(this);
+	}
+
+	@Override
+	public ChoiceNodeConfigurator copy() {
+		return new ChoiceNodeConfiguratorImpl(this);
 	}
 
 	@Override
@@ -49,6 +58,11 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new HidingChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public SchemaNode<?> parent() {
+				return getResult();
+			}
+
 			@Override
 			public BoundSet boundSet() {
 				return getContext().boundSet();

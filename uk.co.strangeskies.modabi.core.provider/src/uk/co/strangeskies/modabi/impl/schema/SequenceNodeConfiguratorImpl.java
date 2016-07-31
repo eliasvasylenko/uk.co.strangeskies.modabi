@@ -38,6 +38,15 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 		super(parent);
 	}
 
+	public SequenceNodeConfiguratorImpl(SequenceNodeConfiguratorImpl copy) {
+		super(copy);
+	}
+
+	@Override
+	public SequenceNodeConfigurator copy() {
+		return new SequenceNodeConfiguratorImpl(this);
+	}
+
 	@Override
 	public SequenceNode create() {
 		return new SequenceNodeImpl(this);
@@ -49,6 +58,11 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public SchemaNode<?> parent() {
+				return getResult();
+			}
+
 			@Override
 			public BoundSet boundSet() {
 				return getContext().boundSet();

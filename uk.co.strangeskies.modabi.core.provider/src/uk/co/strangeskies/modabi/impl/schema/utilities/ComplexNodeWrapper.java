@@ -48,11 +48,18 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 		super(node, node);
 		model = node.model();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public ComplexNodeConfigurator<T> configurator() {
-		return (ComplexNodeConfigurator<T>) super.configurator();
+		ComplexNodeConfigurator<T> baseConfigurator;
+		if (getBase() != null) {
+			baseConfigurator = (ComplexNodeConfigurator<T>) getBase().configurator();
+		} else {
+			baseConfigurator = null;
+		}
+
+		return baseConfigurator.model(model);
 	}
 
 	public static <T> ComplexNodeWrapper<T> wrapType(Model<T> component) {

@@ -38,14 +38,13 @@ public class DataTypeWrapper<T> extends BindingNodeWrapper<T, DataType<? super T
 		return getComponent().type();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public DataTypeConfigurator<T> configurator() {
-		return (DataTypeConfigurator<T>) super.configurator();
+		return null;
 	}
 
 	@Override
 	public Boolean isPrivate() {
-		return getBase() == null ? null : getBase().isPrivate();
+		return null;
 	}
 }

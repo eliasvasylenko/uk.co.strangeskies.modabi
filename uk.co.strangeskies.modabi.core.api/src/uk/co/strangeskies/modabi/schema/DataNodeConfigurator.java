@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface DataNodeConfigurator<T> extends BindingChildNodeConfigurator<DataNodeConfigurator<T>, DataNode<T>, T> {
-	<U extends T> DataNodeConfigurator<U> type(DataType<U> type);
+	<U extends T> DataNodeConfigurator<U> type(DataType<? super U> type);
 
 	DataType<T> getType();
 

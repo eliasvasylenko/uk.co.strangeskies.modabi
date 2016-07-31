@@ -45,6 +45,17 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		this.context = parent;
 	}
 
+	public ChildNodeConfiguratorImpl(ChildNodeConfiguratorImpl<S, N> copy) {
+		super(copy);
+
+		this.context = copy.context;
+		this.occurrences = copy.occurrences;
+		this.ordered = copy.ordered;
+		this.optional = copy.optional;
+		this.postInputClass = copy.postInputClass;
+		this.overriddenNodes = copy.overriddenNodes;
+	}
+
 	protected SchemaNodeConfigurationContext getContext() {
 		return context;
 	}
@@ -114,6 +125,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		return getThis();
 	}
 
+	@Override
 	public Range<Integer> getOccurrences() {
 		return occurrences;
 	}
@@ -125,6 +137,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		return getThis();
 	}
 
+	@Override
 	public Boolean getOrdered() {
 		return ordered;
 	}

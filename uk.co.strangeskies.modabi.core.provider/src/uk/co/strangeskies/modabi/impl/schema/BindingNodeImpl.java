@@ -71,7 +71,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		 * TODO refactor to make this final.
 		 */
 		unbindingMethodName = configurator
-				.getOverride(b -> b.outputBindingMethod().getName(), BindingNodeConfigurator::getOutputBindingMethod).tryGet();
+				.getOverride(b -> b.outputBindingMethod() == null ? null : b.outputBindingMethod().getName(),
+						BindingNodeConfigurator::getOutputBindingMethod)
+				.tryGet();
 
 		providedUnbindingParameters = !concrete() ? null
 				: findProvidedUnbindingParameters(this,

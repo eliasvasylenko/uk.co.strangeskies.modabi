@@ -24,20 +24,21 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 	private T override;
 
 	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<N, T> valueFunction) {
-		this(configurator, valueFunction, s -> null);
+		this(configurator, valueFunction, null);
 	}
 
-	@SuppressWarnings("unchecked")
 	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<N, T> valueFunction,
 			Function<S, T> givenValueFunction) {
 		this.configurator = configurator;
-		this.valueFunction = n -> {
-			T value = valueFunction.apply(n);
-			return value != null ? value : givenValueFunction.apply((S) n.configurator());
-		};
+		this.valueFunction = valueFunction;
 		this.givenValueFunction = givenValueFunction;
 
-		values = configurator.getOverridenValues(valueFunction);
+		values = configurator.getOverridenValues(n -> {
+			T value = valueFunction.apply(n);
+		//	if (value == null && givenValueFunction != null)
+			//	value = givenValueFunction.apply((S) n.configurator());
+			return value;
+		});
 
 		validation = null;
 		override = null;

@@ -77,7 +77,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 			BindingChildNodeConfiguratorImpl<C, S, T> configurator, boolean integrateIO) {
 		super(configurator);
 
-		parent = configurator.getResult();
+		parent = configurator.getContext().parent();
 		configurator.getContext().addChild(this);
 
 		synchronous = configurator.getOverride(BindingChildNode::synchronous, BindingChildNodeConfigurator::getSynchronous)
