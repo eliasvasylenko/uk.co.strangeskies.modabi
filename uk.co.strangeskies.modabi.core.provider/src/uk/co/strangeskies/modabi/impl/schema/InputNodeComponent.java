@@ -38,10 +38,7 @@ import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 
-public class InputNodeConfigurationHelper<N extends InputNode<N>> {
-	private final QualifiedName name;
-	private final boolean concrete;
-
+public class InputNodeComponent {
 	private final ExecutableMember<?, ?> inMethod;
 	private final InputMemberType inputMemberType;
 	private final Boolean inMethodChained;
@@ -51,38 +48,34 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	private final TypeToken<?> preInputType;
 	private final TypeToken<?> postInputType;
 
-	private final SchemaNodeConfiguratorImpl<? extends InputNodeConfigurator<?, ?>, N> configurator;
-	private final SchemaNodeConfigurationContext context;
-
-	public InputNodeConfigurationHelper(boolean concrete, QualifiedName name,
-			SchemaNodeConfiguratorImpl<? extends InputNodeConfigurator<?, ?>, N> configurator,
-			SchemaNodeConfigurationContext context, List<TypeToken<?>> inMethodParameters) {
-		this.concrete = concrete;
-		this.name = name;
-		this.configurator = configurator;
-		this.context = context;
+	public <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> InputNodeComponent(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
+			List<TypeToken<?>> inMethodParameters) {
 
 		inputMemberType = configurator.getOverride(InputNode::inputMemberType, InputNodeConfigurator::getInputMemberType)
 				.get();
+
 		inMethodChained = configurator.getOverride(InputNode::chainedInput, InputNodeConfigurator::getChainedInput)
-				.orDefault(ifResolved(context.isConstructorExpected() || context.isStaticMethodExpected())).get();
+				.orDefault(ifResolved(configurator, context.isConstructorExpected() || context.isStaticMethodExpected())).get();
+
 		inMethodUnchecked = configurator.getOverride(InputNode::uncheckedInput, InputNodeConfigurator::getUncheckedInput)
-				.orDefault(ifResolved(false)).get();
+				.orDefault(ifResolved(configurator, false)).get();
+
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
 				: configurator.getOverride(InputNode::castInput, InputNodeConfigurator::getCastInput)
-						.orDefault(ifResolved(false)).get();
+						.orDefault(ifResolved(configurator, false)).get();
 
-		inMethod = inputMethod(inMethodParameters);
+		inMethod = inputMethod(configurator, context, inMethodParameters);
 		preInputType = preInputType();
-		postInputType = postInputType();
+		postInputType = postInputType(configurator, context);
 	}
 
-	private boolean isResolved() {
-		return concrete;
+	private boolean isResolved(SchemaNodeConfiguratorImpl<?, ?> configurator) {
+		return configurator.getResult().concrete();
 	}
 
-	private <T> T ifResolved(T t) {
-		return isResolved() ? t : null;
+	private <T> T ifResolved(SchemaNodeConfiguratorImpl<?, ?> configurator, T t) {
+		return isResolved(configurator) ? t : null;
 	}
 
 	public InputMemberType getInputMemberType() {
@@ -113,10 +106,12 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		return postInputType;
 	}
 
-	private ExecutableMember<?, ?> inputMethod(List<TypeToken<?>> parameters) {
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> inputMethod(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
+			List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> inExecutableMember;
 
-		if (!isResolved() || inputMemberType != InputMemberType.METHOD) {
+		if (!isResolved(configurator) || inputMemberType != InputMemberType.METHOD) {
 			inExecutableMember = null;
 		} else {
 			String givenInMethodName = configurator
@@ -127,24 +122,25 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 			TypeToken<?> inputTargetType = context.inputTargetType();
 
 			try {
-				TypeToken<?> result = getResultType();
+				TypeToken<?> result = getResultType(configurator, context);
 
 				/*
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
 				 * first try to find and validate an inherited in method ...
 				 */
-				inExecutableMember = resolveOverriddenInMethod(inputTargetType, parameters);
+				inExecutableMember = resolveOverriddenInMethod(configurator, inputTargetType, parameters);
 				/*
 				 * ... then if none exists, resolve one from scratch
 				 */
 				if (inExecutableMember == null) {
-					inExecutableMember = resolveInMethod(givenInMethodName, inputTargetType, result, parameters);
+					inExecutableMember = resolveInMethod(configurator, context, givenInMethodName, inputTargetType, result,
+							parameters);
 				}
 
 				/*
@@ -168,8 +164,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	/*
 	 * resolve the exact in method overload
 	 */
-	private ExecutableMember<?, ?> resolveInMethod(String givenInMethodName, TypeToken<?> inputTargetType,
-			TypeToken<?> result, List<TypeToken<?>> parameters) throws NoSuchMethodException {
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> resolveInMethod(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context, String givenInMethodName,
+			TypeToken<?> inputTargetType, TypeToken<?> result, List<TypeToken<?>> parameters) throws NoSuchMethodException {
 
 		if (context.isConstructorExpected()) {
 			if (givenInMethodName != null && !givenInMethodName.equals("this")) {
@@ -179,8 +176,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 
 		} else {
 
-			return Methods.findMethod(generateInMethodNames(name, givenInMethodName), inputTargetType,
-					context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast, parameters);
+			return Methods.findMethod(generateInMethodNames(configurator.getResult().name(), givenInMethodName),
+					inputTargetType, context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
+					parameters);
 		}
 	}
 
@@ -190,8 +188,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	 * 
 	 * TODO handle some sort of constructor 'pseudo-override' behavior
 	 */
-	private ExecutableMember<?, ?> resolveOverriddenInMethod(TypeToken<?> inputTargetType,
-			List<TypeToken<?>> parameters) {
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> resolveOverriddenInMethod(
+			SchemaNodeConfiguratorImpl<C, N> configurator, TypeToken<?> inputTargetType, List<TypeToken<?>> parameters) {
 		Executable inExecutable = configurator
 				.getOverride(n -> n.inputExecutable() == null ? null : n.inputExecutable().getMember(), c -> null).tryGet();
 
@@ -219,10 +217,11 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		return inExecutableMember;
 	}
 
-	private TypeToken<?> getResultType() {
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> TypeToken<?> getResultType(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context) {
 		if (inMethodChained) {
 			TypeToken<?> resultType = configurator
-					.<TypeToken<?>> getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
+					.<TypeToken<?>>getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -303,12 +302,13 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 		}
 	}
 
-	private TypeToken<?> postInputType() {
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> TypeToken<?> postInputType(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context) {
 		TypeToken<?> postInputClass;
 
 		if (inputMemberType == InputMemberType.NONE || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = context.inputTargetType();
-		} else if (!isResolved() || inMethodChained == null) {
+		} else if (!isResolved(configurator) || inMethodChained == null) {
 			postInputClass = configurator.getOverride(n -> n.postInputType() == null ? null : n.postInputType(),
 					InputNodeConfigurator::getPostInputType).validate(TypeToken::isAssignableTo).tryGet();
 		} else {

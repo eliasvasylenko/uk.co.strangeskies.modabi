@@ -157,7 +157,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		this.outputMember = outputMember;
 		this.outputMemberType = outputMemberType;
 
-		InputNodeConfigurationHelper<S> inputNodeHelper = new InputNodeConfigurationHelper<>(concrete(), name(),
+		InputNodeComponent<S> inputNodeHelper = new InputNodeComponent<>(concrete(), name(),
 				configurator, configurator.getContext(), Arrays.asList(dataType()));
 
 		inputMemberType = inputNodeHelper.getInputMemberType();

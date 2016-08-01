@@ -48,8 +48,8 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 		List<TypeToken<?>> parameterClasses = configurator.getChildren().stream()
 				.map(o -> ((BindingChildNodeImpl<?, ?>) o).dataType()).collect(Collectors.toList());
 
-		InputNodeConfigurationHelper<InputSequenceNode> inputNodeHelper = new InputNodeConfigurationHelper<>(concrete(),
-				name(), configurator, configurator.getContext(), parameterClasses);
+		InputNodeComponent inputNodeHelper = new InputNodeComponent(configurator, configurator.getContext(),
+				parameterClasses);
 
 		inMethodChained = inputNodeHelper.isInMethodChained();
 		allowInMethodResultCast = inputNodeHelper.isInMethodCast();

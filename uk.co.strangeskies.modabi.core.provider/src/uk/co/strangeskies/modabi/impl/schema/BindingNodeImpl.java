@@ -329,16 +329,16 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			}
 		}
 		if (resultClass != null && (resultClass.equals(Boolean.class) || resultClass.equals(boolean.class)))
-			names.add("is" + InputNodeConfigurationHelper.capitalize(propertyName));
+			names.add("is" + InputNodeComponent.capitalize(propertyName));
 
 		List<String> namesAndBlank = new ArrayList<>(names);
 		namesAndBlank.add("");
 
 		for (String name : namesAndBlank) {
-			names.add("get" + InputNodeConfigurationHelper.capitalize(name));
-			names.add("to" + InputNodeConfigurationHelper.capitalize(name));
-			names.add("compose" + InputNodeConfigurationHelper.capitalize(name));
-			names.add("create" + InputNodeConfigurationHelper.capitalize(name));
+			names.add("get" + InputNodeComponent.capitalize(name));
+			names.add("to" + InputNodeComponent.capitalize(name));
+			names.add("compose" + InputNodeComponent.capitalize(name));
+			names.add("create" + InputNodeComponent.capitalize(name));
 		}
 
 		return names;
