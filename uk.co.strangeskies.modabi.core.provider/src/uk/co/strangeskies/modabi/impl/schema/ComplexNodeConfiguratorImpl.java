@@ -95,7 +95,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	}
 
 	@Override
-	public ComplexNode<T> create() {
+	public ComplexNode<T> createImpl() {
 		return new ComplexNodeImpl<>(this);
 	}
 

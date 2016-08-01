@@ -23,8 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import javax.lang.model.type.ExecutableType;
+
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.ModabiProperties.ExecutableType;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -40,7 +41,7 @@ public class Methods {
 		try {
 			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
-			throw new ModabiException(t -> t.noMethodFound(receiver, parameters, ExecutableType.CONSTRUCTOR), e);
+			throw new ModabiException(t -> t.noMemberFound(receiver, parameters, ExecutableType.CONSTRUCTOR), e);
 		}
 
 		return constructor;
@@ -49,6 +50,31 @@ public class Methods {
 	public static <T> ExecutableMember<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver,
 			boolean isStatic, TypeToken<?> result, boolean allowCast, TypeToken<?>... parameters) {
 		return findMethod(names, receiver, isStatic, result, allowCast, Arrays.asList(parameters));
+	}
+
+	public static <T> ExecutableMember<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver,
+			boolean isStatic, TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) {
+		ExecutableMember<? super T, ?> method = null;
+
+		try {
+			method = resolveMethodOverload(receiver, names, parameters);
+		} catch (Exception e) {
+			ExecutableType type = isStatic ? ExecutableType.STATIC_METHOD : ExecutableType.METHOD;
+			throw new ModabiException(t -> t.noMemberFound(receiver, parameters, type), e);
+		}
+
+		if (result != null) {
+			if (!allowCast) {
+				method = method.withTargetType(result);
+			} else {
+				/*
+				 * TODO Enforce castability, with special treatment for iterable out
+				 * methods.
+				 */
+			}
+		}
+
+		return method;
 	}
 
 	private static <T> ExecutableMember<? super T, ?> resolveMethodOverload(TypeToken<T> type, List<String> names,
@@ -66,30 +92,5 @@ public class Methods {
 
 	private static boolean isArgumentCountValid(Executable method, int arguments) {
 		return (method.isVarArgs() ? method.getParameterCount() <= arguments + 1 : method.getParameterCount() == arguments);
-	}
-
-	public static <T> ExecutableMember<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver,
-			boolean isStatic, TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) {
-		ExecutableMember<? super T, ?> method = null;
-
-		try {
-			method = resolveMethodOverload(receiver, names, parameters);
-		} catch (Exception e) {
-			ExecutableType type = isStatic ? ExecutableType.STATIC_METHOD : ExecutableType.METHOD;
-			throw new ModabiException(t -> t.noMethodFound(receiver, parameters, type), e);
-		}
-
-		if (result != null) {
-			if (!allowCast) {
-				method = method.withTargetType(result);
-			} else {
-				/*
-				 * TODO Enforce castability, with special treatment for iterable out
-				 * methods.
-				 */
-			}
-		}
-
-		return method;
 	}
 }

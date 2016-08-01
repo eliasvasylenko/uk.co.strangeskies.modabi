@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.io.xml;
 
-import uk.co.strangeskies.modabi.io.ModabiIoProperties;
+import uk.co.strangeskies.modabi.io.IoProperties;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
 public interface ModabiXmlProperties extends Properties<ModabiXmlProperties> {
-	ModabiIoProperties modabiIoProperties();
+	IoProperties modabiIoProperties();
 
 	Localized<String> problemReadingFromXmlDocument();
 

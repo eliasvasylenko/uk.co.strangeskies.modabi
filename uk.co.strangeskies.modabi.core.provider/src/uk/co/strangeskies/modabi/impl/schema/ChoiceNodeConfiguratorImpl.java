@@ -43,7 +43,7 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 	}
 
 	@Override
-	public ChoiceNode create() {
+	public ChoiceNode createImpl() {
 		return new ChoiceNodeImpl(this);
 	}
 

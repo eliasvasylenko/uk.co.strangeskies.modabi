@@ -68,7 +68,7 @@ public class InputSequenceNodeConfiguratorImpl
 	}
 
 	@Override
-	public InputSequenceNode create() {
+	public InputSequenceNode createImpl() {
 		return new InputSequenceNodeImpl(this);
 	}
 

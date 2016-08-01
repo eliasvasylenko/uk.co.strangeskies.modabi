@@ -48,7 +48,7 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 	}
 
 	@Override
-	public SequenceNode create() {
+	public SequenceNode createImpl() {
 		return new SequenceNodeImpl(this);
 	}
 

@@ -37,7 +37,6 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 		super(configurator);
 
 		parent = configurator.getResult();
-		configurator.getContext().addChild(this);
 
 		ordered = configurator.getOverride(ChildNode::ordered, ChildNodeConfigurator::getOrdered).orDefault(true).get();
 

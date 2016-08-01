@@ -49,7 +49,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	private final Range<Integer> occurrences;
 	private final Boolean ordered;
 
-	private final OutputMemberType outputMemberType;
+	private OutputMemberType outputMemberType;
 	private TypeMember<?> outputMember;
 	private final Boolean uncheckedOutput;
 	private final Boolean castOutput;
@@ -78,7 +78,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		super(configurator);
 
 		parent = configurator.getContext().parent();
-		configurator.getContext().addChild(this);
 
 		synchronous = configurator.getOverride(BindingChildNode::synchronous, BindingChildNodeConfigurator::getSynchronous)
 				.orDefault(false).get();
@@ -106,9 +105,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 			return null;
 		}).orDefault(false).get();
 
-		outputMemberType = configurator
-				.getOverride(BindingChildNode::outputMemberType, BindingChildNodeConfigurator::getOutputMemberType).get();
-
 		uncheckedOutput = configurator
 				.getOverride(BindingChildNode::uncheckedOutput, BindingChildNodeConfigurator::getUncheckedOutput)
 				.orDefault(false).get();
@@ -125,21 +121,41 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		}
 	}
 
-	public void integrateIO(BindingChildNodeConfiguratorImpl<?, S, T> configurator) {
-		Method overriddenOutMethod = (Method) configurator
-				.getOverride(n -> n.outputMethod() == null ? null : n.outputMethod().getMember(), c -> null).tryGet();
+	public <C extends BindingChildNodeConfigurator<C, S, T>> void integrateIO(
+			BindingChildNodeConfiguratorImpl<C, S, T> configurator) {
+		TypeMember<?> outputMember;
+		OutputMemberType outputMemberType = configurator
+				.getOverride(BindingChildNode::outputMemberType, BindingChildNodeConfigurator::getOutputMemberType).tryGet();
 
-		switch (outputMemberType) {
-		case METHOD:
-			outputMember = getOutMethod(this, overriddenOutMethod, configurator.getContext().outputSourceType(),
-					configurator.getContext().boundSet());
-			break;
-		case FIELD:
-			throw new UnsupportedOperationException();
-		case NONE:
-		case SELF:
-			outputMember = null;
+		if (outputMemberType == null) {
+			try {
+				outputMember = getOutMethod(configurator);
+				outputMemberType = OutputMemberType.METHOD;
+			} catch (Exception methodException) {
+				try {
+					outputMember = getOutField(configurator);
+					outputMemberType = OutputMemberType.FIELD;
+				} catch (Exception fieldException) {
+					throw methodException;
+				}
+			}
+		} else {
+			switch (outputMemberType) {
+			case FIELD:
+				outputMember = getOutField(configurator);
+			case METHOD:
+				outputMember = getOutMethod(configurator);
+				break;
+			case NONE:
+			case SELF:
+				outputMember = null;
+				break;
+			default:
+				throw new UnsupportedOperationException();
+			}
 		}
+		this.outputMember = outputMember;
+		this.outputMemberType = outputMemberType;
 
 		InputNodeConfigurationHelper<S> inputNodeHelper = new InputNodeConfigurationHelper<>(concrete(), name(),
 				configurator, configurator.getContext(), Arrays.asList(dataType()));
@@ -264,44 +280,52 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <U> TypeToken<Iterable<? extends U>> getIteratorType(BindingChildNode<U, ?> node) {
-		boolean outMethodCast = node.castOutput() != null && node.castOutput();
+	private TypeToken<Iterable<? extends T>> getIteratorType() {
+		boolean outMethodCast = castOutput() != null && castOutput();
 
-		TypeToken<U> type = outMethodCast ? (TypeToken<U>) TypeToken.over(new InferenceVariable()) : node.dataType();
+		TypeToken<T> type = outMethodCast ? (TypeToken<T>) TypeToken.over(new InferenceVariable()) : dataType();
 		if (type == null) {
-			type = (TypeToken<U>) new TypeToken<Object>() {};
+			type = (TypeToken<T>) new TypeToken<Object>() {};
 		}
 
 		/*
 		 * TODO properly put inference variable into bounds...
 		 */
 
-		TypeToken<Iterable<? extends U>> iterableType = new TypeToken<Iterable<? extends U>>() {}
-				.withTypeArgument(new TypeParameter<U>() {}, type.wrapPrimitive());
+		TypeToken<Iterable<? extends T>> iterableType = new TypeToken<Iterable<? extends T>>() {}
+				.withTypeArgument(new TypeParameter<T>() {}, type.wrapPrimitive());
 
 		return iterableType;
 
 	}
 
-	protected static ExecutableMember<?, ?> getOutMethod(BindingChildNode<?, ?> node, Method inheritedOutMethod,
-			TypeToken<?> receiverType, BoundSet bounds) {
+	protected ExecutableMember<?, ?> getOutField(BindingChildNodeConfiguratorImpl<?, S, T> configurator) {
+		throw new UnsupportedOperationException();
+	}
+
+	protected ExecutableMember<?, ?> getOutMethod(BindingChildNodeConfiguratorImpl<?, S, T> configurator) {
+		TypeToken<?> receiverType = configurator.getContext().outputSourceType();
+		BoundSet bounds = configurator.getContext().boundSet();
+
 		if (receiverType == null) {
-			throw new ModabiException(t -> t.cannotFindOutMethodWithoutTargetType(node));
+			throw new ModabiException(t -> t.cannotFindOutMethodWithoutTargetType(this));
 		}
 
-		boolean outMethodCast = node.castOutput() != null && node.castOutput();
+		Method overriddenOutMethod = (Method) configurator
+				.getOverride(n -> n.outputMethod() == null ? null : n.outputMethod().getMember(), c -> null).tryGet();
 
-		TypeToken<?> resultType = ((node.iterableOutput() != null && node.iterableOutput()) ? getIteratorType(node)
-				: node.dataType());
+		boolean outMethodCast = castOutput() != null && castOutput();
 
-		if (node.uncheckedOutput() != null && node.uncheckedOutput())
+		TypeToken<?> resultType = ((iterableOutput() != null && iterableOutput()) ? getIteratorType() : dataType());
+
+		if (uncheckedOutput() != null && uncheckedOutput())
 			resultType = TypeToken.over(resultType.getRawType());
 
 		if (resultType == null)
-			throw new ModabiException(t -> t.cannotFindOutMethodWithoutResultType(node));
+			throw new ModabiException(t -> t.cannotFindOutMethodWithoutResultType(this));
 
 		ExecutableMember<?, ?> outMethod;
-		if ("this".equals(node.configurator().getOutputMember())) {
+		if ("this".equals(configurator.getOutputMember())) {
 			if (!resultType.isAssignableFrom(receiverType.resolve())) {
 				TypeToken<?> resultTypeFinal = resultType;
 				throw new ModabiException(t -> t.incompatibleTypes(receiverType.getType(), resultTypeFinal.getType()));
@@ -311,11 +335,11 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 
 			resultType.incorporateInto(bounds);
 			ConstraintFormula.reduce(Kind.LOOSE_COMPATIBILILTY, receiverType.getType(), resultType.getType(), bounds);
-		} else if (inheritedOutMethod != null) {
+		} else if (overriddenOutMethod != null) {
 			try {
-				outMethod = ExecutableMember.over(inheritedOutMethod, receiverType).withLooseApplicability();
+				outMethod = ExecutableMember.over(overriddenOutMethod, receiverType).withLooseApplicability();
 			} catch (Exception e) {
-				outMethod = ExecutableMember.over(inheritedOutMethod, receiverType).withVariableArityApplicability();
+				outMethod = ExecutableMember.over(overriddenOutMethod, receiverType).withVariableArityApplicability();
 			}
 
 			if (outMethodCast) {
@@ -324,7 +348,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 				outMethod = outMethod.withTargetType(resultType);
 			}
 		} else {
-			outMethod = Methods.findMethod(generateOutMethodNames(node, resultType.getRawType()), receiverType, false,
+			outMethod = Methods.findMethod(generateOutMethodNames(this, resultType.getRawType()), receiverType, false,
 					resultType, outMethodCast);
 		}
 

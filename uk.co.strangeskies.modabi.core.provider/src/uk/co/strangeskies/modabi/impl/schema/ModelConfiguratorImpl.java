@@ -116,7 +116,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	}
 
 	@Override
-	public Model<T> create() {
+	public Model<T> createImpl() {
 		return new ModelImpl<>(this);
 	}
 }

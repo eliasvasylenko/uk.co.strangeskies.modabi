@@ -28,4 +28,5 @@ Export-Package: \
 	uk.co.strangeskies.modabi.schema.building
 
 -includeresource: \
-	OSGI-INF/l10n=l10n
+	OSGI-INF/l10n=l10n,\
+	res

@@ -53,6 +53,13 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		concrete = copy.concrete;
 	}
 
+	@Override
+	public N create() {
+		return createImpl();
+	}
+
+	protected abstract N createImpl();
+
 	protected void setResult(N node) {
 		this.node = node;
 	}

@@ -18,11 +18,11 @@ public class ModabiIoException extends LocalizedRuntimeException {
 		super(message, cause);
 	}
 
-	public ModabiIoException(Function<ModabiIoProperties, Localized<String>> messageFunction) {
-		this(messageFunction.apply(getDefaultProperties(ModabiIoProperties.class)));
+	public ModabiIoException(Function<IoProperties, Localized<String>> messageFunction) {
+		this(messageFunction.apply(getDefaultProperties(IoProperties.class)));
 	}
 
-	public ModabiIoException(Function<ModabiIoProperties, Localized<String>> messageFunction, Throwable cause) {
-		this(messageFunction.apply(getDefaultProperties(ModabiIoProperties.class)), cause);
+	public ModabiIoException(Function<IoProperties, Localized<String>> messageFunction, Throwable cause) {
+		this(messageFunction.apply(getDefaultProperties(IoProperties.class)), cause);
 	}
 }

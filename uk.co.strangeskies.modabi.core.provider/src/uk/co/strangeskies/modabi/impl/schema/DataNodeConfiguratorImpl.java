@@ -140,7 +140,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataNode<T> create() {
+	public DataNode<T> createImpl() {
 		return new DataNodeImpl<>(this);
 	}
 }

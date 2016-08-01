@@ -88,6 +88,15 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
+	public N create() {
+		N node = super.create();
+
+		getContext().addChild(node);
+
+		return node;
+	}
+
+	@Override
 	public final S nullIfOmitted(boolean nullIfOmitted) {
 		this.nullIfOmitted = nullIfOmitted;
 

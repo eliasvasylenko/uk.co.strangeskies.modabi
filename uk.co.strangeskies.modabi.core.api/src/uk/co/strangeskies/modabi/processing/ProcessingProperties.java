@@ -35,7 +35,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
-public interface ProcessingExceptionProperties extends Properties<ProcessingExceptionProperties> {
+public interface ProcessingProperties extends Properties<ProcessingProperties> {
 	ModabiProperties modabiException();
 
 	Localized<String> bindingObjects(Collection<? extends Object> bindingObjectStack);

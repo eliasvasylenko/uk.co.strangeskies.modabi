@@ -141,7 +141,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		Collections.reverse(reversedNodes);
 		for (SchemaNode<?> overriddenNode : reversedNodes) {
 			int index = 0;
-
+			
 			for (ChildNode<?> child : overriddenNode.children()) {
 				MergeGroup group = merge(child.name(), index);
 				group.addChild(child);

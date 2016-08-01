@@ -74,7 +74,7 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	}
 
 	@Override
-	public DataType<T> create() {
+	public DataType<T> createImpl() {
 		return new DataTypeImpl<>(this);
 	}
 

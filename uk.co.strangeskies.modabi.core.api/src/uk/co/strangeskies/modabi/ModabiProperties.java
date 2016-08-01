@@ -18,10 +18,7 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
@@ -33,19 +30,20 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
+import uk.co.strangeskies.text.properties.PropertyConfiguration;
+import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
+@PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".")
 public interface ModabiProperties extends Properties<ModabiProperties> {
-	enum ExecutableType {
-		METHOD, STATIC_METHOD, CONSTRUCTOR
-	}
-
 	Localized<String> noTypeFoundForType(QualifiedName dataType, Type type);
 
 	Localized<String> noModelFoundForType(QualifiedName model, Type type);
@@ -120,26 +118,6 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 
 	Localized<String> unexpectedOverrideError(BindingNode<?, ?> base);
 
-	/*
-	 * Executables
-	 */
-	default Localized<String> executableType(Executable executable) {
-		return executableType((executable instanceof Constructor<?>) ? ExecutableType.CONSTRUCTOR
-				: ((Modifier.isStatic(executable.getModifiers()) ? ExecutableType.STATIC_METHOD : ExecutableType.METHOD)));
-	}
-
-	default Localized<String> executableType(ExecutableType type) {
-		switch (type) {
-		case CONSTRUCTOR:
-			return executableTypeConstructor();
-		case METHOD:
-			return executableTypeMethod();
-		case STATIC_METHOD:
-			return executableTypeStaticMethod();
-		}
-		throw new AssertionError();
-	}
-
 	Localized<String> executableTypeStaticMethod();
 
 	Localized<String> executableTypeMethod();
@@ -148,17 +126,23 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 
 	Localized<String> noMethodCandidatesFoundForNames(Collection<String> names);
 
-	default Localized<String> noMethodFound(TypeToken<?> receiver, List<TypeToken<?>> parameters, ExecutableType type) {
-		return noMethodFound(executableType(type), receiver, parameters);
+	default Localized<String> noInputMemberFound(TypeToken<?> receiver, List<TypeToken<?>> parameters,
+			InputNode.InputMemberType type) {
+		return noMemberFound(type, receiver, parameters);
 	}
 
-	Localized<String> noMethodFound(Localized<String> type, TypeToken<?> receiver, List<TypeToken<?>> parameters);
-
-	default Localized<String> inMethodMustBeChained(QualifiedName name, ExecutableType type) {
-		return inMethodMustBeChained(executableType(type), name);
+	default Localized<String> noOutputMemberFound(TypeToken<?> receiver, List<TypeToken<?>> parameters,
+			BindingChildNode.OutputMemberType type) {
+		return noMemberFound(type, receiver, parameters);
 	}
 
-	Localized<String> inMethodMustBeChained(Localized<String> type, QualifiedName name);
+	default Localized<String> noMemberFound(TypeToken<?> receiver, List<TypeToken<?>> parameters, Object type) {
+		return noMemberFound(type, receiver, parameters);
+	}
+
+	Localized<String> noMemberFound(Object type, TypeToken<?> receiver, List<TypeToken<?>> parameters);
+
+	Localized<String> inMethodMustBeChained(QualifiedName name, InputNode.InputMemberType type);
 
 	/*
 	 * Schema

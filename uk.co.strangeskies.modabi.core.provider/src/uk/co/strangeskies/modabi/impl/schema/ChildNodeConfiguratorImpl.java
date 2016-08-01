@@ -56,6 +56,15 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		this.overriddenNodes = copy.overriddenNodes;
 	}
 
+	@Override
+	public N create() {
+		N node = super.create();
+
+		getContext().addChild(node);
+
+		return node;
+	}
+
 	protected SchemaNodeConfigurationContext getContext() {
 		return context;
 	}

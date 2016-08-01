@@ -120,7 +120,9 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 			inExecutableMember = null;
 		} else {
 			String givenInMethodName = configurator
-					.getOverride(n -> n.inputExecutable().getName(), InputNodeConfigurator::getInputMember).tryGet();
+					.getOverride(n -> n.inputExecutable() == null ? null : n.inputExecutable().getName(),
+							InputNodeConfigurator::getInputMember)
+					.tryGet();
 
 			TypeToken<?> inputTargetType = context.inputTargetType();
 
@@ -131,7 +133,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 				 * cast parameter types to their raw types if unchecked
 				 */
 				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
+					parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 							.collect(Collectors.toList());
 
 				/*
@@ -155,7 +157,8 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 				List<TypeToken<?>> parametersFinal = parameters;
 				ExecutableType type = context.isStaticMethodExpected() ? ExecutableType.STATIC_METHOD
 						: (context.isConstructorExpected() ? ExecutableType.CONSTRUCTOR : ExecutableType.METHOD);
-				throw new ModabiException(t -> t.noMethodFound(inputTargetType, parametersFinal, type), e);
+
+				throw new ModabiException(t -> t.noMemberFound(inputTargetType, parametersFinal, type), e);
 			}
 		}
 
@@ -219,7 +222,7 @@ public class InputNodeConfigurationHelper<N extends InputNode<N>> {
 	private TypeToken<?> getResultType() {
 		if (inMethodChained) {
 			TypeToken<?> resultType = configurator
-					.<TypeToken<?>>getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
+					.<TypeToken<?>> getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,

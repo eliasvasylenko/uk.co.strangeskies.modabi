@@ -26,7 +26,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
 
-public interface ModabiIoProperties extends Properties<ModabiIoProperties> {
+public interface IoProperties extends Properties<IoProperties> {
 	ModabiProperties modabiProperties();
 
 	Localized<String> nextChildDoesNotExist();
