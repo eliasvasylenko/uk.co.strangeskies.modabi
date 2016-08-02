@@ -29,7 +29,6 @@ import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
@@ -179,7 +178,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public final List<DataNode<?>> providedOutputBindingMethodParameters() {
+	public final List<BindingNode<?, ?>> providedOutputBindingMethodParameters() {
 		return component.providedOutputBindingMethodParameters();
 	}
 

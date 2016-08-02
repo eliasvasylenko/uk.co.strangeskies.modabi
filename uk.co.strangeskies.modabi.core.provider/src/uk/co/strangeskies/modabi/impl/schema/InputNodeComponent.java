@@ -58,8 +58,6 @@ public class InputNodeComponent {
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
 			List<TypeToken<?>> inMethodParameters) {
 
-		inputMemberType = determineInputMemberType(configurator, context);
-
 		inMethodChained = configurator.getOverride(InputNode::chainedInput, InputNodeConfigurator::getChainedInput)
 				.orDefault(ifResolved(configurator, context.isConstructorExpected() || context.isStaticMethodExpected())).get();
 
@@ -70,7 +68,40 @@ public class InputNodeComponent {
 				: configurator.getOverride(InputNode::castInput, InputNodeConfigurator::getCastInput)
 						.orDefault(ifResolved(configurator, false)).get();
 
-		inputMember = determineInputMethod(configurator, context, inMethodParameters);
+		ExecutableMember<?, ?> inputMember;
+		InputMemberType inputMemberType = determineInputMemberType(configurator, context);
+		if (inputMemberType == null) {
+			try {
+				inputMember = determineInputMethod(configurator, context, InputMemberType.METHOD, inMethodParameters);
+				inputMemberType = InputMemberType.METHOD;
+			} catch (Exception methodException) {
+				try {
+					inputMember = determineInputField(configurator, context, inMethodParameters);
+					inputMemberType = InputMemberType.FIELD;
+				} catch (Exception fieldException) {
+					throw methodException;
+				}
+			}
+		} else {
+			switch (inputMemberType) {
+			case FIELD:
+				inputMember = determineInputField(configurator, context, inMethodParameters);
+				break;
+			case METHOD:
+			case CONSTRUCTOR:
+			case STATIC_METHOD:
+				inputMember = determineInputMethod(configurator, context, inputMemberType, inMethodParameters);
+				break;
+			case NONE:
+				inputMember = null;
+				break;
+			default:
+				throw new UnsupportedOperationException();
+			}
+		}
+		this.inputMember = inputMember;
+		this.inputMemberType = inputMemberType;
+
 		preInputType = determinePreInputType();
 		postInputType = determinePostInputType(configurator, context);
 	}
@@ -89,7 +120,7 @@ public class InputNodeComponent {
 			}
 
 			return type;
-		}).get();
+		}).tryGet();
 	}
 
 	private boolean isResolved(SchemaNodeConfiguratorImpl<?, ?> configurator) {
@@ -128,9 +159,15 @@ public class InputNodeComponent {
 		return postInputType;
 	}
 
-	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> determineInputMethod(
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> determineInputField(
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
 			List<TypeToken<?>> parameters) {
+		throw new UnsupportedOperationException();
+	}
+
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> determineInputMethod(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
+			InputMemberType inputMemberType, List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> inExecutableMember;
 
 		if (!isResolved(configurator) || inputMemberType != InputMemberType.METHOD) {

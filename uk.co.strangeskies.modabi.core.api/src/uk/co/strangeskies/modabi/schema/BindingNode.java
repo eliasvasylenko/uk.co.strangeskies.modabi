@@ -28,7 +28,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 public interface BindingNode<T, S extends BindingNode<T, S>> extends SchemaNode<S> {
 	ExecutableMember<?, ?> outputBindingMethod();
 
-	List<DataNode<?>> providedOutputBindingMethodParameters();
+	List<BindingNode<?, ?>> providedOutputBindingMethodParameters();
 
 	List<? extends BindingNode<? super T, ?>> base();
 

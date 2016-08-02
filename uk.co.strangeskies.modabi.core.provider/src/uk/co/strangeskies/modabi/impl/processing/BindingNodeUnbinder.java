@@ -188,18 +188,15 @@ public class BindingNodeUnbinder {
 	private Object[] prepareUnbingingParameterList(BindingNode<?, ?> node, Object data) {
 		List<Object> parameters = new ArrayList<>();
 
-		boolean addedData = false;
 		if (node.providedOutputBindingMethodParameters() != null)
-			for (DataNode<?> parameter : node.providedOutputBindingMethodParameters()) {
-				if (parameter != null) {
-					parameters.add(parameter.providedValues() == null ? null : parameter.providedValues().get(0));
-				} else {
+			for (BindingNode<?, ?> parameter : node.providedOutputBindingMethodParameters()) {
+				if (parameter == node) {
 					parameters.add(data);
-					addedData = true;
+				} else {
+					List<?> values = ((DataNode<?>) parameter).providedValues();
+					parameters.add(values == null ? null : values.get(0));
 				}
 			}
-		if (!addedData)
-			parameters.add(0, data);
 
 		return parameters.toArray();
 	}

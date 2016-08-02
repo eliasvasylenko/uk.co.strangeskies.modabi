@@ -299,7 +299,7 @@ public class BindingNodeOverrider {
 			c = tryProperty(node, BindingNode::outputBindingMethodUnchecked, C::outputBindingMethodUnchecked, c);
 			c = tryProperty(node, BindingNode::outputBindingStrategy, C::outputBindingStrategy, c);
 			c = tryProperty(node,
-					b -> b.providedOutputBindingMethodParameters().stream().map(DataNode::name).collect(toList()),
+					b -> b.providedOutputBindingMethodParameters().stream().map(BindingNode::name).collect(toList()),
 					(cc, m) -> cc.providedOutputBindingMethodParameters(m), c);
 
 			return c;
