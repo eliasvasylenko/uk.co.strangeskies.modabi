@@ -26,18 +26,10 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNodeConfigurator;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.FieldMember;
-import uk.co.strangeskies.reflection.TypeMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
 class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements InputSequenceNode {
-	private final InputMemberType inputMemberType;
-	private final TypeMember<?> inputMember;
-	private final Boolean inMethodChained;
-	private final Boolean allowInMethodResultCast;
-	private final Boolean inMethodUnchecked;
-
-	private final TypeToken<?> preInputClass;
-	private final TypeToken<?> postInputClass;
+	private final InputNodeComponent inputNodeComponent;
 
 	protected InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
 		super(configurator);
@@ -48,16 +40,11 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 		List<TypeToken<?>> parameterClasses = configurator.getChildren().stream()
 				.map(o -> ((BindingChildNodeImpl<?, ?>) o).dataType()).collect(Collectors.toList());
 
-		InputNodeComponent inputNodeHelper = new InputNodeComponent(configurator, configurator.getContext(),
-				parameterClasses);
+		inputNodeComponent = new InputNodeComponent(configurator, configurator.getContext(), parameterClasses);
+	}
 
-		inMethodChained = inputNodeHelper.isInMethodChained();
-		allowInMethodResultCast = inputNodeHelper.isInMethodCast();
-		inMethodUnchecked = inputNodeHelper.isInMethodUnchecked();
-		inputMemberType = inputNodeHelper.getInputMemberType();
-		inputMember = inputNodeHelper.getInputMember();
-		preInputClass = inputNodeHelper.getPreInputType();
-		postInputClass = inputNodeHelper.getPostInputType();
+	protected InputNodeComponent getInputNodeComponent() {
+		return inputNodeComponent;
 	}
 
 	@Override
@@ -67,41 +54,43 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 
 	@Override
 	public InputMemberType inputMemberType() {
-		return inputMemberType;
+		return getInputNodeComponent().getInputMemberType();
 	}
 
 	@Override
 	public final ExecutableMember<?, ?> inputExecutable() {
-		return inputMemberType == InputMemberType.METHOD ? (ExecutableMember<?, ?>) inputMember : null;
+		return inputMemberType() == InputMemberType.METHOD
+				? (ExecutableMember<?, ?>) getInputNodeComponent().getInputMember() : null;
 	}
 
 	@Override
 	public FieldMember<?, ?> inputField() {
-		return inputMemberType == InputMemberType.FIELD ? (FieldMember<?, ?>) inputMember : null;
+		return inputMemberType() == InputMemberType.FIELD ? (FieldMember<?, ?>) getInputNodeComponent().getInputMember()
+				: null;
 	}
 
 	@Override
 	public final Boolean chainedInput() {
-		return inMethodChained;
+		return getInputNodeComponent().isInMethodChained();
 	}
 
 	@Override
 	public Boolean castInput() {
-		return allowInMethodResultCast;
+		return getInputNodeComponent().isInMethodCast();
 	}
 
 	@Override
 	public Boolean uncheckedInput() {
-		return inMethodUnchecked;
+		return getInputNodeComponent().isInMethodUnchecked();
 	}
 
 	@Override
 	public TypeToken<?> postInputType() {
-		return postInputClass;
+		return getInputNodeComponent().getPostInputType();
 	}
 
 	@Override
 	public TypeToken<?> preInputType() {
-		return preInputClass;
+		return getInputNodeComponent().getPreInputType();
 	}
 }

@@ -55,15 +55,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	private final Boolean castOutput;
 	private final Boolean iterableOutput;
 
-	private InputMemberType inputMemberType;
-	private TypeMember<?> inputMember;
-	private Boolean chainedInput;
-	private Boolean castInput;
-	private Boolean uncheckedInput;
-
-	private TypeToken<?> preInputType;
-	private TypeToken<?> postInputType;
-
 	private final Boolean extensible;
 
 	private final Boolean synchronous;
@@ -121,6 +112,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		}
 	}
 
+	protected abstract InputNodeComponent getInputNodeComponent();
+
 	public <C extends BindingChildNodeConfigurator<C, S, T>> void integrateIO(
 			BindingChildNodeConfiguratorImpl<C, S, T> configurator) {
 		TypeMember<?> outputMember;
@@ -157,8 +150,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		this.outputMember = outputMember;
 		this.outputMemberType = outputMemberType;
 
-		InputNodeComponent<S> inputNodeHelper = new InputNodeComponent<>(concrete(), name(),
-				configurator, configurator.getContext(), Arrays.asList(dataType()));
+		InputNodeComponent<S> inputNodeHelper = new InputNodeComponent<>(concrete(), name(), configurator,
+				configurator.getContext(), Arrays.asList(dataType()));
 
 		inputMemberType = inputNodeHelper.getInputMemberType();
 		chainedInput = inputNodeHelper.isInMethodChained();
@@ -167,6 +160,48 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		inputMember = inputNodeHelper.getInputMember();
 		preInputType = inputNodeHelper.getPreInputType();
 		postInputType = inputNodeHelper.getPostInputType();
+	}
+
+	@Override
+	public InputMemberType inputMemberType() {
+		return getInputNodeComponent().getInputMemberType();
+	}
+
+	@Override
+	public final ExecutableMember<?, ?> inputExecutable() {
+		return inputMemberType() == InputMemberType.METHOD
+				? (ExecutableMember<?, ?>) getInputNodeComponent().getInputMember() : null;
+	}
+
+	@Override
+	public FieldMember<?, ?> inputField() {
+		return inputMemberType() == InputMemberType.FIELD ? (FieldMember<?, ?>) getInputNodeComponent().getInputMember()
+				: null;
+	}
+
+	@Override
+	public final Boolean chainedInput() {
+		return getInputNodeComponent().isInMethodChained();
+	}
+
+	@Override
+	public Boolean castInput() {
+		return getInputNodeComponent().isInMethodCast();
+	}
+
+	@Override
+	public Boolean uncheckedInput() {
+		return getInputNodeComponent().isInMethodUnchecked();
+	}
+
+	@Override
+	public TypeToken<?> postInputType() {
+		return getInputNodeComponent().getPostInputType();
+	}
+
+	@Override
+	public TypeToken<?> preInputType() {
+		return getInputNodeComponent().getPreInputType();
 	}
 
 	@Override
@@ -192,16 +227,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	@Override
 	public SchemaNode<?> parent() {
 		return parent;
-	}
-
-	@Override
-	public TypeToken<?> preInputType() {
-		return preInputType;
-	}
-
-	@Override
-	public TypeToken<?> postInputType() {
-		return postInputType;
 	}
 
 	@Override
@@ -247,36 +272,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	@Override
 	public Boolean castOutput() {
 		return castOutput;
-	}
-
-	@Override
-	public InputMemberType inputMemberType() {
-		return inputMemberType;
-	}
-
-	@Override
-	public final ExecutableMember<?, ?> inputExecutable() {
-		return inputMemberType == InputMemberType.METHOD ? (ExecutableMember<?, ?>) inputMember : null;
-	}
-
-	@Override
-	public FieldMember<?, ?> inputField() {
-		return inputMemberType == InputMemberType.FIELD ? (FieldMember<?, ?>) inputMember : null;
-	}
-
-	@Override
-	public final Boolean chainedInput() {
-		return chainedInput;
-	}
-
-	@Override
-	public Boolean castInput() {
-		return castInput;
-	}
-
-	@Override
-	public Boolean uncheckedInput() {
-		return uncheckedInput;
 	}
 
 	@SuppressWarnings("unchecked")

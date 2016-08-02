@@ -35,11 +35,12 @@ import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.IntersectionType;
+import uk.co.strangeskies.reflection.TypeMember;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 
 public class InputNodeComponent {
-	private final ExecutableMember<?, ?> inMethod;
+	private final ExecutableMember<?, ?> inputMember;
 	private final InputMemberType inputMemberType;
 	private final Boolean inMethodChained;
 	private final Boolean allowInMethodResultCast;
@@ -65,9 +66,9 @@ public class InputNodeComponent {
 				: configurator.getOverride(InputNode::castInput, InputNodeConfigurator::getCastInput)
 						.orDefault(ifResolved(configurator, false)).get();
 
-		inMethod = inputMethod(configurator, context, inMethodParameters);
-		preInputType = preInputType();
-		postInputType = postInputType(configurator, context);
+		inputMember = determineInputMethod(configurator, context, inMethodParameters);
+		preInputType = determinePreInputType();
+		postInputType = determinePostInputType(configurator, context);
 	}
 
 	private boolean isResolved(SchemaNodeConfiguratorImpl<?, ?> configurator) {
@@ -94,8 +95,8 @@ public class InputNodeComponent {
 		return inMethodUnchecked;
 	}
 
-	public ExecutableMember<?, ?> getInputMember() {
-		return inMethod;
+	public TypeMember<?> getInputMember() {
+		return inputMember;
 	}
 
 	public TypeToken<?> getPreInputType() {
@@ -106,7 +107,7 @@ public class InputNodeComponent {
 		return postInputType;
 	}
 
-	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> inputMethod(
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> determineInputMethod(
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
 			List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> inExecutableMember;
@@ -290,19 +291,19 @@ public class InputNodeComponent {
 		return string == "" ? "" : Character.toUpperCase(string.charAt(0)) + string.substring(1);
 	}
 
-	private TypeToken<?> preInputType() {
+	private TypeToken<?> determinePreInputType() {
 		if (inputMemberType == InputMemberType.NONE) {
 			return null;
 
-		} else if (inMethod == null) {
+		} else if (inputMember == null) {
 			return null;
 
 		} else {
-			return inMethod.getDeclaringType();
+			return inputMember.getDeclaringType();
 		}
 	}
 
-	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> TypeToken<?> postInputType(
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> TypeToken<?> determinePostInputType(
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context) {
 		TypeToken<?> postInputClass;
 
@@ -314,7 +315,7 @@ public class InputNodeComponent {
 		} else {
 			TypeToken<?> methodReturn;
 
-			methodReturn = inMethod.getReturnType();
+			methodReturn = inputMember.getReturnType();
 
 			if (methodReturn.getType() instanceof TypeVariableCapture)
 				methodReturn = TypeToken
