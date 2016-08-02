@@ -25,7 +25,10 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
+import uk.co.strangeskies.text.properties.PropertyConfiguration;
+import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
+@PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
 public interface IoProperties extends Properties<IoProperties> {
 	ModabiProperties modabiProperties();
 

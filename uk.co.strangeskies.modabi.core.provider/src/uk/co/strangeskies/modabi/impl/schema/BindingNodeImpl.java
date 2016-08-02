@@ -78,7 +78,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		providedUnbindingParameters = !concrete() ? null
 				: findProvidedUnbindingParameters(this,
 						configurator.getOverride(BindingNodeConfigurator::getProvidedOutputBindingMethodParameters)
-								.orDefault(Collections.<QualifiedName>emptyList()).get());
+								.orDefault(Collections.<QualifiedName> emptyList()).get());
 
 		unbindingMethodUnchecked = configurator.getOverride(BindingNode::outputBindingMethodUnchecked,
 				BindingNodeConfigurator::getOutputBindingMethodUnchecked).tryGet();
@@ -191,7 +191,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		return providedUnbindingParameters;
 	}
 
-	private ExecutableMember<?, ?> findUnbindingMethod(BindingNodeConfiguratorImpl<?, S, T> configurator) {
+	private <C extends BindingNodeConfigurator<C, S, T>> ExecutableMember<?, ?> findUnbindingMethod(
+			BindingNodeConfiguratorImpl<C, S, T> configurator) {
 		OutputBindingStrategy unbindingStrategy = outputBindingStrategy();
 		if (unbindingStrategy == null)
 			unbindingStrategy = OutputBindingStrategy.SIMPLE;
@@ -205,16 +206,16 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		case PROVIDED_FACTORY:
 			TypeToken<?> receiverClass = outputBindingFactoryType() != null ? outputBindingFactoryType()
 					: outputBindingType();
-			return findUnbindingMethod(outputBindingType(), receiverClass,
-					findUnbindingMethodParameterClasses(BindingNodeImpl::dataType), configurator);
+			return findUnbindingMethod(configurator, outputBindingType(), receiverClass,
+					findUnbindingMethodParameterClasses(BindingNodeImpl::dataType));
 
 		case PASS_TO_PROVIDED:
-			return findUnbindingMethod(null, outputBindingType(),
-					findUnbindingMethodParameterClasses(BindingNodeImpl::dataType), configurator);
+			return findUnbindingMethod(configurator, null, outputBindingType(),
+					findUnbindingMethodParameterClasses(BindingNodeImpl::dataType));
 
 		case ACCEPT_PROVIDED:
-			return findUnbindingMethod(null, dataType(), findUnbindingMethodParameterClasses(t -> t.outputBindingType()),
-					configurator);
+			return findUnbindingMethod(configurator, null, dataType(),
+					findUnbindingMethodParameterClasses(t -> t.outputBindingType()));
 		}
 		throw new AssertionError();
 	}
@@ -274,8 +275,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U> ExecutableMember<?, ?> findUnbindingMethod(TypeToken<?> result, TypeToken<U> receiver,
-			List<TypeToken<?>> parameters, BindingNodeConfiguratorImpl<?, S, T> configurator) {
+	private <C extends BindingNodeConfigurator<C, S, T>, U> ExecutableMember<?, ?> findUnbindingMethod(
+			BindingNodeConfiguratorImpl<C, S, T> configurator, TypeToken<?> result, TypeToken<U> receiver,
+			List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
 
 		if (overridden != null) {
@@ -296,17 +298,23 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 						.collect(Collectors.toList());
 			}
 
-			List<String> names = generateUnbindingMethodNames(result);
+			List<String> names = generateUnbindingMethodNames(configurator, result);
 			return Methods.findMethod(names, receiver, inputBindingStrategy() == InputBindingStrategy.STATIC_FACTORY, result,
 					false, parameters);
 		}
 	}
 
-	private List<String> generateUnbindingMethodNames(TypeToken<?> resultClass) {
+	private <C extends BindingNodeConfigurator<C, S, T>> List<String> generateUnbindingMethodNames(
+			BindingNodeConfiguratorImpl<C, S, T> configurator, TypeToken<?> resultClass) {
+		String name = configurator
+				.getOverride(n -> n.outputBindingMethod() == null ? null : n.outputBindingMethod().getName(),
+						BindingNodeConfigurator::getOutputBindingMethod)
+				.tryGet();
+
 		List<String> names;
 
-		if (configurator().getOutputBindingMethod() != null)
-			names = Arrays.asList(configurator().getOutputBindingMethod());
+		if (name != null)
+			names = Arrays.asList(name);
 		else
 			names = generateUnbindingMethodNames(name().getName(), false, resultClass.getRawType());
 

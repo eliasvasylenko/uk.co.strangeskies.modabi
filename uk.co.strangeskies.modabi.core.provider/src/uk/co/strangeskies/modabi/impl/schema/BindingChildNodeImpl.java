@@ -149,17 +149,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		}
 		this.outputMember = outputMember;
 		this.outputMemberType = outputMemberType;
-
-		InputNodeComponent<S> inputNodeHelper = new InputNodeComponent<>(concrete(), name(), configurator,
-				configurator.getContext(), Arrays.asList(dataType()));
-
-		inputMemberType = inputNodeHelper.getInputMemberType();
-		chainedInput = inputNodeHelper.isInMethodChained();
-		castInput = inputNodeHelper.isInMethodCast();
-		uncheckedInput = inputNodeHelper.isInMethodUnchecked();
-		inputMember = inputNodeHelper.getInputMember();
-		preInputType = inputNodeHelper.getPreInputType();
-		postInputType = inputNodeHelper.getPostInputType();
 	}
 
 	@Override

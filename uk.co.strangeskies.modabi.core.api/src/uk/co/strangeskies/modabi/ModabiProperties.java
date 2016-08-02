@@ -30,7 +30,6 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.InputNode;
@@ -42,7 +41,7 @@ import uk.co.strangeskies.text.properties.Properties;
 import uk.co.strangeskies.text.properties.PropertyConfiguration;
 import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
-@PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".")
+@PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
 public interface ModabiProperties extends Properties<ModabiProperties> {
 	Localized<String> noTypeFoundForType(QualifiedName dataType, Type type);
 
@@ -126,21 +125,9 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 
 	Localized<String> noMethodCandidatesFoundForNames(Collection<String> names);
 
-	default Localized<String> noInputMemberFound(TypeToken<?> receiver, List<TypeToken<?>> parameters,
-			InputNode.InputMemberType type) {
-		return noMemberFound(type, receiver, parameters);
-	}
+	Localized<String> noConstructorFound(TypeToken<?> receiver, List<TypeToken<?>> parameters);
 
-	default Localized<String> noOutputMemberFound(TypeToken<?> receiver, List<TypeToken<?>> parameters,
-			BindingChildNode.OutputMemberType type) {
-		return noMemberFound(type, receiver, parameters);
-	}
-
-	default Localized<String> noMemberFound(TypeToken<?> receiver, List<TypeToken<?>> parameters, Object type) {
-		return noMemberFound(type, receiver, parameters);
-	}
-
-	Localized<String> noMemberFound(Object type, TypeToken<?> receiver, List<TypeToken<?>> parameters);
+	Localized<String> noMethodFound(TypeToken<?> receiver, List<TypeToken<?>> parameters);
 
 	Localized<String> inMethodMustBeChained(QualifiedName name, InputNode.InputMemberType type);
 
@@ -173,8 +160,6 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 	Localized<String> cannotInvokeOnProxyNode(Method method, QualifiedName node);
 
 	Localized<String> cannotDefineInputInContext(QualifiedName name);
-
-	Localized<String> inMethodMustBeThis();
 
 	Localized<String> cannotAcceptFormat(QualifiedName name);
 

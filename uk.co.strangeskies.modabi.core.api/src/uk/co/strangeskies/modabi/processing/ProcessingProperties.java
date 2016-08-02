@@ -34,7 +34,10 @@ import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
 import uk.co.strangeskies.text.properties.Properties;
+import uk.co.strangeskies.text.properties.PropertyConfiguration;
+import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
+@PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
 public interface ProcessingProperties extends Properties<ProcessingProperties> {
 	ModabiProperties modabiException();
 

@@ -33,6 +33,8 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 
 	private final boolean inline;
 
+	private final InputNodeComponent inputNodeComponent;
+
 	protected ComplexNodeImpl(ComplexNodeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
@@ -47,6 +49,13 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 
 		if (this.inline && extensible() != null && extensible())
 			throw new ModabiException(t -> t.cannotBeInlineExtensible(name()));
+
+		inputNodeComponent = new InputNodeComponent(configurator, configurator.getContext(), dataType());
+	}
+
+	@Override
+	protected InputNodeComponent getInputNodeComponent() {
+		return inputNodeComponent;
 	}
 
 	@SuppressWarnings("unchecked")

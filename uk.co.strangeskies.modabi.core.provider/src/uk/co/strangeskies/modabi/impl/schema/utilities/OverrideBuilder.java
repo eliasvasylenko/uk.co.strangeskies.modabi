@@ -35,8 +35,11 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 
 		values = configurator.getOverridenValues(n -> {
 			T value = valueFunction.apply(n);
-		//	if (value == null && givenValueFunction != null)
-			//	value = givenValueFunction.apply((S) n.configurator());
+			if (value == null && givenValueFunction != null) {
+				@SuppressWarnings("unchecked")
+				S c = (S) n.configurator();
+				value = givenValueFunction.apply(c);
+			}
 			return value;
 		});
 

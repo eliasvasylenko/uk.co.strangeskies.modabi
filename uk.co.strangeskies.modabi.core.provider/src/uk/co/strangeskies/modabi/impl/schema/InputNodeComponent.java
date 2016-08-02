@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.ModabiProperties.ExecutableType;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
@@ -51,10 +50,15 @@ public class InputNodeComponent {
 
 	public <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> InputNodeComponent(
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
+			TypeToken<?>... inMethodParameters) {
+		this(configurator, context, Arrays.asList(inMethodParameters));
+	}
+
+	public <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> InputNodeComponent(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context,
 			List<TypeToken<?>> inMethodParameters) {
 
-		inputMemberType = configurator.getOverride(InputNode::inputMemberType, InputNodeConfigurator::getInputMemberType)
-				.get();
+		inputMemberType = determineInputMemberType(configurator, context);
 
 		inMethodChained = configurator.getOverride(InputNode::chainedInput, InputNodeConfigurator::getChainedInput)
 				.orDefault(ifResolved(configurator, context.isConstructorExpected() || context.isStaticMethodExpected())).get();
@@ -69,6 +73,23 @@ public class InputNodeComponent {
 		inputMember = determineInputMethod(configurator, context, inMethodParameters);
 		preInputType = determinePreInputType();
 		postInputType = determinePostInputType(configurator, context);
+	}
+
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> InputMemberType determineInputMemberType(
+			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context) {
+		return configurator.getOverride(InputNode::inputMemberType, c -> {
+
+			InputMemberType type = c.getInputMemberType();
+			if (type == InputMemberType.METHOD) {
+				if (context.isConstructorExpected()) {
+					type = InputMemberType.CONSTRUCTOR;
+				} else if (context.isStaticMethodExpected()) {
+					type = InputMemberType.STATIC_METHOD;
+				}
+			}
+
+			return type;
+		}).get();
 	}
 
 	private boolean isResolved(SchemaNodeConfiguratorImpl<?, ?> configurator) {
@@ -115,72 +136,50 @@ public class InputNodeComponent {
 		if (!isResolved(configurator) || inputMemberType != InputMemberType.METHOD) {
 			inExecutableMember = null;
 		} else {
-			String givenInMethodName = configurator
-					.getOverride(n -> n.inputExecutable() == null ? null : n.inputExecutable().getName(),
-							InputNodeConfigurator::getInputMember)
-					.tryGet();
-
 			TypeToken<?> inputTargetType = context.inputTargetType();
 
-			try {
-				TypeToken<?> result = getResultType(configurator, context);
+			TypeToken<?> result = getResultType(configurator, context);
 
-				/*
-				 * cast parameter types to their raw types if unchecked
-				 */
-				if (inMethodUnchecked)
-					parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
-							.collect(Collectors.toList());
+			/*
+			 * cast parameter types to their raw types if unchecked
+			 */
+			if (inMethodUnchecked)
+				parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
+						.collect(Collectors.toList());
 
-				/*
-				 * first try to find and validate an inherited in method ...
-				 */
-				inExecutableMember = resolveOverriddenInMethod(configurator, inputTargetType, parameters);
-				/*
-				 * ... then if none exists, resolve one from scratch
-				 */
-				if (inExecutableMember == null) {
-					inExecutableMember = resolveInMethod(configurator, context, givenInMethodName, inputTargetType, result,
+			/*
+			 * first try to find and validate an inherited in method ...
+			 */
+			inExecutableMember = resolveOverriddenInMethod(configurator, inputTargetType, parameters);
+			/*
+			 * ... then if none exists, resolve one from scratch
+			 */
+			if (inExecutableMember == null) {
+				if (inputMemberType == InputMemberType.CONSTRUCTOR) {
+					return Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
+
+				} else {
+					String givenInMethodName = configurator
+							.getOverride(n -> n.inputExecutable() == null ? null : n.inputExecutable().getName(),
+									InputNodeConfigurator::getInputMember)
+							.tryGet();
+
+					return Methods.findMethod(generateInMethodNames(configurator.getResult().name(), givenInMethodName),
+							inputTargetType, context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
 							parameters);
 				}
-
-				/*
-				 * We're incorporating the preliminary types rather than those improved
-				 * by accounting for reified provided values!
-				 */
-
-				context.boundSet().incorporate(inExecutableMember.getResolver().getBounds());
-			} catch (Exception e) {
-				List<TypeToken<?>> parametersFinal = parameters;
-				ExecutableType type = context.isStaticMethodExpected() ? ExecutableType.STATIC_METHOD
-						: (context.isConstructorExpected() ? ExecutableType.CONSTRUCTOR : ExecutableType.METHOD);
-
-				throw new ModabiException(t -> t.noMemberFound(inputTargetType, parametersFinal, type), e);
 			}
+
+			/*
+			 * We're incorporating the preliminary types rather than those improved by
+			 * accounting for reified provided values!
+			 */
+
+			context.boundSet().incorporate(inExecutableMember.getResolver().getBounds());
 		}
 
 		return inExecutableMember;
-	}
 
-	/*
-	 * resolve the exact in method overload
-	 */
-	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> ExecutableMember<?, ?> resolveInMethod(
-			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context, String givenInMethodName,
-			TypeToken<?> inputTargetType, TypeToken<?> result, List<TypeToken<?>> parameters) throws NoSuchMethodException {
-
-		if (context.isConstructorExpected()) {
-			if (givenInMethodName != null && !givenInMethodName.equals("this")) {
-				throw new ModabiException(t -> t.inMethodMustBeThis());
-			}
-			return Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
-
-		} else {
-
-			return Methods.findMethod(generateInMethodNames(configurator.getResult().name(), givenInMethodName),
-					inputTargetType, context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
-					parameters);
-		}
 	}
 
 	/*
@@ -222,7 +221,7 @@ public class InputNodeComponent {
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context) {
 		if (inMethodChained) {
 			TypeToken<?> resultType = configurator
-					.<TypeToken<?>>getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
+					.<TypeToken<?>> getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
 					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
@@ -252,9 +251,7 @@ public class InputNodeComponent {
 			return resultType != null ? resultType : TypeToken.over(Object.class);
 		} else {
 			if (context.isConstructorExpected() || context.isStaticMethodExpected()) {
-				ExecutableType type = context.isStaticMethodExpected() ? ExecutableType.STATIC_METHOD
-						: ExecutableType.CONSTRUCTOR;
-				throw new ModabiException(t -> t.inMethodMustBeChained(name, type));
+				throw new ModabiException(t -> t.inMethodMustBeChained(configurator.getResult().name(), inputMemberType));
 			}
 
 			return null;

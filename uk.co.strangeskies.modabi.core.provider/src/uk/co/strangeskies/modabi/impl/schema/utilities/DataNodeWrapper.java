@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.impl.schema.DataNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
@@ -44,11 +45,11 @@ public final class DataNodeWrapper<T> extends BindingChildNodeWrapper<T, DataNod
 		for (Object providedValue : base.providedValues())
 			if (base.providedValues() != null
 					&& !TypeToken.over(component.dataType().getType()).isAssignableFrom(providedValue.getClass()))
-				throw this.<Object>getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
+				throw this.<Object> getOverrideException(n -> n.providedValues(), base.providedValues(), component.dataType(),
 						null);
 
 		if (!component.base().containsAll(base.base()))
-			throw this.<Object>getOverrideException(DataNode::type, base.base(), component.base(), null);
+			throw this.<Object> getOverrideException(DataNode::type, base.base(), component.base(), null);
 	}
 
 	protected DataNodeWrapper(DataNode<T> node) {
@@ -63,7 +64,7 @@ public final class DataNodeWrapper<T> extends BindingChildNodeWrapper<T, DataNod
 		if (getBase() != null) {
 			baseConfigurator = (DataNodeConfigurator<T>) getBase().configurator();
 		} else {
-			baseConfigurator = null;
+			baseConfigurator = new DataNodeConfiguratorImpl<>((SchemaNodeConfigurationContext) null);
 		}
 
 		return baseConfigurator.type(type);

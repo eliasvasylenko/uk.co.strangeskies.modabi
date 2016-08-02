@@ -23,25 +23,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import javax.lang.model.type.ExecutableType;
-
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class Methods {
 	public static <T> ExecutableMember<? super T, ? extends T> findConstructor(TypeToken<T> receiver,
-			TypeToken<?>... parameters) throws NoSuchMethodException {
+			TypeToken<?>... parameters) {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
 	public static <T> ExecutableMember<? super T, ? extends T> findConstructor(TypeToken<T> receiver,
-			List<TypeToken<?>> parameters) throws NoSuchMethodException {
+			List<TypeToken<?>> parameters) {
 		ExecutableMember<? super T, ? extends T> constructor;
 		try {
 			constructor = receiver.resolveConstructorOverload(parameters);
 		} catch (Exception e) {
-			throw new ModabiException(t -> t.noMemberFound(receiver, parameters, ExecutableType.CONSTRUCTOR), e);
+			throw new ModabiException(t -> t.noConstructorFound(receiver, parameters), e);
 		}
 
 		return constructor;
@@ -59,8 +57,7 @@ public class Methods {
 		try {
 			method = resolveMethodOverload(receiver, names, parameters);
 		} catch (Exception e) {
-			ExecutableType type = isStatic ? ExecutableType.STATIC_METHOD : ExecutableType.METHOD;
-			throw new ModabiException(t -> t.noMemberFound(receiver, parameters, type), e);
+			throw new ModabiException(t -> t.noMethodFound(receiver, parameters), e);
 		}
 
 		if (result != null) {
