@@ -72,12 +72,12 @@ public class InputNodeComponent {
 		InputMemberType inputMemberType = determineInputMemberType(configurator, context);
 		if (inputMemberType == null) {
 			try {
-				inputMember = determineInputMethod(configurator, context, InputMemberType.METHOD, inMethodParameters);
-				inputMemberType = InputMemberType.METHOD;
+				inputMemberType = modifyInputMemberType(context, InputMemberType.METHOD);
+				inputMember = determineInputMethod(configurator, context, inputMemberType, inMethodParameters);
 			} catch (Exception methodException) {
 				try {
-					inputMember = determineInputField(configurator, context, inMethodParameters);
 					inputMemberType = InputMemberType.FIELD;
+					inputMember = determineInputField(configurator, context, inMethodParameters);
 				} catch (Exception fieldException) {
 					throw methodException;
 				}
@@ -108,19 +108,21 @@ public class InputNodeComponent {
 
 	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> InputMemberType determineInputMemberType(
 			SchemaNodeConfiguratorImpl<C, N> configurator, SchemaNodeConfigurationContext context) {
-		return configurator.getOverride(InputNode::inputMemberType, c -> {
+		return configurator
+				.getOverride(InputNode::inputMemberType, c -> modifyInputMemberType(context, c.getInputMemberType())).tryGet();
+	}
 
-			InputMemberType type = c.getInputMemberType();
-			if (type == InputMemberType.METHOD) {
-				if (context.isConstructorExpected()) {
-					type = InputMemberType.CONSTRUCTOR;
-				} else if (context.isStaticMethodExpected()) {
-					type = InputMemberType.STATIC_METHOD;
-				}
+	private <C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> InputMemberType modifyInputMemberType(
+			SchemaNodeConfigurationContext context, InputMemberType type) {
+		if (type == InputMemberType.METHOD) {
+			if (context.isConstructorExpected()) {
+				type = InputMemberType.CONSTRUCTOR;
+			} else if (context.isStaticMethodExpected()) {
+				type = InputMemberType.STATIC_METHOD;
 			}
+		}
 
-			return type;
-		}).tryGet();
+		return type;
 	}
 
 	private boolean isResolved(SchemaNodeConfiguratorImpl<?, ?> configurator) {
@@ -170,7 +172,7 @@ public class InputNodeComponent {
 			InputMemberType inputMemberType, List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> inExecutableMember;
 
-		if (!isResolved(configurator) || inputMemberType != InputMemberType.METHOD) {
+		if (!isResolved(configurator)) {
 			inExecutableMember = null;
 		} else {
 			TypeToken<?> inputTargetType = context.inputTargetType();
@@ -193,7 +195,7 @@ public class InputNodeComponent {
 			 */
 			if (inExecutableMember == null) {
 				if (inputMemberType == InputMemberType.CONSTRUCTOR) {
-					return Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
+					inExecutableMember = Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
 
 				} else {
 					String givenInMethodName = configurator
@@ -201,9 +203,9 @@ public class InputNodeComponent {
 									InputNodeConfigurator::getInputMember)
 							.tryGet();
 
-					return Methods.findMethod(generateInMethodNames(configurator.getResult().name(), givenInMethodName),
-							inputTargetType, context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
-							parameters);
+					inExecutableMember = Methods.findMethod(
+							generateInMethodNames(configurator.getResult().name(), givenInMethodName), inputTargetType,
+							context.isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast, parameters);
 				}
 			}
 
@@ -216,7 +218,6 @@ public class InputNodeComponent {
 		}
 
 		return inExecutableMember;
-
 	}
 
 	/*

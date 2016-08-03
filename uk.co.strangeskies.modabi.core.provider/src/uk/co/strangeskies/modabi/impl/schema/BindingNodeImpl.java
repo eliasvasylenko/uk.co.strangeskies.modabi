@@ -207,15 +207,15 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			TypeToken<?> receiverClass = outputBindingFactoryType() != null ? outputBindingFactoryType()
 					: outputBindingType();
 			return findUnbindingMethod(configurator, outputBindingType(), receiverClass,
-					findUnbindingMethodParameterClasses(BindingNodeImpl::dataType));
+					findUnbindingMethodParameterClasses(configurator, BindingNodeImpl::dataType));
 
 		case PASS_TO_PROVIDED:
 			return findUnbindingMethod(configurator, null, outputBindingType(),
-					findUnbindingMethodParameterClasses(BindingNodeImpl::dataType));
+					findUnbindingMethodParameterClasses(configurator, BindingNodeImpl::dataType));
 
 		case ACCEPT_PROVIDED:
 			return findUnbindingMethod(configurator, null, dataType(),
-					findUnbindingMethodParameterClasses(t -> t.outputBindingType()));
+					findUnbindingMethodParameterClasses(configurator, t -> t.outputBindingType()));
 		}
 		throw new AssertionError();
 	}
@@ -227,14 +227,17 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 					List<QualifiedName> parameterNames = c.getProvidedOutputBindingMethodParameters();
 
 					if (parameterNames == null) {
-						return null;
+						if (c.getOutputBindingMethod() != null) {
+							return Arrays.asList(BindingNodeImpl.this);
+						} else {
+							return null;
+						}
 					} else {
 						boolean encounteredThisParameter = false;
 						ArrayList<BindingNode<?, ?>> inheritedParameters = new ArrayList<>(parameterNames.size() + 1);
 
 						for (QualifiedName parameterName : parameterNames) {
 							if (parameterName.equals(THIS_PARAMETER)) {
-								// TODO add at start if missing, and consider namespace
 								inheritedParameters.add(BindingNodeImpl.this);
 								encounteredThisParameter = true;
 							} else {
@@ -259,25 +262,29 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 
 						if (!encounteredThisParameter) {
 							inheritedParameters.add(0, BindingNodeImpl.this);
-						} else {
-							inheritedParameters.trimToSize();
 						}
+
+						inheritedParameters.trimToSize();
 
 						return inheritedParameters;
 					}
 				}).orDefault(Collections.<BindingNode<?, ?>> emptyList()).get();
 
-		return Collections.unmodifiableList(parameters);
+		if (parameters == null) {
+			return null;
+		} else {
+			return Collections.unmodifiableList(parameters);
+		}
 	}
 
-	private List<TypeToken<?>> findUnbindingMethodParameterClasses(
+	private List<TypeToken<?>> findUnbindingMethodParameterClasses(BindingNodeConfiguratorImpl<?, S, T> configurator,
 			Function<BindingNodeImpl<?, ?>, TypeToken<?>> nodeClass) {
 		List<TypeToken<?>> classList = new ArrayList<>();
 
 		List<BindingNode<?, ?>> parameters = providedOutputBindingMethodParameters();
 		if (parameters != null) {
 			for (BindingNode<?, ?> parameter : parameters) {
-				if (parameter == null) {
+				if (this == parameter || configurator.getOverriddenNodes().contains(parameter)) {
 					classList.add(nodeClass.apply(this));
 				} else {
 					classList.add(parameter.dataType());
@@ -297,6 +304,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			BindingNodeConfiguratorImpl<C, S, T> configurator, TypeToken<?> result, TypeToken<U> receiver,
 			List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
+
+		System.out.println(overridden);
+		System.out.println(parameters);
 
 		if (overridden != null) {
 			ExecutableMember<U, ?> ExecutableMember = (ExecutableMember<U, ?>) overridden.withLooseApplicability(parameters);

@@ -42,10 +42,10 @@ public interface DataNode<T> extends BindingChildNode<T, DataNode<T>> {
 		List<DataType<? super T>> base = new ArrayList<>();
 
 		DataType<? super T> baseComponent = type();
-		do {
+		while (baseComponent != null) {
 			base.add(baseComponent);
 			baseComponent = baseComponent.baseType();
-		} while (baseComponent != null);
+		}
 
 		return base;
 	}
