@@ -183,7 +183,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
 									.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
 											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
-
+			
 			bindingReferenceType = factory
 					.apply("bindingReference",
 							t -> t

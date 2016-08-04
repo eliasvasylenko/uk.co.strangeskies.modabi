@@ -39,6 +39,10 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 				@SuppressWarnings("unchecked")
 				S c = (S) n.configurator();
 				value = givenValueFunction.apply(c);
+				
+				/*
+				 * TODO 
+				 */
 			}
 			return value;
 		});

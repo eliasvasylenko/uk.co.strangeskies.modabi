@@ -78,7 +78,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 						BindingNodeConfigurator::getOutputBindingMethod)
 				.tryGet();
 
-		providedUnbindingParameters = !concrete() ? null : findProvidedUnbindingParameters(configurator);
+		providedUnbindingParameters = findProvidedUnbindingParameters(configurator);
 
 		unbindingMethodUnchecked = configurator.getOverride(BindingNode::outputBindingMethodUnchecked,
 				BindingNodeConfigurator::getOutputBindingMethodUnchecked).tryGet();
@@ -112,7 +112,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		unbindingType = inferDataType(configurator.getEffectiveUnbindingType(), bounds);
 		unbindingFactoryType = inferDataType(configurator.getEffectiveUnbindingFactoryType(), bounds);
 
-		unbindingMethod = !concrete() ? null : findUnbindingMethod(configurator);
+		unbindingMethod = findUnbindingMethod(configurator);
 
 		if (unbindingMethodName == null && concrete() && unbindingStrategy != OutputBindingStrategy.SIMPLE
 				&& unbindingStrategy != OutputBindingStrategy.CONSTRUCTOR)
@@ -223,57 +223,71 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private <C extends BindingNodeConfigurator<C, S, T>> List<BindingNode<?, ?>> findProvidedUnbindingParameters(
 			BindingNodeConfiguratorImpl<C, S, T> configurator) {
 		List<? extends BindingNode<?, ?>> parameters = configurator
-				.getOverride(BindingNode::providedOutputBindingMethodParameters, c -> {
-					List<QualifiedName> parameterNames = c.getProvidedOutputBindingMethodParameters();
-
-					if (parameterNames == null) {
-						if (c.getOutputBindingMethod() != null) {
-							return Arrays.asList(BindingNodeImpl.this);
-						} else {
-							return null;
-						}
-					} else {
-						boolean encounteredThisParameter = false;
-						ArrayList<BindingNode<?, ?>> inheritedParameters = new ArrayList<>(parameterNames.size() + 1);
-
-						for (QualifiedName parameterName : parameterNames) {
-							if (parameterName.equals(THIS_PARAMETER)) {
-								inheritedParameters.add(BindingNodeImpl.this);
-								encounteredThisParameter = true;
-							} else {
-								ChildNode<?> effective = children().stream().filter(n -> n.name().equals(parameterName)).findAny()
-										.orElseThrow(() -> new ModabiException(t -> t.cannotFindUnbindingParameter(parameterName)));
-
-								if (!(effective instanceof DataNode))
-									throw new ModabiException(t -> t.unbindingParameterMustBeDataNode(effective, parameterName));
-
-								DataNode<?> dataNode = (DataNode<?>) effective;
-
-								if (dataNode.occurrences() != null
-										&& (dataNode.occurrences().getTo() != 1 || dataNode.occurrences().getFrom() != 1))
-									throw new ModabiException(t -> t.unbindingParameterMustOccurOnce(effective, parameterName));
-
-								if (concrete() && !dataNode.isValueProvided())
-									throw new ModabiException(t -> t.unbindingParameterMustProvideValue(effective, parameterName));
-
-								inheritedParameters.add(dataNode);
-							}
-						}
-
-						if (!encounteredThisParameter) {
-							inheritedParameters.add(0, BindingNodeImpl.this);
-						}
-
-						inheritedParameters.trimToSize();
-
-						return inheritedParameters;
-					}
-				}).orDefault(Collections.<BindingNode<?, ?>> emptyList()).get();
+				.getOverride(this::getOverriddenProvidedUnbindingParameters, this::getGivenProvidedUnbindingParameters)
+				.orDefault(Collections.emptyList()).get();
 
 		if (parameters == null) {
 			return null;
 		} else {
 			return Collections.unmodifiableList(parameters);
+		}
+	}
+
+	private List<BindingNode<?, ?>> getOverriddenProvidedUnbindingParameters(BindingNode<T, ?> node) {
+		List<BindingNode<?, ?>> parameters = node.providedOutputBindingMethodParameters();
+
+		if (parameters == null)
+			return null;
+		else
+			return node.providedOutputBindingMethodParameters().stream().map(p -> {
+				return (p == node) ? BindingNodeImpl.this : p;
+			}).collect(Collectors.toList());
+	}
+
+	private List<BindingNode<?, ?>> getGivenProvidedUnbindingParameters(BindingNodeConfigurator<?, S, T> configurator) {
+		List<QualifiedName> parameterNames = configurator.getProvidedOutputBindingMethodParameters();
+
+		if (parameterNames == null) {
+			if (configurator.getOutputBindingMethod() != null) {
+				return Arrays.asList(BindingNodeImpl.this);
+			} else {
+				return null;
+			}
+		} else {
+			boolean encounteredThisParameter = false;
+			ArrayList<BindingNode<?, ?>> inheritedParameters = new ArrayList<>(parameterNames.size() + 1);
+
+			for (QualifiedName parameterName : parameterNames) {
+				if (parameterName.equals(THIS_PARAMETER)) {
+					inheritedParameters.add(BindingNodeImpl.this);
+					encounteredThisParameter = true;
+				} else {
+					ChildNode<?> effective = children().stream().filter(n -> n.name().equals(parameterName)).findAny()
+							.orElseThrow(() -> new ModabiException(t -> t.cannotFindUnbindingParameter(parameterName)));
+
+					if (!(effective instanceof DataNode))
+						throw new ModabiException(t -> t.unbindingParameterMustBeDataNode(effective, parameterName));
+
+					DataNode<?> dataNode = (DataNode<?>) effective;
+
+					if (dataNode.occurrences() != null
+							&& (dataNode.occurrences().getTo() != 1 || dataNode.occurrences().getFrom() != 1))
+						throw new ModabiException(t -> t.unbindingParameterMustOccurOnce(effective, parameterName));
+
+					if (concrete() && !dataNode.isValueProvided())
+						throw new ModabiException(t -> t.unbindingParameterMustProvideValue(effective, parameterName));
+
+					inheritedParameters.add(dataNode);
+				}
+			}
+
+			if (!encounteredThisParameter) {
+				inheritedParameters.add(0, BindingNodeImpl.this);
+			}
+
+			inheritedParameters.trimToSize();
+
+			return inheritedParameters;
 		}
 	}
 
@@ -284,7 +298,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		List<BindingNode<?, ?>> parameters = providedOutputBindingMethodParameters();
 		if (parameters != null) {
 			for (BindingNode<?, ?> parameter : parameters) {
-				if (this == parameter || configurator.getOverriddenNodes().contains(parameter)) {
+				if (this == parameter) {
 					classList.add(nodeClass.apply(this));
 				} else {
 					classList.add(parameter.dataType());
@@ -305,9 +319,6 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			List<TypeToken<?>> parameters) {
 		ExecutableMember<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
 
-		System.out.println(overridden);
-		System.out.println(parameters);
-
 		if (overridden != null) {
 			ExecutableMember<U, ?> ExecutableMember = (ExecutableMember<U, ?>) overridden.withLooseApplicability(parameters);
 			if (receiver != null)
@@ -316,6 +327,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 				ExecutableMember = ExecutableMember.withTargetType(result);
 
 			return overridden;
+		} else if (!concrete()) {
+			return null;
 		} else {
 			if (outputBindingMethodUnchecked() != null && outputBindingMethodUnchecked()) {
 				if (result != null)
@@ -344,6 +357,10 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		if (name != null)
 			names = Arrays.asList(name);
 		else
+			/*
+			 * TODO perhaps the cause of NPE or resultClass is that we shouldn't deal
+			 * with unbinding stuff at all because of the outputNone()
+			 */
 			names = generateUnbindingMethodNames(name().getName(), false, resultClass.getRawType());
 
 		return names;

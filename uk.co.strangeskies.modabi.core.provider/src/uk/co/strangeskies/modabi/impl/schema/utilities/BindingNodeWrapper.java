@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -179,7 +180,12 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 
 	@Override
 	public final List<BindingNode<?, ?>> providedOutputBindingMethodParameters() {
-		return component.providedOutputBindingMethodParameters();
+		if (component.providedOutputBindingMethodParameters() == null) {
+			return null;
+		} else {
+			return component.providedOutputBindingMethodParameters().stream().map(n -> (n == component) ? this : n)
+					.collect(Collectors.toList());
+		}
 	}
 
 	@Override
