@@ -25,6 +25,7 @@ import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -206,5 +207,15 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	@Override
 	public TypeToken<T> getDataType() {
 		return component.getDataType();
+	}
+
+	@Override
+	public List<ChildNode<?>> getChildren() {
+		return getComponent().getChildren();
+	}
+
+	@Override
+	public List<N> getOverriddenNodes() {
+		return getComponent().getOverriddenNodes();
 	}
 }

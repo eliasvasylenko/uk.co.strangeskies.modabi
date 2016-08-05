@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -50,4 +51,8 @@ public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, 
 
 		return this;
 	}
+
+	List<ChildNode<?>> getChildren();
+
+	List<N> getOverriddenNodes();
 }

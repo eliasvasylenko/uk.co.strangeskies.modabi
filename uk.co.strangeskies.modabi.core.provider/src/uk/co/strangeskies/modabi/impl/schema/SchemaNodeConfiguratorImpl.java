@@ -68,6 +68,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return node;
 	}
 
+	@Override
 	public List<ChildNode<?>> getChildren() {
 		if (children == null) {
 			children = getChildrenConfigurator().create();
@@ -117,8 +118,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	protected abstract Imports getImports();
 
-	public abstract List<? extends SchemaNode<?>> getOverriddenNodes();
-
 	protected abstract ChildrenConfigurator createChildrenConfigurator();
 
 	@Override
@@ -140,17 +139,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				imports);
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> Set<T> getOverridenValues(Function<N, T> valueFunction) {
-		return getOverriddenNodes().stream().map(n -> valueFunction.apply((N) n)).filter(Objects::nonNull)
+		return getOverriddenNodes().stream().map(n -> valueFunction.apply(n)).filter(Objects::nonNull)
 				.collect(Collectors.toSet());
 	}
 
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, valueFunction, givenValueFunction).or();
+		return new OverrideBuilder<>(this, valueFunction, givenValueFunction);
 	}
 
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, n -> null, givenValueFunction).or();
+		return new OverrideBuilder<>(this, n -> null, givenValueFunction);
 	}
 }

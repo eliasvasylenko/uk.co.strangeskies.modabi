@@ -1,11 +1,17 @@
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
@@ -35,20 +41,38 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 
 		values = configurator.getOverridenValues(n -> {
 			T value = valueFunction.apply(n);
-			if (value == null && givenValueFunction != null) {
+
+			if (value != null) {
+				return Arrays.asList(value);
+			} else if (givenValueFunction == null) {
+				return Collections.<T> emptyList();
+			} else {
+				List<S> values = new ArrayList<>();
+
 				@SuppressWarnings("unchecked")
 				S c = (S) n.configurator();
-				value = givenValueFunction.apply(c);
-				
-				/*
-				 * TODO 
-				 */
+				values.add(c);
+
+				Set<SchemaNode<?>> contains = new HashSet<>();
+				contains.add(n);
+
+				for (int i = 0; i < values.size(); i++) {
+					for (N nn : values.get(i).getOverriddenNodes()) {
+						@SuppressWarnings("unchecked")
+						S nnc = (S) nn.configurator();
+
+						if (contains.add(nn)) {
+							values.add(nnc);
+						}
+					}
+				}
+
+				return values.stream().map(givenValueFunction::apply).collect(Collectors.toList());
 			}
-			return value;
-		});
+		}).stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
 		validation = null;
-		override = null;
+		override = givenValueFunction.apply(configurator.getThis());
 	}
 
 	private OverrideBuilder(OverrideBuilder<T, S, N> from, BiPredicate<? super T, ? super T> validation, T override) {
@@ -108,10 +132,6 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		} else {
 			return this;
 		}
-	}
-
-	public OverrideBuilder<T, S, N> or() {
-		return or(givenValueFunction.apply(configurator.getThis()));
 	}
 
 	public T tryGet() {

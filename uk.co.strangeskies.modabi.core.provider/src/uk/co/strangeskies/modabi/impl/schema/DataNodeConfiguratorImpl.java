@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ValueResolution;
@@ -86,8 +87,9 @@ public class DataNodeConfiguratorImpl<T> extends
 		return type;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<DataNode<? super T>> getOverriddenNodes() {
+	public List<DataNode<T>> getOverriddenNodes() {
 		List<DataNode<? super T>> overriddenNodes = new ArrayList<>();
 
 		if (type != null)
@@ -95,7 +97,7 @@ public class DataNodeConfiguratorImpl<T> extends
 
 		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<DataNode<? super T>>() {}));
 
-		return overriddenNodes;
+		return overriddenNodes.stream().map(n -> (DataNode<T>) n).collect(Collectors.toList());
 	}
 
 	@Override

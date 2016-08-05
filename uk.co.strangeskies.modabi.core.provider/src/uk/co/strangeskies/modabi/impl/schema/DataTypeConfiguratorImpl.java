@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.Schema;
@@ -126,6 +126,7 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<DataType<T>> getOverriddenNodes() {
-		return baseType == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList((DataType<T>) baseType));
+		return baseType == null ? Collections.emptyList()
+				: Arrays.asList(baseType).stream().map(n -> (DataType<T>) n).collect(Collectors.toList());
 	}
 }

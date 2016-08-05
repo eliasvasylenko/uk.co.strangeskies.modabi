@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.List;
+
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface InputSequenceNodeConfigurator
@@ -28,4 +30,7 @@ public interface InputSequenceNodeConfigurator
 	default TypeToken<InputSequenceNode> getNodeType() {
 		return TypeToken.over(InputSequenceNode.class);
 	}
+
+	@Override
+	List<InputSequenceNode> getOverriddenNodes();
 }

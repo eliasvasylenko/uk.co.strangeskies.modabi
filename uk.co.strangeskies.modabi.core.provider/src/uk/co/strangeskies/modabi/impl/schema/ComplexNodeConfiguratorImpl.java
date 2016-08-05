@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
@@ -70,8 +71,9 @@ public class ComplexNodeConfiguratorImpl<T>
 		return baseModel;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<ComplexNode<? super T>> getOverriddenNodes() {
+	public List<ComplexNode<T>> getOverriddenNodes() {
 		List<ComplexNode<? super T>> overriddenNodes = new ArrayList<>();
 
 		if (baseModel != null)
@@ -80,7 +82,7 @@ public class ComplexNodeConfiguratorImpl<T>
 
 		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {}));
 
-		return overriddenNodes;
+		return overriddenNodes.stream().map(n -> (ComplexNode<T>) n).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
