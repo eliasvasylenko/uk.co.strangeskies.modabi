@@ -25,16 +25,8 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
-	/**
-	 * @param hidden
-	 *          The value to be returned by {@link DataType#isPrivate()}.
-	 * @return
-	 */
-	DataTypeConfigurator<T> isPrivate(boolean hidden);
-
-	Boolean getPrivate();
-
+public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T>,
+		RootNodeConfigurator<DataTypeConfigurator<T>, DataType<T>, T> {
 	/**
 	 * @param dataType
 	 *          The value to be returned by {@link DataType#dataType()}.
@@ -44,7 +36,7 @@ public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTyp
 	@Override
 	default <U extends T> DataTypeConfigurator<U> dataType(Class<U> dataType) {
 		Type type = dataType;
-		return (DataTypeConfigurator<U>) BindingNodeConfigurator.super.dataType(type);
+		return (DataTypeConfigurator<U>) RootNodeConfigurator.super.dataType(type);
 	}
 
 	@Override
@@ -53,13 +45,13 @@ public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTyp
 	@SuppressWarnings("unchecked")
 	@Override
 	default DataTypeConfigurator<? extends T> dataType(AnnotatedType dataType) {
-		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
+		return (DataTypeConfigurator<? extends T>) RootNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default DataTypeConfigurator<? extends T> dataType(Type dataType) {
-		return (DataTypeConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
+		return (DataTypeConfigurator<? extends T>) RootNodeConfigurator.super.dataType(dataType);
 	}
 
 	<U extends T> DataTypeConfigurator<U> baseType(DataType<? super U> baseType);

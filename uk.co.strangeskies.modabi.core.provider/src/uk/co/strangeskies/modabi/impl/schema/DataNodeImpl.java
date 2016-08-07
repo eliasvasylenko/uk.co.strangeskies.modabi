@@ -26,10 +26,10 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.RootNode;
 import uk.co.strangeskies.reflection.Reified;
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -155,7 +155,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 	}
 
 	@Override
-	public BindingNode<?, ?> root() {
+	public RootNode<?, ?> root() {
 		return parent().root();
 	}
 }

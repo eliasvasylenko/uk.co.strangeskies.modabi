@@ -23,31 +23,24 @@ import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 
 public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>> implements DataType<T> {
-	private final Boolean isPrivate;
-
 	private final DataType<? super T> baseType;
+	private final boolean export;
 
 	private final Schema schema;
 
 	public DataTypeImpl(DataTypeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
-		isPrivate = configurator.getPrivate() != null && configurator.getPrivate();
-
 		baseType = configurator.getBaseType();
+		export = configurator.getExported() != null ? configurator.getExported() : true;
 
 		schema = configurator.getSchema();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public DataTypeConfigurator<T> configurator() {
 		return (DataTypeConfigurator<T>) super.configurator();
-	}
-
-	@Override
-	public Boolean isPrivate() {
-		return isPrivate;
 	}
 
 	@Override
@@ -56,12 +49,12 @@ public class DataTypeImpl<T> extends BindingNodeImpl<T, DataType<T>> implements 
 	}
 
 	@Override
-	public DataType<T> root() {
-		return this;
+	public Schema schema() {
+		return schema;
 	}
 
 	@Override
-	public Schema schema() {
-		return schema;
+	public boolean export() {
+		return export;
 	}
 }

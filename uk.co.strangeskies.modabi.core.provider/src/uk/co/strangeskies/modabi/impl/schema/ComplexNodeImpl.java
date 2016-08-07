@@ -23,10 +23,10 @@ import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.RootNode;
 
 class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> implements ComplexNode<T> {
 	private final List<Model<? super T>> baseModel;
@@ -75,7 +75,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 	}
 
 	@Override
-	public BindingNode<?, ?> root() {
+	public RootNode<?, ?> root() {
 		return parent().root();
 	}
 }

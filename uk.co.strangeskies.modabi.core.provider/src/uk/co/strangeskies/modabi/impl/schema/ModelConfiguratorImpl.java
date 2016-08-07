@@ -18,10 +18,11 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -39,6 +40,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	private final Imports imports;
 
 	private List<Model<? super T>> baseModel;
+	private Boolean export;
 
 	public ModelConfiguratorImpl(DataLoader loader, Schema schema, Imports imports) {
 		this.loader = loader;
@@ -54,6 +56,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 		this.imports = copy.imports;
 
 		this.baseModel = copy.baseModel;
+		this.export = copy.export;
 	}
 
 	@Override
@@ -105,8 +108,8 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<Model<T>> getOverriddenNodes() {
-		return baseModel != null ? new ArrayList<>(baseModel.stream().map(m -> (Model<T>) m).collect(Collectors.toList()))
-				: Collections.emptyList();
+		return baseModel != null ? new ArrayList<>(baseModel.stream().map(m -> (Model<T>) m).collect(toList()))
+				: emptyList();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -118,5 +121,17 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	@Override
 	public Model<T> createImpl() {
 		return new ModelImpl<>(this);
+	}
+
+	@Override
+	public ModelConfigurator<T> export(boolean export) {
+		this.export = export;
+
+		return getThis();
+	}
+
+	@Override
+	public Boolean getExported() {
+		return export;
 	}
 }

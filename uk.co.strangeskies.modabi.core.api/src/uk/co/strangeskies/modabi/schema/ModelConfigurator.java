@@ -27,7 +27,8 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
+public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfigurator<T>, Model<T>, T>,
+		RootNodeConfigurator<ModelConfigurator<T>, Model<T>, T> {
 	default <V extends T> ModelConfigurator<V> baseModel(Model<? super V> baseModel) {
 		return baseModel(Arrays.asList(baseModel));
 	}
@@ -42,7 +43,7 @@ public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfi
 	@Override
 	default <V extends T> ModelConfigurator<V> dataType(Class<V> dataType) {
 		Type type = dataType;
-		return (ModelConfigurator<V>) BindingNodeConfigurator.super.dataType(type);
+		return (ModelConfigurator<V>) RootNodeConfigurator.super.dataType(type);
 	}
 
 	@Override
@@ -51,13 +52,13 @@ public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfi
 	@SuppressWarnings("unchecked")
 	@Override
 	default ModelConfigurator<? extends T> dataType(AnnotatedType dataType) {
-		return (ModelConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
+		return (ModelConfigurator<? extends T>) RootNodeConfigurator.super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	default ModelConfigurator<? extends T> dataType(Type dataType) {
-		return (ModelConfigurator<? extends T>) BindingNodeConfigurator.super.dataType(dataType);
+		return (ModelConfigurator<? extends T>) RootNodeConfigurator.super.dataType(dataType);
 	}
 
 	@Override

@@ -31,6 +31,8 @@ import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 
 class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
 	private final List<Model<? super T>> baseModel;
+	private final boolean export;
+
 	private final Schema schema;
 
 	public ModelImpl(ModelConfiguratorImpl<T> configurator) {
@@ -44,6 +46,8 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
 		}
 
 		this.baseModel = Collections.unmodifiableList(new ArrayList<>(baseModel));
+
+		export = configurator.getExported() != null ? configurator.getExported() : true;
 
 		schema = configurator.getSchema();
 	}
@@ -67,5 +71,10 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
 	@Override
 	public Schema schema() {
 		return schema;
+	}
+
+	@Override
+	public boolean export() {
+		return export;
 	}
 }

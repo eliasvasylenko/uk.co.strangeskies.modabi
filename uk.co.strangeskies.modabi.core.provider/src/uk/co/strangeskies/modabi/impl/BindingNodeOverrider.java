@@ -34,7 +34,6 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.BindingChildNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
-import uk.co.strangeskies.modabi.impl.schema.utilities.ModelWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -231,7 +230,6 @@ public class BindingNodeOverrider {
 			ModelConfigurator<Object> configurator = configureParentNode(builder.configure(getDataLoader()).addModel(), node);
 
 			List<Model<? super T>> models = new ArrayList<>(override.baseModel());
-			models.add(0, new ModelWrapper<>(node));
 
 			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild().complex().name(override.name())
 					.castOutput(true).model(models);
@@ -252,7 +250,7 @@ public class BindingNodeOverrider {
 					node);
 
 			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()
-					.name(override.name()).castOutput(true).type(override.baseType()).nullIfOmitted(node.nullIfOmitted());
+					.name(override.name()).castOutput(true).type(override.baseType());
 
 			dataNodeConfigurator = tryProperty(node, DataNode::format, DataNodeConfigurator::format, dataNodeConfigurator);
 
@@ -308,6 +306,7 @@ public class BindingNodeOverrider {
 		public <U, C extends BindingChildNodeConfigurator<C, ?, ? extends U>> C processBindingChildNode(
 				BindingChildNode<U, ?> node, C c) {
 			c = tryProperty(node, b -> b.outputMethod().getName(), C::outputMethod, c);
+			c = tryProperty(node, BindingChildNode::nullIfOmitted, BindingChildNodeConfigurator::nullIfOmitted, c);
 			c = tryProperty(node, BindingChildNode::iterableOutput, C::iterableOutput, c);
 			c = tryProperty(node, BindingChildNode::uncheckedOutput, C::uncheckedOutput, c);
 			c = tryProperty(node, BindingChildNode::castOutput, C::castOutput, c);

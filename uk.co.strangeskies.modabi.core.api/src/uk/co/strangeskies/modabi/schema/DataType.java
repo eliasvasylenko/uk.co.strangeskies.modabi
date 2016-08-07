@@ -25,7 +25,7 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface DataType<T> extends BindingNode<T, DataType<T>> {
+public interface DataType<T> extends BindingNode<T, DataType<T>>, RootNode<T, DataType<T>> {
 	@Override
 	default void process(NodeProcessor context) {
 		context.accept(this);
@@ -43,8 +43,6 @@ public interface DataType<T> extends BindingNode<T, DataType<T>> {
 
 		return base;
 	}
-
-	Boolean isPrivate();
 
 	DataType<? super T> baseType();
 

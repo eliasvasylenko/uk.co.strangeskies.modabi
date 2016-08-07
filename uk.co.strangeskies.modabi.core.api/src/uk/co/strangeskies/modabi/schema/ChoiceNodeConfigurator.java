@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.util.List;
-
 import uk.co.strangeskies.reflection.TypeToken;
 
 public interface ChoiceNodeConfigurator extends ChildNodeConfigurator<ChoiceNodeConfigurator, ChoiceNode>,
@@ -28,7 +26,4 @@ public interface ChoiceNodeConfigurator extends ChildNodeConfigurator<ChoiceNode
 	default TypeToken<ChoiceNode> getNodeType() {
 		return TypeToken.over(ChoiceNode.class);
 	}
-
-	@Override
-	List<ChoiceNode> getOverriddenNodes();
 }

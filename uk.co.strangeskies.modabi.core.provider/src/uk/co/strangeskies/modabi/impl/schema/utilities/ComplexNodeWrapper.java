@@ -32,11 +32,13 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 
 	protected ComplexNodeWrapper(Model<T> component) {
 		super(component);
+		System.out.println("d");
 		model = component.baseModel();
 	}
 
 	protected ComplexNodeWrapper(ComplexNode<? super T> base, Model<? super T> component) {
 		super(base, component);
+		System.out.println("e");
 		model = new ArrayList<>(component.baseModel());
 		model.add(0, component);
 
@@ -46,6 +48,7 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 
 	protected ComplexNodeWrapper(ComplexNode<T> node) {
 		super(node, node);
+		System.out.println("f");
 		model = node.model();
 	}
 

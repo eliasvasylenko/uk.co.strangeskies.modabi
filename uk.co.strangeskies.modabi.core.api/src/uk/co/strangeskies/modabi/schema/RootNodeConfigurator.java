@@ -18,14 +18,9 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.reflection.TypeToken;
+public interface RootNodeConfigurator<S extends RootNodeConfigurator<S, N, T>, N extends RootNode<T, N>, T>
+		extends BindingNodeConfigurator<S, N, T> {
+	S export(boolean export);
 
-public interface InputSequenceNodeConfigurator
-		extends ChildNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
-		SchemaNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode>,
-		InputNodeConfigurator<InputSequenceNodeConfigurator, InputSequenceNode> {
-	@Override
-	default TypeToken<InputSequenceNode> getNodeType() {
-		return TypeToken.over(InputSequenceNode.class);
-	}
+	Boolean getExported();
 }

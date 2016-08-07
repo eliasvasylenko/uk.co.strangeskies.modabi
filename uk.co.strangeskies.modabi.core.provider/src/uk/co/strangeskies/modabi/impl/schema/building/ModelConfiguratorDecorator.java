@@ -24,7 +24,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ModelConfiguratorDecorator<T> extends BindingNodeConfiguratorDecorator<ModelConfigurator<T>, Model<T>, T>
+public class ModelConfiguratorDecorator<T> extends RootNodeConfiguratorDecorator<ModelConfigurator<T>, Model<T>, T>
 		implements ModelConfigurator<T> {
 	public ModelConfiguratorDecorator(ModelConfigurator<T> component) {
 		super(component);

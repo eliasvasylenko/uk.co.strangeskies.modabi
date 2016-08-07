@@ -151,4 +151,45 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<S, T> givenValueFunction) {
 		return new OverrideBuilder<>(this, n -> null, givenValueFunction);
 	}
+
+	/*
+	 * TODO get rid of "wrapper" classes which deal with overriding [DataTypes by
+	 * DataNodes] and [Models by ComplexNodes]. Instead have specialized
+	 * getOverride where S and N are replaced by common supertypes.
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
 }

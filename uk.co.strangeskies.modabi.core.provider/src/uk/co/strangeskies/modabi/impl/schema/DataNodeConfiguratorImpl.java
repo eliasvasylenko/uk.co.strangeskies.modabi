@@ -38,6 +38,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	private Format format;
 
 	private DataType<T> type;
+	private DataNode<T> wrappedType;
 	private DataSource providedBufferedValue;
 	private ValueResolution resolution;
 
@@ -49,6 +50,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		super(copy);
 
 		this.type = copy.type;
+		this.wrappedType = copy.wrappedType;
 		this.providedBufferedValue = copy.providedBufferedValue;
 		this.resolution = copy.resolution;
 	}
@@ -78,6 +80,7 @@ public class DataNodeConfiguratorImpl<T> extends
 	@Override
 	public final <U extends T> DataNodeConfigurator<U> type(DataType<? super U> type) {
 		this.type = (DataType<T>) type;
+		wrappedType = DataNodeWrapper.wrapType(this.type);
 
 		return (DataNodeConfigurator<U>) getThis();
 	}
@@ -93,7 +96,7 @@ public class DataNodeConfiguratorImpl<T> extends
 		List<DataNode<? super T>> overriddenNodes = new ArrayList<>();
 
 		if (type != null)
-			overriddenNodes.add(DataNodeWrapper.wrapType(type));
+			overriddenNodes.add(wrappedType);
 
 		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<DataNode<? super T>>() {}));
 

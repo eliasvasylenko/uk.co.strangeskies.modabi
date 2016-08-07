@@ -23,17 +23,18 @@ import java.util.List;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.RootNode;
+import uk.co.strangeskies.modabi.schema.RootNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
-		implements BindingNodeConfigurator<S, N, T> {
+public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurator<S, N, T>, N extends RootNode<T, N>, T>
+		implements RootNodeConfigurator<S, N, T> {
 	private S component;
 
-	public BindingNodeConfiguratorDecorator(S component) {
+	public RootNodeConfiguratorDecorator(S component) {
 		this.component = component;
 	}
 
@@ -54,6 +55,17 @@ public abstract class BindingNodeConfiguratorDecorator<S extends BindingNodeConf
 	@SuppressWarnings("unchecked")
 	public S getThis() {
 		return (S) this;
+	}
+
+	@Override
+	public S export(boolean export) {
+		component.export(export);
+		return getThis();
+	}
+
+	@Override
+	public Boolean getExported() {
+		return component.getExported();
 	}
 
 	@Override

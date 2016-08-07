@@ -149,8 +149,8 @@ public class BaseSchemaImpl implements BaseSchema {
 							.addChild(c -> c.inputSequence().name("get").chainedInput(true)));
 
 			DataType<Object> referenceBaseType = factory.apply("referenceBase",
-					t -> t.<Object> dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
-							.concrete(false).isPrivate(true).inputBindingType(DereferenceSource.class)
+					t -> t.<Object>dataType(TypeToken.over(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))
+							.concrete(false).export(false).inputBindingType(DereferenceSource.class)
 							.inputBindingStrategy(InputBindingStrategy.PROVIDED).outputBindingFactoryType(ReferenceTarget.class)
 							.outputBindingType(DataSource.class).outputBindingMethod("reference").outputBindingMethodUnchecked(true)
 							.outputBindingStrategy(OutputBindingStrategy.PROVIDED_FACTORY)
@@ -164,41 +164,35 @@ public class BaseSchemaImpl implements BaseSchema {
 							.addChild(d -> d.data().name("data").type(bufferedDataType).inputMethod("apply").chainedInput(true)
 									.outputSelf()));
 
-			referenceType = factory.apply("reference",
-					t -> t.baseType(referenceBaseType)
-							.concrete(
-									false)
-							.addChild(c -> c.data().name("targetModel").type(referenceBaseType).concrete(false)
-									.dataType(new @Infer TypeToken<Model<?>>() {})
-									.addChild(d -> d.data().name("targetModel").type(referenceBaseType).extensible(true)
-											.dataType(new @Infer TypeToken<Model<?>>() {})
+			referenceType = factory
+					.apply("reference",
+							t -> t.baseType(referenceBaseType).concrete(false)
+									.addChild(
+											c -> c.data().name("targetModel").type(referenceBaseType).concrete(false)
+													.dataType(new @Infer TypeToken<Model<?>>() {})
+													.addChild(d -> d.data().name("targetModel").type(referenceBaseType).extensible(true)
+															.dataType(new @Infer TypeToken<Model<?>>() {}).provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer())
+															.addChild(e -> e.data().name("targetModel").type(referenceBaseType).extensible(true)
+																	.concrete(false).dataType(new @Infer TypeToken<Model<?>>() {}).provideValue(
+																			new BufferingDataTarget()
+																					.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
+																					.buffer()))
+															.addChild(e -> e.data().name("targetId")
+																	.provideValue(new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
+													.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
+
+			bindingReferenceType = factory.apply("bindingReference",
+					t -> t.concrete(false).inputBindingType(DereferenceSource.class)
+							.<Object>dataType(over(unbounded(from(Infer.class)))).inputBindingStrategy(InputBindingStrategy.PROVIDED)
+							.addChild(c -> c.data().name("targetNode").type(referenceType).outputNone().inputMethod("dereference")
+									.addChild(d -> d.data().name("targetModel")
 											.provideValue(new BufferingDataTarget()
-													.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer())
-											.addChild(e -> e.data().name("targetModel").type(referenceBaseType).extensible(true)
-													.concrete(false).dataType(new @Infer TypeToken<Model<?>>() {})
-													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-											.addChild(e -> e.data().name("targetId")
-													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
-									.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
+									.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
 											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
-			
-			bindingReferenceType = factory
-					.apply("bindingReference",
-							t -> t
-									.concrete(
-											false)
-									.inputBindingType(
-											DereferenceSource.class)
-									.<Object> dataType(over(unbounded(from(Infer.class))))
-									.inputBindingStrategy(InputBindingStrategy.PROVIDED)
-									.addChild(c -> c.data().name("targetNode").type(referenceType).outputNone().inputMethod("dereference")
-											.addChild(d -> d.data().name("targetModel")
-													.provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
-											.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
-													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
 			packageType = factory.apply("package",
 					t -> t.dataType(new TypeToken<Package>() {}).inputBindingStrategy(InputBindingStrategy.STATIC_FACTORY)
@@ -258,149 +252,94 @@ public class BaseSchemaImpl implements BaseSchema {
 							.outputBindingFactoryType(Range.class)
 							.addChild(p -> p.data().type(primitives.get(Primitive.STRING)).outputSelf().name("string")));
 
-			includeType = factory
-					.apply("include",
-							t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).outputBindingType(IncludeTarget.class)
-									.inputBindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
-									.outputBindingStrategy(OutputBindingStrategy.PASS_TO_PROVIDED).outputBindingMethod("include")
-									.providedOutputBindingMethodParameters("targetModel", "this").outputBindingMethodUnchecked(true)
-									.concrete(false)
+			includeType = factory.apply("include",
+					t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).outputBindingType(IncludeTarget.class)
+							.inputBindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
+							.outputBindingStrategy(OutputBindingStrategy.PASS_TO_PROVIDED).outputBindingMethod("include")
+							.providedOutputBindingMethodParameters("targetModel", "this").outputBindingMethodUnchecked(true)
+							.concrete(false)
+							.addChild(c -> c.data().name("targetModel").type(referenceType).dataType(new TypeToken<Model<?>>() {})
+									.concrete(false).outputNone().inputNone().valueResolution(ValueResolution.REGISTRATION_TIME)
+									.addChild(d -> d.data().name("targetModel")
+											.provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
+									.addChild(d -> d.data().name("targetId")
+											.provideValue(new BufferingDataTarget()
+													.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
+							.addChild(c -> c.data().name("in").outputNone().inputNone()
+									.inputBindingStrategy(InputBindingStrategy.PROVIDED).dataType(IncludeTarget.class)
+									.addChild(d -> d.inputSequence().name("include").inputMethod("include").uncheckedInput(true)
+											.addChild(e -> e.data()
+													.dataType(new TypeToken<Model<?>>() {})
+													.name("targetModel").outputNone()
+													.inputBindingStrategy(InputBindingStrategy.PROVIDED).inputBindingType(ProcessingContext.class)
+													.addChild(f -> f.data().name("bindingNode").inputMethod("getBindingNode")
+															.type(primitives.get(Primitive.INT)).outputNone().chainedInput(true).provideValue(
+																	new BufferingDataTarget().put(Primitive.INT, 2).buffer()))
+													.addChild(f -> f.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
+															.chainedInput(true).outputNone()
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("targetModel", namespace)).buffer())
+															.postInputType(new TypeToken<DataNode<?>>() {}).castInput(true))
+													.addChild(f -> f.inputSequence().name("providedValue").chainedInput(true).castInput(true)
+															.postInputType(new TypeToken<Model<?>>() {})))
+											.addChild(e -> e.data().name("object").dataType(Collection.class).outputNone()
+													.inputBindingStrategy(InputBindingStrategy.PROVIDED).inputBindingType(
+															ProcessingContext.class)
+													.addChild(f -> f.data().name("bindingObject").inputMethod("getBindingObject")
+															.type(primitives.get(Primitive.INT)).chainedInput(true).outputNone()
+															.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
+													.addChild(f -> f.inputSequence().name("getObject").chainedInput(true))))));
+
+			importType = factory.apply("import",
+					t -> t.dataType(Object.class).concrete(false).inputBindingStrategy(InputBindingStrategy.SOURCE_ADAPTOR)
+							.outputBindingStrategy(OutputBindingStrategy.SIMPLE).outputBindingMethod("this")
+							.addChild(b -> b.data().name("import").outputSelf().inputNone().chainedInput(true).concrete(false)
+									.dataType(Object.class).inputBindingType(ImportSource.class)
+									.inputBindingStrategy(InputBindingStrategy.PROVIDED).outputBindingFactoryType(ImportTarget.class)
+									.outputBindingType(DataSource.class).outputBindingStrategy(OutputBindingStrategy.PROVIDED_FACTORY)
+									.outputBindingMethod("dereferenceImport").outputBindingMethodUnchecked(true)
+									.providedOutputBindingMethodParameters("targetModel", "targetId", "this")
 									.addChild(c -> c.data().name("targetModel").type(referenceType).dataType(new TypeToken<Model<?>>() {})
-											.concrete(false).outputNone().inputNone().valueResolution(ValueResolution.REGISTRATION_TIME)
+											.concrete(false).outputNone().inputNone().valueResolution(
+													ValueResolution.REGISTRATION_TIME)
 											.addChild(d -> d.data().name("targetModel")
 													.provideValue(new BufferingDataTarget()
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-											.addChild(d -> d.data()
-													.name(
-															"targetId")
-													.provideValue(
-															new BufferingDataTarget()
-																	.put(Primitive.QUALIFIED_NAME,
-																			new QualifiedName("name", namespace))
-																	.buffer())))
-									.addChild(
-											c -> c.data().name("in").outputNone().inputNone()
-													.inputBindingStrategy(
-															InputBindingStrategy.PROVIDED)
-													.dataType(
-															IncludeTarget.class)
+											.addChild(d -> d.data().name("targetId")
+													.provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
+									.addChild(d -> d.data().type(primitives.get(Primitive.QUALIFIED_NAME)).concrete(false)
+											.name("targetId").valueResolution(ValueResolution.REGISTRATION_TIME).outputNone().inputNone())
+									.addChild(c -> c.inputSequence().name("importObject").chainedInput(true).uncheckedInput(true)
+											.addChild(d -> d.data().dataType(new TypeToken<Model<?>>() {}).name("targetModel")
+													.outputNone().inputBindingStrategy(InputBindingStrategy.PROVIDED)
+													.inputBindingType(ProcessingContext.class)
+													.provideValue(new BufferingDataTarget().buffer())
 													.addChild(
-															d -> d.inputSequence()
-																	.name(
-																			"include")
-																	.inputMethod(
-																			"include")
-																	.uncheckedInput(
-																			true)
-																	.addChild(
-																			e -> e.data().dataType(new TypeToken<Model<?>>() {}).name("targetModel")
-																					.outputNone()
-																					.inputBindingStrategy(
-																							InputBindingStrategy.PROVIDED)
-																					.inputBindingType(
-																							ProcessingContext.class)
-																					.addChild(
-																							f -> f.data().name("bindingNode").inputMethod("getBindingNode")
-																									.type(
-																											primitives.get(Primitive.INT))
-																									.outputNone().chainedInput(true).provideValue(
-																											new BufferingDataTarget().put(Primitive.INT, 2).buffer()))
-																					.addChild(
-																							f -> f.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
-																									.chainedInput(true).outputNone()
-																									.provideValue(new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
-																											new QualifiedName("targetModel", namespace)).buffer())
-																									.postInputType(new TypeToken<DataNode<?>>() {}).castInput(true))
-																					.addChild(f -> f.inputSequence().name("providedValue").chainedInput(true)
-																							.castInput(true).postInputType(new TypeToken<Model<?>>() {})))
-																	.addChild(e -> e.data().name("object").dataType(Collection.class).outputNone()
-																			.inputBindingStrategy(InputBindingStrategy.PROVIDED)
-																			.inputBindingType(ProcessingContext.class)
-																			.addChild(f -> f.data().name("bindingObject").inputMethod("getBindingObject")
-																					.type(primitives.get(Primitive.INT)).chainedInput(true).outputNone()
-																					.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
-																			.addChild(f -> f.inputSequence().name("getObject").chainedInput(true))))));
-
-			importType = factory
-					.apply("import",
-							t -> t
-									.dataType(
-											Object.class)
-									.concrete(
-											false)
-									.inputBindingStrategy(
-											InputBindingStrategy.SOURCE_ADAPTOR)
-									.outputBindingStrategy(OutputBindingStrategy.SIMPLE)
-									.outputBindingMethod(
-											"this")
-									.addChild(
-											b -> b.data().name("import").outputSelf().inputNone().chainedInput(true).concrete(false)
-													.dataType(Object.class).inputBindingType(ImportSource.class)
-													.inputBindingStrategy(InputBindingStrategy.PROVIDED)
-													.outputBindingFactoryType(ImportTarget.class).outputBindingType(DataSource.class)
-													.outputBindingStrategy(OutputBindingStrategy.PROVIDED_FACTORY)
-													.outputBindingMethod("dereferenceImport").outputBindingMethodUnchecked(true)
-													.providedOutputBindingMethodParameters("targetModel", "targetId",
-															"this")
-													.addChild(c -> c.data().name("targetModel").type(referenceType)
-															.dataType(new TypeToken<Model<?>>() {}).concrete(false).outputNone().inputNone()
-															.valueResolution(ValueResolution.REGISTRATION_TIME)
-															.addChild(d -> d.data().name("targetModel")
-																	.provideValue(new BufferingDataTarget()
-																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
-															.addChild(d -> d.data().name("targetId")
-																	.provideValue(new BufferingDataTarget()
-																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
-													.addChild(
-															d -> d.data().type(primitives.get(Primitive.QUALIFIED_NAME)).concrete(false)
-																	.name(
-																			"targetId")
-																	.valueResolution(
-																			ValueResolution.REGISTRATION_TIME)
-																	.outputNone().inputNone())
-													.addChild(
-															c -> c.inputSequence()
-																	.name(
-																			"importObject")
-																	.chainedInput(
-																			true)
-																	.uncheckedInput(
-																			true)
-																	.addChild(
-																			d -> d.data().dataType(new TypeToken<Model<?>>() {}).name("targetModel")
-																					.outputNone().inputBindingStrategy(InputBindingStrategy.PROVIDED)
-																					.inputBindingType(ProcessingContext.class)
-																					.provideValue(
-																							new BufferingDataTarget()
-																									.buffer())
-																					.addChild(
-																							f -> f.data().name("bindingNode").inputMethod("getBindingNode")
-																									.type(
-																											primitives.get(Primitive.INT))
-																									.outputNone().chainedInput(true).provideValue(
-																											new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
-																					.addChild(
-																							e -> e.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
-																									.chainedInput(true).outputNone()
-																									.provideValue(new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
-																											new QualifiedName("targetModel", namespace)).buffer())
-																									.postInputType(new TypeToken<DataNode<?>>() {}).castInput(true))
-																					.addChild(e -> e.inputSequence().name("providedValue").chainedInput(true)))
-																	.addChild(d -> d.data().dataType(QualifiedName.class).name("targetId").outputNone()
-																			.inputBindingStrategy(InputBindingStrategy.PROVIDED)
-																			.inputBindingType(ProcessingContext.class)
-																			.provideValue(new BufferingDataTarget().buffer())
-																			.addChild(f -> f.data().name("bindingNode").inputMethod("getBindingNode")
-																					.type(primitives.get(Primitive.INT)).outputNone().chainedInput(true)
-																					.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
-																			.addChild(
-																					e -> e.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
-																							.chainedInput(true).outputNone()
-																							.provideValue(new BufferingDataTarget().put(Primitive.QUALIFIED_NAME,
-																									new QualifiedName("targetId", namespace)).buffer())
-																							.postInputType(new TypeToken<DataNode<?>>() {}).castInput(true))
-																			.addChild(e -> e.inputSequence().name("providedValue").chainedInput(true)))
-																	.addChild(d -> d.data().name("data").type(bufferedDataType).outputSelf()))));
+															f -> f.data().name("bindingNode")
+																	.inputMethod("getBindingNode").type(primitives.get(Primitive.INT)).outputNone()
+																	.chainedInput(true)
+																	.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
+													.addChild(e -> e.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
+															.chainedInput(true).outputNone()
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("targetModel", namespace)).buffer())
+															.postInputType(new TypeToken<DataNode<?>>() {}).castInput(true))
+													.addChild(e -> e.inputSequence().name("providedValue").chainedInput(true)))
+											.addChild(d -> d.data().dataType(QualifiedName.class).name("targetId").outputNone()
+													.inputBindingStrategy(InputBindingStrategy.PROVIDED).inputBindingType(ProcessingContext.class)
+													.provideValue(new BufferingDataTarget().buffer())
+													.addChild(f -> f.data().name("bindingNode").inputMethod("getBindingNode")
+															.type(primitives.get(Primitive.INT)).outputNone().chainedInput(true)
+															.provideValue(new BufferingDataTarget().put(Primitive.INT, 1).buffer()))
+													.addChild(e -> e.data().name("child").type(primitives.get(Primitive.QUALIFIED_NAME))
+															.chainedInput(true).outputNone()
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("targetId", namespace)).buffer())
+															.postInputType(new TypeToken<DataNode<?>>() {}).castInput(true))
+													.addChild(e -> e.inputSequence().name("providedValue").chainedInput(true)))
+											.addChild(d -> d.data().name("data").type(bufferedDataType).outputSelf()))));
 		}
 
 		@Override
@@ -526,30 +465,20 @@ public class BaseSchemaImpl implements BaseSchema {
 					.over(AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
 							Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 
-			mapModel = factory
-					.apply("map",
-							c -> c
-									.dataType(
-											new @Infer TypeToken<Map<?, ?>>() {})
-									.addChild(
-											e -> e.complex().name("entrySet").inline(true).inputNone().dataType(inferredMapEntrySet)
-													.inputBindingStrategy(
-															InputBindingStrategy.TARGET_ADAPTOR)
-													.addChild(
-															s -> s.inputSequence().name("entrySet")
-																	.chainedInput(
-																			true))
-													.addChild(
-															f -> f.complex().name("entry").occurrences(Range.between(0, null)).inputMethod("add")
-																	.outputSelf().inputBindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE)
-																	.inputBindingType(BaseSchemaImpl.class).outputBindingMethod("mapEntry")
-																	.dataType(inferredMapEntry)
-																	.addChild(k -> k.data().name("key").inputNone().format(Format.PROPERTY)
-																			.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-																			.concrete(false).extensible(true))
-																	.addChild(v -> v.complex().name("value").inputNone()
-																			.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-																			.concrete(false).extensible(true)))));
+			mapModel = factory.apply("map",
+					c -> c.dataType(new @Infer TypeToken<Map<?, ?>>() {})
+							.addChild(e -> e.complex().name("entrySet").inline(true).inputNone().dataType(inferredMapEntrySet)
+									.inputBindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
+									.addChild(s -> s.inputSequence().name("entrySet").chainedInput(true))
+									.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inputMethod("add")
+											.outputSelf().inputBindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE)
+											.inputBindingType(BaseSchemaImpl.class).outputBindingMethod("mapEntry").dataType(inferredMapEntry)
+											.addChild(k -> k.data().name("key").inputNone().format(Format.PROPERTY)
+													.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))).concrete(false)
+													.extensible(true))
+											.addChild(v -> v.complex().name("value").inputNone()
+													.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))).concrete(false)
+													.extensible(true)))));
 		}
 
 		@Override
@@ -596,10 +525,10 @@ public class BaseSchemaImpl implements BaseSchema {
 
 		DataType<Enumeration<?>> enumerationBaseType = typeFactory.apply("enumerationBase",
 				c -> c.outputBindingType(Enumeration.class).inputBindingStrategy(InputBindingStrategy.STATIC_FACTORY)
-						.concrete(false).isPrivate(true).dataType(new @Infer TypeToken<Enumeration<?>>() {}));
+						.concrete(false).export(false).dataType(new @Infer TypeToken<Enumeration<?>>() {}));
 
 		DataType<Object> primitive = typeFactory.apply("primitive",
-				p -> p.concrete(false).isPrivate(true).inputBindingType(new TypeToken<DataSource>() {})
+				p -> p.concrete(false).export(false).inputBindingType(new TypeToken<DataSource>() {})
 						.inputBindingStrategy(InputBindingStrategy.PROVIDED).outputBindingType(new TypeToken<DataTarget>() {})
 						.outputBindingStrategy(OutputBindingStrategy.PASS_TO_PROVIDED).outputBindingMethod("put")
 						.providedOutputBindingMethodParameters("dataType", "this")

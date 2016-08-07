@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.RootNode;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
@@ -194,7 +196,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
-	public BindingNode<?, ?> root() {
+	public RootNode<?, ?> root() {
 		return component.root();
 	}
 
@@ -203,4 +205,20 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 		return component.schema();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this)
+			return true;
+		if (!(obj instanceof BindingNodeWrapper))
+			return false;
+
+		BindingNodeWrapper<?, ?, ?> that = (BindingNodeWrapper<?, ?, ?>) obj;
+
+		return Objects.equals(component, that.component) && Objects.equals(base, that.base);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(component) ^ Objects.hash(base);
+	}
 }

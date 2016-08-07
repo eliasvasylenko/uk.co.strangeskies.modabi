@@ -18,9 +18,10 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
@@ -34,6 +35,7 @@ public class ComplexNodeConfiguratorImpl<T>
 		extends BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T>
 		implements ComplexNodeConfigurator<T> {
 	private List<Model<? super T>> baseModel;
+	private List<ComplexNode<? super T>> wrappedBaseModel;
 
 	private Boolean inline;
 
@@ -62,6 +64,7 @@ public class ComplexNodeConfiguratorImpl<T>
 	@Override
 	public <V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> base) {
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
+		wrappedBaseModel = baseModel.stream().map(ComplexNodeWrapper::wrapType).collect(toList());
 
 		return (ComplexNodeConfigurator<V>) this;
 	}
@@ -76,13 +79,11 @@ public class ComplexNodeConfiguratorImpl<T>
 	public List<ComplexNode<T>> getOverriddenNodes() {
 		List<ComplexNode<? super T>> overriddenNodes = new ArrayList<>();
 
-		if (baseModel != null)
-			for (Model<? super T> base : baseModel)
-				overriddenNodes.add(ComplexNodeWrapper.wrapType(base));
-
+		if (wrappedBaseModel != null)
+			overriddenNodes.addAll(wrappedBaseModel);
 		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {}));
 
-		return overriddenNodes.stream().map(n -> (ComplexNode<T>) n).collect(Collectors.toList());
+		return overriddenNodes.stream().map(n -> (ComplexNode<T>) n).collect(toList());
 	}
 
 	@SuppressWarnings("unchecked")

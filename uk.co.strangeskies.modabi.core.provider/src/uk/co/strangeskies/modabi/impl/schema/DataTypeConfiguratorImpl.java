@@ -37,7 +37,7 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	private final Schema schema;
 	private final Imports imports;
 
-	private Boolean isPrivate;
+	private Boolean export;
 
 	private DataType<? super T> baseType;
 
@@ -54,7 +54,7 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 		this.schema = copy.schema;
 		this.imports = copy.imports;
 
-		this.isPrivate = copy.isPrivate;
+		this.export = copy.export;
 
 		this.baseType = copy.baseType;
 	}
@@ -76,18 +76,6 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	@Override
 	public DataType<T> createImpl() {
 		return new DataTypeImpl<>(this);
-	}
-
-	@Override
-	public DataTypeConfigurator<T> isPrivate(boolean isPrivate) {
-		this.isPrivate = isPrivate;
-
-		return this;
-	}
-
-	@Override
-	public Boolean getPrivate() {
-		return isPrivate;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,5 +116,17 @@ public class DataTypeConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<Dat
 	public List<DataType<T>> getOverriddenNodes() {
 		return baseType == null ? Collections.emptyList()
 				: Arrays.asList(baseType).stream().map(n -> (DataType<T>) n).collect(Collectors.toList());
+	}
+
+	@Override
+	public DataTypeConfigurator<T> export(boolean export) {
+		this.export = export;
+
+		return getThis();
+	}
+
+	@Override
+	public Boolean getExported() {
+		return export;
 	}
 }

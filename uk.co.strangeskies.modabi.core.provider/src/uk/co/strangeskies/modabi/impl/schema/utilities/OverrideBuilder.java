@@ -1,17 +1,17 @@
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
@@ -43,9 +43,9 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 			T value = valueFunction.apply(n);
 
 			if (value != null) {
-				return Arrays.asList(value);
+				return Stream.of(value);
 			} else if (givenValueFunction == null) {
-				return Collections.<T> emptyList();
+				return Stream.<T>empty();
 			} else {
 				List<S> values = new ArrayList<>();
 
@@ -67,9 +67,9 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 					}
 				}
 
-				return values.stream().map(givenValueFunction::apply).collect(Collectors.toList());
+				return values.stream().map(givenValueFunction::apply).filter(Objects::nonNull);
 			}
-		}).stream().flatMap(Collection::stream).collect(Collectors.toSet());
+		}).stream().flatMap(Function.identity()).collect(Collectors.toSet());
 
 		validation = null;
 		override = givenValueFunction.apply(configurator.getThis());

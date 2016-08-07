@@ -143,7 +143,7 @@ public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
 			return child(name).child(names[0], Arrays.copyOfRange(names, 1, names.length));
 	}
 
-	BindingNode<?, ?> root();
+	RootNode<?, ?> root();
 
 	Schema schema();
 

@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.RootNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
@@ -113,7 +113,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public BindingNode<?, ?> root() {
+			public RootNode<?, ?> root() {
 				return null;
 			}
 
@@ -189,7 +189,7 @@ public class DummyNodes {
 			}
 
 			@Override
-			public BindingNode<?, ?> root() {
+			public RootNode<?, ?> root() {
 				return null;
 			}
 

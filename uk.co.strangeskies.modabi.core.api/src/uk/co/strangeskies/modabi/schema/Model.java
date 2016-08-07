@@ -24,7 +24,7 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public interface Model<T> extends BindingNode<T, Model<T>> {
+public interface Model<T> extends BindingNode<T, Model<T>>, RootNode<T, Model<T>> {
 	@Override
 	default void process(NodeProcessor context) {
 		context.accept(this);

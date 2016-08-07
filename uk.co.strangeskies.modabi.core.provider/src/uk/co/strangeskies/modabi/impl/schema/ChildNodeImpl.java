@@ -22,9 +22,9 @@ import java.util.Objects;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.RootNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeImpl<S> implements ChildNode<S> {
@@ -81,7 +81,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	}
 
 	@Override
-	public BindingNode<?, ?> root() {
+	public RootNode<?, ?> root() {
 		return parent().root();
 	}
 }
