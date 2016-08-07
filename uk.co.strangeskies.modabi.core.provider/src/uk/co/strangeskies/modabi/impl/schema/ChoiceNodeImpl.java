@@ -37,7 +37,7 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode> implements ChoiceNode {
 		TypeToken<?> preInputClass = null;
 		TypeToken<?> postInputClass = configurator
 				.getOverride(ChildNode::postInputType, ChildNodeConfigurator::getPostInputType)
-				.validate(TypeToken::isAssignableTo).tryGet();
+				.validateOverride(TypeToken::isAssignableTo).tryGet();
 
 		if (concrete()) {
 			preInputClass = TypeToken.over(Types.greatestLowerBound(

@@ -20,17 +20,18 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataNodeConfiguratorImpl<T> extends
@@ -90,17 +91,18 @@ public class DataNodeConfiguratorImpl<T> extends
 		return type;
 	}
 
-	@SuppressWarnings("unchecked")
+	public List<DataNode<? super T>> getOverriddenNodes() {
+		return getOverriddenNodes(new TypeToken<DataNode<? super T>>() {});
+	}
+
 	@Override
-	public List<DataNode<T>> getOverriddenNodes() {
-		List<DataNode<? super T>> overriddenNodes = new ArrayList<>();
+	protected List<? extends SchemaNode<?>> getOverriddenAndBaseNodes() {
+		List<BindingNode<? super T, ?>> nodes = new ArrayList<>(getOverriddenNodes());
 
 		if (type != null)
-			overriddenNodes.add(wrappedType);
+			nodes.add(0, type);
 
-		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<DataNode<? super T>>() {}));
-
-		return overriddenNodes.stream().map(n -> (DataNode<T>) n).collect(Collectors.toList());
+		return nodes;
 	}
 
 	@Override

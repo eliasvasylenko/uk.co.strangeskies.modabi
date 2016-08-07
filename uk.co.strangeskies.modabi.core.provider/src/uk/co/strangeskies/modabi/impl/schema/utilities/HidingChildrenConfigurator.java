@@ -128,7 +128,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
-		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(context.overriddenNodes());
+		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(context.overriddenAndBaseNodes());
 		Collections.reverse(reversedNodes);
 		for (SchemaNode<?> overriddenNode : reversedNodes) {
 			int index = 0;
@@ -263,8 +263,8 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public List<? extends SchemaNode<?>> overriddenNodes() {
-				return context.overriddenNodes();
+			public List<? extends SchemaNode<?>> overriddenAndBaseNodes() {
+				return context.overriddenAndBaseNodes();
 			}
 
 			@Override

@@ -19,10 +19,7 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -139,57 +136,14 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				imports);
 	}
 
-	public <T> Set<T> getOverridenValues(Function<N, T> valueFunction) {
-		return getOverriddenNodes().stream().map(n -> valueFunction.apply(n)).filter(Objects::nonNull)
-				.collect(Collectors.toSet());
-	}
-
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, valueFunction, givenValueFunction);
+		return new OverrideBuilder<>(this, s -> s.getOverriddenNodes(), valueFunction, givenValueFunction);
 	}
 
 	protected <T> OverrideBuilder<T, S, N> getOverride(Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, n -> null, givenValueFunction);
+		return new OverrideBuilder<>(this, (Function<S, List<N>>) s -> s.getOverriddenNodes(), n -> null,
+				givenValueFunction);
 	}
 
-	/*
-	 * TODO get rid of "wrapper" classes which deal with overriding [DataTypes by
-	 * DataNodes] and [Models by ComplexNodes]. Instead have specialized
-	 * getOverride where S and N are replaced by common supertypes.
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 */
+	protected abstract List<? extends SchemaNode<?>> getOverriddenAndBaseNodes();
 }

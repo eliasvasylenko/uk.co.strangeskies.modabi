@@ -48,7 +48,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 		configurator.setResult(getThis());
 
 		name = configurator.getOverride(SchemaNode::name, SchemaNodeConfigurator::getName)
-				.orDefault(configurator.defaultName()).validate((n, o) -> true).get();
+				.orDefault(configurator.defaultName()).validateOverride((n, o) -> true).get();
 
 		concrete = configurator.getConcrete() == null || configurator.getConcrete();
 

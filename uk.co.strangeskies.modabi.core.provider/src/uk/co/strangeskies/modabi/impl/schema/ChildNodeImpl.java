@@ -41,7 +41,7 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 		ordered = configurator.getOverride(ChildNode::ordered, ChildNodeConfigurator::getOrdered).orDefault(true).get();
 
 		occurrences = configurator.getOverride(ChildNode::occurrences, ChildNodeConfigurator::getOccurrences)
-				.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
+				.validateOverride((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
 	}
 
 	@Override

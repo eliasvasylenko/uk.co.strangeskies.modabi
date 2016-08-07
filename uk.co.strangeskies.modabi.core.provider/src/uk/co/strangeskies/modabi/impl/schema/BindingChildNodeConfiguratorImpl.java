@@ -335,7 +335,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return ordered;
 	}
 
-	public <U extends BindingChildNode<? super T, ?>> List<U> getOverriddenNodes(TypeToken<U> type) {
+	protected <U extends BindingChildNode<? super T, ?>> List<U> getOverriddenNodes(TypeToken<U> type) {
 		return getName() == null ? Collections.emptyList() : getContext().overrideChild(getName(), type);
 	}
 

@@ -53,6 +53,4 @@ public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, 
 	}
 
 	List<ChildNode<?>> getChildren();
-
-	List<N> getOverriddenNodes();
 }

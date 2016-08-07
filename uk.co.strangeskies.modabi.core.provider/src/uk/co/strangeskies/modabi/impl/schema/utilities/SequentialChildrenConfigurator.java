@@ -137,11 +137,11 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 		mergedChildren = new ArrayList<>();
 		namedMergeGroups = new HashMap<>();
 
-		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(context.overriddenNodes());
+		List<? extends SchemaNode<?>> reversedNodes = new ArrayList<>(context.overriddenAndBaseNodes());
 		Collections.reverse(reversedNodes);
 		for (SchemaNode<?> overriddenNode : reversedNodes) {
 			int index = 0;
-			
+
 			for (ChildNode<?> child : overriddenNode.children()) {
 				MergeGroup group = merge(child.name(), index);
 				group.addChild(child);
@@ -300,8 +300,8 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public List<? extends SchemaNode<?>> overriddenNodes() {
-				return context.overriddenNodes();
+			public List<? extends SchemaNode<?>> overriddenAndBaseNodes() {
+				return context.overriddenAndBaseNodes();
 			}
 
 			@Override

@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,11 +104,9 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 		return baseModel;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public List<Model<T>> getOverriddenNodes() {
-		return baseModel != null ? new ArrayList<>(baseModel.stream().map(m -> (Model<T>) m).collect(toList()))
-				: emptyList();
+	public List<Model<? super T>> getOverriddenAndBaseNodes() {
+		return baseModel != null ? new ArrayList<>(baseModel) : emptyList();
 	}
 
 	@SuppressWarnings("unchecked")

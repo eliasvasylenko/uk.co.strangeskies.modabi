@@ -62,5 +62,5 @@ public interface SchemaNodeConfigurationContext {
 		throw new UnsupportedOperationException();
 	}
 
-	List<? extends SchemaNode<?>> overriddenNodes();
+	List<? extends SchemaNode<?>> overriddenAndBaseNodes();
 }

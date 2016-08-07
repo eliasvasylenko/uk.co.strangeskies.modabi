@@ -18,24 +18,22 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeConfiguratorImpl<T>
 		extends BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T>
 		implements ComplexNodeConfigurator<T> {
 	private List<Model<? super T>> baseModel;
-	private List<ComplexNode<? super T>> wrappedBaseModel;
 
 	private Boolean inline;
 
@@ -64,7 +62,6 @@ public class ComplexNodeConfiguratorImpl<T>
 	@Override
 	public <V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> base) {
 		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
-		wrappedBaseModel = baseModel.stream().map(ComplexNodeWrapper::wrapType).collect(toList());
 
 		return (ComplexNodeConfigurator<V>) this;
 	}
@@ -74,16 +71,18 @@ public class ComplexNodeConfiguratorImpl<T>
 		return baseModel;
 	}
 
-	@SuppressWarnings("unchecked")
+	public List<ComplexNode<? super T>> getOverriddenNodes() {
+		return getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {});
+	}
+
 	@Override
-	public List<ComplexNode<T>> getOverriddenNodes() {
-		List<ComplexNode<? super T>> overriddenNodes = new ArrayList<>();
+	protected List<? extends SchemaNode<?>> getOverriddenAndBaseNodes() {
+		List<BindingNode<? super T, ?>> nodes = new ArrayList<>(getOverriddenNodes());
 
-		if (wrappedBaseModel != null)
-			overriddenNodes.addAll(wrappedBaseModel);
-		overriddenNodes.addAll(getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {}));
+		if (baseModel != null)
+			nodes.addAll(0, baseModel);
 
-		return overriddenNodes.stream().map(n -> (ComplexNode<T>) n).collect(toList());
+		return nodes;
 	}
 
 	@SuppressWarnings("unchecked")

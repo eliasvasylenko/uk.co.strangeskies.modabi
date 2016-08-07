@@ -70,7 +70,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	}
 
 	@Override
-	public List<N> getOverriddenNodes() {
+	public List<N> getOverriddenAndBaseNodes() {
 		if (overriddenNodes == null) {
 			overriddenNodes = getName() == null ? Collections.emptyList()
 					: getContext().overrideChild(getName(), getNodeType());

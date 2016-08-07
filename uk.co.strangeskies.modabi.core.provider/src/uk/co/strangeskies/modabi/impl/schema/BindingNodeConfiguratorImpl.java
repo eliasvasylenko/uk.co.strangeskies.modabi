@@ -105,94 +105,52 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return effectiveUnbindingFactoryType;
 	}
 
+	private static <T> TypeToken<T> mergeOverriddenTypes(TypeToken<T> override, TypeToken<?> base) {
+		if (!base.isProper() || !Types.isAssignable(override.getType(), base.getType())) {
+			return override.withUpperBound(base.deepCopy());
+		} else {
+			return override;
+		}
+	}
+
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
 		/*
 		 * Get declared data types, or overridden types thereof.
 		 */
 		effectiveDataType = getOverride(BindingNode::dataType, BindingNodeConfigurator::getDataType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).tryGet();
+				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+
 		effectiveBindingType = getOverride(BindingNode::inputBindingType, BindingNodeConfigurator::getInputBindingType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).tryGet();
+				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+
 		effectiveUnbindingType = getOverride(BindingNode::outputBindingType, BindingNodeConfigurator::getOutputBindingType)
-				.orMerged((o, n) -> o.withEquality(n)).validate((o, n) -> true).tryGet();
+				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+
 		effectiveUnbindingFactoryType = getOverride(BindingNode::outputBindingFactoryType,
 				BindingNodeConfigurator::getOutputBindingFactoryType).orMerged((o, n) -> o.withEquality(n))
-						.validate((o, n) -> true).tryGet();
+						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
 
 		/*
 		 * Incorporate bounds from inherited types.
 		 */
 		if (effectiveDataType != null) {
 			effectiveDataType = effectiveDataType.deepCopy();
-
-			if (this.dataType != null) {
-				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::dataType)) {
-					/*
-					 * only perform more complex type override behavior if not already
-					 * directly assignable
-					 */
-					if (!overriddenType.isProper()
-							|| !Types.isAssignable(effectiveDataType.getType(), overriddenType.getType())) {
-						effectiveDataType = effectiveDataType.withUpperBound(overriddenType.deepCopy());
-					}
-				}
-			}
-
 			effectiveDataType.incorporateInto(inferenceBounds);
 		}
+
 		if (effectiveBindingType != null) {
 			effectiveBindingType = effectiveBindingType.deepCopy();
-
-			if (this.bindingType != null) {
-				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::inputBindingType)) {
-					/*
-					 * only perform more complex type override behaviour if not already
-					 * directly assignable
-					 */
-					if (!overriddenType.isProper()
-							|| !Types.isAssignable(effectiveBindingType.getType(), overriddenType.getType())) {
-						effectiveBindingType = effectiveBindingType.withUpperBound(overriddenType.deepCopy());
-					}
-				}
-			}
-
 			effectiveBindingType.incorporateInto(inferenceBounds);
 		}
+
 		if (effectiveUnbindingType != null) {
 			effectiveUnbindingType = effectiveUnbindingType.deepCopy();
-
-			if (this.unbindingType != null) {
-				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::outputBindingType)) {
-					/*
-					 * only perform more complex type override behaviour if not already
-					 * directly assignable
-					 */
-					if (!overriddenType.isProper()
-							|| !Types.isAssignable(effectiveUnbindingType.getType(), overriddenType.getType())) {
-						effectiveUnbindingType = effectiveUnbindingType.withUpperBound(overriddenType.deepCopy());
-					}
-				}
-			}
-
 			effectiveUnbindingType.incorporateInto(inferenceBounds);
 		}
+
 		if (effectiveUnbindingFactoryType != null) {
 			effectiveUnbindingFactoryType = effectiveUnbindingFactoryType.deepCopy();
-
-			if (this.unbindingFactoryType != null) {
-				for (TypeToken<?> overriddenType : getOverridenValues(BindingNode::outputBindingFactoryType)) {
-					/*
-					 * only perform more complex type override behaviour if not already
-					 * directly assignable
-					 */
-					if (!overriddenType.isProper()
-							|| !Types.isAssignable(effectiveUnbindingFactoryType.getType(), overriddenType.getType())) {
-						effectiveUnbindingFactoryType = effectiveUnbindingFactoryType.withUpperBound(overriddenType.deepCopy());
-					}
-				}
-			}
-
 			effectiveUnbindingFactoryType.incorporateInto(inferenceBounds);
 		}
 
@@ -284,8 +242,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			}
 
 			@Override
-			public List<? extends SchemaNode<?>> overriddenNodes() {
-				return getOverriddenNodes();
+			public List<? extends SchemaNode<?>> overriddenAndBaseNodes() {
+				return getOverriddenAndBaseNodes();
 			}
 		});
 	}

@@ -35,7 +35,7 @@ public class SequenceNodeImpl extends ChildNodeImpl<SequenceNode> implements Seq
 
 		TypeToken<?> postInputClass = configurator
 				.getOverride(ChildNode::postInputType, ChildNodeConfigurator::getPostInputType)
-				.validate(TypeToken::isAssignableTo).tryGet();
+				.validateOverride(TypeToken::isAssignableTo).tryGet();
 		if (postInputClass == null && concrete()) {
 			postInputClass = children().get(children().size() - 1).postInputType();
 		}

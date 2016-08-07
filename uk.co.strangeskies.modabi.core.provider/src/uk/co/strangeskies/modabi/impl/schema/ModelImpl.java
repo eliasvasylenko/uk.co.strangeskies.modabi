@@ -39,9 +39,9 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
 		super(configurator);
 
 		LinkedHashSet<Model<? super T>> baseModel = new LinkedHashSet<>();
-		configurator.getOverriddenNodes().forEach(n -> baseModel.addAll(n.baseModel()));
 
 		if (configurator.getBaseModel() != null) {
+			baseModel.addAll(configurator.getBaseModel());
 			baseModel.addAll(configurator.getBaseModel().stream().flatMap(m -> m.baseModel().stream()).collect(toList()));
 		}
 

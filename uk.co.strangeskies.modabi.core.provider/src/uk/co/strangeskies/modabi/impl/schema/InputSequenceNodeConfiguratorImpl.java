@@ -210,8 +210,8 @@ public class InputSequenceNodeConfiguratorImpl
 			}
 
 			@Override
-			public List<? extends SchemaNode<?>> overriddenNodes() {
-				return getOverriddenNodes();
+			public List<? extends SchemaNode<?>> overriddenAndBaseNodes() {
+				return getOverriddenAndBaseNodes();
 			}
 		}) {
 			@Override

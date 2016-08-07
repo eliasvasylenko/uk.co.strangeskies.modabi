@@ -47,7 +47,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 
 		@SuppressWarnings("unchecked")
 		DataType<? super T> type = (DataType<? super T>) configurator
-				.getOverride(DataNode::type, DataNodeConfigurator::getType).validate((n, o) -> n.base().contains(o)).tryGet();
+				.getOverride(DataNode::type, DataNodeConfigurator::getType).validateOverride((n, o) -> n.base().contains(o)).tryGet();
 		this.type = type;
 
 		format = configurator.getOverride(DataNode::format, DataNodeConfigurator::getFormat).tryGet();
@@ -58,7 +58,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 				.tryGet();
 		ValueResolution resolution = configurator
 				.getOverride(DataNode::valueResolution, DataNodeConfigurator::getValueResolution)
-				.validate(
+				.validateOverride(
 						(o, n) -> o == n || (o == ValueResolution.REGISTRATION_TIME && n == ValueResolution.POST_REGISTRATION))
 				.orDefault(ValueResolution.PROCESSING_TIME).get();
 

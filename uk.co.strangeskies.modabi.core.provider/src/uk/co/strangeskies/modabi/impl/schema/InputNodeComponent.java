@@ -260,7 +260,7 @@ public class InputNodeComponent {
 		if (inMethodChained) {
 			TypeToken<?> resultType = configurator
 					.<TypeToken<?>> getOverride(InputNode::postInputType, ChildNodeConfigurator::getPostInputType)
-					.validate(TypeToken::isAssignableTo).orMerged((a, b) -> {
+					.validateOverride(TypeToken::isAssignableTo).orMerged((a, b) -> {
 						/*
 						 * If only one of the values is proper give precedence to it,
 						 * otherwise choose arbitrarily:
@@ -346,7 +346,7 @@ public class InputNodeComponent {
 			postInputClass = context.inputTargetType();
 		} else if (!isResolved(configurator) || inMethodChained == null) {
 			postInputClass = configurator.getOverride(n -> n.postInputType() == null ? null : n.postInputType(),
-					InputNodeConfigurator::getPostInputType).validate(TypeToken::isAssignableTo).tryGet();
+					InputNodeConfigurator::getPostInputType).validateOverride(TypeToken::isAssignableTo).tryGet();
 		} else {
 			TypeToken<?> methodReturn;
 
@@ -367,7 +367,7 @@ public class InputNodeComponent {
 
 			postInputClass = configurator
 					.getOverride(n -> n.postInputType(), c -> c == configurator ? finalPostInputType : null)
-					.validate(TypeToken::isAssignableTo).get();
+					.validateOverride(TypeToken::isAssignableTo).get();
 		}
 
 		return postInputClass;

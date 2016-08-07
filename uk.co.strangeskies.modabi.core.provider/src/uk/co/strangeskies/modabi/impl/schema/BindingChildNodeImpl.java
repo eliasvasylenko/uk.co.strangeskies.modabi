@@ -82,7 +82,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 				.orDefault(true).get();
 
 		occurrences = configurator.getOverride(BindingChildNode::occurrences, BindingChildNodeConfigurator::getOccurrences)
-				.validate((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
+				.validateOverride((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
 
 		iterableOutput = configurator.getOverride(BindingChildNode::iterableOutput, c -> {
 			if (c.getIterableOutput() != null) {
@@ -105,7 +105,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 
 		nullIfOmitted = configurator
 				.getOverride(BindingChildNode::nullIfOmitted, BindingChildNodeConfigurator::getNullIfOmitted)
-				.validate((n, o) -> o || !n).orDefault(false).get();
+				.validateOverride((n, o) -> o || !n).orDefault(false).get();
 
 		if (integrateIO) {
 			integrateIO(configurator);

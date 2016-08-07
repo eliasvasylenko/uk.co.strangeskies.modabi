@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -29,17 +30,18 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 	private final BiPredicate<? super T, ? super T> validation;
 	private T override;
 
-	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<N, T> valueFunction) {
-		this(configurator, valueFunction, null);
+	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<S, ? extends Collection<N>> overridden,
+			Function<N, T> valueFunction) {
+		this(configurator, overridden, valueFunction, null);
 	}
 
-	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<N, T> valueFunction,
-			Function<S, T> givenValueFunction) {
+	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<S, ? extends Collection<N>> overridden,
+			Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
 		this.configurator = configurator;
 		this.valueFunction = valueFunction;
 		this.givenValueFunction = givenValueFunction;
 
-		values = configurator.getOverridenValues(n -> {
+		values = overridden.apply(configurator.getThis()).stream().map(n -> {
 			T value = valueFunction.apply(n);
 
 			if (value != null) {
@@ -57,7 +59,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 				contains.add(n);
 
 				for (int i = 0; i < values.size(); i++) {
-					for (N nn : values.get(i).getOverriddenNodes()) {
+					for (N nn : overridden.apply(values.get(i))) {
 						@SuppressWarnings("unchecked")
 						S nnc = (S) nn.configurator();
 
@@ -69,7 +71,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 
 				return values.stream().map(givenValueFunction::apply).filter(Objects::nonNull);
 			}
-		}).stream().flatMap(Function.identity()).collect(Collectors.toSet());
+		}).flatMap(Function.identity()).collect(Collectors.toSet());
 
 		validation = null;
 		override = givenValueFunction.apply(configurator.getThis());
@@ -172,7 +174,17 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		return overridden;
 	}
 
-	public OverrideBuilder<T, S, N> validate(BiPredicate<? super T, ? super T> validation) {
+	public OverrideBuilder<T, S, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
+		BiPredicate<? super T, ? super T> newValidation = validation;
+
+		if (this.validation != null) {
+			newValidation = (a, b) -> validation.test(a, b) && this.validation.test(a, b);
+		}
+
+		return new OverrideBuilder<>(this, newValidation, override);
+	}
+
+	public OverrideBuilder<T, S, N> mergeOverride(BiFunction<? super T, ? super T, T> validation) {
 		BiPredicate<? super T, ? super T> newValidation = validation;
 
 		if (this.validation != null) {

@@ -124,8 +124,8 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 			}
 
 			@Override
-			public List<? extends SchemaNode<?>> overriddenNodes() {
-				return getOverriddenNodes();
+			public List<? extends SchemaNode<?>> overriddenAndBaseNodes() {
+				return getOverriddenAndBaseNodes();
 			}
 		});
 	}

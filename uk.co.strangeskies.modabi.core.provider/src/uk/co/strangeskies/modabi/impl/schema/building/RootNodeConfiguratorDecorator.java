@@ -225,9 +225,4 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	public List<ChildNode<?>> getChildren() {
 		return getComponent().getChildren();
 	}
-
-	@Override
-	public List<N> getOverriddenNodes() {
-		return getComponent().getOverriddenNodes();
-	}
 }
