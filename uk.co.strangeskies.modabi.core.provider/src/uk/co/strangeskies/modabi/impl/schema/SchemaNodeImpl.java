@@ -27,6 +27,7 @@ import java.util.Objects;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
@@ -47,8 +48,8 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 		this.configurator = configurator;
 		configurator.setResult(getThis());
 
-		name = configurator.getOverride(SchemaNode::name, SchemaNodeConfigurator::getName)
-				.orDefault(configurator.defaultName()).validateOverride((n, o) -> true).get();
+		name = new OverrideBuilder<>(configurator, SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes, SchemaNode::name,
+				SchemaNodeConfigurator::getName).orDefault(configurator.defaultName()).validateOverride((n, o) -> true).get();
 
 		concrete = configurator.getConcrete() == null || configurator.getConcrete();
 

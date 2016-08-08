@@ -21,11 +21,13 @@ package uk.co.strangeskies.modabi.impl.schema;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
@@ -113,21 +115,24 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
 		/*
 		 * Get declared data types, or overridden types thereof.
 		 */
-		effectiveDataType = getOverride(BindingNode::dataType, BindingNodeConfigurator::getDataType)
+		effectiveDataType = (TypeToken<T>) getOverrideWithBase(BindingNode::dataType, BindingNodeConfigurator::getDataType)
 				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
 
-		effectiveBindingType = getOverride(BindingNode::inputBindingType, BindingNodeConfigurator::getInputBindingType)
-				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+		effectiveBindingType = getOverrideWithBase(BindingNode::inputBindingType,
+				BindingNodeConfigurator::getInputBindingType).orMerged((o, n) -> o.withEquality(n))
+						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
 
-		effectiveUnbindingType = getOverride(BindingNode::outputBindingType, BindingNodeConfigurator::getOutputBindingType)
-				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+		effectiveUnbindingType = getOverrideWithBase(BindingNode::outputBindingType,
+				BindingNodeConfigurator::getOutputBindingType).orMerged((o, n) -> o.withEquality(n))
+						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
 
-		effectiveUnbindingFactoryType = getOverride(BindingNode::outputBindingFactoryType,
+		effectiveUnbindingFactoryType = getOverrideWithBase(BindingNode::outputBindingFactoryType,
 				BindingNodeConfigurator::getOutputBindingFactoryType).orMerged((o, n) -> o.withEquality(n))
 						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
 
@@ -158,7 +163,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Effective binding and unbinding types.
 		 */
 
-		InputBindingStrategy bindingStrategy = getOverride(BindingNode::inputBindingStrategy,
+		InputBindingStrategy bindingStrategy = getOverrideWithBase(BindingNode::inputBindingStrategy,
 				BindingNodeConfigurator::getInputBindingStrategy).orDefault(InputBindingStrategy.PROVIDED).get();
 		TypeToken<?> inputTarget;
 		if (effectiveBindingType != null)
@@ -170,7 +175,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			inputTarget = null;
 
-		OutputBindingStrategy unbindingStrategy = getOverride(BindingNode::outputBindingStrategy,
+		OutputBindingStrategy unbindingStrategy = getOverrideWithBase(BindingNode::outputBindingStrategy,
 				BindingNodeConfigurator::getOutputBindingStrategy).orDefault(OutputBindingStrategy.SIMPLE).get();
 		TypeToken<?> outputSource;
 		if (effectiveUnbindingType != null)
@@ -397,4 +402,13 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 	public Boolean getExtensible() {
 		return false;
 	}
+
+	protected <U> OverrideBuilder<U, ?, ?, ?> getOverrideWithBase(Function<BindingNode<? super T, ?>, U> valueFunction,
+			Function<BindingNodeConfigurator<?, ?, ? super T>, U> givenValueFunction) {
+		return new OverrideBuilder<U, S, BindingNodeConfiguratorImpl<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
+				this, BindingNodeConfiguratorImpl::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
+	}
+
+	@Override
+	protected abstract List<? extends BindingNode<? super T, ?>> getOverriddenAndBaseNodes();
 }

@@ -266,7 +266,7 @@ public class BindingNodeOverrider {
 			return next.apply(configuratorStack.peek().addChild());
 		}
 
-		private <N extends SchemaNode<N>> N doChildren(List<? extends ChildNode<?>> children,
+		private <N extends SchemaNode<? extends N>> N doChildren(List<? extends ChildNode<?>> children,
 				SchemaNodeConfigurator<?, ? extends N> configurator) {
 			configuratorStack.push(configurator);
 
@@ -278,7 +278,7 @@ public class BindingNodeOverrider {
 			return configurator.create();
 		}
 
-		private <N extends ChildNode<N>, C extends ChildNodeConfigurator<C, N>> N processChildNode(N node, C c) {
+		private <N extends ChildNode<? extends N>, C extends ChildNodeConfigurator<C, ? extends N>> N processChildNode(N node, C c) {
 			c = tryProperty(node, ChildNode::concrete, C::concrete, c);
 			c = tryProperty(node, ChildNode::occurrences, C::occurrences, c);
 			c = tryProperty(node, ChildNode::ordered, C::ordered, c);

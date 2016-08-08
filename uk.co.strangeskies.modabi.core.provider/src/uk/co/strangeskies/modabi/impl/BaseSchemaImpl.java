@@ -18,10 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.unbounded;
-import static uk.co.strangeskies.reflection.Annotations.from;
-import static uk.co.strangeskies.reflection.TypeToken.over;
-
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -184,7 +180,10 @@ public class BaseSchemaImpl implements BaseSchema {
 													.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
-			bindingReferenceType = factory.apply("bindingReference",
+			bindingReferenceType = null;
+			
+			/*- TODO
+			factory.apply("bindingReference",
 					t -> t.concrete(false).inputBindingType(DereferenceSource.class)
 							.<Object>dataType(over(unbounded(from(Infer.class)))).inputBindingStrategy(InputBindingStrategy.PROVIDED)
 							.addChild(c -> c.data().name("targetNode").type(referenceType).outputNone().inputMethod("dereference")
@@ -193,6 +192,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
 									.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
 											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
+			 */
 
 			packageType = factory.apply("package",
 					t -> t.dataType(new TypeToken<Package>() {}).inputBindingStrategy(InputBindingStrategy.STATIC_FACTORY)

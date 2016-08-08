@@ -20,10 +20,12 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNode.OutputMemberType;
@@ -34,7 +36,8 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNodeConfigurator<S, N, T>, N extends BindingChildNode<T, N>, T>
-		extends BindingNodeConfiguratorImpl<S, N, T> implements BindingChildNodeConfigurator<S, N, T> {
+		extends BindingNodeConfiguratorImpl<S, N, T>
+		implements BindingChildNodeConfigurator<S, N, T>, InputNodeConfiguratorImpl<S, N> {
 	private final SchemaNodeConfigurationContext context;
 
 	private TypeToken<?> postInputClass;
@@ -120,7 +123,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		return synchronous;
 	}
 
-	protected final SchemaNodeConfigurationContext getContext() {
+	@Override
+	public final SchemaNodeConfigurationContext getContext() {
 		return context;
 	}
 
@@ -373,5 +377,20 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		System.out.println(getOverride(BindingChildNode::outputMethod, c -> null).tryGet());
 
 		return null;
+	}
+
+	@Override
+	public abstract List<N> getOverriddenNodes();
+
+	protected <U> OverrideBuilder<U, ?, ?, ?> getOverride(Function<N, U> valueFunction,
+			Function<S, U> givenValueFunction) {
+		return new OverrideBuilder<>(this, BindingChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
+				givenValueFunction);
+	}
+
+	protected <U> OverrideBuilder<U, ?, ?, ?> getOverride(
+			Function<S, U> givenValueFunction) {
+		return new OverrideBuilder<>(this, BindingChildNodeConfiguratorImpl::getOverriddenNodes, n -> null,
+				givenValueFunction);
 	}
 }

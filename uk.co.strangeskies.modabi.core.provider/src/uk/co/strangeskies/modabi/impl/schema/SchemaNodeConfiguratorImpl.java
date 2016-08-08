@@ -19,12 +19,10 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.List;
-import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
@@ -61,7 +59,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		this.node = node;
 	}
 
-	protected N getResult() {
+	public N getResult() {
 		return node;
 	}
 
@@ -134,15 +132,6 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	protected TypeToken<?> parseTypeWithSubstitutedBrackets(String typeName, Imports imports) {
 		return TypeToken.fromString(typeName.replace('(', '<').replace(')', '>').replace('{', '<').replace('}', '>'),
 				imports);
-	}
-
-	protected <T> OverrideBuilder<T, S, N> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, s -> s.getOverriddenNodes(), valueFunction, givenValueFunction);
-	}
-
-	protected <T> OverrideBuilder<T, S, N> getOverride(Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, (Function<S, List<N>>) s -> s.getOverriddenNodes(), n -> null,
-				givenValueFunction);
 	}
 
 	protected abstract List<? extends SchemaNode<?>> getOverriddenAndBaseNodes();

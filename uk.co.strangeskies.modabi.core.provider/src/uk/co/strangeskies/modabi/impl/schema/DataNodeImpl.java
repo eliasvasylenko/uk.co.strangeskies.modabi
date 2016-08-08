@@ -40,14 +40,15 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 	private final ValueResolution resolution;
 	private final List<T> provided;
 
-	private final InputNodeComponent inputNodeComponent;
+	private final InputNodeComponent<?, ?> inputNodeComponent;
 
 	protected DataNodeImpl(DataNodeConfiguratorImpl<T> configurator) {
 		super(configurator, false);
 
 		@SuppressWarnings("unchecked")
 		DataType<? super T> type = (DataType<? super T>) configurator
-				.getOverride(DataNode::type, DataNodeConfigurator::getType).validateOverride((n, o) -> n.base().contains(o)).tryGet();
+				.getOverride(DataNode::type, DataNodeConfigurator::getType).validateOverride((n, o) -> n.base().contains(o))
+				.tryGet();
 		this.type = type;
 
 		format = configurator.getOverride(DataNode::format, DataNodeConfigurator::getFormat).tryGet();
@@ -115,11 +116,11 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 		this.resolution = resolution;
 
 		integrateIO(configurator);
-		inputNodeComponent = new InputNodeComponent(configurator, configurator.getContext(), dataType());
+		inputNodeComponent = new InputNodeComponent<>(configurator, dataType());
 	}
 
 	@Override
-	protected InputNodeComponent getInputNodeComponent() {
+	protected InputNodeComponent<?, ?> getInputNodeComponent() {
 		return inputNodeComponent;
 	}
 

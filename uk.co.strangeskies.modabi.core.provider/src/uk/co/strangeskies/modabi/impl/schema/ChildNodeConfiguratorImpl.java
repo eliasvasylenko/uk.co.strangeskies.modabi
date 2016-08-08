@@ -20,10 +20,12 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
@@ -65,12 +67,16 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		return node;
 	}
 
-	protected SchemaNodeConfigurationContext getContext() {
+	public SchemaNodeConfigurationContext getContext() {
 		return context;
 	}
 
 	@Override
 	public List<N> getOverriddenAndBaseNodes() {
+		return getOverriddenNodes();
+	}
+
+	public List<N> getOverriddenNodes() {
 		if (overriddenNodes == null) {
 			overriddenNodes = getName() == null ? Collections.emptyList()
 					: getContext().overrideChild(getName(), getNodeType());
@@ -149,5 +155,15 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	@Override
 	public Boolean getOrdered() {
 		return ordered;
+	}
+
+	protected <T> OverrideBuilder<T, ?, ?, ?> getOverride(Function<N, T> valueFunction,
+			Function<S, T> givenValueFunction) {
+		return new OverrideBuilder<>(this, ChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
+				givenValueFunction);
+	}
+
+	protected <T> OverrideBuilder<T, ?, ?, ?> getOverride(Function<S, T> givenValueFunction) {
+		return new OverrideBuilder<>(this, ChildNodeConfiguratorImpl::getOverriddenNodes, n -> null, givenValueFunction);
 	}
 }

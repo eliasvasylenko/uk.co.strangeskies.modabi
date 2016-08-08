@@ -15,39 +15,38 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 
-public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>> {
-	private final SchemaNodeConfiguratorImpl<S, N> configurator;
+public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extends SchemaNodeConfigurator<? extends S, ? extends N>, N extends SchemaNode<?>> {
+	private final I configurator;
 
-	private final Function<N, T> valueFunction;
-	private final Function<S, T> givenValueFunction;
+	private final Function<? super N, ? extends T> valueFunction;
+	private final Function<? super S, ? extends T> givenValueFunction;
 
 	private final Set<T> values;
 
-	private final BiPredicate<? super T, ? super T> validation;
+	private final BiFunction<? super T, ? super T, ? extends T> mergeOverride;
 	private T override;
 
-	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<S, ? extends Collection<N>> overridden,
-			Function<N, T> valueFunction) {
+	public OverrideBuilder(I configurator, Function<? super I, ? extends Collection<? extends N>> overridden,
+			Function<? super N, ? extends T> valueFunction) {
 		this(configurator, overridden, valueFunction, null);
 	}
 
-	public OverrideBuilder(SchemaNodeConfiguratorImpl<S, N> configurator, Function<S, ? extends Collection<N>> overridden,
-			Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
+	public OverrideBuilder(I configurator, Function<? super I, ? extends Collection<? extends N>> overridden,
+			Function<? super N, ? extends T> valueFunction, Function<? super S, ? extends T> givenValueFunction) {
 		this.configurator = configurator;
 		this.valueFunction = valueFunction;
 		this.givenValueFunction = givenValueFunction;
 
-		values = overridden.apply(configurator.getThis()).stream().map(n -> {
+		values = overridden.apply(configurator).stream().map(n -> {
 			T value = valueFunction.apply(n);
 
 			if (value != null) {
 				return Stream.of(value);
 			} else if (givenValueFunction == null) {
-				return Stream.<T>empty();
+				return Stream.<T> empty();
 			} else {
 				List<S> values = new ArrayList<>();
 
@@ -59,7 +58,10 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 				contains.add(n);
 
 				for (int i = 0; i < values.size(); i++) {
-					for (N nn : overridden.apply(values.get(i))) {
+					@SuppressWarnings("unchecked")
+					I nci = (I) values.get(i);
+
+					for (N nn : overridden.apply(nci)) {
 						@SuppressWarnings("unchecked")
 						S nnc = (S) nn.configurator();
 
@@ -73,11 +75,12 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 			}
 		}).flatMap(Function.identity()).collect(Collectors.toSet());
 
-		validation = null;
+		mergeOverride = null;
 		override = givenValueFunction.apply(configurator.getThis());
 	}
 
-	private OverrideBuilder(OverrideBuilder<T, S, N> from, BiPredicate<? super T, ? super T> validation, T override) {
+	private OverrideBuilder(OverrideBuilder<T, S, I, N> from, BiFunction<? super T, ? super T, ? extends T> validation,
+			T override) {
 		configurator = from.configurator;
 
 		valueFunction = from.valueFunction;
@@ -85,11 +88,11 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 
 		values = from.values;
 
-		this.validation = validation;
+		this.mergeOverride = validation;
 		this.override = override;
 	}
 
-	public OverrideBuilder<T, S, N> orDefault(T value) {
+	public OverrideBuilder<T, S, I, N> orDefault(T value) {
 		if (givenValueFunction == null
 				|| (configurator.getConcrete() == null || configurator.getConcrete()) && !isOverridden()) {
 			return or(() -> value);
@@ -98,7 +101,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		}
 	}
 
-	public OverrideBuilder<T, S, N> orMerged(Function<? super Collection<T>, ? extends T> merge) {
+	public OverrideBuilder<T, S, I, N> orMerged(Function<? super Collection<T>, ? extends T> merge) {
 		if (values != null && !values.isEmpty()) {
 			return or(() -> {
 				T merged = merge.apply(values);
@@ -120,29 +123,26 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		return (Class<N>) configurator.getNodeType().getRawType();
 	}
 
-	public OverrideBuilder<T, S, N> orMerged(BinaryOperator<T> merge) {
+	public OverrideBuilder<T, S, I, N> orMerged(BinaryOperator<T> merge) {
 		return orMerged(s -> s.stream().reduce(merge).get());
 	}
 
-	public OverrideBuilder<T, S, N> or(T value) {
+	public OverrideBuilder<T, S, I, N> or(T value) {
 		return or(() -> value);
 	}
 
-	public OverrideBuilder<T, S, N> or(Supplier<T> supplier) {
+	public OverrideBuilder<T, S, I, N> or(Supplier<T> supplier) {
 		if (override == null) {
-			return new OverrideBuilder<>(this, validation, supplier.get());
+			return new OverrideBuilder<>(this, mergeOverride, supplier.get());
 		} else {
 			return this;
 		}
 	}
 
 	public T tryGet() {
-		if (isOverridden() && validation != null) {
+		if (isOverridden() && mergeOverride != null) {
 			for (T value : values) {
-				if (!validation.test(override, value)) {
-					throw new ModabiException(
-							t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, getNodeClass(), value, override), null);
-				}
+				override = mergeOverride.apply(override, value);
 			}
 		}
 
@@ -174,23 +174,26 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<S, N>, N extend
 		return overridden;
 	}
 
-	public OverrideBuilder<T, S, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
-		BiPredicate<? super T, ? super T> newValidation = validation;
+	public OverrideBuilder<T, S, I, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
+		BiFunction<? super T, ? super T, ? extends T> newValidation = (a, b) -> {
+			if (!validation.test(a, b)) {
+				throw new ModabiException(
+						t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, getNodeClass(), b, a));
+			}
 
-		if (this.validation != null) {
-			newValidation = (a, b) -> validation.test(a, b) && this.validation.test(a, b);
-		}
+			return a;
+		};
 
-		return new OverrideBuilder<>(this, newValidation, override);
+		return mergeOverride(newValidation);
 	}
 
-	public OverrideBuilder<T, S, N> mergeOverride(BiFunction<? super T, ? super T, T> validation) {
-		BiPredicate<? super T, ? super T> newValidation = validation;
+	public OverrideBuilder<T, S, I, N> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
+		BiFunction<? super T, ? super T, ? extends T> newOverride = mergeOverride;
 
-		if (this.validation != null) {
-			newValidation = (a, b) -> validation.test(a, b) && this.validation.test(a, b);
+		if (this.mergeOverride != null) {
+			newOverride = (a, b) -> mergeOverride.apply(this.mergeOverride.apply(a, b), b);
 		}
 
-		return new OverrideBuilder<>(this, newValidation, override);
+		return new OverrideBuilder<>(this, newOverride, override);
 	}
 }

@@ -40,8 +40,8 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class InputSequenceNodeConfiguratorImpl
-		extends ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode>
-		implements InputSequenceNodeConfigurator {
+		extends ChildNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode> implements
+		InputSequenceNodeConfigurator, InputNodeConfiguratorImpl<InputSequenceNodeConfigurator, InputSequenceNode> {
 	private String inputMember;
 	private InputMemberType inputMemberType;
 	private Boolean chainedInput;

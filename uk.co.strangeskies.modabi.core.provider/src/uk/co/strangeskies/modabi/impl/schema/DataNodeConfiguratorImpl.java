@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,6 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataNode.Format;
 import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DataNodeConfiguratorImpl<T> extends
@@ -91,12 +92,15 @@ public class DataNodeConfiguratorImpl<T> extends
 		return type;
 	}
 
-	public List<DataNode<? super T>> getOverriddenNodes() {
-		return getOverriddenNodes(new TypeToken<DataNode<? super T>>() {});
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<DataNode<T>> getOverriddenNodes() {
+		return getOverriddenNodes(new TypeToken<DataNode<? super T>>() {}).stream().map(n -> (DataNode<T>) n)
+				.collect(toList());
 	}
 
 	@Override
-	protected List<? extends SchemaNode<?>> getOverriddenAndBaseNodes() {
+	protected List<BindingNode<? super T, ?>> getOverriddenAndBaseNodes() {
 		List<BindingNode<? super T, ?>> nodes = new ArrayList<>(getOverriddenNodes());
 
 		if (type != null)

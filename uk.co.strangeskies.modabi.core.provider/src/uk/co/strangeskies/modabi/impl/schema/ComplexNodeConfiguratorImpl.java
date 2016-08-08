@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +29,6 @@ import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeConfiguratorImpl<T>
@@ -71,12 +72,15 @@ public class ComplexNodeConfiguratorImpl<T>
 		return baseModel;
 	}
 
-	public List<ComplexNode<? super T>> getOverriddenNodes() {
-		return getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {});
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<ComplexNode<T>> getOverriddenNodes() {
+		return getOverriddenNodes(new TypeToken<ComplexNode<? super T>>() {}).stream().map(n -> (ComplexNode<T>) n)
+				.collect(toList());
 	}
 
 	@Override
-	protected List<? extends SchemaNode<?>> getOverriddenAndBaseNodes() {
+	protected List<BindingNode<? super T, ?>> getOverriddenAndBaseNodes() {
 		List<BindingNode<? super T, ?>> nodes = new ArrayList<>(getOverriddenNodes());
 
 		if (baseModel != null)

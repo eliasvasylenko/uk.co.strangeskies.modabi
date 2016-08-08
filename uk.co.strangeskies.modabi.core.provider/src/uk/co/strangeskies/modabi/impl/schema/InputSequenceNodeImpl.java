@@ -29,7 +29,7 @@ import uk.co.strangeskies.reflection.FieldMember;
 import uk.co.strangeskies.reflection.TypeToken;
 
 class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements InputSequenceNode {
-	private final InputNodeComponent inputNodeComponent;
+	private final InputNodeComponent<?, ?> inputNodeComponent;
 
 	protected InputSequenceNodeImpl(InputSequenceNodeConfiguratorImpl configurator) {
 		super(configurator);
@@ -40,10 +40,10 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 		List<TypeToken<?>> parameterClasses = configurator.getChildren().stream()
 				.map(o -> ((BindingChildNodeImpl<?, ?>) o).dataType()).collect(Collectors.toList());
 
-		inputNodeComponent = new InputNodeComponent(configurator, configurator.getContext(), parameterClasses);
+		inputNodeComponent = new InputNodeComponent<>(configurator, parameterClasses);
 	}
 
-	protected InputNodeComponent getInputNodeComponent() {
+	protected InputNodeComponent<?, ?> getInputNodeComponent() {
 		return inputNodeComponent;
 	}
 

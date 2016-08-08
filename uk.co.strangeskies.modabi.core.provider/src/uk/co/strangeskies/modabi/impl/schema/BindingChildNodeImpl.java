@@ -112,7 +112,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		}
 	}
 
-	protected abstract InputNodeComponent getInputNodeComponent();
+	protected abstract InputNodeComponent<?, ?> getInputNodeComponent();
 
 	public <C extends BindingChildNodeConfigurator<C, S, T>> void integrateIO(
 			BindingChildNodeConfiguratorImpl<C, S, T> configurator) {

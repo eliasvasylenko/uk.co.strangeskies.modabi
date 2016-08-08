@@ -63,24 +63,24 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		BoundSet bounds = configurator.getInferenceBounds();
 
 		bindingStrategy = configurator
-				.getOverride(BindingNode::inputBindingStrategy, BindingNodeConfigurator::getInputBindingStrategy)
+				.getOverrideWithBase(BindingNode::inputBindingStrategy, BindingNodeConfigurator::getInputBindingStrategy)
 				.orDefault(InputBindingStrategy.PROVIDED).get();
 
 		unbindingStrategy = configurator
-				.getOverride(BindingNode::outputBindingStrategy, BindingNodeConfigurator::getOutputBindingStrategy)
+				.getOverrideWithBase(BindingNode::outputBindingStrategy, BindingNodeConfigurator::getOutputBindingStrategy)
 				.orDefault(OutputBindingStrategy.SIMPLE).get();
 
 		/*
 		 * TODO refactor to make this final.
 		 */
 		unbindingMethodName = configurator
-				.getOverride(b -> b.outputBindingMethod() == null ? null : b.outputBindingMethod().getName(),
+				.getOverrideWithBase(b -> b.outputBindingMethod() == null ? null : b.outputBindingMethod().getName(),
 						BindingNodeConfigurator::getOutputBindingMethod)
 				.tryGet();
 
 		providedUnbindingParameters = findProvidedUnbindingParameters(configurator);
 
-		unbindingMethodUnchecked = configurator.getOverride(BindingNode::outputBindingMethodUnchecked,
+		unbindingMethodUnchecked = configurator.getOverrideWithBase(BindingNode::outputBindingMethodUnchecked,
 				BindingNodeConfigurator::getOutputBindingMethodUnchecked).tryGet();
 
 		TypeToken<T> dataType = configurator.getEffectiveDataType();
@@ -223,7 +223,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private <C extends BindingNodeConfigurator<C, S, T>> List<BindingNode<?, ?>> findProvidedUnbindingParameters(
 			BindingNodeConfiguratorImpl<C, S, T> configurator) {
 		List<? extends BindingNode<?, ?>> parameters = configurator
-				.getOverride(this::getOverriddenProvidedUnbindingParameters, this::getGivenProvidedUnbindingParameters)
+				.getOverrideWithBase(this::getOverriddenProvidedUnbindingParameters, this::getGivenProvidedUnbindingParameters)
 				.orDefault(Collections.emptyList()).get();
 
 		if (parameters == null) {
@@ -233,7 +233,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		}
 	}
 
-	private List<BindingNode<?, ?>> getOverriddenProvidedUnbindingParameters(BindingNode<T, ?> node) {
+	private List<BindingNode<?, ?>> getOverriddenProvidedUnbindingParameters(BindingNode<?, ?> node) {
 		List<BindingNode<?, ?>> parameters = node.providedOutputBindingMethodParameters();
 
 		if (parameters == null)
@@ -244,7 +244,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			}).collect(Collectors.toList());
 	}
 
-	private List<BindingNode<?, ?>> getGivenProvidedUnbindingParameters(BindingNodeConfigurator<?, S, T> configurator) {
+	private List<BindingNode<?, ?>> getGivenProvidedUnbindingParameters(BindingNodeConfigurator<?, ?, ?> configurator) {
 		List<QualifiedName> parameterNames = configurator.getProvidedOutputBindingMethodParameters();
 
 		if (parameterNames == null) {
@@ -317,7 +317,8 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private <C extends BindingNodeConfigurator<C, S, T>, U> ExecutableMember<?, ?> findUnbindingMethod(
 			BindingNodeConfiguratorImpl<C, S, T> configurator, TypeToken<?> result, TypeToken<U> receiver,
 			List<TypeToken<?>> parameters) {
-		ExecutableMember<?, ?> overridden = configurator.getOverride(BindingNode::outputBindingMethod, c -> null).tryGet();
+		ExecutableMember<?, ?> overridden = configurator.getOverrideWithBase(BindingNode::outputBindingMethod, c -> null)
+				.tryGet();
 
 		if (overridden != null) {
 			ExecutableMember<U, ?> ExecutableMember = (ExecutableMember<U, ?>) overridden.withLooseApplicability(parameters);
@@ -348,7 +349,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private <C extends BindingNodeConfigurator<C, S, T>> List<String> generateUnbindingMethodNames(
 			BindingNodeConfiguratorImpl<C, S, T> configurator, TypeToken<?> resultClass) {
 		String name = configurator
-				.getOverride(n -> n.outputBindingMethod() == null ? null : n.outputBindingMethod().getName(),
+				.getOverrideWithBase(n -> n.outputBindingMethod() == null ? null : n.outputBindingMethod().getName(),
 						BindingNodeConfigurator::getOutputBindingMethod)
 				.tryGet();
 
