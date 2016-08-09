@@ -23,7 +23,6 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface DereferenceSource {
@@ -39,5 +38,5 @@ public interface DereferenceSource {
 		return idDomain -> dereference(model, idDomain);
 	}
 
-	<T> T dereference(BindingNode<T, ?> node);
+	//<T> T dereference(BindingNode<T, ?> node);
 }

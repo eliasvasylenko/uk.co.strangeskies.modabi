@@ -46,7 +46,6 @@ import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
-import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -124,11 +123,13 @@ public class BindingProviders {
 				}, idDomain, id, false);
 			}
 
+			/*-
 			@Override
 			public <T> T dereference(BindingNode<T, ?> node) {
 				// TODO
 				return null;
 			}
+			*/
 		};
 	}
 

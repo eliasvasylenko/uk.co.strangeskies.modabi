@@ -133,7 +133,9 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		if (exactDataType != null && !exactDataType.isProper()) {
 			exactDataType = exactDataType.withBounds(bounds).resolve();
 
-			if (concrete() && !((BindingNodeConfiguratorImpl<?, S, T>) configurator()).getExtensible()) {
+			Boolean extensible = ((BindingNodeConfiguratorImpl<?, S, T>) configurator()).getExtensible();
+
+			if (concrete() && (extensible == null || !extensible)) {
 				try {
 					// exactDataType = exactDataType.infer(); TODO
 				} catch (TypeException e) {

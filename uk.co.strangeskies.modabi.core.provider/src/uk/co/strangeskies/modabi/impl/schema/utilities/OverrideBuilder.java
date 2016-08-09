@@ -75,6 +75,8 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 			}
 		}).flatMap(Function.identity()).collect(Collectors.toSet());
 
+		System.out.println("         " + values);
+
 		mergeOverride = null;
 		override = givenValueFunction.apply(configurator.getThis());
 	}
@@ -118,13 +120,25 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		}
 	}
 
+	public OverrideBuilder<T, S, I, N> orMerged() {
+		return orMerged((a, b) -> {
+			if (a.equals(b)) {
+				return a;
+			} else {
+				throw new ModabiException(
+						t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, getNodeClass(), values));
+			}
+		});
+	}
+
 	@SuppressWarnings("unchecked")
 	private Class<N> getNodeClass() {
 		return (Class<N>) configurator.getNodeType().getRawType();
 	}
 
 	public OverrideBuilder<T, S, I, N> orMerged(BinaryOperator<T> merge) {
-		return orMerged(s -> s.stream().reduce(merge).get());
+		return orMerged(s -> s.stream().filter(Objects::nonNull).reduce(merge).orElseThrow(
+				() -> new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()))));
 	}
 
 	public OverrideBuilder<T, S, I, N> or(T value) {

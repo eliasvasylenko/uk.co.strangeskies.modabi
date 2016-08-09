@@ -162,8 +162,4 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		return new OverrideBuilder<>(this, ChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
 				givenValueFunction);
 	}
-
-	protected <T> OverrideBuilder<T, ?, ?, ?> getOverride(Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, ChildNodeConfiguratorImpl::getOverriddenNodes, n -> null, givenValueFunction);
-	}
 }
