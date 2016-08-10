@@ -14,19 +14,26 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ModabiException;
+import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 
 /**
- * A class for specification of the override rules for determining the exact
- * value of a property of a schema node.
+ * A class for building override rules to determine the value of a property of a
+ * schema node. A "property", in this context, may include for example the
+ * {@link SchemaNode#name() name} of a node or the {@link BindingNode#dataType()
+ * type} of a binding node.
  * 
  * @author Elias N Vasylenko
  *
  * @param <T>
+ *          the type of the value of the node
  * @param <S>
+ *          the type of the configurator
  * @param <I>
+ *          the type of the configurator implementation
  * @param <N>
+ *          the type of the node
  */
 public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extends SchemaNodeConfigurator<? extends S, ? extends N>, N extends SchemaNode<?>> {
 	private final I configurator;
@@ -127,7 +134,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 	}
 
 	public OverrideBuilder<T, S, I, N> orMerged(Function<? super Collection<T>, ? extends T> merge) {
-		if (!inheritedValues.isEmpty()) {
+		if (!inheritedValues.isEmpty() && !isOverridden()) {
 			T merged = merge.apply(inheritedValues);
 
 			if (merged == null) {
@@ -142,8 +149,8 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 	}
 
 	public OverrideBuilder<T, S, I, N> orMerged(BinaryOperator<T> merge) {
-		return orMerged(s -> s.stream().filter(Objects::nonNull).reduce(merge).orElseThrow(
-				() -> new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()))));
+		return orMerged(s -> s.stream().reduce(merge).orElseThrow(() -> new ModabiException(
+				t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues))));
 	}
 
 	public OverrideBuilder<T, S, I, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
