@@ -10,7 +10,6 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,9 +34,9 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 	private final Function<? super N, ? extends T> valueFunction;
 	private final Function<? super S, ? extends T> givenValueFunction;
 
-	private final Set<T> inheritedValues;
-
 	private final BiFunction<? super T, ? super T, ? extends T> mergeOverride;
+
+	private final Set<T> inheritedValues;
 	private final T override;
 
 	public OverrideBuilder(I configurator, Function<? super I, ? extends Collection<? extends N>> overridden,
@@ -51,7 +50,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		this.valueFunction = valueFunction;
 		this.givenValueFunction = givenValueFunction;
 
-		mergeOverride = null;
+		mergeOverride = validateOverrideFunction(Objects::equals);
 
 		inheritedValues = overridden.apply(configurator).stream().map(n -> {
 			T value = valueFunction.apply(n);
@@ -59,7 +58,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 			if (value != null) {
 				return Stream.of(value);
 			} else if (givenValueFunction == null) {
-				return Stream.<T>empty();
+				return Stream.<T> empty();
 			} else {
 				List<S> values = new ArrayList<>();
 
@@ -118,31 +117,25 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		return inheritedValues;
 	}
 
-	/*
-	 * TODO default should not be necessary if we only have a single overridden
-	 * value, since we can just use that directly.
-	 */
 	public OverrideBuilder<T, S, I, N> orDefault(T value) {
 		if (givenValueFunction == null
 				|| (configurator.getConcrete() == null || configurator.getConcrete()) && !isOverridden()) {
-			return or(() -> value);
+			return or(value);
 		} else {
 			return this;
 		}
 	}
 
 	public OverrideBuilder<T, S, I, N> orMerged(Function<? super Collection<T>, ? extends T> merge) {
-		if (inheritedValues != null && !inheritedValues.isEmpty()) {
-			return or(() -> {
-				T merged = merge.apply(inheritedValues);
+		if (!inheritedValues.isEmpty()) {
+			T merged = merge.apply(inheritedValues);
 
-				if (merged == null) {
-					throw new ModabiException(
-							t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues));
-				}
+			if (merged == null) {
+				throw new ModabiException(
+						t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues));
+			}
 
-				return merged;
-			});
+			return or(merged);
 		} else {
 			return this;
 		}
@@ -154,7 +147,12 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 	}
 
 	public OverrideBuilder<T, S, I, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
-		BiFunction<? super T, ? super T, ? extends T> newValidation = (a, b) -> {
+		return mergeOverride(validateOverrideFunction(validation));
+	}
+
+	private BiFunction<? super T, ? super T, ? extends T> validateOverrideFunction(
+			BiPredicate<? super T, ? super T> validation) {
+		return (a, b) -> {
 			if (!validation.test(a, b)) {
 				throw new ModabiException(
 						t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, getNodeClass(), b, a));
@@ -162,61 +160,46 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 
 			return a;
 		};
-
-		return mergeOverride(newValidation);
 	}
 
 	public OverrideBuilder<T, S, I, N> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
-		BiFunction<? super T, ? super T, ? extends T> newOverride = mergeOverride;
-
-		if (this.mergeOverride != null) {
-			newOverride = (a, b) -> mergeOverride.apply(this.mergeOverride.apply(a, b), b);
-		}
-
-		return new OverrideBuilder<>(this, newOverride, override);
+		return new OverrideBuilder<>(this, mergeOverride, override);
 	}
 
 	public OverrideBuilder<T, S, I, N> or(T value) {
-		return or(() -> value);
-	}
-
-	public OverrideBuilder<T, S, I, N> or(Supplier<T> supplier) {
-		if (override == null) {
-			return new OverrideBuilder<>(this, mergeOverride, supplier.get());
-		} else {
-			return this;
-		}
+		return isOverridden() ? this : new OverrideBuilder<>(this, mergeOverride, value);
 	}
 
 	public T tryGet() {
+		T value = override;
+
 		if (isOverridden() && mergeOverride != null) {
-			for (T value : inheritedValues) {
-				override = mergeOverride.apply(override, value);
+			for (T inheritedValue : inheritedValues) {
+				value = mergeOverride.apply(override, inheritedValue);
 			}
 		}
 
-		return override;
+		return value;
 	}
 
 	public T get() {
 		T value = tryGet();
 
-		if (value == null && givenValueFunction != null
-				&& (configurator.getConcrete() == null || configurator.getConcrete()))
-			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()));
+		if (value == null && (configurator.getConcrete() == null || configurator.getConcrete())
+				&& givenValueFunction != null) {
+			if (inheritedValues.isEmpty()) {
+				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()));
+			} else {
+				throw new ModabiException(
+						t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues));
+			}
+		}
 
 		return value;
 	}
 
 	private boolean isOverridden() {
-		boolean overridden = override != null;
-
-		if (!overridden) {
-			throw new ModabiException(
-					t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues));
-		}
-
-		return overridden;
+		return override != null;
 	}
 
 	@SuppressWarnings("unchecked")

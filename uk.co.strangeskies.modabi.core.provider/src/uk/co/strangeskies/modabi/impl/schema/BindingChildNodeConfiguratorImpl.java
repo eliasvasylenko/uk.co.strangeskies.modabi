@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
@@ -192,11 +191,6 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	public S inputNone() {
 		this.inputMemberType = InputMemberType.NONE;
 		return getThis();
-	}
-
-	private void checkInputAllowed() {
-		if (!getContext().isInputExpected())
-			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
 	}
 
 	@Override
@@ -388,8 +382,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 				givenValueFunction);
 	}
 
-	protected <U> OverrideBuilder<U, ?, ?, ?> getOverride(
-			Function<S, U> givenValueFunction) {
+	protected <U> OverrideBuilder<U, ?, ?, ?> getOverride(Function<S, U> givenValueFunction) {
 		return new OverrideBuilder<>(this, BindingChildNodeConfiguratorImpl::getOverriddenNodes, n -> null,
 				givenValueFunction);
 	}

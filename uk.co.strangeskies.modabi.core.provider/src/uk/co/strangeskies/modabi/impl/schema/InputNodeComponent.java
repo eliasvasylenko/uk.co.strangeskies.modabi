@@ -55,26 +55,23 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 	}
 
 	public InputNodeComponent(InputNodeConfiguratorImpl<C, N> configurator, List<TypeToken<?>> inMethodParameters) {
-		System.out.println("  -");
 		inMethodChained = getOverride(configurator, InputNode::chainedInput, InputNodeConfigurator::getChainedInput)
-				.orMerged()
 				.or(ifResolved(configurator,
 						configurator.getContext().isConstructorExpected() || configurator.getContext().isStaticMethodExpected()))
 				.get();
-		System.out.println("   = " + inMethodChained);
 
 		inMethodUnchecked = getOverride(configurator, InputNode::uncheckedInput, InputNodeConfigurator::getUncheckedInput)
-				.orMerged().or(ifResolved(configurator, false)).get();
+				.mergeOverride((a, b) -> true).or(ifResolved(configurator, false)).get();
 
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
-				: getOverride(configurator, InputNode::castInput, InputNodeConfigurator::getCastInput).orMerged()
-						.or(ifResolved(configurator, false)).get();
+				: getOverride(configurator, InputNode::castInput, InputNodeConfigurator::getCastInput)
+						.mergeOverride((a, b) -> true).or(ifResolved(configurator, false)).get();
 
 		ExecutableMember<?, ?> inputMember;
 		InputMemberType inputMemberType = determineInputMemberType(configurator);
 		if (inputMemberType == null) {
 			try {
-				inputMemberType = modifyInputMemberType(configurator.getContext(), InputMemberType.METHOD);
+				inputMemberType = modifyInputMemberType(configurator, InputMemberType.METHOD);
 				inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters);
 			} catch (Exception methodException) {
 				try {
@@ -122,14 +119,20 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 
 	private InputMemberType determineInputMemberType(InputNodeConfiguratorImpl<C, N> configurator) {
 		return getOverride(configurator, InputNode::inputMemberType,
-				c -> modifyInputMemberType(configurator.getContext(), c.getInputMemberType())).tryGet();
+				c -> modifyInputMemberType(configurator, c.getInputMemberType())).tryGet();
 	}
 
-	private InputMemberType modifyInputMemberType(SchemaNodeConfigurationContext context, InputMemberType type) {
-		if (type == InputMemberType.METHOD) {
-			if (context.isConstructorExpected()) {
+	private InputMemberType modifyInputMemberType(InputNodeConfiguratorImpl<C, N> configurator, InputMemberType type) {
+		if (!configurator.getContext().isInputExpected()) {
+			if (type == null) {
+				type = InputMemberType.NONE;
+			} else if (type != InputMemberType.NONE) {
+				throw new ModabiException(t -> t.cannotDefineInputInContext(configurator.getResult().name()));
+			}
+		} else if (type == InputMemberType.METHOD) {
+			if (configurator.getContext().isConstructorExpected()) {
 				type = InputMemberType.CONSTRUCTOR;
-			} else if (context.isStaticMethodExpected()) {
+			} else if (configurator.getContext().isStaticMethodExpected()) {
 				type = InputMemberType.STATIC_METHOD;
 			}
 		}
@@ -356,14 +359,13 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 		TypeToken<?> postInputClass;
 
 		if (inputMemberType == InputMemberType.NONE || (inMethodChained != null && !inMethodChained)) {
-			System.out.println(" ?");
 			postInputClass = configurator.getContext().inputTargetType();
+
 		} else if (!isResolved(configurator) || inMethodChained == null) {
-			System.out.println(" !");
 			postInputClass = getOverride(configurator, n -> n.postInputType() == null ? null : n.postInputType(),
 					InputNodeConfigurator::getPostInputType).validateOverride(TypeToken::isAssignableTo).tryGet();
+
 		} else {
-			System.out.println(" .");
 			TypeToken<?> methodReturn;
 
 			methodReturn = inputMember.getReturnType();
@@ -384,9 +386,6 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 			postInputClass = getOverride(configurator, n -> n.postInputType(),
 					c -> c == configurator ? finalPostInputType : null).validateOverride(TypeToken::isAssignableTo).get();
 		}
-
-		System.out.println(configurator.getName() + "  --- " + postInputClass + "             " + inputMemberType
-				+ "   ££   " + inMethodChained);
 
 		return postInputClass;
 	}

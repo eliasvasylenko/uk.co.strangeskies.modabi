@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
@@ -92,11 +91,6 @@ public class InputSequenceNodeConfiguratorImpl
 	public InputSequenceNodeConfigurator inputNone() {
 		this.inputMemberType = InputMemberType.NONE;
 		return getThis();
-	}
-
-	private void checkInputAllowed() {
-		if (!getContext().isInputExpected())
-			throw new ModabiException(t -> t.cannotDefineInputInContext(getName()));
 	}
 
 	@Override

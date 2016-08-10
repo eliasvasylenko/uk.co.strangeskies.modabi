@@ -226,12 +226,17 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			BindingNodeConfiguratorImpl<C, S, T> configurator) {
 		List<? extends BindingNode<?, ?>> parameters = configurator
 				.getOverrideWithBase(this::getOverriddenProvidedUnbindingParameters, this::getGivenProvidedUnbindingParameters)
-				.orDefault(Collections.emptyList()).get();
+				.tryGet();
 
-		if (parameters == null) {
-			return null;
-		} else {
+		if (parameters != null) {
 			return Collections.unmodifiableList(parameters);
+		} else if ((outputBindingStrategy() == OutputBindingStrategy.STATIC_FACTORY
+				|| outputBindingStrategy() == OutputBindingStrategy.PROVIDED_FACTORY
+				|| outputBindingStrategy() == OutputBindingStrategy.ACCEPT_PROVIDED
+				|| outputBindingStrategy() == OutputBindingStrategy.PASS_TO_PROVIDED) && concrete()) {
+			return Arrays.asList(BindingNodeImpl.this);
+		} else {
+			return null;
 		}
 	}
 
@@ -250,11 +255,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		List<QualifiedName> parameterNames = configurator.getProvidedOutputBindingMethodParameters();
 
 		if (parameterNames == null) {
-			if (configurator.getOutputBindingMethod() != null) {
-				return Arrays.asList(BindingNodeImpl.this);
-			} else {
-				return null;
-			}
+			return null;
 		} else {
 			boolean encounteredThisParameter = false;
 			ArrayList<BindingNode<?, ?>> inheritedParameters = new ArrayList<>(parameterNames.size() + 1);
@@ -298,6 +299,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 		List<TypeToken<?>> classList = new ArrayList<>();
 
 		List<BindingNode<?, ?>> parameters = providedOutputBindingMethodParameters();
+
 		if (parameters != null) {
 			for (BindingNode<?, ?> parameter : parameters) {
 				if (this == parameter) {

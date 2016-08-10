@@ -40,7 +40,9 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 
 		List<Model<? super T>> baseModel = new ArrayList<>();
 		configurator.getOverriddenNodes().forEach(n -> baseModel.addAll(n.model()));
-		baseModel.addAll(configurator.getModel());
+		if (configurator.getModel() != null) {
+			baseModel.addAll(configurator.getModel());
+		}
 		this.baseModel = Collections.unmodifiableList(baseModel);
 
 		Boolean inline = configurator.getOverride(ComplexNode::inline, ComplexNodeConfigurator::getInline).orDefault(false)
