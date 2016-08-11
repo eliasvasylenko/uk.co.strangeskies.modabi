@@ -195,6 +195,9 @@ public class BindingNodeUnbinder {
 				} else {
 					List<?> values = ((DataNode<?>) parameter).providedValues();
 					parameters.add(values == null ? null : values.get(0));
+
+					System.out.println("?"+parameter.name());
+					System.out.println("?"+parameter.getClass());
 				}
 			}
 

@@ -59,7 +59,7 @@ public interface DataTypeConfigurator<T> extends BindingNodeConfigurator<DataTyp
 	@Override
 	default public DataTypeConfigurator<T> addChild(
 			Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> propertyConfiguration) {
-		propertyConfiguration.apply(addChild()).create();
+		RootNodeConfigurator.super.addChild(propertyConfiguration);
 		return this;
 	}
 

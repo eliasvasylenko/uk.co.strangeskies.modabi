@@ -69,6 +69,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		super(configurator);
 
 		parent = configurator.getContext().parent();
+		//Objects.requireNonNull(parent);
 
 		synchronous = configurator.getOverride(BindingChildNode::synchronous, BindingChildNodeConfigurator::getSynchronous)
 				.orDefault(false).get();

@@ -64,7 +64,7 @@ public interface ModelConfigurator<T> extends BindingNodeConfigurator<ModelConfi
 	@Override
 	default public ModelConfigurator<T> addChild(
 			Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> propertyConfiguration) {
-		propertyConfiguration.apply(addChild()).create();
+		RootNodeConfigurator.super.addChild(propertyConfiguration);
 		return this;
 	}
 

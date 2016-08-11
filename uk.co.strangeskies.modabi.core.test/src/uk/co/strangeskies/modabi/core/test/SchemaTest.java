@@ -82,12 +82,6 @@ public class SchemaTest extends TestBase {
 	public void schemaTest() throws InterruptedException {
 		Thread.sleep(1000);
 
-		System.out.println();
-		System.out.println();
-		System.out.println("*");
-		System.out.println();
-		System.out.println();
-
 		manager().bindSchema().withClassLoader(getClass().getClassLoader()).from(() -> this.getResouce("SchemaTest"))
 				.resolve(5000);
 	}

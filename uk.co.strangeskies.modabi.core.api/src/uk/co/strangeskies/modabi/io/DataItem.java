@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.io;
 
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
@@ -52,6 +53,8 @@ class TypedDataItem<T> extends AbstractDataItem<T> {
 	private final T data;
 
 	TypedDataItem(Primitive<T> type, T data) {
+		Objects.requireNonNull(type);
+		
 		this.type = type;
 		this.data = data;
 	}

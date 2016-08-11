@@ -57,6 +57,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 
 		providedBuffer = configurator.getOverride(DataNode::providedValueBuffer, DataNodeConfigurator::getProvidedValue)
 				.tryGet();
+
 		ValueResolution resolution = configurator
 				.getOverride(DataNode::valueResolution, DataNodeConfigurator::getValueResolution)
 				.validateOverride(
