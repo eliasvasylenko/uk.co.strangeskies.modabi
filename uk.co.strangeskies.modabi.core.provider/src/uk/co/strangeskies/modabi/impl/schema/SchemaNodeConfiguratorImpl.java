@@ -18,12 +18,15 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
@@ -36,16 +39,21 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private N node;
 
 	private ChildrenConfigurator childrenConfigurator;
-	private List<ChildNode<?>> children;
+	private List<ChildNodeConfigurator<?, ?>> children;
+	private List<ChildNode<?>> childrenResults;
 
 	private QualifiedName name;
 	private Boolean concrete;
 
-	public SchemaNodeConfiguratorImpl() {}
+	public SchemaNodeConfiguratorImpl() {
+		children = new ArrayList<>();
+	}
 
 	protected SchemaNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<S, N> copy) {
 		name = copy.name;
 		concrete = copy.concrete;
+
+		children = copy.children.stream().map(SchemaNodeConfigurator::copy).collect(Collectors.toList());
 	}
 
 	@Override
@@ -64,12 +72,16 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@Override
-	public List<ChildNode<?>> getChildren() {
-		if (children == null) {
-			children = getChildrenConfigurator().create();
+	public List<? extends ChildNodeConfigurator<?, ?>> getChildren() {
+		return children;
+	}
+
+	public List<ChildNode<?>> getChildrenResults() {
+		if (childrenResults == null) {
+			childrenResults = getChildrenConfigurator().create();
 		}
 
-		return children;
+		return childrenResults;
 	}
 
 	public ChildrenConfigurator getChildrenConfigurator() {
@@ -105,6 +117,10 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	@Override
 	public Boolean getConcrete() {
 		return concrete;
+	}
+
+	protected void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
+		children.add(configurator);
 	}
 
 	protected abstract DataLoader getDataLoader();

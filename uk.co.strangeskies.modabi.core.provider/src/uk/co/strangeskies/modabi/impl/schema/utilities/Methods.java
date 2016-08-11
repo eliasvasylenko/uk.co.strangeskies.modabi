@@ -18,10 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import java.lang.reflect.Executable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.reflection.ExecutableMember;
@@ -52,42 +50,38 @@ public class Methods {
 
 	public static <T> ExecutableMember<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver,
 			boolean isStatic, TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) {
-		ExecutableMember<? super T, ?> method = null;
+		RuntimeException cause = null;
 
-		try {
-			method = resolveMethodOverload(receiver, names, parameters);
-		} catch (Exception e) {
-			throw new ModabiException(t -> t.noMethodFound(receiver, parameters), e);
-		}
+		for (String name : names) {
+			ExecutableMember<? super T, ?> method = null;
 
-		if (result != null) {
-			if (!allowCast) {
-				method = method.withTargetType(result);
-			} else {
-				/*
-				 * TODO Enforce castability, with special treatment for iterable out
-				 * methods.
-				 */
+			try {
+				try {
+					method = receiver.resolveMethodOverload(name, parameters);
+				} catch (Exception e) {
+					throw new ModabiException(t -> t.noMethodFound(receiver, parameters), e);
+				}
+
+				if (result != null) {
+					if (!allowCast) {
+						method = method.withTargetType(result);
+					} else {
+						/*
+						 * TODO Enforce castability, with special treatment for iterable out
+						 * methods.
+						 */
+					}
+				}
+			} catch (RuntimeException e) {
+				if (cause == null)
+					cause = e;
+			}
+
+			if (method != null) {
+				return method;
 			}
 		}
 
-		return method;
-	}
-
-	private static <T> ExecutableMember<? super T, ?> resolveMethodOverload(TypeToken<T> type, List<String> names,
-			List<? extends TypeToken<?>> arguments) {
-		Set<? extends ExecutableMember<? super T, ? extends Object>> candidates = type
-				.getMethods(m -> names.contains(m.getName()) && isArgumentCountValid(m, arguments.size()));
-
-		if (candidates.isEmpty())
-			throw new ModabiException(t -> t.noMethodCandidatesFoundForNames(names));
-
-		candidates = ExecutableMember.resolveApplicableExecutableMembers(candidates, arguments);
-
-		return ExecutableMember.resolveMostSpecificExecutableMember(candidates);
-	}
-
-	private static boolean isArgumentCountValid(Executable method, int arguments) {
-		return (method.isVarArgs() ? method.getParameterCount() <= arguments + 1 : method.getParameterCount() == arguments);
+		throw new ModabiException(t -> t.noMethodCandidatesFoundForNames(names), cause);
 	}
 }

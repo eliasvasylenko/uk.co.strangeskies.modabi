@@ -24,6 +24,7 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.HidingChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -58,6 +59,11 @@ public class ChoiceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Choice
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new HidingChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
+				ChoiceNodeConfiguratorImpl.this.addChildConfigurator(configurator);
+			}
+
 			@Override
 			public SchemaNode<?> parent() {
 				return getResult();

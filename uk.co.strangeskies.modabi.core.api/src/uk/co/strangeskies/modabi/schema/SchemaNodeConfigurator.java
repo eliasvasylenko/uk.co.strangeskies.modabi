@@ -52,5 +52,5 @@ public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, 
 		return this;
 	}
 
-	List<ChildNode<?>> getChildren();
+	List<? extends ChildNodeConfigurator<?, ?>> getChildren();
 }

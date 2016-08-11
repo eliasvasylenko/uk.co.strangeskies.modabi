@@ -98,7 +98,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			return Collections.unmodifiableSet(children);
 		}
 
-		public boolean addChild(ChildNode<?> child) {
+		public boolean addChildResult(ChildNode<?> child) {
 			if (overridden)
 				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			return children.add(child);
@@ -108,7 +108,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			if (overridden)
 				throw new ModabiException(t -> t.cannotOverrideNodeWhenOverridden(getName()));
 			children.clear();
-			addChild(result);
+			addChildResult(result);
 			overridden = true;
 		}
 	}
@@ -166,7 +166,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 				if (override)
 					group.override(child);
 				else
-					group.addChild(child);
+					group.addChildResult(child);
 				index = newIndex;
 			}
 		} else
@@ -296,7 +296,7 @@ public class HidingChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public void addChild(ChildNode<?> result) {
+			public void addChildResult(ChildNode<?> result) {
 				HidingChildrenConfigurator.this.addChild(result);
 			}
 		};

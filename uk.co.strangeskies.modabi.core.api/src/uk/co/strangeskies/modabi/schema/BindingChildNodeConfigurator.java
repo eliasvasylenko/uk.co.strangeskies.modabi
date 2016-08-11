@@ -35,6 +35,14 @@ public interface BindingChildNodeConfigurator<S extends BindingChildNodeConfigur
 
 	String getOutputMember();
 
+	default String getOutputMethod() {
+		return getOutputMemberType() != OutputMemberType.FIELD ? getOutputMember() : null;
+	}
+
+	default String getOutputField() {
+		return getOutputMemberType() == OutputMemberType.FIELD ? getOutputMember() : null;
+	}
+
 	S uncheckedOutput(boolean unchecked);
 
 	Boolean getUncheckedOutput();

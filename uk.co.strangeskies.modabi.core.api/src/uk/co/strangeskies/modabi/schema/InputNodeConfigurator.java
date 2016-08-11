@@ -32,6 +32,14 @@ public interface InputNodeConfigurator<S extends InputNodeConfigurator<S, N>, N 
 
 	String getInputMember();
 
+	default String getInputMethod() {
+		return getInputMemberType() != InputMemberType.FIELD ? getInputMember() : null;
+	}
+
+	default String getInputField() {
+		return getInputMemberType() == InputMemberType.FIELD ? getInputMember() : null;
+	}
+
 	S chainedInput(boolean chained);
 
 	Boolean getChainedInput();

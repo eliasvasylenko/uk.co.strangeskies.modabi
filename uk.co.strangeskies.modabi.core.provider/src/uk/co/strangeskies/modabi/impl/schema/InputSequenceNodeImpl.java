@@ -37,7 +37,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 		if (!configurator.getContext().isInputExpected())
 			throw new ModabiException(t -> t.cannotDefineInputInContext(name()));
 
-		List<TypeToken<?>> parameterClasses = configurator.getChildren().stream()
+		List<TypeToken<?>> parameterClasses = configurator.getChildrenResults().stream()
 				.map(o -> ((BindingChildNodeImpl<?, ?>) o).dataType()).collect(Collectors.toList());
 
 		inputNodeComponent = new InputNodeComponent<>(configurator, parameterClasses);

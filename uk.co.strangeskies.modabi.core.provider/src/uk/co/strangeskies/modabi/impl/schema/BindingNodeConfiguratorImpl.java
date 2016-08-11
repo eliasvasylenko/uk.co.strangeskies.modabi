@@ -34,6 +34,7 @@ import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
@@ -186,6 +187,11 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 			outputSource = null;
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
+				BindingNodeConfiguratorImpl.this.addChildConfigurator(configurator);
+			}
+
 			@Override
 			public SchemaNode<?> parent() {
 				return getResult();

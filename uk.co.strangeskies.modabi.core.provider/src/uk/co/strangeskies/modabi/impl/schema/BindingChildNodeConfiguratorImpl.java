@@ -93,7 +93,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	public N create() {
 		N node = super.create();
 
-		getContext().addChild(node);
+		getContext().addChildResult(node);
 
 		return node;
 	}

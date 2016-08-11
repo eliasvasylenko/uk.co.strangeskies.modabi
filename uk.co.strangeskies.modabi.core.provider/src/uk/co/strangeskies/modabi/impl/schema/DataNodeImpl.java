@@ -64,7 +64,8 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 				.orDefault(ValueResolution.PROCESSING_TIME).get();
 
 		Range<Integer> occurrences = configurator
-				.getOverride(BindingChildNode::occurrences, DataNodeConfigurator::getOccurrences).tryGet();
+				.getOverride(BindingChildNode::occurrences, DataNodeConfigurator::getOccurrences)
+				.validateOverride((a, b) -> b.contains(a)).tryGet();
 
 		/*
 		 * Bind provided value:

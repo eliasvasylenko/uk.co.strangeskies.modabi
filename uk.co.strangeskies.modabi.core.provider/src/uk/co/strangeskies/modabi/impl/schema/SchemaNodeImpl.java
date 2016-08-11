@@ -53,7 +53,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 
 		concrete = configurator.getConcrete() == null || configurator.getConcrete();
 
-		children = configurator.getChildren();
+		children = configurator.getChildrenResults();
 
 		if (!configurator.isChildContextAbstract())
 			requireConcreteDescendents(new ArrayDeque<>(Arrays.asList(this)));

@@ -104,7 +104,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			return Collections.unmodifiableSet(children);
 		}
 
-		public boolean addChild(ChildNode<?> child) {
+		public boolean addChildResult(ChildNode<?> child) {
 			if (overridden)
 				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			return children.add(child);
@@ -114,7 +114,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			if (overridden)
 				throw new ModabiException(t -> t.cannotAddInheritedNodeWhenOverridden(getName()));
 			children.clear();
-			addChild(result);
+			addChildResult(result);
 			overridden = true;
 		}
 	}
@@ -144,7 +144,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 
 			for (ChildNode<?> child : overriddenNode.children()) {
 				MergeGroup group = merge(child.name(), index);
-				group.addChild(child);
+				group.addChildResult(child);
 				index = group.getIndex() + 1;
 			}
 		}
@@ -333,7 +333,7 @@ public class SequentialChildrenConfigurator implements ChildrenConfigurator {
 			}
 
 			@Override
-			public void addChild(ChildNode<?> result) {
+			public void addChildResult(ChildNode<?> result) {
 				SequentialChildrenConfigurator.this.addChild(result);
 			}
 		};

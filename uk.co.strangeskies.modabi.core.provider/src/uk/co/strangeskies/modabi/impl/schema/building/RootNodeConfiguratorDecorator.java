@@ -24,7 +24,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.RootNode;
 import uk.co.strangeskies.modabi.schema.RootNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
@@ -222,7 +222,7 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	}
 
 	@Override
-	public List<ChildNode<?>> getChildren() {
+	public List<? extends ChildNodeConfigurator<?, ?>> getChildren() {
 		return getComponent().getChildren();
 	}
 }

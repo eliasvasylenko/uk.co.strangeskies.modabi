@@ -24,6 +24,7 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
@@ -58,6 +59,11 @@ public class SequenceNodeConfiguratorImpl extends ChildNodeConfiguratorImpl<Sequ
 		TypeToken<?> outputSource = getContext().outputSourceType();
 
 		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+			@Override
+			public void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
+				SequenceNodeConfiguratorImpl.this.addChildConfigurator(configurator);
+			}
+
 			@Override
 			public SchemaNode<?> parent() {
 				return getResult();

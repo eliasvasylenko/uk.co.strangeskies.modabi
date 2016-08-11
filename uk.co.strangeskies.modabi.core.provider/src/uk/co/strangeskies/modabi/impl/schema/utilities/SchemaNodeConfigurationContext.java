@@ -23,6 +23,7 @@ import java.util.List;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildNode;
+import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
@@ -54,7 +55,11 @@ public interface SchemaNodeConfigurationContext {
 
 	TypeToken<?> outputSourceType();
 
-	default void addChild(ChildNode<?> result) {
+	default void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
+		throw new UnsupportedOperationException();
+	}
+
+	default void addChildResult(ChildNode<?> result) {
 		throw new UnsupportedOperationException();
 	}
 
