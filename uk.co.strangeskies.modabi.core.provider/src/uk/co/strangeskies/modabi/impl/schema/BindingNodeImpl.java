@@ -31,6 +31,7 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
 import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
+import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNode;
@@ -247,7 +248,16 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			return null;
 		else
 			return node.providedOutputBindingMethodParameters().stream().map(p -> {
-				return (p == node) ? BindingNodeImpl.this : p;
+				if (p == node)
+					return BindingNodeImpl.this;
+				else {
+					BindingChildNode<?, ?> child = (BindingChildNode<?, ?>) child(p.name());
+					if (child != null) {
+						return child;
+					} else {
+						return p;
+					}
+				}
 			}).collect(Collectors.toList());
 	}
 

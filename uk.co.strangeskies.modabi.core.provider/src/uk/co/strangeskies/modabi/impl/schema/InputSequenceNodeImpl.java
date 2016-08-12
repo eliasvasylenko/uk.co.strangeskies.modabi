@@ -59,7 +59,7 @@ class InputSequenceNodeImpl extends ChildNodeImpl<InputSequenceNode> implements 
 
 	@Override
 	public final ExecutableMember<?, ?> inputExecutable() {
-		return inputMemberType() == InputMemberType.METHOD
+		return inputMemberType() != InputMemberType.FIELD
 				? (ExecutableMember<?, ?>) getInputNodeComponent().getInputMember() : null;
 	}
 

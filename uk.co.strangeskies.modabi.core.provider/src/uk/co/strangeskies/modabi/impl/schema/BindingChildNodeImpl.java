@@ -69,7 +69,6 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		super(configurator);
 
 		parent = configurator.getContext().parent();
-		//Objects.requireNonNull(parent);
 
 		synchronous = configurator.getOverride(BindingChildNode::synchronous, BindingChildNodeConfigurator::getSynchronous)
 				.orDefault(false).get();
@@ -159,7 +158,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 
 	@Override
 	public final ExecutableMember<?, ?> inputExecutable() {
-		return inputMemberType() == InputMemberType.METHOD
+		return inputMemberType() != InputMemberType.FIELD
 				? (ExecutableMember<?, ?>) getInputNodeComponent().getInputMember() : null;
 	}
 

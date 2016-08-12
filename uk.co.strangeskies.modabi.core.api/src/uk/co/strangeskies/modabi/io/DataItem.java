@@ -54,7 +54,7 @@ class TypedDataItem<T> extends AbstractDataItem<T> {
 
 	TypedDataItem(Primitive<T> type, T data) {
 		Objects.requireNonNull(type);
-		
+
 		this.type = type;
 		this.data = data;
 	}

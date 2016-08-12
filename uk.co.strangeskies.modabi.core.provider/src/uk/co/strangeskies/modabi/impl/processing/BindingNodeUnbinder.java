@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -34,6 +33,7 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
@@ -66,46 +66,43 @@ public class BindingNodeUnbinder {
 		TypeToken<?> unbindingFactoryType = node.outputBindingFactoryType() != null ? node.outputBindingFactoryType()
 				: unbindingType;
 
-		Function<Object, TypedObject<?>> supplier = u -> TypedObject.castInto(unbindingType, u);
-		if (node.outputBindingStrategy() != null) {
-			switch (node.outputBindingStrategy()) {
-			case SIMPLE:
-				break;
-			case PASS_TO_PROVIDED:
-				supplier = u -> {
-					TypedObject<?> o = context.provide(unbindingType);
-					invokeMethod((Method) node.outputBindingMethod().getMember(), context, o.getObject(),
-							prepareUnbingingParameterList(node, u));
-					return o;
-				};
-				break;
-			case ACCEPT_PROVIDED:
-				supplier = u -> {
-					TypedObject<?> o = context.provide(unbindingType);
-					invokeMethod((Method) node.outputBindingMethod().getMember(), context, u,
-							prepareUnbingingParameterList(node, o.getObject()));
-					return o;
-				};
-				break;
-			case CONSTRUCTOR:
-				supplier = u -> TypedObject.castInto(unbindingType, invokeConstructor(
-						(Constructor<?>) node.outputBindingMethod().getMember(), context, prepareUnbingingParameterList(node, u)));
-				break;
-			case STATIC_FACTORY:
-				supplier = u -> TypedObject.castInto(unbindingFactoryType, invokeMethod(
-						(Method) node.outputBindingMethod().getMember(), context, null, prepareUnbingingParameterList(node, u)));
-				break;
-			case PROVIDED_FACTORY:
-				supplier = u -> TypedObject.castInto(unbindingFactoryType,
-						invokeMethod((Method) node.outputBindingMethod().getMember(), context,
-								context.provide(unbindingFactoryType).getObject(), prepareUnbingingParameterList(node, u)));
-				break;
-			default:
-				throw new AssertionError();
-			}
+		OutputBindingStrategy bindingStrategy = node.outputBindingStrategy();
+		if (bindingStrategy == null)
+			bindingStrategy = OutputBindingStrategy.SIMPLE;
+
+		TypedObject<?> bindingObject;
+		switch (bindingStrategy) {
+		case SIMPLE:
+			bindingObject = TypedObject.castInto(unbindingType, data);
+			break;
+		case PASS_TO_PROVIDED:
+			bindingObject = context.provide(unbindingType);
+			invokeMethod((Method) node.outputBindingMethod().getMember(), context, bindingObject.getObject(),
+					prepareUnbingingParameterList(node, data));
+			break;
+		case ACCEPT_PROVIDED:
+			bindingObject = context.provide(unbindingType);
+			invokeMethod((Method) node.outputBindingMethod().getMember(), context, data,
+					prepareUnbingingParameterList(node, bindingObject.getObject()));
+			break;
+		case CONSTRUCTOR:
+			bindingObject = TypedObject.castInto(unbindingType, invokeConstructor(
+					(Constructor<?>) node.outputBindingMethod().getMember(), context, prepareUnbingingParameterList(node, data)));
+			break;
+		case STATIC_FACTORY:
+			bindingObject = TypedObject.castInto(unbindingFactoryType, invokeMethod(
+					(Method) node.outputBindingMethod().getMember(), context, null, prepareUnbingingParameterList(node, data)));
+			break;
+		case PROVIDED_FACTORY:
+			bindingObject = TypedObject.castInto(unbindingFactoryType,
+					invokeMethod((Method) node.outputBindingMethod().getMember(), context,
+							context.provide(unbindingFactoryType).getObject(), prepareUnbingingParameterList(node, data)));
+			break;
+		default:
+			throw new AssertionError();
 		}
 
-		Consumer<ChildNode<?>> processingContext = getChildProcessor(context.withBindingObject(supplier.apply(data)));
+		Consumer<ChildNode<?>> processingContext = getChildProcessor(context.withBindingObject(bindingObject));
 
 		for (ChildNode<?> child : node.children()) {
 			processingContext.accept(child);
@@ -195,9 +192,6 @@ public class BindingNodeUnbinder {
 				} else {
 					List<?> values = ((DataNode<?>) parameter).providedValues();
 					parameters.add(values == null ? null : values.get(0));
-
-					System.out.println("?"+parameter.name());
-					System.out.println("?"+parameter.getClass());
 				}
 			}
 

@@ -46,6 +46,7 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 
 	protected <C extends SchemaNodeConfigurator<C, S>> SchemaNodeImpl(SchemaNodeConfiguratorImpl<C, S> configurator) {
 		this.configurator = configurator;
+
 		configurator.setResult(getThis());
 
 		name = new OverrideBuilder<>(configurator, SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes, SchemaNode::name,

@@ -55,24 +55,32 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 	}
 
 	public InputNodeComponent(InputNodeConfiguratorImpl<C, N> configurator, List<TypeToken<?>> inMethodParameters) {
+		InputMemberType inputMemberType = determineInputMemberType(configurator);
+
+		/*
+		 * If input member type is defined then we should be able to fully resolve
+		 * input!
+		 */
+		boolean resolved = inputMemberType != null || configurator.getResult().concrete();
+
 		inMethodChained = getOverride(configurator, InputNode::chainedInput, InputNodeConfigurator::getChainedInput)
-				.or(ifResolved(configurator,
-						configurator.getContext().isConstructorExpected() || configurator.getContext().isStaticMethodExpected()))
+				.or(resolved
+						? configurator.getContext().isConstructorExpected() || configurator.getContext().isStaticMethodExpected()
+						: null)
 				.get();
 
 		inMethodUnchecked = getOverride(configurator, InputNode::uncheckedInput, InputNodeConfigurator::getUncheckedInput)
-				.mergeOverride((a, b) -> true).or(ifResolved(configurator, false)).get();
+				.mergeOverride((a, b) -> true).or(resolved ? false : null).get();
 
 		allowInMethodResultCast = inMethodChained != null && !inMethodChained ? null
 				: getOverride(configurator, InputNode::castInput, InputNodeConfigurator::getCastInput)
-						.mergeOverride((a, b) -> true).or(ifResolved(configurator, false)).get();
+						.mergeOverride((a, b) -> true).or(resolved ? false : null).get();
 
 		ExecutableMember<?, ?> inputMember;
-		InputMemberType inputMemberType = determineInputMemberType(configurator);
 		if (inputMemberType == null) {
 			try {
 				inputMemberType = modifyInputMemberType(configurator, InputMemberType.METHOD);
-				inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters);
+				inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters, resolved);
 			} catch (Exception methodException) {
 				try {
 					inputMemberType = InputMemberType.FIELD;
@@ -89,7 +97,7 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 			case METHOD:
 			case CONSTRUCTOR:
 			case STATIC_METHOD:
-				inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters);
+				inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters, resolved);
 				break;
 			case NONE:
 				inputMember = null;
@@ -100,9 +108,9 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 		}
 		this.inputMember = inputMember;
 		this.inputMemberType = inputMemberType;
-
+		
 		preInputType = determinePreInputType();
-		postInputType = determinePostInputType(configurator);
+		postInputType = determinePostInputType(configurator, resolved);
 	}
 
 	protected <T> OverrideBuilder<T, C, ?, N> getOverride(InputNodeConfiguratorImpl<C, N> configurator,
@@ -140,18 +148,6 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 		return type;
 	}
 
-	private boolean isResolved(InputNodeConfiguratorImpl<C, N> configurator) {
-		String givenInMethodName = getOverride(configurator,
-				n -> n.inputExecutable() == null ? null : n.inputExecutable().getName(), InputNodeConfigurator::getInputMember)
-						.tryGet();
-
-		return configurator.getResult().concrete() || givenInMethodName != null;
-	}
-
-	private <T> T ifResolved(InputNodeConfiguratorImpl<C, N> configurator, T t) {
-		return isResolved(configurator) ? t : null;
-	}
-
 	public InputMemberType getInputMemberType() {
 		return inputMemberType;
 	}
@@ -186,10 +182,10 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 	}
 
 	private ExecutableMember<?, ?> determineInputMethod(InputNodeConfiguratorImpl<C, N> configurator,
-			InputMemberType inputMemberType, List<TypeToken<?>> parameters) {
+			InputMemberType inputMemberType, List<TypeToken<?>> parameters, boolean resolved) {
 		ExecutableMember<?, ?> inExecutableMember;
 
-		if (!isResolved(configurator)) {
+		if (!resolved) {
 			inExecutableMember = null;
 		} else {
 			TypeToken<?> inputTargetType = configurator.getContext().inputTargetType();
@@ -355,13 +351,13 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 		}
 	}
 
-	private TypeToken<?> determinePostInputType(InputNodeConfiguratorImpl<C, N> configurator) {
+	private TypeToken<?> determinePostInputType(InputNodeConfiguratorImpl<C, N> configurator, boolean resolved) {
 		TypeToken<?> postInputClass;
 
 		if (inputMemberType == InputMemberType.NONE || (inMethodChained != null && !inMethodChained)) {
 			postInputClass = configurator.getContext().inputTargetType();
 
-		} else if (!isResolved(configurator) || inMethodChained == null) {
+		} else if (!resolved || inMethodChained == null) {
 			postInputClass = getOverride(configurator, n -> n.postInputType() == null ? null : n.postInputType(),
 					InputNodeConfigurator::getPostInputType).validateOverride(TypeToken::isAssignableTo).tryGet();
 

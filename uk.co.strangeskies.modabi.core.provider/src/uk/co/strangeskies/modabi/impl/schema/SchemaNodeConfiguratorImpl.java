@@ -37,6 +37,7 @@ import uk.co.strangeskies.reflection.TypeToken;
 public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>>
 		implements SchemaNodeConfigurator<S, N> {
 	private N node;
+	private RuntimeException instantiationException;
 
 	private ChildrenConfigurator childrenConfigurator;
 	private List<ChildNodeConfigurator<?, ?>> children;
@@ -45,8 +46,41 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	private QualifiedName name;
 	private Boolean concrete;
 
+	private boolean configurationDone;
+	private boolean instantiationDone;
+
 	public SchemaNodeConfiguratorImpl() {
 		children = new ArrayList<>();
+
+		configurationDone = false;
+		instantiationDone = false;
+
+		/*
+		 * The following is not done in order to parallelize, and in fact is
+		 * synchronized to behave linearly. It is done to extract a reference to the
+		 * node before the constructor returns, and block the constructor method
+		 * until the configurator has completed. The reason is simply to allow child
+		 * nodes to reference their parent node with a final field even though they
+		 * must be built before the parent. A proxy could also have been used to
+		 * roughly the same effect, but this way is a little nicer.
+		 * 
+		 * 
+		 * 
+		 * 
+		 * TODO neaten up synchronization using existing concurrency primitives.
+		 * TODO delay instantiation to just before we start building children.
+		 */
+		new Thread(() -> instantiate()).start();
+
+		synchronized (this) {
+			try {
+				while (node == null) {
+					this.wait();
+				}
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	protected SchemaNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<S, N> copy) {
@@ -57,14 +91,47 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	@Override
-	public N create() {
-		return createImpl();
+	public synchronized N create() {
+		configurationDone = true;
+		notifyAll();
+		try {
+			do {
+				wait();
+			} while (!instantiationDone);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (instantiationException != null) {
+			throw new RuntimeException(instantiationException);
+		}
+
+		return node;
+	}
+
+	private synchronized void instantiate() {
+		try {
+			createImpl();
+		} catch (RuntimeException e) {
+			node = null;
+			instantiationException = e;
+		}
+		instantiationDone = true;
+		notifyAll();
 	}
 
 	protected abstract N createImpl();
 
 	protected void setResult(N node) {
 		this.node = node;
+		notifyAll();
+		try {
+			do {
+				wait();
+			} while (!configurationDone);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public N getResult() {
@@ -85,8 +152,9 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	}
 
 	public ChildrenConfigurator getChildrenConfigurator() {
-		if (childrenConfigurator == null)
+		if (childrenConfigurator == null) {
 			childrenConfigurator = createChildrenConfigurator();
+		}
 
 		return childrenConfigurator;
 	}
