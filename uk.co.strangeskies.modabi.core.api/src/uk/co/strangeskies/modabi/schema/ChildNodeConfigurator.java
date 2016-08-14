@@ -46,9 +46,9 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 
 	Boolean getOptional();
 
-	S ordered(boolean ordered);
+	S orderedOccurrences(boolean ordered);
 
-	Boolean getOrdered();
+	Boolean getOrderedOccurrences();
 
 	S postInputType(String postInputType);
 

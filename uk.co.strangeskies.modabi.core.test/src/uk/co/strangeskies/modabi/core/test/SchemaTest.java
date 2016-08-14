@@ -78,12 +78,10 @@ public class SchemaTest extends TestBase {
 		Assert.assertNotNull(inlineData);
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 6000)
 	public void schemaTest() throws InterruptedException {
-		Thread.sleep(1000);
-
 		manager().bindSchema().withClassLoader(getClass().getClassLoader()).from(() -> this.getResouce("SchemaTest"))
-				.resolve(5000);
+				.resolve(4000);
 	}
 
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)

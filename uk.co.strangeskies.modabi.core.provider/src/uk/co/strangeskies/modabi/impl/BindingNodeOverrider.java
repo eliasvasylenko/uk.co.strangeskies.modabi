@@ -282,7 +282,7 @@ public class BindingNodeOverrider {
 				N node, C c) {
 			c = tryProperty(node, ChildNode::concrete, C::concrete, c);
 			c = tryProperty(node, ChildNode::occurrences, C::occurrences, c);
-			c = tryProperty(node, ChildNode::ordered, C::ordered, c);
+			c = tryProperty(node, ChildNode::orderedOccurrences, C::orderedOccurrences, c);
 
 			return doChildren(node.children(), c.name(node.name()));
 		}

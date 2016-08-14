@@ -169,33 +169,47 @@ public class BaseSchemaImpl implements BaseSchema {
 
 			referenceType = factory
 					.apply("reference",
-							t -> t.baseType(referenceBaseType).concrete(false)
+							t -> t
+									.baseType(
+											referenceBaseType)
+									.concrete(
+											false)
 									.addChild(
 											c -> c.data().name("targetModel").type(referenceBaseType).concrete(false)
-													.dataType(new @Infer TypeToken<Model<?>>() {})
+													.dataType(
+															new @Infer TypeToken<Model<?>>() {})
 													.addChild(d -> d.data().name("targetModel").type(referenceBaseType).extensible(true)
-															.dataType(new @Infer TypeToken<Model<?>>() {}).provideValue(new BufferingDataTarget()
+															.dataType(new @Infer TypeToken<Model<?>>() {})
+															.provideValue(new BufferingDataTarget()
 																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer())
 															.addChild(e -> e.data().name("targetModel").type(referenceBaseType).extensible(true)
-																	.concrete(false).dataType(new @Infer TypeToken<Model<?>>() {}).provideValue(
-																			new BufferingDataTarget()
-																					.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
-																					.buffer()))
+																	.concrete(false).dataType(new @Infer TypeToken<Model<?>>() {})
+																	.provideValue(new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace)).buffer()))
 															.addChild(e -> e.data().name("targetId")
 																	.provideValue(new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("configurator", namespace))
 																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer())))
-													.addChild(d -> d.data().name("targetId").provideValue(new BufferingDataTarget()
-															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
+													.addChild(d -> d.data().name("targetId")
+															.provideValue(new BufferingDataTarget()
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("configurator", namespace))
+																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
-			bindingReferenceType = factory.apply("bindingReference",
-					t -> t.concrete(false).inputBindingType(DereferenceSource.class)
-							.<Object>dataType(over(unbounded(from(Infer.class)))).inputBindingStrategy(InputBindingStrategy.PROVIDED)
-							.addChild(c -> c.data().name("targetNode").type(referenceType).outputNone().inputMethod("dereference")
-									.addChild(d -> d.data().name("targetModel")
-											.provideValue(new BufferingDataTarget()
-													.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
-									.addChild(e -> e.data().name("targetId").provideValue(new BufferingDataTarget()
-											.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
+			bindingReferenceType = factory
+					.apply("bindingReference",
+							t -> t.concrete(false)
+									.inputBindingType(
+											DereferenceSource.class)
+									.<Object>dataType(over(unbounded(from(Infer.class))))
+									.inputBindingStrategy(InputBindingStrategy.PROVIDED)
+									.addChild(c -> c.data().name("targetNode").type(referenceType).outputNone().inputMethod("dereference")
+											.addChild(d -> d.data().name("targetModel")
+													.provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace)).buffer()))
+											.addChild(e -> e.data().name("targetId")
+													.provideValue(new BufferingDataTarget()
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("configurator", namespace))
+															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace)).buffer()))));
 
 			packageType = factory.apply("package",
 					t -> t.dataType(new TypeToken<Package>() {}).inputBindingStrategy(InputBindingStrategy.STATIC_FACTORY)

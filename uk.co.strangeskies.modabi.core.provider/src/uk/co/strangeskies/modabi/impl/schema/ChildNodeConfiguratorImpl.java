@@ -38,7 +38,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	private final SchemaNodeConfigurationContext context;
 
 	private Range<Integer> occurrences;
-	private Boolean ordered;
+	private Boolean orderedOccurrences;
 	private Boolean optional;
 	private TypeToken<?> postInputClass;
 	private List<N> overriddenNodes;
@@ -52,7 +52,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 		this.context = copy.context;
 		this.occurrences = copy.occurrences;
-		this.ordered = copy.ordered;
+		this.orderedOccurrences = copy.orderedOccurrences;
 		this.optional = copy.optional;
 		this.postInputClass = copy.postInputClass;
 		this.overriddenNodes = copy.overriddenNodes;
@@ -146,15 +146,15 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	}
 
 	@Override
-	public final S ordered(boolean ordered) {
-		this.ordered = ordered;
+	public final S orderedOccurrences(boolean ordered) {
+		this.orderedOccurrences = ordered;
 
 		return getThis();
 	}
 
 	@Override
-	public Boolean getOrdered() {
-		return ordered;
+	public Boolean getOrderedOccurrences() {
+		return orderedOccurrences;
 	}
 
 	protected <T> OverrideBuilder<T, ?, ?> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {

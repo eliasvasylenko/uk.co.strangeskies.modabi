@@ -42,6 +42,8 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 
 	private final QualifiedName name;
 	private final boolean concrete;
+
+	private final Boolean orderedChildren;
 	private final List<ChildNode<?>> children;
 
 	protected <C extends SchemaNodeConfigurator<C, S>> SchemaNodeImpl(SchemaNodeConfiguratorImpl<C, S> configurator) {
@@ -49,10 +51,15 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 
 		configurator.setResult(getThis());
 
-		name = new OverrideBuilder<>(configurator, configurator.getResult(), SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes, SchemaNode::name,
-				SchemaNodeConfigurator::getName).orDefault(configurator.defaultName()).validateOverride((n, o) -> true).get();
+		name = new OverrideBuilder<>(configurator, this, SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes,
+				SchemaNode::name, SchemaNodeConfigurator::getName).orDefault(configurator.defaultName())
+						.validateOverride((n, o) -> true).get();
 
 		concrete = configurator.getConcrete() == null || configurator.getConcrete();
+
+		orderedChildren = new OverrideBuilder<>(configurator, this, SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes,
+				SchemaNode::orderedChildren, SchemaNodeConfigurator::getOrderedChildren).validateOverride((n, o) -> !n || o)
+						.orDefault(true).get();
 
 		children = configurator.getChildrenResults();
 
@@ -112,6 +119,11 @@ public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaN
 	@Override
 	public boolean concrete() {
 		return concrete;
+	}
+
+	@Override
+	public Boolean orderedChildren() {
+		return orderedChildren;
 	}
 
 	@Override

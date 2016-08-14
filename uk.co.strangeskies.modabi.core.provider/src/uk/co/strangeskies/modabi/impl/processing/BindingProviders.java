@@ -61,29 +61,53 @@ public class BindingProviders {
 		<T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener);
 	}
 
+	private static class DereferenceImportBindingProvider implements ModelBindingProvider {
+		private final ProcessingContext context;
+
+		public DereferenceImportBindingProvider(ProcessingContext context) {
+			this.context = context;
+		}
+
+		@Override
+		public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+			ObservableSet<?, Binding<T>> bindings = context.manager().getBindings(model);
+
+			synchronized (bindings) {
+				bindings.changes().addTerminatingObserver(b -> {
+					for (Binding<T> binding : b.added()) {
+						if (!listener.apply(binding.getData())) {
+							return false;
+						}
+					}
+					return true;
+				});
+				Set<T> s = bindings.stream().map(Binding::getData).collect(Collectors.toSet());
+				return s;
+			}
+		}
+	}
+
+	private static class DereferenceSourceBindingProvider implements ModelBindingProvider {
+		private final ProcessingContext context;
+
+		public DereferenceSourceBindingProvider(ProcessingContext context) {
+			this.context = context;
+		}
+
+		@Override
+		public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+			synchronized (context.bindings()) {
+				context.bindings().changes(model).addTerminatingObserver(listener);
+				return context.bindings().getModelBindings(model);
+			}
+		}
+	}
+
 	public Function<ProcessingContext, ImportSource> importSource() {
 		return context -> new ImportSource() {
 			@Override
 			public <U> U dereferenceImport(Model<U> model, List<QualifiedName> idDomain, DataSource id) {
-				return matchBinding(context, model, new ModelBindingProvider() {
-					@Override
-					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						ObservableSet<?, Binding<T>> bindings = context.manager().getBindings(model);
-
-						synchronized (bindings) {
-							bindings.changes().addTerminatingObserver(b -> {
-								for (Binding<T> binding : b.added()) {
-									if (!listener.apply(binding.getData())) {
-										return false;
-									}
-								}
-								return true;
-							});
-							Set<T> s = bindings.stream().map(Binding::getData).collect(Collectors.toSet());
-							return s;
-						}
-					}
-				}, idDomain, id, true);
+				return matchBinding(context, model, new DereferenceImportBindingProvider(context), idDomain, id, true);
 			}
 		};
 	}
@@ -111,15 +135,7 @@ public class BindingProviders {
 		return context -> new DereferenceSource() {
 			@Override
 			public <U> U dereference(Model<U> model, List<QualifiedName> idDomain, DataSource id) {
-				return matchBinding(context, model, new ModelBindingProvider() {
-					@Override
-					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
-						synchronized (context.bindings()) {
-							context.bindings().changes(model).addTerminatingObserver(listener);
-							return context.bindings().getModelBindings(model);
-						}
-					}
-				}, idDomain, id, false);
+				return matchBinding(context, model, new DereferenceSourceBindingProvider(context), idDomain, id, false);
 			}
 
 			/*-
@@ -187,7 +203,7 @@ public class BindingProviders {
 			});
 
 			/*
-			 * Check existing candidates to fulfil dependency
+			 * Check existing candidates to fulfill dependency
 			 */
 			for (U objectCandidate : existingCandidates) {
 				if (validate.apply(objectCandidate)) {

@@ -31,14 +31,16 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	private final SchemaNode<?> parent;
 
 	private final Range<Integer> occurrences;
-	private final Boolean ordered;
+	private final Boolean orderedOccurrences;
 
 	public <C extends ChildNodeConfigurator<C, S>> ChildNodeImpl(ChildNodeConfiguratorImpl<C, S> configurator) {
 		super(configurator);
 
 		parent = configurator.getContext().parent();
 
-		ordered = configurator.getOverride(ChildNode::ordered, ChildNodeConfigurator::getOrdered).orDefault(true).get();
+		orderedOccurrences = configurator
+				.getOverride(ChildNode::orderedOccurrences, ChildNodeConfigurator::getOrderedOccurrences).orDefault(false)
+				.get();
 
 		occurrences = configurator.getOverride(ChildNode::occurrences, ChildNodeConfigurator::getOccurrences)
 				.validateOverride((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
@@ -60,8 +62,8 @@ public abstract class ChildNodeImpl<S extends ChildNode<S>> extends SchemaNodeIm
 	}
 
 	@Override
-	public Boolean ordered() {
-		return ordered;
+	public Boolean orderedOccurrences() {
+		return orderedOccurrences;
 	}
 
 	@Override

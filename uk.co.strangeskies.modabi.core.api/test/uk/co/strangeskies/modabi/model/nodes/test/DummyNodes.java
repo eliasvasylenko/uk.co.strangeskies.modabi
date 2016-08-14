@@ -103,7 +103,12 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Boolean ordered() {
+			public Boolean orderedOccurrences() {
+				return true;
+			}
+
+			@Override
+			public Boolean orderedChildren() {
 				return true;
 			}
 
@@ -179,7 +184,12 @@ public class DummyNodes {
 			}
 
 			@Override
-			public Boolean ordered() {
+			public Boolean orderedOccurrences() {
+				return true;
+			}
+
+			@Override
+			public Boolean orderedChildren() {
 				return true;
 			}
 

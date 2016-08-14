@@ -47,7 +47,7 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 
 	private final Boolean nullIfOmitted;
 	private final Range<Integer> occurrences;
-	private final Boolean ordered;
+	private final Boolean orderedOccurrences;
 
 	private OutputMemberType outputMemberType;
 	private TypeMember<?> outputMember;
@@ -71,15 +71,16 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 		parent = configurator.getContext().parent();
 
 		synchronous = configurator.getOverride(BindingChildNode::synchronous, BindingChildNodeConfigurator::getSynchronous)
-				.orDefault(false).get();
+				.validateOverride((n, o) -> !n || o).orDefault(false).get();
 
 		extensible = configurator.getExtensible() == null ? false : configurator.getExtensible();
 
 		if (!concrete() && !configurator.getContext().isAbstract() && !extensible())
 			throw new ModabiException(t -> t.cannotBeAbstract(this));
 
-		ordered = configurator.getOverride(BindingChildNode::ordered, BindingChildNodeConfigurator::getOrdered)
-				.orDefault(true).get();
+		orderedOccurrences = configurator
+				.getOverride(BindingChildNode::orderedOccurrences, BindingChildNodeConfigurator::getOrderedOccurrences)
+				.orDefault(false).get();
 
 		occurrences = configurator.getOverride(BindingChildNode::occurrences, BindingChildNodeConfigurator::getOccurrences)
 				.validateOverride((v, o) -> o.contains(v)).orDefault(Range.between(1, 1)).get();
@@ -219,8 +220,8 @@ abstract class BindingChildNodeImpl<T, S extends BindingChildNode<T, S>> extends
 	}
 
 	@Override
-	public Boolean ordered() {
-		return ordered;
+	public Boolean orderedOccurrences() {
+		return orderedOccurrences;
 	}
 
 	@Override

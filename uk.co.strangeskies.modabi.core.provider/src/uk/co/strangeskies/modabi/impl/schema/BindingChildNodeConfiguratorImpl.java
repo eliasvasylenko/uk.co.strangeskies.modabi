@@ -322,14 +322,14 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	}
 
 	@Override
-	public final S ordered(boolean ordered) {
+	public final S orderedOccurrences(boolean ordered) {
 		this.ordered = ordered;
 
 		return getThis();
 	}
 
 	@Override
-	public Boolean getOrdered() {
+	public Boolean getOrderedOccurrences() {
 		return ordered;
 	}
 

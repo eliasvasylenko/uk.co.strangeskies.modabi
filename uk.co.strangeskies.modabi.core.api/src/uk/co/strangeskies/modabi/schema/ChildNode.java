@@ -32,13 +32,21 @@ public interface ChildNode<S extends ChildNode<S>> extends SchemaNode<S> {
 	Range<Integer> occurrences();
 
 	/**
-	 * Default behavior is as if true. If unordered, may input concurrently, and
-	 * semantics of updating existing binding are more flexible. Also note that
-	 * unordered nodes may bind and unbind with less memory-efficiency...
+	 * If ordered, occurrences of this node must be bound strictly one after the
+	 * other. Otherwise, if unordered, occurrences of this node may be bound
+	 * concurrently, and semantics of updating existing bindings are more
+	 * flexible. Input methods will still be invoked in order.
+	 * 
+	 * <p>
+	 * Note that unordered nodes may bind and unbind with less memory-efficiency.
+	 * 
+	 * <p>
+	 * Default behavior is as if false.
 	 *
-	 * @return
+	 * @return true if occurrences of this node must be bound in order, false
+	 *         otherwise
 	 */
-	Boolean ordered();
+	Boolean orderedOccurrences();
 
 	TypeToken<?> postInputType();
 

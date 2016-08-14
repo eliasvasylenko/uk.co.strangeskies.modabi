@@ -176,6 +176,11 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 	}
 
 	@Override
+	public Boolean orderedChildren() {
+		return component.orderedChildren();
+	}
+
+	@Override
 	public final List<ChildNode<?>> children() {
 		return component.children();
 	}

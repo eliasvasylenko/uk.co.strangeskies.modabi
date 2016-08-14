@@ -47,6 +47,17 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	}
 
 	@Override
+	public S orderedChildren(boolean orderedChildren) {
+		component = component.orderedChildren(orderedChildren);
+		return getThis();
+	}
+
+	@Override
+	public Boolean getOrderedChildren() {
+		return component.getOrderedChildren();
+	}
+
+	@Override
 	public QualifiedName getName() {
 		return component.getName();
 	}
@@ -59,7 +70,7 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 
 	@Override
 	public S export(boolean export) {
-		component.export(export);
+		component = component.export(export);
 		return getThis();
 	}
 

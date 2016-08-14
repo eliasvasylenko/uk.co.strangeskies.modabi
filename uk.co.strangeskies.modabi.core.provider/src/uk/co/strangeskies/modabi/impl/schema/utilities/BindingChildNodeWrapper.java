@@ -36,8 +36,8 @@ public abstract class BindingChildNodeWrapper<T, B extends BindingChildNode<? su
 	}
 
 	@Override
-	public final Boolean ordered() {
-		return getBase() == null ? null : getBase().ordered();
+	public final Boolean orderedOccurrences() {
+		return getBase() == null ? null : getBase().orderedOccurrences();
 	}
 
 	@Override

@@ -19,10 +19,13 @@
 			<data
 				name="element"
 				type="reference">
+				
+				<!-- This won't work until we have parallelized input -->
 
 				<data
 					name="targetModel"
 					value="namedValue" />
+
 				<data
 					name="targetId"
 					value="name" />
@@ -43,6 +46,10 @@
 			<content
 				name="value"
 				type="string" />
+		</model>
+
+		<model name="stringReferenceContainer">
+			<content type="stringReferences" />
 		</model>
 	</models>
 </schema>

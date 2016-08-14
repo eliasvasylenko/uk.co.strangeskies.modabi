@@ -185,4 +185,21 @@ public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
 	default S copy() {
 		return getThis();
 	}
+
+	/**
+	 * If ordered, occurrences of child nodes must be bound strictly one after the
+	 * other. Otherwise, if unordered, occurrences of child nodes may be bound
+	 * concurrently, and semantics of updating existing bindings are more
+	 * flexible. Input methods will still be invoked in order.
+	 * 
+	 * <p>
+	 * Note that unordered nodes may bind and unbind with less memory-efficiency.
+	 * 
+	 * <p>
+	 * Default behavior is as if true.
+	 *
+	 * @return true if occurrences of this node must be bound in order, false
+	 *         otherwise
+	 */
+	Boolean orderedChildren();
 }

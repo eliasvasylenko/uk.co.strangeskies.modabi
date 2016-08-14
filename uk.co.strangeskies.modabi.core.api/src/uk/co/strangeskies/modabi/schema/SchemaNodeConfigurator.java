@@ -42,6 +42,10 @@ public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, 
 
 	S concrete(boolean concrete);
 
+	S orderedChildren(boolean orderedChildren);
+
+	Boolean getOrderedChildren();
+
 	Boolean getConcrete();
 
 	ChildBuilder addChild();

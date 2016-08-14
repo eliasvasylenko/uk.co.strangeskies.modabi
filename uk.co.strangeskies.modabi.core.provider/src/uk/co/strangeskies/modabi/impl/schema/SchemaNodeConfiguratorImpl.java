@@ -45,6 +45,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	private QualifiedName name;
 	private Boolean concrete;
+	private Boolean orderedChildren;
 
 	private boolean configurationDone;
 	private boolean instantiationDone;
@@ -185,6 +186,18 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 	@Override
 	public Boolean getConcrete() {
 		return concrete;
+	}
+
+	@Override
+	public S orderedChildren(boolean orderedChildren) {
+		this.orderedChildren = orderedChildren;
+
+		return getThis();
+	}
+
+	@Override
+	public Boolean getOrderedChildren() {
+		return orderedChildren;
 	}
 
 	protected void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
