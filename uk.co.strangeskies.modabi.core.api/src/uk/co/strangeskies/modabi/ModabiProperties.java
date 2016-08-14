@@ -87,33 +87,34 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 		return "#" + Methods.findMethod(node, propertyGetter).getName();
 	}
 
-	default <N extends SchemaNode<?>, T> Localized<String> cannotOverrideIncompatibleProperty(
-			Consumer<? super N> propertyGetter, Class<N> node, T base, T override) {
-		return cannotOverrideIncompatibleProperty(getPropertyName(propertyGetter, node), node, base, override);
+	default <N extends SchemaNode<?>, T> Localized<String> cannotOverrideIncompatibleProperty(N node,
+			Consumer<? super N> propertyGetter, Class<N> nodeType, T base, T override) {
+		return cannotOverrideIncompatibleProperty(getPropertyName(propertyGetter, nodeType), node, base, override);
 	}
 
-	<T> Localized<String> cannotOverrideIncompatibleProperty(String propertyName, Object target, T base, T override);
+	<T> Localized<String> cannotOverrideIncompatibleProperty(String propertyName, SchemaNode<?> target, T base,
+			T override);
 
-	default <N extends SchemaNode<?>> Localized<String> cannotMergeIncompatibleProperties(
-			Consumer<? super N> propertyGetter, Class<N> node, Collection<?> values) {
-		return cannotMergeIncompatibleProperties(getPropertyName(propertyGetter, node), node, values);
+	default <N extends SchemaNode<?>> Localized<String> cannotMergeIncompatibleProperties(N node,
+			Consumer<? super N> propertyGetter, Class<N> nodeType, Collection<?> values) {
+		return cannotMergeIncompatibleProperties(getPropertyName(propertyGetter, nodeType), node, values);
 	}
 
-	Localized<String> cannotMergeIncompatibleProperties(String propertyName, Object target, Collection<?> values);
+	Localized<String> cannotMergeIncompatibleProperties(String propertyName, SchemaNode<?> target, Collection<?> values);
 
-	default <N extends SchemaNode<?>> Localized<String> mustOverrideIncompatibleProperties(
-			Consumer<? super N> propertyGetter, Class<N> node, Collection<?> values) {
-		return mustOverrideIncompatibleProperties(getPropertyName(propertyGetter, node), node, values);
+	default <N extends SchemaNode<?>> Localized<String> mustOverrideIncompatibleProperties(N node,
+			Consumer<? super N> propertyGetter, Class<N> nodeType, Collection<?> values) {
+		return mustOverrideIncompatibleProperties(getPropertyName(propertyGetter, nodeType), node, values);
 	}
 
-	Localized<String> mustOverrideIncompatibleProperties(String propertyName, Object target, Collection<?> values);
+	Localized<String> mustOverrideIncompatibleProperties(String propertyName, SchemaNode<?> target, Collection<?> values);
 
-	default <N extends SchemaNode<?>> Localized<String> mustProvideValueForNonAbstract(Consumer<? super N> propertyGetter,
-			Class<N> node) {
-		return mustProvideValueForNonAbstract(getPropertyName(propertyGetter, node), node);
+	default <N extends SchemaNode<?>> Localized<String> mustProvideValueForNonAbstract(N node,
+			Consumer<? super N> propertyGetter, Class<N> nodeType) {
+		return mustProvideValueForNonAbstract(getPropertyName(propertyGetter, nodeType), node);
 	}
 
-	Localized<String> mustProvideValueForNonAbstract(String propertyName, Object target);
+	Localized<String> mustProvideValueForNonAbstract(String propertyName, SchemaNode<?> target);
 
 	Localized<String> unexpectedOverrideError(BindingNode<?, ?> base);
 

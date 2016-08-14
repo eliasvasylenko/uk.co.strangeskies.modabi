@@ -32,7 +32,9 @@ import java.util.stream.StreamSupport;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.Provider;
+import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
@@ -51,14 +53,10 @@ import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.reflection.Types;
 
 public class BindingNodeUnbinder {
-	private final ProcessingContext context;
+	private final ProcessingContextImpl context;
 
-	public BindingNodeUnbinder(ProcessingContext context) {
-		this.context = context;
-	}
-
-	public <U> void unbind(BindingNode<U, ?> node, U data) {
-		ProcessingContextImpl context = new ProcessingContextImpl(this.context).withBindingNode(node)
+	public <U> BindingNodeUnbinder(ProcessingContext parentContext, BindingNode<U, ?> node, U data) {
+		ProcessingContextImpl context = new ProcessingContextImpl(parentContext).withBindingNode(node)
 				.withNestedProvisionScope();
 		context.provisions().add(Provider.over(new TypeToken<BindingNode<?, ?>>() {}, () -> node));
 
@@ -101,33 +99,24 @@ public class BindingNodeUnbinder {
 		default:
 			throw new AssertionError();
 		}
+		this.context = context.withBindingObject(bindingObject);
+	}
 
-		Consumer<ChildNode<?>> processingContext = getChildProcessor(context.withBindingObject(bindingObject));
+	public <U> void unbind() {
+		Consumer<ChildNode<?>> processingContext = getChildProcessor(this.context);
 
-		for (ChildNode<?> child : node.children()) {
+		for (ChildNode<?> child : context.getBindingNode().children()) {
 			processingContext.accept(child);
 		}
 	}
 
 	private Consumer<ChildNode<?>> getChildProcessor(ProcessingContextImpl context) {
 		NodeProcessor processor = new NodeProcessor() {
-			private <U> boolean checkData(BindingChildNode<U, ?> node, List<U> data) {
-				if (data == null) {
-					if (!node.occurrences().contains(0) && !node.nullIfOmitted()) {
-						throw new ProcessingException(t -> t.mustHaveData(node.name()), context);
-					} else {
-						return false;
-					}
-				} else {
-					return true;
-				}
-			}
-
 			@Override
 			public <U> void accept(ComplexNode<U> node) {
 				List<U> data = getData(node, context);
 
-				if (checkData(node, data)) {
+				if (data != null) {
 					new ComplexNodeUnbinder(context).unbind(node, data);
 				}
 			}
@@ -140,7 +129,7 @@ public class BindingNodeUnbinder {
 							|| node.valueResolution() == ValueResolution.POST_REGISTRATION)
 						data = getData(node, context);
 
-					if (checkData(node, data)) {
+					if (data != null) {
 						new DataNodeUnbinder(context).unbind(node, data);
 					}
 				}
@@ -198,6 +187,9 @@ public class BindingNodeUnbinder {
 		return parameters.toArray();
 	}
 
+	/*
+	 * TODO get rid of these and just directly call ExecutableMember.invoke
+	 */
 	private static Object invokeMethod(Method method, ProcessingContext context, Object receiver, Object... parameters) {
 		try {
 			return method.invoke(receiver, parameters);
@@ -268,9 +260,53 @@ public class BindingNodeUnbinder {
 			}
 		}
 
-		if (itemList != null && node.occurrences() != null && !node.occurrences().contains(itemList.size()))
-			throw new ProcessingException(t -> t.mustHaveDataWithinRange(node), context);
+		if (itemList == null) {
+			if (!node.occurrences().contains(0) && !node.nullIfOmitted()) {
+				throw new ProcessingException(t -> t.mustHaveData(node.name()), context);
+			}
+		} else {
+			if (!node.occurrences().contains(itemList.size())) {
+				throw new ProcessingException(t -> t.mustHaveDataWithinRange(node), context);
+			}
+		}
 
 		return itemList;
+	}
+
+	public DataSource unbindToDataBuffer(List<ChildNode<?>> nodes) {
+		List<ChildNode<?>> nextNodes = nodes.subList(1, nodes.size());
+
+		return nodes.get(0).process(new ReturningNodeProcessor<DataSource>() {
+			@Override
+			public DataSource accept(ChoiceNode node) {
+				return unbindToDataBuffer(nextNodes);
+			}
+
+			@Override
+			public DataSource accept(InputSequenceNode node) {
+				return unbindToDataBuffer(nextNodes);
+			}
+
+			@Override
+			public DataSource accept(SequenceNode node) {
+				return unbindToDataBuffer(nextNodes);
+			}
+
+			@Override
+			public <U> DataSource accept(ComplexNode<U> node) {
+				List<U> data = getData(node, context);
+				return new BindingNodeUnbinder(context, node, data.get(0)).unbindToDataBuffer(nextNodes);
+			}
+
+			@Override
+			public <U> DataSource accept(DataNode<U> node) {
+				if (nextNodes.isEmpty()) {
+					return new DataNodeUnbinder(context).unbindToDataBuffer(node);
+				} else {
+					List<U> data = getData(node, context);
+					return new BindingNodeUnbinder(context, node, data.get(0)).unbindToDataBuffer(nextNodes);
+				}
+			}
+		});
 	}
 }

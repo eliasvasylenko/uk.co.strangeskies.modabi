@@ -177,7 +177,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 			ClassLoader classLoader = this.classLoader != null ? this.classLoader
 					: Thread.currentThread().getContextClassLoader();
 
-			new ContextClassLoaderRunner(classLoader).run(() -> new BindingNodeUnbinder(context).unbind(model, (U) data));
+			new ContextClassLoaderRunner(classLoader).run(() -> new BindingNodeUnbinder(context, model, (U) data).unbind());
 
 			context.output().get().endChild();
 		} catch (ProcessingException e) {

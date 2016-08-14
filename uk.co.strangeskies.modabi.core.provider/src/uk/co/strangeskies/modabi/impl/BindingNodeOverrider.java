@@ -278,7 +278,8 @@ public class BindingNodeOverrider {
 			return configurator.create();
 		}
 
-		private <N extends ChildNode<? extends N>, C extends ChildNodeConfigurator<C, ? extends N>> N processChildNode(N node, C c) {
+		private <N extends ChildNode<? extends N>, C extends ChildNodeConfigurator<C, ? extends N>> N processChildNode(
+				N node, C c) {
 			c = tryProperty(node, ChildNode::concrete, C::concrete, c);
 			c = tryProperty(node, ChildNode::occurrences, C::occurrences, c);
 			c = tryProperty(node, ChildNode::ordered, C::ordered, c);
@@ -386,7 +387,7 @@ public class BindingNodeOverrider {
 					@SuppressWarnings("unchecked")
 					Class<N> nodeClass = (Class<N>) node.getThisType().getRawType();
 					throw new ModabiException(
-							t -> t.cannotOverrideIncompatibleProperty(property::apply, nodeClass, configuratorStack, value), e);
+							t -> t.cannotOverrideIncompatibleProperty(node, property::apply, nodeClass, configuratorStack, value), e);
 				}
 			} else {
 				return c;

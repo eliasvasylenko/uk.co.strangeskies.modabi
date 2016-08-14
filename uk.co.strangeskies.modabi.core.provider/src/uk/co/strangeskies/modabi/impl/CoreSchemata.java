@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -127,31 +128,36 @@ public class CoreSchemata {
 				Namespace namespace = new Namespace(BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
 				if (node.name().getNamespace().equals(namespace)) {
-					if (node.name().getName().equals("configure"))
+					switch (node.name().getName()) {
+					case "configure":
 						return Collections.emptyList();
 
-					if (node.name().getName().equals("format"))
+					case "format":
 						return (List<T>) Arrays.asList(Format.valueOf(data.get(Primitive.STRING)));
 
-					if (node.name().getName().equals("dataType"))
+					case "dataType":
 						return (List<T>) Arrays.asList(Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING)));
 
-					if (node.name().getName().equals("targetId"))
-						return (List<T>) Arrays.asList(data.get(Primitive.QUALIFIED_NAME));
+					case "targetId":
+						List<QualifiedName> targetId = new ArrayList<>();
+						while (!data.isComplete()) {
+							targetId.add(data.get(Primitive.QUALIFIED_NAME));
+						}
+						return (List<T>) Arrays.asList(targetId);
 
-					if (node.name().getName().equals("inline"))
+					case "inline":
 						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
 
-					if (node.name().getName().equals("isExternal"))
+					case "isExternal":
 						return (List<T>) Arrays.asList(data.get(Primitive.BOOLEAN));
 
-					if (node.name().getName().equals("enumType"))
+					case "enumType":
 						return (List<T>) Arrays.asList(Enum.class);
 
-					if (node.name().getName().equals("enumerationType"))
+					case "enumerationType":
 						return (List<T>) Arrays.asList(Enumeration.class);
 
-					if (node.name().getName().equals("targetModel")) {
+					case "targetModel":
 						QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
 
 						return (List<T>) Arrays.asList(targetModels.computeIfAbsent(name, n -> {

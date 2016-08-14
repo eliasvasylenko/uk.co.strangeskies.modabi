@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
@@ -30,10 +31,8 @@ import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
-import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
 
 public class UnbindingProviders {
 	public Function<ProcessingContext, IncludeTarget> includeTarget() {
@@ -51,12 +50,10 @@ public class UnbindingProviders {
 	public Function<ProcessingContext, ImportTarget> importTarget() {
 		return context -> new ImportTarget() {
 			@Override
-			public <U> DataSource dereferenceImport(Model<U> model, QualifiedName idDomain, U object) {
-				DataNode<?> node = (DataNode<?>) model.children().stream()
-						.filter(c -> c.name().equals(idDomain) && c instanceof DataNode<?>).findAny().orElseThrow(
-								() -> new ModabiException("Can't fine child '" + idDomain + "' to target for model '" + model + "'"));
+			public <U> DataSource referenceImport(Model<U> model, List<QualifiedName> idDomain, U object) {
+				List<ChildNode<?>> node = model.children(idDomain);
 
-				return unbindDataNode(context, node, new TypedObject<>(model.dataType(), object));
+				return new BindingNodeUnbinder(context, model, object).unbindToDataBuffer(node);
 			}
 		};
 	}
@@ -64,26 +61,19 @@ public class UnbindingProviders {
 	public Function<ProcessingContext, ReferenceTarget> referenceTarget() {
 		return context -> new ReferenceTarget() {
 			@Override
-			public <U> DataSource reference(Model<U> model, QualifiedName idDomain, U object) {
+			public <U> DataSource reference(Model<U> model, List<QualifiedName> idDomain, U object) {
 				if (!context.bindings().getModelBindings(model).contains(object))
 					throw new ModabiException("Cannot find any instance '" + object + "' bound to model '" + model.name()
 							+ "' from '" + context.bindings().getModelBindings(model) + "'");
 
-				return importTarget().apply(context).dereferenceImport(model, idDomain, object);
+				return importTarget().apply(context).referenceImport(model, idDomain, object);
 			}
 		};
 	}
 
-	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode<V> node, TypedObject<?> source) {
-		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(context).withBindingObject(source);
-
-		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
-				BindingNodeUnbinder.getData(node, unbindingContext));
-	}
-
 	public void registerProviders(Provisions provisions) {
-		provisions.add(Provider.over(new TypeToken<ReferenceTarget>() {}, referenceTarget()));
-		provisions.add(Provider.over(new TypeToken<ImportTarget>() {}, importTarget()));
-		provisions.add(Provider.over(new TypeToken<IncludeTarget>() {}, includeTarget()));
+		provisions.add(Provider.over(ReferenceTarget.class, referenceTarget()));
+		provisions.add(Provider.over(ImportTarget.class, importTarget()));
+		provisions.add(Provider.over(IncludeTarget.class, includeTarget()));
 	}
 }

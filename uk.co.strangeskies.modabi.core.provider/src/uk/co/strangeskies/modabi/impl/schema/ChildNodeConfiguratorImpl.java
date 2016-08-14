@@ -157,9 +157,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		return ordered;
 	}
 
-	protected <T> OverrideBuilder<T, ?, ?, ?> getOverride(Function<N, T> valueFunction,
-			Function<S, T> givenValueFunction) {
-		return new OverrideBuilder<>(this, ChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
-				givenValueFunction);
+	protected <T> OverrideBuilder<T, ?, ?> getOverride(Function<N, T> valueFunction, Function<S, T> givenValueFunction) {
+		return new OverrideBuilder<>(this, getResult(), ChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
+				givenValueFunction.compose(SchemaNodeConfiguratorImpl::getThis));
 	}
 }

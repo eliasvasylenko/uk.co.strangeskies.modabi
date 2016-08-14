@@ -78,16 +78,20 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 
 		ExecutableMember<?, ?> inputMember;
 		if (inputMemberType == null) {
-			try {
-				inputMemberType = modifyInputMemberType(configurator, InputMemberType.METHOD);
-				inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters, resolved);
-			} catch (Exception methodException) {
+			if (resolved) {
 				try {
-					inputMemberType = InputMemberType.FIELD;
-					inputMember = determineInputField(configurator, inMethodParameters);
-				} catch (Exception fieldException) {
-					throw methodException;
+					inputMemberType = modifyInputMemberType(configurator, InputMemberType.METHOD);
+					inputMember = determineInputMethod(configurator, inputMemberType, inMethodParameters, resolved);
+				} catch (Exception methodException) {
+					try {
+						inputMemberType = InputMemberType.FIELD;
+						inputMember = determineInputField(configurator, inMethodParameters);
+					} catch (Exception fieldException) {
+						throw methodException;
+					}
 				}
+			} else {
+				inputMember = null;
 			}
 		} else {
 			switch (inputMemberType) {
@@ -108,21 +112,21 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 		}
 		this.inputMember = inputMember;
 		this.inputMemberType = inputMemberType;
-		
+
 		preInputType = determinePreInputType();
 		postInputType = determinePostInputType(configurator, resolved);
 	}
 
-	protected <T> OverrideBuilder<T, C, ?, N> getOverride(InputNodeConfiguratorImpl<C, N> configurator,
+	protected <T> OverrideBuilder<T, ?, N> getOverride(InputNodeConfiguratorImpl<C, N> configurator,
 			Function<N, T> valueFunction, Function<C, T> givenValueFunction) {
-		return new OverrideBuilder<>(configurator, InputNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
-				givenValueFunction);
+		return new OverrideBuilder<>(configurator, configurator.getResult(), InputNodeConfiguratorImpl::getOverriddenNodes,
+				valueFunction, givenValueFunction.compose(InputNodeConfiguratorImpl::getThis));
 	}
 
-	protected <T> OverrideBuilder<T, C, ?, N> getOverride(InputNodeConfiguratorImpl<C, N> configurator,
+	protected <T> OverrideBuilder<T, ?, N> getOverride(InputNodeConfiguratorImpl<C, N> configurator,
 			Function<C, T> givenValueFunction) {
-		return new OverrideBuilder<>(configurator, InputNodeConfiguratorImpl::getOverriddenNodes, n -> null,
-				givenValueFunction);
+		return new OverrideBuilder<>(configurator, configurator.getResult(), InputNodeConfiguratorImpl::getOverriddenNodes,
+				n -> null, givenValueFunction.compose(InputNodeConfiguratorImpl::getThis));
 	}
 
 	private InputMemberType determineInputMemberType(InputNodeConfiguratorImpl<C, N> configurator) {
@@ -185,51 +189,47 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 			InputMemberType inputMemberType, List<TypeToken<?>> parameters, boolean resolved) {
 		ExecutableMember<?, ?> inExecutableMember;
 
-		if (!resolved) {
-			inExecutableMember = null;
-		} else {
-			TypeToken<?> inputTargetType = configurator.getContext().inputTargetType();
+		TypeToken<?> inputTargetType = configurator.getContext().inputTargetType();
 
-			TypeToken<?> result = getResultType(configurator, configurator.getContext());
+		TypeToken<?> result = getResultType(configurator, configurator.getContext());
 
-			/*
-			 * cast parameter types to their raw types if unchecked
-			 */
-			if (inMethodUnchecked)
-				parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
-						.collect(Collectors.toList());
+		/*
+		 * cast parameter types to their raw types if unchecked
+		 */
+		if (inMethodUnchecked)
+			parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
+					.collect(Collectors.toList());
 
-			/*
-			 * first try to find and validate an inherited in method ...
-			 */
-			inExecutableMember = resolveOverriddenInMethod(configurator, inputTargetType, parameters);
+		/*
+		 * first try to find and validate an inherited in method ...
+		 */
+		inExecutableMember = resolveOverriddenInMethod(configurator, inputTargetType, parameters);
 
-			/*
-			 * ... then if none exists, resolve one from scratch
-			 */
-			if (inExecutableMember == null) {
-				if (inputMemberType == InputMemberType.CONSTRUCTOR) {
-					inExecutableMember = Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
+		/*
+		 * ... then if none exists, resolve one from scratch
+		 */
+		if (inExecutableMember == null) {
+			if (inputMemberType == InputMemberType.CONSTRUCTOR) {
+				inExecutableMember = Methods.findConstructor(inputTargetType, parameters).withTargetType(result);
 
-				} else {
-					String givenInMethodName = getOverride(configurator,
-							n -> n.inputExecutable() == null ? null : n.inputExecutable().getName(),
-							InputNodeConfigurator::getInputMember).tryGet();
+			} else {
+				String givenInMethodName = getOverride(configurator,
+						n -> n.inputExecutable() == null ? null : n.inputExecutable().getName(),
+						InputNodeConfigurator::getInputMember).tryGet();
 
-					inExecutableMember = Methods.findMethod(
-							generateInMethodNames(configurator.getResult().name(), givenInMethodName), inputTargetType,
-							configurator.getContext().isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
-							parameters);
-				}
+				inExecutableMember = Methods.findMethod(
+						generateInMethodNames(configurator.getResult().name(), givenInMethodName), inputTargetType,
+						configurator.getContext().isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
+						parameters);
 			}
-
-			/*
-			 * We're incorporating the preliminary types rather than those improved by
-			 * accounting for reified provided values!
-			 */
-
-			configurator.getContext().boundSet().incorporate(inExecutableMember.getResolver().getBounds());
 		}
+
+		/*
+		 * We're incorporating the preliminary types rather than those improved by
+		 * accounting for reified provided values!
+		 */
+
+		configurator.getContext().boundSet().incorporate(inExecutableMember.getResolver().getBounds());
 
 		return inExecutableMember;
 	}
@@ -254,7 +254,7 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 			try {
 				inExecutableMember = inExecutableMember.withLooseApplicability(parameters);
 			} catch (Exception e) {
-				if (inExecutableMember.isVariableArity()) {
+				if (inExecutableMember.isVariableArityDefinition()) {
 					try {
 						inExecutableMember = inExecutableMember.withVariableArityApplicability(parameters);
 					} catch (Exception e2) {

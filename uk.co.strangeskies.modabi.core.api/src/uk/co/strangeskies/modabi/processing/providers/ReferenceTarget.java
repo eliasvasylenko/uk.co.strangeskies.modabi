@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.processing.providers;
 
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -25,9 +26,9 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface ReferenceTarget {
-	<T> DataSource reference(Model<T> model, QualifiedName idDomain, T object);
+	<T> DataSource reference(Model<T> model, List<QualifiedName> idDomain, T object);
 
-	default <T> Function<T, DataSource> reference(Model<T> model, QualifiedName idDomain) {
+	default <T> Function<T, DataSource> reference(Model<T> model, List<QualifiedName> idDomain) {
 		return object -> reference(model, idDomain, object);
 	}
 }

@@ -77,7 +77,7 @@ public class ComplexNodeUnbinder {
 				if (!element.inline())
 					context.output().get().addChild(element.name());
 
-				new BindingNodeUnbinder(context).unbind(element, data);
+				new BindingNodeUnbinder(context, element, data).unbind();
 
 				if (!element.inline())
 					context.output().get().endChild();

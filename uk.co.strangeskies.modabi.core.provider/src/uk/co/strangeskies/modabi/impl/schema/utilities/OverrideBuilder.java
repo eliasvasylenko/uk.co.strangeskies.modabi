@@ -27,33 +27,34 @@ import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
  * @author Elias N Vasylenko
  *
  * @param <T>
- *          the type of the value of the node
- * @param <S>
+ *          the type of the value of the property to override
+ * @param <C>
  *          the type of the configurator
- * @param <I>
- *          the type of the configurator implementation
  * @param <N>
  *          the type of the node
  */
-public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extends SchemaNodeConfigurator<? extends S, ? extends N>, N extends SchemaNode<?>> {
-	private final I configurator;
+public class OverrideBuilder<T, C extends SchemaNodeConfigurator<?, ?>, N extends SchemaNode<?>> {
+	private final C configurator;
+	private final N node;
 
 	private final Function<? super N, ? extends T> valueFunction;
-	private final Function<? super S, ? extends T> givenValueFunction;
+	private final Function<? super C, ? extends T> givenValueFunction;
 
 	private final BiFunction<? super T, ? super T, ? extends T> mergeOverride;
 
 	private final Set<T> inheritedValues;
 	private final T override;
 
-	public OverrideBuilder(I configurator, Function<? super I, ? extends Collection<? extends N>> overridden,
+	public OverrideBuilder(C configurator, N node, Function<? super C, ? extends Collection<? extends N>> overridden,
 			Function<? super N, ? extends T> valueFunction) {
-		this(configurator, overridden, valueFunction, null);
+		this(configurator, node, overridden, valueFunction, null);
 	}
 
-	public OverrideBuilder(I configurator, Function<? super I, ? extends Collection<? extends N>> overridden,
-			Function<? super N, ? extends T> valueFunction, Function<? super S, ? extends T> givenValueFunction) {
+	public OverrideBuilder(C configurator, N node, Function<? super C, ? extends Collection<? extends N>> overridden,
+			Function<? super N, ? extends T> valueFunction, Function<? super C, ? extends T> givenValueFunction) {
 		this.configurator = configurator;
+		this.node = node;
+
 		this.valueFunction = valueFunction;
 		this.givenValueFunction = givenValueFunction;
 
@@ -65,24 +66,23 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 			if (value != null) {
 				return Stream.of(value);
 			} else if (givenValueFunction == null) {
-				return Stream.<T> empty();
+				return Stream.<T>empty();
 			} else {
-				List<S> values = new ArrayList<>();
+				List<C> values = new ArrayList<>();
 
 				@SuppressWarnings("unchecked")
-				S c = (S) n.configurator();
+				C c = (C) n.configurator();
 				values.add(c);
 
 				Set<SchemaNode<?>> contains = new HashSet<>();
 				contains.add(n);
 
 				for (int i = 0; i < values.size(); i++) {
-					@SuppressWarnings("unchecked")
-					I nci = (I) values.get(i);
+					C nci = values.get(i);
 
 					for (N nn : overridden.apply(nci)) {
 						@SuppressWarnings("unchecked")
-						S nnc = (S) nn.configurator();
+						C nnc = (C) nn.configurator();
 
 						if (contains.add(nn)) {
 							values.add(nnc);
@@ -90,11 +90,11 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 					}
 				}
 
-				return values.stream().map(givenValueFunction::apply).filter(Objects::nonNull);
+				return values.stream().map(i -> givenValueFunction.apply(i)).filter(Objects::nonNull);
 			}
 		}).flatMap(Function.identity()).collect(Collectors.toSet());
 
-		T override = givenValueFunction.apply(configurator.getThis());
+		T override = givenValueFunction.apply(configurator);
 
 		if (override == null && inheritedValues.size() == 1) {
 			override = inheritedValues.iterator().next();
@@ -103,9 +103,10 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		this.override = override;
 	}
 
-	private OverrideBuilder(OverrideBuilder<T, S, I, N> from, BiFunction<? super T, ? super T, ? extends T> validation,
+	private OverrideBuilder(OverrideBuilder<T, C, N> from, BiFunction<? super T, ? super T, ? extends T> validation,
 			T override) {
 		configurator = from.configurator;
+		node = from.node;
 
 		valueFunction = from.valueFunction;
 		givenValueFunction = from.givenValueFunction;
@@ -124,7 +125,7 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		return inheritedValues;
 	}
 
-	public OverrideBuilder<T, S, I, N> orDefault(T value) {
+	public OverrideBuilder<T, C, N> orDefault(T value) {
 		if (givenValueFunction == null
 				|| (configurator.getConcrete() == null || configurator.getConcrete()) && !isOverridden()) {
 			return or(value);
@@ -133,13 +134,13 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		}
 	}
 
-	public OverrideBuilder<T, S, I, N> orMerged(Function<? super Collection<T>, ? extends T> merge) {
+	public OverrideBuilder<T, C, N> orMerged(Function<? super Collection<T>, ? extends T> merge) {
 		if (!inheritedValues.isEmpty() && !isOverridden()) {
 			T merged = merge.apply(inheritedValues);
 
 			if (merged == null) {
 				throw new ModabiException(
-						t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues));
+						t -> t.cannotMergeIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues));
 			}
 
 			return or(merged);
@@ -148,12 +149,12 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		}
 	}
 
-	public OverrideBuilder<T, S, I, N> orMerged(BinaryOperator<T> merge) {
+	public OverrideBuilder<T, C, N> orMerged(BinaryOperator<T> merge) {
 		return orMerged(s -> s.stream().reduce(merge).orElseThrow(() -> new ModabiException(
-				t -> t.cannotMergeIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues))));
+				t -> t.cannotMergeIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues))));
 	}
 
-	public OverrideBuilder<T, S, I, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
+	public OverrideBuilder<T, C, N> validateOverride(BiPredicate<? super T, ? super T> validation) {
 		return mergeOverride(validateOverrideFunction(validation));
 	}
 
@@ -162,18 +163,18 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		return (a, b) -> {
 			if (!validation.test(a, b)) {
 				throw new ModabiException(
-						t -> t.cannotOverrideIncompatibleProperty(valueFunction::apply, getNodeClass(), b, a));
+						t -> t.cannotOverrideIncompatibleProperty(node, valueFunction::apply, getNodeClass(), b, a));
 			}
 
 			return a;
 		};
 	}
 
-	public OverrideBuilder<T, S, I, N> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
+	public OverrideBuilder<T, C, N> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
 		return new OverrideBuilder<>(this, mergeOverride, override);
 	}
 
-	public OverrideBuilder<T, S, I, N> or(T value) {
+	public OverrideBuilder<T, C, N> or(T value) {
 		return isOverridden() ? this : new OverrideBuilder<>(this, mergeOverride, value);
 	}
 
@@ -195,10 +196,10 @@ public class OverrideBuilder<T, S extends SchemaNodeConfigurator<?, ?>, I extend
 		if (value == null && (configurator.getConcrete() == null || configurator.getConcrete())
 				&& givenValueFunction != null) {
 			if (inheritedValues.isEmpty()) {
-				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(valueFunction::apply, getNodeClass()));
+				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(node, valueFunction::apply, getNodeClass()));
 			} else {
 				throw new ModabiException(
-						t -> t.mustOverrideIncompatibleProperties(valueFunction::apply, getNodeClass(), inheritedValues));
+						t -> t.mustOverrideIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues));
 			}
 		}
 

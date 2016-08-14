@@ -376,14 +376,13 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 	@Override
 	public abstract List<N> getOverriddenNodes();
 
-	protected <U> OverrideBuilder<U, ?, ?, ?> getOverride(Function<N, U> valueFunction,
-			Function<S, U> givenValueFunction) {
-		return new OverrideBuilder<>(this, BindingChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
-				givenValueFunction);
+	protected <U> OverrideBuilder<U, ?, ?> getOverride(Function<N, U> valueFunction, Function<S, U> givenValueFunction) {
+		return new OverrideBuilder<>(this, getResult(), BindingChildNodeConfiguratorImpl::getOverriddenNodes, valueFunction,
+				givenValueFunction.compose(SchemaNodeConfiguratorImpl::getThis));
 	}
 
-	protected <U> OverrideBuilder<U, ?, ?, ?> getOverride(Function<S, U> givenValueFunction) {
-		return new OverrideBuilder<>(this, BindingChildNodeConfiguratorImpl::getOverriddenNodes, n -> null,
-				givenValueFunction);
+	protected <U> OverrideBuilder<U, ?, ?> getOverride(Function<S, U> givenValueFunction) {
+		return new OverrideBuilder<>(this, getResult(), BindingChildNodeConfiguratorImpl::getOverriddenNodes, n -> null,
+				givenValueFunction.compose(SchemaNodeConfiguratorImpl::getThis));
 	}
 }

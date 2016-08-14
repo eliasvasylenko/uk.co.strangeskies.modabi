@@ -29,6 +29,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
@@ -37,6 +38,10 @@ import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class DataNodeUnbinder {
 	private final ProcessingContextImpl context;
+
+	public DataNodeUnbinder(ProcessingContext context) {
+		this(new ProcessingContextImpl(context));
+	}
 
 	public DataNodeUnbinder(ProcessingContextImpl context) {
 		this.context = context;
@@ -52,10 +57,13 @@ public class DataNodeUnbinder {
 	 * @param node
 	 * @param data
 	 */
-	public <U> DataSource unbindToDataBuffer(DataNode<U> node, List<U> data) {
+	public <U> DataSource unbindToDataBuffer(DataNode<U> node) {
+		ProcessingContextImpl context = this.context.withOutput(null).withNestedProvisionScope();
+
+		List<U> data = BindingNodeUnbinder.getData(node, context);
+
 		BufferingDataTarget target = new BufferingDataTarget();
 
-		ProcessingContextImpl context = this.context.withOutput(null).withNestedProvisionScope();
 		context.provisions().add(Provider.over(new TypeToken<DataTarget>() {}, c -> target));
 
 		unbindWithFormat(node, data, null, context);
@@ -133,13 +141,13 @@ public class DataNodeUnbinder {
 									+ overrides.keySet().stream().map(m -> m.name().toString()).collect(Collectors.joining(", "))
 									+ "' for object '" + data + "' to be unbound", context, l));
 		} else
-			new BindingNodeUnbinder(context).unbind(node, data);
+			new BindingNodeUnbinder(context, node, data).unbind();
 	}
 
 	@SuppressWarnings("unchecked")
 	private <U extends V, V> void unbindExactNode(ProcessingContextImpl context, DataNode<U> element, V data) {
 		try {
-			new BindingNodeUnbinder(context).unbind(element, (U) element.dataType().getRawType().cast(data));
+			new BindingNodeUnbinder(context, element, (U) element.dataType().getRawType().cast(data)).unbind();
 		} catch (ClassCastException e) {
 			throw new ProcessingException("Cannot unbind data at this node.", context, e);
 		}

@@ -51,7 +51,6 @@ import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
@@ -65,7 +64,7 @@ public class BindingProviders {
 	public Function<ProcessingContext, ImportSource> importSource() {
 		return context -> new ImportSource() {
 			@Override
-			public <U> U importObject(Model<U> model, QualifiedName idDomain, DataSource id) {
+			public <U> U dereferenceImport(Model<U> model, List<QualifiedName> idDomain, DataSource id) {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
@@ -111,7 +110,7 @@ public class BindingProviders {
 	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
-			public <U> U dereference(Model<U> model, QualifiedName idDomain, DataSource id) {
+			public <U> U dereference(Model<U> model, List<QualifiedName> idDomain, DataSource id) {
 				return matchBinding(context, model, new ModelBindingProvider() {
 					@Override
 					public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
@@ -134,7 +133,7 @@ public class BindingProviders {
 	}
 
 	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
-			QualifiedName idDomain, DataSource idSource, boolean externalDependency) {
+			List<QualifiedName> idDomain, DataSource idSource, boolean externalDependency) {
 		if (idSource.currentState() == DataStreamState.TERMINATED || idSource.isComplete())
 			throw new ProcessingException(
 					"No further id data to match in domain '" + idDomain + "' for model '" + model + "'", context);
@@ -148,10 +147,9 @@ public class BindingProviders {
 		 */
 		DataItem<?> id = idSource.get();
 
-		ChildNode<?> child = model.child(idDomain);
-		if (!(child instanceof DataNode<?>))
+		List<ChildNode<?>> childStack = model.children(idDomain);
+		if (!(childStack.get(childStack.size() - 1) instanceof DataNode<?>))
 			throw new ProcessingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
-		DataNode<?> idNode = (DataNode<?>) child;
 
 		/*
 		 * Resolve dependency!
@@ -160,7 +158,7 @@ public class BindingProviders {
 		Property<BindingBlock, BindingBlock> blockProperty = new IdentityProperty<>();
 
 		Function<U, Boolean> validate = bindingCandidate -> {
-			boolean success = validateBindingCandidate(context, bindingCandidate, model, idNode, id);
+			boolean success = validateBindingCandidate(context, bindingCandidate, model, childStack, id);
 			if (success) {
 				objectProperty.set(bindingCandidate);
 			}
@@ -208,10 +206,10 @@ public class BindingProviders {
 	}
 
 	private <U> boolean validateBindingCandidate(ProcessingContext context, U bindingCandidate, Model<U> model,
-			DataNode<?> idNode, DataItem<?> id) {
+			List<ChildNode<?>> idNode, DataItem<?> id) {
 		Objects.requireNonNull(bindingCandidate);
 
-		DataSource candidateId = unbindDataNode(context, idNode, new TypedObject<>(model.dataType(), bindingCandidate));
+		DataSource candidateId = new BindingNodeUnbinder(context, model, bindingCandidate).unbindToDataBuffer(idNode);
 
 		if (candidateId.size() == 1) {
 			DataItem<?> candidateData = candidateId.get();
@@ -260,13 +258,6 @@ public class BindingProviders {
 						return method.invoke(object, args);
 					}
 				});
-	}
-
-	private <V> DataSource unbindDataNode(ProcessingContext context, DataNode<V> node, TypedObject<?> source) {
-		ProcessingContextImpl unbindingContext = new ProcessingContextImpl(context).withBindingObject(source);
-
-		return new DataNodeUnbinder(unbindingContext).unbindToDataBuffer(node,
-				BindingNodeUnbinder.getData(node, unbindingContext));
 	}
 
 	public void registerProviders(Provisions provisions) {

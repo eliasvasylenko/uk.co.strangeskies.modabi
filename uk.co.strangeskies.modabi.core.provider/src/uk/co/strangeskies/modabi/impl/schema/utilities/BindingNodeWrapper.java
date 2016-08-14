@@ -114,7 +114,7 @@ public abstract class BindingNodeWrapper<T, B extends BindingNode<? super T, B>,
 		Class<B> baseClass = (Class<B>) (Class<?>) base.getThisType().getRawType();
 
 		return new ModabiException(
-				t -> t.cannotOverrideIncompatibleProperty(property::apply, baseClass, baseValue, overrideValue), cause);
+				t -> t.cannotOverrideIncompatibleProperty(base, property::apply, baseClass, baseValue, overrideValue), cause);
 	}
 
 	public BindingNode<?, ?> getComponent() {

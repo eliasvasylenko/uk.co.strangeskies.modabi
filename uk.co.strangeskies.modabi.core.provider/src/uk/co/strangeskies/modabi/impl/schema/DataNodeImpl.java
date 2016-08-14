@@ -77,7 +77,7 @@ public class DataNodeImpl<T> extends BindingChildNodeImpl<T, DataNode<T>> implem
 		Class<DataNode<T>> nodeType = (Class<DataNode<T>>) configurator.getNodeType().getRawType();
 		if (providedBuffer == null && concrete() && (occurrences == null || !occurrences.contains(0))
 				&& (resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION))
-			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(DataNode::providedValueBuffer, nodeType));
+			throw new ModabiException(t -> t.mustProvideValueForNonAbstract(this, DataNode::providedValueBuffer, nodeType));
 
 		if ((resolution == ValueResolution.REGISTRATION_TIME || resolution == ValueResolution.POST_REGISTRATION)
 				&& providedBuffer != null) {

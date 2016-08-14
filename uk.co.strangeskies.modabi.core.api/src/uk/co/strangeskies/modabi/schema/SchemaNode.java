@@ -18,7 +18,9 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.ModabiException;
@@ -114,33 +116,65 @@ public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
 
 	List<ChildNode<?>> children();
 
-	default ChildNode<?> child(QualifiedName name) {
-		return children().stream().filter(c -> c.name().equals(name)).findAny()
-				.orElseThrow(() -> new ModabiException(t -> t.noChildFound(Arrays.asList(name), name(), children())));
-	}
-
-	default ChildNode<?> child(QualifiedName name, QualifiedName... names) {
-		if (names.length == 0)
-			return child(name);
-		else
-			return child(name).child(Arrays.asList(names));
+	default ChildNode<?> child(QualifiedName... names) {
+		return child(Arrays.asList(names));
 	}
 
 	default ChildNode<?> child(List<QualifiedName> names) {
 		if (names.isEmpty())
 			throw new ModabiException(t -> t.noChildFound(names, name(), children()));
 
-		if (names.size() == 1)
-			return child(names.get(0));
-		else
-			return child(names.get(0)).child(names.subList(1, names.size()));
+		QualifiedName firstName = names.get(0);
+
+		ChildNode<?> firstChild = children().stream().filter(c -> c.name().equals(firstName)).findAny()
+				.orElseThrow(() -> new ModabiException(t -> t.noChildFound(Arrays.asList(firstName), name(), children())));
+
+		if (names.size() > 1) {
+			firstChild = firstChild.child(names.subList(1, names.size()));
+		}
+
+		return firstChild;
 	}
 
-	default ChildNode<?> child(String name, String... names) {
+	default ChildNode<?> child(String... names) {
 		if (names.length == 0)
-			return child(new QualifiedName(name, name().getNamespace()));
-		else
-			return child(name).child(names[0], Arrays.copyOfRange(names, 1, names.length));
+			throw new ModabiException(t -> t.noChildFound(Collections.emptyList(), name(), children()));
+
+		ChildNode<?> child = child(new QualifiedName(names[0], name().getNamespace()));
+
+		for (int i = 1; i < names.length; i++) {
+			child = child.child(new QualifiedName(names[i], name().getNamespace()));
+		}
+
+		return child;
+	}
+
+	default List<ChildNode<?>> children(QualifiedName... names) {
+		return children(Arrays.asList(names));
+	}
+
+	default List<ChildNode<?>> children(List<QualifiedName> names) {
+		List<ChildNode<?>> children = new ArrayList<>(names.size());
+
+		SchemaNode<?> node = this;
+		for (QualifiedName name : names) {
+			node = node.child(name);
+			children.add((ChildNode<?>) node);
+		}
+
+		return children;
+	}
+
+	default List<ChildNode<?>> children(String... names) {
+		List<ChildNode<?>> children = new ArrayList<>(names.length);
+
+		SchemaNode<?> node = this;
+		for (String name : names) {
+			node = node.child(name);
+			children.add((ChildNode<?>) node);
+		}
+
+		return children;
 	}
 
 	RootNode<?, ?> root();

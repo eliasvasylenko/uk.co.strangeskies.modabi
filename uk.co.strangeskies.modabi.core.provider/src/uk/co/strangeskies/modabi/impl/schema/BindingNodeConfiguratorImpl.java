@@ -409,10 +409,10 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return false;
 	}
 
-	protected <U> OverrideBuilder<U, ?, ?, ?> getOverrideWithBase(Function<BindingNode<? super T, ?>, U> valueFunction,
+	protected <U> OverrideBuilder<U, ?, ?> getOverrideWithBase(Function<BindingNode<? super T, ?>, U> valueFunction,
 			Function<BindingNodeConfigurator<?, ?, ? super T>, U> givenValueFunction) {
-		return new OverrideBuilder<U, S, BindingNodeConfiguratorImpl<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
-				this, BindingNodeConfiguratorImpl::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
+		return new OverrideBuilder<U, BindingNodeConfiguratorImpl<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
+				this, getResult(), BindingNodeConfiguratorImpl::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
 	}
 
 	@Override

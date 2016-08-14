@@ -18,13 +18,13 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
+import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 
@@ -33,6 +33,7 @@ public abstract class InputNodeBinder<T extends InputNode<?>> extends ChildNodeB
 		super(context, node);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Object invokeInMethod(Object... parameters) {
 		TypedObject<?> target = getContext().getBindingObject();
 
@@ -50,7 +51,7 @@ public abstract class InputNodeBinder<T extends InputNode<?>> extends ChildNodeB
 				}
 
 				result = TypedObject.castInto(postInputType,
-						((Method) getNode().inputExecutable().getMember()).invoke(target.getObject(), parameters));
+						((ExecutableMember<Object, ?>) getNode().inputExecutable()).invoke(target.getObject(), parameters));
 			} catch (Exception e) {
 				throw new ProcessingException(t -> t.cannotInvoke(getNode().inputExecutable().getMember(),
 						getContext().getBindingObject().getType(), getNode(), Arrays.asList(parameters)), getContext(), e);
