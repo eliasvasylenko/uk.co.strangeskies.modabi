@@ -39,7 +39,8 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 		implements BindingChildNodeConfigurator<S, N, T>, InputNodeConfiguratorImpl<S, N> {
 	private final SchemaNodeConfigurationContext context;
 
-	private TypeToken<?> postInputClass;
+	private TypeToken<?> postInputType;
+	private String postInputTypeString;
 	private Range<Integer> occurrences;
 	private Boolean optional;
 	private Boolean nullIfOmitted;
@@ -68,7 +69,7 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 		this.context = copy.context;
 
-		this.postInputClass = copy.postInputClass;
+		this.postInputType = copy.postInputType;
 		this.occurrences = copy.occurrences;
 		this.optional = copy.optional;
 		this.nullIfOmitted = copy.nullIfOmitted;
@@ -344,19 +345,27 @@ public abstract class BindingChildNodeConfiguratorImpl<S extends BindingChildNod
 
 	@Override
 	public S postInputType(String postInputType) {
-		return postInputType(parseTypeWithSubstitutedBrackets(postInputType, getImports()));
+		this.postInputType = parseTypeWithSubstitutedBrackets(postInputType, getImports());
+		postInputTypeString = postInputType;
+
+		return getThis();
 	}
 
 	@Override
 	public S postInputType(TypeToken<?> postInputClass) {
-		this.postInputClass = postInputClass;
+		this.postInputType = postInputClass;
 
 		return getThis();
 	}
 
 	@Override
 	public TypeToken<?> getPostInputType() {
-		return postInputClass;
+		return postInputType;
+	}
+
+	@Override
+	public String getPostInputTypeString() {
+		return postInputTypeString;
 	}
 
 	@Override

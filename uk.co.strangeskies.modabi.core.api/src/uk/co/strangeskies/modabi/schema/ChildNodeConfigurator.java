@@ -63,4 +63,6 @@ public interface ChildNodeConfigurator<S extends ChildNodeConfigurator<S, N>, N 
 	}
 
 	TypeToken<?> getPostInputType();
+
+	String getPostInputTypeString();
 }

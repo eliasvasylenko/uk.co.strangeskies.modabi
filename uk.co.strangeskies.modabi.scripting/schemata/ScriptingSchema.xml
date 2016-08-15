@@ -29,12 +29,12 @@
 		<model
 			name="scriptObject"
 			dataType="@Infer ?"
-			bindingType="ScriptObjectBuilder{Object}"
-			bindingStrategy="STATIC_FACTORY"
-			unbindingStrategy="STATIC_FACTORY"
-			unbindingFactoryType="ScriptObjectBuilder"
-			unbindingType="ScriptObject"
-			unbindingMethod="cast"
+			inputBindingType="ScriptObjectBuilder{Object}"
+			inputBindingStrategy="STATIC_FACTORY"
+			outputBindingStrategy="STATIC_FACTORY"
+			outputBindingFactoryType="ScriptObjectBuilder"
+			outputBindingType="ScriptObject"
+			outputBindingMethod="cast"
 			extensible="true"
 			abstractness="ABSTRACT">
 
@@ -48,28 +48,28 @@
 			<data
 				name="scriptEngineManager"
 				dataType="ScriptEngineManager"
-				bindingStrategy="PROVIDED"
-				outMethod="null" />
+				inputBindingStrategy="PROVIDED"
+				outputField="null" />
 
 			<data
 				name="objectType"
 				dataType="TypeToken{?}"
-				bindingStrategy="PROVIDED"
-				bindingType="ProcessingContext"
-				outMethod="null">
+				inputBindingStrategy="PROVIDED"
+				inputBindingType="ProcessingContext"
+				outputField="null">
 
 				<data
 					name="getBindingNode"
-					outMethod="null"
+					outputField="null"
 					type="int"
 					postInputType="Model{?}"
-					inMethodChained="true"
-					inMethodCast="true"
+					chainedInput="true"
+					castInput="true"
 					value="1" />
 
 				<inputSequence
 					name="dataType"
-					inMethodChained="true" />
+					chainedInput="true" />
 			</data>
 
 			<choice name="scriptSource">
@@ -97,11 +97,11 @@
 
 			<inputSequence
 				name="create"
-				inMethodChained="true" />
+				chainedInput="true" />
 
 			<inputSequence
 				name="cast"
-				inMethodChained="true" />
+				chainedInput="true" />
 		</model>
 	</models>
 </schema>

@@ -45,20 +45,24 @@ import uk.co.strangeskies.reflection.Types;
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
 		extends SchemaNodeConfiguratorImpl<S, N> implements BindingNodeConfigurator<S, N, T> {
 	private TypeToken<T> dataType;
+	private String dataTypeString;
 	private TypeToken<T> effectiveDataType;
 	private BoundSet inferenceBounds = new BoundSet();
 
 	private InputBindingStrategy bindingStrategy;
-	private TypeToken<?> bindingType;
+	private TypeToken<?> inputBindingType;
+	private String inputBindingTypeString;
 	private TypeToken<?> effectiveBindingType;
 
 	private OutputBindingStrategy unbindingStrategy;
-	private TypeToken<?> unbindingType;
+	private TypeToken<?> outputBindingType;
+	private String outputBindingTypeString;
 	private TypeToken<?> effectiveUnbindingType;
 	private String unbindingMethod;
 	private Boolean unbindingMethodUnchecked;
 
-	private TypeToken<?> unbindingFactoryType;
+	private TypeToken<?> outputBindingFactoryType;
+	private String outputBindingFactoryTypeString;
 	private TypeToken<?> effectiveUnbindingFactoryType;
 
 	private List<QualifiedName> unbindingParameterNames;
@@ -73,16 +77,16 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		this.inferenceBounds = copy.inferenceBounds;
 
 		this.bindingStrategy = copy.bindingStrategy;
-		this.bindingType = copy.bindingType;
+		this.inputBindingType = copy.inputBindingType;
 		this.effectiveBindingType = copy.effectiveBindingType;
 
 		this.unbindingStrategy = copy.unbindingStrategy;
-		this.unbindingType = copy.unbindingType;
+		this.outputBindingType = copy.outputBindingType;
 		this.effectiveUnbindingType = copy.effectiveUnbindingType;
 		this.unbindingMethod = copy.unbindingMethod;
 		this.unbindingMethodUnchecked = copy.unbindingMethodUnchecked;
 
-		this.unbindingFactoryType = copy.unbindingFactoryType;
+		this.outputBindingFactoryType = copy.outputBindingFactoryType;
 		this.effectiveUnbindingFactoryType = copy.effectiveUnbindingFactoryType;
 
 		this.unbindingParameterNames = copy.unbindingParameterNames;
@@ -286,40 +290,63 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return dataType;
 	}
 
+	@Override
+	public String getDataTypeString() {
+		return dataTypeString;
+	}
+
 	protected abstract boolean isDataContext();
 
 	@Override
-	public S inputBindingType(String bindingType) {
-		return inputBindingType(parseTypeWithSubstitutedBrackets(bindingType, getImports()));
+	public S inputBindingType(String inputBindingType) {
+		this.inputBindingType = parseTypeWithSubstitutedBrackets(inputBindingType, getImports());
+		inputBindingTypeString = inputBindingType;
+
+		return getThis();
 	}
 
 	@Override
-	public final S inputBindingType(TypeToken<?> bindingClass) {
-		this.bindingType = bindingClass;
+	public final S inputBindingType(TypeToken<?> inputBindingType) {
+		this.inputBindingType = inputBindingType;
+		inputBindingTypeString = inputBindingType.toString();
 
 		return getThis();
 	}
 
 	@Override
 	public TypeToken<?> getInputBindingType() {
-		return bindingType;
+		return inputBindingType;
 	}
 
 	@Override
-	public S outputBindingType(String unbindingType) {
-		return outputBindingType(parseTypeWithSubstitutedBrackets(unbindingType, getImports()));
+	public String getInputBindingTypeString() {
+		return inputBindingTypeString;
 	}
 
 	@Override
-	public S outputBindingType(TypeToken<?> unbindingClass) {
-		this.unbindingType = unbindingClass;
+	public S outputBindingType(String outputBindingType) {
+		this.outputBindingType = parseTypeWithSubstitutedBrackets(outputBindingType, getImports());
+		outputBindingTypeString = outputBindingType;
+
+		return getThis();
+	}
+
+	@Override
+	public S outputBindingType(TypeToken<?> outputBindingType) {
+		this.outputBindingType = outputBindingType;
+		outputBindingTypeString = outputBindingType.toString();
 
 		return getThis();
 	}
 
 	@Override
 	public TypeToken<?> getOutputBindingType() {
-		return unbindingType;
+		return outputBindingType;
+	}
+
+	@Override
+	public String getOutputBindingTypeString() {
+		return outputBindingTypeString;
 	}
 
 	@Override
@@ -372,19 +399,28 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S outputBindingFactoryType(String factoryType) {
-		return outputBindingFactoryType(TypeToken.fromString(factoryType, getImports()));
+		outputBindingFactoryType = parseTypeWithSubstitutedBrackets(factoryType, getImports());
+		outputBindingFactoryTypeString = factoryType;
+
+		return getThis();
 	}
 
 	@Override
-	public S outputBindingFactoryType(TypeToken<?> factoryClass) {
-		unbindingFactoryType = factoryClass;
+	public S outputBindingFactoryType(TypeToken<?> factoryType) {
+		outputBindingFactoryType = factoryType;
+		outputBindingFactoryTypeString = factoryType.toString();
 
 		return getThis();
 	}
 
 	@Override
 	public TypeToken<?> getOutputBindingFactoryType() {
-		return unbindingFactoryType;
+		return outputBindingFactoryType;
+	}
+
+	@Override
+	public String getOutputBindingFactoryTypeString() {
+		return outputBindingFactoryTypeString;
 	}
 
 	@Override

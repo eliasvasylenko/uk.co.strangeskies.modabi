@@ -20,6 +20,8 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Objects;
+
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
@@ -40,8 +42,8 @@ class ChoiceNodeImpl extends ChildNodeImpl<ChoiceNode> implements ChoiceNode {
 				.validateOverride(TypeToken::isAssignableTo).tryGet();
 
 		if (concrete()) {
-			preInputClass = TypeToken.over(Types.greatestLowerBound(
-					children().stream().map(ChildNode::preInputType).map(TypeToken::getType).collect(toSet())));
+			preInputClass = TypeToken.over(Types.greatestLowerBound(children().stream().map(ChildNode::preInputType)
+					.filter(Objects::nonNull).map(TypeToken::getType).collect(toSet())));
 
 			if (postInputClass == null) {
 				postInputClass = TypeToken.over(Types.leastUpperBound(

@@ -50,6 +50,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	TypeToken<T> getDataType();
 
+	String getDataTypeString();
+
 	S inputBindingStrategy(InputBindingStrategy strategy);
 
 	InputBindingStrategy getInputBindingStrategy();
@@ -67,6 +69,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	}
 
 	TypeToken<?> getInputBindingType();
+
+	String getInputBindingTypeString();
 
 	S outputBindingStrategy(OutputBindingStrategy strategy);
 
@@ -86,6 +90,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 
 	TypeToken<?> getOutputBindingFactoryType();
 
+	String getOutputBindingFactoryTypeString();
+
 	S outputBindingType(String unbindingType);
 
 	S outputBindingType(TypeToken<?> unbindingType);
@@ -99,6 +105,8 @@ public interface BindingNodeConfigurator<S extends BindingNodeConfigurator<S, N,
 	}
 
 	TypeToken<?> getOutputBindingType();
+
+	String getOutputBindingTypeString();
 
 	S outputBindingMethod(String unbindingMethod);
 

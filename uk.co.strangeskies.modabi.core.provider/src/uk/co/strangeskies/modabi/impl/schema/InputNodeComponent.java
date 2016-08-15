@@ -197,7 +197,7 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 		 * cast parameter types to their raw types if unchecked
 		 */
 		if (inMethodUnchecked)
-			parameters = parameters.stream().<TypeToken<?>>map(t -> TypeToken.over(t.getRawType()))
+			parameters = parameters.stream().<TypeToken<?>> map(t -> TypeToken.over(t.getRawType()))
 					.collect(Collectors.toList());
 
 		/*
@@ -219,7 +219,7 @@ public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends
 
 				inExecutableMember = Methods.findMethod(
 						generateInMethodNames(configurator.getResult().name(), givenInMethodName), inputTargetType,
-						configurator.getContext().isStaticMethodExpected(), result, inMethodChained && allowInMethodResultCast,
+						inputMemberType == InputMemberType.STATIC_METHOD, result, inMethodChained && allowInMethodResultCast,
 						parameters);
 			}
 		}

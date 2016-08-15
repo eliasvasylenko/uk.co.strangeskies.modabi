@@ -40,7 +40,8 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 	private Range<Integer> occurrences;
 	private Boolean orderedOccurrences;
 	private Boolean optional;
-	private TypeToken<?> postInputClass;
+	private TypeToken<?> postInputType;
+	private String postInputTypeString;
 	private List<N> overriddenNodes;
 
 	public ChildNodeConfiguratorImpl(SchemaNodeConfigurationContext parent) {
@@ -54,7 +55,7 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 		this.occurrences = copy.occurrences;
 		this.orderedOccurrences = copy.orderedOccurrences;
 		this.optional = copy.optional;
-		this.postInputClass = copy.postInputClass;
+		this.postInputType = copy.postInputType;
 		this.overriddenNodes = copy.overriddenNodes;
 	}
 
@@ -118,19 +119,27 @@ public abstract class ChildNodeConfiguratorImpl<S extends ChildNodeConfigurator<
 
 	@Override
 	public S postInputType(String postInputType) {
-		return postInputType(parseTypeWithSubstitutedBrackets(postInputType, getImports()));
+		this.postInputType = parseTypeWithSubstitutedBrackets(postInputType, getImports());
+		postInputTypeString = postInputType;
+
+		return getThis();
 	}
 
 	@Override
 	public S postInputType(TypeToken<?> postInputClass) {
-		this.postInputClass = postInputClass;
+		this.postInputType = postInputClass;
 
 		return getThis();
 	}
 
 	@Override
 	public TypeToken<?> getPostInputType() {
-		return postInputClass;
+		return postInputType;
+	}
+
+	@Override
+	public String getPostInputTypeString() {
+		return postInputTypeString;
 	}
 
 	@Override

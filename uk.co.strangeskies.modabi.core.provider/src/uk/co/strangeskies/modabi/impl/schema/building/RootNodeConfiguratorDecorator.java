@@ -108,6 +108,11 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	}
 
 	@Override
+	public String getInputBindingTypeString() {
+		return component.getInputBindingTypeString();
+	}
+
+	@Override
 	public S outputBindingStrategy(OutputBindingStrategy strategy) {
 		component = component.outputBindingStrategy(strategy);
 		return getThis();
@@ -136,6 +141,11 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	}
 
 	@Override
+	public String getOutputBindingFactoryTypeString() {
+		return component.getOutputBindingFactoryTypeString();
+	}
+
+	@Override
 	public S outputBindingType(String unbindingType) {
 		component = component.outputBindingType(unbindingType);
 		return getThis();
@@ -150,6 +160,11 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	@Override
 	public TypeToken<?> getOutputBindingType() {
 		return component.getOutputBindingType();
+	}
+
+	@Override
+	public String getOutputBindingTypeString() {
+		return component.getOutputBindingTypeString();
 	}
 
 	@Override
@@ -230,6 +245,11 @@ public abstract class RootNodeConfiguratorDecorator<S extends RootNodeConfigurat
 	@Override
 	public TypeToken<T> getDataType() {
 		return component.getDataType();
+	}
+
+	@Override
+	public String getDataTypeString() {
+		return component.getDataTypeString();
 	}
 
 	@Override
