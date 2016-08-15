@@ -58,8 +58,7 @@ public class QualifiedName {
 	public static QualifiedName parseString(String string) {
 		int splitIndex = string.lastIndexOf(':');
 
-		return new QualifiedName(string.substring(splitIndex + 1),
-				Namespace.parseString(string.substring(0, splitIndex)));
+		return new QualifiedName(string.substring(splitIndex + 1), Namespace.parseString(string.substring(0, splitIndex)));
 	}
 
 	public static QualifiedName parseHttpString(String string) {
@@ -71,11 +70,12 @@ public class QualifiedName {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == this)
+			return true;
 		if (!(obj instanceof QualifiedName))
 			return false;
 
-		return namespace.equals(((QualifiedName) obj).namespace)
-				&& name.equals(((QualifiedName) obj).name);
+		return namespace.equals(((QualifiedName) obj).namespace) && name.equals(((QualifiedName) obj).name);
 	}
 
 	@Override

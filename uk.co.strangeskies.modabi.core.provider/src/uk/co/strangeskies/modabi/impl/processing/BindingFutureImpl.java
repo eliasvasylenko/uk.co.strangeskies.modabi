@@ -198,14 +198,9 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 					"Unexpected interrupt during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString,
 					context, e);
 		} catch (ExecutionException e) {
-			try {
-				throw e.getCause();
-			} catch (RuntimeException x) {
-				throw x;
-			} catch (Throwable x) {
-				throw new ProcessingException(
-						"Exception during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context, x);
-			}
+			throw new ProcessingException(
+					"Exception during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context,
+					e.getCause());
 		} catch (TimeoutException e) {
 			throw new ProcessingException(
 					"Timed out waiting for binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context, e);

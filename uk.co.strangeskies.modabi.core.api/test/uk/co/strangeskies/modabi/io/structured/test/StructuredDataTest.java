@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 
-public class StructuredDataTests {
+public class StructuredDataTest {
 	private static final QualifiedName A = name("A");
 	private static final QualifiedName B = name("B");
 	private static final QualifiedName C = name("C");

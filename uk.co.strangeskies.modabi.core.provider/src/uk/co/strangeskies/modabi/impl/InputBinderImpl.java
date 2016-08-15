@@ -89,11 +89,12 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 	public <U> InputBinder<U> with(Model<U> model) {
 		return with(data -> {
 			if (!context.registeredModels().contains(model)) {
-				throw new ProcessingException("", context);
+				throw new ProcessingException(t -> t.noModelFound(model.name(), context.registeredModels(), model.dataType()),
+						context);
 			}
 
 			if (!data.peekNextChild().equals(model.name())) {
-				throw new ProcessingException("", context);
+				throw new ProcessingException(t -> t.unexpectedElement(data.peekNextChild()), context);
 			}
 
 			return model;

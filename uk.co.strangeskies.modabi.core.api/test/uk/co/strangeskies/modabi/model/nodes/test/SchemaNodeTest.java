@@ -22,7 +22,7 @@ import org.junit.Assert;
 
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public class SchemaNodeTests {
+public class SchemaNodeTest {
 	// @DataProvider(name = "sequences")
 	public SequenceNode[][] createEqualSequences() {
 		return new SequenceNode[][] { { DummyNodes.sequenceNode("one"), DummyNodes.sequenceNode("one") },

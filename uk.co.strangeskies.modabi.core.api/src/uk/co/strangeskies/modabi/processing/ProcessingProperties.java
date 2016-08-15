@@ -77,4 +77,6 @@ public interface ProcessingProperties extends Properties<ProcessingProperties> {
 	Localized<String> mustSupplyAttemptItems();
 
 	Localized<String> unexpectedProblemProcessing(Object data, Model<?> model);
+
+	Localized<String> unexpectedElement(QualifiedName element);
 }

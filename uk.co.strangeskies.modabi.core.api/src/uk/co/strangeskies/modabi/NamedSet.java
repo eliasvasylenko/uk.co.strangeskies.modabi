@@ -21,7 +21,9 @@ package uk.co.strangeskies.modabi;
 import static java.util.function.Function.identity;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import uk.co.strangeskies.utilities.IdentityProperty;
@@ -162,8 +164,14 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 		return result.get();
 	}
 
+	public Map<N, T> getElements() {
+		Map<N, T> elements = new HashMap<>(this.elements);
+		getParentScope().ifPresent(p -> elements.putAll(p.getElements()));
+		return elements;
+	}
+
 	@Override
 	public String toString() {
-		return elements.toString();
+		return getElements().toString();
 	}
 }
