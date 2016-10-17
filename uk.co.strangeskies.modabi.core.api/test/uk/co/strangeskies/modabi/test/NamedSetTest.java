@@ -25,7 +25,6 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
@@ -53,11 +52,6 @@ public class NamedSetTest {
 		@Override
 		public Schemata dependencies() {
 			return new Schemata();
-		}
-
-		@Override
-		public DataTypes dataTypes() {
-			return new DataTypes();
 		}
 
 		@Override

@@ -21,40 +21,35 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.List;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.codegen.ValueExpression;
 import uk.co.strangeskies.utilities.Factory;
 import uk.co.strangeskies.utilities.Self;
 
-public interface SchemaNodeConfigurator<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>>
-		extends Factory<N>, Self<S> {
-	TypeToken<N> getNodeType();
+public interface SchemaNodeConfigurator extends Factory<SchemaNode>, Self<SchemaNodeConfigurator> {
+	InputInitializerConfigurator initializeInput();
 
-	S name(QualifiedName name);
+	OutputInitializerConfigurator<?> initializeOutput();
 
-	default S name(String name, Namespace namespace) {
-		return name(new QualifiedName(name, namespace));
+	default SchemaNodeConfigurator initializeInput(
+			Function<? super InputInitializerConfigurator, ? extends ValueExpression<?>> initializer) {
+		initializeInput().expression(initializer.apply(initializeInput()));
+		return this;
 	}
 
-	QualifiedName getName();
+	default SchemaNodeConfigurator initializeOutput(
+			Function<? super OutputInitializerConfigurator<?>, ? extends ValueExpression<?>> initializer) {
+		initializeOutput().expression(initializer.apply(initializeOutput()));
+		return this;
+	}
 
-	S concrete(boolean concrete);
+	ChildBindingPointConfigurator<?> addChildBindingPoint();
 
-	S orderedChildren(boolean orderedChildren);
-
-	Boolean getOrderedChildren();
-
-	Boolean getConcrete();
-
-	ChildBuilder addChild();
-
-	default SchemaNodeConfigurator<?, N> addChild(Function<ChildBuilder, SchemaNodeConfigurator<?, ?>> builder) {
-		builder.apply(addChild()).create();
+	default SchemaNodeConfigurator addChildBindingPoint(
+			Function<ChildBindingPointConfigurator<?>, ChildBindingPointConfigurator<?>> configuration) {
+		configuration.apply(addChildBindingPoint()).create();
 
 		return this;
 	}
 
-	List<? extends ChildNodeConfigurator<?, ?>> getChildren();
+	List<ChildBindingPointConfigurator<?>> getChildBindingPoints();
 }

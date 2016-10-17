@@ -26,11 +26,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 
-class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
-	private final List<Model<? super T>> baseModel;
+class ModelImpl<T> extends BindingNodeImpl<T> implements ComplexNode<T> {
+	private final List<ComplexNode<? super T>> baseModel;
 	private final boolean export;
 
 	private final Schema schema;
@@ -38,7 +38,7 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
 	public ModelImpl(ModelConfiguratorImpl<T> configurator) {
 		super(configurator);
 
-		LinkedHashSet<Model<? super T>> baseModel = new LinkedHashSet<>();
+		LinkedHashSet<ComplexNode<? super T>> baseModel = new LinkedHashSet<>();
 
 		if (configurator.getBaseModel() != null) {
 			baseModel.addAll(configurator.getBaseModel());
@@ -59,12 +59,12 @@ class ModelImpl<T> extends BindingNodeImpl<T, Model<T>> implements Model<T> {
 	}
 
 	@Override
-	public final List<Model<? super T>> baseModel() {
+	public final List<ComplexNode<? super T>> baseModel() {
 		return baseModel;
 	}
 
 	@Override
-	public Model<T> root() {
+	public ComplexNode<T> root() {
 		return this;
 	}
 

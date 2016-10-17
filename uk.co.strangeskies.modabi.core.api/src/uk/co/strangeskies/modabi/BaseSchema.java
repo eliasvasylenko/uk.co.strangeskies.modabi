@@ -31,7 +31,6 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
@@ -40,65 +39,61 @@ public interface BaseSchema extends Schema {
 	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(BaseSchema.class.getSimpleName(),
 			MODABI_NAMESPACE);
 
-	public interface DerivedTypes {
-		DataType<Object[]> arrayType();
+	<T> Model<T> primitive(Primitive<T> type);
 
-		DataType<Collection<?>> collectionType();
+	Derived derived();
 
-		DataType<List<?>> listType();
+	public interface Derived {
+		Model<Object[]> arrayType();
 
-		DataType<Set<?>> setType();
+		Model<Collection<?>> collectionType();
 
-		DataType<URI> uriType();
+		Model<List<?>> listType();
 
-		DataType<URL> urlType();
+		Model<Set<?>> setType();
 
-		DataType<Object> referenceType();
+		Model<URI> uriType();
 
-		DataType<Object> bindingReferenceType();
+		Model<URL> urlType();
 
-		DataType<DataSource> bufferedDataType();
+		Model<Object> referenceType();
 
-		DataType<DataItem<?>> bufferedDataItemType();
+		Model<Object> bindingReferenceType();
 
-		DataType<Range<Integer>> rangeType();
+		Model<DataSource> bufferedDataType();
 
-		DataType<Enum<?>> enumType();
+		Model<DataItem<?>> bufferedDataItemType();
 
-		DataType<Enumeration<?>> enumerationType();
+		Model<Range<Integer>> rangeType();
 
-		DataType<Package> packageType();
+		Model<Enum<?>> enumType();
 
-		DataType<Class<?>> classType();
+		Model<Enumeration<?>> enumerationType();
 
-		DataType<Type> typeType();
+		Model<Package> packageType();
 
-		DataType<TypeToken<?>> typeTokenType();
+		Model<Class<?>> classType();
 
-		DataType<AnnotatedType> annotatedTypeType();
+		Model<Type> typeType();
+
+		Model<TypeToken<?>> typeTokenType();
+
+		Model<AnnotatedType> annotatedTypeType();
+
+		Model<?> simpleModel();
+
+		Model<Map<?, ?>> mapModel();
 
 		/*
 		 * during binding / unbinding magically adds items to bindings list (so can
 		 * be referenced)
 		 */
-		DataType<Collection<?>> includeType();
+		Model<Collection<?>> includeType();
 
 		/*
 		 * retrieves objects already bound by SchemaBinder and 'includes' them, or
 		 * some children of them. Blocks if we are waiting for them.
 		 */
-		DataType<Object> importType();
+		Model<Object> importType();
 	}
-
-	public interface BaseModels {
-		Model<?> simpleModel();
-
-		Model<Map<?, ?>> mapModel();
-	}
-
-	<T> DataType<T> primitiveType(Primitive<T> type);
-
-	DerivedTypes derivedTypes();
-
-	BaseModels baseModels();
 }

@@ -24,8 +24,6 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -61,12 +59,7 @@ public class SchemaConfiguratorDecorator implements SchemaConfigurator {
 	}
 
 	@Override
-	public DataTypeConfigurator<Object> addDataType() {
-		return component.addDataType();
-	}
-
-	@Override
-	public ModelConfigurator<Object> addModel() {
+	public ModelConfigurator<?> addModel() {
 		return component.addModel();
 	}
 
@@ -76,20 +69,7 @@ public class SchemaConfiguratorDecorator implements SchemaConfigurator {
 	}
 
 	@Override
-	public <T> DataType<T> generateDataType(TypeToken<T> type) {
-		return component.generateDataType(type);
-	}
-
-	@Override
-	public SchemaConfigurator addDataType(String name,
-			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<?>> configuration) {
-		component = component.addDataType(name, configuration);
-		return this;
-	}
-
-	@Override
-	public SchemaConfigurator addModel(String name,
-			Function<ModelConfigurator<Object>, ModelConfigurator<?>> configuration) {
+	public SchemaConfigurator addModel(String name, Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration) {
 		component = component.addModel(name, configuration);
 		return this;
 	}

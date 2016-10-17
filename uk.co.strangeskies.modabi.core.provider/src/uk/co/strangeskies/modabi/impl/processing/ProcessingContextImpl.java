@@ -49,11 +49,11 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -64,14 +64,14 @@ public class ProcessingContextImpl implements ProcessingContext {
 	private final SchemaManager manager;
 
 	private final List<TypedObject<?>> objectStack;
-	private final List<SchemaNode<?>> nodeStack;
+	private final List<BindingPoint<?>> bindingStack;
 	private final Bindings bindings; // TODO erase bindings in failed sections
 
 	/*
 	 * Model and DataType caches
 	 */
-	private final Function<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode<?>>> dataTypeCache;
-	private final Function<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode<?>>> modelCache;
+	private final Function<SimpleNode, ComputingMap<? extends DataType<?>, ? extends SimpleNode>> dataTypeCache;
+	private final Function<ComplexNode, ComputingMap<? extends Model<?>, ? extends ComplexNode>> modelCache;
 
 	/*
 	 * Fetch model
@@ -96,13 +96,13 @@ public class ProcessingContextImpl implements ProcessingContext {
 		this.manager = manager;
 
 		objectStack = Collections.emptyList();
-		nodeStack = Collections.emptyList();
+		bindingStack = Collections.emptyList();
 		bindings = new Bindings();
 
-		dataTypeCache = new LRUCacheComputingMap<DataNode<?>, ComputingMap<? extends DataType<?>, ? extends DataNode<?>>>(
+		dataTypeCache = new LRUCacheComputingMap<SimpleNode, ComputingMap<? extends DataType<?>, ? extends SimpleNode>>(
 				node -> getDataNodeOverrideMap(node), 150, true)::putGet;
 
-		modelCache = new LRUCacheComputingMap<ComplexNode<?>, ComputingMap<? extends Model<?>, ? extends ComplexNode<?>>>(
+		modelCache = new LRUCacheComputingMap<ComplexNode, ComputingMap<? extends Model<?>, ? extends ComplexNode>>(
 				node -> getComplexNodeOverrideMap(node), 150, true)::putGet;
 
 		getModel = name -> manager.registeredModels().get(name);
@@ -120,7 +120,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		manager = parentContext.manager();
 
 		objectStack = parentContext.getBindingObjectStack();
-		nodeStack = parentContext.getBindingNodeStack();
+		bindingStack = parentContext.getBindingNodeStack();
 		bindings = parentContext.bindings();
 
 		dataTypeCache = parentContext::getDataNodeOverrides;
@@ -141,12 +141,12 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	protected ProcessingContextImpl(ProcessingContext parentContext, List<TypedObject<?>> objectStack,
-			List<SchemaNode<?>> nodeStack, StructuredDataSource input, StructuredDataTarget output, Provisions provider,
+			List<BindingPoint<?>> bindingStack, StructuredDataSource input, StructuredDataTarget output, Provisions provider,
 			boolean exhaustive, BindingBlocker blocker) {
 		manager = parentContext.manager();
 
 		this.objectStack = objectStack;
-		this.nodeStack = nodeStack;
+		this.bindingStack = bindingStack;
 		bindings = parentContext.bindings();
 
 		dataTypeCache = parentContext::getDataNodeOverrides;
@@ -172,8 +172,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	public List<SchemaNode<?>> getBindingNodeStack() {
-		return nodeStack;
+	public List<BindingPoint<?>> getBindingNodeStack() {
+		return bindingStack;
 	}
 
 	@Override
@@ -191,41 +191,41 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return Optional.ofNullable(output);
 	}
 
-	private <T> ComputingMap<DataType<?>, DataNode<? extends T>> getDataNodeOverrideMap(DataNode<T> node) {
+	private <T> ComputingMap<DataType<?>, SimpleNode> getDataNodeOverrideMap(SimpleNode node) {
 		List<DataType<?>> types = registeredTypes.getTypesWithBase(node).stream()
 				.collect(Collectors.toCollection(ArrayList::new));
 
-		ComputingMap<DataType<?>, DataNode<? extends T>> overrideMap = new DeferredComputingMap<>(
+		ComputingMap<DataType<?>, SimpleNode> overrideMap = new DeferredComputingMap<>(
 				type -> getDataNodeOverride(node, type));
 		overrideMap.putAll(types);
 
 		return overrideMap;
 	}
 
-	private <T> DataNode<? extends T> getDataNodeOverride(DataNode<T> node, DataType<?> type) {
+	private SimpleNode getDataNodeOverride(SimpleNode node, DataType<?> type) {
 		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, type);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> ComputingMap<Model<?>, ComplexNode<? extends T>> getComplexNodeOverrideMap(ComplexNode<T> node) {
-		List<Model<? extends T>> models;
+	private ComputingMap<Model<?>, ComplexNode> getComplexNodeOverrideMap(ComplexNode node) {
+		List<Model<?>> models;
 
 		if (node.model() != null && !node.model().isEmpty()) {
 			models = registeredModels.getModelsWithBase(node.model()).stream()
-					.filter(n -> node.dataType().isAssignableFrom(n.dataType())).collect(Collectors.toList());
+					.filter(n -> node.getDataType().isAssignableFrom(n.getDataType())).collect(Collectors.toList());
 		} else {
-			models = registeredModels.stream().filter(c -> node.dataType().isAssignableFrom(c.dataType()))
-					.map(m -> (Model<? extends T>) m).collect(Collectors.toList());
+			models = registeredModels.stream().filter(c -> node.getDataType().isAssignableFrom(c.dataType()))
+					.collect(Collectors.toList());
 		}
 
-		ComputingMap<Model<?>, ComplexNode<? extends T>> overrideMap = new DeferredComputingMap<>(
+		ComputingMap<Model<?>, ComplexNode> overrideMap = new DeferredComputingMap<>(
 				model -> getComplexNodeOverride(node, model));
 		overrideMap.putAll(models);
 
 		return overrideMap;
 	}
 
-	private <T> ComplexNode<? extends T> getComplexNodeOverride(ComplexNode<T> node, Model<?> model) {
+	private <T> ComplexNode getComplexNodeOverride(ComplexNode node, Model<?> model) {
 		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, model);
 	}
 
@@ -240,7 +240,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public <T> ProcessingContextImpl withNestedProvisionScope() {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions.nestChildScope(),
+		return new ProcessingContextImpl(this, objectStack, bindingStack, input, output, provisions.nestChildScope(),
 				exhaustive, bindingFutureBlocker);
 	}
 
@@ -250,15 +250,13 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public <T> ComputingMap<DataType<? extends T>, DataNode<? extends T>> getDataNodeOverrides(DataNode<T> node) {
-		return (ComputingMap<DataType<? extends T>, DataNode<? extends T>>) dataTypeCache.apply(node);
+	public ComputingMap<DataType<?>, SimpleNode> getDataNodeOverrides(SimpleNode node) {
+		return (ComputingMap<DataType<?>, SimpleNode>) dataTypeCache.apply(node);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public <T> ComputingMap<Model<? extends T>, ComplexNode<? extends T>> getComplexNodeOverrides(ComplexNode<T> node) {
-		return (ComputingMap<Model<? extends T>, ComplexNode<? extends T>>) modelCache.apply(node);
+	public ComputingMap<Model<?>, ComplexNode> getComplexNodeOverrides(ComplexNode node) {
+		return (ComputingMap<Model<?>, ComplexNode>) modelCache.apply(node);
 	}
 
 	@Override
@@ -267,12 +265,12 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public ProcessingContextImpl withInput(StructuredDataSource input) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, exhaustive,
+		return new ProcessingContextImpl(this, objectStack, bindingStack, input, output, provisions, exhaustive,
 				bindingFutureBlocker);
 	}
 
 	public ProcessingContextImpl withOutput(StructuredDataTarget output) {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, exhaustive,
+		return new ProcessingContextImpl(this, objectStack, bindingStack, input, output, provisions, exhaustive,
 				bindingFutureBlocker);
 	}
 
@@ -292,20 +290,20 @@ public class ProcessingContextImpl implements ProcessingContext {
 			bindingObjectStack.add(target);
 		}
 
-		return new ProcessingContextImpl(this, Collections.unmodifiableList(bindingObjectStack), nodeStack, input, output,
-				provisions, exhaustive, bindingFutureBlocker);
+		return new ProcessingContextImpl(this, Collections.unmodifiableList(bindingObjectStack), bindingStack, input,
+				output, provisions, exhaustive, bindingFutureBlocker);
 	}
 
-	public <T> ProcessingContextImpl withBindingNode(SchemaNode<?> node) {
+	public <T> ProcessingContextImpl withBindingNode(BindingPoint<?> node) {
 		return withBindingNode(node, false);
 	}
 
-	public <T> ProcessingContextImpl withReplacementBindingNode(SchemaNode<?> node) {
+	public <T> ProcessingContextImpl withReplacementBindingNode(BindingPoint<?> node) {
 		return withBindingNode(node, true);
 	}
 
-	public <T> ProcessingContextImpl withBindingNode(SchemaNode<?> node, boolean replace) {
-		List<SchemaNode<?>> nodeStack = new ArrayList<>(this.nodeStack);
+	public <T> ProcessingContextImpl withBindingNode(BindingPoint<?> node, boolean replace) {
+		List<BindingPoint<?>> nodeStack = new ArrayList<>(this.bindingStack);
 		if (replace && !nodeStack.isEmpty()) {
 			nodeStack.set(nodeStack.size() - 1, node);
 		} else {
@@ -442,12 +440,12 @@ public class ProcessingContextImpl implements ProcessingContext {
 		/*
 		 * TODO actually make non-exhausting nodes non-exhausting...
 		 */
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions,
+		return new ProcessingContextImpl(this, objectStack, bindingStack, input, output, provisions,
 				isExhaustive() && exhaustive, bindingFutureBlocker);
 	}
 
 	public ProcessingContextImpl forceExhausting() {
-		return new ProcessingContextImpl(this, objectStack, nodeStack, input, output, provisions, true,
+		return new ProcessingContextImpl(this, objectStack, bindingStack, input, output, provisions, true,
 				bindingFutureBlocker);
 	}
 

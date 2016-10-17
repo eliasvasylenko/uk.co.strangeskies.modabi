@@ -32,7 +32,7 @@ public interface Provider {
 	}
 
 	static <T> Provider over(Class<T> providedType, Supplier<T> provider) {
-		return over(TypeToken.over(providedType), provider);
+		return over(TypeToken.overType(providedType), provider);
 	}
 
 	static <T> Provider over(TypeToken<T> providedType, Function<ProcessingContext, T> provider) {
@@ -46,7 +46,7 @@ public interface Provider {
 	}
 
 	static <T> Provider over(Class<T> providedClass, Function<ProcessingContext, T> provider) {
-		return over(TypeToken.over(providedClass), provider);
+		return over(TypeToken.overType(providedClass), provider);
 	}
 
 	static boolean canEqual(TypeToken<?> first, TypeToken<?> second) {

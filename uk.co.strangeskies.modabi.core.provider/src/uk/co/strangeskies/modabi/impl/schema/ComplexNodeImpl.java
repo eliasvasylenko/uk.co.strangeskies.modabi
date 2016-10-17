@@ -25,11 +25,10 @@ import java.util.List;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.RootNode;
 
 class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> implements ComplexNode<T> {
-	private final List<Model<? super T>> baseModel;
+	private final List<ComplexNode<? super T>> baseModel;
 
 	private final boolean inline;
 
@@ -38,7 +37,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 	protected ComplexNodeImpl(ComplexNodeConfiguratorImpl<T> configurator) {
 		super(configurator);
 
-		List<Model<? super T>> baseModel = new ArrayList<>();
+		List<ComplexNode<? super T>> baseModel = new ArrayList<>();
 		configurator.getOverriddenNodes().forEach(n -> baseModel.addAll(n.model()));
 		if (configurator.getModel() != null) {
 			baseModel.addAll(configurator.getModel());
@@ -52,7 +51,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 		if (this.inline && extensible() != null && extensible())
 			throw new ModabiException(t -> t.cannotBeInlineExtensible(name()));
 
-		inputNodeComponent = new InputNodeComponent<>(configurator, dataType());
+		inputNodeComponent = new InputNodeComponent<>(configurator, getDataType());
 	}
 
 	@Override
@@ -67,7 +66,7 @@ class ComplexNodeImpl<T> extends BindingChildNodeImpl<T, ComplexNode<T>> impleme
 	}
 
 	@Override
-	public List<Model<? super T>> model() {
+	public List<ComplexNode<? super T>> model() {
 		return baseModel;
 	}
 

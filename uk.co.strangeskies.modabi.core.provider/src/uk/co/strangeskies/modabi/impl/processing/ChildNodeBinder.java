@@ -26,9 +26,9 @@ import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 
 public abstract class ChildNodeBinder<T extends ChildNode<?>> {
 	private ProcessingContext context;
@@ -86,7 +86,7 @@ public abstract class ChildNodeBinder<T extends ChildNode<?>> {
 			}
 
 			@Override
-			public <U> ChildNodeBinder<?> accept(DataNode<U> node) {
+			public <U> ChildNodeBinder<?> accept(SimpleNode<U> node) {
 				return new DataNodeBinder<>(context, node).bindToTarget();
 			}
 

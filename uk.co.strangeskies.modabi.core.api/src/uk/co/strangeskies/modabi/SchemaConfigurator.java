@@ -23,8 +23,6 @@ import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -37,39 +35,27 @@ public interface SchemaConfigurator extends Factory<Schema> {
 
 	SchemaConfigurator dependencies(Collection<? extends Schema> dependencies);
 
-	DataTypeConfigurator<Object> addDataType();
-
-	default SchemaConfigurator addDataType(QualifiedName name,
-			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<?>> configuration) {
-		configuration.apply(addDataType().name(name)).create();
-
-		return this;
-	}
-
-	SchemaConfigurator addDataType(String name,
-			Function<DataTypeConfigurator<Object>, DataTypeConfigurator<?>> configuration);
-
-	ModelConfigurator<Object> addModel();
+	ModelConfigurator<?> addModel();
 
 	default SchemaConfigurator addModel(QualifiedName name,
-			Function<ModelConfigurator<Object>, ModelConfigurator<?>> configuration) {
+			Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration) {
 		configuration.apply(addModel().name(name)).create();
 
 		return this;
 	}
 
-	SchemaConfigurator addModel(String name, Function<ModelConfigurator<Object>, ModelConfigurator<?>> configuration);
+	SchemaConfigurator addModel(String name, Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration);
 
 	/*
 	 * For simple programmatic generation of schemata:
 	 */
 
 	default <T> Model<T> generateModel(Class<T> type) {
-		return generateModel(TypeToken.over(type));
+		return generateModel(TypeToken.overType(type));
 	}
 
 	default SchemaConfigurator generateModels(Class<?>... types) {
-		return generateModels(Arrays.stream(types).<TypeToken<?>>map(TypeToken::over).collect(Collectors.toList()));
+		return generateModels(Arrays.stream(types).<TypeToken<?>>map(TypeToken::overType).collect(Collectors.toList()));
 	}
 
 	<T> Model<T> generateModel(TypeToken<T> type);
@@ -81,26 +67,6 @@ public interface SchemaConfigurator extends Factory<Schema> {
 	default SchemaConfigurator generateModels(Collection<? extends TypeToken<?>> types) {
 		for (TypeToken<?> type : types)
 			generateModel(type);
-		return this;
-	}
-
-	default <T> DataType<T> generateDataType(Class<T> type) {
-		return generateDataType(TypeToken.over(type));
-	}
-
-	default SchemaConfigurator generateDataTypes(Class<?>... types) {
-		return generateDataTypes(Arrays.stream(types).<TypeToken<?>>map(TypeToken::over).collect(Collectors.toList()));
-	}
-
-	<T> DataType<T> generateDataType(TypeToken<T> type);
-
-	default SchemaConfigurator generateDataTypes(TypeToken<?>... types) {
-		return generateDataTypes(Arrays.asList(types));
-	}
-
-	default SchemaConfigurator generateDataTypes(Collection<? extends TypeToken<?>> types) {
-		for (TypeToken<?> type : types)
-			generateDataType(type);
 		return this;
 	}
 }

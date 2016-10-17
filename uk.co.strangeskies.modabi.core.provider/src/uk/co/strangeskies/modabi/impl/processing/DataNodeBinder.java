@@ -24,24 +24,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.DataLoader;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
-public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
+public class DataNodeBinder<U> extends InputNodeBinder<SimpleNode<U>> {
 	private final List<ChildNodeBinding<? extends U, ?>> bindings;
 
-	public DataNodeBinder(ProcessingContext context, DataNode<U> node) {
+	public DataNodeBinder(ProcessingContext context, SimpleNode<U> node) {
 		super(context, node);
 
 		bindings = bind();
@@ -60,7 +58,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 
 	private List<ChildNodeBinding<? extends U, ?>> bind() {
 		ProcessingContextImpl context = getContext();
-		DataNode<U> node = getNode();
+		SimpleNode<U> node = getNode();
 
 		DataSource dataSource;
 
@@ -133,7 +131,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 		return results;
 	}
 
-	private void validateResults(DataNode<?> node, List<?> results, Exception cause) {
+	private void validateResults(SimpleNode<?> node, List<?> results, Exception cause) {
 		if (results.isEmpty() && !node.occurrences().contains(0) && !node.occurrences().contains(0)) {
 			throw new ProcessingException(t -> t.mustHaveData(node.name()), getContext(), cause);
 		}
@@ -143,7 +141,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 		}
 	}
 
-	private List<ChildNodeBinding<? extends U, ?>> bindList(ProcessingContextImpl context, DataNode<U> node) {
+	private List<ChildNodeBinding<? extends U, ?>> bindList(ProcessingContextImpl context, SimpleNode<U> node) {
 		context = context.withInput(null);
 
 		List<ChildNodeBinding<? extends U, ?>> results = new ArrayList<>();
@@ -186,7 +184,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 	}
 
 	private static <U> ChildNodeBinding<? extends U, ?> bindWithDataSource(DataSource dataSource,
-			ProcessingContextImpl context, DataNode<U> node) {
+			ProcessingContextImpl context, SimpleNode<U> node) {
 		context = context.withNestedProvisionScope().forceExhausting();
 		context.provisions().add(Provider.over(DataSource.class, () -> dataSource));
 
@@ -195,9 +193,9 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 		return binding;
 	}
 
-	private static <U> ChildNodeBinding<? extends U, ?> bindExactNode(ProcessingContextImpl context, DataNode<U> node) {
+	private static <U> ChildNodeBinding<? extends U, ?> bindExactNode(ProcessingContextImpl context, SimpleNode<U> node) {
 		if (node.extensible()) {
-			ComputingMap<DataType<? extends U>, DataNode<? extends U>> overrides = context.getDataNodeOverrides(node);
+			ComputingMap<SimpleNode<? extends U>, SimpleNode<? extends U>> overrides = context.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty())
 				throw new ModabiException(
@@ -206,7 +204,7 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 			IdentityProperty<ChildNodeBinding<? extends U, ?>> result = new IdentityProperty<>();
 
 			context.attemptBindingUntilSuccessful(overrides.keySet(), (c, n) -> {
-				DataNode<? extends U> exactNode = overrides.putGet(n);
+				SimpleNode<? extends U> exactNode = overrides.putGet(n);
 				result.set(getNodeBinding(c, exactNode));
 			}, l -> new ProcessingException(
 					"Unable to bind data node '" + node.name() + "' with type candidates '"
@@ -218,14 +216,14 @@ public class DataNodeBinder<U> extends InputNodeBinder<DataNode<U>> {
 			return new ChildNodeBinding<>(node, new BindingNodeBinder(context).bind(node));
 	}
 
-	private static <U> ChildNodeBinding<U, ?> getNodeBinding(ProcessingContextImpl context, DataNode<U> exactNode) {
+	private static <U> ChildNodeBinding<U, ?> getNodeBinding(ProcessingContextImpl context, SimpleNode<U> exactNode) {
 		return new ChildNodeBinding<>(exactNode, new BindingNodeBinder(context).bind(exactNode));
 	}
 
-	public static DataLoader dataLoader(ProcessingContextImpl context) {
+	public static uk.co.strangeskies.modabi.schema.DataLoader dataLoader(ProcessingContextImpl context) {
 		return new DataLoader() {
 			@Override
-			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+			public <U> List<U> loadData(SimpleNode<U> node, DataSource data) {
 				ProcessingContextImpl derivedContext = context.withNestedProvisionScope().forceExhausting();
 				derivedContext.provisions().add(Provider.over(DataSource.class, () -> data));
 				return new DataNodeBinder<>(derivedContext, node).getBinding().stream().map(ChildNodeBinding::getData)

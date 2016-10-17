@@ -47,7 +47,7 @@ public final class ProvisionsImpl extends ScopedObservableSet<Provisions, Provid
 
 	@Override
 	public <T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state) {
-		return new TypedObject<>(type, visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull)
+		return type.typedObject(visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull)
 				.findFirst().<ModabiException>orElseThrow(() -> new ProcessingException(t -> t.noProviderFound(type), state)));
 	}
 

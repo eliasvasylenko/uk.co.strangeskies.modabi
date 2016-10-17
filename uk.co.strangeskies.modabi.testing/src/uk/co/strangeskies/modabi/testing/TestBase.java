@@ -28,8 +28,8 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.reflection.TypeToken;
 
 /**
@@ -88,11 +88,11 @@ public abstract class TestBase {
 		return getService(SchemaManager.class);
 	}
 
-	protected <T> Model<T> getModel(String name, TypeToken<T> type) {
+	protected <T> ComplexNode<T> getModel(String name, TypeToken<T> type) {
 		return getModel(new QualifiedName(name, getDefaultNamespace()), type);
 	}
 
-	protected <T> Model<T> getModel(QualifiedName name, TypeToken<T> type) {
+	protected <T> ComplexNode<T> getModel(QualifiedName name, TypeToken<T> type) {
 		try {
 			return manager().registeredModels().waitForGet(name, type);
 		} catch (InterruptedException e) {
@@ -100,11 +100,11 @@ public abstract class TestBase {
 		}
 	}
 
-	protected <T> DataType<T> getType(String name, TypeToken<T> type) {
+	protected <T> SimpleNode<T> getType(String name, TypeToken<T> type) {
 		return getType(new QualifiedName(name, getDefaultNamespace()), type);
 	}
 
-	protected <T> DataType<T> getType(QualifiedName name, TypeToken<T> type) {
+	protected <T> SimpleNode<T> getType(QualifiedName name, TypeToken<T> type) {
 		try {
 			return manager().registeredTypes().waitForGet(name, type);
 		} catch (InterruptedException e) {

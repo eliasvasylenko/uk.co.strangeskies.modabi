@@ -18,14 +18,11 @@
  */
 package uk.co.strangeskies.modabi.declarative;
 
-import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
-import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
-
 /**
  * This annotation marks a method inside a class or interface marked as a
  * {@link Model} or {@link Type} as binding point.
  * 
- * @author eli
+ * @author Elias N Vasylenko
  *
  */
 public @interface Binding {

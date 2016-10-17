@@ -10,7 +10,8 @@ Bundle-Description: \
 	${ss;utilities},\
 	${ss;text},\
 	${ss;mathematics},\
-	${ss;reflection}
+	${ss;reflection},\
+	${ss;reflection.codegen}
 
 -runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
 

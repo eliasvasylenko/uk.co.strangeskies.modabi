@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface MetaSchema extends Schema {
@@ -28,6 +27,4 @@ public interface MetaSchema extends Schema {
 	public Model<Schema> getSchemaModel();
 
 	public Model<Model<?>> getMetaModel();
-
-	public Model<DataType<?>> getDataTypeModel();
 }

@@ -38,7 +38,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataFormats;
-import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.InputBinder;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
@@ -58,9 +57,8 @@ import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypeToken.Infer;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
@@ -85,7 +83,6 @@ public class SchemaManagerImpl implements SchemaManager {
 	 */
 	private final Schemata registeredSchemata;
 	private final Models registeredModels;
-	private final DataTypes registeredTypes;
 
 	/*
 	 * Data formats available for binding and unbinding
@@ -106,8 +103,7 @@ public class SchemaManagerImpl implements SchemaManager {
 
 			SchemaBuilder schemaBuilder, CoreSchemata coreSchemata,
 
-			Schemata registeredSchemata, Models registeredModels, DataTypes registeredTypes, Provisions provisions,
-			DataFormats dataFormats) {
+			Schemata registeredSchemata, Models registeredModels, Provisions provisions, DataFormats dataFormats) {
 
 		this.parent = parent;
 
@@ -125,7 +121,6 @@ public class SchemaManagerImpl implements SchemaManager {
 		});
 
 		this.registeredModels = registeredModels;
-		this.registeredTypes = registeredTypes;
 
 		this.provisions = provisions;
 
@@ -150,7 +145,6 @@ public class SchemaManagerImpl implements SchemaManager {
 		registeredSchemata.changes().addObserver(c -> registerSchemata(c.added()));
 
 		registeredModels = new Models();
-		registeredTypes = new DataTypes();
 
 		provisions = new ProvisionsImpl();
 
@@ -191,9 +185,6 @@ public class SchemaManagerImpl implements SchemaManager {
 		for (Model<?> schemaModel : getMetaSchema().models()) {
 			context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
 		}
-		for (DataType<?> schemaDataType : getMetaSchema().dataTypes()) {
-			context.bindings().add(context.manager().getMetaSchema().getDataTypeModel(), schemaDataType);
-		}
 
 		return getSchemaBuilder().configure(DataNodeBinder.dataLoader(context));
 	}
@@ -220,9 +211,6 @@ public class SchemaManagerImpl implements SchemaManager {
 			for (Model<?> model : schema.models())
 				registerModel(model);
 
-			for (DataType<?> type : schema.dataTypes())
-				registerDataType(type);
-
 			for (Schema dependency : schema.dependencies())
 				registeredSchemata.add(dependency);
 
@@ -242,10 +230,6 @@ public class SchemaManagerImpl implements SchemaManager {
 				bindings.put(model.name(), ScopedObservableSet.over(HashSet::new));
 			}
 		}
-	}
-
-	private void registerDataType(DataType<?> type) {
-		registeredTypes.add(type);
 	}
 
 	protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
@@ -321,11 +305,6 @@ public class SchemaManagerImpl implements SchemaManager {
 	}
 
 	@Override
-	public DataTypes registeredTypes() {
-		return registeredTypes;
-	}
-
-	@Override
 	public DataFormats registeredFormats() {
 		return dataFormats;
 	}
@@ -364,14 +343,13 @@ public class SchemaManagerImpl implements SchemaManager {
 		}
 
 		return new SchemaManagerImpl(this, bindingFutures, bindings, schemaBuilder, coreSchemata,
-				registeredSchemata.nestChildScope(), registeredModels.nestChildScope(), registeredTypes.nestChildScope(),
-				provisions.nestChildScope(), dataFormats.nestChildScope());
+				registeredSchemata.nestChildScope(), registeredModels.nestChildScope(), provisions.nestChildScope(),
+				dataFormats.nestChildScope());
 	}
 
 	@Override
 	public void collapseIntoParentScope() {
 		registeredModels.collapseIntoParentScope();
-		registeredTypes.collapseIntoParentScope();
 		registeredSchemata.collapseIntoParentScope();
 		provisions.collapseIntoParentScope();
 	}
@@ -391,7 +369,6 @@ public class SchemaManagerImpl implements SchemaManager {
 		}
 
 		return new SchemaManagerImpl(parent, bindingFutures, bindings, schemaBuilder, coreSchemata,
-				registeredSchemata.copy(), registeredModels.copy(), registeredTypes.copy(), provisions.copy(),
-				dataFormats.copy());
+				registeredSchemata.copy(), registeredModels.copy(), provisions.copy(), dataFormats.copy());
 	}
 }

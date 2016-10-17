@@ -38,13 +38,9 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.schema.BindingNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.DataNode.Format;
-import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.reflection.TypeParameter;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
@@ -64,13 +60,10 @@ public class CoreSchemata {
 
 			switch (name.getName()) {
 			case "model":
-				type = modelOf(new TypeToken<Model<?>>() {});
+				type = new TypeToken<Model<Model<?>>>() {};
 				break;
 			case "binding":
-				type = modelOf(new TypeToken<BindingNode<?, ?>>() {});
-				break;
-			case "type":
-				type = modelOf(new TypeToken<DataType<?>>() {});
+				type = new TypeToken<Model<BindingPoint<?>>>() {};
 				break;
 			case "schema":
 				type = new TypeToken<Model<Schema>>() {};
@@ -78,10 +71,6 @@ public class CoreSchemata {
 			default:
 				type = null;
 			}
-		}
-
-		private <T> TypeToken<Model<T>> modelOf(TypeToken<T> type) {
-			return new TypeToken<Model<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, type);
 		}
 
 		boolean isReady() {
@@ -124,7 +113,7 @@ public class CoreSchemata {
 		DataLoader loader = new DataLoader() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public <T> List<T> loadData(DataNode<T> node, DataSource data) {
+			public <T> List<T> loadData(Model<T> node, DataSource data) {
 				Namespace namespace = new Namespace(BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
 				if (node.name().getNamespace().equals(namespace)) {
@@ -133,7 +122,7 @@ public class CoreSchemata {
 						return Collections.emptyList();
 
 					case "format":
-						return (List<T>) Arrays.asList(Format.valueOf(data.get(Primitive.STRING)));
+						return (List<T>) Arrays.asList(BindingPoint.Format.valueOf(data.get(Primitive.STRING)));
 
 					case "dataType":
 						return (List<T>) Arrays.asList(Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING)));
@@ -194,7 +183,7 @@ public class CoreSchemata {
 		baseSchema = new BaseSchemaImpl(schemaBuilder, loader);
 		metaSchema = new MetaSchemaImpl(schemaBuilder, loader, baseSchema);
 
-		targetModels.values().forEach(Model::getThis);
+		targetModels.values().forEach(Model::name);
 	}
 
 	public BaseSchema baseSchema() {

@@ -31,7 +31,5 @@ public interface Schema {
 
 	public Schemata dependencies();
 
-	public DataTypes dataTypes();
-
 	public Models models();
 }

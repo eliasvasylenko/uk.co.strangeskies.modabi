@@ -22,35 +22,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfiguratorImpl;
+import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurator<S, N>, N extends SchemaNode<N>>
-		implements SchemaNodeConfigurator<S, N> {
-	private N node;
+public class SchemaNodeConfiguratorImpl implements SchemaNodeConfigurator {
+	private final SchemaNodeConfigurationContext context;
+
 	private RuntimeException instantiationException;
 
 	private ChildrenConfigurator childrenConfigurator;
-	private List<ChildNodeConfigurator<?, ?>> children;
-	private List<ChildNode<?>> childrenResults;
+	private List<ChildBindingPointConfigurator<?>> children;
+	private List<ChildBindingPoint<?>> childrenResults;
 
 	private QualifiedName name;
-	private Boolean concrete;
-	private Boolean orderedChildren;
 
 	private boolean configurationDone;
 	private boolean instantiationDone;
 
-	public SchemaNodeConfiguratorImpl() {
+	public SchemaNodeConfiguratorImpl(SchemaNodeConfigurationContext context) {
+		this.context = context;
+
 		children = new ArrayList<>();
 
 		configurationDone = false;
@@ -84,15 +83,19 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 	}
 
-	protected SchemaNodeConfiguratorImpl(SchemaNodeConfiguratorImpl<S, N> copy) {
-		name = copy.name;
-		concrete = copy.concrete;
+	protected SchemaNodeConfigurationContext getContext() {
+		return context;
+	}
 
-		children = copy.children.stream().map(SchemaNodeConfigurator::copy).collect(Collectors.toList());
+	protected SchemaNodeConfiguratorImpl(SchemaNodeConfiguratorImpl copy) {
+		name = copy.name;
+		context = copy.context;
+
+		children = copy.children.stream().map(ChildBindingPointConfigurator::copy).collect(Collectors.toList());
 	}
 
 	@Override
-	public synchronized N create() {
+	public synchronized SchemaNode create() {
 		configurationDone = true;
 		notifyAll();
 		try {
@@ -112,7 +115,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 
 	private synchronized void instantiate() {
 		try {
-			createImpl();
+			new SchemaNodeImpl(this);
 		} catch (RuntimeException e) {
 			node = null;
 			instantiationException = e;
@@ -121,9 +124,7 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		notifyAll();
 	}
 
-	protected abstract N createImpl();
-
-	protected void setResult(N node) {
+	protected void setResult(SchemaNode node) {
 		this.node = node;
 		notifyAll();
 		try {
@@ -135,16 +136,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		}
 	}
 
-	public N getResult() {
-		return node;
-	}
-
 	@Override
-	public List<? extends ChildNodeConfigurator<?, ?>> getChildren() {
+	public List<ChildBindingPointConfigurator<?>> getChildBindingPoints() {
 		return children;
 	}
 
-	public List<ChildNode<?>> getChildrenResults() {
+	public List<ChildBindingPoint<?>> getChildrenResults() {
 		if (childrenResults == null) {
 			childrenResults = getChildrenConfigurator().create();
 		}
@@ -160,8 +157,12 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return childrenConfigurator;
 	}
 
+	private ChildrenConfigurator createChildrenConfigurator() {
+		return new ChildrenConfiguratorImpl(context);
+	}
+
 	@Override
-	public final S name(QualifiedName name) {
+	public final SchemaNodeConfigurator name(QualifiedName name) {
 		this.name = name;
 
 		return getThis();
@@ -176,54 +177,18 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 		return null;
 	}
 
-	@Override
-	public final S concrete(boolean concrete) {
-		this.concrete = concrete;
-
-		return getThis();
-	}
-
-	@Override
-	public Boolean getConcrete() {
-		return concrete;
-	}
-
-	@Override
-	public S orderedChildren(boolean orderedChildren) {
-		this.orderedChildren = orderedChildren;
-
-		return getThis();
-	}
-
-	@Override
-	public Boolean getOrderedChildren() {
-		return orderedChildren;
-	}
-
-	protected void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
+	protected void addChildConfigurator(ChildBindingPointConfigurator<?> configurator) {
 		children.add(configurator);
 	}
 
-	protected abstract DataLoader getDataLoader();
-
-	protected abstract Namespace getNamespace();
-
-	protected abstract Imports getImports();
-
-	protected abstract ChildrenConfigurator createChildrenConfigurator();
-
 	@Override
-	public ChildBuilder addChild() {
+	public ChildBindingPointConfigurator<?> addChildBindingPoint() {
 		return getChildrenConfigurator().addChild();
-	}
-
-	protected boolean isChildContextAbstract() {
-		return getConcrete() != null && !getConcrete();
 	}
 
 	@Override
 	public String toString() {
-		return getNodeType().getRawType().getSimpleName() + " configurator: " + getName();
+		return "Schema node configurator: " + getName(); // TODO raw string...
 	}
 
 	protected TypeToken<?> parseTypeWithSubstitutedBrackets(String typeName, Imports imports) {
@@ -231,5 +196,8 @@ public abstract class SchemaNodeConfiguratorImpl<S extends SchemaNodeConfigurato
 				imports);
 	}
 
-	protected abstract List<? extends SchemaNode<?>> getOverriddenAndBaseNodes();
+	@Override
+	public SchemaNodeConfigurator copy() {
+		return new SchemaNodeConfiguratorImpl(this);
+	}
 }

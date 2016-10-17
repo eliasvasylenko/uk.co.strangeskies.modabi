@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -31,36 +29,21 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
 import uk.co.strangeskies.modabi.impl.schema.utilities.BindingChildNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
-import uk.co.strangeskies.modabi.impl.schema.utilities.DataNodeWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.BindingChildNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.BindingNode;
-import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ChoiceNode;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.DataNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
-import uk.co.strangeskies.modabi.schema.InputNode;
-import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.SequenceNode;
-import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.utilities.IdentityProperty;
 
 public class BindingNodeOverrider {
 	private final SchemaBuilder builder;
@@ -71,9 +54,10 @@ public class BindingNodeOverrider {
 
 	/**
 	 * Override an extensible complex node in some node tree with a given model.
-	 * Each {@link Model model node} which forms a part of the complex node's
-	 * effective {@link ComplexNode.Effective#model() base model} must also appear
-	 * in the given model's {@link Model.Effective#baseModel() base model}.
+	 * Each {@link ComplexNode model node} which forms a part of the complex
+	 * node's effective {@link ComplexNode.Effective#model() base model} must also
+	 * appear in the given model's {@link ComplexNode.Effective#baseModel() base
+	 * model}.
 	 *
 	 * @param builder
 	 *          A schema builder for constructing the effective overriding node
@@ -84,42 +68,19 @@ public class BindingNodeOverrider {
 	 * @return a node which overrides the given node by merging it with a model
 	 *         which extends all components of the nodes model
 	 */
-	public <T> ComplexNode<? extends T> override(ComplexNode<T> node, Model<?> override) {
-		if (isDirectOverridePossible(node, override)) {
-			return ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
-		} else {
-			return new OverridingProcessor().process(builder, ComplexNodeWrapper.wrapNodeWithOverrideType(node, override));
+	public ComplexNode override(ChildBindingPoint<?, ComplexNode> node, Model<?> override) {
+		ComplexNode wrappedNode = ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
+
+		if (!isDirectOverridePossible(node, override)) {
+			wrappedNode = new OverridingProcessor().process(builder, wrappedNode);
 		}
+
+		return wrappedNode;
 	}
 
-	private <T> boolean isDirectOverridePossible(ComplexNode<? super T> node, Model<?> override) {
-		return node.children().isEmpty() && (node.concrete() || override.concrete());
-	}
-
-	/**
-	 * Override an extensible data node in some node tree with a given data type.
-	 * The {@link DataType data type} of the data nodes {@link DataNode#type()
-	 * base model} must also appear in the given data type's
-	 * {@link DataType.Effective#base() base type}.
-	 *
-	 * @param builder
-	 *          A schema builder for constructing the effective overriding node
-	 * @param node
-	 *          the complex node we wish to override
-	 * @param override
-	 *          the overriding data type
-	 * @return a node which overrides the given node by merging it with a data
-	 *         type which extends its type
-	 */
-	public <T> DataNode<? extends T> override(DataNode<T> node, DataType<?> override) {
-		if (isDirectOverridePossible(node, override))
-			return DataNodeWrapper.wrapNodeWithOverrideType(node, override);
-		else
-			return new OverridingProcessor().process(builder, DataNodeWrapper.wrapNodeWithOverrideType(node, override));
-	}
-
-	private <T> boolean isDirectOverridePossible(DataNode<? super T> node, DataType<?> override) {
-		return node.children().isEmpty() && (node.concrete() || override.concrete());
+	private <T extends SchemaNode<?>> boolean isDirectOverridePossible(ChildBindingPoint<?, T> node,
+			BindingPoint<?, T> override) {
+		return node.node().childBindingPoints().isEmpty() && (node.concrete() || override.concrete());
 	}
 
 	private class OverridingProcessor implements NodeProcessor {
@@ -135,7 +96,7 @@ public class BindingNodeOverrider {
 			return new DataLoader() {
 				@SuppressWarnings("unchecked")
 				@Override
-				public <V> List<V> loadData(DataNode<V> node, DataSource data) {
+				public <V> List<V> loadData(DataType<V> node, DataSource data) {
 					return (List<V>) currentProvidedValue;
 				}
 			};
@@ -149,75 +110,38 @@ public class BindingNodeOverrider {
 				BindingChildNodeWrapper<?, ?, ?> node) {
 			configurator = configurator.name(new QualifiedName("base")).concrete(false);
 
-			IdentityProperty<TypeToken<?>> parentUnbindingType = new IdentityProperty<>();
-			IdentityProperty<TypeToken<?>> parentBindingType = new IdentityProperty<>();
-			IdentityProperty<InputBindingStrategy> parentBindingStrategy = new IdentityProperty<>();
-			SchemaNode<?> parent = node.parent();
-			parent.process(new NodeProcessor() {
-				@Override
-				public <U> void accept(DataNode<U> node) {
-					acceptParent(node);
+			TypeToken<?> parentUnbindingType = null;
+			TypeToken<?> parentBindingType = null;
+			InputBindingStrategy parentBindingStrategy = null;
+
+			SchemaNode parent = node.parent();
+
+			parentUnbindingType = parent.outputBindingType();
+
+			if (node.getBase() == parent.children().get(0)) {
+				parentBindingStrategy = parent.inputBindingStrategy();
+
+				if (parent.inputBindingType() != null) {
+					parentBindingType = parent.inputBindingType();
+				} else {
+					parentBindingType = parent.dataType();
 				}
+			}
 
-				@Override
-				public <U> void accept(ComplexNode<U> node) {
-					acceptParent(node);
-				}
-
-				@Override
-				public <U> void accept(DataType<U> node) {
-					acceptParent(node);
-				}
-
-				@Override
-				public <U> void accept(Model<U> node) {
-					acceptParent(node);
-				}
-
-				@Override
-				public void accept(ChoiceNode node) {
-					node.parent().process(this);
-				}
-
-				@Override
-				public void accept(InputSequenceNode node) {
-					node.parent().process(this);
-				}
-
-				@Override
-				public void accept(SequenceNode node) {
-					node.parent().process(this);
-				}
-
-				private void acceptParent(BindingNode<?, ?> parent) {
-					parentUnbindingType.set(parent.outputBindingType());
-
-					if (node.getBase() == parent.children().get(0)) {
-						parentBindingStrategy.set(parent.inputBindingStrategy());
-
-						if (parent.inputBindingType() != null) {
-							parentBindingType.set(parent.inputBindingType());
-						} else {
-							parentBindingType.set(parent.dataType());
-						}
-					}
-				}
-			});
-
-			if (parentBindingType.get() != null) {
-				configurator = configurator.inputBindingType(parentBindingType.get());
+			if (parentBindingType != null) {
+				configurator = configurator.inputBindingType(parentBindingType);
 			} else if (node.preInputType() != null) {
 				configurator = configurator.inputBindingType(node.preInputType());
 			}
 
-			if (parentBindingStrategy.get() != null) {
-				configurator = configurator.inputBindingStrategy(parentBindingStrategy.get());
+			if (parentBindingStrategy != null) {
+				configurator = configurator.inputBindingStrategy(parentBindingStrategy);
 			}
 
 			if (node.outputMethod().getDeclaringType() != null) {
 				configurator = configurator.outputBindingType(node.outputMethod().getDeclaringType());
 			} else {
-				configurator = configurator.outputBindingType(parentUnbindingType.get());
+				configurator = configurator.outputBindingType(parentUnbindingType);
 			}
 
 			return configurator;
@@ -225,14 +149,14 @@ public class BindingNodeOverrider {
 
 		@SuppressWarnings("unchecked")
 		public <T> ComplexNode<T> process(SchemaBuilder builder, ComplexNodeWrapper<T> node) {
-			Model<? super T> override = node.model().get(0);
+			ComplexNode<? super T> override = node.model().get(0);
 
 			ModelConfigurator<Object> configurator = configureParentNode(builder.configure(getDataLoader()).addModel(), node);
 
-			List<Model<? super T>> models = new ArrayList<>(override.baseModel());
+			List<ComplexNode<? super T>> models = new ArrayList<>(override.baseModel());
 
-			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChild().complex().name(override.name())
-					.castOutput(true).model(models);
+			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChildBindingPoint().complex()
+					.name(override.name()).castOutput(true).model(models);
 
 			elementConfigurator = processBindingNode(node, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
@@ -242,28 +166,8 @@ public class BindingNodeOverrider {
 			return (ComplexNode<T>) configurator.create().children().get(0);
 		}
 
-		@SuppressWarnings("unchecked")
-		public <T> DataNode<T> process(SchemaBuilder builder, DataNodeWrapper<T> node) {
-			DataType<? super T> override = node.type();
-
-			DataTypeConfigurator<Object> configurator = configureParentNode(builder.configure(getDataLoader()).addDataType(),
-					node);
-
-			DataNodeConfigurator<T> dataNodeConfigurator = (DataNodeConfigurator<T>) configurator.addChild().data()
-					.name(override.name()).castOutput(true).type(override.baseType());
-
-			dataNodeConfigurator = tryProperty(node, DataNode::format, DataNodeConfigurator::format, dataNodeConfigurator);
-
-			dataNodeConfigurator = processBindingNode(node, dataNodeConfigurator);
-			dataNodeConfigurator = processBindingChildNode(node, dataNodeConfigurator);
-
-			doChildren(override.children(), dataNodeConfigurator);
-
-			return (DataNode<T>) configurator.create().children().get(0);
-		}
-
 		private <C extends SchemaNodeConfigurator<?, ?>> C next(Function<ChildBuilder, C> next) {
-			return next.apply(configuratorStack.peek().addChild());
+			return next.apply(configuratorStack.peek().addChildBindingPoint());
 		}
 
 		private <N extends SchemaNode<? extends N>> N doChildren(List<? extends ChildNode<?>> children,
@@ -341,13 +245,13 @@ public class BindingNodeOverrider {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <U> void accept(DataNode<U> node) {
+		public <U> void accept(SimpleNode<U> node) {
 			DataNodeConfigurator<Object> c = next(ChildBuilder::data);
 
-			c = tryProperty(node, DataNode::format, DataNodeConfigurator::format, c);
-			c = tryProperty(node, DataNode::providedValueBuffer, DataNodeConfigurator::provideValue, c);
-			c = tryProperty(node, DataNode::valueResolution, DataNodeConfigurator::valueResolution, c);
-			c = tryProperty(node, DataNode::extensible, DataNodeConfigurator::extensible, c);
+			c = tryProperty(node, SimpleNode::format, DataNodeConfigurator::format, c);
+			c = tryProperty(node, SimpleNode::providedValueBuffer, DataNodeConfigurator::provideValue, c);
+			c = tryProperty(node, SimpleNode::valueResolution, DataNodeConfigurator::valueResolution, c);
+			c = tryProperty(node, SimpleNode::extensible, DataNodeConfigurator::extensible, c);
 
 			currentProvidedValue = node.providedValues();
 

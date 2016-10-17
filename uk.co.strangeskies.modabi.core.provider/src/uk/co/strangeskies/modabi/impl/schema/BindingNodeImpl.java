@@ -28,20 +28,16 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
+import uk.co.strangeskies.modabi.declarative.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.impl.schema.utilities.Methods;
-import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
-import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
-import uk.co.strangeskies.modabi.schema.BindingNode;
-import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeException;
 import uk.co.strangeskies.reflection.TypeToken;
 
-abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNodeImpl<S> implements BindingNode<T, S> {
+abstract class BindingNodeImpl<T> extends SchemaNodeImpl implements BindingNode<T> {
 	private static final QualifiedName THIS_PARAMETER = new QualifiedName("this", Schema.MODABI_NAMESPACE);
 
 	protected TypeToken<T> dataType;
@@ -55,7 +51,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 	private final Boolean unbindingMethodUnchecked;
 	private final ExecutableMember<?, ?> unbindingMethod;
 
-	private final List<BindingNode<?, ?>> providedUnbindingParameters;
+	private final List<ChildBindingPoint<?>> providedUnbindingParameters;
 
 	protected <C extends BindingNodeConfigurator<C, S, T>> BindingNodeImpl(
 			BindingNodeConfiguratorImpl<C, S, T> configurator) {
@@ -206,14 +202,11 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			return null;
 
 		case STATIC_FACTORY:
+
 		case PROVIDED_FACTORY:
 			TypeToken<?> receiverClass = outputBindingFactoryType() != null ? outputBindingFactoryType()
 					: outputBindingType();
 			return findUnbindingMethod(configurator, outputBindingType(), receiverClass,
-					findUnbindingMethodParameterClasses(configurator, BindingNodeImpl::dataType));
-
-		case PASS_TO_PROVIDED:
-			return findUnbindingMethod(configurator, null, outputBindingType(),
 					findUnbindingMethodParameterClasses(configurator, BindingNodeImpl::dataType));
 
 		case ACCEPT_PROVIDED:
@@ -233,8 +226,7 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 			return Collections.unmodifiableList(parameters);
 		} else if ((outputBindingStrategy() == OutputBindingStrategy.STATIC_FACTORY
 				|| outputBindingStrategy() == OutputBindingStrategy.PROVIDED_FACTORY
-				|| outputBindingStrategy() == OutputBindingStrategy.ACCEPT_PROVIDED
-				|| outputBindingStrategy() == OutputBindingStrategy.PASS_TO_PROVIDED) && concrete()) {
+				|| outputBindingStrategy() == OutputBindingStrategy.ACCEPT_PROVIDED) && concrete()) {
 			return Arrays.asList(BindingNodeImpl.this);
 		} else {
 			return null;
@@ -278,10 +270,10 @@ abstract class BindingNodeImpl<T, S extends BindingNode<T, S>> extends SchemaNod
 					ChildNode<?> effective = children().stream().filter(n -> n.name().equals(parameterName)).findAny()
 							.orElseThrow(() -> new ModabiException(t -> t.cannotFindUnbindingParameter(parameterName)));
 
-					if (!(effective instanceof DataNode))
+					if (!(effective instanceof SimpleNode))
 						throw new ModabiException(t -> t.unbindingParameterMustBeDataNode(effective, parameterName));
 
-					DataNode<?> dataNode = (DataNode<?>) effective;
+					SimpleNode<?> dataNode = (SimpleNode<?>) effective;
 
 					if (dataNode.occurrences() != null
 							&& (dataNode.occurrences().getTo() != 1 || dataNode.occurrences().getFrom() != 1))

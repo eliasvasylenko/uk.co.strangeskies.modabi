@@ -26,24 +26,25 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
+import uk.co.strangeskies.modabi.declarative.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfigurator;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ChildrenConfiguratorImpl;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
-import uk.co.strangeskies.modabi.impl.schema.utilities.SequentialChildrenConfigurator;
-import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
-import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
-		extends SchemaNodeConfiguratorImpl<S, N> implements BindingNodeConfigurator<S, N, T> {
+		extends SchemaNodeConfiguratorImpl<S, N> implements ChildBindingPointConfigurator<S, N, T> {
 	private TypeToken<T> dataType;
 	private String dataTypeString;
 	private TypeToken<T> effectiveDataType;
@@ -190,7 +191,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		else
 			outputSource = null;
 
-		return new SequentialChildrenConfigurator(new SchemaNodeConfigurationContext() {
+		return new ChildrenConfiguratorImpl(new SchemaNodeConfigurationContext() {
 			@Override
 			public void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
 				BindingNodeConfiguratorImpl.this.addChildConfigurator(configurator);

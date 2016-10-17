@@ -26,20 +26,17 @@ import java.util.List;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelConfigurator<T>, Model<T>, T>
+public class ModelConfiguratorImpl<T> extends BindingPointConfiguratorImpl<T, ModelConfigurator<T>>
 		implements ModelConfigurator<T> {
 	private final DataLoader loader;
 	private final Schema schema;
 	private final Imports imports;
-
-	private List<Model<? super T>> baseModel;
-	private Boolean export;
 
 	public ModelConfiguratorImpl(DataLoader loader, Schema schema, Imports imports) {
 		this.loader = loader;
@@ -53,9 +50,6 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 		this.loader = copy.loader;
 		this.schema = copy.schema;
 		this.imports = copy.imports;
-
-		this.baseModel = copy.baseModel;
-		this.export = copy.export;
 	}
 
 	@Override
@@ -94,18 +88,18 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ModelConfigurator<V> baseModel(List<? extends Model<? super V>> base) {
-		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
+	public <V extends T> ModelConfigurator<V> baseModel(List<? extends ComplexNode<? super V>> base) {
+		baseModel = new ArrayList<>((List<? extends ComplexNode<? super T>>) base);
 
 		return (ModelConfigurator<V>) this;
 	}
 
-	public List<Model<? super T>> getBaseModel() {
+	public List<ComplexNode<? super T>> getBaseModel() {
 		return baseModel;
 	}
 
 	@Override
-	public List<Model<? super T>> getOverriddenAndBaseNodes() {
+	public List<ComplexNode<? super T>> getOverriddenAndBaseNodes() {
 		return baseModel != null ? new ArrayList<>(baseModel) : emptyList();
 	}
 
@@ -116,7 +110,7 @@ public class ModelConfiguratorImpl<T> extends BindingNodeConfiguratorImpl<ModelC
 	}
 
 	@Override
-	public Model<T> createImpl() {
+	public ComplexNode<T> createImpl() {
 		return new ModelImpl<>(this);
 	}
 

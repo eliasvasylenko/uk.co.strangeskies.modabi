@@ -29,14 +29,16 @@
 		<model
 			name="scriptObject"
 			dataType="@Infer ?"
-			inputBindingType="ScriptObjectBuilder{Object}"
+			extensible="true"
+			abstractness="ABSTRACT"
+
 			inputBindingStrategy="STATIC_FACTORY"
+			inputBindingType="ScriptObjectBuilder"
+
 			outputBindingStrategy="STATIC_FACTORY"
 			outputBindingFactoryType="ScriptObjectBuilder"
 			outputBindingType="ScriptObject"
-			outputBindingMethod="cast"
-			extensible="true"
-			abstractness="ABSTRACT">
+			outputBindingMethod="cast">
 
 			<inputSequence name="build" />
 
@@ -49,18 +51,18 @@
 				name="scriptEngineManager"
 				dataType="ScriptEngineManager"
 				inputBindingStrategy="PROVIDED"
-				outputField="null" />
+				outputField="void" />
 
 			<data
 				name="objectType"
 				dataType="TypeToken{?}"
 				inputBindingStrategy="PROVIDED"
 				inputBindingType="ProcessingContext"
-				outputField="null">
+				outputField="void">
 
 				<data
 					name="getBindingNode"
-					outputField="null"
+					outputField="void"
 					type="int"
 					postInputType="Model{?}"
 					chainedInput="true"

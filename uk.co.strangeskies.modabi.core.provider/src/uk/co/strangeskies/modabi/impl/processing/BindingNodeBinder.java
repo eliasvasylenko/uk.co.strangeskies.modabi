@@ -32,15 +32,15 @@ import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
-import uk.co.strangeskies.modabi.processing.InputBindingStrategy;
+import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.IdentityProperty;
@@ -170,7 +170,7 @@ public class BindingNodeBinder {
 			}
 
 			@Override
-			public <U> Boolean accept(DataNode<U> node) {
+			public <U> Boolean accept(SimpleNode<U> node) {
 				return true;
 			}
 
@@ -190,7 +190,7 @@ public class BindingNodeBinder {
 			}
 
 			@Override
-			public <U> void accept(DataNode<U> node) {
+			public <U> void accept(SimpleNode<U> node) {
 				result.set(node.inputExecutable().getMember());
 			}
 
@@ -218,7 +218,7 @@ public class BindingNodeBinder {
 			}
 
 			@Override
-			public <U> void accept(DataNode<U> node) {
+			public <U> void accept(SimpleNode<U> node) {
 				parameters.add(getSingleBinding(node, context));
 			}
 		});
@@ -237,7 +237,7 @@ public class BindingNodeBinder {
 			}
 
 			@Override
-			public <U> void accept(DataNode<U> node) {
+			public <U> void accept(SimpleNode<U> node) {
 				List<ChildNodeBinding<? extends U, ?>> results = new DataNodeBinder<>(context, node).getBinding();
 
 				check(node, results);

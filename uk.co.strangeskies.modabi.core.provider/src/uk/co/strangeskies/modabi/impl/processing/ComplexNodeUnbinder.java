@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class ComplexNodeUnbinder {
@@ -40,10 +39,10 @@ public class ComplexNodeUnbinder {
 
 		if (node.extensible()) {
 			for (U item : data) {
-				ComputingMap<Model<? extends U>, ComplexNode<? extends U>> overrides = context.getComplexNodeOverrides(node);
+				ComputingMap<ComplexNode<? extends U>, ComplexNode<? extends U>> overrides = context.getComplexNodeOverrides(node);
 
-				List<Model<? extends U>> validOverrides = overrides.keySet().stream()
-						.filter(m -> m.dataType().getRawType().isAssignableFrom(item.getClass())).collect(Collectors.toList());
+				List<ComplexNode<? extends U>> validOverrides = overrides.keySet().stream()
+						.filter(m -> m.getDataType().getRawType().isAssignableFrom(item.getClass())).collect(Collectors.toList());
 
 				if (validOverrides.isEmpty()) {
 					throw new ProcessingException(
@@ -75,7 +74,7 @@ public class ComplexNodeUnbinder {
 		try {
 			try {
 				if (!element.inline())
-					context.output().get().addChild(element.name());
+					context.output().get().addChildBindingPoint(element.name());
 
 				new BindingNodeUnbinder(context, element, data).unbind();
 

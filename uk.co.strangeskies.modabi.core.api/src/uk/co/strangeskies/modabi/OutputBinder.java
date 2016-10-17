@@ -38,7 +38,7 @@ public interface OutputBinder<T> {
 	OutputBinder<T> with(TypeToken<? super T> type);
 
 	default OutputBinder<T> with(Class<? super T> type) {
-		return with(TypeToken.over(type));
+		return with(TypeToken.overType(type));
 	}
 
 	OutputBinder<T> with(QualifiedName modelName);
@@ -46,7 +46,7 @@ public interface OutputBinder<T> {
 	OutputBinder<T> with(QualifiedName modelName, TypeToken<? super T> type);
 
 	default OutputBinder<T> with(QualifiedName modelName, Class<? super T> type) {
-		return with(modelName, TypeToken.over(type));
+		return with(modelName, TypeToken.overType(type));
 	}
 
 	<U extends StructuredDataTarget> U to(U output);

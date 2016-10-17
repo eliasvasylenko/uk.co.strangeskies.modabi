@@ -20,13 +20,13 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.building.ChildBuilder;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.Factory;
 
-public interface ChildrenConfigurator extends Factory<List<ChildNode<?>>> {
-	public ChildBuilder addChild();
+public interface ChildrenConfigurator extends Factory<List<ChildBindingPoint<?>>> {
+	public ChildBindingPointConfigurator<?> addChild();
 
 	public TypeToken<?> getPostInputType();
 }

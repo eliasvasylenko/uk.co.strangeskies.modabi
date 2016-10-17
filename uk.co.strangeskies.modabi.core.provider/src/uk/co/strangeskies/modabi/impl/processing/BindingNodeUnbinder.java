@@ -34,20 +34,21 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.declarative.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.processing.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingChildNode;
 import uk.co.strangeskies.modabi.schema.BindingChildNode.OutputMemberType;
 import uk.co.strangeskies.modabi.schema.BindingNode;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ChoiceNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
 import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.reflection.Types;
@@ -55,10 +56,10 @@ import uk.co.strangeskies.reflection.Types;
 public class BindingNodeUnbinder {
 	private final ProcessingContextImpl context;
 
-	public <U> BindingNodeUnbinder(ProcessingContext parentContext, BindingNode<U, ?> node, U data) {
+	public <U> BindingNodeUnbinder(ProcessingContext parentContext, BindingPoint<U> node, U data) {
 		ProcessingContextImpl context = new ProcessingContextImpl(parentContext).withBindingNode(node)
 				.withNestedProvisionScope();
-		context.provisions().add(Provider.over(new TypeToken<BindingNode<?, ?>>() {}, () -> node));
+		context.provisions().add(Provider.over(new TypeToken<BindingPoint<?>>() {}, () -> node));
 
 		TypeToken<?> unbindingType = node.outputBindingType() != null ? node.outputBindingType() : node.dataType();
 		TypeToken<?> unbindingFactoryType = node.outputBindingFactoryType() != null ? node.outputBindingFactoryType()
@@ -73,28 +74,23 @@ public class BindingNodeUnbinder {
 		case SIMPLE:
 			bindingObject = TypedObject.castInto(unbindingType, data);
 			break;
-		case PASS_TO_PROVIDED:
-			bindingObject = context.provide(unbindingType);
-			invokeMethod((Method) node.outputBindingMethod().getMember(), context, bindingObject.getObject(),
-					prepareUnbingingParameterList(node, data));
-			break;
 		case ACCEPT_PROVIDED:
 			bindingObject = context.provide(unbindingType);
 			invokeMethod((Method) node.outputBindingMethod().getMember(), context, data,
-					prepareUnbingingParameterList(node, bindingObject.getObject()));
+					prepareUnbindingParameterList(node, bindingObject.getObject()));
 			break;
 		case CONSTRUCTOR:
 			bindingObject = TypedObject.castInto(unbindingType, invokeConstructor(
-					(Constructor<?>) node.outputBindingMethod().getMember(), context, prepareUnbingingParameterList(node, data)));
+					(Constructor<?>) node.outputBindingMethod().getMember(), context, prepareUnbindingParameterList(node, data)));
 			break;
 		case STATIC_FACTORY:
 			bindingObject = TypedObject.castInto(unbindingFactoryType, invokeMethod(
-					(Method) node.outputBindingMethod().getMember(), context, null, prepareUnbingingParameterList(node, data)));
+					(Method) node.outputBindingMethod().getMember(), context, null, prepareUnbindingParameterList(node, data)));
 			break;
 		case PROVIDED_FACTORY:
 			bindingObject = TypedObject.castInto(unbindingFactoryType,
 					invokeMethod((Method) node.outputBindingMethod().getMember(), context,
-							context.provide(unbindingFactoryType).getObject(), prepareUnbingingParameterList(node, data)));
+							context.provide(unbindingFactoryType).getObject(), prepareUnbindingParameterList(node, data)));
 			break;
 		default:
 			throw new AssertionError();
@@ -122,7 +118,7 @@ public class BindingNodeUnbinder {
 			}
 
 			@Override
-			public <U> void accept(DataNode<U> node) {
+			public <U> void accept(SimpleNode<U> node) {
 				if (node.outputMemberType() != OutputMemberType.NONE) {
 					List<U> data = null;
 					if (!node.isValueProvided() || node.valueResolution() == ValueResolution.REGISTRATION_TIME
@@ -171,7 +167,7 @@ public class BindingNodeUnbinder {
 		};
 	}
 
-	private Object[] prepareUnbingingParameterList(BindingNode<?, ?> node, Object data) {
+	private Object[] prepareUnbindingParameterList(BindingNode<?, ?> node, Object data) {
 		List<Object> parameters = new ArrayList<>();
 
 		if (node.providedOutputBindingMethodParameters() != null)
@@ -179,7 +175,7 @@ public class BindingNodeUnbinder {
 				if (parameter == node) {
 					parameters.add(data);
 				} else {
-					List<?> values = ((DataNode<?>) parameter).providedValues();
+					List<?> values = ((SimpleNode<?>) parameter).providedValues();
 					parameters.add(values == null ? null : values.get(0));
 				}
 			}
@@ -299,7 +295,7 @@ public class BindingNodeUnbinder {
 			}
 
 			@Override
-			public <U> DataSource accept(DataNode<U> node) {
+			public <U> DataSource accept(SimpleNode<U> node) {
 				if (nextNodes.isEmpty()) {
 					return new DataNodeUnbinder(context).unbindToDataBuffer(node);
 				} else {

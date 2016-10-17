@@ -53,17 +53,27 @@
 		<model
 			name="persons"
 			dataType="PersonsType"
-			bindingStrategy="CONSTRUCTOR">
+			bindingStrategy="CONSTRUCTOR"
+
+			inputBinding="void">
+
 			<inline
 				name="personList"
 				outMethod="getPerson"
-				dataType="@Infer List&lt;?&gt;">
+				dataType="@Infer List&lt;?&gt;"
+				
+				input="this = new PersonType(return)"
+				output="getPerson()">
+
 				<complex
 					model="person"
 					outMethod="this"
 					occurrences="0.."
 					inMethod="add"
-					outMethodIterable="true" />
+					outMethodIterable="true"
+
+					output="this[]"
+					input="this.add(return)" />
 			</inline>
 		</model>
 	</models>

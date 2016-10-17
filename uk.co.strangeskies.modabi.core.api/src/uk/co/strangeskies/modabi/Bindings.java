@@ -27,16 +27,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import uk.co.strangeskies.modabi.schema.BindingNode;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.Observable;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Bindings {
-	public final MultiMap<Model<?>, BindingNode<?, ?>, Set<BindingNode<?, ?>>> boundNodes;
-	public final MultiMap<BindingNode<?, ?>, Object, Set<Object>> boundObjects;
+	public final MultiMap<Model<?>, BindingPoint<?>, Set<BindingPoint<?>>> boundNodes;
+	public final MultiMap<BindingPoint<?>, Object, Set<Object>> boundObjects;
 
 	private final MultiMap<Model<?>, Consumer<?>, Collection<Consumer<?>>> listeners;
 
@@ -47,10 +46,10 @@ public class Bindings {
 		listeners = new MultiHashMap<>(HashSet::new);
 	}
 
-	public synchronized <T> void add(ComplexNode<T> element, T data) {
-		ComplexNode<T> effectiveElement = element;
+	public synchronized <T> void add(BindingPoint<T> element, T data) {
+		BindingPoint<T> effectiveElement = element;
 
-		boundNodes.addToAll(effectiveElement.model(), effectiveElement);
+		boundNodes.addToAll(effectiveElement.baseModel(), effectiveElement);
 		boundObjects.add(effectiveElement, data);
 
 		fire(effectiveElement, data);
@@ -68,9 +67,9 @@ public class Bindings {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> void fire(BindingNode<T, ?> node, T data) {
+	private <T> void fire(BindingPoint<T> node, T data) {
 		for (Model<?> model : listeners.keySet()) {
-			if (model.equals(node) || node.base().contains(model)) {
+			if (model.equals(node) || node.baseModel().contains(model)) {
 				for (Consumer<?> listener : listeners.get(model)) {
 					((Consumer<? super T>) listener).accept(data);
 				}
@@ -98,7 +97,7 @@ public class Bindings {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized <T> Set<T> getNodeBindings(BindingNode<T, ?> node) {
+	public synchronized <T> Set<T> getNodeBindings(BindingPoint<T> node) {
 		return boundObjects.getOrDefault(node, emptySet()).stream().map(t -> (T) t).collect(toSet());
 	}
 

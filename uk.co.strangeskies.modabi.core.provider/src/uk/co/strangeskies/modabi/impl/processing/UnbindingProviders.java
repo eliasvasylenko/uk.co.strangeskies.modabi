@@ -32,13 +32,13 @@ import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
 import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 
 public class UnbindingProviders {
 	public Function<ProcessingContext, IncludeTarget> includeTarget() {
 		return context -> new IncludeTarget() {
 			@Override
-			public <U> void include(Model<U> model, Collection<? extends U> objects) {
+			public <U> void include(ComplexNode<U> model, Collection<? extends U> objects) {
 				for (U object : objects)
 					context.bindings().add(model, object);
 
@@ -50,7 +50,7 @@ public class UnbindingProviders {
 	public Function<ProcessingContext, ImportTarget> importTarget() {
 		return context -> new ImportTarget() {
 			@Override
-			public <U> DataSource referenceImport(Model<U> model, List<QualifiedName> idDomain, U object) {
+			public <U> DataSource referenceImport(ComplexNode<U> model, List<QualifiedName> idDomain, U object) {
 				List<ChildNode<?>> node = model.children(idDomain);
 
 				return new BindingNodeUnbinder(context, model, object).unbindToDataBuffer(node);
@@ -61,7 +61,7 @@ public class UnbindingProviders {
 	public Function<ProcessingContext, ReferenceTarget> referenceTarget() {
 		return context -> new ReferenceTarget() {
 			@Override
-			public <U> DataSource reference(Model<U> model, List<QualifiedName> idDomain, U object) {
+			public <U> DataSource reference(ComplexNode<U> model, List<QualifiedName> idDomain, U object) {
 				if (!context.bindings().getModelBindings(model).contains(object))
 					throw new ModabiException("Cannot find any instance '" + object + "' bound to model '" + model.name()
 							+ "' from '" + context.bindings().getModelBindings(model) + "'");

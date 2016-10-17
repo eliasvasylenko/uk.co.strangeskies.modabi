@@ -41,7 +41,7 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.text.manifest.Attribute;
 import uk.co.strangeskies.text.manifest.AttributeProperty;
 import uk.co.strangeskies.text.manifest.PropertyType;
@@ -89,7 +89,7 @@ public class ModabiRegistration {
 		providedSchemata.clear();
 		resolvingSchemata.clear();
 
-		Model<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
+		ComplexNode<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
 		ObservableSet<?, Binding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(schemaModel);
 		schemaBindingChanges.changes().addObserver(c -> {
 			new Thread(() -> {

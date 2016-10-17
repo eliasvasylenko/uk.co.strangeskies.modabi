@@ -28,13 +28,12 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationCo
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class ComplexNodeConfiguratorImpl<T>
 		extends BindingChildNodeConfiguratorImpl<ComplexNodeConfigurator<T>, ComplexNode<T>, T>
 		implements ComplexNodeConfigurator<T> {
-	private List<Model<? super T>> baseModel;
+	private List<ComplexNode<? super T>> baseModel;
 
 	private Boolean inline;
 
@@ -61,14 +60,14 @@ public class ComplexNodeConfiguratorImpl<T>
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V extends T> ComplexNodeConfigurator<V> model(List<? extends Model<? super V>> base) {
-		baseModel = new ArrayList<>((List<? extends Model<? super T>>) base);
+	public <V extends T> ComplexNodeConfigurator<V> model(List<? extends ComplexNode<? super V>> base) {
+		baseModel = new ArrayList<>((List<? extends ComplexNode<? super T>>) base);
 
 		return (ComplexNodeConfigurator<V>) this;
 	}
 
 	@Override
-	public List<Model<? super T>> getModel() {
+	public List<ComplexNode<? super T>> getModel() {
 		return baseModel;
 	}
 

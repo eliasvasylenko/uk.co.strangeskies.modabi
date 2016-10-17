@@ -20,14 +20,5 @@ Import-Package: \
 Export-Package: \
 	uk.co.strangeskies.modabi.scripting
 
--dependson: \
-	uk.co.strangeskies.modabi.bnd
-
--pluginpath: \
-	${pluginpath.modabi;xml}
-
--plugin: \
-	uk.co.strangeskies.modabi.bnd.xml.ModabiXmlBndPlugin
-
 -includeresource: \
 	META-INF/schemata=schemata

@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.processing;
 
 import java.lang.reflect.Executable;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -28,7 +29,8 @@ import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.ModabiProperties;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.schema.BindingChildNode;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -39,22 +41,21 @@ import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
 @PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
 public interface ProcessingProperties extends Properties<ProcessingProperties> {
-	ModabiProperties modabiException();
+	ModabiProperties modabi();
 
 	Localized<String> bindingObjects(Collection<? extends Object> bindingObjectStack);
 
-	Localized<String> bindingNodes(Collection<? extends SchemaNode<?>> bindingNodeStack);
+	Localized<String> bindingNodes(Collection<? extends BindingPoint<?>> bindingNodeStack);
 
 	Localized<String> noModelFound(QualifiedName modelName);
 
 	Localized<String> noModelFound(QualifiedName modelName, Collection<? extends Model<?>> candidates, TypeToken<?> type);
 
-	Localized<String> mustHaveChildren(QualifiedName name, InputBindingStrategy strategy);
-
-	Localized<String> cannotInvoke(Executable inputMethod, TypeToken<?> targetType, SchemaNode<?> node,
-			List<?> parameters);
+	Localized<String> cannotInvoke(Executable inputMethod, TypeToken<?> targetType, SchemaNode node, List<?> parameters);
 
 	Localized<String> mustHaveData(QualifiedName node);
+
+	Localized<String> mustNotHaveData(QualifiedName node);
 
 	Localized<String> noFormatFound();
 
@@ -62,8 +63,11 @@ public interface ProcessingProperties extends Properties<ProcessingProperties> {
 
 	Localized<String> noProviderFound(TypeToken<?> type);
 
-	default Localized<String> mustHaveDataWithinRange(BindingChildNode<?, ?> node) {
-		return mustHaveDataWithinRange(node.name(), Range.compose(node.occurrences()));
+	<T> Localized<String> mustBeOrdered(ChildBindingPoint<T> node, List<? extends T> data,
+			Class<? extends Comparator<?>> order);
+
+	default Localized<String> mustHaveDataWithinRange(ChildBindingPoint<?> node, Range<Integer> range) {
+		return mustHaveDataWithinRange(node.name(), Range.compose(range));
 	}
 
 	Localized<String> mustHaveDataWithinRange(QualifiedName name, String compose);
@@ -76,7 +80,9 @@ public interface ProcessingProperties extends Properties<ProcessingProperties> {
 
 	Localized<String> mustSupplyAttemptItems();
 
-	Localized<String> unexpectedProblemProcessing(Object data, Model<?> model);
+	Localized<String> unexpectedProblemProcessing(Object data, BindingPoint<?> model);
 
 	Localized<String> unexpectedElement(QualifiedName element);
+
+	Localized<String> inverseCondition(Localized<String> localizedMessage);
 }

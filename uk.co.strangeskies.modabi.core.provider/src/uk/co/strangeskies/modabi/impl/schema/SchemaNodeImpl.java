@@ -18,136 +18,69 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
-import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.NodeProcessor;
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ChoiceNode;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.InputSequenceNode;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.SequenceNode;
 
-public abstract class SchemaNodeImpl<S extends SchemaNode<S>> implements SchemaNode<S> {
-	private final SchemaNodeConfiguratorImpl<?, S> configurator;
+public class SchemaNodeImpl implements SchemaNode {
+	private final SchemaNodeConfigurator configurator;
+	private final Schema schema;
+	private final BindingPoint<?> bindingPoint;
 
-	private final QualifiedName name;
-	private final boolean concrete;
+	private final List<SchemaNode> baseNodes;
 
-	private final Boolean orderedChildren;
-	private final List<ChildNode<?>> children;
+	private final List<ChildBindingPoint<?>> children;
 
-	protected <C extends SchemaNodeConfigurator<C, S>> SchemaNodeImpl(SchemaNodeConfiguratorImpl<C, S> configurator) {
+	protected SchemaNodeImpl(SchemaNodeConfigurationContext context) {
+		schema = context.schema();
+		bindingPoint = context.bindingPoint();
+
+		baseNodes = context.overriddenAndBaseNodes();
+
+		SchemaNodeConfiguratorImpl configurator = context.configure(getThis());
 		this.configurator = configurator;
 
-		configurator.setResult(getThis());
-
-		name = new OverrideBuilder<>(configurator, this, SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes,
-				SchemaNode::name, SchemaNodeConfigurator::getName).orDefault(configurator.defaultName())
-						.validateOverride((n, o) -> true).get();
-
-		concrete = configurator.getConcrete() == null || configurator.getConcrete();
-
-		orderedChildren = new OverrideBuilder<>(configurator, this, SchemaNodeConfiguratorImpl::getOverriddenAndBaseNodes,
-				SchemaNode::orderedChildren, SchemaNodeConfigurator::getOrderedChildren).validateOverride((n, o) -> !n || o)
-						.orDefault(true).get();
-
 		children = configurator.getChildrenResults();
-
-		if (!configurator.isChildContextAbstract())
-			requireConcreteDescendents(new ArrayDeque<>(Arrays.asList(this)));
-	}
-
-	protected void requireConcreteDescendents(Deque<SchemaNode<?>> nodeStack) {
-		for (ChildNode<?> child : nodeStack.peek().children()) {
-			nodeStack.push(child);
-
-			child.process(new NodeProcessor() {
-				@Override
-				public void accept(ChoiceNode node) {
-					requireConcrete(nodeStack);
-				}
-
-				@Override
-				public void accept(SequenceNode node) {
-					requireConcrete(nodeStack);
-				}
-
-				@Override
-				public void accept(InputSequenceNode node) {
-					requireConcrete(nodeStack);
-				}
-
-				@Override
-				public <U> void accept(DataNode<U> node) {
-					if (node.extensible() == null || !node.extensible())
-						requireConcrete(nodeStack);
-				}
-
-				@Override
-				public <U> void accept(ComplexNode<U> node) {
-					if (node.extensible() == null || !node.extensible())
-						requireConcrete(nodeStack);
-				}
-			});
-
-			nodeStack.pop();
-		}
-	}
-
-	protected void requireConcrete(Deque<SchemaNode<?>> nodeStack) {
-		if (!nodeStack.peek().concrete())
-			throw new ModabiException(t -> t.mustOverrideDescendant(nodeStack));
-
-		requireConcreteDescendents(nodeStack);
 	}
 
 	@Override
-	public QualifiedName name() {
-		return name;
+	public List<SchemaNode> baseNodes() {
+		return baseNodes;
 	}
 
 	@Override
-	public boolean concrete() {
-		return concrete;
-	}
-
-	@Override
-	public Boolean orderedChildren() {
-		return orderedChildren;
-	}
-
-	@Override
-	public List<ChildNode<?>> children() {
+	public List<ChildBindingPoint<?>> childBindingPoints() {
 		return children;
 	}
 
 	@Override
+	public BindingPoint<?> parentBindingPoint() {
+		return bindingPoint;
+	}
+
+	@Override
 	public boolean equals(Object that) {
-		return that instanceof SchemaNode<?> && Objects.equals(name(), ((SchemaNode<?>) that).name());
+		return that instanceof SchemaNode && Objects.equals(parentBindingPoint(), ((SchemaNode) that).parentBindingPoint());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(name());
+		return ~Objects.hash(parentBindingPoint());
 	}
 
 	@Override
-	public String toString() {
-		return name() != null ? name().toString() : "[Unnamed Node]";
-	}
-
-	@Override
-	public SchemaNodeConfigurator<?, S> configurator() {
+	public SchemaNodeConfigurator configurator() {
 		return configurator.copy();
+	}
+
+	@Override
+	public Schema schema() {
+		return schema;
 	}
 }

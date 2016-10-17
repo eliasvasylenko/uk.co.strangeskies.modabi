@@ -30,7 +30,7 @@ import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
 @PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
 public interface IoProperties extends Properties<IoProperties> {
-	ModabiProperties modabiProperties();
+	ModabiProperties modabi();
 
 	Localized<String> nextChildDoesNotExist();
 

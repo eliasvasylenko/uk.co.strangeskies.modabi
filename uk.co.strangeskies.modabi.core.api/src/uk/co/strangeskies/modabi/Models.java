@@ -60,7 +60,11 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	}
 
 	private void mapModel(Model<?> model) {
-		derivedModels.addToAll(model.baseModel().stream().map(Model::name).collect(Collectors.toSet()), model);
+		List<Model<?>> models = new ArrayList<>();
+		models.add(model);
+		models.addAll(model.baseModel());
+
+		derivedModels.addToAll(models.stream().map(Model::name).collect(Collectors.toSet()), model);
 
 		if (model.concrete())
 			classModels.add(model.dataType().getType(), model);
@@ -139,7 +143,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 			Iterator<? extends Model<? extends T>> modelIterator = (Iterator<? extends Model<? extends T>>) baseModel
 					.iterator();
 
-			List<Model<? extends T>> subModels = new ArrayList<>(getDerivedModels(modelIterator.next()));
+			List<Model<? extends T>> subModels = new ArrayList<Model<? extends T>>(getDerivedModels(modelIterator.next()));
 
 			modelIterator = subModels.iterator();
 			while (modelIterator.hasNext())

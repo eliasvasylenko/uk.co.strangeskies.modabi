@@ -20,52 +20,38 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
+import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.TypeToken;
 
 public interface SchemaNodeConfigurationContext {
-	SchemaNode<?> parent();
+	ChildBindingPoint<?> bindingPoint();
 
 	DataLoader dataLoader();
 
 	Imports imports();
 
-	boolean isAbstract();
-
-	boolean isInputExpected();
-
-	boolean isInputDataOnly();
-
-	boolean isConstructorExpected();
-
-	boolean isStaticMethodExpected();
-
-	Namespace namespace();
-
 	BoundSet boundSet();
 
-	TypeToken<?> inputTargetType();
+	List<SchemaNode> overriddenAndBaseNodes();
 
-	TypeToken<?> outputSourceType();
+	SchemaNodeConfigurator configurator();
 
-	default void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
-		throw new UnsupportedOperationException();
-	}
+	Schema schema();
 
-	default void addChildResult(ChildNode<?> result) {
-		throw new UnsupportedOperationException();
-	}
-
-	default <U extends ChildNode<?>> List<U> overrideChild(QualifiedName id, TypeToken<U> nodeType) {
-		throw new UnsupportedOperationException();
-	}
-
-	List<? extends SchemaNode<?>> overriddenAndBaseNodes();
+	/**
+	 * Invoked by a {@link SchemaNode node's} constructor when instantiation
+	 * begins. This allows a reference of the node being constructed to leak back
+	 * to the caller whilst also blocking continuation of construction until
+	 * configuration is complete and a configurator can be supplied.
+	 * 
+	 * @param node
+	 *          the node being constructed
+	 */
+	SchemaNodeConfiguratorImpl configure(SchemaNode node);
 }

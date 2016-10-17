@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 
 import uk.co.strangeskies.modabi.Bindings;
-import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -30,9 +29,7 @@ import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -47,15 +44,9 @@ public interface ProcessingContext {
 
 	/**
 	 * @return all models registered in the {@link SchemaManager} backing this
-	 *         context.
+	 *         context
 	 */
 	Models registeredModels();
-
-	/**
-	 * @return all data types registered in the {@link SchemaManager} backing this
-	 *         context.
-	 */
-	DataTypes registeredTypes();
 
 	/**
 	 * @return objects provided by schema manager for certain types
@@ -81,18 +72,7 @@ public interface ProcessingContext {
 	 *          the element to override with a model
 	 * @return a mapping from possible overrides to override results
 	 */
-	<T> ComputingMap<Model<? extends T>, ComplexNode<? extends T>> getComplexNodeOverrides(ComplexNode<T> node);
-
-	/**
-	 * For a given extensible data node, get a map from possible overriding data
-	 * types to the nodes resulting from the application of those overrides. The
-	 * values of the map are lazily computed, then cached for further use.
-	 * 
-	 * @param node
-	 *          the element to override with a model
-	 * @return a mapping from possible overrides to override results
-	 */
-	<T> ComputingMap<DataType<? extends T>, DataNode<? extends T>> getDataNodeOverrides(DataNode<T> node);
+	ComputingMap<Model<?>, SchemaNode> getComplexNodeOverrides(SchemaNode node);
 
 	/**
 	 * The stack of schema nodes corresponding to the processing position in a
@@ -101,12 +81,12 @@ public interface ProcessingContext {
 	 * 
 	 * @return a list representing the stack, in order from tail to head
 	 */
-	List<SchemaNode<?>> getBindingNodeStack();
+	List<BindingPoint<?>> getBindingNodeStack();
 
 	/**
 	 * @return the node at the head of the {@link #getBindingNodeStack()}.
 	 */
-	default SchemaNode<?> getBindingNode() {
+	default BindingPoint<?> getNode() {
 		return getBindingNode(0);
 	}
 
@@ -116,7 +96,7 @@ public interface ProcessingContext {
 	 * @return the node a given number of steps back from the head of the
 	 *         {@link #getBindingNodeStack()}
 	 */
-	default SchemaNode<?> getBindingNode(int parent) {
+	default BindingPoint<?> getBindingNode(int parent) {
 		int index = getBindingNodeStack().size() - (1 + parent);
 		return index >= 0 ? getBindingNodeStack().get(index) : null;
 	}
@@ -173,8 +153,8 @@ public interface ProcessingContext {
 
 	/**
 	 * A processing context over some {@link #input()} is exhaustive when
-	 * completion of the current {@link #getBindingNode()} will consume the
-	 * entirety of any currently processing {@link DataSource}.
+	 * completion of the current {@link #getNode()} will consume the entirety of
+	 * any currently processing {@link DataSource}.
 	 * 
 	 * @return true if any currently binding data is to be exhausted by the
 	 *         processing of the current node

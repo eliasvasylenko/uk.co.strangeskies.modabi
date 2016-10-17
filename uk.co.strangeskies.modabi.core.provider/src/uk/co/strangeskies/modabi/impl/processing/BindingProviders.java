@@ -47,9 +47,9 @@ import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
 import uk.co.strangeskies.modabi.processing.providers.ImportSource;
 import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.DataLoader;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
@@ -58,7 +58,7 @@ import uk.co.strangeskies.utilities.tuple.Pair;
 
 public class BindingProviders {
 	private interface ModelBindingProvider {
-		<T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener);
+		<T> Set<T> getAndListen(ComplexNode<T> model, Function<? super T, Boolean> listener);
 	}
 
 	private static class DereferenceImportBindingProvider implements ModelBindingProvider {
@@ -69,7 +69,7 @@ public class BindingProviders {
 		}
 
 		@Override
-		public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+		public <T> Set<T> getAndListen(ComplexNode<T> model, Function<? super T, Boolean> listener) {
 			ObservableSet<?, Binding<T>> bindings = context.manager().getBindings(model);
 
 			synchronized (bindings) {
@@ -95,7 +95,7 @@ public class BindingProviders {
 		}
 
 		@Override
-		public <T> Set<T> getAndListen(Model<T> model, Function<? super T, Boolean> listener) {
+		public <T> Set<T> getAndListen(ComplexNode<T> model, Function<? super T, Boolean> listener) {
 			synchronized (context.bindings()) {
 				context.bindings().changes(model).addTerminatingObserver(listener);
 				return context.bindings().getModelBindings(model);
@@ -106,7 +106,7 @@ public class BindingProviders {
 	public Function<ProcessingContext, ImportSource> importSource() {
 		return context -> new ImportSource() {
 			@Override
-			public <U> U dereferenceImport(Model<U> model, List<QualifiedName> idDomain, DataSource id) {
+			public <U> U dereferenceImport(ComplexNode<U> model, List<QualifiedName> idDomain, DataSource id) {
 				return matchBinding(context, model, new DereferenceImportBindingProvider(context), idDomain, id, true);
 			}
 		};
@@ -119,7 +119,7 @@ public class BindingProviders {
 	public Function<ProcessingContext, DataLoader> dataLoader() {
 		return context -> new DataLoader() {
 			@Override
-			public <U> List<U> loadData(DataNode<U> node, DataSource data) {
+			public <U> List<U> loadData(SimpleNode<U> node, DataSource data) {
 				return new DataNodeBinder<>(context, node).getBinding().stream().map(ChildNodeBinding::getData)
 						.collect(toList());
 			}
@@ -134,7 +134,7 @@ public class BindingProviders {
 	public Function<ProcessingContext, DereferenceSource> dereferenceSource() {
 		return context -> new DereferenceSource() {
 			@Override
-			public <U> U dereference(Model<U> model, List<QualifiedName> idDomain, DataSource id) {
+			public <U> U dereference(ComplexNode<U> model, List<QualifiedName> idDomain, DataSource id) {
 				return matchBinding(context, model, new DereferenceSourceBindingProvider(context), idDomain, id, false);
 			}
 
@@ -148,7 +148,7 @@ public class BindingProviders {
 		};
 	}
 
-	private <U> U matchBinding(ProcessingContext context, Model<U> model, ModelBindingProvider bindings,
+	private <U> U matchBinding(ProcessingContext context, ComplexNode<U> model, ModelBindingProvider bindings,
 			List<QualifiedName> idDomain, DataSource idSource, boolean externalDependency) {
 		if (idSource.currentState() == DataStreamState.TERMINATED || idSource.isComplete())
 			throw new ProcessingException(
@@ -164,7 +164,7 @@ public class BindingProviders {
 		DataItem<?> id = idSource.get();
 
 		List<ChildNode<?>> childStack = model.children(idDomain);
-		if (!(childStack.get(childStack.size() - 1) instanceof DataNode<?>))
+		if (!(childStack.get(childStack.size() - 1) instanceof SimpleNode<?>))
 			throw new ProcessingException("Can't find child '" + idDomain + "' to target for model '" + model + "'", context);
 
 		/*
@@ -221,7 +221,7 @@ public class BindingProviders {
 		return getProxiedBinding(model, blockProperty.get(), objectProperty::get);
 	}
 
-	private <U> boolean validateBindingCandidate(ProcessingContext context, U bindingCandidate, Model<U> model,
+	private <U> boolean validateBindingCandidate(ProcessingContext context, U bindingCandidate, ComplexNode<U> model,
 			List<ChildNode<?>> idNode, DataItem<?> id) {
 		Objects.requireNonNull(bindingCandidate);
 
@@ -239,12 +239,12 @@ public class BindingProviders {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U> U getProxiedBinding(Model<U> model, BindingBlock block, Supplier<U> objectSupplier) {
+	private <U> U getProxiedBinding(ComplexNode<U> model, BindingBlock block, Supplier<U> objectSupplier) {
 		/*
 		 * Should only have one raw type. Non-abstract models shouldn't be
 		 * intersection types.
 		 */
-		Class<?> rawType = model.dataType().getRawType();
+		Class<?> rawType = model.getDataType().getRawType();
 
 		/*
 		 * TODO check if raw type is actually proxiable...

@@ -18,13 +18,11 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.building;
 
-import java.util.List;
-
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
-public class ModelConfiguratorDecorator<T> extends RootNodeConfiguratorDecorator<ModelConfigurator<T>, Model<T>, T>
+public class ModelConfiguratorDecorator<T> extends BindingPointConfiguratorDecorator<T, ModelConfigurator<T>>
 		implements ModelConfigurator<T> {
 	public ModelConfiguratorDecorator(ModelConfigurator<T> component) {
 		super(component);
@@ -35,26 +33,20 @@ public class ModelConfiguratorDecorator<T> extends RootNodeConfiguratorDecorator
 		return getComponent().create();
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V extends T> ModelConfigurator<V> baseModel(List<? extends Model<? super V>> baseModel) {
-		setComponent((ModelConfigurator<T>) getComponent().baseModel(baseModel));
-		return (ModelConfigurator<V>) this;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V extends T> ModelConfigurator<V> dataType(TypeToken<? extends V> bindingClass) {
-		return (ModelConfigurator<V>) super.dataType(bindingClass);
-	}
-
 	@Override
 	public String toString() {
 		return getComponent().toString();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public ModelConfigurator<T> copy() {
-		return new ModelConfiguratorDecorator<>(getComponent());
+	public <V> ModelConfigurator<V> dataType(TypeToken<? extends V> Model) {
+		setComponent((ModelConfigurator<T>) getComponent().dataType(Model));
+		return (ModelConfigurator<V>) this;
+	}
+
+	@Override
+	public ModelConfiguratorDecorator<T> copy() {
+		return new ModelConfiguratorDecorator<>(getComponent().copy());
 	}
 }

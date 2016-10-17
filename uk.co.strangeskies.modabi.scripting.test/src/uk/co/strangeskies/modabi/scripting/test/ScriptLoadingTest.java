@@ -30,7 +30,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 
@@ -60,26 +60,26 @@ public class ScriptLoadingTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Model<Runnable> getRunnableScriptModel(SchemaManager manager) {
-		return (Model<Runnable>) manager.registeredModels()
+	private ComplexNode<Runnable> getRunnableScriptModel(SchemaManager manager) {
+		return (ComplexNode<Runnable>) manager.registeredModels()
 				.get(new QualifiedName("runnableScript", Schema.MODABI_NAMESPACE));
 	}
 
 	@SuppressWarnings("unchecked")
-	private Model<Function<String, String>> getFunctionScriptModel(SchemaManager manager) {
-		return (Model<Function<String, String>>) manager.registeredModels()
+	private ComplexNode<Function<String, String>> getFunctionScriptModel(SchemaManager manager) {
+		return (ComplexNode<Function<String, String>>) manager.registeredModels()
 				.get(new QualifiedName("runnableScript", Schema.MODABI_NAMESPACE));
 	}
 
 	@SuppressWarnings("unchecked")
-	private Model<IdentityProperty<Function<String, String>>> getFunctionScriptPropertyModel(SchemaManager manager) {
-		return (Model<IdentityProperty<Function<String, String>>>) manager.registeredModels()
+	private ComplexNode<IdentityProperty<Function<String, String>>> getFunctionScriptPropertyModel(SchemaManager manager) {
+		return (ComplexNode<IdentityProperty<Function<String, String>>>) manager.registeredModels()
 				.get(new QualifiedName("scriptProperty", Schema.MODABI_NAMESPACE));
 	}
 
 	@SuppressWarnings("unchecked")
-	private Model<IdentityProperty<Function<String, String>>> getFunctionPropertyModel(SchemaManager manager) {
-		return (Model<IdentityProperty<Function<String, String>>>) manager.registeredModels()
+	private ComplexNode<IdentityProperty<Function<String, String>>> getFunctionPropertyModel(SchemaManager manager) {
+		return (ComplexNode<IdentityProperty<Function<String, String>>>) manager.registeredModels()
 				.get(new QualifiedName("functionProperty", Schema.MODABI_NAMESPACE));
 	}
 

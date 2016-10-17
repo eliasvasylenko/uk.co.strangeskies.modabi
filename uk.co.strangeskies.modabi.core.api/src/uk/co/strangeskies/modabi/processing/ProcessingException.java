@@ -36,6 +36,25 @@ public class ProcessingException extends ModabiException {
 	private final Localized<String> bindingObjects;
 	private final Localized<String> bindingNodes;
 
+	/*
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * TODO replace with "suppressed exceptions"...
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
 	private final Collection<? extends Throwable> multiCause;
 
 	private ProcessingException(Function<ProcessingProperties, Localized<String>> message, ProcessingContext state,

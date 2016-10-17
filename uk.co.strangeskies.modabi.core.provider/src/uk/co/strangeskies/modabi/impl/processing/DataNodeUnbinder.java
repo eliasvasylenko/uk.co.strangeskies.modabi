@@ -31,8 +31,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
-import uk.co.strangeskies.modabi.schema.DataNode;
-import uk.co.strangeskies.modabi.schema.DataType;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
@@ -47,7 +46,7 @@ public class DataNodeUnbinder {
 		this.context = context;
 	}
 
-	public <U> void unbind(DataNode<U> node, List<U> data) {
+	public <U> void unbind(SimpleNode<U> node, List<U> data) {
 		unbindWithFormat(node, data, node.format(), context);
 	}
 
@@ -57,7 +56,7 @@ public class DataNodeUnbinder {
 	 * @param node
 	 * @param data
 	 */
-	public <U> DataSource unbindToDataBuffer(DataNode<U> node) {
+	public <U> DataSource unbindToDataBuffer(SimpleNode<U> node) {
 		ProcessingContextImpl context = this.context.withOutput(null).withNestedProvisionScope();
 
 		List<U> data = BindingNodeUnbinder.getData(node, context);
@@ -71,9 +70,9 @@ public class DataNodeUnbinder {
 		return target.buffer();
 	}
 
-	private <U> void unbindWithFormat(DataNode<U> node, List<U> data, DataNode.Format format,
+	private <U> void unbindWithFormat(SimpleNode<U> node, List<U> data, SimpleNode.Format format,
 			ProcessingContextImpl context) {
-		Map<QualifiedName, DataNode<?>> attemptedOverrideMap = new HashMap<>();
+		Map<QualifiedName, SimpleNode<?>> attemptedOverrideMap = new HashMap<>();
 
 		BufferingDataTarget target = null;
 
@@ -110,7 +109,7 @@ public class DataNodeUnbinder {
 							bufferedTarget.pipe(context.output().get().writeProperty(node.name())).terminate();
 							break;
 						case SIMPLE:
-							context.output().get().addChild(node.name());
+							context.output().get().addChildBindingPoint(node.name());
 							bufferedTarget.pipe(context.output().get().writeContent()).terminate();
 							context.output().get().endChild();
 							break;
@@ -122,10 +121,10 @@ public class DataNodeUnbinder {
 		}
 	}
 
-	private <U> void unbindToContext(DataNode<U> node, U data, ProcessingContextImpl context,
-			Map<QualifiedName, DataNode<?>> attemptedOverrideMap) {
+	private <U> void unbindToContext(SimpleNode<U> node, U data, ProcessingContextImpl context,
+			Map<QualifiedName, SimpleNode<?>> attemptedOverrideMap) {
 		if (node.extensible() != null && node.extensible()) {
-			ComputingMap<DataType<? extends U>, DataNode<? extends U>> overrides = context.getDataNodeOverrides(node);
+			ComputingMap<SimpleNode<? extends U>, SimpleNode<? extends U>> overrides = context.getDataNodeOverrides(node);
 
 			if (overrides.isEmpty()) {
 				throw new ModabiException("Unable to find concrete type to satisfy data node '" + node.name() + "' with type '"
@@ -133,8 +132,8 @@ public class DataNodeUnbinder {
 			}
 
 			context
-					.<DataType<? extends U>>attemptUnbindingUntilSuccessful(
-							overrides.keySet().stream().filter(m -> m.dataType().getRawType().isAssignableFrom(data.getClass()))
+					.<SimpleNode<? extends U>>attemptUnbindingUntilSuccessful(
+							overrides.keySet().stream().filter(m -> m.getDataType().getRawType().isAssignableFrom(data.getClass()))
 									.collect(Collectors.toList()),
 							(c, n) -> unbindExactNode(context, overrides.putGet(n), data),
 							l -> new ProcessingException("Unable to unbind data node '" + node.name() + "' with type candidates '"
@@ -145,9 +144,9 @@ public class DataNodeUnbinder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <U extends V, V> void unbindExactNode(ProcessingContextImpl context, DataNode<U> element, V data) {
+	private <U extends V, V> void unbindExactNode(ProcessingContextImpl context, SimpleNode<U> element, V data) {
 		try {
-			new BindingNodeUnbinder(context, element, (U) element.dataType().getRawType().cast(data)).unbind();
+			new BindingNodeUnbinder(context, element, (U) element.getDataType().getRawType().cast(data)).unbind();
 		} catch (ClassCastException e) {
 			throw new ProcessingException("Cannot unbind data at this node.", context, e);
 		}

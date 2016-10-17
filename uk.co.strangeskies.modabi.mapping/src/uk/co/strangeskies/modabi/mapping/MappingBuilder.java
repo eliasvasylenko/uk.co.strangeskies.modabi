@@ -20,12 +20,12 @@ package uk.co.strangeskies.modabi.mapping;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ComplexNode;
 
 public interface MappingBuilder<F, T> {
-	Model<F> fromModel();
+	ComplexNode<F> fromModel();
 
-	Model<T> toModel();
+	ComplexNode<T> toModel();
 
 	T map(F from);
 

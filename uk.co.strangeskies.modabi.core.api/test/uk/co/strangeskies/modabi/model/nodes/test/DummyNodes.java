@@ -23,194 +23,127 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.mathematics.Range;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.RootNode;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.SequenceNode;
-import uk.co.strangeskies.modabi.schema.SequenceNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DummyNodes {
 	private DummyNodes() {}
 
-	public static SequenceNode sequenceNode(String name, String... children) {
-		return sequenceNode(new QualifiedName(name),
-				Arrays.asList(children).stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
+	public static SchemaNode schemaNode(String... children) {
+		return schemaNode(Arrays.stream(children).map(DummyNodes::childBindingPoint).collect(Collectors.toList()));
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name, QualifiedName... children) {
-		return sequenceNode(name,
-				Arrays.asList(children).stream().map(DummyNodes::sequenceNode).collect(Collectors.toList()));
+	public static SchemaNode schemaNode(QualifiedName... children) {
+		return schemaNode(Arrays.stream(children).map(DummyNodes::childBindingPoint).collect(Collectors.toList()));
 	}
 
-	public static SequenceNode sequenceNode(String name, ChildNode<?>... children) {
-		return sequenceNode(new QualifiedName(name), children);
+	public static SchemaNode schemaNode(ChildBindingPoint<?>... children) {
+		return schemaNode(Arrays.asList(children));
 	}
 
-	public static SequenceNode sequenceNode(QualifiedName name, ChildNode<?>... children) {
-		return sequenceNode(name, Arrays.asList(children));
-	}
-
-	public static SequenceNode sequenceNode(QualifiedName name, List<ChildNode<?>> children) {
-		return new SequenceNode() {
+	public static SchemaNode schemaNode(List<ChildBindingPoint<?>> children) {
+		return new SchemaNode() {
 			@Override
-			public QualifiedName name() {
-				return name;
-			}
-
-			@Override
-			public boolean concrete() {
-				return true;
-			}
-
-			@Override
-			public List<ChildNode<?>> children() {
-				return children;
-			}
-
-			@Override
-			public boolean equals(Object object) {
-				if (!(object instanceof SequenceNode))
-					return false;
-
-				if (object == this)
-					return true;
-
-				return ((SequenceNode) object).name().equals(name()) && children.equals(((SequenceNode) object).children());
-			}
-
-			@Override
-			public int hashCode() {
-				return name().hashCode() + children.hashCode();
-			}
-
-			@Override
-			public TypeToken<?> postInputType() {
-				return TypeToken.over(Object.class);
-			}
-
-			@Override
-			public TypeToken<?> preInputType() {
-				return TypeToken.over(Object.class);
-			}
-
-			@Override
-			public Range<Integer> occurrences() {
-				return Range.between(1, 1);
-			}
-
-			@Override
-			public Boolean orderedOccurrences() {
-				return true;
-			}
-
-			@Override
-			public Boolean orderedChildren() {
-				return true;
-			}
-
-			@Override
-			public SchemaNode<?> parent() {
-				return null;
-			}
-
-			@Override
-			public RootNode<?, ?> root() {
-				return null;
-			}
-
-			@Override
-			public Schema schema() {
-				return null;
-			}
-
-			@Override
-			public SequenceNodeConfigurator configurator() {
-				return null;
-			}
-		};
-	}
-
-	public static SequenceNode sequenceNode(String name) {
-		return sequenceNode(new QualifiedName(name));
-	}
-
-	public static SequenceNode sequenceNode(QualifiedName name) {
-		return new SequenceNode() {
-			@Override
-			public QualifiedName name() {
-				return name;
-			}
-
-			@Override
-			public List<ChildNode<?>> children() {
+			public List<SchemaNode> baseNodes() {
 				return Collections.emptyList();
 			}
 
 			@Override
-			public boolean concrete() {
-				return true;
-			}
-
-			@Override
-			public boolean equals(Object object) {
-				if (!(object instanceof SequenceNode))
-					return false;
-
-				return ((SequenceNode) object).name().equals(name());
-			}
-
-			@Override
-			public int hashCode() {
-				return name().hashCode();
-			}
-
-			@Override
-			public TypeToken<?> preInputType() {
-				return TypeToken.over(Object.class);
-			}
-
-			@Override
-			public TypeToken<?> postInputType() {
-				return TypeToken.over(Object.class);
-			}
-
-			@Override
-			public Range<Integer> occurrences() {
-				return Range.between(1, 1);
-			}
-
-			@Override
-			public Boolean orderedOccurrences() {
-				return true;
-			}
-
-			@Override
-			public Boolean orderedChildren() {
-				return true;
-			}
-
-			@Override
-			public SchemaNode<?> parent() {
-				return null;
-			}
-
-			@Override
-			public RootNode<?, ?> root() {
-				return null;
-			}
-
-			@Override
 			public Schema schema() {
 				return null;
 			}
 
 			@Override
-			public SequenceNodeConfigurator configurator() {
+			public SchemaNodeConfigurator configurator() {
 				return null;
+			}
+
+			@Override
+			public BindingPoint<?> parentBindingPoint() {
+				return null;
+			}
+
+			@Override
+			public List<ChildBindingPoint<?>> childBindingPoints() {
+				return children;
+			}
+		};
+	}
+
+	public static ChildBindingPoint<?> childBindingPoint(String name) {
+		return childBindingPoint(new QualifiedName(name));
+	}
+
+	public static ChildBindingPoint<?> childBindingPoint(QualifiedName name) {
+		return childBindingPoint(name, schemaNode(Collections.emptyList()));
+	}
+
+	public static ChildBindingPoint<?> childBindingPoint(String name, SchemaNode node) {
+		return childBindingPoint(new QualifiedName(name), node);
+	}
+
+	public static ChildBindingPoint<?> childBindingPoint(QualifiedName name, SchemaNode node) {
+		return new ChildBindingPoint<Object>() {
+			@Override
+			public QualifiedName name() {
+				return name;
+			}
+
+			@Override
+			public SchemaNode node() {
+				return node;
+			}
+
+			@Override
+			public TypeToken<Object> dataType() {
+				return new TypeToken<Object>() {};
+			}
+
+			@Override
+			public BindingCondition<Object> bindingCondition() {
+				return BindingCondition.optional();
+			}
+
+			@Override
+			public TypeToken<ChildBindingPoint<Object>> getThisType() {
+				return new TypeToken<ChildBindingPoint<Object>>() {};
+			}
+
+			@Override
+			public List<Object> providedValues() {
+				return null;
+			}
+
+			@Override
+			public boolean concrete() {
+				return true;
+			}
+
+			@Override
+			public List<Model<? super Object>> baseModel() {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public boolean extensible() {
+				return false;
+			}
+
+			@Override
+			public TypeToken<?> preInputType() {
+				return dataType();
+			}
+
+			@Override
+			public TypeToken<?> postInputType() {
+				return dataType();
 			}
 		};
 	}

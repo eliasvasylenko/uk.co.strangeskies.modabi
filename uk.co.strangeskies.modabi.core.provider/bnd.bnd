@@ -3,6 +3,7 @@
 	${ss;utilities},\
 	${ss;text},\
 	${ss;reflection},\
+	${ss;reflection.codegen},\
 	${ss;mathematics}
 
 -runbundles: \

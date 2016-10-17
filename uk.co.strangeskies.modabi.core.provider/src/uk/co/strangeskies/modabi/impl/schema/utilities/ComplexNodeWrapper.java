@@ -23,25 +23,24 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNode<? super T>, ComplexNode<T>>
 		implements ComplexNode<T> {
-	private final List<Model<? super T>> model;
+	private final List<ComplexNode<? super T>> model;
 
-	protected ComplexNodeWrapper(Model<T> component) {
+	protected ComplexNodeWrapper(ComplexNode<T> component) {
 		super(component);
 		model = component.baseModel();
 	}
 
-	protected ComplexNodeWrapper(ComplexNode<? super T> base, Model<? super T> component) {
+	protected ComplexNodeWrapper(ComplexNode<? super T> base, ComplexNode<? super T> component) {
 		super(base, component);
 		model = new ArrayList<>(component.baseModel());
 		model.add(0, component);
 
-		if (!component.base().containsAll(base.base()))
-			throw this.<Object>getOverrideException(ComplexNode::model, base.base(), component.base(), null);
+		if (!component.baseNodes().containsAll(base.baseNodes()))
+			throw this.<Object>getOverrideException(ComplexNode::model, base.baseNodes(), component.baseNodes(), null);
 	}
 
 	protected ComplexNodeWrapper(ComplexNode<T> node) {
@@ -62,18 +61,18 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 		return baseConfigurator.model(model);
 	}
 
-	public static <T> ComplexNodeWrapper<T> wrapType(Model<T> component) {
+	public static <T> ComplexNodeWrapper<T> wrapType(ComplexNode<T> component) {
 		return new ComplexNodeWrapper<>(component);
 	}
 
-	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(ComplexNode<T> node, Model<?> override) {
+	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(ComplexNode<T> node, ComplexNode<?> override) {
 		/*
 		 * This cast isn't strictly going to be valid according to the exact erased
 		 * type, but the runtime checks in the constructor should ensure the types
 		 * do fit the bounds
 		 */
 		@SuppressWarnings("unchecked")
-		Model<? super T> castOverride = (Model<? super T>) override;
+		ComplexNode<? super T> castOverride = (ComplexNode<? super T>) override;
 		return new ComplexNodeWrapper<>(node, castOverride);
 	}
 
@@ -82,7 +81,7 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 	}
 
 	@Override
-	public List<Model<? super T>> model() {
+	public List<ComplexNode<? super T>> model() {
 		return model;
 	}
 

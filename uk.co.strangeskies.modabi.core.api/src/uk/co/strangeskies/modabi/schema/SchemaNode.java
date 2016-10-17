@@ -18,84 +18,24 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.NodeProcessor;
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.ReturningNodeProcessor;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.reflection.Reified;
-import uk.co.strangeskies.utilities.IdentityProperty;
+import uk.co.strangeskies.utilities.Self;
 
 /**
  * The base interface for {@link Schema schema} element nodes. Schemata are made
- * up of a number of {@link Model models} and {@link DataType data types}, which
- * are themselves a type of schema node, and the root elements of a graph of
- * schema nodes.
+ * up of a number of {@link ComplexNode models} and {@link SimpleNode data
+ * types}, which are themselves a type of schema node, and the root elements of
+ * a graph of schema nodes.
  * 
  * @author Elias N Vasylenko
  *
  * @param <S>
  */
-public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
-	/**
-	 * @param processor
-	 *          a processor to be called back upon in the manner of the visitor
-	 *          pattern
-	 */
-	void process(NodeProcessor processor);
-
-	/**
-	 * @param processor
-	 *          a processor to be called back upon in the manner of the visitor
-	 *          pattern
-	 * @return the value returned by execution of the processor
-	 */
-	default <T> T process(ReturningNodeProcessor<T> processor) {
-		IdentityProperty<T> result = new IdentityProperty<>();
-
-		process(new NodeProcessor() {
-			@Override
-			public <U> void accept(Model<U> node) {
-				result.set(processor.accept(node));
-			}
-
-			@Override
-			public <U> void accept(DataType<U> node) {
-				result.set(processor.accept(node));
-			}
-
-			@Override
-			public void accept(ChoiceNode node) {
-				result.set(processor.accept(node));
-			}
-
-			@Override
-			public void accept(SequenceNode node) {
-				result.set(processor.accept(node));
-			}
-
-			@Override
-			public void accept(InputSequenceNode node) {
-				result.set(processor.accept(node));
-			}
-
-			@Override
-			public <U> void accept(DataNode<U> node) {
-				result.set(processor.accept(node));
-			}
-
-			@Override
-			public <U> void accept(ComplexNode<U> node) {
-				result.set(processor.accept(node));
-			}
-		});
-
-		return result.get();
+public interface SchemaNode extends Self<SchemaNode> {
+	enum Format {
+		PROPERTY, CONTENT, SIMPLE, COMPLEX
 	}
 
 	/**
@@ -104,102 +44,22 @@ public interface SchemaNode<S extends SchemaNode<S>> extends Reified<S> {
 	 * 
 	 * @return the creating configurator
 	 */
-	SchemaNodeConfigurator<?, S> configurator();
-
-	boolean concrete();
+	SchemaNodeConfigurator configurator();
 
 	/**
-	 * @return the fully qualified name of the schema node, which where applicable
-	 *         typically corresponds with its serialized representation
+	 * @return the set of all <em>direct</em> base nodes, i.e. excluding those
+	 *         which are transitively included via other more specific base nodes
 	 */
-	QualifiedName name();
+	List<SchemaNode> baseNodes();
 
-	List<ChildNode<?>> children();
-
-	default ChildNode<?> child(QualifiedName... names) {
-		return child(Arrays.asList(names));
-	}
-
-	default ChildNode<?> child(List<QualifiedName> names) {
-		if (names.isEmpty())
-			throw new ModabiException(t -> t.noChildFound(names, name(), children()));
-
-		QualifiedName firstName = names.get(0);
-
-		ChildNode<?> firstChild = children().stream().filter(c -> c.name().equals(firstName)).findAny()
-				.orElseThrow(() -> new ModabiException(t -> t.noChildFound(Arrays.asList(firstName), name(), children())));
-
-		if (names.size() > 1) {
-			firstChild = firstChild.child(names.subList(1, names.size()));
-		}
-
-		return firstChild;
-	}
-
-	default ChildNode<?> child(String... names) {
-		if (names.length == 0)
-			throw new ModabiException(t -> t.noChildFound(Collections.emptyList(), name(), children()));
-
-		ChildNode<?> child = child(new QualifiedName(names[0], name().getNamespace()));
-
-		for (int i = 1; i < names.length; i++) {
-			child = child.child(new QualifiedName(names[i], name().getNamespace()));
-		}
-
-		return child;
-	}
-
-	default List<ChildNode<?>> children(QualifiedName... names) {
-		return children(Arrays.asList(names));
-	}
-
-	default List<ChildNode<?>> children(List<QualifiedName> names) {
-		List<ChildNode<?>> children = new ArrayList<>(names.size());
-
-		SchemaNode<?> node = this;
-		for (QualifiedName name : names) {
-			node = node.child(name);
-			children.add((ChildNode<?>) node);
-		}
-
-		return children;
-	}
-
-	default List<ChildNode<?>> children(String... names) {
-		List<ChildNode<?>> children = new ArrayList<>(names.length);
-
-		SchemaNode<?> node = this;
-		for (String name : names) {
-			node = node.child(name);
-			children.add((ChildNode<?>) node);
-		}
-
-		return children;
-	}
-
-	RootNode<?, ?> root();
+	BindingPoint<?> parentBindingPoint();
 
 	Schema schema();
 
+	List<ChildBindingPoint<?>> childBindingPoints();
+
 	@Override
-	default S copy() {
+	default SchemaNode copy() {
 		return getThis();
 	}
-
-	/**
-	 * If ordered, occurrences of child nodes must be bound strictly one after the
-	 * other. Otherwise, if unordered, occurrences of child nodes may be bound
-	 * concurrently, and semantics of updating existing bindings are more
-	 * flexible. Input methods will still be invoked in order.
-	 * 
-	 * <p>
-	 * Note that unordered nodes may bind and unbind with less memory-efficiency.
-	 * 
-	 * <p>
-	 * Default behavior is as if true.
-	 *
-	 * @return true if occurrences of this node must be bound in order, false
-	 *         otherwise
-	 */
-	Boolean orderedChildren();
 }

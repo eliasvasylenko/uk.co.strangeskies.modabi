@@ -25,29 +25,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.impl.schema.building.DataTypeBuilderImpl;
-import uk.co.strangeskies.modabi.impl.schema.building.DataTypeConfiguratorDecorator;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelConfiguratorDecorator;
-import uk.co.strangeskies.modabi.schema.DataType;
-import uk.co.strangeskies.modabi.schema.DataTypeConfigurator;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.building.DataTypeBuilder;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
@@ -56,38 +51,45 @@ import uk.co.strangeskies.utilities.Property;
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
+		class ModelConfiguratorDecoratorImpl<T> extends ModelConfiguratorDecorator<T> {
+			public ModelConfiguratorDecoratorImpl(ModelConfigurator<T> component) {
+				super(component);
+			}
+
+			@Override
+			public Model<T> create() {
+				Model<T> model = super.create();
+				modelSet.add(model);
+				return model;
+			}
+		}
+
 		private final ModelBuilder modelBuilder;
-		private final DataTypeBuilder dataTypeBuilder;
 
 		private final DataLoader loader;
 
-		private final Set<DataType<?>> typeSet;
 		private QualifiedName qualifiedName;
 		private final Set<Model<?>> modelSet;
 		private final Schemata dependencySet;
 		private Imports imports;
 
-		private Map<String, Function<DataTypeConfigurator<Object>, DataTypeConfigurator<?>>> pendingDataTypeConfigurations;
-		private Map<String, Function<ModelConfigurator<Object>, ModelConfigurator<?>>> pendingModelConfigurations;
+		private Map<String, Function<ModelConfigurator<?>, ModelConfigurator<?>>> pendingModelConfigurations;
 
 		private Property<Schema, Schema> schemaProperty;
 		private Schema schemaProxy;
 
 		public SchemaConfiguratorImpl(DataLoader loader) {
-			this(loader, new ModelBuilderImpl(), new DataTypeBuilderImpl());
+			this(loader, new ModelBuilderImpl());
 		}
 
-		public SchemaConfiguratorImpl(DataLoader loader, ModelBuilder modelBuilder, DataTypeBuilder dataTypeBuilder) {
+		public SchemaConfiguratorImpl(DataLoader loader, ModelBuilder modelBuilder) {
 			this.modelBuilder = modelBuilder;
-			this.dataTypeBuilder = dataTypeBuilder;
 			this.loader = loader;
 
-			typeSet = new LinkedHashSet<>();
 			modelSet = new LinkedHashSet<>();
 			dependencySet = new Schemata();
 			imports = Imports.empty(Thread.currentThread().getContextClassLoader());
 
-			pendingDataTypeConfigurations = new HashMap<>();
 			pendingModelConfigurations = new HashMap<>();
 
 			schemaProperty = new IdentityProperty<>();
@@ -104,29 +106,18 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public Schema create() {
-			for (String pendingDataType : pendingDataTypeConfigurations.keySet()) {
-				addDataType(new QualifiedName(pendingDataType, qualifiedName.getNamespace()),
-						pendingDataTypeConfigurations.get(pendingDataType));
-			}
 			for (String pendingModel : pendingModelConfigurations.keySet()) {
 				addModel(new QualifiedName(pendingModel, qualifiedName.getNamespace()),
 						pendingModelConfigurations.get(pendingModel));
 			}
 
 			final QualifiedName qualifiedName = this.qualifiedName;
-			final DataTypes types = new DataTypes();
-			types.addAll(typeSet);
 			final Models models = new Models();
 			models.addAll(modelSet);
 			final Schemata dependencies = new Schemata();
 			dependencies.addAll(dependencySet);
 
 			schemaProperty.set(new Schema() {
-				@Override
-				public DataTypes dataTypes() {
-					return types;
-				}
-
 				@Override
 				public QualifiedName qualifiedName() {
 					return qualifiedName;
@@ -158,14 +149,12 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 					Schema other = (Schema) obj;
 
 					return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
-							&& dataTypes().equals(other.dataTypes()) && dependencies().equals(other.dependencies())
-							&& imports().equals(other.imports());
+							&& dependencies().equals(other.dependencies()) && imports().equals(other.imports());
 				}
 
 				@Override
 				public int hashCode() {
-					return dataTypes().hashCode() ^ qualifiedName().hashCode() ^ models().hashCode()
-							^ dependencies().hashCode() ^ imports().hashCode();
+					return Objects.hash(qualifiedName(), models(), dependencies(), imports());
 				}
 
 				@Override
@@ -199,43 +188,13 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		}
 
 		@Override
-		public DataTypeConfigurator<Object> addDataType() {
-			return new DataTypeConfiguratorDecorator<Object>(dataTypeBuilder.configure(loader, schemaProxy, imports)) {
-				@Override
-				public DataType<Object> create() {
-					DataType<Object> dataType = super.create();
-					typeSet.add(dataType);
-					return dataType;
-				}
-			};
-		}
-
-		@Override
-		public SchemaConfigurator addDataType(String name,
-				Function<DataTypeConfigurator<Object>, DataTypeConfigurator<?>> configuration) {
-			if (qualifiedName == null) {
-				pendingDataTypeConfigurations.put(name, configuration);
-			} else {
-				addDataType(new QualifiedName(name, qualifiedName.getNamespace()), configuration);
-			}
-			return null;
-		}
-
-		@Override
-		public ModelConfigurator<Object> addModel() {
-			return new ModelConfiguratorDecorator<Object>(modelBuilder.configure(loader, schemaProxy, imports)) {
-				@Override
-				public Model<Object> create() {
-					Model<Object> model = super.create();
-					modelSet.add(model);
-					return model;
-				}
-			};
+		public ModelConfigurator<?> addModel() {
+			return new ModelConfiguratorDecoratorImpl<>(modelBuilder.configure(loader, schemaProxy, imports));
 		}
 
 		@Override
 		public SchemaConfigurator addModel(String name,
-				Function<ModelConfigurator<Object>, ModelConfigurator<?>> configuration) {
+				Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration) {
 			if (qualifiedName == null) {
 				pendingModelConfigurations.put(name, configuration);
 			} else {
@@ -246,12 +205,6 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public <T> Model<T> generateModel(TypeToken<T> type) {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public <T> DataType<T> generateDataType(TypeToken<T> type) {
 			// TODO Auto-generated method stub
 			throw new UnsupportedOperationException();
 		}

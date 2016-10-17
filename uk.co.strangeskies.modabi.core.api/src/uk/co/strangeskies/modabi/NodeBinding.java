@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.schema.BindingNode;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.reflection.TypedObject;
 
-public abstract class NodeBinding<T, N extends BindingNode<T, N>> {
+public abstract class NodeBinding<T, N extends BindingPoint<T>> {
 	private final N node;
 	private final T data;
 
@@ -39,7 +39,7 @@ public abstract class NodeBinding<T, N extends BindingNode<T, N>> {
 	}
 
 	public TypedObject<T> getTypedData() {
-		return TypedObject.castInto(node.dataType(), data);
+		return node.dataType().typedObject(data);
 	}
 
 	@Override

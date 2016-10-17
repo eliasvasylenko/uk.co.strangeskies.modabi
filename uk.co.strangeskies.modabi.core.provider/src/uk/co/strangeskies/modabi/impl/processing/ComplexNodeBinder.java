@@ -23,12 +23,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.ChildNodeBinding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.Model;
 
 public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode<U>> {
 	private final List<ChildNodeBinding<? extends U, ?>> bindings;
@@ -119,13 +116,13 @@ public class ComplexNodeBinder<U> extends InputNodeBinder<ComplexNode<U>> {
 			exactNode = node;
 		} else if (nextElement != null) {
 			if (node.extensible()) {
-				Model<?> extension = context.getModel(nextElement);
+				ComplexNode<?> extension = context.getModel(nextElement);
 
 				if (extension == null) {
 					throw new ProcessingException("Cannot find model '" + nextElement + "' to bind to", context);
 				}
 
-				exactNode = context.getComplexNodeOverrides(node).putGet((Model<? extends U>) extension);
+				exactNode = context.getComplexNodeOverrides(node).putGet((ComplexNode<? extends U>) extension);
 			} else if (Objects.equals(nextElement, node.name())) {
 				exactNode = node;
 			} else {

@@ -22,9 +22,9 @@ import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.schema.ModelConfiguratorImpl;
+import uk.co.strangeskies.modabi.schema.DataLoader;
+import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.modabi.schema.building.ModelBuilder;
 import uk.co.strangeskies.reflection.Imports;
 
 @Component

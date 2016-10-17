@@ -19,9 +19,9 @@
 package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.building.DataLoader;
-import uk.co.strangeskies.reflection.Reified;
+import uk.co.strangeskies.reflection.ReifiedSelf;
 import uk.co.strangeskies.utilities.Scoped;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 
@@ -55,8 +55,6 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 
 	Models registeredModels();
 
-	DataTypes registeredTypes();
-
 	DataFormats registeredFormats();
 
 	InputBinder<?> bindInput();
@@ -67,7 +65,7 @@ public interface SchemaManager extends Scoped<SchemaManager> {
 
 	<T> OutputBinder<T> bindOutput(T data);
 
-	default <T extends Reified<T>> OutputBinder<T> bindOutput(T data) {
+	default <T extends ReifiedSelf<T>> OutputBinder<T> bindOutput(T data) {
 		return bindOutput(data).with(data.getThisType());
 	}
 }

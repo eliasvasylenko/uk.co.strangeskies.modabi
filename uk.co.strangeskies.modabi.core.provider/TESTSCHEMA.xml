@@ -1,0 +1,191 @@
+<?xml version="1.0" ?>
+<schema
+	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+	name="ScriptingSchema">
+
+	<dependencies>
+		BaseSchema
+	</dependencies>
+
+	<imports>
+		java.lang.Object,
+
+		javax.script.ScriptEngineManager,
+		javax.script.ScriptEngine,
+		javax.script.Invocable,
+
+		uk.co.strangeskies.reflection.TypeToken,
+		uk.co.strangeskies.reflection.TypeToken.Infer,
+
+		uk.co.strangeskies.modabi.scripting.ScriptObject,
+		uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder,
+		uk.co.strangeskies.modabi.processing.ProcessingContext,
+		uk.co.strangeskies.modabi.schema.Model
+	</imports>
+
+	<types />
+
+	<models>
+		<model
+			name="scriptObject"
+			type="@Infer ?"
+			abstractness="ABSTRACT">
+
+			<node format="complex">
+
+				<processing direction="in"> <!-- special <input> section here at start of node? -->
+					<assign>
+						<target />
+						<provide />
+					</assign>
+				</processing>
+
+				<input>
+					<!-- method taking two parameters on the current target object, with 
+						the result assigned as the new target object -->
+					<assign>
+						<target />
+						<method name="hello">
+							<target />
+							<!-- empty provide means "provide the type of the enclosing binding 
+								point" -->
+							<provide />
+							<cast type="SomeType">
+								<binding>someNode</binding>
+							</cast>
+						</method>
+					</assign>
+
+					<expression
+						value="target = target.hello(provide(), (SomeType)	bindingResult(someNode))" />
+				</input>
+
+				<bind
+					name="objectName"
+					condition="?"
+					model="string" />
+
+				<bind
+					name="scriptEngineManager"
+					type="ScriptEngineManager">
+
+					<condition>
+						<required />
+					</condition>
+
+					<data
+						inputBindingStrategy="PROVIDED"
+						outputField="null" />
+				</bind>
+
+				<bind
+					name="objectType"
+					type="TypeToken{?}"
+					outputField="null">
+
+					<data>
+						<input>
+							<assign>
+								<provide>ProcessingContext</provide>
+							</assign>
+						</input>
+
+						<bind
+							name="getBindingNode"
+							outputField="null"
+							postInputType="Model{?}"
+							chainedInput="true"
+							castInput="true"
+							model="int">
+
+							<value>1</value>
+						</bind>
+
+						<inputSequence
+							name="dataType"
+							chainedInput="true" />
+					</data>
+				</bind>
+
+				<bind
+					name="script"
+					condition="?"
+					type="string">
+
+					<condition>
+						<optional />
+					</condition>
+
+					<content />
+				</bind>
+
+				<bind
+					name="resource"
+					condition="!script"
+					type="string">
+
+					<condition>
+						<isNotBound binding="script" />
+					</condition>
+
+					<property />
+				</bind>
+
+				<bind
+					name="language"
+					condition="script | ?"
+					type="string">
+
+					<condition>
+						<or>
+							<isBound binding="script" />
+							<optional />
+						</or>
+					</condition>
+
+					<property />
+				</bind>
+
+				<bindInput
+					name="create"
+					chainedInput="true" />
+
+				<inputSequence
+					name="cast"
+					chainedInput="true" />
+
+
+
+				<!-- TEST FORM OF REFERENCES: -->
+				<!-- expected -->
+				<bind model="reference">
+					<data>
+						<bind name="targetModel">someModel</bind>
+
+						<bind name="targetId">id</bind>
+
+						<value>123</value>
+					</data>
+				</bind>
+
+				<!-- better -->
+				<bind model="reference">
+					<bind name="targetModel">hello</bind>
+
+					<bind name="targetId">id</bind>
+
+					<value>abc</value>
+				</bind>
+
+				<!-- ideal -->
+				<bind
+					model="reference"
+					targetModel="hello"
+					targetId="name">
+
+					theId
+				</bind>
+			</node>
+		</model>
+	</models>
+</schema>
