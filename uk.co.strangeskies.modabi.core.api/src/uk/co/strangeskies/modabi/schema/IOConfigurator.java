@@ -31,6 +31,16 @@ public interface IOConfigurator {
 		return provide(overType(type));
 	}
 
+	/**
+	 * Get a value expression evaluating to a provision as per
+	 * {@link #provide(TypeToken)}. The type provided is as declared as the
+	 * {@link BindingPoint#dataType() data type} of the nearest containing binding
+	 * point.
+	 * 
+	 * @return
+	 */
+	<U> ValueExpression<U> provide();
+
 	ValueExpression<ProcessingContext> context();
 
 	ValueExpression<?> bound(String string);

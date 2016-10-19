@@ -44,43 +44,41 @@ public interface BaseSchema extends Schema {
 	Derived derived();
 
 	public interface Derived {
-		Model<Object[]> arrayType();
+		Model<Object[]> arrayModel();
 
-		Model<Collection<?>> collectionType();
+		Model<Collection<?>> collectionModel();
 
-		Model<List<?>> listType();
+		Model<List<?>> listModel();
 
-		Model<Set<?>> setType();
+		Model<Set<?>> setModel();
 
-		Model<URI> uriType();
+		Model<URI> uriModel();
 
-		Model<URL> urlType();
+		Model<URL> urlModel();
 
-		Model<Object> referenceType();
+		Model<Object> referenceModel();
 
-		Model<Object> bindingReferenceType();
+		Model<Object> bindingReferenceModel();
 
-		Model<DataSource> bufferedDataType();
+		Model<DataSource> bufferedDataModel();
 
-		Model<DataItem<?>> bufferedDataItemType();
+		Model<DataItem<?>> bufferedDataItemModel();
 
-		Model<Range<Integer>> rangeType();
+		Model<Range<Integer>> rangeModel();
 
-		Model<Enum<?>> enumType();
+		Model<Enum<?>> enumModel();
 
-		Model<Enumeration<?>> enumerationType();
+		Model<Enumeration<?>> enumerationModel();
 
-		Model<Package> packageType();
+		Model<Package> packageModel();
 
-		Model<Class<?>> classType();
+		Model<Class<?>> classModel();
 
-		Model<Type> typeType();
+		Model<Type> typeModel();
 
-		Model<TypeToken<?>> typeTokenType();
+		Model<TypeToken<?>> typeTokenModel();
 
-		Model<AnnotatedType> annotatedTypeType();
-
-		Model<?> simpleModel();
+		Model<AnnotatedType> annotatedTypeModel();
 
 		Model<Map<?, ?>> mapModel();
 
@@ -88,12 +86,12 @@ public interface BaseSchema extends Schema {
 		 * during binding / unbinding magically adds items to bindings list (so can
 		 * be referenced)
 		 */
-		Model<Collection<?>> includeType();
+		Model<Collection<?>> includeModel();
 
 		/*
 		 * retrieves objects already bound by SchemaBinder and 'includes' them, or
 		 * some children of them. Blocks if we are waiting for them.
 		 */
-		Model<Object> importType();
+		Model<Object> importModel();
 	}
 }

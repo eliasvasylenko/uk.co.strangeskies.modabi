@@ -80,35 +80,34 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	private class DerivedImpl implements Derived {
-		private final Model<Object> referenceType;
-		private final Model<Object> bindingReferenceType;
-		private final Model<DataSource> bufferedDataType;
-		private final Model<DataItem<?>> bufferedDataItemType;
+		private final Model<Object> referenceModel;
+		private final Model<Object> bindingReferenceModel;
+		private final Model<DataSource> bufferedDataModel;
+		private final Model<DataItem<?>> bufferedDataItemModel;
 
-		private final Model<Package> packageType;
-		private final Model<Class<?>> classType;
-		private final Model<Type> typeType;
-		private final Model<AnnotatedType> annotatedTypeType;
-		private final Model<TypeToken<?>> typeTokenType;
-		private final Model<Enum<?>> enumType;
-		private final Model<Enumeration<?>> enumerationType;
-		private final Model<Range<Integer>> rangeType;
-		private final Model<Object[]> arrayType;
-		private final Model<Collection<?>> collectionType;
-		private final Model<List<?>> listType;
-		private final Model<Set<?>> setType;
-		private final Model<Object> importType;
-		private final Model<Collection<?>> includeType;
-		private final Model<URI> uriType;
-		private final Model<URL> urlType;
+		private final Model<Package> packageModel;
+		private final Model<Class<?>> classModel;
+		private final Model<Type> typeModel;
+		private final Model<AnnotatedType> annotatedTypeModel;
+		private final Model<TypeToken<?>> typeTokenModel;
+		private final Model<Enum<?>> enumModel;
+		private final Model<Enumeration<?>> enumerationModel;
+		private final Model<Range<Integer>> rangeModel;
+		private final Model<Object[]> arrayModel;
+		private final Model<Collection<?>> collectionModel;
+		private final Model<List<?>> listModel;
+		private final Model<Set<?>> setModel;
+		private final Model<Object> importModel;
+		private final Model<Collection<?>> includeModel;
+		private final Model<URI> uriModel;
+		private final Model<URL> urlModel;
 
-		private Model<?> simpleModel;
-		private Model<Map<?, ?>> mapModel;
+		private final Model<Map<?, ?>> mapModel;
 
 		public DerivedImpl(ModelFactory factory, Model<Enumeration<?>> enumerationBaseType) {
 			Namespace namespace = BaseSchema.QUALIFIED_NAME.getNamespace();
 
-			arrayType = factory.apply("array",
+			arrayModel = factory.apply("array",
 					t -> t.dataType(new @Infer TypeToken<Object[]>() {}).node(n -> n
 							.initializeInput(i -> i.provide(new TypeToken<List<?>>() {}))
 							.initializeOutput(o -> invokeResolvedStatic(Arrays.class, "asList", o.parent()))
@@ -125,8 +124,8 @@ public class BaseSchemaImpl implements BaseSchema {
 									.input(i -> i.target().assign(i.target().invokeResolvedMethod("toArray")))
 									.noOutput())));
 
-			collectionType = factory.apply("collection", t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).node(
-					n -> n.initializeInput(i -> i.provideFor(i.parent())).addChildBindingPoint(c -> c
+			collectionModel = factory.apply("collection", t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).node(
+					n -> n.initializeInput(i -> i.provide()).addChildBindingPoint(c -> c
 							.name("element")
 							.input(i -> i.target().invokeResolvedMethod("add", i.result()))
 							.output(o -> o.iterate(o.source()))
@@ -134,31 +133,31 @@ public class BaseSchemaImpl implements BaseSchema {
 							.condition(occurrences(between(0, null)))
 							.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))));
 
-			listType = factory.apply("list", t -> t.baseModel(collectionType).dataType(new @Infer TypeToken<List<?>>() {}));
+			listModel = factory.apply("list", t -> t.baseModel(collectionModel).dataType(new @Infer TypeToken<List<?>>() {}));
 
-			setType = factory.apply("set", t -> t.baseModel(collectionType).dataType(new @Infer TypeToken<Set<?>>() {}));
+			setModel = factory.apply("set", t -> t.baseModel(collectionModel).dataType(new @Infer TypeToken<Set<?>>() {}));
 
-			uriType = factory.apply("uri", t -> t.dataType(URI.class).node(n -> n.addChildBindingPoint(u -> u
+			uriModel = factory.apply("uri", t -> t.dataType(URI.class).node(n -> n.addChildBindingPoint(u -> u
 					.name("uriString")
 					.baseModel(primitive(Primitive.STRING))
 					.input(i -> i.target().assign(
 							invokeStatic(overType(URI.class).getConstructors().resolveOverload(String.class), i.result())))
 					.output(o -> o.source().invokeResolvedMethod("toString")))));
 
-			urlType = factory.apply("url", t -> t.dataType(URL.class).node(n -> n.addChildBindingPoint(u -> u
+			urlModel = factory.apply("url", t -> t.dataType(URL.class).node(n -> n.addChildBindingPoint(u -> u
 					.name("urlString")
 					.baseModel(primitive(Primitive.STRING))
 					.input(i -> i.target().assign(
 							invokeStatic(overType(URL.class).getConstructors().resolveOverload(String.class), i.result())))
 					.output(o -> o.source().invokeResolvedMethod("toString")))));
 
-			bufferedDataType = factory.apply("bufferedData",
+			bufferedDataModel = factory.apply("bufferedData",
 					t -> t.dataType(DataSource.class).node(n -> n
 							.initializeInput(i -> i.provide(DataSource.class))
 
 							.initializeOutput(o -> o.parent().invokeResolvedMethod("pipe", o.provide(DataTarget.class)))));
 
-			bufferedDataItemType = factory
+			bufferedDataItemModel = factory
 					.apply("bufferedDataItem",
 							t -> t
 									.dataType(new TypeToken<DataItem<?>>() {})
@@ -166,7 +165,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.initializeInput(i -> i.provide(DataSource.class).invokeResolvedMethod("get"))
 											.initializeOutput(o -> o.provide(DataTarget.class).invokeResolvedMethod("put", o.parent()))));
 
-			Model<Object> referenceBaseType = factory.apply("referenceBase", t -> t
+			Model<Object> referenceBaseModel = factory.apply("referenceBase", t -> t
 					.<Object>dataType(overAnnotatedType(unbounded(from(Infer.class))))
 					.concrete(false)
 					.export(false)
@@ -178,7 +177,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.valueResolution(ValueResolution.REGISTRATION_TIME)
 									.noIO())
 							.addChildBindingPoint(d -> d
-									.baseModel(listType)
+									.baseModel(listModel)
 									.name("targetId")
 									.concrete(false)
 									.valueResolution(ValueResolution.REGISTRATION_TIME)
@@ -187,7 +186,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											e -> e.baseModel(primitives.get(Primitive.QUALIFIED_NAME)).name("element"))))
 							.addChildBindingPoint(d -> d
 									.name("data")
-									.baseModel(bufferedDataType)
+									.baseModel(bufferedDataModel)
 									.input(i -> i.target().assign(i
 											.provide(DereferenceSource.class)
 											.invokeResolvedMethod("dereference", i.bound("targetModel"), i.bound("targetId"), i.result())))
@@ -195,19 +194,19 @@ public class BaseSchemaImpl implements BaseSchema {
 											o.bound("targetModel"), o.bound("targetId"), o
 													.source())))));
 
-			referenceType = factory.apply("reference",
+			referenceModel = factory.apply("reference",
 					t -> t
-							.baseModel(referenceBaseType)
+							.baseModel(referenceBaseModel)
 							.concrete(false)
 							.node(n -> n.addChildBindingPoint(c -> c
 									.name("targetModel")
-									.baseModel(referenceBaseType)
+									.baseModel(referenceBaseModel)
 									.concrete(false)
 									.dataType(new @Infer TypeToken<Model<?>>() {})
 									.node(o -> o
 											.addChildBindingPoint(d -> d
 													.name("targetModel")
-													.baseModel(referenceBaseType)
+													.baseModel(referenceBaseModel)
 													.dataType(new @Infer TypeToken<Model<?>>() {})
 													.provideValue(new BufferingDataTarget()
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
@@ -215,7 +214,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													.node(p -> p
 															.addChildBindingPoint(e -> e
 																	.name("targetModel")
-																	.baseModel(referenceBaseType)
+																	.baseModel(referenceBaseModel)
 																	.concrete(false)
 																	.dataType(new @Infer TypeToken<Model<?>>() {})
 																	.provideValue(new BufferingDataTarget()
@@ -232,7 +231,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
 															.buffer()))))));
 
-			bindingReferenceType = factory
+			bindingReferenceModel = factory
 					.apply("bindingReference",
 							t -> t
 									.concrete(false)
@@ -240,7 +239,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.node(
 											n -> n
 													.initializeInput(i -> i.provide(DereferenceSource.class))
-													.addChildBindingPoint(c -> c.name("targetNode").baseModel(referenceType).noIO().node(o -> o
+													.addChildBindingPoint(c -> c.name("targetNode").baseModel(referenceModel).noIO().node(o -> o
 															.addChildBindingPoint(d -> d.name("targetModel").provideValue(new BufferingDataTarget()
 																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace))
 																	.buffer()))
@@ -249,7 +248,7 @@ public class BaseSchemaImpl implements BaseSchema {
 																	.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
 																	.buffer()))))));
 
-			packageType = factory.apply("package",
+			packageModel = factory.apply("package",
 					t -> t
 							.dataType(new TypeToken<Package>() {})
 							.node(n -> n.addChildBindingPoint(p -> p
@@ -258,7 +257,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.input(i -> invokeResolvedStatic(Package.class, "getPackage"))
 									.output(o -> o.source().invokeResolvedMethod("getName")))));
 
-			typeType = factory.apply("type",
+			typeModel = factory.apply("type",
 					t -> t
 							.dataType(Type.class)
 							.node(n -> n.addChildBindingPoint(p -> p
@@ -267,10 +266,10 @@ public class BaseSchemaImpl implements BaseSchema {
 									.input(i -> invokeResolvedStatic(Types.class, "fromString", i.result()))
 									.output(o -> invokeResolvedStatic(Types.class, "toString", o.source())))));
 
-			classType = factory.apply("class", t -> t.baseModel(typeType).dataType(new TypeToken<Class<?>>() {}).node(
+			classModel = factory.apply("class", t -> t.baseModel(typeModel).dataType(new TypeToken<Class<?>>() {}).node(
 					n -> n.addChildBindingPoint(p -> p.name("name"))));
 
-			annotatedTypeType = factory.apply("annotatedType",
+			annotatedTypeModel = factory.apply("annotatedType",
 					t -> t
 							.dataType(AnnotatedType.class)
 							.node(n -> n.addChildBindingPoint(p -> p
@@ -279,15 +278,15 @@ public class BaseSchemaImpl implements BaseSchema {
 									.input(i -> invokeResolvedStatic(AnnotatedTypes.class, "fromString", i.result()))
 									.output(o -> invokeResolvedStatic(AnnotatedTypes.class, "toString", o.source())))));
 
-			typeTokenType = factory.apply("typeToken",
+			typeTokenModel = factory.apply("typeToken",
 					t -> t
 							.dataType(new TypeToken<TypeToken<?>>() {})
 							.node(n -> n.addChildBindingPoint(c -> c
-									.baseModel(annotatedTypeType)
+									.baseModel(annotatedTypeModel)
 									.input(i -> invokeResolvedStatic(TypeToken.class, "overAnnotatedType", i.result()))
 									.output(o -> o.source().invokeResolvedMethod("getAnnotatedDeclaration")))));
 
-			enumType = factory.apply("enum",
+			enumModel = factory.apply("enum",
 					t -> t
 							.dataType(new TypeToken<Enum<?>>() {})
 							.concrete(false)
@@ -309,7 +308,7 @@ public class BaseSchemaImpl implements BaseSchema {
 													i -> invokeResolvedStatic(Enumeration.class, "valueOfEnum", i.bound("enumType"), i.result()))
 											.output(o -> o.source().invokeResolvedMethod("getName")))));
 
-			enumerationType = factory.apply("enumeration",
+			enumerationModel = factory.apply("enumeration",
 					t -> t
 							.baseModel(enumerationBaseType)
 							.concrete(false)
@@ -330,7 +329,7 @@ public class BaseSchemaImpl implements BaseSchema {
 											.input(i -> invokeResolvedStatic(Enumeration.class, "valueOf", i.bound("enumType"), i.result()))
 											.output(o -> o.source().invokeResolvedMethod("getName")))));
 
-			rangeType = factory.apply("range",
+			rangeModel = factory.apply("range",
 					t -> t
 							.dataType(new TypeToken<Range<Integer>>() {})
 							.node(n -> n.addChildBindingPoint(p -> p
@@ -339,14 +338,14 @@ public class BaseSchemaImpl implements BaseSchema {
 									.input(i -> invokeResolvedStatic(Range.class, "parse", i.result()))
 									.output(o -> invokeResolvedStatic(Range.class, "compose", o.source())))));
 
-			includeType = factory
+			includeModel = factory
 					.apply("include",
 							t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).concrete(false).node(n -> n
 									.initializeInput(i -> i.parent())
 									.initializeOutput(o -> o.parent())
 									.addChildBindingPoint(c -> c
 											.name("targetModel")
-											.baseModel(referenceType)
+											.baseModel(referenceModel)
 											.dataType(new TypeToken<Model<?>>() {})
 											.concrete(false)
 											.noIO()
@@ -364,14 +363,14 @@ public class BaseSchemaImpl implements BaseSchema {
 											.input(i -> invokeResolvedStatic(IncludeTarget.class, "include", i.target()))
 											.output(o -> invokeResolvedStatic(IncludeTarget.class, "include", o.bound("targetModel"))))));
 
-			importType = factory
+			importModel = factory
 					.apply("import",
 							t -> t.dataType(Object.class).concrete(false).node(n -> n
 									.initializeInput(i -> i.parent())
 									.initializeOutput(o -> o.parent())
 									.addChildBindingPoint(c -> c
 											.name("targetModel")
-											.baseModel(referenceType)
+											.baseModel(referenceModel)
 											.dataType(new TypeToken<Model<?>>() {})
 											.concrete(false)
 											.noIO()
@@ -385,7 +384,7 @@ public class BaseSchemaImpl implements BaseSchema {
 															.buffer()))))
 									.addChildBindingPoint(d -> d
 											.name("targetId")
-											.baseModel(listType)
+											.baseModel(listModel)
 											.concrete(false)
 											.valueResolution(ValueResolution.REGISTRATION_TIME)
 											.noIO()
@@ -393,20 +392,12 @@ public class BaseSchemaImpl implements BaseSchema {
 													e -> e.name("element").baseModel(primitives.get(Primitive.QUALIFIED_NAME)))))
 									.addChildBindingPoint(d -> d
 											.name("data")
-											.baseModel(bufferedDataType)
+											.baseModel(bufferedDataModel)
 											.input(i -> i.provide(ImportSource.class).invokeResolvedMethod("dereferenceImport",
 													i.bound("targetModel"), i.bound("targetId"), i.result()))
 											.output(o -> o.provide(ImportTarget.class).invokeResolvedMethod("referenceImport",
 													o.bound("targetModel"), o.bound("targetId"), o
 															.source())))));
-
-			simpleModel = factory.apply("simpleModel",
-					m -> m.dataType(overAnnotatedType(unbounded(from(Infer.class)))).concrete(false).node(
-							n -> n.initializeInput(i -> i.parent()).initializeOutput(o -> o.parent()).addChildBindingPoint(w -> w
-									.name("content")
-									.concrete(false)
-									.input(i -> i.target().assign(i.result()))
-									.output(o -> o.source()))));
 
 			/*
 			 * Having trouble annotating Map.Entry for some reason, so need this
@@ -430,7 +421,7 @@ public class BaseSchemaImpl implements BaseSchema {
 									.condition(occurrences(between(0, null)))
 									.noInput()
 									.output(o -> o.iterate(o.source().invokeResolvedMethod("keySet")))
-									.dataType(overAnnotatedType(unbounded(from(Infer.class))))
+									.dataType(unbounded(from(Infer.class)))
 									.node(p -> p
 											.addChildBindingPoint(k -> k
 													.name("key")
@@ -446,108 +437,103 @@ public class BaseSchemaImpl implements BaseSchema {
 		}
 
 		@Override
-		public Model<Package> packageType() {
-			return packageType;
+		public Model<Package> packageModel() {
+			return packageModel;
 		}
 
 		@Override
-		public Model<Class<?>> classType() {
-			return classType;
+		public Model<Class<?>> classModel() {
+			return classModel;
 		}
 
 		@Override
-		public Model<Type> typeType() {
-			return typeType;
+		public Model<Type> typeModel() {
+			return typeModel;
 		}
 
 		@Override
-		public Model<AnnotatedType> annotatedTypeType() {
-			return annotatedTypeType;
+		public Model<AnnotatedType> annotatedTypeModel() {
+			return annotatedTypeModel;
 		}
 
 		@Override
-		public Model<TypeToken<?>> typeTokenType() {
-			return typeTokenType;
+		public Model<TypeToken<?>> typeTokenModel() {
+			return typeTokenModel;
 		}
 
 		@Override
-		public Model<Enum<?>> enumType() {
-			return enumType;
+		public Model<Enum<?>> enumModel() {
+			return enumModel;
 		}
 
 		@Override
-		public Model<Enumeration<?>> enumerationType() {
-			return enumerationType;
+		public Model<Enumeration<?>> enumerationModel() {
+			return enumerationModel;
 		}
 
 		@Override
-		public Model<Range<Integer>> rangeType() {
-			return rangeType;
+		public Model<Range<Integer>> rangeModel() {
+			return rangeModel;
 		}
 
 		@Override
-		public Model<Object> referenceType() {
-			return referenceType;
+		public Model<Object> referenceModel() {
+			return referenceModel;
 		}
 
 		@Override
-		public Model<Object> bindingReferenceType() {
-			return bindingReferenceType;
+		public Model<Object> bindingReferenceModel() {
+			return bindingReferenceModel;
 		}
 
 		@Override
-		public Model<DataSource> bufferedDataType() {
-			return bufferedDataType;
+		public Model<DataSource> bufferedDataModel() {
+			return bufferedDataModel;
 		}
 
 		@Override
-		public Model<DataItem<?>> bufferedDataItemType() {
-			return bufferedDataItemType;
+		public Model<DataItem<?>> bufferedDataItemModel() {
+			return bufferedDataItemModel;
 		}
 
 		@Override
-		public Model<Object[]> arrayType() {
-			return arrayType;
+		public Model<Object[]> arrayModel() {
+			return arrayModel;
 		}
 
 		@Override
-		public Model<Collection<?>> collectionType() {
-			return collectionType;
+		public Model<Collection<?>> collectionModel() {
+			return collectionModel;
 		}
 
 		@Override
-		public Model<List<?>> listType() {
-			return listType;
+		public Model<List<?>> listModel() {
+			return listModel;
 		}
 
 		@Override
-		public Model<Set<?>> setType() {
-			return setType;
+		public Model<Set<?>> setModel() {
+			return setModel;
 		}
 
 		@Override
-		public Model<Collection<?>> includeType() {
-			return includeType;
+		public Model<Collection<?>> includeModel() {
+			return includeModel;
 		}
 
 		@Override
-		public Model<Object> importType() {
-			return importType;
+		public Model<Object> importModel() {
+			return importModel;
 		}
 
 		@Override
-		public Model<URI> uriType() {
-			return uriType;
+		public Model<URI> uriModel() {
+			return uriModel;
 		}
 
 		@Override
-		public Model<URL> urlType() {
-			return urlType;
-		}
-
-		@Override
-		public Model<?> simpleModel() {
-			return simpleModel;
+		public Model<URL> urlModel() {
+			return urlModel;
 		}
 
 		@Override
