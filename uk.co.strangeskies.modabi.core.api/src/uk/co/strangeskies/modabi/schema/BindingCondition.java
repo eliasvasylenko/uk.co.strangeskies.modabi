@@ -81,6 +81,15 @@ public interface BindingCondition<T> {
 		return new Ordered<>(order);
 	}
 
+	/**
+	 * @return a binding condition which only allows processing to proceed once
+	 *         the previous item has completed
+	 */
+	public static <T> BindingCondition<T> synchronous() {
+		// TODO implement synchronous binding condition
+		throw new UnsupportedOperationException();
+	}
+
 	public static <T> BindingCondition<T> and(Collection<? extends BindingCondition<? super T>> conditions) {
 		return new And<>(conditions);
 	}
@@ -97,6 +106,14 @@ public interface BindingCondition<T> {
 	@SafeVarargs
 	public static <T> BindingCondition<T> or(BindingCondition<? super T>... conditions) {
 		return or(Arrays.asList(conditions));
+	}
+
+	default BindingCondition<T> or(BindingCondition<? super T> condition) {
+		return or(this, condition);
+	}
+
+	default BindingCondition<T> and(BindingCondition<? super T> condition) {
+		return and(this, condition);
 	}
 
 	/**
@@ -332,8 +349,10 @@ public interface BindingCondition<T> {
 		@Override
 		public BindingConditionEvaluation<T> forState(ProcessingContext state) {
 			return new BindingConditionEvaluation<T>() {
-				private final List<BindingConditionEvaluation<? super T>> conditionEvaluations = conditions.stream()
-						.map(c -> c.forState(state)).collect(toList());
+				private final List<BindingConditionEvaluation<? super T>> conditionEvaluations = conditions
+						.stream()
+						.map(c -> c.forState(state))
+						.collect(toList());
 
 				@Override
 				public void processNext(T binding) {
@@ -369,8 +388,10 @@ public interface BindingCondition<T> {
 		@Override
 		public BindingConditionEvaluation<T> forState(ProcessingContext state) {
 			return new BindingConditionEvaluation<T>() {
-				private final List<BindingConditionEvaluation<? super T>> conditionEvaluations = conditions.stream()
-						.map(c -> c.forState(state)).collect(toList());
+				private final List<BindingConditionEvaluation<? super T>> conditionEvaluations = conditions
+						.stream()
+						.map(c -> c.forState(state))
+						.collect(toList());
 
 				@Override
 				public void processNext(T binding) {
