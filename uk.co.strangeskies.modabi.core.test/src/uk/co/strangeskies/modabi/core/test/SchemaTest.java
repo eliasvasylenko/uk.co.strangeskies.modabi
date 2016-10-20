@@ -44,9 +44,9 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
-import uk.co.strangeskies.modabi.schema.SimpleNode;
-import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.SimpleNode;
 import uk.co.strangeskies.modabi.testing.TestBase;
 import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
@@ -67,29 +67,34 @@ public class SchemaTest extends TestBase {
 	@Test
 	public void abstractChoiceNodeTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
-		schemaManager.getSchemaConfigurator().qualifiedName(new QualifiedName("choiceNodeTest"))
-				.addModel("choiceNodeTestModel", m -> m.concrete(false).addChild(c -> c.choice().concrete(false)));
+		schemaManager.getSchemaConfigurator().qualifiedName(new QualifiedName("choiceNodeTest")).addModel(
+				"choiceNodeTestModel", m -> m.concrete(false).addChild(c -> c.choice().concrete(false)));
 	}
 
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void inlineDataSchemaTest() {
-		ComplexNode<IdentityProperty<DataSource>> inlineData = getModel(INLINE_DATA, INLINE_DATA_TYPE);
+		Model<IdentityProperty<DataSource>> inlineData = getModel(INLINE_DATA, INLINE_DATA_TYPE);
 
 		Assert.assertNotNull(inlineData);
 	}
 
 	@Test(timeout = 6000)
 	public void schemaTest() throws InterruptedException {
-		manager().bindSchema().withClassLoader(getClass().getClassLoader()).from(() -> this.getResouce("SchemaTest"))
+		manager()
+				.bindSchema()
+				.withClassLoader(getClass().getClassLoader())
+				.from(() -> this.getResouce("SchemaTest"))
 				.resolve(4000);
 	}
 
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void inlinePropertyTest() {
-		Property<DataSource, DataSource> inlineProperty = manager().bindInput()
+		Property<DataSource, DataSource> inlineProperty = manager()
+				.bindInput()
 				.with(getModel(INLINE_DATA, INLINE_DATA_TYPE))
 				.withProvider(Provider.over(INLINE_DATA_TYPE, () -> new IdentityProperty<>()))
-				.from(() -> this.getResouce(INLINE_PROPERTY_RESOURCE)).resolve(1000);
+				.from(() -> this.getResouce(INLINE_PROPERTY_RESOURCE))
+				.resolve(1000);
 
 		DataSource expectedValue = new BufferingDataTarget()
 
@@ -97,7 +102,8 @@ public class SchemaTest extends TestBase {
 
 				.put(Primitive.STRING, "value")
 
-				.put(Primitive.STRING, "list").buffer();
+				.put(Primitive.STRING, "list")
+				.buffer();
 
 		Assert.assertNotNull(inlineProperty);
 		Assert.assertEquals(expectedValue, inlineProperty.get());
@@ -144,7 +150,8 @@ public class SchemaTest extends TestBase {
 			System.out.println("Success: " + success);
 
 			@SuppressWarnings("unchecked")
-			ComplexNode<Schema> schemaModel = (ComplexNode<Schema>) metaSchema.models()
+			Model<Schema> schemaModel = (Model<Schema>) metaSchema
+					.models()
 					.get(new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 			System.out.println();
@@ -162,7 +169,8 @@ public class SchemaTest extends TestBase {
 			metaSchema = schemaManager.bindInput().with(Schema.class).from(buffered).resolve();
 
 			@SuppressWarnings("unchecked")
-			ComplexNode<Schema> schemaModel2 = (ComplexNode<Schema>) metaSchema.models()
+			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema
+					.models()
 					.get(new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 			System.out.println();
@@ -179,11 +187,14 @@ public class SchemaTest extends TestBase {
 	public void manualSchemaCreationTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
 
-		SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator()
+		SchemaConfigurator generatedSchema = schemaManager
+				.getSchemaConfigurator()
 				.qualifiedName(new QualifiedName("testExtentions", Namespace.getDefault()));
 
-		SimpleNode<List<?>> intListType = generatedSchema.addDataType().name("intSet", Namespace.getDefault())
-				.baseType(schemaManager.getBaseSchema().derived().listType())
+		Model<List<?>> intListType = generatedSchema
+				.addModel()
+				.name("intSet", Namespace.getDefault())
+				.baseModel(schemaManager.getBaseSchema().derived().listModel())
 				.addChild(e -> e.data().name("element").type(schemaManager.getBaseSchema().primitive(Primitive.INT)))
 				.create();
 		System.out.println(intListType.dataType());
@@ -194,19 +205,29 @@ public class SchemaTest extends TestBase {
 		stringIntMap.put("third", 3);
 
 		@SuppressWarnings("unchecked")
-		ComplexNode<Map<?, ?>> stringIntMapModel = generatedSchema.addModel().name("stringIntMap", Namespace.getDefault())
+		Model<Map<?, ?>> stringIntMapModel = generatedSchema
+				.addModel()
+				.name("stringIntMap", Namespace.getDefault())
 				.baseModel(schemaManager.getBaseSchema().baseModels().mapModel())
-				.addChild(s -> s.complex().name("entrySet").addChild(e -> e.complex().name("entry")
-						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
-						.addChild(v -> v.complex().name("value")
-								.<Object>model((ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel()).addChild(
-										c -> c.data().name("content").type(schemaManager.getBaseSchema().primitive(Primitive.INT))))))
+				.addChild(s -> s
+						.complex()
+						.name("entrySet")
+						.addChild(e -> e
+								.complex()
+								.name("entry")
+								.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
+								.addChild(v -> v
+										.complex()
+										.name("value")
+										.<Object>model((ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
+										.addChild(
+												c -> c.data().name("content").type(schemaManager.getBaseSchema().primitive(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.dataType());
 		System.out.println("    ~# " + stringIntMapModel.dataType().getResolver().getBounds());
 
-		schemaManager.bindOutput(stringIntMap).with(stringIntMapModel)
-				.to(schemaManager.registeredFormats().get("xml").saveData(System.out));
+		schemaManager.bindOutput(stringIntMap).with(stringIntMapModel).to(
+				schemaManager.registeredFormats().get("xml").saveData(System.out));
 		System.out.println();
 
 		/*-
@@ -223,30 +244,53 @@ public class SchemaTest extends TestBase {
 				.over(AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
 						Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
 		@SuppressWarnings("unchecked")
-		ComplexNode<Map<?, ?>> mapModel3 = generatedSchema.addModel().name("map3", Namespace.getDefault())
+		Model<Map<?, ?>> mapModel3 = generatedSchema
+				.addModel()
+				.name("map3", Namespace.getDefault())
 				.dataType(new @Infer TypeToken<Map<?, ?>>() {})
-				.addChild(
-						e -> e.complex().name("entrySet").inline(true).inputNone().dataType(inferredMapEntrySet)
-								.inputBindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
-								.addChild(s -> s.inputSequence().name("entrySet").chainedInput(true))
-								.addChild(f -> f.complex().name("entry").occurrences(Range.between(0, null)).inputMethod("add")
-										.outputSelf()
-										.inputBindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE).inputBindingType(BaseSchema.class)
-										.outputBindingMethod("mapEntry").dataType(inferredMapEntry).addChild(k -> k.data().name("key")
-												.inputNone().format(SimpleNode.Format.PROPERTY).type(schemaManager.getBaseSchema()
-														.derived().listType())
-												.addChild(l -> l.data().name("element")
-														.type(schemaManager.getBaseSchema().primitive(Primitive.BINARY))))
-										.addChild(v -> v.complex().name("value").inputNone()
-												.model(schemaManager.getBaseSchema().baseModels().mapModel())
-												.addChild(s -> s.complex().name("entrySet").addChild(ee -> ee.complex().name("entry")
-														.addChild(k -> k.data().name("key")
-																.type(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
-														.addChild(vv -> vv.complex().name("value")
-																.<Object>model(
-																		(ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
-																.addChild(cc -> cc.data().name("content")
-																		.type(schemaManager.getBaseSchema().primitive(Primitive.INT)))))))))
+				.addChild(e -> e
+						.complex()
+						.name("entrySet")
+						.inline(true)
+						.inputNone()
+						.dataType(inferredMapEntrySet)
+						.inputBindingStrategy(InputBindingStrategy.TARGET_ADAPTOR)
+						.addChild(s -> s.inputSequence().name("entrySet").chainedInput(true))
+						.addChild(f -> f
+								.complex()
+								.name("entry")
+								.occurrences(Range.between(0, null))
+								.inputMethod("add")
+								.outputSelf()
+								.inputBindingStrategy(InputBindingStrategy.IMPLEMENT_IN_PLACE)
+								.inputBindingType(BaseSchema.class)
+								.outputBindingMethod("mapEntry")
+								.dataType(inferredMapEntry)
+								.addChild(k -> k
+										.data()
+										.name("key")
+										.inputNone()
+										.format(SimpleNode.Format.PROPERTY)
+										.type(schemaManager.getBaseSchema().derived().listType())
+										.addChild(
+												l -> l.data().name("element").type(schemaManager.getBaseSchema().primitive(Primitive.BINARY))))
+								.addChild(v -> v
+										.complex()
+										.name("value")
+										.inputNone()
+										.model(schemaManager.getBaseSchema().baseModels().mapModel())
+										.addChild(s -> s.complex().name("entrySet").addChild(ee -> ee
+												.complex()
+												.name("entry")
+												.addChild(
+														k -> k.data().name("key").type(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
+												.addChild(vv -> vv
+														.complex()
+														.name("value")
+														.<Object>model(
+																(ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
+														.addChild(cc -> cc.data().name("content").type(
+																schemaManager.getBaseSchema().primitive(Primitive.INT)))))))))
 				.create();
 		System.out.println(mapModel3.dataType());
 		System.out.println(mapModel3.dataType().getResolver().getBounds());

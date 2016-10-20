@@ -24,11 +24,14 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-public abstract class SchemaNodeWrapper implements SchemaNode {
+public class SchemaNodeWrapper implements SchemaNode {
 	private final SchemaNode component;
 	private final SchemaNode base;
 
@@ -119,6 +122,30 @@ public abstract class SchemaNodeWrapper implements SchemaNode {
 	@Override
 	public Schema schema() {
 		return component.schema();
+	}
+
+	@Override
+	public SchemaNodeConfigurator configurator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SchemaNode> baseNodes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BindingPoint<?> parentBindingPoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ChildBindingPoint<?>> childBindingPoints() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

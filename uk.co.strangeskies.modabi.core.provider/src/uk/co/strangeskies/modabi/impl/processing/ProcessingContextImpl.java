@@ -30,7 +30,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.Bindings;
-import uk.co.strangeskies.modabi.DataTypes;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.Provisions;
@@ -184,10 +183,15 @@ public class ProcessingContextImpl implements ProcessingContext {
 		List<Model<?>> models;
 
 		if (node.baseNodes() != null && !node.baseNodes().isEmpty()) {
-			models = registeredModels.getModelsWithBase(node.baseNodes()).stream()
-					.filter(n -> node.getDataType().isAssignableFrom(n.getDataType())).collect(Collectors.toList());
+			models = registeredModels
+					.getModelsWithBase(node.baseNodes())
+					.stream()
+					.filter(n -> node.getDataType().isAssignableFrom(n.getDataType()))
+					.collect(Collectors.toList());
 		} else {
-			models = registeredModels.stream().filter(c -> node.getDataType().isAssignableFrom(c.dataType()))
+			models = registeredModels
+					.stream()
+					.filter(c -> node.getDataType().isAssignableFrom(c.dataType()))
 					.collect(Collectors.toList());
 		}
 
@@ -420,10 +424,5 @@ public class ProcessingContextImpl implements ProcessingContext {
 	@Override
 	public Models registeredModels() {
 		return registeredModels;
-	}
-
-	@Override
-	public DataTypes registeredTypes() {
-		return registeredTypes;
 	}
 }

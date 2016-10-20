@@ -22,19 +22,19 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 import uk.co.strangeskies.utilities.Observable;
+import uk.co.strangeskies.utilities.Observer;
 
 public interface BindingBlocks extends Observable<BindingBlockEvent> {
 	public static BindingBlocks NON_BLOCKING = new BindingBlocks() {
 		@Override
-		public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
+		public boolean addObserver(Observer<? super BindingBlockEvent> observer) {
 			return true;
 		}
 
 		@Override
-		public boolean removeObserver(Consumer<? super BindingBlockEvent> observer) {
+		public boolean removeObserver(Observer<? super BindingBlockEvent> observer) {
 			return true;
 		}
 

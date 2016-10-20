@@ -45,6 +45,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.utilities.ConsumerSupplierQueue;
 import uk.co.strangeskies.utilities.IdentityProperty;
+import uk.co.strangeskies.utilities.Observer;
 import uk.co.strangeskies.utilities.Property;
 import uk.co.strangeskies.utilities.collection.ObservableSet.Change;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
@@ -204,7 +205,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 		ConsumerSupplierQueue<StructuredDataFormat> queue = new ConsumerSupplierQueue<>();
 		Set<StructuredDataFormat> registeredFormats = new HashSet<>();
 
-		Consumer<Change<StructuredDataFormat>> observer = change -> {
+		Observer<Change<StructuredDataFormat>> observer = change -> {
 			synchronized (registeredFormats) {
 				for (StructuredDataFormat format : change.added()) {
 					if (!registeredFormats.contains(format)) {

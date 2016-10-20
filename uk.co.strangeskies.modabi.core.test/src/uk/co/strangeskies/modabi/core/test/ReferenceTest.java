@@ -28,11 +28,11 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public class ReferenceTest extends TestBase {
 	private static final String NAMED_VALUE_MODEL = "namedValue";
-	private static final String STRING_REFERENCS_TYPE = "stringReferences";
+	private static final String STRING_REFERENCS_MODEL = "stringReferences";
 
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void loadReferenceTestSchema() {
 		Assert.assertNotNull(getModel(NAMED_VALUE_MODEL, new TypeToken<NamedValue>() {}));
-		Assert.assertNotNull(getType(STRING_REFERENCS_TYPE, new TypeToken<List<NamedValue>>() {}));
+		Assert.assertNotNull(getModel(STRING_REFERENCS_MODEL, new TypeToken<List<NamedValue>>() {}));
 	}
 }

@@ -25,11 +25,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.Observable;
+import uk.co.strangeskies.utilities.Observer;
 import uk.co.strangeskies.utilities.collection.MultiHashMap;
 import uk.co.strangeskies.utilities.collection.MultiMap;
 
@@ -37,7 +37,7 @@ public class Bindings {
 	public final MultiMap<Model<?>, BindingPoint<?>, Set<BindingPoint<?>>> boundNodes;
 	public final MultiMap<BindingPoint<?>, Object, Set<Object>> boundObjects;
 
-	private final MultiMap<Model<?>, Consumer<?>, Collection<Consumer<?>>> listeners;
+	private final MultiMap<Model<?>, Observer<?>, Collection<Observer<?>>> listeners;
 
 	public Bindings() {
 		boundNodes = new MultiHashMap<>(HashSet::new);
@@ -70,8 +70,8 @@ public class Bindings {
 	private <T> void fire(BindingPoint<T> node, T data) {
 		for (Model<?> model : listeners.keySet()) {
 			if (model.equals(node) || node.baseModel().contains(model)) {
-				for (Consumer<?> listener : listeners.get(model)) {
-					((Consumer<? super T>) listener).accept(data);
+				for (Observer<?> listener : listeners.get(model)) {
+					((Observer<? super T>) listener).notify(data);
 				}
 			}
 		}
@@ -92,8 +92,12 @@ public class Bindings {
 
 	@SuppressWarnings("unchecked")
 	public synchronized <T> Set<T> getModelBindings(Model<T> model) {
-		return boundNodes.getOrDefault(model, emptySet()).stream()
-				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
+		return boundNodes
+				.getOrDefault(model, emptySet())
+				.stream()
+				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream())
+				.map(t -> (T) t)
+				.collect(toSet());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -106,14 +110,14 @@ public class Bindings {
 
 		return new Observable<T>() {
 			@Override
-			public boolean addObserver(Consumer<? super T> observer) {
+			public boolean addObserver(Observer<? super T> observer) {
 				synchronized (Bindings.this) {
 					return listeners.add(effectiveModel, observer);
 				}
 			}
 
 			@Override
-			public boolean removeObserver(Consumer<? super T> observer) {
+			public boolean removeObserver(Observer<? super T> observer) {
 				synchronized (Bindings.this) {
 					return listeners.add(effectiveModel, observer);
 				}

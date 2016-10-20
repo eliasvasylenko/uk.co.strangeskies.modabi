@@ -23,6 +23,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.ComplexNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 
 public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNode<? super T>, ComplexNode<T>>
@@ -65,7 +66,7 @@ public class ComplexNodeWrapper<T> extends BindingChildNodeWrapper<T, ComplexNod
 		return new ComplexNodeWrapper<>(component);
 	}
 
-	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(ComplexNode<T> node, ComplexNode<?> override) {
+	public static <T> ComplexNodeWrapper<? extends T> wrapNodeWithOverrideType(SchemaNode node, Model<?> override) {
 		/*
 		 * This cast isn't strictly going to be valid according to the exact erased
 		 * type, but the runtime checks in the constructor should ensure the types

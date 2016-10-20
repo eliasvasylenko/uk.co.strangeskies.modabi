@@ -68,8 +68,8 @@ public class BindingNodeOverrider {
 	 * @return a node which overrides the given node by merging it with a model
 	 *         which extends all components of the nodes model
 	 */
-	public ComplexNode override(ChildBindingPoint<?, ComplexNode> node, Model<?> override) {
-		ComplexNode wrappedNode = ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
+	public SchemaNode override(SchemaNode node, Model<?> override) {
+		SchemaNode wrappedNode = ComplexNodeWrapper.wrapNodeWithOverrideType(node, override);
 
 		if (!isDirectOverridePossible(node, override)) {
 			wrappedNode = new OverridingProcessor().process(builder, wrappedNode);
@@ -155,8 +155,12 @@ public class BindingNodeOverrider {
 
 			List<ComplexNode<? super T>> models = new ArrayList<>(override.baseModel());
 
-			ComplexNodeConfigurator<T> elementConfigurator = configurator.addChildBindingPoint().complex()
-					.name(override.name()).castOutput(true).model(models);
+			ComplexNodeConfigurator<T> elementConfigurator = configurator
+					.addChildBindingPoint()
+					.complex()
+					.name(override.name())
+					.castOutput(true)
+					.model(models);
 
 			elementConfigurator = processBindingNode(node, elementConfigurator);
 			elementConfigurator = processBindingChildNode(node, elementConfigurator);
