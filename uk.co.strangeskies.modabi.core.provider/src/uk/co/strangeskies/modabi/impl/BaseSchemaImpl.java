@@ -63,7 +63,6 @@ import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.reflection.AnnotatedParameterizedTypes;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.AnnotatedWildcardTypes;
 import uk.co.strangeskies.reflection.Annotations;
@@ -403,16 +402,6 @@ public class BaseSchemaImpl implements BaseSchema {
 			 * Having trouble annotating Map.Entry for some reason, so need this
 			 * kludge.
 			 */
-			AnnotatedType annotatedMapEntry = AnnotatedParameterizedTypes.from(
-					AnnotatedTypes.over(Map.Entry.class, Annotations.from(Infer.class)),
-					Arrays.asList(AnnotatedWildcardTypes.unbounded(), AnnotatedWildcardTypes.unbounded()));
-
-			TypeToken<?> inferredMapEntry = overAnnotatedType(annotatedMapEntry);
-
-			TypeToken<?> inferredMapEntrySet = overAnnotatedType(
-					AnnotatedParameterizedTypes.from(AnnotatedTypes.over(Set.class, Annotations.from(Infer.class)),
-							Arrays.asList(AnnotatedWildcardTypes.upperBounded(annotatedMapEntry))));
-
 			mapModel = factory.apply("map",
 					c -> c
 							.dataType(new @Infer TypeToken<Map<?, ?>>() {})
@@ -420,18 +409,19 @@ public class BaseSchemaImpl implements BaseSchema {
 									.name("entry")
 									.condition(occurrences(between(0, null)))
 									.noInput()
-									.output(o -> o.iterate(o.source().invokeResolvedMethod("keySet")))
-									.dataType(unbounded(from(Infer.class)))
-									.node(p -> p
+									.output(o -> o.iterate(o.source().invokeResolvedMethod("entrySet")))
+									.dataType(void.class)
+									.node(p -> p.initializeInput(i -> i.parent())
 											.addChildBindingPoint(k -> k
 													.name("key")
 													.noInput()
-													.output(o -> o.source())
+													.output(o -> o.source().invokeResolvedMethod("getKey"))
 													.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
 													.extensible(true))
 											.addChildBindingPoint(v -> v
 													.name("value")
-													.output(o -> o.s)
+													.output(o -> o.source().invokeResolvedMethod("getValue"))
+													.input(i -> i.target().invokeResolvedMethod("put", i.bound("key"), i.result()))
 													.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
 													.extensible(true))))));
 		}

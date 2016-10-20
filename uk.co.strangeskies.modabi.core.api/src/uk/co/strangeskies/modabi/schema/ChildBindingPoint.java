@@ -42,6 +42,4 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
 	default boolean isValueProvided() {
 		return providedValues() != null;
 	}
-	
-	
 }

@@ -50,10 +50,8 @@ import uk.co.strangeskies.modabi.processing.BindingBlocker;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SimpleNode;
+import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
@@ -70,8 +68,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	/*
 	 * Model and DataType caches
 	 */
-	private final Function<SimpleNode, ComputingMap<? extends DataType<?>, ? extends SimpleNode>> dataTypeCache;
-	private final Function<ComplexNode, ComputingMap<? extends Model<?>, ? extends ComplexNode>> modelCache;
+	private final Function<SchemaNode, ComputingMap<Model<?>, SchemaNode>> modelCache;
 
 	/*
 	 * Fetch model
@@ -90,7 +87,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 	 * Registered models and types
 	 */
 	private final Models registeredModels;
-	private final DataTypes registeredTypes;
 
 	public ProcessingContextImpl(SchemaManager manager) {
 		this.manager = manager;
@@ -99,10 +95,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 		bindingStack = Collections.emptyList();
 		bindings = new Bindings();
 
-		dataTypeCache = new LRUCacheComputingMap<SimpleNode, ComputingMap<? extends DataType<?>, ? extends SimpleNode>>(
-				node -> getDataNodeOverrideMap(node), 150, true)::putGet;
-
-		modelCache = new LRUCacheComputingMap<ComplexNode, ComputingMap<? extends Model<?>, ? extends ComplexNode>>(
+		modelCache = new LRUCacheComputingMap<SchemaNode, ComputingMap<Model<?>, SchemaNode>>(
 				node -> getComplexNodeOverrideMap(node), 150, true)::putGet;
 
 		getModel = name -> manager.registeredModels().get(name);
@@ -111,7 +104,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 		exhaustive = true;
 
 		registeredModels = manager.registeredModels();
-		registeredTypes = manager.registeredTypes();
 
 		bindingFutureBlocker = new BindingBlocksImpl();
 	}
@@ -123,7 +115,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 		bindingStack = parentContext.getBindingNodeStack();
 		bindings = parentContext.bindings();
 
-		dataTypeCache = parentContext::getDataNodeOverrides;
 		modelCache = parentContext::getComplexNodeOverrides;
 
 		getModel = parentContext::getModel;
@@ -135,7 +126,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 		this.output = parentContext.output().orElse(null);
 
 		registeredModels = parentContext.registeredModels();
-		registeredTypes = parentContext.registeredTypes();
 
 		bindingFutureBlocker = parentContext.bindingFutureBlocker();
 	}
@@ -149,7 +139,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 		this.bindingStack = bindingStack;
 		bindings = parentContext.bindings();
 
-		dataTypeCache = parentContext::getDataNodeOverrides;
 		modelCache = parentContext::getComplexNodeOverrides;
 
 		getModel = parentContext::getModel;
@@ -161,7 +150,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 		this.output = output;
 
 		registeredModels = parentContext.registeredModels();
-		registeredTypes = parentContext.registeredTypes();
 
 		bindingFutureBlocker = blocker;
 	}
@@ -191,41 +179,26 @@ public class ProcessingContextImpl implements ProcessingContext {
 		return Optional.ofNullable(output);
 	}
 
-	private <T> ComputingMap<DataType<?>, SimpleNode> getDataNodeOverrideMap(SimpleNode node) {
-		List<DataType<?>> types = registeredTypes.getTypesWithBase(node).stream()
-				.collect(Collectors.toCollection(ArrayList::new));
-
-		ComputingMap<DataType<?>, SimpleNode> overrideMap = new DeferredComputingMap<>(
-				type -> getDataNodeOverride(node, type));
-		overrideMap.putAll(types);
-
-		return overrideMap;
-	}
-
-	private SimpleNode getDataNodeOverride(SimpleNode node, DataType<?> type) {
-		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, type);
-	}
-
 	@SuppressWarnings("unchecked")
-	private ComputingMap<Model<?>, ComplexNode> getComplexNodeOverrideMap(ComplexNode node) {
+	private ComputingMap<Model<?>, SchemaNode> getComplexNodeOverrideMap(SchemaNode node) {
 		List<Model<?>> models;
 
-		if (node.model() != null && !node.model().isEmpty()) {
-			models = registeredModels.getModelsWithBase(node.model()).stream()
+		if (node.baseNodes() != null && !node.baseNodes().isEmpty()) {
+			models = registeredModels.getModelsWithBase(node.baseNodes()).stream()
 					.filter(n -> node.getDataType().isAssignableFrom(n.getDataType())).collect(Collectors.toList());
 		} else {
 			models = registeredModels.stream().filter(c -> node.getDataType().isAssignableFrom(c.dataType()))
 					.collect(Collectors.toList());
 		}
 
-		ComputingMap<Model<?>, ComplexNode> overrideMap = new DeferredComputingMap<>(
+		ComputingMap<Model<?>, SchemaNode> overrideMap = new DeferredComputingMap<>(
 				model -> getComplexNodeOverride(node, model));
 		overrideMap.putAll(models);
 
 		return overrideMap;
 	}
 
-	private <T> ComplexNode getComplexNodeOverride(ComplexNode node, Model<?> model) {
+	private <T> SchemaNode getComplexNodeOverride(SchemaNode node, Model<?> model) {
 		return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject()).override(node, model);
 	}
 
@@ -250,13 +223,8 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	public ComputingMap<DataType<?>, SimpleNode> getDataNodeOverrides(SimpleNode node) {
-		return (ComputingMap<DataType<?>, SimpleNode>) dataTypeCache.apply(node);
-	}
-
-	@Override
-	public ComputingMap<Model<?>, ComplexNode> getComplexNodeOverrides(ComplexNode node) {
-		return (ComputingMap<Model<?>, ComplexNode>) modelCache.apply(node);
+	public ComputingMap<Model<?>, SchemaNode> getComplexNodeOverrides(SchemaNode node) {
+		return modelCache.apply(node);
 	}
 
 	@Override
