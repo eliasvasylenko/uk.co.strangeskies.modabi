@@ -183,7 +183,7 @@
 					targetModel="hello"
 					targetId="name">
 
-					theId
+					theName
 				</bind>
 			</node>
 		</model>

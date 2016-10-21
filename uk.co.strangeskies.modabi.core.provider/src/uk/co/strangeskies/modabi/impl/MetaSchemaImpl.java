@@ -89,24 +89,23 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Node Models */
 
 		@SuppressWarnings("unchecked")
-		Model<BindingPoint<?>> bindingPointModel = factory.apply("bindingPoint", m -> m
-				.concrete(false)
-				.dataType(new TypeToken<BindingPoint<?>>() {})
-				.inputBindingType(new TypeToken<SchemaNodeConfigurator>() {}.getType())
-				.addChildBindingPoint(c -> c.inputSequence().name("addChild").chainedInput(true))
-				.addChildBindingPoint(c -> c.inputSequence().name("configure").concrete(false).chainedInput(true).postInputType(
-						new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
-				.addChildBindingPoint(n -> n.data().name("name"))
-				.addChildBindingPoint(
-						n -> n.data().format(PROPERTY).name("orderedOccurrences").type(base.primitive(BOOLEAN)).optional(true))
-				.addChildBindingPoint(
-						n -> n.data().format(PROPERTY).name("occurrences").type(base.derived().rangeType()).optional(true))
-				.addChildBindingPoint(n -> n
-						.data()
-						.format(PROPERTY)
-						.type(base.primitive(Primitive.STRING))
-						.name("postInputType")
-						.optional(true)));
+		Model<BindingPoint<?>> bindingPointModel = factory.apply("bindingPoint",
+				m -> m.concrete(false).dataType(new TypeToken<BindingPoint<?>>() {}).node(n -> n
+						.addChildBindingPoint(c -> c.inputSequence().name("addChild").chainedInput(true))
+						.addChildBindingPoint(
+								c -> c.inputSequence().name("configure").concrete(false).chainedInput(true).postInputType(
+										new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
+						.addChildBindingPoint(n -> n.data().name("name"))
+						.addChildBindingPoint(
+								n -> n.data().format(PROPERTY).name("orderedOccurrences").type(base.primitive(BOOLEAN)).optional(true))
+						.addChildBindingPoint(
+								n -> n.data().format(PROPERTY).name("occurrences").type(base.derived().rangeType()).optional(true))
+						.addChildBindingPoint(n -> n
+								.data()
+								.format(PROPERTY)
+								.type(base.primitive(Primitive.STRING))
+								.name("postInputType")
+								.optional(true))));
 
 		Model<SchemaNodeConfigurator> nodeModel = factory.apply("node",
 				m -> m
