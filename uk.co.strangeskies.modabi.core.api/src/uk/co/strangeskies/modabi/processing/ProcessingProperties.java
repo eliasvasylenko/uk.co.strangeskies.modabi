@@ -63,8 +63,7 @@ public interface ProcessingProperties extends Properties<ProcessingProperties> {
 
 	Localized<String> noProviderFound(TypeToken<?> type);
 
-	<T> Localized<String> mustBeOrdered(ChildBindingPoint<T> node, List<? extends T> data,
-			Class<? extends Comparator<?>> order);
+	<T> Localized<String> mustBeOrdered(ChildBindingPoint<T> node, T lastItem, Class<? extends Comparator<?>> order);
 
 	default Localized<String> mustHaveDataWithinRange(ChildBindingPoint<?> node, Range<Integer> range) {
 		return mustHaveDataWithinRange(node.name(), Range.compose(range));

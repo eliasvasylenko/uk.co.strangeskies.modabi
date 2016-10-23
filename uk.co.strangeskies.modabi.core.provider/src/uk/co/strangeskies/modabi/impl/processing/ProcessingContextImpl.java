@@ -126,7 +126,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 
 		registeredModels = parentContext.registeredModels();
 
-		bindingFutureBlocker = parentContext.bindingFutureBlocker();
+		bindingFutureBlocker = parentContext.bindingBlocker();
 	}
 
 	protected ProcessingContextImpl(ProcessingContext parentContext, List<TypedObject<?>> objectStack,
@@ -232,7 +232,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	@Override
-	public BindingBlocker bindingFutureBlocker() {
+	public BindingBlocker bindingBlocker() {
 		return bindingFutureBlocker;
 	}
 
@@ -323,7 +323,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 	}
 
 	public <I> I attemptUnbindingUntilSuccessful(Iterable<I> attemptItems,
-			BiConsumer<ProcessingContextImpl, I> unbindingMethod, Function<Set<Exception>, ProcessingException> onFailure) {
+			BiConsumer<ProcessingContextImpl, I> unbindingMethod) {
 		if (!attemptItems.iterator().hasNext())
 			throw new ProcessingException(t -> t.mustSupplyAttemptItems(), this);
 
@@ -338,7 +338,7 @@ public class ProcessingContextImpl implements ProcessingContext {
 				failures.add(e);
 			}
 
-		throw onFailure.apply(failures);
+		throw ProcessingException.mergeExceptions(this, failures);
 	}
 
 	public void attemptBinding(Consumer<ProcessingContextImpl> bindingMethod) {

@@ -31,6 +31,7 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.bindingconditions.Optional;
 import uk.co.strangeskies.reflection.TypeToken;
 
 public class DummyNodes {
@@ -108,7 +109,7 @@ public class DummyNodes {
 
 			@Override
 			public BindingCondition<Object> bindingCondition() {
-				return BindingCondition.optional();
+				return Optional.optional();
 			}
 
 			@Override
@@ -137,13 +138,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public TypeToken<?> preInputType() {
-				return dataType();
-			}
-
-			@Override
-			public TypeToken<?> postInputType() {
-				return dataType();
+			public boolean ordered() {
+				return false;
 			}
 		};
 	}

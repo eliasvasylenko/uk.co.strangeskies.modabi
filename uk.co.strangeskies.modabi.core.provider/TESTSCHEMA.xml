@@ -57,7 +57,7 @@
 					</assign>
 
 					<expression
-						value="target = target.hello(provide(), (SomeType)	bindingResult(someNode))" />
+						value="target = target.hello(provide(), (SomeType)	bindingResult(${somenamespace:someNode}))" />
 				</input>
 
 				<bind

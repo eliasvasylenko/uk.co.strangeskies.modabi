@@ -8,14 +8,22 @@ import uk.co.strangeskies.reflection.TypeToken;
 
 public interface BindingPoint<T> extends Reified {
 	enum Format {
-		COMPLEX, SIMPLE, CONTENT, PROPERTY, INVISIBLE /*
-																									 * TODO obviously invisible is
-																									 * a bad word... think of
-																									 * something better, eli.
-																									 * Something that means "not
-																									 * bound to io", e.g. provided
-																									 * values etc.
-																									 */
+		/**
+		 * 
+		 */
+		COMPLEX,
+		/**
+		 * 
+		 */
+		PROPERTY,
+		/**
+		 * 
+		 */
+		CONTENT,
+		/**
+		 * Cannot be ordered
+		 */
+		ABSENT
 	}
 
 	QualifiedName name();

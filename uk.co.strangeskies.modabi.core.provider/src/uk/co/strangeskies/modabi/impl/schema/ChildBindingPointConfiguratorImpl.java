@@ -127,6 +127,11 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 				// TODO Auto-generated method stub
 				return null;
 			}
+
+			@Override
+			public ValueExpression<?> provide() {
+				return provide(getDataType());
+			}
 		};
 	}
 
@@ -164,6 +169,12 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 			@Override
 			public <U> ValueExpression<U> iterate(ValueExpression<Iterable<U>> values) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public <U> ValueExpression<U> provide() {
 				// TODO Auto-generated method stub
 				return null;
 			}

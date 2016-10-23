@@ -28,9 +28,9 @@ import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
-import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
+import uk.co.strangeskies.modabi.processing.provisions.ImportTarget;
+import uk.co.strangeskies.modabi.processing.provisions.IncludeTarget;
+import uk.co.strangeskies.modabi.processing.provisions.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 

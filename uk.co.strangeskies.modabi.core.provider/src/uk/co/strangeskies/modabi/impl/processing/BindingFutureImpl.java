@@ -113,13 +113,13 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 		dataFuture = new FutureTask<>(() -> {
 			Thread.currentThread().setContextClassLoader(classLoader);
-			context.bindingFutureBlocker().addParticipatingThread(Thread.currentThread());
+			context.bindingBlocker().addParticipatingThread(Thread.currentThread());
 
 			modelFuture.run();
 
 			T binding = bind(sourceFuture.get());
 
-			context.bindingFutureBlocker().complete();
+			context.bindingBlocker().complete();
 
 			return binding;
 		});
@@ -128,13 +128,13 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
-		synchronized (context.bindingFutureBlocker()) {
+		synchronized (context.bindingBlocker()) {
 			if (bindingResult == null && !cancelled) {
 				Exception exception = new ModabiException(t -> t.cancelled(this));
-				for (BindingBlock block : context.bindingFutureBlocker().getBlocks()) {
+				for (BindingBlock block : context.bindingBlocker().getBlocks()) {
 					block.fail(exception);
 				}
-				for (Thread thread : context.bindingFutureBlocker().getParticipatingThreads()) {
+				for (Thread thread : context.bindingBlocker().getParticipatingThreads()) {
 					thread.interrupt();
 				}
 				cancelled = true;
@@ -167,7 +167,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 	}
 
 	private Binding<T> tryGet(TryGet<BindingSource<T>> getModel, TryGet<T> getData) {
-		synchronized (context.bindingFutureBlocker()) {
+		synchronized (context.bindingBlocker()) {
 			if (bindingResult != null) {
 				return bindingResult;
 			}
@@ -214,7 +214,7 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 
 	@Override
 	public BindingBlocks blocks() {
-		return context.bindingFutureBlocker();
+		return context.bindingBlocker();
 	}
 
 	private T bind(BindingSource<T> source) {

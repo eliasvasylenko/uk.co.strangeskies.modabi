@@ -133,7 +133,7 @@ public interface ProcessingContext {
 	 * @return the blocking interface through which a processing thread may signal
 	 *         that it is waiting for availability of some dependency or resource
 	 */
-	BindingBlocker bindingFutureBlocker();
+	BindingBlocker bindingBlocker();
 
 	/**
 	 * @return objects which have been bound so far, or bindings which have been

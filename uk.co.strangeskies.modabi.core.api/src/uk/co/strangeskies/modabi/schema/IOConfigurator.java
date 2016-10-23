@@ -39,7 +39,7 @@ public interface IOConfigurator {
 	 * 
 	 * @return
 	 */
-	<U> ValueExpression<U> provide();
+	ValueExpression<?> provide();
 
 	ValueExpression<ProcessingContext> context();
 

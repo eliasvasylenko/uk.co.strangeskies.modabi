@@ -16,14 +16,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.processing.providers;
+package uk.co.strangeskies.modabi.processing.provisions;
 
-import java.util.List;
+import java.util.Collection;
 
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
-public interface ImportSource {
-	<T> T dereferenceImport(Model<T> model, List<QualifiedName> idDomain, DataSource id);
+public interface IncludeTarget {
+	<T> void include(Model<T> model, Collection<? extends T> objects);
 }

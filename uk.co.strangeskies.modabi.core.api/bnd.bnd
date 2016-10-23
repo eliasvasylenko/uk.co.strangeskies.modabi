@@ -24,9 +24,10 @@ Export-Package: \
 	uk.co.strangeskies.modabi.io.structured,\
 	uk.co.strangeskies.modabi.model.nodes.test,\
 	uk.co.strangeskies.modabi.processing,\
-	uk.co.strangeskies.modabi.processing.providers,\
+	uk.co.strangeskies.modabi.processing.provisions,\
 	uk.co.strangeskies.modabi.schema,\
-	uk.co.strangeskies.modabi.schema.building
+	uk.co.strangeskies.modabi.schema.building,\
+	uk.co.strangeskies.modabi.schema.bindingconditions
 
 -includeresource: \
 	OSGI-INF/l10n=l10n,\

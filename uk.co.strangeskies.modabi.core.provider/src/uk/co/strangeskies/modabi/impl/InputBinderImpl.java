@@ -224,7 +224,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 			BindingSource<T> source = getBindingSource.apply(registeredFormats);
 
 			if (source == null) {
-				BindingBlock block = context.bindingFutureBlocker().block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId,
+				BindingBlock block = context.bindingBlocker().block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId,
 						false);
 
 				try {

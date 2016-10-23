@@ -44,8 +44,8 @@ import uk.co.strangeskies.modabi.io.DataStreamState;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
-import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
-import uk.co.strangeskies.modabi.processing.providers.ImportSource;
+import uk.co.strangeskies.modabi.processing.provisions.DereferenceSource;
+import uk.co.strangeskies.modabi.processing.provisions.ImportSource;
 import uk.co.strangeskies.modabi.schema.ChildNode;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataLoader;
@@ -214,7 +214,7 @@ public class BindingProviders {
 			/*
 			 * No existing candidates found, so block to wait for new ones
 			 */
-			BindingBlock block = context.bindingFutureBlocker().block(model.name(), id, !externalDependency);
+			BindingBlock block = context.bindingBlocker().block(model.name(), id, !externalDependency);
 			blockProperty.set(block);
 		}
 

@@ -19,7 +19,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static uk.co.strangeskies.mathematics.Range.between;
-import static uk.co.strangeskies.modabi.schema.BindingCondition.occurrences;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.Occurrences.occurrences;
 import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.unbounded;
 import static uk.co.strangeskies.reflection.Annotations.from;
 import static uk.co.strangeskies.reflection.TypeToken.overAnnotatedType;
@@ -55,11 +55,11 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.providers.DereferenceSource;
-import uk.co.strangeskies.modabi.processing.providers.ImportSource;
-import uk.co.strangeskies.modabi.processing.providers.ImportTarget;
-import uk.co.strangeskies.modabi.processing.providers.IncludeTarget;
-import uk.co.strangeskies.modabi.processing.providers.ReferenceTarget;
+import uk.co.strangeskies.modabi.processing.provisions.DereferenceSource;
+import uk.co.strangeskies.modabi.processing.provisions.ImportSource;
+import uk.co.strangeskies.modabi.processing.provisions.ImportTarget;
+import uk.co.strangeskies.modabi.processing.provisions.IncludeTarget;
+import uk.co.strangeskies.modabi.processing.provisions.ReferenceTarget;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
@@ -402,28 +402,28 @@ public class BaseSchemaImpl implements BaseSchema {
 			 * Having trouble annotating Map.Entry for some reason, so need this
 			 * kludge.
 			 */
-			mapModel = factory.apply("map",
-					c -> c
-							.dataType(new @Infer TypeToken<Map<?, ?>>() {})
-							.node(n -> n.addChildBindingPoint(f -> f
-									.name("entry")
-									.condition(occurrences(between(0, null)))
-									.noInput()
-									.output(o -> o.iterate(o.source().invokeResolvedMethod("entrySet")))
-									.dataType(void.class)
-									.node(p -> p.initializeInput(i -> i.parent())
-											.addChildBindingPoint(k -> k
-													.name("key")
-													.noInput()
-													.output(o -> o.source().invokeResolvedMethod("getKey"))
-													.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-													.extensible(true))
-											.addChildBindingPoint(v -> v
-													.name("value")
-													.output(o -> o.source().invokeResolvedMethod("getValue"))
-													.input(i -> i.target().invokeResolvedMethod("put", i.bound("key"), i.result()))
-													.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-													.extensible(true))))));
+			mapModel = factory.apply("map", c -> c
+					.dataType(new @Infer TypeToken<Map<?, ?>>() {})
+					.node(n -> n.addChildBindingPoint(f -> f
+							.name("entry")
+							.condition(occurrences(between(0, null)))
+							.noInput()
+							.output(o -> o.iterate(o.source().invokeResolvedMethod("entrySet")))
+							.dataType(void.class)
+							.node(p -> p
+									.initializeInput(i -> i.parent())
+									.addChildBindingPoint(k -> k
+											.name("key")
+											.noInput()
+											.output(o -> o.source().invokeResolvedMethod("getKey"))
+											.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
+											.extensible(true))
+									.addChildBindingPoint(v -> v
+											.name("value")
+											.output(o -> o.source().invokeResolvedMethod("getValue"))
+											.input(i -> i.target().invokeResolvedMethod("put", i.bound("key"), i.result()))
+											.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
+											.extensible(true))))));
 		}
 
 		@Override

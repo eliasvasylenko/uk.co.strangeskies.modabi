@@ -154,7 +154,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 		ProcessingContextImpl finalContext = context;
 		context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
 			unbindImpl(c, m, output);
-		}, e -> new ProcessingException("Cannot unbind data '" + data + "' with models '" + models + "'", finalContext, e));
+		});
 
 		return output;
 	}

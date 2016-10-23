@@ -20,7 +20,7 @@ Private-Package: \
 	uk.co.strangeskies.modabi.core.test
 
 Import-Package: \
-	uk.co.strangeskies.modabi.processing.providers,\
+	uk.co.strangeskies.modabi.processing.provisions,\
 	*
 
 # This makes run requirements simpler so they work for different strangeskies repo types
