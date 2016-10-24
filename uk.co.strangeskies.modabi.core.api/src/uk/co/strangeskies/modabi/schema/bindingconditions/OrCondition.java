@@ -15,11 +15,11 @@ import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 
-public class OrBindingCondition<T> implements BindingCondition<T> {
+public class OrCondition<T> implements BindingCondition<T> {
 	private final List<BindingCondition<? super T>> conditions;
 
 	public static <T> BindingCondition<T> or(Collection<? extends BindingCondition<? super T>> conditions) {
-		return new OrBindingCondition<>(conditions);
+		return new OrCondition<>(conditions);
 	}
 
 	@SafeVarargs
@@ -27,8 +27,12 @@ public class OrBindingCondition<T> implements BindingCondition<T> {
 		return or(Arrays.asList(conditions));
 	}
 
-	protected OrBindingCondition(Collection<? extends BindingCondition<? super T>> conditions) {
+	protected OrCondition(Collection<? extends BindingCondition<? super T>> conditions) {
 		this.conditions = new ArrayList<>(conditions);
+	}
+
+	public List<BindingCondition<? super T>> getConditions() {
+		return conditions;
 	}
 
 	@Override

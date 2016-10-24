@@ -19,9 +19,10 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static uk.co.strangeskies.mathematics.Range.between;
-import static uk.co.strangeskies.modabi.schema.bindingconditions.RequiredBindingOccurrences.occurrences;
-import static uk.co.strangeskies.modabi.schema.bindingconditions.OptionalBinding.optional;
-import static uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedBinding.asynchronous;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.OccurrencesCondition.occurrences;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.OptionalCondition.optional;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedCondition.asynchronous;
+import static uk.co.strangeskies.reflection.codegen.InvocationExpression.invokeResolvedStatic;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -41,6 +42,7 @@ import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
 import uk.co.strangeskies.modabi.declarative.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.DataLoader;
@@ -48,8 +50,18 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Format;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.bindingconditions.AndCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.AscendingSortCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.DescendingSortCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.ForbiddenCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.OccurrencesCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.OptionalCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.OrCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.RequiredCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedCondition;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.TypeToken.Infer;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private interface ModelFactory {
@@ -86,6 +98,59 @@ public class MetaSchemaImpl implements MetaSchema {
 	}
 
 	private void buildModels(ModelFactory factory, BaseSchema base, Namespace namespace) {
+		/* Binding Condition Models */
+		Model<BindingCondition<?>> bindingConditionModel = factory.apply("bindingCondition",
+				m -> m.concrete(false).dataType(new @Infer TypeToken<BindingCondition<?>>() {}));
+
+		Model<AndCondition<?>> andModel = factory.apply("andCondition",
+				m -> m
+						.baseModel(bindingConditionModel)
+						.dataType(new @Infer TypeToken<AndCondition<?>>() {})
+						.node(n -> n.addChildBindingPoint(c -> c
+								.name("conditions")
+								.input(i -> invokeResolvedStatic(AndCondition.class, "and", i.result()))
+								.baseModel(base.derived().setModel())
+								.node(p -> p.addChildBindingPoint(h -> h.name("element").baseModel(bindingConditionModel))))));
+
+		Model<OrCondition<?>> orModel = factory.apply("orCondition",
+				m -> m
+						.baseModel(bindingConditionModel)
+						.dataType(new @Infer TypeToken<OrCondition<?>>() {})
+						.node(n -> n.addChildBindingPoint(c -> c
+								.name("conditions")
+								.input(i -> invokeResolvedStatic(OrCondition.class, "or", i.result()))
+								.baseModel(base.derived().setModel())
+								.node(p -> p.addChildBindingPoint(h -> h.name("element").baseModel(bindingConditionModel))))));
+
+		Model<RequiredCondition<?>> requiredModel = factory.apply("requiredCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<RequiredCondition<?>>() {}).node(
+						n -> n.initializeInput(i -> invokeResolvedStatic(RequiredCondition.class, "required"))));
+
+		Model<ForbiddenCondition<?>> forbiddenModel = factory.apply("forbiddenCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<ForbiddenCondition<?>>() {}).node(
+						n -> n.initializeInput(i -> invokeResolvedStatic(ForbiddenCondition.class, "forbidden"))));
+
+		Model<OptionalCondition<?>> optionalModel = factory.apply("optionalCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<OptionalCondition<?>>() {}).node(
+						n -> n.initializeInput(i -> invokeResolvedStatic(OptionalCondition.class, "optional"))));
+
+		Model<AscendingSortCondition<?>> sortAscendingModel = factory.apply("sortAscendingCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<AscendingSortCondition<?>>() {}).node(
+						n -> n.initializeInput(i -> invokeResolvedStatic(AscendingSortCondition.class, "ascending"))));
+
+		Model<DescendingSortCondition<?>> sortDescendingModel = factory.apply("sortDescendingCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<DescendingSortCondition<?>>() {}).node(
+						n -> n.initializeInput(i -> invokeResolvedStatic(DescendingSortCondition.class, "descending"))));
+
+		Model<SynchronizedCondition<?>> synchronizedModel = factory.apply("synchronizedCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<SynchronizedCondition<?>>() {}).node(
+						n -> n.initializeInput(i -> invokeResolvedStatic(SynchronizedCondition.class, "asynchronous"))));
+
+		Model<OccurrencesCondition<?>> occurrencesModel = factory.apply("occurrencesCondition",
+				m -> m.baseModel(bindingConditionModel).dataType(new @Infer TypeToken<OccurrencesCondition<?>>() {}).node(
+						n -> n.addChildBindingPoint(c -> c.name("range").baseModel(base.derived().rangeModel()).input(
+								i -> invokeResolvedStatic(OccurrencesCondition.class, "occurrences", i.result())))));
+
 		/* Node Models */
 
 		@SuppressWarnings("unchecked")
@@ -95,17 +160,13 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChildBindingPoint(
 								c -> c.inputSequence().name("configure").concrete(false).chainedInput(true).postInputType(
 										new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
-						.addChildBindingPoint(n -> n.data().name("name"))
+						.addChildBindingPoint(c -> c.name("name"))
 						.addChildBindingPoint(
-								n -> n.data().format(PROPERTY).name("orderedOccurrences").type(base.primitive(BOOLEAN)).optional(true))
+								c -> c.name("orderedOccurrences").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
 						.addChildBindingPoint(
-								n -> n.data().format(PROPERTY).name("occurrences").type(base.derived().rangeType()).optional(true))
-						.addChildBindingPoint(n -> n
-								.data()
-								.format(PROPERTY)
-								.type(base.primitive(Primitive.STRING))
-								.name("postInputType")
-								.optional(true))));
+								c -> c.name("occurrences").baseModel(base.derived().rangeModel()).condition(optional()))
+						.addChildBindingPoint(
+								c -> c.name("postInputType").baseModel(base.primitive(Primitive.STRING)).condition(optional()))));
 
 		Model<SchemaNodeConfigurator> nodeModel = factory.apply("node",
 				m -> m

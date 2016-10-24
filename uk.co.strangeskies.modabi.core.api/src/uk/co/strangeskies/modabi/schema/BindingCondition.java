@@ -1,8 +1,8 @@
 package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.schema.bindingconditions.AndBindingCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.OrBindingCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.AndCondition;
+import uk.co.strangeskies.modabi.schema.bindingconditions.OrCondition;
 
 /**
  * A {@link BindingCondition binding condition} is associated with a
@@ -39,10 +39,10 @@ public interface BindingCondition<T> {
 	BindingConditionEvaluation<T> forState(ProcessingContext state);
 
 	default BindingCondition<T> or(BindingCondition<? super T> condition) {
-		return OrBindingCondition.or(this, condition);
+		return OrCondition.or(this, condition);
 	}
 
 	default BindingCondition<T> and(BindingCondition<? super T> condition) {
-		return AndBindingCondition.and(this, condition);
+		return AndCondition.and(this, condition);
 	}
 }

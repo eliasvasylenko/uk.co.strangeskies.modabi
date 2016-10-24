@@ -13,14 +13,14 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
  * 
  * @author Elias N Vasylenko
  */
-public class RequiredBindingOccurrences<T> implements BindingCondition<T> {
+public class OccurrencesCondition<T> implements BindingCondition<T> {
 	private final Range<Integer> range;
 
 	public static <T> BindingCondition<T> occurrences(Range<Integer> range) {
-		return new RequiredBindingOccurrences<>(range);
+		return new OccurrencesCondition<>(range);
 	}
 
-	protected RequiredBindingOccurrences(Range<Integer> range) {
+	protected OccurrencesCondition(Range<Integer> range) {
 		this.range = range;
 	}
 

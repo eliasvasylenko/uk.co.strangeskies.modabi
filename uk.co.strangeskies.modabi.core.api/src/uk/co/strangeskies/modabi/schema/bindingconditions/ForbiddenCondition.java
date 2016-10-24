@@ -10,15 +10,15 @@ import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
  * 
  * @author Elias N Vasylenko
  */
-public class ForbiddenBinding<T> implements BindingCondition<T> {
-	static final ForbiddenBinding<?> INSTANCE = new ForbiddenBinding<>();
+public class ForbiddenCondition<T> implements BindingCondition<T> {
+	static final ForbiddenCondition<?> INSTANCE = new ForbiddenCondition<>();
 
 	@SuppressWarnings("unchecked")
 	public static <T> BindingCondition<T> forbidden() {
-		return (BindingCondition<T>) ForbiddenBinding.INSTANCE;
+		return (BindingCondition<T>) ForbiddenCondition.INSTANCE;
 	}
 
-	protected ForbiddenBinding() {}
+	protected ForbiddenCondition() {}
 
 	@Override
 	public BindingConditionEvaluation<T> forState(ProcessingContext state) {

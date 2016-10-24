@@ -10,18 +10,18 @@ import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
  * 
  * @author Elias N Vasylenko
  */
-public class SynchronizedBinding<T> implements BindingCondition<T> {
-	static final SynchronizedBinding<?> INSTANCE = new SynchronizedBinding<>();
+public class SynchronizedCondition<T> implements BindingCondition<T> {
+	static final SynchronizedCondition<?> INSTANCE = new SynchronizedCondition<>();
 
 	/**
-	 * @return an instance of {@link SynchronizedBinding}
+	 * @return an instance of {@link SynchronizedCondition}
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> BindingCondition<T> asynchronous() {
 		return (BindingCondition<T>) INSTANCE;
 	}
 
-	protected SynchronizedBinding() {}
+	protected SynchronizedCondition() {}
 
 	@Override
 	public BindingConditionEvaluation<T> forState(ProcessingContext state) {
