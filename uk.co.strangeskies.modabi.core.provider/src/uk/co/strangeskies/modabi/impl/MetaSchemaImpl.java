@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import static java.util.Arrays.asList;
 import static uk.co.strangeskies.mathematics.Range.between;
 import static uk.co.strangeskies.modabi.schema.bindingconditions.OccurrencesCondition.occurrences;
 import static uk.co.strangeskies.modabi.schema.bindingconditions.OptionalCondition.optional;
@@ -43,8 +44,9 @@ import uk.co.strangeskies.modabi.declarative.OutputBindingStrategy;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
-import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
@@ -98,6 +100,25 @@ public class MetaSchemaImpl implements MetaSchema {
 	}
 
 	private void buildModels(ModelFactory factory, BaseSchema base, Namespace namespace) {
+		/* Node Base Models */
+
+		Model<BindingPointConfigurator<?, ?>> bindingPointModelBase = factory.apply("bindingPointBase",
+				m -> m.dataType(new TypeToken<BindingPointConfigurator<?, ?>>() {}).concrete(false).export(false));
+
+		Model<ModelConfigurator<?>> metaModelBase = factory.apply("modelBase",
+				m -> m
+						.baseModel(bindingPointModelBase)
+						.dataType(new TypeToken<ModelConfigurator<?>>() {})
+						.concrete(false)
+						.export(false));
+
+		Model<ChildBindingPointConfigurator<?>> childBindingPointModelBase = factory.apply("childBindingPointBase",
+				m -> m
+						.baseModel(bindingPointModelBase)
+						.dataType(new TypeToken<ChildBindingPointConfigurator<?>>() {})
+						.concrete(false)
+						.export(false));
+
 		/* Binding Condition Models */
 		Model<BindingCondition<?>> bindingConditionModel = factory.apply("bindingCondition",
 				m -> m.concrete(false).dataType(new @Infer TypeToken<BindingCondition<?>>() {}));
@@ -154,29 +175,49 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Node Models */
 
 		@SuppressWarnings("unchecked")
-		Model<BindingPoint<?>> bindingPointModel = factory.apply("bindingPoint",
-				m -> m.concrete(false).dataType(new TypeToken<BindingPoint<?>>() {}).node(n -> n
-						.addChildBindingPoint(c -> c.inputSequence().name("addChild").chainedInput(true))
+		Model<BindingPointConfigurator<?, ?>> bindingPointModel = factory.apply("bindingPoint", m -> m
+				.concrete(false)
+				.baseModel(bindingPointModelBase)
+				.dataType(new TypeToken<BindingPointConfigurator<?, ?>>() {})
+				.node(n -> n
+						.addChildBindingPoint(c -> c.name("name").baseModel(base.primitive(Primitive.STRING)).condition(optional()))
 						.addChildBindingPoint(
-								c -> c.inputSequence().name("configure").concrete(false).chainedInput(true).postInputType(
-										new TypeToken<ChildNodeConfigurator<?, ?>>() {}))
-						.addChildBindingPoint(c -> c.name("name"))
+								c -> c.name("export").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
 						.addChildBindingPoint(
-								c -> c.name("orderedOccurrences").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
+								c -> c.name("concrete").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
+						.addChildBindingPoint(c -> c.name("baseModel").baseModel(metaModelBase).condition(optional()))
 						.addChildBindingPoint(
-								c -> c.name("occurrences").baseModel(base.derived().rangeModel()).condition(optional()))
-						.addChildBindingPoint(
-								c -> c.name("postInputType").baseModel(base.primitive(Primitive.STRING)).condition(optional()))));
+								c -> c.name("dataType").baseModel(base.derived().typeTokenModel()).condition(optional()))));
+
+		Model<ModelConfigurator<?>> metaModel = factory.apply("model", m -> m
+				.baseModel(asList(metaModelBase, bindingPointModel))
+				.dataType(new @Infer TypeToken<ModelConfigurator<?>>() {}));
+
+		Model<ChildBindingPointConfigurator<?>> childBindingPointModel = factory.apply("childBindingPoint",
+				m -> m
+						.baseModel(bindingPointModel)
+						.dataType(new TypeToken<ChildBindingPointConfigurator<?>>() {})
+						.node(n -> n
+								.addChildBindingPoint(
+										c -> c.name("extensible").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
+								.addChildBindingPoint(c -> c.name("condition").baseModel(bindingConditionModel).condition(optional()))
+								.addChildBindingPoint(c -> c
+										.name("valueResolution")
+										.baseModel(base.derived().enumModel())
+										.dataType(ValueResolution.class)
+										.condition(optional()))
+								.addChildBindingPoint(c -> c
+										.name("value")
+										.baseModel(base.derived().bufferedDataModel())
+										.input(i -> i.target().invokeResolvedMethod("provideValue", i.result()))
+										.output(o -> o.source().invokeResolvedMethod("getProvidedValue"))
+										.condition(optional()))));
 
 		Model<SchemaNodeConfigurator> nodeModel = factory.apply("node",
 				m -> m
 						.concrete(false)
 						.dataType(new TypeToken<SchemaNodeConfigurator>() {})
 						.node(n -> n
-								.initializeInput(i -> i.parent().invokeResolvedMethod("node"))
-								.initializeOutput(o -> o.parent().invokeResolvedMethod("node"))
-								.addChildBindingPoint(
-										b -> b.name("name").baseModel(base.primitive(Primitive.QUALIFIED_NAME)).condition(optional()))
 								.addChildBindingPoint(
 										b -> b.name("concrete").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
 								.addChildBindingPoint(b -> b

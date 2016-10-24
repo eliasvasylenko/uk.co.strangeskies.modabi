@@ -1,9 +1,11 @@
 package uk.co.strangeskies.modabi.schema;
 
+import static java.util.Arrays.asList;
 import static uk.co.strangeskies.reflection.TypeToken.overAnnotatedType;
 import static uk.co.strangeskies.reflection.TypeToken.overType;
 
 import java.lang.reflect.AnnotatedType;
+import java.util.Collection;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ValueResolution;
@@ -57,12 +59,21 @@ public interface ChildBindingPointConfigurator<T>
 	}
 
 	@Override
-	<V> ChildBindingPointConfigurator<V> baseModel(Model<? extends V> dataType);
+	default <V> ChildBindingPointConfigurator<V> baseModel(Model<? extends V> baseModel) {
+		return baseModel(asList(baseModel));
+	}
+
+	@Override
+	<V> ChildBindingPointConfigurator<V> baseModel(Collection<? extends Model<? extends V>> baseModel);
 
 	@Override
 	ChildBindingPoint<T> create();
 
 	ChildBindingPointConfigurator<T> valueResolution(ValueResolution registrationTime);
 
+	ValueResolution getValueResolution();
+
 	ChildBindingPointConfigurator<T> provideValue(DataSource buffer);
+
+	DataSource getProvidedValue();
 }

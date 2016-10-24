@@ -1,9 +1,11 @@
 package uk.co.strangeskies.modabi.schema;
 
+import static java.util.Arrays.asList;
 import static uk.co.strangeskies.reflection.TypeToken.overAnnotatedType;
 import static uk.co.strangeskies.reflection.TypeToken.overType;
 
 import java.lang.reflect.AnnotatedType;
+import java.util.Collection;
 
 import uk.co.strangeskies.reflection.TypeToken;
 
@@ -22,7 +24,12 @@ public interface ModelConfigurator<T> extends BindingPointConfigurator<T, ModelC
 	}
 
 	@Override
-	<V> ModelConfigurator<V> baseModel(Model<? extends V> dataType);
+	default <V> ModelConfigurator<V> baseModel(Model<? extends V> baseModel) {
+		return baseModel(asList(baseModel));
+	}
+
+	@Override
+	<V> ModelConfigurator<V> baseModel(Collection<? extends Model<? extends V>> baseModel);
 
 	@Override
 	Model<T> create();

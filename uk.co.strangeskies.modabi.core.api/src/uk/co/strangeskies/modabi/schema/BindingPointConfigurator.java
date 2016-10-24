@@ -1,6 +1,9 @@
 package uk.co.strangeskies.modabi.schema;
 
+import static java.util.Arrays.asList;
+
 import java.lang.reflect.AnnotatedType;
+import java.util.Collection;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -39,7 +42,11 @@ public interface BindingPointConfigurator<T, S extends BindingPointConfigurator<
 		return dataType(TypeToken.overAnnotatedType(dataType));
 	}
 
-	<V> BindingPointConfigurator<V, ?> baseModel(Model<? extends V> dataType);
+	default <V> BindingPointConfigurator<V, ?> baseModel(Model<? extends V> baseModel) {
+		return baseModel(asList(baseModel));
+	}
+
+	<V> BindingPointConfigurator<V, ?> baseModel(Collection<? extends Model<? extends V>> baseModel);
 
 	SchemaNodeConfigurator node();
 
