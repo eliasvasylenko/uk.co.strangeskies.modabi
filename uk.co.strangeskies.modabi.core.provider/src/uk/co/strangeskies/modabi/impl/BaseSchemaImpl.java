@@ -107,30 +107,36 @@ public class BaseSchemaImpl implements BaseSchema {
 			Namespace namespace = BaseSchema.QUALIFIED_NAME.getNamespace();
 
 			arrayModel = factory.apply("array",
-					t -> t.dataType(new @Infer TypeToken<Object[]>() {}).node(n -> n
-							.initializeInput(i -> i.provide(new TypeToken<List<?>>() {}))
-							.initializeOutput(o -> invokeResolvedStatic(Arrays.class, "asList", o.parent()))
-							.addChildBindingPoint(c -> c
-									.name("element")
-									.input(i -> i.target().invokeResolvedMethod("add", i.result()))
-									.output(o -> o.iterate(o.source()))
-									.concrete(false)
-									.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
-									.condition(occurrences(between(0, null))))
-							.addChildBindingPoint(c -> c
-									.name("toArray")
-									.dataType(void.class)
-									.input(i -> i.target().assign(i.target().invokeResolvedMethod("toArray")))
-									.noOutput())));
+					t -> t
+							.dataType(new @Infer TypeToken<Object[]>() {})
+							.node(n -> n
+									.initializeInput(i -> i.provide(new TypeToken<List<?>>() {}))
+									.initializeOutput(o -> invokeResolvedStatic(Arrays.class, "asList", o.parent()))
+									.addChildBindingPoint(c -> c
+											.name("element")
+											.input(i -> i.target().invokeResolvedMethod("add", i.result()))
+											.output(o -> o.iterate(o.source()))
+											.concrete(false)
+											.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class)))
+											.bindingCondition(occurrences(between(0, null))))
+									.addChildBindingPoint(c -> c
+											.name("toArray")
+											.dataType(void.class)
+											.input(i -> i.target().assign(i.target().invokeResolvedMethod("toArray")))
+											.noOutput())));
 
-			collectionModel = factory.apply("collection", t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).node(
-					n -> n.initializeInput(i -> i.provide()).addChildBindingPoint(c -> c
-							.name("element")
-							.input(i -> i.target().invokeResolvedMethod("add", i.result()))
-							.output(o -> o.iterate(o.source()))
-							.concrete(false)
-							.condition(occurrences(between(0, null)))
-							.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))));
+			collectionModel = factory.apply("collection",
+					t -> t
+							.dataType(new @Infer TypeToken<Collection<?>>() {})
+							.node(n -> n
+									.initializeInput(i -> i.provide())
+									.addChildBindingPoint(c -> c
+											.name("element")
+											.input(i -> i.target().invokeResolvedMethod("add", i.result()))
+											.output(o -> o.iterate(o.source()))
+											.concrete(false)
+											.bindingCondition(occurrences(between(0, null)))
+											.dataType(AnnotatedWildcardTypes.unbounded(Annotations.from(Infer.class))))));
 
 			listModel = factory.apply("list", t -> t.baseModel(collectionModel).dataType(new @Infer TypeToken<List<?>>() {}));
 
@@ -406,7 +412,7 @@ public class BaseSchemaImpl implements BaseSchema {
 					.dataType(new @Infer TypeToken<Map<?, ?>>() {})
 					.node(n -> n.addChildBindingPoint(f -> f
 							.name("entry")
-							.condition(occurrences(between(0, null)))
+							.bindingCondition(occurrences(between(0, null)))
 							.noInput()
 							.output(o -> o.iterate(o.source().invokeResolvedMethod("entrySet")))
 							.dataType(void.class)

@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.impl.schema;
+package uk.co.strangeskies.modabi.impl.schema.old;
 
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 

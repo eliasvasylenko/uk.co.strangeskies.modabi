@@ -175,19 +175,21 @@ public class MetaSchemaImpl implements MetaSchema {
 		/* Node Models */
 
 		@SuppressWarnings("unchecked")
-		Model<BindingPointConfigurator<?, ?>> bindingPointModel = factory.apply("bindingPoint", m -> m
-				.concrete(false)
-				.baseModel(bindingPointModelBase)
-				.dataType(new TypeToken<BindingPointConfigurator<?, ?>>() {})
-				.node(n -> n
-						.addChildBindingPoint(c -> c.name("name").baseModel(base.primitive(Primitive.STRING)).condition(optional()))
-						.addChildBindingPoint(
-								c -> c.name("export").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
-						.addChildBindingPoint(
-								c -> c.name("concrete").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
-						.addChildBindingPoint(c -> c.name("baseModel").baseModel(metaModelBase).condition(optional()))
-						.addChildBindingPoint(
-								c -> c.name("dataType").baseModel(base.derived().typeTokenModel()).condition(optional()))));
+		Model<BindingPointConfigurator<?, ?>> bindingPointModel = factory.apply("bindingPoint",
+				m -> m
+						.concrete(false)
+						.baseModel(bindingPointModelBase)
+						.dataType(new TypeToken<BindingPointConfigurator<?, ?>>() {})
+						.node(n -> n
+								.addChildBindingPoint(
+										c -> c.name("name").baseModel(base.primitive(Primitive.STRING)).bindingCondition(optional()))
+								.addChildBindingPoint(
+										c -> c.name("export").baseModel(base.primitive(Primitive.BOOLEAN)).bindingCondition(optional()))
+								.addChildBindingPoint(
+										c -> c.name("concrete").baseModel(base.primitive(Primitive.BOOLEAN)).bindingCondition(optional()))
+								.addChildBindingPoint(c -> c.name("baseModel").baseModel(metaModelBase).bindingCondition(optional()))
+								.addChildBindingPoint(
+										c -> c.name("dataType").baseModel(base.derived().typeTokenModel()).bindingCondition(optional()))));
 
 		Model<ModelConfigurator<?>> metaModel = factory.apply("model", m -> m
 				.baseModel(asList(metaModelBase, bindingPointModel))
@@ -199,34 +201,33 @@ public class MetaSchemaImpl implements MetaSchema {
 						.dataType(new TypeToken<ChildBindingPointConfigurator<?>>() {})
 						.node(n -> n
 								.addChildBindingPoint(
-										c -> c.name("extensible").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
-								.addChildBindingPoint(c -> c.name("condition").baseModel(bindingConditionModel).condition(optional()))
+										c -> c.name("extensible").baseModel(base.primitive(Primitive.BOOLEAN)).bindingCondition(optional()))
+								.addChildBindingPoint(
+										c -> c.name("condition").baseModel(bindingConditionModel).bindingCondition(optional()))
 								.addChildBindingPoint(c -> c
 										.name("valueResolution")
 										.baseModel(base.derived().enumModel())
 										.dataType(ValueResolution.class)
-										.condition(optional()))
+										.bindingCondition(optional()))
 								.addChildBindingPoint(c -> c
 										.name("value")
 										.baseModel(base.derived().bufferedDataModel())
 										.input(i -> i.target().invokeResolvedMethod("provideValue", i.result()))
 										.output(o -> o.source().invokeResolvedMethod("getProvidedValue"))
-										.condition(optional()))));
+										.bindingCondition(optional()))));
 
-		Model<SchemaNodeConfigurator> nodeModel = factory.apply("node",
-				m -> m
-						.concrete(false)
-						.dataType(new TypeToken<SchemaNodeConfigurator>() {})
-						.node(n -> n
+		Model<SchemaNodeConfigurator> nodeModel = factory
+				.apply("node",
+						m -> m.concrete(false).dataType(new TypeToken<SchemaNodeConfigurator>() {}).node(n -> n
 								.addChildBindingPoint(
-										b -> b.name("concrete").baseModel(base.primitive(Primitive.BOOLEAN)).condition(optional()))
+										b -> b.name("concrete").baseModel(base.primitive(Primitive.BOOLEAN)).bindingCondition(optional()))
 								.addChildBindingPoint(b -> b
 										.name("child")
 										.extensible(true)
 										.concrete(false)
 										.dataType(new TypeToken<ChildBindingPoint<?>>() {})
 										.noInput()
-										.condition(asynchronous().and(occurrences(between(0, null)))))
+										.bindingCondition(asynchronous().and(occurrences(between(0, null)))))
 								.addChildBindingPoint(b -> b.name("create").noOutput().input(
 										i -> i.target().assign(i.target().invokeResolvedMethod("create"))))));
 

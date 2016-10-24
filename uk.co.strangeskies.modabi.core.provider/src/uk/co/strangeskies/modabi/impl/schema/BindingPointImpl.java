@@ -1,16 +1,14 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.Types;
 
 public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	private final QualifiedName name;
@@ -20,8 +18,27 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	private final List<Model<? super T>> baseModel;
 
 	protected BindingPointImpl(BindingPointConfiguratorImpl<T, ?> configurator) {
-		if (!configurator.isChildContextAbstract())
-			requireConcreteDescendents(new ArrayDeque<>(), this);
+		name = configurator.override(BindingPoint::name, BindingPointConfigurator::getName).get();
+
+		concrete = configurator.getConcrete() == null || configurator.getConcrete();
+
+		dataType = configurator
+				.override(BindingPoint::dataType, BindingPointConfigurator::getDataType)
+				.orMerged((o, n) -> o.withEquality(n))
+				.mergeOverride((o, b) -> mergeOverriddenTypes(o, b))
+				.get();
+
+		node = configurator.getNode();
+
+		baseModel = configurator.getBaseModel();
+	}
+
+	private static <T> TypeToken<T> mergeOverriddenTypes(TypeToken<T> override, TypeToken<?> base) {
+		if (!base.isProper() || !Types.isAssignable(override.getType(), base.getType())) {
+			return override.withUpperBound(base.deepCopy());
+		} else {
+			return override;
+		}
 	}
 
 	@Override
@@ -47,32 +64,5 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	@Override
 	public List<Model<? super T>> baseModel() {
 		return baseModel;
-	}
-
-	protected void requireConcreteDescendents(Deque<ChildBindingPoint<?>> nodeStack, BindingPoint<?> top) {
-		/*
-		 * 
-		 * 
-		 * TODO do we need to do this? if a descendant is required to be concrete,
-		 * shouldn't its configurator have isChildContextAbstract = false already so
-		 * it can be checked directly?
-		 * 
-		 * 
-		 * 
-		 */
-		for (ChildBindingPoint<?> child : top.node().childBindingPoints()) {
-			if (!child.extensible())
-				requireConcrete(nodeStack, child);
-
-		}
-	}
-
-	protected void requireConcrete(Deque<ChildBindingPoint<?>> nodeStack, ChildBindingPoint<?> top) {
-		if (!nodeStack.peek().concrete())
-			throw new ModabiException(t -> t.mustOverrideDescendant(nodeStack));
-
-		nodeStack.push(top);
-		requireConcreteDescendents(nodeStack, top);
-		nodeStack.pop();
 	}
 }

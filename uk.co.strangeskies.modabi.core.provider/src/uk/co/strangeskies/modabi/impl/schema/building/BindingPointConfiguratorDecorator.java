@@ -18,10 +18,13 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.building;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -49,8 +52,25 @@ public abstract class BindingPointConfiguratorDecorator<T, S extends BindingPoin
 	}
 
 	@Override
+	public S name(String name) {
+		component = component.name(name);
+		return getThis();
+	}
+
+	@Override
 	public QualifiedName getName() {
 		return component.getName();
+	}
+
+	@Override
+	public S export(boolean export) {
+		component = component.export(export);
+		return getThis();
+	}
+
+	@Override
+	public Boolean getExport() {
+		return component.getExport();
 	}
 
 	@Override
@@ -64,9 +84,28 @@ public abstract class BindingPointConfiguratorDecorator<T, S extends BindingPoin
 		return component.getConcrete();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> BindingPointConfigurator<V, ?> dataType(TypeToken<? extends V> dataType) {
+		component = (S) component.dataType(dataType);
+		return (BindingPointConfigurator<V, ?>) getThis();
+	}
+
 	@Override
 	public TypeToken<T> getDataType() {
 		return component.getDataType();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> BindingPointConfigurator<V, ?> baseModel(Collection<? extends Model<? extends V>> baseModel) {
+		component = (S) component.baseModel(baseModel);
+		return (BindingPointConfigurator<V, ?>) getThis();
+	}
+
+	@Override
+	public Set<Model<? extends T>> getBaseModel() {
+		return component.getBaseModel();
 	}
 
 	@Override
@@ -83,5 +122,10 @@ public abstract class BindingPointConfiguratorDecorator<T, S extends BindingPoin
 	public S node(Function<SchemaNodeConfigurator, SchemaNodeConfigurator> configuration) {
 		component = component.node(configuration);
 		return getThis();
+	}
+
+	@Override
+	public String toString() {
+		return getComponent().toString();
 	}
 }

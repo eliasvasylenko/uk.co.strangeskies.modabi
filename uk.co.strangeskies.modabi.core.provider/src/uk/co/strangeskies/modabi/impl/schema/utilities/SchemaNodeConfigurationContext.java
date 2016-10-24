@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.impl.schema.SchemaNodeConfiguratorImpl;
+import uk.co.strangeskies.modabi.impl.schema.old.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SchemaNode;

@@ -26,7 +26,7 @@
 Export-Package: \
 	uk.co.strangeskies.modabi.impl,\
 	uk.co.strangeskies.modabi.impl.processing,\
-	uk.co.strangeskies.modabi.impl.schema,\
+	uk.co.strangeskies.modabi.impl.schema.old,\
 	uk.co.strangeskies.modabi.impl.schema.building,\
 	uk.co.strangeskies.modabi.impl.schema.utilities
 

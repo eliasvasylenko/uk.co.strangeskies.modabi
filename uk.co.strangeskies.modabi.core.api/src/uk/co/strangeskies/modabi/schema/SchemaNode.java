@@ -48,7 +48,7 @@ public interface SchemaNode extends Self<SchemaNode> {
 
 	/**
 	 * @return the set of all <em>direct</em> base nodes, i.e. excluding those
-	 *         which are transitively included via other more specific base nodes
+	 *         which are transitively implied via other more specific base nodes
 	 */
 	List<SchemaNode> baseNodes();
 

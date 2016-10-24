@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.impl.schema;
+package uk.co.strangeskies.modabi.impl.schema.old;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +34,7 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -42,8 +43,8 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
 
-public abstract class SchemaNodeConfiguratorImpl2<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
-		extends SchemaNodeConfiguratorImpl<S, N> implements BindingNodeConfigurator<S, N, T> {
+public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
+		extends SchemaNodeConfiguratorImpl<S, N> implements ChildBindingPointConfigurator<S, N, T> {
 	private TypeToken<T> dataType;
 	private String dataTypeString;
 	private TypeToken<T> effectiveDataType;
@@ -67,9 +68,9 @@ public abstract class SchemaNodeConfiguratorImpl2<S extends BindingNodeConfigura
 
 	private List<QualifiedName> unbindingParameterNames;
 
-	public SchemaNodeConfiguratorImpl2() {}
+	public BindingNodeConfiguratorImpl() {}
 
-	public SchemaNodeConfiguratorImpl2(SchemaNodeConfiguratorImpl2<S, N, T> copy) {
+	public BindingNodeConfiguratorImpl(BindingNodeConfiguratorImpl<S, N, T> copy) {
 		super(copy);
 
 		this.dataType = copy.dataType;
@@ -193,7 +194,7 @@ public abstract class SchemaNodeConfiguratorImpl2<S extends BindingNodeConfigura
 		return new ChildrenConfiguratorImpl(new SchemaNodeConfigurationContext() {
 			@Override
 			public void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
-				SchemaNodeConfiguratorImpl2.this.addChildConfigurator(configurator);
+				BindingNodeConfiguratorImpl.this.addChildConfigurator(configurator);
 			}
 
 			@Override
@@ -447,8 +448,8 @@ public abstract class SchemaNodeConfiguratorImpl2<S extends BindingNodeConfigura
 
 	protected <U> OverrideBuilder<U, ?, ?> getOverrideWithBase(Function<BindingNode<? super T, ?>, U> valueFunction,
 			Function<BindingNodeConfigurator<?, ?, ? super T>, U> givenValueFunction) {
-		return new OverrideBuilder<U, SchemaNodeConfiguratorImpl2<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
-				this, getResult(), SchemaNodeConfiguratorImpl2::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
+		return new OverrideBuilder<U, BindingNodeConfiguratorImpl<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
+				this, getResult(), BindingNodeConfiguratorImpl::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
 	}
 
 	@Override

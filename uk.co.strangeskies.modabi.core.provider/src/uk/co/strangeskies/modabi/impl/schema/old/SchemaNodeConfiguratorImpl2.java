@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.provider.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.impl.schema;
+package uk.co.strangeskies.modabi.impl.schema.old;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,17 +34,15 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.impl.schema.utilities.SchemaNodeConfigurationContext;
 import uk.co.strangeskies.modabi.schema.BindingNode;
 import uk.co.strangeskies.modabi.schema.BindingNodeConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.Types;
 
-public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
-		extends SchemaNodeConfiguratorImpl<S, N> implements ChildBindingPointConfigurator<S, N, T> {
+public abstract class SchemaNodeConfiguratorImpl2<S extends BindingNodeConfigurator<S, N, T>, N extends BindingNode<T, N>, T>
+		extends SchemaNodeConfiguratorImpl<S, N> implements BindingNodeConfigurator<S, N, T> {
 	private TypeToken<T> dataType;
 	private String dataTypeString;
 	private TypeToken<T> effectiveDataType;
@@ -68,9 +66,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	private List<QualifiedName> unbindingParameterNames;
 
-	public BindingNodeConfiguratorImpl() {}
+	public SchemaNodeConfiguratorImpl2() {}
 
-	public BindingNodeConfiguratorImpl(BindingNodeConfiguratorImpl<S, N, T> copy) {
+	public SchemaNodeConfiguratorImpl2(SchemaNodeConfiguratorImpl2<S, N, T> copy) {
 		super(copy);
 
 		this.dataType = copy.dataType;
@@ -113,14 +111,6 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return effectiveUnbindingFactoryType;
 	}
 
-	private static <T> TypeToken<T> mergeOverriddenTypes(TypeToken<T> override, TypeToken<?> base) {
-		if (!base.isProper() || !Types.isAssignable(override.getType(), base.getType())) {
-			return override.withUpperBound(base.deepCopy());
-		} else {
-			return override;
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	protected ChildrenConfigurator createChildrenConfigurator() {
@@ -128,19 +118,27 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		 * Get declared data types, or overridden types thereof.
 		 */
 		effectiveDataType = (TypeToken<T>) getOverrideWithBase(BindingNode::dataType, BindingNodeConfigurator::getDataType)
-				.orMerged((o, n) -> o.withEquality(n)).mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+				.orMerged((o, n) -> o.withEquality(n))
+				.mergeOverride((o, b) -> mergeOverriddenTypes(o, b))
+				.tryGet();
 
 		effectiveBindingType = getOverrideWithBase(BindingNode::inputBindingType,
-				BindingNodeConfigurator::getInputBindingType).orMerged((o, n) -> o.withEquality(n))
-						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+				BindingNodeConfigurator::getInputBindingType)
+						.orMerged((o, n) -> o.withEquality(n))
+						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b))
+						.tryGet();
 
 		effectiveUnbindingType = getOverrideWithBase(BindingNode::outputBindingType,
-				BindingNodeConfigurator::getOutputBindingType).orMerged((o, n) -> o.withEquality(n))
-						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+				BindingNodeConfigurator::getOutputBindingType)
+						.orMerged((o, n) -> o.withEquality(n))
+						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b))
+						.tryGet();
 
 		effectiveUnbindingFactoryType = getOverrideWithBase(BindingNode::outputBindingFactoryType,
-				BindingNodeConfigurator::getOutputBindingFactoryType).orMerged((o, n) -> o.withEquality(n))
-						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b)).tryGet();
+				BindingNodeConfigurator::getOutputBindingFactoryType)
+						.orMerged((o, n) -> o.withEquality(n))
+						.mergeOverride((o, b) -> mergeOverriddenTypes(o, b))
+						.tryGet();
 
 		/*
 		 * Incorporate bounds from inherited types.
@@ -194,7 +192,7 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 		return new ChildrenConfiguratorImpl(new SchemaNodeConfigurationContext() {
 			@Override
 			public void addChildConfigurator(ChildNodeConfigurator<?, ?> configurator) {
-				BindingNodeConfiguratorImpl.this.addChildConfigurator(configurator);
+				SchemaNodeConfiguratorImpl2.this.addChildConfigurator(configurator);
 			}
 
 			@Override
@@ -438,8 +436,9 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	@Override
 	public S providedOutputBindingMethodParameters(String... parameterNames) {
-		return providedOutputBindingMethodParameters(Arrays.asList(parameterNames).stream()
-				.map(n -> new QualifiedName(n, getName().getNamespace())).collect(Collectors.toList()));
+		return providedOutputBindingMethodParameters(
+				Arrays.asList(parameterNames).stream().map(n -> new QualifiedName(n, getName().getNamespace())).collect(
+						Collectors.toList()));
 	}
 
 	public Boolean getExtensible() {
@@ -448,8 +447,8 @@ public abstract class BindingNodeConfiguratorImpl<S extends BindingNodeConfigura
 
 	protected <U> OverrideBuilder<U, ?, ?> getOverrideWithBase(Function<BindingNode<? super T, ?>, U> valueFunction,
 			Function<BindingNodeConfigurator<?, ?, ? super T>, U> givenValueFunction) {
-		return new OverrideBuilder<U, BindingNodeConfiguratorImpl<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
-				this, getResult(), BindingNodeConfiguratorImpl::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
+		return new OverrideBuilder<U, SchemaNodeConfiguratorImpl2<? extends S, ? extends BindingNode<? super T, ?>, ? super T>, BindingNode<? super T, ?>>(
+				this, getResult(), SchemaNodeConfiguratorImpl2::getOverriddenAndBaseNodes, valueFunction, givenValueFunction);
 	}
 
 	@Override

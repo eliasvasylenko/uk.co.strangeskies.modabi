@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.building;
 
+import java.util.Collection;
+
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.TypeToken;
@@ -33,16 +35,16 @@ public class ModelConfiguratorDecorator<T> extends BindingPointConfiguratorDecor
 		return getComponent().create();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public String toString() {
-		return getComponent().toString();
+	public <V> ModelConfigurator<V> dataType(TypeToken<? extends V> dataType) {
+		return (ModelConfigurator<V>) super.dataType(dataType);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> ModelConfigurator<V> dataType(TypeToken<? extends V> Model) {
-		setComponent((ModelConfigurator<T>) getComponent().dataType(Model));
-		return (ModelConfigurator<V>) this;
+	public <V> ModelConfigurator<V> baseModel(Collection<? extends Model<? extends V>> baseModel) {
+		return (ModelConfigurator<V>) super.baseModel(baseModel);
 	}
 
 	@Override

@@ -1,20 +1,18 @@
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.empty;
+import static java.util.stream.Stream.of;
+
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.reflection.Reified;
 
 /**
  * A class for building override rules to determine the value of a property of a
@@ -26,12 +24,10 @@ import uk.co.strangeskies.reflection.Reified;
  *
  * @param <T>
  *          the type of the value of the property to override
- * @param <C>
- *          the type of the configurator
  * @param <N>
  *          the type of the node
  */
-public class OverrideBuilder<T, C, S extends Reified> {
+public class OverrideBuilder<T, S> {
 	private final boolean concrete;
 
 	private final S node;
@@ -43,50 +39,18 @@ public class OverrideBuilder<T, C, S extends Reified> {
 	private final Set<T> inheritedValues;
 	private final T override;
 
-	public OverrideBuilder(S node, Function<? super S, ? extends T> valueFunction) {
-		this(node, valueFunction, null);
-	}
-
-	public OverrideBuilder(S node, Function<? super S, ? extends T> valueFunction, T override) {
-		this.node = node;
+	public OverrideBuilder(Collection<? extends S> nodes, Function<? super S, ? extends T> valueFunction, T override) {
+		this.node = nodes;
 
 		this.valueFunction = valueFunction;
 
 		mergeOverride = validateOverrideFunction(Objects::equals);
 
-		inheritedValues = node.stream().map(n -> {
-			T value = valueFunction.apply(n);
-
-			if (value != null) {
-				return Stream.of(value);
-			} else if (givenValueFunction == null) {
-				return Stream.<T>empty();
-			} else {
-				List<C> values = new ArrayList<>();
-
-				@SuppressWarnings("unchecked")
-				C c = (C) n.configurator();
-				values.add(c);
-
-				Set<S> contains = new HashSet<>();
-				contains.add(n);
-
-				for (int i = 0; i < values.size(); i++) {
-					C nci = values.get(i);
-
-					for (S nn : n.baseNodes()) {
-						@SuppressWarnings("unchecked")
-						C nnc = (C) nn.configurator();
-
-						if (contains.add(nn)) {
-							values.add(nnc);
-						}
-					}
-				}
-
-				return values.stream().map(i -> givenValueFunction.apply(i)).filter(Objects::nonNull);
-			}
-		}).flatMap(Function.identity()).collect(Collectors.toSet());
+		inheritedValues = nodes
+				.stream()
+				.map(valueFunction::apply)
+				.flatMap(value -> value != null ? of(value) : empty())
+				.collect(toSet());
 
 		if (override == null && inheritedValues.size() == 1) {
 			override = inheritedValues.iterator().next();
@@ -95,7 +59,7 @@ public class OverrideBuilder<T, C, S extends Reified> {
 		this.override = override;
 	}
 
-	private OverrideBuilder(OverrideBuilder<T, C, S> from, BiFunction<? super T, ? super T, ? extends T> validation,
+	private OverrideBuilder(OverrideBuilder<T, S> from, BiFunction<? super T, ? super T, ? extends T> mergeOverride,
 			T override) {
 		node = from.node;
 
@@ -105,7 +69,7 @@ public class OverrideBuilder<T, C, S extends Reified> {
 
 		inheritedValues = from.inheritedValues;
 
-		this.mergeOverride = validation;
+		this.mergeOverride = mergeOverride;
 		this.override = override;
 	}
 
@@ -122,7 +86,7 @@ public class OverrideBuilder<T, C, S extends Reified> {
 		return (Class<S>) (Class<?>) node.getThisType().getRawType();
 	}
 
-	public OverrideBuilder<T, C, S> orDefault(T value) {
+	public OverrideBuilder<T, S> orDefault(T value) {
 		if (concrete) {
 			return or(value);
 		} else {
@@ -130,7 +94,7 @@ public class OverrideBuilder<T, C, S extends Reified> {
 		}
 	}
 
-	public OverrideBuilder<T, C, S> orMerged(Function<? super Collection<T>, ? extends T> merge) {
+	public OverrideBuilder<T, S> orMerged(Function<? super Collection<T>, ? extends T> merge) {
 		if (!inheritedValues.isEmpty() && !isOverridden()) {
 			T merged = merge.apply(inheritedValues);
 
@@ -145,12 +109,25 @@ public class OverrideBuilder<T, C, S extends Reified> {
 		}
 	}
 
-	public OverrideBuilder<T, C, S> orMerged(BinaryOperator<T> merge) {
+	public OverrideBuilder<T, S> orMerged(BinaryOperator<T> merge) {
 		return orMerged(s -> s.stream().reduce(merge).orElseThrow(() -> new ModabiException(
 				t -> t.cannotMergeIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues))));
 	}
 
-	public OverrideBuilder<T, C, S> validateOverride(BiPredicate<? super T, ? super T> validation) {
+	/**
+	 * The override validation predicate takes two parameters, the first is a
+	 * potential overriding value, and the second is a value it must override. The
+	 * predicate passes if the override relationship cannot be satisfied.
+	 * 
+	 * <p>
+	 * If the predicate does not pass then an exception will be thrown
+	 * automatically.
+	 * 
+	 * @param mergeOverride
+	 *          the override merge function
+	 * @return a new builder instance incorporating the given override behavior
+	 */
+	public OverrideBuilder<T, S> validateOverride(BiPredicate<? super T, ? super T> validation) {
 		return mergeOverride(validateOverrideFunction(validation));
 	}
 
@@ -166,11 +143,21 @@ public class OverrideBuilder<T, C, S extends Reified> {
 		};
 	}
 
-	public OverrideBuilder<T, C, S> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
+	/**
+	 * The override merge function takes two parameters, the first is a potential
+	 * overriding value, and the second is a value it must override. The function
+	 * returns an overriding value which satisfies this relationship, or throws an
+	 * exception if the override relationship cannot be satisfied.
+	 * 
+	 * @param mergeOverride
+	 *          the override merge function
+	 * @return a new builder instance incorporating the given override behavior
+	 */
+	public OverrideBuilder<T, S> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
 		return new OverrideBuilder<>(this, mergeOverride, override);
 	}
 
-	public OverrideBuilder<T, C, S> or(T value) {
+	public OverrideBuilder<T, S> or(T value) {
 		return isOverridden() ? this : new OverrideBuilder<>(this, mergeOverride, value);
 	}
 

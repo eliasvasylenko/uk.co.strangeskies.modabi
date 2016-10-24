@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl.schema.building;
 import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.impl.schema.ModelConfiguratorImpl;
+import uk.co.strangeskies.modabi.impl.schema.old.ModelConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;

@@ -37,5 +37,9 @@ public interface BindingPoint<T> extends Reified {
 
 	SchemaNode node();
 
+	/**
+	 * @return the set of all <em>direct</em> base models, i.e. excluding those
+	 *         which are transitively implied via other more specific base models
+	 */
 	List<Model<? super T>> baseModel();
 }

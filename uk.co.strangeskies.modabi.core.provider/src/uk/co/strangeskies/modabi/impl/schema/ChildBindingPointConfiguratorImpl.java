@@ -1,7 +1,13 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.impl.schema.old.InputProcess;
+import uk.co.strangeskies.modabi.impl.schema.old.OutputProcess;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -174,10 +180,24 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			}
 
 			@Override
-			public <U> ValueExpression<U> provide() {
-				// TODO Auto-generated method stub
-				return null;
+			public ValueExpression<?> provide() {
+				return provide(getDataType());
 			}
 		};
+	}
+
+	@Override
+	protected Set<BindingPoint<T>> getOverriddenBindingPoints() {
+		Set<BindingPoint<T>> bindingPoints = new HashSet<>(getOverriddenChildBindingPoints());
+		bindingPoints.addAll(getBaseModel());
+		return bindingPoints;
+	}
+
+	protected Set<ChildBindingPoint<T>> getOverriddenChildBindingPoints();
+
+	public <U> OverrideBuilder<U, ChildBindingPoint<T>> overrideChildren(
+			Function<? super ChildBindingPoint<T>, ? extends U> overriddenValues,
+			Function<? super ChildBindingPointConfigurator<T>, ? extends U> overridingValue) {
+		return new OverrideBuilder<>(getOverriddenChildBindingPoints(), overriddenValues, overridingValue.apply(this));
 	}
 }

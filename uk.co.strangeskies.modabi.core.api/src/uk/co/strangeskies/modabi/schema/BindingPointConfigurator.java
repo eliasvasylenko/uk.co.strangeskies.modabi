@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 
 import java.lang.reflect.AnnotatedType;
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -42,11 +43,15 @@ public interface BindingPointConfigurator<T, S extends BindingPointConfigurator<
 		return dataType(TypeToken.overAnnotatedType(dataType));
 	}
 
+	TypeToken<T> getDataType();
+
 	default <V> BindingPointConfigurator<V, ?> baseModel(Model<? extends V> baseModel) {
 		return baseModel(asList(baseModel));
 	}
 
 	<V> BindingPointConfigurator<V, ?> baseModel(Collection<? extends Model<? extends V>> baseModel);
+
+	Set<Model<? extends T>> getBaseModel();
 
 	SchemaNodeConfigurator node();
 
@@ -55,8 +60,6 @@ public interface BindingPointConfigurator<T, S extends BindingPointConfigurator<
 
 		return getThis();
 	}
-
-	TypeToken<T> getDataType();
 
 	SchemaNode getNode();
 }

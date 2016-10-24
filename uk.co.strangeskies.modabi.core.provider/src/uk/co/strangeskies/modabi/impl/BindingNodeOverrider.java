@@ -30,7 +30,7 @@ import uk.co.strangeskies.modabi.NodeProcessor;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
-import uk.co.strangeskies.modabi.impl.schema.utilities.BindingChildNodeWrapper;
+import uk.co.strangeskies.modabi.impl.schema.old.utilities.BindingChildNodeWrapper;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ComplexNodeWrapper;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.BindingPoint;

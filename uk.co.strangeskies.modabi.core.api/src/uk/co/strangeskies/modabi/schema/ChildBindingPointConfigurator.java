@@ -20,7 +20,13 @@ public interface ChildBindingPointConfigurator<T>
 
 	Boolean getExtensible();
 
-	ChildBindingPointConfigurator<T> condition(BindingCondition<? super T> condition);
+	ChildBindingPointConfigurator<T> ordered(boolean ordered);
+
+	Boolean getOrdered();
+
+	ChildBindingPointConfigurator<T> bindingCondition(BindingCondition<? super T> condition);
+
+	BindingCondition<? super T> getBindingCondition();
 
 	InputConfigurator<T> input();
 

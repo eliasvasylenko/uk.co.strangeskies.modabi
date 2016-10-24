@@ -18,7 +18,11 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.Set;
+import java.util.function.Function;
+
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
@@ -34,94 +38,15 @@ public abstract class BindingPointConfiguratorImpl<T, S extends BindingPointConf
 	private Boolean concrete;
 	private Boolean export;
 
-	private boolean configurationDone;
-	private boolean instantiationDone;
-
 	private BindingPoint<T> result;
 
 	public BindingPointConfiguratorImpl() {
-		configurationDone = false;
-		instantiationDone = false;
 
-		/*
-		 * The following is not done in order to parallelize, and in fact is
-		 * synchronized to behave linearly. It is done to extract a reference to the
-		 * node before the constructor returns, and block the constructor method
-		 * until the configurator has completed. The reason is simply to allow child
-		 * nodes to reference their parent node with a final field even though they
-		 * must be built before the parent. A proxy could also have been used to
-		 * roughly the same effect, but this way is a little nicer.
-		 * 
-		 * 
-		 * 
-		 * 
-		 * TODO neaten up synchronization using existing concurrency primitives.
-		 * TODO delay instantiation to just before we start building children.
-		 */
-		new Thread(() -> instantiate()).start();
-
-		synchronized (this) {
-			try {
-				while (result == null) {
-					this.wait();
-				}
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
 	}
 
 	protected BindingPointConfiguratorImpl(BindingPointConfigurator<T, S> copy) {
 		name = copy.getName();
 		concrete = copy.getConcrete();
-	}
-
-	@Override
-	public synchronized BindingPoint<T> create() {
-		configurationDone = true;
-		notifyAll();
-		try {
-			do {
-				wait();
-			} while (!instantiationDone);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
-		if (instantiationException != null) {
-			throw new RuntimeException(instantiationException);
-		}
-
-		return result;
-	}
-
-	private synchronized void instantiate() {
-		try {
-			createImpl();
-		} catch (RuntimeException e) {
-			result = null;
-			instantiationException = e;
-		}
-		instantiationDone = true;
-		notifyAll();
-	}
-
-	protected abstract BindingPoint<T> createImpl();
-
-	protected void setResult(BindingPoint<T> node) {
-		this.result = node;
-		notifyAll();
-		try {
-			do {
-				wait();
-			} while (!configurationDone);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public BindingPoint<T> getResult() {
-		return result;
 	}
 
 	@Override
@@ -186,5 +111,13 @@ public abstract class BindingPointConfiguratorImpl<T, S extends BindingPointConf
 	public SchemaNode getNode() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	protected abstract Set<BindingPoint<T>> getOverriddenBindingPoints();
+
+	public <U> OverrideBuilder<U, BindingPoint<T>> override(
+			Function<? super BindingPoint<T>, ? extends U> overriddenValues,
+			Function<? super BindingPointConfigurator<T, ?>, ? extends U> overridingValue) {
+		return new OverrideBuilder<>(getOverriddenBindingPoints(), overriddenValues, overridingValue.apply(this));
 	}
 }
