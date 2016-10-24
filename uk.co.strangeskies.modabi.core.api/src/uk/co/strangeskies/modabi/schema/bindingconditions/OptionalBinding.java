@@ -4,15 +4,15 @@ import static uk.co.strangeskies.mathematics.Range.between;
 
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 
-public class Optional<T> extends Occurrences<T> {
-	static final Optional<?> INSTANCE = new Optional<>();
+public class OptionalBinding<T> extends RequiredBindingOccurrences<T> {
+	static final OptionalBinding<?> INSTANCE = new OptionalBinding<>();
 
 	@SuppressWarnings("unchecked")
 	public static <T> BindingCondition<T> optional() {
-		return (BindingCondition<T>) Optional.INSTANCE;
+		return (BindingCondition<T>) OptionalBinding.INSTANCE;
 	}
 
-	protected Optional() {
+	protected OptionalBinding() {
 		super(between(0, 1));
 	}
 }

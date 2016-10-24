@@ -19,7 +19,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static uk.co.strangeskies.mathematics.Range.between;
-import static uk.co.strangeskies.modabi.schema.bindingconditions.Occurrences.occurrences;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.RequiredBindingOccurrences.occurrences;
 import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.unbounded;
 import static uk.co.strangeskies.reflection.Annotations.from;
 import static uk.co.strangeskies.reflection.TypeToken.overAnnotatedType;

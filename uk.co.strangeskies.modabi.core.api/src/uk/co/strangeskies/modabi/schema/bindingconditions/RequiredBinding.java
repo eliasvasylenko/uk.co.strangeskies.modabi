@@ -9,15 +9,15 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
  * 
  * @author Elias N Vasylenko
  */
-public class Required<T> extends Occurrences<T> {
-	static final Required<?> INSTANCE = new Required<>();
+public class RequiredBinding<T> extends RequiredBindingOccurrences<T> {
+	static final RequiredBinding<?> INSTANCE = new RequiredBinding<>();
 
 	@SuppressWarnings("unchecked")
 	public static <T> BindingCondition<T> required() {
-		return (BindingCondition<T>) Required.INSTANCE;
+		return (BindingCondition<T>) RequiredBinding.INSTANCE;
 	}
 
-	protected Required() {
+	protected RequiredBinding() {
 		super(between(1, 1));
 	}
 }

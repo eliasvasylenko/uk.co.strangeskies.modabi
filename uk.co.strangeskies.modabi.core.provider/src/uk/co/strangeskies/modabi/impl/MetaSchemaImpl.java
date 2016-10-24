@@ -19,9 +19,9 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static uk.co.strangeskies.mathematics.Range.between;
-import static uk.co.strangeskies.modabi.schema.BindingCondition.occurrences;
-import static uk.co.strangeskies.modabi.schema.BindingCondition.optional;
-import static uk.co.strangeskies.modabi.schema.BindingCondition.synchronous;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.RequiredBindingOccurrences.occurrences;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.OptionalBinding.optional;
+import static uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedBinding.asynchronous;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -124,7 +124,7 @@ public class MetaSchemaImpl implements MetaSchema {
 										.concrete(false)
 										.dataType(new TypeToken<ChildBindingPoint<?>>() {})
 										.noInput()
-										.condition(synchronous().and(occurrences(between(0, null)))))
+										.condition(asynchronous().and(occurrences(between(0, null)))))
 								.addChildBindingPoint(b -> b.name("create").noOutput().input(
 										i -> i.target().assign(i.target().invokeResolvedMethod("create"))))));
 

@@ -14,14 +14,14 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
  * 
  * @author Elias N Vasylenko
  */
-public class Sorted<T> implements BindingCondition<T> {
+public class SortedBinding<T> implements BindingCondition<T> {
 	private final Comparator<? super T> comparator;
 
 	public static <T> BindingCondition<T> sorted(Comparator<T> order) {
-		return new Sorted<>(order);
+		return new SortedBinding<>(order);
 	}
 
-	protected Sorted(Comparator<? super T> comparator) {
+	protected SortedBinding(Comparator<? super T> comparator) {
 		this.comparator = comparator;
 	}
 

@@ -5,10 +5,10 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 
-public class IsBound<T> implements BindingCondition<T> {
+public class IsBoundCondition<T> implements BindingCondition<T> {
 	private final ChildBindingPoint<?> target;
 
-	protected IsBound(ChildBindingPoint<?> target) {
+	protected IsBoundCondition(ChildBindingPoint<?> target) {
 		this.target = target;
 	}
 

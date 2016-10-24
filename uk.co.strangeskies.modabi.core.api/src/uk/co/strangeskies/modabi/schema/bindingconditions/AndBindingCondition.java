@@ -15,11 +15,11 @@ import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 
-public class And<T> implements BindingCondition<T> {
+public class AndBindingCondition<T> implements BindingCondition<T> {
 	private final List<BindingCondition<? super T>> conditions;
 
 	public static <T> BindingCondition<T> and(Collection<? extends BindingCondition<? super T>> conditions) {
-		return new And<>(conditions);
+		return new AndBindingCondition<>(conditions);
 	}
 
 	@SafeVarargs
@@ -27,7 +27,7 @@ public class And<T> implements BindingCondition<T> {
 		return and(Arrays.asList(conditions));
 	}
 
-	protected And(Collection<? extends BindingCondition<? super T>> conditions) {
+	protected AndBindingCondition(Collection<? extends BindingCondition<? super T>> conditions) {
 		this.conditions = new ArrayList<>(conditions);
 	}
 

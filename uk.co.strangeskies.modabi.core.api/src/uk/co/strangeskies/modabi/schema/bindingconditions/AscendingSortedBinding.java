@@ -8,15 +8,15 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
  * 
  * @author Elias N Vasylenko
  */
-public class Ascending<T extends Comparable<? super T>> extends Sorted<T> {
-	static final Ascending<?> INSTANCE = new Ascending<>();
+public class AscendingSortedBinding<T extends Comparable<? super T>> extends SortedBinding<T> {
+	static final AscendingSortedBinding<?> INSTANCE = new AscendingSortedBinding<>();
 
 	@SuppressWarnings("unchecked")
 	public static <T> BindingCondition<T> ascending() {
 		return (BindingCondition<T>) INSTANCE;
 	}
 
-	protected Ascending() {
+	protected AscendingSortedBinding() {
 		super(Comparable::compareTo);
 	}
 }
