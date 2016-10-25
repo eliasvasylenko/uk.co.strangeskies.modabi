@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.schema;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
 
 public interface OutputConfigurator<T> extends IOConfigurator {
-	<U> ValueExpression<U> source();
+	ValueExpression<?> source();
 
 	/**
 	 * Create an expression over a number of iterable items. The returned
@@ -27,5 +27,7 @@ public interface OutputConfigurator<T> extends IOConfigurator {
 	 */
 	<U> ValueExpression<U> iterate(ValueExpression<Iterable<U>> values);
 
-	void expression(ValueExpression<T> outputExpression);
+	void expression(ValueExpression<? extends T> outputExpression);
+
+	ValueExpression<? extends T> getExpression();
 }

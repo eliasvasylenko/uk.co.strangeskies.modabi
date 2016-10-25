@@ -5,8 +5,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.impl.schema.old.InputProcess;
-import uk.co.strangeskies.modabi.impl.schema.old.OutputProcess;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
@@ -27,16 +25,12 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 		BindingPointConfiguratorImpl<T, ChildBindingPointConfigurator<T>> implements ChildBindingPointConfigurator<T> {
 	private static final AtomicLong COUNT = new AtomicLong();
 
-	private final ClassDefinition<? extends InputProcess<T>> inputClass;
-	private final Block<Object> inputBlock;
-	private final VariableExpression<Object> inputTargetExpression;
-	private final VariableExpression<T> inputResultExpression;
 	private Expression inputExpression;
 
 	private final ClassDefinition<? extends OutputProcess<T>> outputClass;
 	private final Block<T> outputBlock;
 	private final VariableExpression<Object> outputSourceExpression;
-	private ValueExpression<T> outputExpression;
+	private ValueExpression<? extends T> outputExpression;
 
 	@SuppressWarnings("unchecked")
 	public ChildBindingPointConfiguratorImpl(ChildBindingPointConfigurator<T> other) {
@@ -47,20 +41,6 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 	public ChildBindingPointConfiguratorImpl() {
 		long count = COUNT.getAndIncrement();
-
-		/*
-		 * input
-		 */
-		inputClass = ClassDeclaration
-				.declareClass(getClass().getName() + "$" + InputProcess.class.getSimpleName() + count)
-				.withSuperType(new TypeToken<InputProcess<T>>() {})
-				.define();
-
-		MethodDeclaration<?, ?> inputMethod = inputClass.declareMethodOverride(i -> i.process(null, null));
-
-		inputTargetExpression = inputMethod.addParameter(Object.class);
-		inputResultExpression = inputMethod.addParameter(new TypeToken<T>() {});
-		inputBlock = inputMethod.withReturnType(Object.class).define().body();
 
 		/*
 		 * output
@@ -83,19 +63,29 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 	@Override
 	public ChildBindingPoint<T> create() {
-		return (ChildBindingPoint<T>) super.create();
-	}
-
-	@Override
-	protected BindingPoint<T> createImpl() {
 		return new ChildBindingPointImpl<>(this);
 	}
 
 	@Override
 	public InputConfigurator<T> input() {
+		/*
+		 * input
+		 */
+		ClassDefinition<? extends InputProcess<T>> inputClass = ClassDeclaration
+				.declareClass(getClass().getName() + "$" + InputProcess.class.getSimpleName() + count)
+				.withSuperType(new TypeToken<InputProcess<T>>() {})
+				.define();
+
+		MethodDeclaration<?, ?> inputMethod = inputClass.declareMethodOverride(i -> i.process(null, null));
+
+		VariableExpression<Object> inputTargetExpression = inputMethod.addParameter(Object.class);
+		VariableExpression<T> inputResultExpression = inputMethod.addParameter(new TypeToken<T>() {});
+
+		Block<Object> inputBlock = inputMethod.withReturnType(Object.class).define().body();
+
 		return new InputConfigurator<T>() {
 			@Override
-			public ValueExpression<T> result() {
+			public ValueExpression<? extends T> result() {
 				return inputResultExpression;
 			}
 
@@ -108,12 +98,6 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			public void expression(Expression expression) {
 				inputExpression = expression;
 				inputBlock.addExpression(expression);
-			}
-
-			@Override
-			public <U> ValueExpression<U> provide(TypeToken<U> type) {
-				// TODO Auto-generated method stub
-				return null;
 			}
 
 			@Override
@@ -138,6 +122,11 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			public ValueExpression<?> provide() {
 				return provide(getDataType());
 			}
+
+			@Override
+			public Expression getExpression() {
+				return inputExpression;
+			}
 		};
 	}
 
@@ -150,7 +139,7 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			}
 
 			@Override
-			public void expression(ValueExpression<T> expression) {
+			public void expression(ValueExpression<? extends T> expression) {
 				outputExpression = expression;
 				outputBlock.addReturnStatement(expression);
 			}
@@ -182,6 +171,11 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			@Override
 			public ValueExpression<?> provide() {
 				return provide(getDataType());
+			}
+
+			@Override
+			public ValueExpression<? extends T> getExpression() {
+				return outputExpression;
 			}
 		};
 	}
