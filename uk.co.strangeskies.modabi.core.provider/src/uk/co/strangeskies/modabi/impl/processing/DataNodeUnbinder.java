@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.SimpleNode;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public class DataNodeUnbinder {

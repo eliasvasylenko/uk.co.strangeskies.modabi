@@ -9,7 +9,7 @@
 	</dependencies>
 
 	<imports>
-		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.reflection.token.TypeToken.Infer,
 		java.lang.String,
 		java.lang.Runnable,
 		java.util.function.Function,

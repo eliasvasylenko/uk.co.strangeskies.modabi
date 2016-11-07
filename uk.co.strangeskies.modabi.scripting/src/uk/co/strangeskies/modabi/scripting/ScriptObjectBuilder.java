@@ -28,8 +28,8 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import uk.co.strangeskies.reflection.Reified;
-import uk.co.strangeskies.reflection.TypeParameter;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeParameter;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
 

@@ -24,8 +24,8 @@ import java.util.SortedSet;
 import org.junit.Test;
 
 import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypeToken.Infer;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class SchemaBuildingTests {
 	@Test

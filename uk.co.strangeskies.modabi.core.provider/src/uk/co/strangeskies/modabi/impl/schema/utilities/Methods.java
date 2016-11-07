@@ -23,7 +23,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.reflection.ExecutableMember;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class Methods {
 	public static <T> ExecutableMember<? super T, ? extends T> findConstructor(TypeToken<T> receiver,

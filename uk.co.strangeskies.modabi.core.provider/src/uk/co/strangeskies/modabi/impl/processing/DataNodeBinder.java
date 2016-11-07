@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SimpleNode;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
@@ -64,8 +64,8 @@ public class DataNodeBinder<U> extends InputNodeBinder<SimpleNode<U>> {
 
 		List<ChildNodeBinding<? extends U, ?>> results = new ArrayList<>();
 
-		if (node.isValueProvided() && (node.valueResolution() == ValueResolution.REGISTRATION_TIME
-				|| node.valueResolution() == ValueResolution.POST_REGISTRATION)) {
+		if (node.isValueProvided() && (node.valueResolution() == ValueResolution.DECLARATION_TIME
+				|| node.valueResolution() == ValueResolution.POST_DECLARATION)) {
 			/*
 			 * Value is already provided and bound
 			 */

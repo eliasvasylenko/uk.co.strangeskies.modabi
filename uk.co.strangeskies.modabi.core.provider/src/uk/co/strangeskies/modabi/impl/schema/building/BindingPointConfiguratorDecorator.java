@@ -19,7 +19,7 @@
 package uk.co.strangeskies.modabi.impl.schema.building;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -27,7 +27,7 @@ import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public abstract class BindingPointConfiguratorDecorator<T, S extends BindingPointConfigurator<T, S>>
 		implements BindingPointConfigurator<T, S> {
@@ -86,7 +86,7 @@ public abstract class BindingPointConfiguratorDecorator<T, S extends BindingPoin
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> BindingPointConfigurator<V, ?> dataType(TypeToken<? extends V> dataType) {
+	public <V> BindingPointConfigurator<V, ?> dataType(TypeToken<? super V> dataType) {
 		component = (S) component.dataType(dataType);
 		return (BindingPointConfigurator<V, ?>) getThis();
 	}
@@ -98,13 +98,13 @@ public abstract class BindingPointConfiguratorDecorator<T, S extends BindingPoin
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> BindingPointConfigurator<V, ?> baseModel(Collection<? extends Model<? extends V>> baseModel) {
+	public BindingPointConfigurator<?, ?> baseModel(Collection<? extends Model<?>> baseModel) {
 		component = (S) component.baseModel(baseModel);
-		return (BindingPointConfigurator<V, ?>) getThis();
+		return getThis();
 	}
 
 	@Override
-	public Set<Model<? extends T>> getBaseModel() {
+	public List<Model<?>> getBaseModel() {
 		return component.getBaseModel();
 	}
 

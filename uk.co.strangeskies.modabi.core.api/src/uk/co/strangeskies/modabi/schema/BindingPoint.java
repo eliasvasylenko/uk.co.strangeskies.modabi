@@ -4,7 +4,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.reflection.Reified;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface BindingPoint<T> extends Reified {
 	enum Format {
@@ -31,9 +31,6 @@ public interface BindingPoint<T> extends Reified {
 	boolean concrete();
 
 	TypeToken<T> dataType();
-
-	@Override
-	TypeToken<? extends BindingPoint<T>> getThisType();
 
 	SchemaNode node();
 

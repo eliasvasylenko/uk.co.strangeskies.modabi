@@ -7,8 +7,8 @@ import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.Types;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	private final QualifiedName name;
@@ -17,6 +17,7 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	private final SchemaNode node;
 	private final List<Model<? super T>> baseModel;
 
+	@SuppressWarnings("unchecked")
 	protected BindingPointImpl(BindingPointConfiguratorImpl<T, ?> configurator) {
 		name = configurator.override(BindingPoint::name, BindingPointConfigurator::getName).get();
 
@@ -30,7 +31,7 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 
 		node = configurator.getNode();
 
-		baseModel = configurator.getBaseModel();
+		baseModel = (List<Model<? super T>>) (List<?>) configurator.getBaseModel();
 	}
 
 	private static <T> TypeToken<T> mergeOverriddenTypes(TypeToken<T> override, TypeToken<?> base) {

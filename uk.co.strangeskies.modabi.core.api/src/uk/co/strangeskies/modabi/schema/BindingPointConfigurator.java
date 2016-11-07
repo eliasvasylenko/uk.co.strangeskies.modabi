@@ -4,12 +4,12 @@ import static java.util.Arrays.asList;
 
 import java.lang.reflect.AnnotatedType;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.Factory;
 import uk.co.strangeskies.utilities.Self;
 
@@ -37,7 +37,7 @@ public interface BindingPointConfigurator<T, S extends BindingPointConfigurator<
 		return dataType(TypeToken.overType(dataType));
 	}
 
-	<V> BindingPointConfigurator<V, ?> dataType(TypeToken<? extends V> dataType);
+	<V> BindingPointConfigurator<V, ?> dataType(TypeToken<? super V> dataType);
 
 	default BindingPointConfigurator<?, ?> dataType(AnnotatedType dataType) {
 		return dataType(TypeToken.overAnnotatedType(dataType));
@@ -45,13 +45,14 @@ public interface BindingPointConfigurator<T, S extends BindingPointConfigurator<
 
 	TypeToken<T> getDataType();
 
-	default <V> BindingPointConfigurator<V, ?> baseModel(Model<? extends V> baseModel) {
-		return baseModel(asList(baseModel));
+	@SuppressWarnings("unchecked")
+	default <V> BindingPointConfigurator<V, ?> baseModel(Model<? super V> baseModel) {
+		return (BindingPointConfigurator<V, ?>) baseModel(asList(baseModel));
 	}
 
-	<V> BindingPointConfigurator<V, ?> baseModel(Collection<? extends Model<? extends V>> baseModel);
+	BindingPointConfigurator<?, ?> baseModel(Collection<? extends Model<?>> baseModel);
 
-	Set<Model<? extends T>> getBaseModel();
+	List<Model<?>> getBaseModel();
 
 	SchemaNodeConfigurator node();
 

@@ -22,7 +22,7 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.Factory;
 
 public interface ChildrenConfigurator extends Factory<List<ChildBindingPoint<?>>> {

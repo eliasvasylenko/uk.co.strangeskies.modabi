@@ -22,7 +22,7 @@ import java.util.Collection;
 
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelConfiguratorDecorator<T> extends BindingPointConfiguratorDecorator<T, ModelConfigurator<T>>
 		implements ModelConfigurator<T> {
@@ -37,14 +37,13 @@ public class ModelConfiguratorDecorator<T> extends BindingPointConfiguratorDecor
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <V> ModelConfigurator<V> dataType(TypeToken<? extends V> dataType) {
+	public <V> ModelConfigurator<V> dataType(TypeToken<? super V> dataType) {
 		return (ModelConfigurator<V>) super.dataType(dataType);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <V> ModelConfigurator<V> baseModel(Collection<? extends Model<? extends V>> baseModel) {
-		return (ModelConfigurator<V>) super.baseModel(baseModel);
+	public ModelConfigurator<?> baseModel(Collection<? extends Model<?>> baseModel) {
+		return (ModelConfigurator<?>) super.baseModel(baseModel);
 	}
 
 	@Override

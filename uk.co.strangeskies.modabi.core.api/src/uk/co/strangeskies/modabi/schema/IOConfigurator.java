@@ -1,13 +1,15 @@
 package uk.co.strangeskies.modabi.schema;
 
-import static uk.co.strangeskies.reflection.TypeToken.overType;
+import static uk.co.strangeskies.reflection.token.TypeToken.overType;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface IOConfigurator {
+	<T> ValueExpression<T> none();
+
 	/*
 	 * TODO Scoping here deals only with sibling binding points. Dealing with
 	 * others requires bringing them into scope explicitly.

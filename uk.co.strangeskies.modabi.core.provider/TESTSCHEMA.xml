@@ -14,8 +14,8 @@
 		javax.script.ScriptEngine,
 		javax.script.Invocable,
 
-		uk.co.strangeskies.reflection.TypeToken,
-		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.reflection.token.TypeToken,
+		uk.co.strangeskies.reflection.token.TypeToken.Infer,
 
 		uk.co.strangeskies.modabi.scripting.ScriptObject,
 		uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder,

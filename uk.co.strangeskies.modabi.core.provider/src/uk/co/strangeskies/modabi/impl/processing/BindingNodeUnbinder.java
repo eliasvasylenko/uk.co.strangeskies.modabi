@@ -49,8 +49,8 @@ import uk.co.strangeskies.modabi.schema.InputSequenceNode;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SequenceNode;
 import uk.co.strangeskies.modabi.schema.SimpleNode;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
 import uk.co.strangeskies.reflection.Types;
 
 public class BindingNodeUnbinder {
@@ -121,8 +121,8 @@ public class BindingNodeUnbinder {
 			public <U> void accept(SimpleNode<U> node) {
 				if (node.outputMemberType() != OutputMemberType.NONE) {
 					List<U> data = null;
-					if (!node.isValueProvided() || node.valueResolution() == ValueResolution.REGISTRATION_TIME
-							|| node.valueResolution() == ValueResolution.POST_REGISTRATION)
+					if (!node.isValueProvided() || node.valueResolution() == ValueResolution.DECLARATION_TIME
+							|| node.valueResolution() == ValueResolution.POST_DECLARATION)
 						data = getData(node, context);
 
 					if (data != null) {

@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -26,9 +28,10 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public abstract class BindingPointConfiguratorImpl<T, S extends BindingPointConfigurator<T, S>>
 		implements BindingPointConfigurator<T, S> {
@@ -96,7 +99,19 @@ public abstract class BindingPointConfiguratorImpl<T, S extends BindingPointConf
 	}
 
 	@Override
-	public <V> ChildBindingPointConfigurator<V> dataType(TypeToken<? extends V> dataType) {
+	public <V> ChildBindingPointConfigurator<V> dataType(TypeToken<? super V> dataType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BindingPointConfigurator<?, ?> baseModel(Collection<? extends Model<?>> baseModel) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Model<?>> getBaseModel() {
 		// TODO Auto-generated method stub
 		return null;
 	}

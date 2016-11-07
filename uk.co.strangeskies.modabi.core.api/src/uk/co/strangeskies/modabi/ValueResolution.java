@@ -20,6 +20,11 @@ package uk.co.strangeskies.modabi;
 
 public enum ValueResolution {
 	/**
+	 * No value is provided
+	 */
+	NONE,
+
+	/**
 	 * Delay resolution of the provided value buffer until the schema node is
 	 * processed as part of its binding, then bind individually for each bound
 	 * instance.
@@ -27,17 +32,17 @@ public enum ValueResolution {
 	PROCESSING_TIME,
 
 	/**
-	 * Resolve the provided value buffer during initial registration of this node
+	 * Resolve the provided value buffer during initial declaration of this node
 	 * as part of its containing schema.
 	 */
-	REGISTRATION_TIME,
+	DECLARATION_TIME,
 
 	/**
-	 * Create a proxy instance for the resolved value during initial registration
+	 * Create a proxy instance for the resolved value during initial declaration
 	 * of this node as part of its containing schema. Resolution will then be
 	 * performed as soon as any attempt is made to invoke methods on this proxy.
 	 */
-	POST_REGISTRATION
+	POST_DECLARATION
 
 	/*
 	 * 

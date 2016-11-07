@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface ChildBindingPoint<T> extends BindingPoint<T> {
 	/**
@@ -41,8 +42,9 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
 
 	boolean extensible();
 
-	@Override
-	TypeToken<ChildBindingPoint<T>> getThisType();
+	ValueResolution providedValuesResolution();
+
+	DataSource providedValuesBuffer();
 
 	List<T> providedValues();
 

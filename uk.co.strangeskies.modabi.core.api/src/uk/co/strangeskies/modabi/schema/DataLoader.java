@@ -21,7 +21,8 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface DataLoader {
-	<T> List<T> loadData(Model<T> node, DataSource data);
+	<T> List<TypedObject<? extends T>> loadData(Model<T> node, DataSource data);
 }

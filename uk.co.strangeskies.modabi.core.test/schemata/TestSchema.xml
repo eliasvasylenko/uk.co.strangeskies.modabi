@@ -9,7 +9,7 @@
 
 	<imports>
 		java.util.function.Function,
-		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.reflection.token.TypeToken.Infer,
 		uk.co.strangeskies.modabi.io.DataSource,
 		uk.co.strangeskies.modabi.core.test.NamedValue,
 		uk.co.strangeskies.utilities.IdentityProperty

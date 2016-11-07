@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.Factory;
 
 public interface SchemaConfigurator extends Factory<Schema> {

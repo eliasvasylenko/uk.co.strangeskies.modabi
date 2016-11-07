@@ -31,7 +31,7 @@ import uk.co.strangeskies.modabi.schema.ComplexNode;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelConfiguratorImpl<T> extends BindingPointConfiguratorImpl<T, ModelConfigurator<T>>
 		implements ModelConfigurator<T> {

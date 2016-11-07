@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.model.nodes.test;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -32,7 +35,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.modabi.schema.bindingconditions.OptionalCondition;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class DummyNodes {
 	private DummyNodes() {}
@@ -113,8 +116,8 @@ public class DummyNodes {
 			}
 
 			@Override
-			public TypeToken<ChildBindingPoint<Object>> getThisType() {
-				return new TypeToken<ChildBindingPoint<Object>>() {};
+			public Type getThisType() {
+				return new TypeToken<ChildBindingPoint<Object>>() {}.getType();
 			}
 
 			@Override
@@ -140,6 +143,16 @@ public class DummyNodes {
 			@Override
 			public boolean ordered() {
 				return false;
+			}
+
+			@Override
+			public ValueResolution providedValuesResolution() {
+				return ValueResolution.NONE;
+			}
+
+			@Override
+			public DataSource providedValuesBuffer() {
+				return null;
 			}
 		};
 	}

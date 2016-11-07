@@ -22,7 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface Provider {
 	<T> T provide(TypeToken<T> requestedType, ProcessingContext context);

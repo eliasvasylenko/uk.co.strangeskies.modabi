@@ -37,7 +37,7 @@ import uk.co.strangeskies.modabi.schema.InputNodeConfigurator;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.IntersectionType;
 import uk.co.strangeskies.reflection.TypeMember;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.TypeVariableCapture;
 
 public class InputNodeComponent<C extends InputNodeConfigurator<C, N>, N extends InputNode<N>> {

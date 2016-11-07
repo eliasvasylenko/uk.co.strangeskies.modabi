@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
  * A simple superclass for testing over schema processing, providing some

@@ -48,6 +48,7 @@ import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
+import uk.co.strangeskies.modabi.schema.IOConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode.Format;
@@ -62,8 +63,8 @@ import uk.co.strangeskies.modabi.schema.bindingconditions.OrCondition;
 import uk.co.strangeskies.modabi.schema.bindingconditions.RequiredCondition;
 import uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedCondition;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypeToken.Infer;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class MetaSchemaImpl implements MetaSchema {
 	private interface ModelFactory {
@@ -120,6 +121,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						.export(false));
 
 		/* Binding Condition Models */
+
 		Model<BindingCondition<?>> bindingConditionModel = factory.apply("bindingCondition",
 				m -> m.concrete(false).dataType(new @Infer TypeToken<BindingCondition<?>>() {}));
 
@@ -226,9 +228,9 @@ public class MetaSchemaImpl implements MetaSchema {
 										.extensible(true)
 										.concrete(false)
 										.dataType(new TypeToken<ChildBindingPoint<?>>() {})
-										.noInput()
+										.output(IOConfigurator::none)
 										.bindingCondition(asynchronous().and(occurrences(between(0, null)))))
-								.addChildBindingPoint(b -> b.name("create").noOutput().input(
+								.addChildBindingPoint(b -> b.name("create").output(IOConfigurator::none).input(
 										i -> i.target().assign(i.target().invokeResolvedMethod("create"))))));
 
 		/*
@@ -451,7 +453,7 @@ public class MetaSchemaImpl implements MetaSchema {
 						.addChildBindingPoint(n -> n.data().name("name"))
 						.addChildBindingPoint(n -> baseModelConfiguration.apply(n.data().name("model")))
 						.addChildBindingPoint(
-								c -> c.data().name("inline").concrete(false).optional(true).valueResolution(REGISTRATION_TIME).type(
+								c -> c.data().name("inline").concrete(false).optional(true).valueResolution(DECLARATION_TIME).type(
 										base.primitive(BOOLEAN))));
 
 		factory.apply("complex", m -> m.baseModel(abstractComplexModel).addChildBindingPoint(c -> c
@@ -478,7 +480,7 @@ public class MetaSchemaImpl implements MetaSchema {
 								.format(PROPERTY)
 								.name("format")
 								.optional(true)
-								.valueResolution(REGISTRATION_TIME)
+								.valueResolution(DECLARATION_TIME)
 								.concrete(false)
 								.type(base.derived().enumType())
 								.dataType(Format.class)
@@ -491,14 +493,17 @@ public class MetaSchemaImpl implements MetaSchema {
 								.optional(true)
 								.type(base.derived().referenceType())
 								.dataType(new TypeToken<SimpleNode<?>>() {})
-								.addChildBindingPoint(p -> p.data().name("targetModel").valueResolution(REGISTRATION_TIME).provideValue(
-										new BufferingDataTarget()
+								.addChildBindingPoint(p -> p
+										.data()
+										.name("targetModel")
+										.valueResolution(DECLARATION_TIME)
+										.provideValue(new BufferingDataTarget()
 												.put(Primitive.QUALIFIED_NAME, new QualifiedName("type", namespace))
 												.buffer()))
 								.addChildBindingPoint(p -> p
 										.data()
 										.name("targetId")
-										.valueResolution(REGISTRATION_TIME)
+										.valueResolution(DECLARATION_TIME)
 										.provideValue(new BufferingDataTarget()
 												.put(Primitive.QUALIFIED_NAME, new QualifiedName("configurator", namespace))
 												.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))

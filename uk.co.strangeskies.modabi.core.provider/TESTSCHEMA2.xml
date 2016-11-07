@@ -5,7 +5,7 @@
 	name="sai:PeriodicTableSchema">
 
 	<imports>
-		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.reflection.token.TypeToken.Infer,
 		java.util.Collection,
 		java.util.List,
 		uk.co.saiman.chemistry.Element.Group,

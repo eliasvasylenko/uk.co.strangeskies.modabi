@@ -32,7 +32,7 @@ import uk.co.strangeskies.modabi.io.DataItem;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.Enumeration;
 
 public interface BaseSchema extends Schema {
@@ -56,9 +56,9 @@ public interface BaseSchema extends Schema {
 
 		Model<URL> urlModel();
 
-		Model<Object> referenceModel();
+		Model<?> referenceModel();
 
-		Model<Object> bindingReferenceModel();
+		Model<?> bindingReferenceModel();
 
 		Model<DataSource> bufferedDataModel();
 

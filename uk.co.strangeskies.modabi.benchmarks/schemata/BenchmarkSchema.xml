@@ -10,7 +10,7 @@
 	<imports>
 		uk.co.strangeskies.modabi.benchmark.PersonType,
 		uk.co.strangeskies.modabi.benchmark.PersonsType,
-		uk.co.strangeskies.reflection.TypeToken.Infer,
+		uk.co.strangeskies.reflection.token.TypeToken.Infer,
 		java.util.List
 	</imports>
 

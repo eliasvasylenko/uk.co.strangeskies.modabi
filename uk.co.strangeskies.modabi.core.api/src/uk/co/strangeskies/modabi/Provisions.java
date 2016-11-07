@@ -19,8 +19,8 @@
 package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
 import uk.co.strangeskies.utilities.Scoped;
 import uk.co.strangeskies.utilities.collection.ObservableSet;
 

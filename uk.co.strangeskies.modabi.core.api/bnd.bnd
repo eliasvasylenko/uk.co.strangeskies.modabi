@@ -7,11 +7,12 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	${ss;utilities},\
-	${ss;text},\
-	${ss;mathematics},\
-	${ss;reflection},\
-	${ss;reflection.codegen}
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest,\
+	uk.co.strangeskies.reflection.codegen;version=latest
 
 -runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
 

@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.io.ModabiIoException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public interface InputBinder<T> {

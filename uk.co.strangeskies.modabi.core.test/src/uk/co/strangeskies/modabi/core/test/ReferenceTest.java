@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import uk.co.strangeskies.modabi.testing.TestBase;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ReferenceTest extends TestBase {
 	private static final String NAMED_VALUE_MODEL = "namedValue";

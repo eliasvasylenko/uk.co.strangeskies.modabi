@@ -35,7 +35,7 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.ExecutableMember;
 import uk.co.strangeskies.reflection.TypeException;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 abstract class BindingNodeImpl<T> extends SchemaNodeImpl implements BindingNode<T> {
 	private static final QualifiedName THIS_PARAMETER = new QualifiedName("this", Schema.MODABI_NAMESPACE);

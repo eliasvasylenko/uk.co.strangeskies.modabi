@@ -1,8 +1,8 @@
 package uk.co.strangeskies.modabi.schema;
 
 import static java.util.Arrays.asList;
-import static uk.co.strangeskies.reflection.TypeToken.overAnnotatedType;
-import static uk.co.strangeskies.reflection.TypeToken.overType;
+import static uk.co.strangeskies.reflection.token.TypeToken.overAnnotatedType;
+import static uk.co.strangeskies.reflection.token.TypeToken.overType;
 
 import java.lang.reflect.AnnotatedType;
 import java.util.Collection;
@@ -10,9 +10,9 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.codegen.Expression;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBindingPointConfigurator<T>
 		extends BindingPointConfigurator<T, ChildBindingPointConfigurator<T>> {
@@ -43,34 +43,27 @@ public interface ChildBindingPointConfigurator<T>
 		return this;
 	}
 
-	ChildBindingPointConfigurator<T> noInput();
-
-	ChildBindingPointConfigurator<T> noOutput();
-
-	default ChildBindingPointConfigurator<T> noIO() {
-		return noInput().noOutput();
-	}
-
 	@Override
 	default <V> ChildBindingPointConfigurator<V> dataType(Class<V> dataType) {
 		return dataType(overType(dataType));
 	}
 
 	@Override
-	<V> ChildBindingPointConfigurator<V> dataType(TypeToken<? extends V> dataType);
+	<V> ChildBindingPointConfigurator<V> dataType(TypeToken<? super V> dataType);
 
 	@Override
 	default ChildBindingPointConfigurator<?> dataType(AnnotatedType dataType) {
 		return dataType(overAnnotatedType(dataType));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	default <V> ChildBindingPointConfigurator<V> baseModel(Model<? extends V> baseModel) {
-		return baseModel(asList(baseModel));
+	default <V> ChildBindingPointConfigurator<V> baseModel(Model<? super V> baseModel) {
+		return (ChildBindingPointConfigurator<V>) baseModel(asList(baseModel));
 	}
 
 	@Override
-	<V> ChildBindingPointConfigurator<V> baseModel(Collection<? extends Model<? extends V>> baseModel);
+	ChildBindingPointConfigurator<?> baseModel(Collection<? extends Model<?>> baseModel);
 
 	@Override
 	ChildBindingPoint<T> create();

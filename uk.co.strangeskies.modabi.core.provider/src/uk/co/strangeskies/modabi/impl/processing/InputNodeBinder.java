@@ -25,8 +25,8 @@ import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.InputNode;
 import uk.co.strangeskies.modabi.schema.InputNode.InputMemberType;
 import uk.co.strangeskies.reflection.ExecutableMember;
-import uk.co.strangeskies.reflection.TypeToken;
-import uk.co.strangeskies.reflection.TypedObject;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 public abstract class InputNodeBinder<T extends InputNode<?>> extends ChildNodeBinder<T> {
 	public InputNodeBinder(ProcessingContext context, T node) {

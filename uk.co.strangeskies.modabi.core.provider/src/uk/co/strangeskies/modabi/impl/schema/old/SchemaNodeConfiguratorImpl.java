@@ -33,7 +33,7 @@ import uk.co.strangeskies.modabi.schema.OutputInitializerConfigurator;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.Imports;
-import uk.co.strangeskies.reflection.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class SchemaNodeConfiguratorImpl implements SchemaNodeConfigurator {
 	private final SchemaNodeConfigurationContext context;

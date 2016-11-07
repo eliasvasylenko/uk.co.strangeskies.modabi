@@ -1,20 +1,24 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
+import uk.co.strangeskies.modabi.ValueResolution;
 import uk.co.strangeskies.modabi.impl.schema.old.InputProcess;
 import uk.co.strangeskies.modabi.impl.schema.old.OutputProcess;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.InputConfigurator;
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.OutputConfigurator;
-import uk.co.strangeskies.reflection.TypeToken;
 import uk.co.strangeskies.reflection.codegen.Block;
 import uk.co.strangeskies.reflection.codegen.ClassDeclaration;
 import uk.co.strangeskies.reflection.codegen.ClassDefinition;
@@ -22,6 +26,7 @@ import uk.co.strangeskies.reflection.codegen.Expression;
 import uk.co.strangeskies.reflection.codegen.MethodDeclaration;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
 import uk.co.strangeskies.reflection.codegen.VariableExpression;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointConfiguratorImpl<T> extends
 		BindingPointConfiguratorImpl<T, ChildBindingPointConfigurator<T>> implements ChildBindingPointConfigurator<T> {
@@ -74,6 +79,22 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 		outputSourceExpression = outputMethod.addParameter(Object.class);
 		outputBlock = outputMethod.withReturnType(new TypeToken<T>() {}).define().body();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	protected Set<BindingPoint<T>> getOverriddenBindingPoints() {
+		Set<BindingPoint<T>> bindingPoints = new HashSet<>(getOverriddenChildBindingPoints());
+		bindingPoints.addAll((Collection<? extends BindingPoint<T>>) getBaseModel());
+		return bindingPoints;
+	}
+
+	protected Set<ChildBindingPoint<T>> getOverriddenChildBindingPoints();
+
+	public <U> OverrideBuilder<U, ChildBindingPoint<T>> overrideChildren(
+			Function<? super ChildBindingPoint<T>, ? extends U> overriddenValues,
+			Function<? super ChildBindingPointConfigurator<T>, ? extends U> overridingValue) {
+		return new OverrideBuilder<>(getOverriddenChildBindingPoints(), overriddenValues, overridingValue.apply(this));
 	}
 
 	@Override
@@ -187,17 +208,68 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	}
 
 	@Override
-	protected Set<BindingPoint<T>> getOverriddenBindingPoints() {
-		Set<BindingPoint<T>> bindingPoints = new HashSet<>(getOverriddenChildBindingPoints());
-		bindingPoints.addAll(getBaseModel());
-		return bindingPoints;
+	public ChildBindingPointConfigurator<T> ordered(boolean ordered) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	protected Set<ChildBindingPoint<T>> getOverriddenChildBindingPoints();
+	@Override
+	public Boolean getOrdered() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-	public <U> OverrideBuilder<U, ChildBindingPoint<T>> overrideChildren(
-			Function<? super ChildBindingPoint<T>, ? extends U> overriddenValues,
-			Function<? super ChildBindingPointConfigurator<T>, ? extends U> overridingValue) {
-		return new OverrideBuilder<>(getOverriddenChildBindingPoints(), overriddenValues, overridingValue.apply(this));
+	@Override
+	public ChildBindingPointConfigurator<T> valueResolution(ValueResolution registrationTime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ValueResolution getValueResolution() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ChildBindingPointConfigurator<T> provideValue(DataSource buffer) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataSource getProvidedValue() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ChildBindingPointConfigurator<T> extensible(boolean extensible) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Boolean getExtensible() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ChildBindingPointConfigurator<T> bindingCondition(BindingCondition<? super T> condition) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BindingCondition<? super T> getBindingCondition() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> ChildBindingPointConfigurator<V> baseModel(Model<? super V> baseModel) {
+		return (ChildBindingPointConfigurator<V>) super.baseModel(baseModel);
 	}
 }
