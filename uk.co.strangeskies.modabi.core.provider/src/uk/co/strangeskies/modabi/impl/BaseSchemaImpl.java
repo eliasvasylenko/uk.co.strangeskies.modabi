@@ -564,7 +564,6 @@ public class BaseSchemaImpl implements BaseSchema {
 		/*
 		 * Models
 		 */
-
 		ModelFactory modelFactory = new ModelFactory() {
 			@Override
 			public <T> Model<T> apply(String name, Function<ModelConfigurator<?>, ModelConfigurator<T>> modelFunction) {

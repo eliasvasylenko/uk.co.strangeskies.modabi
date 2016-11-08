@@ -7,7 +7,7 @@ import uk.co.strangeskies.reflection.codegen.VariableExpression;
 public interface InputConfigurator<T> extends IOConfigurator {
 	ValueExpression<? extends T> result();
 
-	VariableExpression<?> target();
+	<U> VariableExpression<U> target();
 
 	void expression(Expression inputExpression);
 

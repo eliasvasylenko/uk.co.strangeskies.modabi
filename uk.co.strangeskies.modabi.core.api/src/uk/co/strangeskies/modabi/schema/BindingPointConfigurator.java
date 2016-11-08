@@ -17,8 +17,6 @@ public interface BindingPointConfigurator<T, S extends BindingPointConfigurator<
 		extends Self<S>, Factory<BindingPoint<T>> {
 	S name(QualifiedName name);
 
-	S name(String name);
-
 	default S name(String name, Namespace namespace) {
 		return name(new QualifiedName(name, namespace));
 	}

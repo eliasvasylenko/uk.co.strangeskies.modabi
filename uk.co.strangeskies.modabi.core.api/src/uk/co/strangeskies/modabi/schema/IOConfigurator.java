@@ -11,7 +11,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface IOConfigurator {
-	<T> ValueExpression<T> none();
+	<U> ValueExpression<U> none();
 
 	ExecutableToken<ProcessingContext, ?> PROVIDE_METHOD = overType(ProcessingContext.class)
 			.findInterfaceMethod(p -> p.provide((TypeToken<?>) null));

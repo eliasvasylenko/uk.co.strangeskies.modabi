@@ -1,9 +1,12 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static uk.co.strangeskies.reflection.token.TypeToken.overNull;
+
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ValueResolution;
@@ -17,48 +20,58 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.InputConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.OutputConfigurator;
-import uk.co.strangeskies.reflection.codegen.Block;
-import uk.co.strangeskies.reflection.codegen.ClassDeclaration;
-import uk.co.strangeskies.reflection.codegen.ClassDefinition;
 import uk.co.strangeskies.reflection.codegen.Expression;
-import uk.co.strangeskies.reflection.codegen.MethodDeclaration;
+import uk.co.strangeskies.reflection.codegen.ExpressionVisitor.ValueExpressionVisitor;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
 import uk.co.strangeskies.reflection.codegen.VariableExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointConfiguratorImpl<T> extends
 		BindingPointConfiguratorImpl<T, ChildBindingPointConfigurator<T>> implements ChildBindingPointConfigurator<T> {
-	private static final AtomicLong COUNT = new AtomicLong();
+	private static class NoneExpression<U> implements ValueExpression<U> {
+		@Override
+		public void accept(ValueExpressionVisitor<U> visitor) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public TypeToken<U> getType() {
+			return overNull();
+		}
+	}
+
+	private Boolean extensible;
 
 	private Expression inputExpression;
-
-	private final ClassDefinition<? extends OutputProcess<T>> outputClass;
-	private final Block<T> outputBlock;
-	private final VariableExpression<Object> outputSourceExpression;
 	private ValueExpression<? extends T> outputExpression;
+	private final VariableExpression<Object> outputSourcePlaceholderExpression;
+
+	private BindingCondition<? super T> bindingCondition;
+	private Boolean ordered;
+
+	private DataSource providedValue;
+	private ValueResolution valueResolution;
+
+	/*
+	 * A mapping from placeholder iteration item expressions to the iterable
+	 * expressions they come from.
+	 */
+	private final Map<ValueExpression<?>, ValueExpression<? extends Iterable<?>>> iterationExpressions;
 
 	@SuppressWarnings("unchecked")
 	public ChildBindingPointConfiguratorImpl(ChildBindingPointConfigurator<T> other) {
 		super(other);
 
-		long count = COUNT.getAndIncrement();
+		iterationExpressions = new HashMap<>();
 	}
 
 	public ChildBindingPointConfiguratorImpl() {
-		long count = COUNT.getAndIncrement();
-
 		/*
 		 * output
 		 */
-		outputClass = ClassDeclaration
-				.declareClass(getClass().getName() + "$" + OutputProcess.class.getSimpleName() + count)
-				.withSuperType(new TypeToken<OutputProcess<T>>() {})
-				.define();
+		outputSourcePlaceholderExpression = null;// TODO placeholder expression
 
-		MethodDeclaration<?, ?> outputMethod = outputClass.declareMethodOverride(i -> i.process(null));
-
-		outputSourceExpression = outputMethod.addParameter(Object.class);
-		outputBlock = outputMethod.withReturnType(new TypeToken<T>() {}).define().body();
+		iterationExpressions = new HashMap<>();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -92,17 +105,8 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 		/*
 		 * input
 		 */
-		ClassDefinition<? extends InputProcess<T>> inputClass = ClassDeclaration
-				.declareClass(getClass().getName() + "$" + InputProcess.class.getSimpleName() + count)
-				.withSuperType(new TypeToken<InputProcess<T>>() {})
-				.define();
-
-		MethodDeclaration<?, ?> inputMethod = inputClass.declareMethodOverride(i -> i.process(null, null));
-
 		VariableExpression<Object> inputTargetExpression = inputMethod.addParameter(Object.class);
 		VariableExpression<T> inputResultExpression = inputMethod.addParameter(new TypeToken<T>() {});
-
-		Block<Object> inputBlock = inputMethod.withReturnType(Object.class).define().body();
 
 		return new InputConfigurator<T>() {
 			@Override
@@ -118,7 +122,6 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			@Override
 			public void expression(Expression expression) {
 				inputExpression = expression;
-				inputBlock.addExpression(expression);
 			}
 
 			@Override
@@ -148,6 +151,11 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			public Expression getExpression() {
 				return inputExpression;
 			}
+
+			@Override
+			public <U> ValueExpression<U> none() {
+				return new NoneExpression<>();
+			}
 		};
 	}
 
@@ -156,13 +164,12 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 		return new OutputConfigurator<T>() {
 			@Override
 			public ValueExpression<Object> source() {
-				return outputSourceExpression;
+				return outputSourcePlaceholderExpression;
 			}
 
 			@Override
 			public void expression(ValueExpression<? extends T> expression) {
 				outputExpression = expression;
-				outputBlock.addReturnStatement(expression);
 			}
 
 			@Override
@@ -184,7 +191,7 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			}
 
 			@Override
-			public <U> ValueExpression<U> iterate(ValueExpression<Iterable<U>> values) {
+			public <U> ValueExpression<U> iterate(ValueExpression<? extends Iterable<U>> values) {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -198,72 +205,82 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			public ValueExpression<? extends T> getExpression() {
 				return outputExpression;
 			}
+
+			@Override
+			public <U> ValueExpression<U> none() {
+				return new NoneExpression<>();
+			}
 		};
 	}
 
 	@Override
+	public final ChildBindingPointConfigurator<T> name(String name) {
+		return name(name, null /* parent namespace */);
+	}
+
+	@Override
 	public ChildBindingPointConfigurator<T> ordered(boolean ordered) {
-		// TODO Auto-generated method stub
-		return null;
+		this.ordered = ordered;
+		return this;
 	}
 
 	@Override
 	public Boolean getOrdered() {
-		// TODO Auto-generated method stub
-		return null;
+		return ordered;
 	}
 
 	@Override
-	public ChildBindingPointConfigurator<T> valueResolution(ValueResolution registrationTime) {
-		// TODO Auto-generated method stub
-		return null;
+	public ChildBindingPointConfigurator<T> valueResolution(ValueResolution valueResolution) {
+		this.valueResolution = valueResolution;
+		return this;
 	}
 
 	@Override
 	public ValueResolution getValueResolution() {
-		// TODO Auto-generated method stub
-		return null;
+		return valueResolution;
 	}
 
 	@Override
 	public ChildBindingPointConfigurator<T> provideValue(DataSource buffer) {
-		// TODO Auto-generated method stub
-		return null;
+		this.providedValue = buffer;
+		return this;
 	}
 
 	@Override
 	public DataSource getProvidedValue() {
-		// TODO Auto-generated method stub
-		return null;
+		return providedValue;
 	}
 
 	@Override
 	public ChildBindingPointConfigurator<T> extensible(boolean extensible) {
-		// TODO Auto-generated method stub
-		return null;
+		this.extensible = extensible;
+		return this;
 	}
 
 	@Override
 	public Boolean getExtensible() {
-		// TODO Auto-generated method stub
-		return null;
+		return extensible;
 	}
 
 	@Override
 	public ChildBindingPointConfigurator<T> bindingCondition(BindingCondition<? super T> condition) {
-		// TODO Auto-generated method stub
-		return null;
+		this.bindingCondition = condition;
+		return this;
 	}
 
 	@Override
 	public BindingCondition<? super T> getBindingCondition() {
-		// TODO Auto-generated method stub
-		return null;
+		return bindingCondition;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <V> ChildBindingPointConfigurator<V> baseModel(Model<? super V> baseModel) {
 		return (ChildBindingPointConfigurator<V>) super.baseModel(baseModel);
+	}
+
+	@Override
+	public ChildBindingPointConfigurator<?> baseModel(Collection<? extends Model<?>> baseModel) {
+		return (ChildBindingPointConfigurator<?>) super.baseModel(baseModel);
 	}
 }

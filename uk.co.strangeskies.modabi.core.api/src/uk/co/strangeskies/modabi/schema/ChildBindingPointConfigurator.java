@@ -16,6 +16,8 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBindingPointConfigurator<T>
 		extends BindingPointConfigurator<T, ChildBindingPointConfigurator<T>> {
+	ChildBindingPointConfigurator<T> name(String name);
+
 	ChildBindingPointConfigurator<T> extensible(boolean extensible);
 
 	Boolean getExtensible();
