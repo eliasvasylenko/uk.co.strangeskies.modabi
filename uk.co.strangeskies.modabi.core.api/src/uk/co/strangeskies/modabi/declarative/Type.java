@@ -26,6 +26,5 @@ package uk.co.strangeskies.modabi.declarative;
  *
  */
 public @interface Type {
-	Binding binding() default @Binding()
-	;
+	BindingPoint binding();
 }

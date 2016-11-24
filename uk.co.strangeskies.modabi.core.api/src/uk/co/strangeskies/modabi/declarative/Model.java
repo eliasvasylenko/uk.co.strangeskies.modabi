@@ -68,6 +68,5 @@ package uk.co.strangeskies.modabi.declarative;
  *
  */
 public @interface Model {
-	Binding binding() default @Binding()
-	;
+	BindingPoint binding();
 }

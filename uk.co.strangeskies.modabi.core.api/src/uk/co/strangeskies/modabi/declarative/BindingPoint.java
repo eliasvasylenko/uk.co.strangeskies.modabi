@@ -25,8 +25,12 @@ package uk.co.strangeskies.modabi.declarative;
  * @author Elias N Vasylenko
  *
  */
-public @interface Binding {
-	InputBindingStrategy bindingStrategy() default InputBindingStrategy.PROVIDED;
+public @interface BindingPoint {
+	String name() default "";
 
-	OutputBindingStrategy unbindingStrategy() default OutputBindingStrategy.SIMPLE;
+	String input() default "";
+
+	String output() default "";
+
+	BindingCondition condition() default @BindingCondition;
 }

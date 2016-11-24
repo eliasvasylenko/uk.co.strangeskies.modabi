@@ -31,14 +31,9 @@
 			type="@Infer ?"
 			abstractness="ABSTRACT">
 
-			<node format="complex">
-
-				<processing direction="in"> <!-- special <input> section here at start of node? -->
-					<assign>
-						<target />
-						<provide />
-					</assign>
-				</processing>
+			<node
+				format="complex"
+				initializeInput="provide(ScriptEngineManager.class)">
 
 				<input>
 					<!-- method taking two parameters on the current target object, with 
@@ -56,8 +51,8 @@
 						</method>
 					</assign>
 
-					<expression
-						value="target = target.hello(provide(), (SomeType)	bindingResult(${somenamespace:someNode}))" />
+					target = target.hello(provide(), (SomeType)
+					bindingResult(${somenamespace:someNode}))
 				</input>
 
 				<bind
@@ -66,30 +61,11 @@
 					model="string" />
 
 				<bind
-					name="scriptEngineManager"
-					type="ScriptEngineManager">
-
-					<condition>
-						<required />
-					</condition>
-
-					<data
-						inputBindingStrategy="PROVIDED"
-						outputField="null" />
-				</bind>
-
-				<bind
 					name="objectType"
 					type="TypeToken{?}"
 					outputField="null">
 
-					<data>
-						<input>
-							<assign>
-								<provide>ProcessingContext</provide>
-							</assign>
-						</input>
-
+					<data initializeInput="provide(ProcessingContext.class)">
 						<bind
 							name="getBindingNode"
 							outputField="null"
@@ -153,8 +129,6 @@
 				<inputSequence
 					name="cast"
 					chainedInput="true" />
-
-
 
 				<!-- TEST FORM OF REFERENCES: -->
 				<!-- expected -->

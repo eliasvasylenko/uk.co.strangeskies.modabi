@@ -26,29 +26,21 @@
 			dataType="Isotope"
 			inputBinding="null">
 
-			<initializeInput
-				process="this = new Isotope(sai:massNumber, sai:mass, sai:abundance)" />
+			<node>
+				<bind name="sai:massNumber">
+					<input />
+					<property type="int" />
+				</bind>
 
-			<bind name="sai:massNumber">
-				<input />
-				<property type="int" />
-			</bind>
+				<bind name="sai:mass">
+					<input />
+					<property type="double" />
+				</bind>
 
-			<bind name="sai:mass">
-				<input />
-				<property type="double" />
-			</bind>
-
-			<bind name="sai:abundance">
-				<input />
-				<property type="double" />
-			</bind>
-
-			<bind name="sai:constructor">
-				<output />
-			</bind>
-
-			<output />
+				<bind
+					name="sai:abundance"
+					input="target = new Isotope(${../sai:massNumber}, ${../sai:mass}, ${.})" />
+			</node>
 		</model>
 
 		<model
@@ -56,73 +48,61 @@
 			dataType="Element"
 			inputBinding="null">
 
-			<bind
-				input="this = new($)"
-				output="this">
-
+			<node initializeInput="new Element()">
 				<bind
 					name="sai:atomicNumber"
-					input="void">
+					model="int"
 
-					<property type="int" />
-				</bind>
+					input=".=withAtomicNumber(result)" />
 
 				<bind
 					name="sai:name"
-					occurrences="0..1"
-					input="void">
+					model="string"
 
-					<property type="string" />
-				</bind>
+					condition="optional"
+
+					input=".=withName(${.})" />
 
 				<bind
 					name="sai:symbol"
-					input="void">
+					model="string"
 
-					<property type="string" />
-				</bind>
+					input=".=withSymbol(${.})" />
 
 				<bind
-					name="sai:isotope"
-					occurrences="0.."
-					output="getIsotopes()[]"
-					input="provide[].add($)">
+					model="sai:isotope"
+					condition="occurrences(Range.from(0))"
 
-					<complex model="sai:isotope" />
-				</bind>
+					output=".getIsotopes()[]"
+					input=".=withIsotope(${.})" />
 
 				<bind
 					name="sai:group"
-					dataType="Group">
-
-					<property type="enum" />
-				</bind>
-			</bind>
+					model="enum"
+					dataType="Group" />
+			</node>
 		</model>
 
 		<model
 			name="sai:periodicTable"
-			dataType="PeriodicTable"
-			bindingStrategy="CONSTRUCTOR">
+			dataType="PeriodicTable">
 
-			<inputSequence name="sai:constructor">
-				<property
+			<node initializeInput="new">
+				<bind
 					name="sai:name"
-					type="string" />
+					model="string" />
 
-				<inline
-					name="sai:elementList"
-					outMethod="getElements"
-					dataType="@Infer Collection{?}"
-					bindingType="@Infer List{?}">
+				<bind
+					model="sai:element"
 
-					<complex
-						model="sai:element"
-						outMethod="this"
-						occurrences="0.."
-						inMethod="add" />
-				</inline>
-			</inputSequence>
+					output=".getElements()[]"
+					input=".getElements().add(result)">
+
+					<condition>
+						<occurrences range="0.." />
+					</condition>
+				</bind>
+			</node>
 		</model>
 	</models>
 </schema>
