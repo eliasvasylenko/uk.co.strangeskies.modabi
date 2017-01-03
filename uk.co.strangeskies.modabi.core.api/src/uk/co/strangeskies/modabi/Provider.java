@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface Provider {
@@ -51,7 +52,7 @@ public interface Provider {
 
 	static boolean canEqual(TypeToken<?> first, TypeToken<?> second) {
 		try {
-			first.withEquality(second);
+			first.withConstraintFrom(Kind.EQUALITY, second);
 			return true;
 		} catch (Exception e) {
 			return false;

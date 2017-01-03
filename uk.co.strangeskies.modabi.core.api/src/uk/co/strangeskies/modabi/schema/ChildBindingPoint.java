@@ -1,7 +1,9 @@
 package uk.co.strangeskies.modabi.schema;
 
+import static java.util.stream.Collectors.toList;
+import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ValueResolution;
@@ -49,7 +51,7 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
 	List<T> providedValues();
 
 	default List<TypedObject<T>> typedProvidedValues() {
-		return providedValues().stream().map(dataType()::typedObject).collect(Collectors.toList());
+		return providedValues().stream().map(v -> typedObject(v, dataType())).collect(toList());
 	}
 
 	default T providedValue() {
@@ -63,7 +65,7 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
 	}
 
 	default TypedObject<T> typedProvidedValue() {
-		return dataType().typedObject(providedValue());
+		return typedObject(providedValue(), dataType());
 	}
 
 	default boolean isValueProvided() {

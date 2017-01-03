@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
+
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
@@ -43,7 +45,7 @@ public abstract class NodeBinding<T, N extends BindingPoint<T>> {
 		 * TODO this is not good enough! we need to be able to get the exact type
 		 * out here, which may have been inferred during the binding process!!!
 		 */
-		return node.dataType().typedObject(data);
+		return typedObject(data, node.dataType());
 	}
 
 	@Override

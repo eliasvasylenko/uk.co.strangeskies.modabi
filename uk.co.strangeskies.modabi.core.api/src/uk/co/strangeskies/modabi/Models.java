@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -94,7 +96,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	}
 
 	private <T> void checkType(Model<T> model, TypeToken<T> dataType) {
-		if (model != null && !model.dataType().isAssignableFrom(dataType)) {
+		if (model != null && !model.dataType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, dataType)) {
 			throw new ModabiException(t -> t.noModelFoundForType(model.name(), dataType.getType()));
 		}
 	}
