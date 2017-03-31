@@ -38,7 +38,6 @@ import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
-import uk.co.strangeskies.modabi.schema.DataType;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.utilities.IdentityProperty;
 import uk.co.strangeskies.utilities.Property;
@@ -228,9 +227,6 @@ public class BindingFutureImpl<T> implements BindingFuture<T> {
 			 */
 			for (Model<?> schemaModel : model.schema().models()) {
 				context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
-			}
-			for (DataType<?> schemaDataType : model.schema().dataTypes()) {
-				context.bindings().add(context.manager().getMetaSchema().getDataTypeModel(), schemaDataType);
 			}
 
 			QualifiedName inputRoot = input.startNextChild();

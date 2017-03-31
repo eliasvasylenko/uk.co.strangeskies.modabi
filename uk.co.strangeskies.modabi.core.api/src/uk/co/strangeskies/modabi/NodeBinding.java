@@ -45,7 +45,7 @@ public abstract class NodeBinding<T, N extends BindingPoint<T>> {
 		 * TODO this is not good enough! we need to be able to get the exact type
 		 * out here, which may have been inferred during the binding process!!!
 		 */
-		return typedObject(data, node.dataType());
+		return typedObject(node.dataType(), data);
 	}
 
 	@Override

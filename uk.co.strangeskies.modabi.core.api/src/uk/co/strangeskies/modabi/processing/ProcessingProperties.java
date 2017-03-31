@@ -35,12 +35,11 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
-import uk.co.strangeskies.text.properties.Properties;
 import uk.co.strangeskies.text.properties.PropertyConfiguration;
 import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
 @PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
-public interface ProcessingProperties extends Properties<ProcessingProperties> {
+public interface ProcessingProperties {
 	ModabiProperties modabi();
 
 	Localized<String> bindingObjects(Collection<? extends Object> bindingObjectStack);
@@ -49,9 +48,16 @@ public interface ProcessingProperties extends Properties<ProcessingProperties> {
 
 	Localized<String> noModelFound(QualifiedName modelName);
 
-	Localized<String> noModelFound(QualifiedName modelName, Collection<? extends Model<?>> candidates, TypeToken<?> type);
+	Localized<String> noModelFound(
+			QualifiedName modelName,
+			Collection<? extends Model<?>> candidates,
+			TypeToken<?> type);
 
-	Localized<String> cannotInvoke(Executable inputMethod, TypeToken<?> targetType, SchemaNode node, List<?> parameters);
+	Localized<String> cannotInvoke(
+			Executable inputMethod,
+			TypeToken<?> targetType,
+			SchemaNode<?> node,
+			List<?> parameters);
 
 	Localized<String> mustHaveData(QualifiedName node);
 
@@ -63,16 +69,22 @@ public interface ProcessingProperties extends Properties<ProcessingProperties> {
 
 	Localized<String> noProviderFound(TypeToken<?> type);
 
-	<T> Localized<String> mustBeOrdered(ChildBindingPoint<T> node, T lastItem, Class<? extends Comparator<?>> order);
+	<T> Localized<String> mustBeOrdered(
+			ChildBindingPoint<T> node,
+			T lastItem,
+			Class<? extends Comparator<?>> order);
 
-	default Localized<String> mustHaveDataWithinRange(ChildBindingPoint<?> node, Range<Integer> range) {
+	default Localized<String> mustHaveDataWithinRange(
+			ChildBindingPoint<?> node,
+			Range<Integer> range) {
 		return mustHaveDataWithinRange(node.name(), Range.compose(range));
 	}
 
 	Localized<String> mustHaveDataWithinRange(QualifiedName name, String compose);
 
 	default Localized<String> cannotBindRemainingData(DataSource dataSource) {
-		return cannotBindRemainingData(dataSource.stream().map(Objects::toString).collect(Collectors.toList()));
+		return cannotBindRemainingData(
+				dataSource.stream().map(Objects::toString).collect(Collectors.toList()));
 	}
 
 	Localized<String> cannotBindRemainingData(List<String> dataSource);

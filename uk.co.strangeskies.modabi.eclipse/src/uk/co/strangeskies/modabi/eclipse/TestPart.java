@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.eclipse;
 
-import static uk.co.strangeskies.fx.FXMLLoadBuilder.buildWith;
+import static uk.co.strangeskies.fx.FxmlLoadBuilder.buildWith;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;

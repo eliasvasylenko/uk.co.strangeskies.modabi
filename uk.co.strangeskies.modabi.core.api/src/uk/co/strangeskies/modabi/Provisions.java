@@ -28,12 +28,12 @@ public interface Provisions extends ObservableSet<Provisions, Provider>, Scoped<
 	<T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state);
 
 	default <T> TypedObject<T> provide(Class<T> clazz, ProcessingContext state) {
-		return provide(TypeToken.overType(clazz), state);
+		return provide(TypeToken.forClass(clazz), state);
 	}
 
 	boolean isProvided(TypeToken<?> type, ProcessingContext state);
 
 	default boolean isProvided(Class<?> clazz, ProcessingContext state) {
-		return isProvided(TypeToken.overType(clazz), state);
+		return isProvided(TypeToken.forClass(clazz), state);
 	}
 }

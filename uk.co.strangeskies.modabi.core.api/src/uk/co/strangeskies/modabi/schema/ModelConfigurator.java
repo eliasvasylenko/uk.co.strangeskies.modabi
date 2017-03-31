@@ -1,37 +1,26 @@
 package uk.co.strangeskies.modabi.schema;
 
-import static java.util.Arrays.asList;
-import static uk.co.strangeskies.reflection.token.TypeToken.overAnnotatedType;
-import static uk.co.strangeskies.reflection.token.TypeToken.overType;
-
-import java.lang.reflect.AnnotatedType;
-import java.util.Collection;
-
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ModelConfigurator<T> extends BindingPointConfigurator<T, ModelConfigurator<T>> {
+public interface ModelConfigurator extends BindingPointConfigurator<ModelConfigurator> {
 	@Override
-	default <V> ModelConfigurator<V> dataType(Class<V> dataType) {
-		return dataType(overType(dataType));
+	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNodeOfType(Class<V> dataType) {
+		return withNodeOfType(TypeToken.forClass(dataType));
 	}
 
 	@Override
-	<V> ModelConfigurator<V> dataType(TypeToken<? super V> dataType);
+	<V> SchemaNodeConfigurator<V, ModelFactory<V>> withNodeOfType(TypeToken<V> dataType);
 
 	@Override
-	default ModelConfigurator<?> dataType(AnnotatedType dataType) {
-		return dataType(overAnnotatedType(dataType));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	default <V> ModelConfigurator<V> baseModel(Model<? super V> baseModel) {
-		return (ModelConfigurator<V>) baseModel(asList(baseModel));
+	default <V> ModelFactory<V> withoutNode(Class<V> dataType) {
+		return withoutNode(TypeToken.forClass(dataType));
 	}
 
 	@Override
-	ModelConfigurator<?> baseModel(Collection<? extends Model<?>> baseModel);
+	<V> ModelFactory<V> withoutNode(TypeToken<V> dataType);
 
 	@Override
-	Model<T> create();
+	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNodeOfModel(Model<V> baseModel) {
+		return withNodeOfType(baseModel.dataType()).baseModel(baseModel);
+	}
 }

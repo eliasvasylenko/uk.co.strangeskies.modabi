@@ -1,15 +1,21 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
-import static uk.co.strangeskies.reflection.token.TypeToken.overNull;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
+import static uk.co.strangeskies.reflection.codegen.ClassSignature.classSignature;
+import static uk.co.strangeskies.reflection.codegen.ParameterSignature.parameterSignature;
+import static uk.co.strangeskies.reflection.token.TypeToken.forNull;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointConfigurationContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
@@ -20,31 +26,37 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.InputConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.OutputConfigurator;
+import uk.co.strangeskies.reflection.Methods;
+import uk.co.strangeskies.reflection.codegen.ClassDefinition;
 import uk.co.strangeskies.reflection.codegen.Expression;
 import uk.co.strangeskies.reflection.codegen.ExpressionVisitor.ValueExpressionVisitor;
+import uk.co.strangeskies.reflection.codegen.MethodDeclaration;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
 import uk.co.strangeskies.reflection.codegen.VariableExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public class ChildBindingPointConfiguratorImpl<T> extends
-		BindingPointConfiguratorImpl<T, ChildBindingPointConfigurator<T>> implements ChildBindingPointConfigurator<T> {
+public class ChildBindingPointConfiguratorImpl<T>
+		extends BindingPointConfiguratorImpl<T, ChildBindingPointConfigurator<T>>
+		implements ChildBindingPointConfigurator<T> {
 	private static class NoneExpression<U> implements ValueExpression<U> {
 		@Override
 		public void accept(ValueExpressionVisitor<U> visitor) {
 			throw new UnsupportedOperationException();
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public TypeToken<U> getType() {
-			return overNull();
+			return (TypeToken<U>) forNull();
 		}
 	}
+
+	private final ChildBindingPointConfigurationContext context;
 
 	private Boolean extensible;
 
 	private Expression inputExpression;
 	private ValueExpression<? extends T> outputExpression;
-	private final VariableExpression<Object> outputSourcePlaceholderExpression;
 
 	private BindingCondition<? super T> bindingCondition;
 	private Boolean ordered;
@@ -62,32 +74,39 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	public ChildBindingPointConfiguratorImpl(ChildBindingPointConfigurator<T> other) {
 		super(other);
 
+		context = null;
+
 		iterationExpressions = new HashMap<>();
 	}
 
-	public ChildBindingPointConfiguratorImpl() {
+	public ChildBindingPointConfiguratorImpl(ChildBindingPointConfigurationContext context) {
+		this.context = context;
+
 		/*
 		 * output
 		 */
-		outputSourcePlaceholderExpression = null;// TODO placeholder expression
-
 		iterationExpressions = new HashMap<>();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected Set<BindingPoint<T>> getOverriddenBindingPoints() {
-		Set<BindingPoint<T>> bindingPoints = new HashSet<>(getOverriddenChildBindingPoints());
-		bindingPoints.addAll((Collection<? extends BindingPoint<T>>) getBaseModel());
-		return bindingPoints;
+	protected Stream<BindingPoint<?>> getOverriddenBindingPoints() {
+		return concat(
+				getOverriddenChildBindingPoints(),
+				(Stream<? extends BindingPoint<T>>) getBaseModel());
 	}
 
-	protected Set<ChildBindingPoint<T>> getOverriddenChildBindingPoints();
+	protected Stream<ChildBindingPoint<?>> getOverriddenChildBindingPoints() {
+		return getName().map(context::overrideChild).orElse(Stream.empty());
+	}
 
-	public <U> OverrideBuilder<U, ChildBindingPoint<T>> overrideChildren(
-			Function<? super ChildBindingPoint<T>, ? extends U> overriddenValues,
-			Function<? super ChildBindingPointConfigurator<T>, ? extends U> overridingValue) {
-		return new OverrideBuilder<>(getOverriddenChildBindingPoints(), overriddenValues, overridingValue.apply(this));
+	public <U> OverrideBuilder<U> overrideChildren(
+			Function<? super ChildBindingPoint<?>, ? extends U> overriddenValues,
+			Function<? super ChildBindingPointConfigurator<T>, Optional<? extends U>> overridingValue) {
+		return new OverrideBuilder<>(
+				getOverriddenChildBindingPoints().map(overriddenValues::apply).collect(toList()),
+				overridingValue.apply(this),
+				() -> Methods.findMethod(ChildBindingPoint.class, overriddenValues::apply).getName());
 	}
 
 	@Override
@@ -105,13 +124,25 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 		/*
 		 * input
 		 */
-		VariableExpression<Object> inputTargetExpression = inputMethod.addParameter(Object.class);
-		VariableExpression<T> inputResultExpression = inputMethod.addParameter(new TypeToken<T>() {});
+		ClassDefinition<Void, ? extends InputProcess> inputClass = classSignature()
+				.withSuperType(InputProcess.class)
+				.defineStandalone();
+
+		MethodDeclaration<? extends InputProcess, ?> inputMethod = inputClass
+				.getDeclaration()
+				.getMethodDeclaration("process", ProcessingContext.class, Object.class, Object.class);
+
+		ValueExpression<ProcessingContext> contextExpression = inputMethod
+				.getParameter(parameterSignature("context", ProcessingContext.class));
+		VariableExpression<Object> inputTargetExpression = inputMethod
+				.getParameter(parameterSignature("inputTarget", Object.class));
+		VariableExpression<Object> resultExpression = inputMethod
+				.getParameter(parameterSignature("result", Object.class));
 
 		return new InputConfigurator<T>() {
 			@Override
 			public ValueExpression<? extends T> result() {
-				return inputResultExpression;
+				return resultExpression;
 			}
 
 			@Override
@@ -132,8 +163,7 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 			@Override
 			public ValueExpression<ProcessingContext> context() {
-				// TODO Auto-generated method stub
-				return null;
+				return contextExpression;
 			}
 
 			@Override
@@ -144,7 +174,7 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 			@Override
 			public ValueExpression<?> provide() {
-				return provide(getDataType());
+				return provide(getDataType().get());
 			}
 
 			@Override
@@ -156,15 +186,37 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 			public <U> ValueExpression<U> none() {
 				return new NoneExpression<>();
 			}
+
+			@Override
+			public <U> ValueExpression<U> iterate(ValueExpression<? extends Iterable<U>> values) {
+				// TODO Auto-generated method stub
+				return null;
+			}
 		};
 	}
 
 	@Override
 	public OutputConfigurator<T> output() {
+		/*
+		 * input
+		 */
+		ClassDefinition<Void, ? extends OutputProcess> outputClass = classSignature()
+				.withSuperType(OutputProcess.class)
+				.defineStandalone();
+
+		MethodDeclaration<? extends OutputProcess, ?> outputMethod = outputClass
+				.getDeclaration()
+				.getMethodDeclaration("process", ProcessingContext.class, Object.class);
+
+		ValueExpression<ProcessingContext> contextExpression = outputMethod
+				.getParameter(parameterSignature("context", ProcessingContext.class));
+		ValueExpression<Object> outputSourceExpression = outputMethod
+				.getParameter(parameterSignature("outputSource", Object.class));
+
 		return new OutputConfigurator<T>() {
 			@Override
 			public ValueExpression<Object> source() {
-				return outputSourcePlaceholderExpression;
+				return outputSourceExpression;
 			}
 
 			@Override
@@ -180,8 +232,7 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 			@Override
 			public ValueExpression<ProcessingContext> context() {
-				// TODO Auto-generated method stub
-				return null;
+				return contextExpression;
 			}
 
 			@Override
@@ -215,7 +266,7 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 
 	@Override
 	public final ChildBindingPointConfigurator<T> name(String name) {
-		return name(name, null /* parent namespace */);
+		return name(name, context.namespace());
 	}
 
 	@Override
@@ -225,8 +276,8 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public Boolean getOrdered() {
-		return ordered;
+	public Optional<Boolean> getOrdered() {
+		return ofNullable(ordered);
 	}
 
 	@Override
@@ -236,8 +287,8 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public ValueResolution getValueResolution() {
-		return valueResolution;
+	public Optional<ValueResolution> getValueResolution() {
+		return ofNullable(valueResolution);
 	}
 
 	@Override
@@ -247,8 +298,8 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public DataSource getProvidedValue() {
-		return providedValue;
+	public Optional<DataSource> getProvidedValue() {
+		return ofNullable(providedValue);
 	}
 
 	@Override
@@ -258,8 +309,8 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public Boolean getExtensible() {
-		return extensible;
+	public Optional<Boolean> getExtensible() {
+		return ofNullable(extensible);
 	}
 
 	@Override
@@ -269,8 +320,8 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	}
 
 	@Override
-	public BindingCondition<? super T> getBindingCondition() {
-		return bindingCondition;
+	public Optional<BindingCondition<? super T>> getBindingCondition() {
+		return ofNullable(bindingCondition);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -282,5 +333,11 @@ public class ChildBindingPointConfiguratorImpl<T> extends
 	@Override
 	public ChildBindingPointConfigurator<?> baseModel(Collection<? extends Model<?>> baseModel) {
 		return (ChildBindingPointConfigurator<?>) super.baseModel(baseModel);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <V> ChildBindingPointConfigurator<V> dataType(TypeToken<V> dataType) {
+		return (ChildBindingPointConfigurator<V>) super.dataType(dataType);
 	}
 }

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.ModelFactory;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utilities.Factory;
 
@@ -35,27 +36,31 @@ public interface SchemaConfigurator extends Factory<Schema> {
 
 	SchemaConfigurator dependencies(Collection<? extends Schema> dependencies);
 
-	ModelConfigurator<?> addModel();
+	ModelConfigurator addModel();
 
-	default SchemaConfigurator addModel(QualifiedName name,
-			Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration) {
-		configuration.apply(addModel().name(name)).create();
+	default SchemaConfigurator addModel(
+			QualifiedName name,
+			Function<ModelConfigurator, ModelFactory<?>> configuration) {
+		configuration.apply(addModel().name(name)).createModel();
 
 		return this;
 	}
 
-	SchemaConfigurator addModel(String name, Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration);
+	SchemaConfigurator addModel(
+			String name,
+			Function<ModelConfigurator, ModelFactory<?>> configuration);
 
 	/*
 	 * For simple programmatic generation of schemata:
 	 */
 
 	default <T> Model<T> generateModel(Class<T> type) {
-		return generateModel(TypeToken.overType(type));
+		return generateModel(TypeToken.forClass(type));
 	}
 
 	default SchemaConfigurator generateModels(Class<?>... types) {
-		return generateModels(Arrays.stream(types).<TypeToken<?>>map(TypeToken::overType).collect(Collectors.toList()));
+		return generateModels(
+				Arrays.stream(types).<TypeToken<?>>map(TypeToken::forClass).collect(Collectors.toList()));
 	}
 
 	<T> Model<T> generateModel(TypeToken<T> type);

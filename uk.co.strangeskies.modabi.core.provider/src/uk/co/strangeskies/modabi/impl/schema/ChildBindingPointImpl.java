@@ -1,8 +1,7 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
-import java.lang.reflect.Type;
 import java.util.List;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.ValueResolution;
@@ -10,8 +9,6 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
-import uk.co.strangeskies.reflection.token.TypeParameter;
-import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointImpl<T> extends BindingPointImpl<T> implements ChildBindingPoint<T> {
 	private final boolean extensible;
@@ -22,12 +19,16 @@ public class ChildBindingPointImpl<T> extends BindingPointImpl<T> implements Chi
 	private final DataSource valuesBuffer;
 	private final List<T> values;
 
+	@SuppressWarnings("unchecked")
 	protected ChildBindingPointImpl(ChildBindingPointConfiguratorImpl<T> configurator) {
 		super(configurator);
 
 		extensible = configurator
-				.overrideChildren(ChildBindingPoint::extensible, ChildBindingPointConfigurator::getExtensible)
+				.overrideChildren(
+						ChildBindingPoint::extensible,
+						ChildBindingPointConfigurator::getExtensible)
 				.validateOverride((a, b) -> true)
+				.orDefault(false)
 				.get();
 
 		ordered = configurator
@@ -35,30 +36,38 @@ public class ChildBindingPointImpl<T> extends BindingPointImpl<T> implements Chi
 				.validateOverride((a, b) -> a || !b)
 				.get();
 
-		condition = configurator
-				.overrideChildren(
-						(Function<ChildBindingPoint<T>, BindingCondition<? super T>>) ChildBindingPoint::bindingCondition,
+		BindingCondition<?> condition = configurator
+				.<BindingCondition<?>>overrideChildren(
+						ChildBindingPoint::bindingCondition,
 						ChildBindingPointConfigurator::getBindingCondition)
 				.get();
+		this.condition = (BindingCondition<? super T>) condition;
 
 		valuesBuffer = configurator
-				.overrideChildren(ChildBindingPoint::providedValuesBuffer, ChildBindingPointConfigurator::getProvidedValue)
+				.overrideChildren(
+						ChildBindingPoint::providedValuesBuffer,
+						ChildBindingPointConfigurator::getProvidedValue)
 				.tryGet();
 
 		resolution = configurator
-				.overrideChildren(ChildBindingPoint::providedValuesResolution,
+				.overrideChildren(
+						ChildBindingPoint::providedValuesResolution,
 						ChildBindingPointConfigurator::getValueResolution)
 				.validateOverride(
-						(o, n) -> o == n || (o == ValueResolution.DECLARATION_TIME && n == ValueResolution.POST_DECLARATION))
+						(o, n) -> o == n
+								|| (o == ValueResolution.DECLARATION_TIME && n == ValueResolution.POST_DECLARATION))
 				.orDefault(ValueResolution.PROCESSING_TIME)
 				.get();
 
-		if (valuesBuffer == null && concrete()
-				&& (resolution == ValueResolution.DECLARATION_TIME || resolution == ValueResolution.POST_DECLARATION))
-			throw new ModabiException("Value must be provided at registration time for node '" + name() + "'");
+		if (valuesBuffer == null
+				&& concrete()
+				&& (resolution == ValueResolution.DECLARATION_TIME
+						|| resolution == ValueResolution.POST_DECLARATION))
+			throw new ModabiException(
+					"Value must be provided at registration time for node '" + name() + "'");
 
-		if ((resolution == ValueResolution.DECLARATION_TIME || resolution == ValueResolution.POST_DECLARATION)
-				&& valuesBuffer != null) {
+		if ((resolution == ValueResolution.DECLARATION_TIME
+				|| resolution == ValueResolution.POST_DECLARATION) && valuesBuffer != null) {
 			/*
 			 * TODO The previous approach taken here was all wrong. The process of
 			 * binding should essentially allow us to determine the type as a free
@@ -82,11 +91,6 @@ public class ChildBindingPointImpl<T> extends BindingPointImpl<T> implements Chi
 	}
 
 	@Override
-	public Type getThisType() {
-		return new TypeToken<ChildBindingPoint<T>>() {}.withTypeArgument(new TypeParameter<T>() {}, dataType()).getType();
-	}
-
-	@Override
 	public boolean extensible() {
 		return extensible;
 	}
@@ -102,8 +106,8 @@ public class ChildBindingPointImpl<T> extends BindingPointImpl<T> implements Chi
 	}
 
 	@Override
-	public List<T> providedValues() {
-		return values;
+	public Stream<T> providedValues() {
+		return values.stream();
 	}
 
 	@Override

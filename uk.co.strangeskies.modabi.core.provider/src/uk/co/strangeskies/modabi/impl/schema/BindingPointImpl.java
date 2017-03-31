@@ -1,6 +1,11 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static java.util.stream.Collectors.toList;
+import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.EQUALITY;
+import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
+
 import java.util.List;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
@@ -15,28 +20,32 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	private final boolean concrete;
 	private final TypeToken<T> dataType;
 	private final SchemaNode node;
-	private final List<Model<? super T>> baseModel;
+	private final List<Model<?>> baseModel;
 
 	@SuppressWarnings("unchecked")
 	protected BindingPointImpl(BindingPointConfiguratorImpl<T, ?> configurator) {
-		name = configurator.override(BindingPoint::name, BindingPointConfigurator::getName).get();
+		name = configurator
+				.override(BindingPoint::name, BindingPointConfigurator::getName)
+				.validateOverride((a, b) -> true)
+				.get();
 
-		concrete = configurator.getConcrete() == null || configurator.getConcrete();
+		concrete = configurator.getConcrete().orElse(true);
 
-		dataType = configurator
+		TypeToken<?> dataType = configurator
 				.override(BindingPoint::dataType, BindingPointConfigurator::getDataType)
-				.orMerged((o, n) -> o.withEquality(n))
+				.orMerged((o, n) -> o.withConstraintTo(EQUALITY, n))
 				.mergeOverride((o, b) -> mergeOverriddenTypes(o, b))
 				.get();
+		this.dataType = (TypeToken<T>) dataType;
 
 		node = configurator.getNode();
 
-		baseModel = (List<Model<? super T>>) (List<?>) configurator.getBaseModel();
+		baseModel = configurator.getBaseModel().collect(toList());
 	}
 
 	private static <T> TypeToken<T> mergeOverriddenTypes(TypeToken<T> override, TypeToken<?> base) {
 		if (!base.isProper() || !Types.isAssignable(override.getType(), base.getType())) {
-			return override.withUpperBound(base.deepCopy());
+			return override.withConstraintTo(SUBTYPE, base.deepCopy());
 		} else {
 			return override;
 		}
@@ -63,7 +72,7 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	}
 
 	@Override
-	public List<Model<? super T>> baseModel() {
-		return baseModel;
+	public Stream<Model<?>> baseModel() {
+		return baseModel.stream();
 	}
 }

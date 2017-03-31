@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,8 +49,12 @@ public final class ProvisionsImpl extends ScopedObservableSet<Provisions, Provid
 
 	@Override
 	public <T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state) {
-		return type.typedObject(visiblePriovidersStream().map(p -> p.provide(type, state)).filter(Objects::nonNull)
-				.findFirst().<ModabiException>orElseThrow(() -> new ProcessingException(t -> t.noProviderFound(type), state)));
+		return typedObject(type,
+				visiblePriovidersStream()
+						.map(p -> p.provide(type, state))
+						.filter(Objects::nonNull)
+						.findFirst()
+						.<ModabiException>orElseThrow(() -> new ProcessingException(t -> t.noProviderFound(type), state)));
 	}
 
 	@Override

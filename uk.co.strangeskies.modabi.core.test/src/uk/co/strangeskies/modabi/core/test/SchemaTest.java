@@ -64,13 +64,6 @@ public class SchemaTest extends TestBase {
 
 	private static final String INLINE_PROPERTY_RESOURCE = "InlineProperty";
 
-	@Test
-	public void abstractChoiceNodeTest() {
-		SchemaManager schemaManager = getService(SchemaManager.class);
-		schemaManager.getSchemaConfigurator().qualifiedName(new QualifiedName("choiceNodeTest")).addModel(
-				"choiceNodeTestModel", m -> m.concrete(false).addChild(c -> c.choice().concrete(false)));
-	}
-
 	@Test(timeout = TEST_TIMEOUT_MILLISECONDS)
 	public void inlineDataSchemaTest() {
 		Model<IdentityProperty<DataSource>> inlineData = getModel(INLINE_DATA, INLINE_DATA_TYPE);
@@ -150,9 +143,8 @@ public class SchemaTest extends TestBase {
 			System.out.println("Success: " + success);
 
 			@SuppressWarnings("unchecked")
-			Model<Schema> schemaModel = (Model<Schema>) metaSchema
-					.models()
-					.get(new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
+			Model<Schema> schemaModel = (Model<Schema>) metaSchema.models().get(
+					new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 			System.out.println();
 			System.out.println();
@@ -169,9 +161,8 @@ public class SchemaTest extends TestBase {
 			metaSchema = schemaManager.bindInput().with(Schema.class).from(buffered).resolve();
 
 			@SuppressWarnings("unchecked")
-			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema
-					.models()
-					.get(new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
+			Model<Schema> schemaModel2 = (Model<Schema>) metaSchema.models().get(
+					new QualifiedName("schema", MetaSchema.QUALIFIED_NAME.getNamespace()));
 
 			System.out.println();
 			System.out.println();
@@ -187,9 +178,8 @@ public class SchemaTest extends TestBase {
 	public void manualSchemaCreationTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
 
-		SchemaConfigurator generatedSchema = schemaManager
-				.getSchemaConfigurator()
-				.qualifiedName(new QualifiedName("testExtentions", Namespace.getDefault()));
+		SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator().qualifiedName(
+				new QualifiedName("testExtentions", Namespace.getDefault()));
 
 		Model<List<?>> intListType = generatedSchema
 				.addModel()
@@ -209,19 +199,15 @@ public class SchemaTest extends TestBase {
 				.addModel()
 				.name("stringIntMap", Namespace.getDefault())
 				.baseModel(schemaManager.getBaseSchema().baseModels().mapModel())
-				.addChild(s -> s
+				.addChild(s -> s.complex().name("entrySet").addChild(e -> e
 						.complex()
-						.name("entrySet")
-						.addChild(e -> e
+						.name("entry")
+						.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
+						.addChild(v -> v
 								.complex()
-								.name("entry")
-								.addChild(k -> k.data().name("key").type(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
-								.addChild(v -> v
-										.complex()
-										.name("value")
-										.<Object>model((ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
-										.addChild(
-												c -> c.data().name("content").type(schemaManager.getBaseSchema().primitive(Primitive.INT))))))
+								.name("value")
+								.<Object>model((ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
+								.addChild(c -> c.data().name("content").type(schemaManager.getBaseSchema().primitive(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.dataType());
 		System.out.println("    ~# " + stringIntMapModel.dataType().getResolver().getBounds());

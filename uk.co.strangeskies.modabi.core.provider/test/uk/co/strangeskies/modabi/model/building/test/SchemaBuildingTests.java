@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.model.building.test;
 
+import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
+
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -38,11 +40,14 @@ public class SchemaBuildingTests {
 	 */
 	// @Test
 	public void fixMeUp() {
-		System.out.println(
-				new @Infer TypeToken<SortedSet<?>>() {}.withLooseCompatibilityTo(new TypeToken<Set<String>>() {}).infer());
-		System.out.println(
-				new TypeToken<@Infer SortedSet<?>>() {}.withLooseCompatibilityTo(new TypeToken<Set<String>>() {}).infer());
-		System.out.println(
-				new TypeToken<SortedSet<@Infer ?>>() {}.withLooseCompatibilityTo(new TypeToken<Set<String>>() {}).infer());
+		System.out.println(new @Infer TypeToken<SortedSet<?>>() {}
+				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+				.resolve());
+		System.out.println(new TypeToken<@Infer SortedSet<?>>() {}
+				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+				.resolve());
+		System.out.println(new TypeToken<SortedSet<@Infer ?>>() {}
+				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+				.resolve());
 	}
 }

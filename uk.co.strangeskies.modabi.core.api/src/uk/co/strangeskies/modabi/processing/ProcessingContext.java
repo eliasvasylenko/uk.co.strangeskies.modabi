@@ -72,7 +72,7 @@ public interface ProcessingContext {
 	 *          the element to override with a model
 	 * @return a mapping from possible overrides to override results
 	 */
-	ComputingMap<Model<?>, SchemaNode> getComplexNodeOverrides(SchemaNode node);
+	ComputingMap<Model<?>, SchemaNode<?>> getComplexNodeOverrides(SchemaNode<?> node);
 
 	/**
 	 * The stack of schema nodes corresponding to the processing position in a

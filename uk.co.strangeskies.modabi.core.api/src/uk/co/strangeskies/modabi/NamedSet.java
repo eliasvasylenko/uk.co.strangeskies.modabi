@@ -19,6 +19,8 @@
 package uk.co.strangeskies.modabi;
 
 import static java.util.function.Function.identity;
+import static uk.co.strangeskies.utilities.Observable.Observation.CONTINUE;
+import static uk.co.strangeskies.utilities.Observable.Observation.TERMINATE;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -113,10 +115,10 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 		IdentityProperty<T> result = new IdentityProperty<>();
 
 		synchronized (getMutex()) {
-			Function<Change<T>, Boolean> observer = c -> {
+			Function<Change<T>, Observation> observer = c -> {
 				synchronized (getMutex()) {
 					if (result.get() != null) {
-						return true;
+						return TERMINATE;
 					}
 
 					for (T element : c.added()) {
@@ -126,11 +128,11 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 							result.set(element);
 							getMutex().notifyAll();
 
-							return true;
+							return TERMINATE;
 						}
 					}
 
-					return false;
+					return CONTINUE;
 				}
 			};
 

@@ -37,7 +37,7 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.impl.schema.building.ModelBuilderImpl;
+import uk.co.strangeskies.modabi.impl.schema.ModelBuilderImpl;
 import uk.co.strangeskies.modabi.impl.schema.building.ModelConfiguratorDecorator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -51,8 +51,8 @@ import uk.co.strangeskies.utilities.Property;
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
 	public class SchemaConfiguratorImpl implements SchemaConfigurator {
-		class ModelConfiguratorDecoratorImpl<T> extends ModelConfiguratorDecorator<T> {
-			public ModelConfiguratorDecoratorImpl(ModelConfigurator<T> component) {
+		class ModelConfiguratorDecoratorImpl extends ModelConfiguratorDecorator {
+			public ModelConfiguratorDecoratorImpl(ModelConfigurator component) {
 				super(component);
 			}
 
@@ -93,7 +93,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 			pendingModelConfigurations = new HashMap<>();
 
 			schemaProperty = new IdentityProperty<>();
-			schemaProxy = (Schema) Proxy.newProxyInstance(Schema.class.getClassLoader(), new Class<?>[] { Schema.class },
+			schemaProxy = (Schema) Proxy.newProxyInstance(
+					Schema.class.getClassLoader(),
+					new Class<?>[] { Schema.class },
 					new InvocationHandler() {
 						private Property<Schema, Schema> object = schemaProperty;
 
@@ -107,7 +109,8 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 		@Override
 		public Schema create() {
 			for (String pendingModel : pendingModelConfigurations.keySet()) {
-				addModel(new QualifiedName(pendingModel, qualifiedName.getNamespace()),
+				addModel(
+						new QualifiedName(pendingModel, qualifiedName.getNamespace()),
 						pendingModelConfigurations.get(pendingModel));
 			}
 
@@ -148,8 +151,10 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 					Schema other = (Schema) obj;
 
-					return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
-							&& dependencies().equals(other.dependencies()) && imports().equals(other.imports());
+					return qualifiedName().equals(other.qualifiedName())
+							&& models().equals(other.models())
+							&& dependencies().equals(other.dependencies())
+							&& imports().equals(other.imports());
 				}
 
 				@Override
@@ -182,18 +187,21 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
 		@Override
 		public SchemaConfigurator imports(Collection<? extends Class<?>> imports) {
-			this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(imports);
+			this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(
+					imports);
 
 			return this;
 		}
 
 		@Override
-		public ModelConfigurator<?> addModel() {
-			return new ModelConfiguratorDecoratorImpl<>(modelBuilder.configure(loader, schemaProxy, imports));
+		public ModelConfigurator addModel() {
+			return new ModelConfiguratorDecoratorImpl(
+					modelBuilder.configure(loader, schemaProxy, imports));
 		}
 
 		@Override
-		public SchemaConfigurator addModel(String name,
+		public SchemaConfigurator addModel(
+				String name,
 				Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration) {
 			if (qualifiedName == null) {
 				pendingModelConfigurations.put(name, configuration);

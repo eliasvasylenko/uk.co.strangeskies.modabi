@@ -20,7 +20,6 @@ package uk.co.strangeskies.modabi.impl.processing;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -28,6 +27,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
 import uk.co.strangeskies.utilities.ObservableImpl;
+import uk.co.strangeskies.utilities.Observer;
 
 public class BindingBlockImpl implements BindingBlock {
 	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
@@ -65,12 +65,12 @@ public class BindingBlockImpl implements BindingBlock {
 	}
 
 	@Override
-	public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
+	public boolean addObserver(Observer<? super BindingBlockEvent> observer) {
 		return blockEventObservable.addObserver(observer);
 	}
 
 	@Override
-	public boolean removeObserver(Consumer<? super BindingBlockEvent> observer) {
+	public boolean removeObserver(Observer<? super BindingBlockEvent> observer) {
 		return blockEventObservable.removeObserver(observer);
 	}
 
@@ -149,7 +149,9 @@ public class BindingBlockImpl implements BindingBlock {
 
 	@Override
 	public synchronized void waitUntilComplete(long timeoutMilliseconds)
-			throws InterruptedException, TimeoutException, ExecutionException {
+			throws InterruptedException,
+			TimeoutException,
+			ExecutionException {
 		synchronized (this) {
 			if (isEnded()) {
 				return;

@@ -1,7 +1,8 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static java.util.Arrays.asList;
-import static uk.co.strangeskies.reflection.token.TypeToken.overType;
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
+import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -131,30 +132,30 @@ public class BootstrapDataLoader implements DataLoader {
 
 			case "format":
 				return (List) asList(
-						overType(BindingPoint.Format.class).typedObject(BindingPoint.Format.valueOf(data.get(Primitive.STRING))));
+						typedObject(forClass(BindingPoint.Format.class), BindingPoint.Format.valueOf(data.get(Primitive.STRING))));
 
 			case "dataType":
 				return (List) asList(
-						overType(Primitive.class).typedObject(Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING))));
+						typedObject(forClass(Primitive.class), Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING))));
 
 			case "targetId":
 				List<QualifiedName> targetId = new ArrayList<>();
 				while (!data.isComplete()) {
 					targetId.add(data.get(Primitive.QUALIFIED_NAME));
 				}
-				return (List) asList(new TypeToken<List<QualifiedName>>() {}.typedObject(targetId));
+				return (List) asList(typedObject(new TypeToken<List<QualifiedName>>() {}, targetId));
 
 			case "inline":
-				return (List) asList(overType(Boolean.class).typedObject(data.get(Primitive.BOOLEAN)));
+				return (List) asList(typedObject(forClass(Boolean.class), data.get(Primitive.BOOLEAN)));
 
 			case "isExternal":
-				return (List) asList(overType(Boolean.class).typedObject(data.get(Primitive.BOOLEAN)));
+				return (List) asList(typedObject(forClass(Boolean.class), data.get(Primitive.BOOLEAN)));
 
 			case "enumType":
-				return (List) asList(new TypeToken<Class<Enum>>() {}.typedObject(Enum.class));
+				return (List) asList(typedObject(new TypeToken<Class<Enum>>() {}, Enum.class));
 
 			case "enumerationType":
-				return (List) asList(new TypeToken<Class<Enumeration>>() {}.typedObject(Enumeration.class));
+				return (List) asList(typedObject(new TypeToken<Class<Enumeration>>() {}, Enumeration.class));
 
 			case "targetModel":
 				QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
@@ -162,7 +163,7 @@ public class BootstrapDataLoader implements DataLoader {
 				return (List) asList(targetModels.computeIfAbsent(name, n -> {
 					BootstrapDataLoader.TargetModelSkeletonObject skeleton = new TargetModelSkeletonObject(name);
 
-					return ((TypeToken<Model<?>>) skeleton.getThisType()).typedObject((Model<?>) Proxy
+					return typedObject((TypeToken<Model<?>>) skeleton.getThisType(), (Model<?>) Proxy
 							.newProxyInstance(Model.class.getClassLoader(), new Class[] { Model.class }, new InvocationHandler() {
 								private BootstrapDataLoader.TargetModelSkeletonObject skeletonReference = skeleton;
 								private Model<?> model;

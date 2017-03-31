@@ -18,10 +18,16 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.util.List;
+import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
+import static uk.co.strangeskies.utilities.collection.StreamUtilities.throwingMerger;
+
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.utilities.Self;
+import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.io.DataSource;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 /**
  * The base interface for {@link Schema schema} element nodes. Schemata are made
@@ -33,10 +39,20 @@ import uk.co.strangeskies.utilities.Self;
  *
  * @param <S>
  */
-public interface SchemaNode extends Self<SchemaNode> {
+public interface SchemaNode<T> {
 	enum Format {
 		PROPERTY, CONTENT, SIMPLE, COMPLEX
 	}
+
+	boolean concrete();
+
+	boolean extensible();
+
+	/**
+	 * @return the set of all <em>direct</em> base models, i.e. excluding those
+	 *         which are transitively implied via other more specific base models
+	 */
+	Stream<Model<?>> baseModel();
 
 	/**
 	 * Get the schema node configurator which created this schema node, or in the
@@ -44,22 +60,37 @@ public interface SchemaNode extends Self<SchemaNode> {
 	 * 
 	 * @return the creating configurator
 	 */
-	SchemaNodeConfigurator configurator();
+	SchemaNodeConfigurator<T, ?> configurator();
 
 	/**
 	 * @return the set of all <em>direct</em> base nodes, i.e. excluding those
 	 *         which are transitively implied via other more specific base nodes
 	 */
-	List<SchemaNode> baseNodes();
+	Stream<SchemaNode<?>> baseNodes();
 
-	BindingPoint<?> parentBindingPoint();
+	BindingPoint<T> bindingPoint();
 
-	Schema schema();
+	Stream<ChildBindingPoint<?>> childBindingPoints();
 
-	List<ChildBindingPoint<?>> childBindingPoints();
+	ValueResolution providedValuesResolution();
 
-	@Override
-	default SchemaNode copy() {
-		return getThis();
+	DataSource providedValuesBuffer();
+
+	Stream<T> providedValues();
+
+	default Stream<TypedObject<T>> typedProvidedValues() {
+		return providedValues().map(v -> typedObject(bindingPoint().dataType(), v));
+	}
+
+	default Optional<T> providedValue() {
+		return providedValues().reduce(throwingMerger());
+	}
+
+	default Optional<TypedObject<T>> typedProvidedValue() {
+		return providedValue().map(v -> typedObject(bindingPoint().dataType(), v));
+	}
+
+	default boolean isValueProvided() {
+		return providedValues() != null;
 	}
 }

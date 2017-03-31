@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 
 /**
@@ -11,11 +12,11 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
  * @param <T>
  *          the type of the binding point
  */
-public interface OutputProcess<T> {
+public interface OutputProcess {
 	/**
 	 * @param source
 	 *          the parent binding object
 	 * @return the child binding object
 	 */
-	T process(Object source);
+	Object process(ProcessingContext context, Object outputSource);
 }

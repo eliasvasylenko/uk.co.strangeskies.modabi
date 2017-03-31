@@ -18,38 +18,81 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import static java.util.Arrays.asList;
+
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
+import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.reflection.codegen.ValueExpression;
-import uk.co.strangeskies.utilities.Factory;
-import uk.co.strangeskies.utilities.Self;
 
-public interface SchemaNodeConfigurator extends Factory<SchemaNode>, Self<SchemaNodeConfigurator> {
+/**
+ * 
+ * @author Elias N Vasylenko
+ *
+ * @param <T,
+ *          E> the data type of the node, as defined by the binding point it
+ *          attaches to
+ * @param <E>
+ *          the end product of the configurator, which will either be the parent
+ *          schema node configurator, or in the case of the root, a factory for
+ *          the model
+ */
+public interface SchemaNodeConfigurator<T, E> {
+	SchemaNodeConfigurator<T, E> concrete(boolean concrete);
+
+	Optional<Boolean> getConcrete();
+
+	SchemaNodeConfigurator<T, E> export(boolean export);
+
+	Optional<Boolean> getExport();
+
+	default SchemaNodeConfigurator<T, E> baseModel(Model<? super T> baseModel) {
+		return baseModel(asList(baseModel));
+	}
+
+	SchemaNodeConfigurator<T, E> baseModel(Collection<? extends Model<? super T>> baseModel);
+
+	Stream<Model<?>> getBaseModel();
+
 	InputInitializerConfigurator initializeInput();
 
 	OutputInitializerConfigurator<?> initializeOutput();
 
-	default SchemaNodeConfigurator initializeInput(
+	default SchemaNodeConfigurator<T, E> initializeInput(
 			Function<? super InputInitializerConfigurator, ? extends ValueExpression<?>> initializer) {
 		initializeInput().expression(initializer.apply(initializeInput()));
 		return this;
 	}
 
-	default SchemaNodeConfigurator initializeOutput(
+	default SchemaNodeConfigurator<T, E> initializeOutput(
 			Function<? super OutputInitializerConfigurator<?>, ? extends ValueExpression<?>> initializer) {
 		initializeOutput().expression(initializer.apply(initializeOutput()));
 		return this;
 	}
 
-	ChildBindingPointConfigurator<?> addChildBindingPoint();
+	ChildBindingPointConfigurator<?, SchemaNodeConfigurator<T, E>> addChildBindingPoint();
 
-	default SchemaNodeConfigurator addChildBindingPoint(
-			Function<ChildBindingPointConfigurator<?>, ChildBindingPointConfigurator<?>> configuration) {
-		configuration.apply(addChildBindingPoint()).create();
+	default SchemaNodeConfigurator<T, E> addChildBindingPoint(
+			Function<ChildBindingPointConfigurator<?, SchemaNodeConfigurator<T, E>>, SchemaNodeConfigurator<T, E>> configuration) {
+		configuration.apply(addChildBindingPoint()).endNode();
 
 		return this;
 	}
 
-	List<ChildBindingPointConfigurator<?>> getChildBindingPoints();
+	List<ChildBindingPointConfigurator<?, SchemaNodeConfigurator<T, E>>> getChildBindingPoints();
+
+	SchemaNodeConfigurator<T, E> valueResolution(ValueResolution registrationTime);
+
+	Optional<ValueResolution> getValueResolution();
+
+	SchemaNodeConfigurator<T, E> provideValue(DataSource buffer);
+
+	Optional<DataSource> getProvidedValue();
+
+	E endNode();
 }

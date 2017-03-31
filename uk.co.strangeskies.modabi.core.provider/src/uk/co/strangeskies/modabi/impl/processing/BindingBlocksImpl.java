@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -33,6 +32,7 @@ import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
 import uk.co.strangeskies.utilities.ObservableImpl;
+import uk.co.strangeskies.utilities.Observer;
 
 public class BindingBlocksImpl implements BindingBlocker {
 	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
@@ -42,12 +42,12 @@ public class BindingBlocksImpl implements BindingBlocker {
 	private Map<Thread, BindingBlock> participatingThreadBlocks = new HashMap<>();
 
 	@Override
-	public boolean addObserver(Consumer<? super BindingBlockEvent> observer) {
+	public boolean addObserver(Observer<? super BindingBlockEvent> observer) {
 		return blockEventObservable.addObserver(observer);
 	}
 
 	@Override
-	public boolean removeObserver(Consumer<? super BindingBlockEvent> observer) {
+	public boolean removeObserver(Observer<? super BindingBlockEvent> observer) {
 		return blockEventObservable.removeObserver(observer);
 	}
 
@@ -123,8 +123,10 @@ public class BindingBlocksImpl implements BindingBlocker {
 
 	private void assertResolvable() {
 		synchronized (blocks) {
-			if (isDeadlocked() && participatingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
-				throw new ModabiException(t -> t.unresolvableDependencies(participatingThreadBlocks.values()));
+			if (isDeadlocked()
+					&& participatingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
+				throw new ModabiException(
+						t -> t.unresolvableDependencies(participatingThreadBlocks.values()));
 			}
 		}
 	}
@@ -184,7 +186,10 @@ public class BindingBlocksImpl implements BindingBlocker {
 	}
 
 	@Override
-	public void waitForAll(long timeoutMilliseconds) throws InterruptedException, TimeoutException, ExecutionException {
+	public void waitForAll(long timeoutMilliseconds)
+			throws InterruptedException,
+			TimeoutException,
+			ExecutionException {
 		long startTime = System.currentTimeMillis();
 
 		do {
@@ -207,14 +212,19 @@ public class BindingBlocksImpl implements BindingBlocker {
 	@Override
 	public boolean isBlocked() {
 		synchronized (blocks) {
-			return participatingThreadBlocks.size() > 0 && participatingThreadBlocks.size() >= participatingThreads.size();
+			return participatingThreadBlocks.size() > 0
+					&& participatingThreadBlocks.size() >= participatingThreads.size();
 		}
 	}
 
 	@Override
 	public boolean isDeadlocked() {
 		synchronized (blocks) {
-			int internalBlocks = (int) participatingThreadBlocks.values().stream().filter(BindingBlock::isInternal).count();
+			int internalBlocks = (int) participatingThreadBlocks
+					.values()
+					.stream()
+					.filter(BindingBlock::isInternal)
+					.count();
 
 			return internalBlocks > 0 && internalBlocks >= participatingThreads.size();
 		}

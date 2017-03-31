@@ -22,20 +22,18 @@ import java.util.Arrays;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.reflection.ExecutableMember;
+import uk.co.strangeskies.reflection.token.ExecutableToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class Methods {
-	public static <T> ExecutableMember<? super T, ? extends T> findConstructor(TypeToken<T> receiver,
-			TypeToken<?>... parameters) {
+	public static <T> ExecutableToken<Void, T> findConstructor(TypeToken<T> receiver, TypeToken<?>... parameters) {
 		return findConstructor(receiver, Arrays.asList(parameters));
 	}
 
-	public static <T> ExecutableMember<? super T, ? extends T> findConstructor(TypeToken<T> receiver,
-			List<TypeToken<?>> parameters) {
-		ExecutableMember<? super T, ? extends T> constructor;
+	public static <T> ExecutableToken<Void, T> findConstructor(TypeToken<T> receiver, List<TypeToken<?>> parameters) {
+		ExecutableToken<Void, T> constructor;
 		try {
-			constructor = receiver.resolveConstructorOverload(parameters);
+			constructor = receiver.constructors().resolveOverload(parameters);
 		} catch (Exception e) {
 			throw new ModabiException(t -> t.noConstructorFound(receiver, parameters), e);
 		}
@@ -43,21 +41,21 @@ public class Methods {
 		return constructor;
 	}
 
-	public static <T> ExecutableMember<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver,
-			boolean isStatic, TypeToken<?> result, boolean allowCast, TypeToken<?>... parameters) {
+	public static <T> ExecutableToken<T, ?> findMethod(List<String> names, TypeToken<T> receiver, boolean isStatic,
+			TypeToken<?> result, boolean allowCast, TypeToken<?>... parameters) {
 		return findMethod(names, receiver, isStatic, result, allowCast, Arrays.asList(parameters));
 	}
 
-	public static <T> ExecutableMember<? super T, ?> findMethod(List<String> names, TypeToken<T> receiver,
-			boolean isStatic, TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) {
+	public static <T> ExecutableToken<T, ?> findMethod(List<String> names, TypeToken<T> receiver, boolean isStatic,
+			TypeToken<?> result, boolean allowCast, List<TypeToken<?>> parameters) {
 		RuntimeException cause = null;
 
 		for (String name : names) {
-			ExecutableMember<? super T, ?> method = null;
+			ExecutableToken<T, ?> method = null;
 
 			try {
 				try {
-					method = receiver.resolveMethodOverload(name, parameters);
+					method = receiver.methods().named(name).resolveOverload(parameters);
 				} catch (Exception e) {
 					throw new ModabiException(t -> t.noMethodFound(receiver, parameters), e);
 				}

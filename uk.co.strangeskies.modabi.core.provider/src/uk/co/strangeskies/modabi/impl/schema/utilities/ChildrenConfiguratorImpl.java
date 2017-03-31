@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -117,7 +118,9 @@ public class ChildrenConfiguratorImpl implements ChildrenConfigurator {
 	private TypeToken<?> inputTarget;
 	private TypeToken<?> outputType;
 
-	public ChildrenConfiguratorImpl(SchemaNodeConfigurationContext context, TypeToken<?> inputType,
+	public ChildrenConfiguratorImpl(
+			SchemaNodeConfigurationContext context,
+			TypeToken<?> inputType,
 			TypeToken<?> outputType) {
 		children = new ArrayList<>();
 		mergedChildren = new ArrayList<>();
@@ -128,7 +131,11 @@ public class ChildrenConfiguratorImpl implements ChildrenConfigurator {
 		for (SchemaNode overriddenNode : reversedNodes) {
 			int index = 0;
 
-			for (ChildBindingPoint<?> child : overriddenNode.childBindingPoints()) {
+			for (Iterator<ChildBindingPoint<?>> childBindingPoints = overriddenNode
+					.childBindingPoints()
+					.iterator(); childBindingPoints.hasNext();) {
+				ChildBindingPoint<?> child = childBindingPoints.next();
+
 				MergeGroup group = merge(child.name(), index);
 				group.addChildResult(child);
 				index = group.getIndex() + 1;
@@ -153,7 +160,10 @@ public class ChildrenConfiguratorImpl implements ChildrenConfigurator {
 		if (group == null) {
 			group = new MergeGroup(name, index);
 		} else if (group.getIndex() < index) {
-			List<QualifiedName> nodesSoFar = mergedChildren.stream().map(MergeGroup::getName).limit(group.getIndex())
+			List<QualifiedName> nodesSoFar = mergedChildren
+					.stream()
+					.map(MergeGroup::getName)
+					.limit(group.getIndex())
 					.collect(Collectors.toCollection(ArrayList::new));
 
 			throw new ModabiException(t -> t.cannotOverrideNodeOutOfOrder(name, nodesSoFar));
@@ -204,7 +214,9 @@ public class ChildrenConfiguratorImpl implements ChildrenConfigurator {
 			MergeGroup skippedGroup = mergedChildren.get(childIndex);
 			ChildBindingPoint<?> skippedChild = skippedGroup.getChild();
 
-			if (context.bindingPoint().concrete() && !skippedChild.concrete() && !skippedChild.extensible()) {
+			if (context.bindingPoint().concrete()
+					&& !skippedChild.concrete()
+					&& !skippedChild.extensible()) {
 				throw new ModabiException(t -> t.mustOverrideAbstractNode(skippedChild.name(), id));
 			}
 
@@ -230,8 +242,8 @@ public class ChildrenConfiguratorImpl implements ChildrenConfigurator {
 
 		ChildBindingPointConfigurationContext childContext = new ChildBindingPointConfigurationContext() {
 			@Override
-			public SchemaNode parent() {
-				return context.parent();
+			public SchemaNode parentNode() {
+				return context.parentNode();
 			}
 
 			@Override

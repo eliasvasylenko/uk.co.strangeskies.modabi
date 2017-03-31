@@ -23,7 +23,6 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.processing.BindingBlock;
@@ -32,15 +31,13 @@ import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.properties.Localized;
-import uk.co.strangeskies.text.properties.Properties;
 import uk.co.strangeskies.text.properties.PropertyConfiguration;
 import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
 
 @PropertyConfiguration(keyCase = KeyCase.LOWER, keySplitString = ".", key = "%3$s")
-public interface ModabiProperties extends Properties<ModabiProperties> {
+public interface ModabiProperties {
 	Localized<String> noTypeFoundForType(QualifiedName dataType, Type type);
 
 	Localized<String> noModelFoundForType(QualifiedName model, Type type);
@@ -49,15 +46,21 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 
 	Localized<String> missingDependencies(BindingBlocks blockingBindings);
 
-	Localized<String> missingDependencies(Collection<? extends BindingFuture<?>> futures,
+	Localized<String> missingDependencies(
+			Collection<? extends BindingFuture<?>> futures,
 			Collection<? extends BindingBlock> missingDependencies);
 
 	Localized<String> cannotProvideSingleValue(QualifiedName name, int valueCount);
 
-	default Localized<String> noChildFound(List<QualifiedName> child, QualifiedName parent,
+	default Localized<String> noChildFound(
+			List<QualifiedName> child,
+			QualifiedName parent,
 			List<? extends ChildBindingPoint<?>> children) {
-		return noChildFound(child, parent,
-				children.stream().map(BindingPoint::name).map(Objects::toString).collect(Collectors.joining(", ")));
+		return noChildFound(
+				child,
+				parent,
+				children.stream().map(BindingPoint::name).map(Objects::toString).collect(
+						Collectors.joining(", ")));
 	}
 
 	Localized<String> noChildFound(List<QualifiedName> child, QualifiedName parent, String children);
@@ -81,45 +84,15 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 	/*
 	 * Property overriding
 	 */
-	default <C> String getSchemaNodePropertyName(Consumer<? super C> propertyGetter, Class<C> propertyClass) {
-		return "#" + Methods.findMethod(propertyClass, propertyGetter).getName();
-	}
+	<T> Localized<String> cannotOverrideIncompatibleProperty(String propertyName, T base, T override);
 
-	default <P extends BindingPoint<?>> String getBindingPointPropertyName(Class<P> bindingPointClass,
-			Consumer<? super P> propertyGetter) {
-		return "#" + Methods.findMethod(bindingPointClass, propertyGetter).getName();
-	}
+	Localized<String> cannotMergeIncompatibleProperties(String propertyName, Collection<?> values);
 
-	default <T, C> Localized<String> cannotOverrideIncompatibleProperty(C node, Consumer<? super C> propertyGetter,
-			Class<C> nodeClass, T base, T override) {
-		return cannotOverrideIncompatibleProperty(getSchemaNodePropertyName(propertyGetter, nodeClass), node, base,
-				override);
-	}
+	Localized<String> mustOverrideIncompatibleProperties(String propertyName, Collection<?> values);
 
-	<T> Localized<String> cannotOverrideIncompatibleProperty(String propertyName, Object target, T base, T override);
+	Localized<String> mustProvideValueForNonAbstract(String propertyName);
 
-	default <C> Localized<String> cannotMergeIncompatibleProperties(C node, Consumer<? super C> propertyGetter,
-			Class<C> nodeClass, Collection<?> values) {
-		return cannotMergeIncompatibleProperties(getSchemaNodePropertyName(propertyGetter, nodeClass), node, values);
-	}
-
-	Localized<String> cannotMergeIncompatibleProperties(String propertyName, Object target, Collection<?> values);
-
-	default <C> Localized<String> mustOverrideIncompatibleProperties(C node, Consumer<? super C> propertyGetter,
-			Class<C> nodeClass, Collection<?> values) {
-		return mustOverrideIncompatibleProperties(getSchemaNodePropertyName(propertyGetter, nodeClass), node, values);
-	}
-
-	Localized<String> mustOverrideIncompatibleProperties(String propertyName, Object target, Collection<?> values);
-
-	default <C> Localized<String> mustProvideValueForNonAbstract(C node, Consumer<? super C> propertyGetter,
-			Class<C> nodeClass) {
-		return mustProvideValueForNonAbstract(getSchemaNodePropertyName(propertyGetter, nodeClass), node);
-	}
-
-	Localized<String> mustProvideValueForNonAbstract(String propertyName, Object target);
-
-	Localized<String> unexpectedOverrideError(SchemaNode base);
+	Localized<String> unexpectedOverrideError(SchemaNode<?> base);
 
 	Localized<String> executableTypeStaticMethod();
 
@@ -144,20 +117,29 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 
 	Localized<String> cannotOverrideNodeWhenOverridden(QualifiedName overrideGroup);
 
-	default Localized<String> mustOverrideAbstractNode(QualifiedName abstractNode, QualifiedName beforeThisNode) {
+	default Localized<String> mustOverrideAbstractNode(
+			QualifiedName abstractNode,
+			QualifiedName beforeThisNode) {
 		return (beforeThisNode == null) ? mustOverrideAbstractNode(abstractNode)
 				: mustOverrideAbstractNodeBefore(abstractNode, beforeThisNode);
 	}
 
 	Localized<String> mustOverrideAbstractNode(QualifiedName abstractNode);
 
-	Localized<String> mustOverrideAbstractNodeBefore(QualifiedName abstractNode, QualifiedName beforeThisNode);
+	Localized<String> mustOverrideAbstractNodeBefore(
+			QualifiedName abstractNode,
+			QualifiedName beforeThisNode);
 
 	Localized<String> cannotAddChild();
 
-	Localized<String> cannotOverrideNodeWithClass(QualifiedName name, Class<?> nodeClass, Class<?> overrideClass);
+	Localized<String> cannotOverrideNodeWithClass(
+			QualifiedName name,
+			Class<?> nodeClass,
+			Class<?> overrideClass);
 
-	Localized<String> cannotOverrideNodeOutOfOrder(QualifiedName name, List<QualifiedName> nodesSoFar);
+	Localized<String> cannotOverrideNodeOutOfOrder(
+			QualifiedName name,
+			List<QualifiedName> nodesSoFar);
 
 	Localized<String> mustOverrideDescendant(Collection<? extends BindingPoint<?>> nodeStack);
 
@@ -169,19 +151,19 @@ public interface ModabiProperties extends Properties<ModabiProperties> {
 
 	Localized<String> cannotBeInlineExtensible(QualifiedName name);
 
-	Localized<String> cannotBeAbstract(SchemaNode node);
+	Localized<String> cannotBeAbstract(SchemaNode<?> node);
 
-	Localized<String> cannotFindOutMethodWithoutResultType(SchemaNode node);
+	Localized<String> cannotFindOutMethodWithoutResultType(SchemaNode<?> node);
 
-	Localized<String> cannotFindOutMethodWithoutTargetType(SchemaNode node);
+	Localized<String> cannotFindOutMethodWithoutTargetType(SchemaNode<?> node);
 
-	Localized<String> cannotInferDataType(SchemaNode effective, TypeToken<?> exactDataType);
+	Localized<String> cannotInferDataType(SchemaNode<?> effective, TypeToken<?> exactDataType);
 
 	Localized<String> cannotFindUnbindingParameter(QualifiedName p);
 
-	Localized<String> unbindingParameterMustBeDataNode(SchemaNode node, QualifiedName p);
+	Localized<String> unbindingParameterMustBeDataNode(SchemaNode<?> node, QualifiedName p);
 
-	Localized<String> unbindingParameterMustOccurOnce(SchemaNode effective, QualifiedName p);
+	Localized<String> unbindingParameterMustOccurOnce(SchemaNode<?> effective, QualifiedName p);
 
-	Localized<String> unbindingParameterMustProvideValue(SchemaNode effective, QualifiedName p);
+	Localized<String> unbindingParameterMustProvideValue(SchemaNode<?> effective, QualifiedName p);
 }

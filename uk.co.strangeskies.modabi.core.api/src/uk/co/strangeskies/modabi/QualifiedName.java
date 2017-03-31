@@ -19,17 +19,24 @@
 package uk.co.strangeskies.modabi;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class QualifiedName {
 	private final String name;
 	private final Namespace namespace;
 
 	public QualifiedName(String name, Namespace namespace) {
+		Objects.requireNonNull(name);
+		Objects.requireNonNull(namespace);
+
 		this.name = name;
 		this.namespace = namespace;
 	}
 
 	public QualifiedName(Class<?> name, LocalDate date) {
+		Objects.requireNonNull(name);
+		Objects.requireNonNull(date);
+
 		this.name = name.getSimpleName();
 		this.namespace = new Namespace(name.getPackage().getName(), date);
 	}
@@ -58,13 +65,16 @@ public class QualifiedName {
 	public static QualifiedName parseString(String string) {
 		int splitIndex = string.lastIndexOf(':');
 
-		return new QualifiedName(string.substring(splitIndex + 1), Namespace.parseString(string.substring(0, splitIndex)));
+		return new QualifiedName(
+				string.substring(splitIndex + 1),
+				Namespace.parseString(string.substring(0, splitIndex)));
 	}
 
 	public static QualifiedName parseHttpString(String string) {
 		int splitIndex = string.lastIndexOf('/');
 
-		return new QualifiedName(string.substring(splitIndex + 1),
+		return new QualifiedName(
+				string.substring(splitIndex + 1),
 				Namespace.parseHttpString(string.substring(0, splitIndex + 1)));
 	}
 
@@ -75,7 +85,8 @@ public class QualifiedName {
 		if (!(obj instanceof QualifiedName))
 			return false;
 
-		return namespace.equals(((QualifiedName) obj).namespace) && name.equals(((QualifiedName) obj).name);
+		return Objects.equals(namespace, ((QualifiedName) obj).namespace)
+				&& Objects.deepEquals(name, ((QualifiedName) obj).name);
 	}
 
 	@Override

@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi;
 
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
@@ -49,7 +50,7 @@ public class Bindings {
 	public synchronized <T> void add(BindingPoint<T> element, T data) {
 		BindingPoint<T> effectiveElement = element;
 
-		boundNodes.addToAll(effectiveElement.baseModel(), effectiveElement);
+		boundNodes.addToAll(effectiveElement.node().baseModel().collect(toList()), effectiveElement);
 		boundObjects.add(effectiveElement, data);
 
 		fire(effectiveElement, data);
@@ -59,7 +60,7 @@ public class Bindings {
 		Model<T> effectiveModel = model;
 
 		if (boundNodes.add(effectiveModel, effectiveModel)) {
-			boundNodes.addToAll(effectiveModel.baseModel(), effectiveModel);
+			boundNodes.addToAll(effectiveModel.node().baseModel().collect(toList()), effectiveModel);
 		}
 		boundObjects.add(effectiveModel, data);
 
@@ -69,7 +70,8 @@ public class Bindings {
 	@SuppressWarnings("unchecked")
 	private <T> void fire(BindingPoint<T> node, T data) {
 		for (Model<?> model : listeners.keySet()) {
-			if (model.equals(node) || node.baseModel().contains(model)) {
+			if (model.equals(node)
+					|| node.node().baseModel().filter(model::equals).findAny().isPresent()) {
 				for (Observer<?> listener : listeners.get(model)) {
 					((Observer<? super T>) listener).notify(data);
 				}

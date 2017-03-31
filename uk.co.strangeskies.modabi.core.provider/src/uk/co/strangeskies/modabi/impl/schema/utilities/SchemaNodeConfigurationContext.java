@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.impl.schema.utilities;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.impl.schema.old.SchemaNodeConfiguratorImpl;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
@@ -53,5 +52,5 @@ public interface SchemaNodeConfigurationContext {
 	 * @param node
 	 *          the node being constructed
 	 */
-	SchemaNodeConfiguratorImpl configure(SchemaNode node);
+	SchemaNodeConfigurator configure(SchemaNode node);
 }

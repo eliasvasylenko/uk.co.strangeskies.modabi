@@ -1,16 +1,19 @@
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.empty;
-import static java.util.stream.Stream.of;
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
+import static uk.co.strangeskies.utilities.collection.StreamUtilities.upcastOptional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.ModabiException;
 
@@ -27,50 +30,42 @@ import uk.co.strangeskies.modabi.ModabiException;
  * @param <N>
  *          the type of the node
  */
-public class OverrideBuilder<T, S> {
-	private final boolean concrete;
-
-	private final S node;
-
-	private final Function<? super S, ? extends T> valueFunction;
+public class OverrideBuilder<T> {
+	private final Set<T> inheritedValues;
+	private final Optional<T> override;
 
 	private final BiFunction<? super T, ? super T, ? extends T> mergeOverride;
+	private final boolean concrete;
+	private final Supplier<String> propertyName;
 
-	private final Set<T> inheritedValues;
-	private final T override;
-
-	public OverrideBuilder(Collection<? extends S> nodes, Function<? super S, ? extends T> valueFunction, T override) {
-		this.node = nodes;
-
-		this.valueFunction = valueFunction;
-
-		mergeOverride = validateOverrideFunction(Objects::equals);
-
-		inheritedValues = nodes
-				.stream()
-				.map(valueFunction::apply)
-				.flatMap(value -> value != null ? of(value) : empty())
-				.collect(toSet());
-
-		if (override == null && inheritedValues.size() == 1) {
-			override = inheritedValues.iterator().next();
+	public OverrideBuilder(
+			Collection<? extends T> overridden,
+			Optional<? extends T> override,
+			Supplier<String> propertyName) {
+		this.inheritedValues = new HashSet<>(overridden);
+		if (!override.isPresent() && inheritedValues.size() == 1) {
+			this.override = of(inheritedValues.iterator().next());
+		} else {
+			this.override = upcastOptional(override);
 		}
 
-		this.override = override;
+		this.mergeOverride = validateOverrideFunction(Objects::equals);
+		this.concrete = true;
+		this.propertyName = propertyName;
 	}
 
-	private OverrideBuilder(OverrideBuilder<T, S> from, BiFunction<? super T, ? super T, ? extends T> mergeOverride,
-			T override) {
-		node = from.node;
-
-		concrete = from.concrete;
-
-		valueFunction = from.valueFunction;
-
-		inheritedValues = from.inheritedValues;
+	private OverrideBuilder(
+			Supplier<String> propertyName,
+			Set<T> inheritedValues,
+			Optional<T> override,
+			BiFunction<? super T, ? super T, ? extends T> mergeOverride,
+			boolean concrete) {
+		this.propertyName = propertyName;
+		this.inheritedValues = inheritedValues;
+		this.override = override;
 
 		this.mergeOverride = mergeOverride;
-		this.override = override;
+		this.concrete = concrete;
 	}
 
 	/**
@@ -81,12 +76,7 @@ public class OverrideBuilder<T, S> {
 		return inheritedValues;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Class<S> getNodeClass() {
-		return (Class<S>) (Class<?>) node.getThisType().getRawType();
-	}
-
-	public OverrideBuilder<T, S> orDefault(T value) {
+	public OverrideBuilder<T> orDefault(T value) {
 		if (concrete) {
 			return or(value);
 		} else {
@@ -94,13 +84,13 @@ public class OverrideBuilder<T, S> {
 		}
 	}
 
-	public OverrideBuilder<T, S> orMerged(Function<? super Collection<T>, ? extends T> merge) {
+	public OverrideBuilder<T> orMerged(Function<? super Collection<T>, ? extends T> merge) {
 		if (!inheritedValues.isEmpty() && !isOverridden()) {
 			T merged = merge.apply(inheritedValues);
 
 			if (merged == null) {
 				throw new ModabiException(
-						t -> t.cannotMergeIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues));
+						t -> t.cannotMergeIncompatibleProperties(propertyName.get(), inheritedValues));
 			}
 
 			return or(merged);
@@ -109,9 +99,11 @@ public class OverrideBuilder<T, S> {
 		}
 	}
 
-	public OverrideBuilder<T, S> orMerged(BinaryOperator<T> merge) {
-		return orMerged(s -> s.stream().reduce(merge).orElseThrow(() -> new ModabiException(
-				t -> t.cannotMergeIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues))));
+	public OverrideBuilder<T> orMerged(BinaryOperator<T> merge) {
+		return orMerged(
+				s -> s.stream().reduce(merge).orElseThrow(
+						() -> new ModabiException(
+								t -> t.cannotMergeIncompatibleProperties(propertyName.get(), inheritedValues))));
 	}
 
 	/**
@@ -127,7 +119,7 @@ public class OverrideBuilder<T, S> {
 	 *          the override merge function
 	 * @return a new builder instance incorporating the given override behavior
 	 */
-	public OverrideBuilder<T, S> validateOverride(BiPredicate<? super T, ? super T> validation) {
+	public OverrideBuilder<T> validateOverride(BiPredicate<? super T, ? super T> validation) {
 		return mergeOverride(validateOverrideFunction(validation));
 	}
 
@@ -136,7 +128,7 @@ public class OverrideBuilder<T, S> {
 		return (a, b) -> {
 			if (!validation.test(a, b)) {
 				throw new ModabiException(
-						t -> t.cannotOverrideIncompatibleProperty(node, valueFunction::apply, getNodeClass(), b, a));
+						t -> t.cannotOverrideIncompatibleProperty(propertyName.get(), b, a));
 			}
 
 			return a;
@@ -153,20 +145,27 @@ public class OverrideBuilder<T, S> {
 	 *          the override merge function
 	 * @return a new builder instance incorporating the given override behavior
 	 */
-	public OverrideBuilder<T, S> mergeOverride(BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
-		return new OverrideBuilder<>(this, mergeOverride, override);
+	public OverrideBuilder<T> mergeOverride(
+			BiFunction<? super T, ? super T, ? extends T> mergeOverride) {
+		return new OverrideBuilder<>(propertyName, inheritedValues, override, mergeOverride, concrete);
 	}
 
-	public OverrideBuilder<T, S> or(T value) {
-		return isOverridden() ? this : new OverrideBuilder<>(this, mergeOverride, value);
+	public OverrideBuilder<T> or(T value) {
+		return isOverridden() ? this
+				: new OverrideBuilder<>(
+						propertyName,
+						inheritedValues,
+						ofNullable(value),
+						mergeOverride,
+						concrete);
 	}
 
 	public T tryGet() {
-		T value = override;
+		T value = override.get();
 
 		if (isOverridden() && mergeOverride != null) {
 			for (T inheritedValue : inheritedValues) {
-				value = mergeOverride.apply(override, inheritedValue);
+				value = mergeOverride.apply(override.get(), inheritedValue);
 			}
 		}
 
@@ -178,10 +177,10 @@ public class OverrideBuilder<T, S> {
 
 		if (value == null && concrete) {
 			if (inheritedValues.isEmpty()) {
-				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(node, valueFunction::apply, getNodeClass()));
+				throw new ModabiException(t -> t.mustProvideValueForNonAbstract(propertyName.get()));
 			} else {
 				throw new ModabiException(
-						t -> t.mustOverrideIncompatibleProperties(node, valueFunction::apply, getNodeClass(), inheritedValues));
+						t -> t.mustOverrideIncompatibleProperties(propertyName.get(), inheritedValues));
 			}
 		}
 

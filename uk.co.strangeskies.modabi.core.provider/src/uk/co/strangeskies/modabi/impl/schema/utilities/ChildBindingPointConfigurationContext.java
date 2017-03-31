@@ -18,8 +18,9 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
-import java.util.List;
+import java.util.stream.Stream;
 
+import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.DataLoader;
@@ -29,7 +30,9 @@ import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBindingPointConfigurationContext {
-	SchemaNode parent();
+	Namespace namespace();
+
+	SchemaNode parentNode();
 
 	DataLoader dataLoader();
 
@@ -43,5 +46,5 @@ public interface ChildBindingPointConfigurationContext {
 
 	void addChildResult(ChildBindingPoint<?> result);
 
-	List<ChildBindingPoint<?>> overrideChild(QualifiedName id);
+	Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id);
 }

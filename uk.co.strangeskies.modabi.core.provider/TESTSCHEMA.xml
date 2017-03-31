@@ -142,13 +142,36 @@
 					</data>
 				</bind>
 
-				<!-- better -->
+				<!-- better? -->
 				<bind model="reference">
-					<bind name="targetModel">hello</bind>
+					<data>
+						<value
+							model="reference"
+							targetModel="hello">
 
-					<bind name="targetId">id</bind>
+							theName
+						</value>
+					</data>
+				</bind>
 
-					<value>abc</value>
+				<!-- better??? -->
+				<bind model="reference">
+					<value
+						model="reference"
+						targetModel="hello">
+
+						theName
+					</value>
+				</bind>
+
+				<!-- alternative collapse??? -->
+				<bind model="reference">
+					<data
+						model="reference"
+						targetModel="hello">
+
+						theName
+					</data>
 				</bind>
 
 				<!-- ideal -->

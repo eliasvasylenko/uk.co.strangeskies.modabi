@@ -38,7 +38,7 @@ public interface InputBinder<T> {
 	<U> InputBinder<U> with(TypeToken<U> type);
 
 	default <U> InputBinder<U> with(Class<U> type) {
-		return with(TypeToken.overType(type));
+		return with(TypeToken.forClass(type));
 	}
 
 	InputBinder<?> with(QualifiedName modelName);
@@ -46,7 +46,7 @@ public interface InputBinder<T> {
 	<U> InputBinder<U> with(QualifiedName modelName, TypeToken<U> type);
 
 	default <U> InputBinder<U> with(QualifiedName modelName, Class<U> type) {
-		return with(modelName, TypeToken.overType(type));
+		return with(modelName, TypeToken.forClass(type));
 	}
 
 	BindingFuture<T> from(StructuredDataSource input);
