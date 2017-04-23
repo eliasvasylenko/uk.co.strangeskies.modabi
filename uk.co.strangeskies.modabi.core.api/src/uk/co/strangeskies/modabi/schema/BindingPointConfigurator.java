@@ -15,11 +15,13 @@ public interface BindingPointConfigurator<S extends BindingPointConfigurator<S>>
 
 	Optional<QualifiedName> getName();
 
-	<V> SchemaNodeConfigurator<V, ?> withNodeOfType(TypeToken<V> dataType);
+	SchemaNodeConfigurator<?, ?> withNode();
 
-	<V> SchemaNodeConfigurator<V, ?> withNodeOfType(Class<V> dataType);
+	<V> SchemaNodeConfigurator<V, ?> withNode(TypeToken<V> dataType);
 
-	<V> SchemaNodeConfigurator<V, ?> withNodeOfModel(Model<V> baseModel);
+	<V> SchemaNodeConfigurator<V, ?> withNode(Class<V> dataType);
+
+	<V> SchemaNodeConfigurator<V, ?> withNode(Model<V> baseModel);
 
 	<V> Object withoutNode(TypeToken<V> dataType);
 

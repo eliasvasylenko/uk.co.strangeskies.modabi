@@ -80,8 +80,8 @@ public class BaseSchemaImpl implements BaseSchema {
 	}
 
 	private class DerivedImpl implements Derived {
-		private final Model<?> referenceModel;
-		private final Model<?> bindingReferenceModel;
+		private final Model<Object> referenceModel;
+		private final Model<Object> bindingReferenceModel;
 		private final Model<DataSource> bufferedDataModel;
 		private final Model<DataItem<?>> bufferedDataItemModel;
 
@@ -110,7 +110,7 @@ public class BaseSchemaImpl implements BaseSchema {
 			arrayModel = factory.apply(
 					"array",
 					t -> t
-							.withNodeOfType(new @Infer TypeToken<Object[]>() {})
+							.withNode(new @Infer TypeToken<Object[]>() {})
 							.initializeInput(i -> i.provide(new TypeToken<List<?>>() {}))
 							.initializeOutput(o -> invokeResolvedStatic(Arrays.class, "asList", o.parent()))
 							.addChildBindingPoint(
@@ -131,7 +131,7 @@ public class BaseSchemaImpl implements BaseSchema {
 			collectionModel = factory.apply(
 					"collection",
 					t -> t
-							.withNodeOfType(new @Infer TypeToken<Collection<?>>() {})
+							.withNode(new @Infer TypeToken<Collection<?>>() {})
 							.initializeInput(i -> i.provide())
 							.addChildBindingPoint(
 									c -> c
@@ -142,24 +142,16 @@ public class BaseSchemaImpl implements BaseSchema {
 											.withoutNode(forAnnotatedType(wildcard(Annotations.from(Infer.class)))))
 							.endNode());
 
-			listModel = factory.apply(
-					"list",
-					t -> t
-							.withNodeOfType(new @Infer TypeToken<List<?>>() {})
-							.baseModel(collectionModel)
-							.endNode());
+			listModel = factory
+					.apply("list", t -> t.withNode(new @Infer TypeToken<List<?>>() {}).baseModel(collectionModel).endNode());
 
-			setModel = factory.apply(
-					"set",
-					t -> t
-							.withNodeOfType(new @Infer TypeToken<Set<?>>() {})
-							.baseModel(collectionModel)
-							.endNode());
+			setModel = factory
+					.apply("set", t -> t.withNode(new @Infer TypeToken<Set<?>>() {}).baseModel(collectionModel).endNode());
 
 			uriModel = factory.apply(
 					"uri",
 					t -> t
-							.withNodeOfType(URI.class)
+							.withNode(URI.class)
 							.addChildBindingPoint(
 									u -> u
 											.name("uriString")
@@ -169,14 +161,14 @@ public class BaseSchemaImpl implements BaseSchema {
 																	forClass(URI.class).constructors().resolveOverload(String.class),
 																	i.result())))
 											.output(o -> o.source().invokeResolvedMethod("toString"))
-											.withNodeOfModel(primitive(Primitive.STRING))
+											.withNode(primitive(Primitive.STRING))
 											.endNode())
 							.endNode());
 
 			urlModel = factory.apply(
 					"url",
 					t -> t
-							.withNodeOfType(URL.class)
+							.withNode(URL.class)
 							.addChildBindingPoint(
 									u -> u
 											.name("urlString")
@@ -186,41 +178,39 @@ public class BaseSchemaImpl implements BaseSchema {
 																	forClass(URL.class).constructors().resolveOverload(String.class),
 																	i.result())))
 											.output(o -> o.source().invokeResolvedMethod("toString"))
-											.withNodeOfModel(primitive(Primitive.STRING))
+											.withNode(primitive(Primitive.STRING))
 											.endNode())
 							.endNode());
 
 			bufferedDataModel = factory.apply(
 					"bufferedData",
 					t -> t
-							.withNodeOfType(DataSource.class)
+							.withNode(DataSource.class)
 							.initializeInput(i -> i.provide(DataSource.class))
-							.initializeOutput(
-									o -> o.parent().invokeResolvedMethod("pipe", o.provide(DataTarget.class)))
+							.initializeOutput(o -> o.parent().invokeResolvedMethod("pipe", o.provide(DataTarget.class)))
 							.endNode());
 
 			bufferedDataItemModel = factory.apply(
 					"bufferedDataItem",
 					t -> t
-							.withNodeOfType(new TypeToken<DataItem<?>>() {})
+							.withNode(new TypeToken<DataItem<?>>() {})
 							.initializeInput(i -> i.provide(DataSource.class).invokeResolvedMethod("get"))
-							.initializeOutput(
-									o -> o.provide(DataTarget.class).invokeResolvedMethod("put", o.parent()))
+							.initializeOutput(o -> o.provide(DataTarget.class).invokeResolvedMethod("put", o.parent()))
 							.endNode());
 
 			@SuppressWarnings("unchecked")
 			Model<Object> referenceBaseModel = (Model<Object>) factory.apply(
 					"referenceBase",
 					t -> t
-							.withNodeOfType(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-							.concrete(false)
 							.export(false)
+							.withNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+							.concrete(false)
 							.addChildBindingPoint(
 									d -> d
 											.name("targetModel")
 											.input(IOConfigurator::none)
 											.output(IOConfigurator::none)
-											.withNodeOfType(new @Infer TypeToken<Model<?>>() {})
+											.withNode(new @Infer TypeToken<Model<?>>() {})
 											.valueResolution(ValueResolution.DECLARATION_TIME)
 											.endNode())
 							.addChildBindingPoint(
@@ -228,14 +218,11 @@ public class BaseSchemaImpl implements BaseSchema {
 											.name("targetId")
 											.input(IOConfigurator::none)
 											.output(IOConfigurator::none)
-											.withNodeOfModel(listModel)
+											.withNode(listModel)
 											.concrete(false)
 											.valueResolution(ValueResolution.DECLARATION_TIME)
 											.addChildBindingPoint(
-													e -> e
-															.name("element")
-															.withNodeOfModel(primitives.get(Primitive.QUALIFIED_NAME))
-															.endNode())
+													e -> e.name("element").withNode(primitives.get(Primitive.QUALIFIED_NAME)).endNode())
 											.endNode())
 							.addChildBindingPoint(
 									d -> d
@@ -253,331 +240,334 @@ public class BaseSchemaImpl implements BaseSchema {
 															o.bound("targetModel"),
 															o.bound("targetId"),
 															o.source()))
-											.withNodeOfModel(bufferedDataModel)
+											.withNode(bufferedDataModel)
 											.endNode())
 							.endNode());
 
 			referenceModel = factory.apply(
 					"reference",
 					t -> t
-							.withNodeOfModel(referenceBaseModel)
+							.withNode(referenceBaseModel)
 							.concrete(false)
 							.addChildBindingPoint(
 									c -> c
 											.name("targetModel")
-											.withNodeOfType(new @Infer TypeToken<Model<?>>() {})
+											.withNode(new @Infer TypeToken<Model<?>>() {})
 											.baseModel(referenceBaseModel)
 											.concrete(false)
 											.addChildBindingPoint(
 													d -> d
 															.name("targetModel")
-															.withNodeOfType(new @Infer TypeToken<Model<?>>() {})
+															.withNode(new @Infer TypeToken<Model<?>>() {})
 															.baseModel(referenceBaseModel)
 															.provideValue(
 																	new BufferingDataTarget()
-																			.put(
-																					Primitive.QUALIFIED_NAME,
-																					new QualifiedName("model", namespace))
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
 																			.buffer())
 															.addChildBindingPoint(
 																	e -> e
 																			.name("targetModel")
-																			.withNodeOfType(new @Infer TypeToken<Model<?>>() {})
+																			.withNode(new @Infer TypeToken<Model<?>>() {})
 																			.baseModel(referenceBaseModel)
 																			.concrete(false)
 																			.provideValue(
 																					new BufferingDataTarget()
-																							.put(
-																									Primitive.QUALIFIED_NAME,
-																									new QualifiedName("model", namespace))
+																							.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
 																							.buffer())
 																			.endNode())
 															.addChildBindingPoint(
 																	e -> e
 																			.name("targetId")
-																			.withNodeOfType(Object.class)
+																			.withNode()
 																			.provideValue(
 																					new BufferingDataTarget()
 																							.put(
 																									Primitive.QUALIFIED_NAME,
 																									new QualifiedName("configurator", namespace))
-																							.put(
-																									Primitive.QUALIFIED_NAME,
-																									new QualifiedName("name", namespace))
+																							.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
 																							.buffer())
 																			.endNode())
 															.endNode())
 											.addChildBindingPoint(
 													d -> d
 															.name("targetId")
-															.withNodeOfType(Object.class)
+															.withNode()
 															.provideValue(
 																	new BufferingDataTarget()
-																			.put(
-																					Primitive.QUALIFIED_NAME,
-																					new QualifiedName("configurator", namespace))
-																			.put(
-																					Primitive.QUALIFIED_NAME,
-																					new QualifiedName("name", namespace))
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("configurator", namespace))
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
 																			.buffer())
 															.endNode())
 											.endNode())
 							.endNode());
 
-			bindingReferenceModel = factory.apply(
+			@SuppressWarnings("unchecked")
+			Model<Object> bindingReferenceModel = (Model<Object>) factory.apply(
 					"bindingReference",
-					t -> t.concrete(false).dataType(forAnnotatedType(wildcard(from(Infer.class)))).node(
-							n -> n.initializeInput(i -> i.provide(DereferenceSource.class)).addChildBindingPoint(
+					t -> t
+							.withNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+							.concrete(false)
+							.initializeInput(i -> i.provide(DereferenceSource.class))
+							.addChildBindingPoint(
 									c -> c
 											.name("targetNode")
-											.baseModel(referenceModel)
 											.input(IOConfigurator::none)
 											.output(IOConfigurator::none)
-											.node(
-													o -> o
-															.addChildBindingPoint(
-																	d -> d.name("targetModel").provideValue(
-																			new BufferingDataTarget()
-																					.put(
-																							Primitive.QUALIFIED_NAME,
-																							new QualifiedName("binding", namespace))
-																					.buffer()))
-															.addChildBindingPoint(
-																	e -> e.name("targetId").provideValue(
-																			new BufferingDataTarget()
-																					.put(
-																							Primitive.QUALIFIED_NAME,
-																							new QualifiedName("configurator", namespace))
-																					.put(
-																							Primitive.QUALIFIED_NAME,
-																							new QualifiedName("name", namespace))
-																					.buffer()))))));
+											.withNode(referenceModel)
+											.addChildBindingPoint(
+													d -> d
+															.name("targetModel")
+															.withNode()
+															.provideValue(
+																	new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("binding", namespace))
+																			.buffer())
+															.endNode())
+											.addChildBindingPoint(
+													e -> e
+															.name("targetId")
+															.withNode()
+															.provideValue(
+																	new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("configurator", namespace))
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
+																			.buffer())
+															.endNode())
+											.endNode())
+							.endNode());
+			this.bindingReferenceModel = bindingReferenceModel;
 
 			packageModel = factory.apply(
 					"package",
-					t -> t.dataType(new TypeToken<Package>() {}).node(
-							n -> n.addChildBindingPoint(
+					t -> t
+							.withNode(Package.class)
+							.addChildBindingPoint(
 									p -> p
-											.baseModel(primitives.get(Primitive.STRING))
 											.name("name")
 											.input(i -> invokeResolvedStatic(Package.class, "getPackage"))
-											.output(o -> o.source().invokeResolvedMethod("getName")))));
+											.output(o -> o.source().invokeResolvedMethod("getName"))
+											.withNode(primitives.get(Primitive.STRING))
+											.endNode())
+							.endNode());
 
 			typeModel = factory.apply(
 					"type",
-					t -> t.dataType(Type.class).node(
-							n -> n.addChildBindingPoint(
+					t -> t
+							.withNode(Type.class)
+							.addChildBindingPoint(
 									p -> p
-											.baseModel(primitives.get(Primitive.STRING))
 											.name("name")
 											.input(i -> invokeResolvedStatic(Types.class, "fromString", i.result()))
-											.output(o -> invokeResolvedStatic(Types.class, "toString", o.source())))));
+											.output(o -> invokeResolvedStatic(Types.class, "toString", o.source()))
+											.withNode(primitives.get(Primitive.STRING))
+											.endNode())
+							.endNode());
 
-			classModel = factory.apply(
-					"class",
-					t -> t.baseModel(typeModel).dataType(new TypeToken<Class<?>>() {}).node(
-							n -> n.addChildBindingPoint(p -> p.name("name"))));
+			classModel = factory.apply("class", t -> t.withNode(new TypeToken<Class<?>>() {}).baseModel(typeModel).endNode());
 
 			annotatedTypeModel = factory.apply(
 					"annotatedType",
-					t -> t.dataType(AnnotatedType.class).node(
-							n -> n.addChildBindingPoint(
+					t -> t
+							.withNode(AnnotatedType.class)
+							.addChildBindingPoint(
 									p -> p
 											.name("name")
-											.baseModel(primitives.get(Primitive.STRING))
-											.input(
-													i -> invokeResolvedStatic(AnnotatedTypes.class, "fromString", i.result()))
-											.output(
-													o -> invokeResolvedStatic(
-															AnnotatedTypes.class,
-															"toString",
-															o.source())))));
+											.input(i -> invokeResolvedStatic(AnnotatedTypes.class, "fromString", i.result()))
+											.output(o -> invokeResolvedStatic(AnnotatedTypes.class, "toString", o.source()))
+											.withNode(primitives.get(Primitive.STRING))
+											.endNode())
+							.endNode());
 
 			typeTokenModel = factory.apply(
 					"typeToken",
-					t -> t.dataType(new TypeToken<TypeToken<?>>() {}).node(
-							n -> n.addChildBindingPoint(
+					t -> t
+							.withNode(new TypeToken<TypeToken<?>>() {})
+							.addChildBindingPoint(
 									c -> c
-											.baseModel(annotatedTypeModel)
-											.input(
-													i -> invokeResolvedStatic(
-															TypeToken.class,
-															"overAnnotatedType",
-															i.result()))
-											.output(o -> o.source().invokeResolvedMethod("getAnnotatedDeclaration")))));
+											.input(i -> invokeResolvedStatic(TypeToken.class, "overAnnotatedType", i.result()))
+											.output(o -> o.source().invokeResolvedMethod("getAnnotatedDeclaration"))
+											.withNode(annotatedTypeModel)
+											.endNode())
+							.endNode());
 
 			enumModel = factory.apply(
 					"enum",
-					t -> t.dataType(new TypeToken<Enum<?>>() {}).concrete(false).node(
-							n -> n
-									.addChildBindingPoint(
-											c -> c
-													.dataType(new TypeToken<Class<? extends Enum<?>>>() {})
-													.name("enumType")
-													.input(IOConfigurator::none)
-													.output(IOConfigurator::none)
-													.provideValue(new BufferingDataTarget().buffer())
-													.node(
-															p -> p.initializeInput(
-																	i -> i
-																			.provide(ProcessingContext.class)
-																			.invokeResolvedMethod("getBindingNode")
-																			.invokeResolvedMethod("dataType")
-																			.invokeResolvedMethod("getRawType"))))
-									.addChildBindingPoint(
-											p -> p
-													.name("name")
-													.baseModel(primitives.get(Primitive.STRING))
-													.input(
-															i -> invokeResolvedStatic(
-																	Enumeration.class,
-																	"valueOfEnum",
-																	i.bound("enumType"),
-																	i.result()))
-													.output(o -> o.source().invokeResolvedMethod("getName")))));
+					t -> t
+							.withNode(new TypeToken<Enum<?>>() {})
+							.concrete(false)
+							.addChildBindingPoint(
+									c -> c
+											.name("enumType")
+											.input(IOConfigurator::none)
+											.output(IOConfigurator::none)
+											.withNode(new TypeToken<Class<? extends Enum<?>>>() {})
+											.provideValue(new BufferingDataTarget().buffer())
+											.initializeInput(
+													i -> i
+															.provide(ProcessingContext.class)
+															.invokeResolvedMethod("getBindingNode")
+															.invokeResolvedMethod("dataType")
+															.invokeResolvedMethod("getRawType"))
+											.endNode())
+							.addChildBindingPoint(
+									p -> p
+											.name("name")
+											.input(
+													i -> invokeResolvedStatic(Enumeration.class, "valueOfEnum", i.bound("enumType"), i.result()))
+											.output(o -> o.source().invokeResolvedMethod("getName"))
+											.withNode(primitives.get(Primitive.STRING))
+											.endNode())
+							.endNode());
 
 			enumerationModel = factory.apply(
 					"enumeration",
-					t -> t.baseModel(enumerationBaseType).concrete(false).node(
-							n -> n
-									.addChildBindingPoint(
-											c -> c
-													.dataType(new TypeToken<Class<? extends Enumeration<?>>>() {})
-													.name("enumType")
-													.input(IOConfigurator::none)
-													.output(IOConfigurator::none)
-													.provideValue(new BufferingDataTarget().buffer())
-													.node(
-															p -> p.initializeInput(
-																	i -> i
-																			.provide(ProcessingContext.class)
-																			.invokeResolvedMethod("getBindingNode")
-																			.invokeResolvedMethod("dataType")
-																			.invokeResolvedMethod("getRawType"))))
-									.addChildBindingPoint(
-											p -> p
-													.name("name")
-													.baseModel(primitives.get(Primitive.STRING))
-													.input(
-															i -> invokeResolvedStatic(
-																	Enumeration.class,
-																	"valueOf",
-																	i.bound("enumType"),
-																	i.result()))
-													.output(o -> o.source().invokeResolvedMethod("getName")))));
+					t -> t
+							.withNode(enumerationBaseType)
+							.concrete(false)
+							.addChildBindingPoint(
+									c -> c
+											.name("enumType")
+											.input(IOConfigurator::none)
+											.output(IOConfigurator::none)
+											.withNode(new TypeToken<Class<? extends Enumeration<?>>>() {})
+											.provideValue(new BufferingDataTarget().buffer())
+											.initializeInput(
+													i -> i
+															.provide(ProcessingContext.class)
+															.invokeResolvedMethod("getBindingNode")
+															.invokeResolvedMethod("dataType")
+															.invokeResolvedMethod("getRawType"))
+											.endNode())
+							.addChildBindingPoint(
+									p -> p
+											.name("name")
+											.input(i -> invokeResolvedStatic(Enumeration.class, "valueOf", i.bound("enumType"), i.result()))
+											.output(o -> o.source().invokeResolvedMethod("getName"))
+											.withNode(primitives.get(Primitive.STRING))
+											.endNode())
+							.endNode());
 
 			rangeModel = factory.apply(
 					"range",
-					t -> t.dataType(new TypeToken<Range<Integer>>() {}).node(
-							n -> n.addChildBindingPoint(
+					t -> t
+							.withNode(new TypeToken<Range<Integer>>() {})
+							.addChildBindingPoint(
 									p -> p
-											.baseModel(primitives.get(Primitive.STRING))
 											.name("string")
 											.input(i -> invokeResolvedStatic(Range.class, "parse", i.result()))
-											.output(o -> invokeResolvedStatic(Range.class, "compose", o.source())))));
+											.output(o -> invokeResolvedStatic(Range.class, "compose", o.source()))
+											.withNode(primitives.get(Primitive.STRING))
+											.endNode())
+							.endNode());
 
 			includeModel = factory.apply(
 					"include",
-					t -> t.dataType(new @Infer TypeToken<Collection<?>>() {}).concrete(false).node(
-							n -> n
-									.initializeInput(i -> i.parent())
-									.initializeOutput(o -> o.parent())
-									.addChildBindingPoint(
-											c -> c
-													.name("targetModel")
-													.baseModel(referenceModel)
-													.dataType(new TypeToken<Model<?>>() {})
-													.concrete(false)
-													.input(IOConfigurator::none)
-													.output(IOConfigurator::none)
-													.valueResolution(ValueResolution.DECLARATION_TIME)
-													.node(
-															e -> e
-																	.addChildBindingPoint(
-																			d -> d.name("targetModel").provideValue(
-																					new BufferingDataTarget()
-																							.put(
-																									Primitive.QUALIFIED_NAME,
-																									new QualifiedName("model", namespace))
-																							.buffer()))
-																	.addChildBindingPoint(
-																			d -> d.name("targetId").provideValue(
-																					new BufferingDataTarget()
-																							.put(
-																									Primitive.QUALIFIED_NAME,
-																									new QualifiedName("name", namespace))
-																							.buffer()))))
-									.addChildBindingPoint(
-											e -> e
-													.name("object")
-													.dataType(Collection.class)
-													.input(
-															i -> invokeResolvedStatic(IncludeTarget.class, "include", i.target()))
-													.output(
-															o -> invokeResolvedStatic(
-																	IncludeTarget.class,
-																	"include",
-																	o.bound("targetModel"))))));
+					t -> t
+							.withNode(new @Infer TypeToken<Collection<?>>() {})
+							.concrete(false)
+							.initializeInput(i -> i.parent())
+							.initializeOutput(o -> o.parent())
+							.addChildBindingPoint(
+									c -> c
+											.name("targetModel")
+											.input(IOConfigurator::none)
+											.output(IOConfigurator::none)
+											.withNode(new TypeToken<Model<?>>() {})
+											.concrete(false)
+											.baseModel((Model<Object>) referenceModel)
+											.valueResolution(ValueResolution.DECLARATION_TIME)
+											.addChildBindingPoint(
+													d -> d
+															.name("targetModel")
+															.withNode()
+															.provideValue(
+																	new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
+																			.buffer())
+															.endNode())
+											.addChildBindingPoint(
+													d -> d
+															.name("targetId")
+															.withNode()
+															.provideValue(
+																	new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
+																			.buffer())
+															.endNode())
+											.endNode())
+							.addChildBindingPoint(
+									e -> e
+											.name("object")
+											.input(i -> invokeResolvedStatic(IncludeTarget.class, "include", i.target()))
+											.output(o -> invokeResolvedStatic(IncludeTarget.class, "include", o.bound("targetModel")))
+											.withNode(Collection.class)
+											.endNode())
+							.endNode());
 
 			importModel = factory.apply(
 					"import",
-					t -> t.dataType(Object.class).concrete(false).node(
-							n -> n
-									.initializeInput(i -> i.parent())
-									.initializeOutput(o -> o.parent())
-									.addChildBindingPoint(
-											c -> c
-													.name("targetModel")
-													.baseModel(referenceModel)
-													.dataType(new TypeToken<Model<?>>() {})
-													.concrete(false)
-													.input(IOConfigurator::none)
-													.output(IOConfigurator::none)
-													.valueResolution(ValueResolution.DECLARATION_TIME)
-													.node(
-															p -> p
-																	.addChildBindingPoint(
-																			d -> d.name("targetModel").provideValue(
-																					new BufferingDataTarget()
-																							.put(
-																									Primitive.QUALIFIED_NAME,
-																									new QualifiedName("model", namespace))
-																							.buffer()))
-																	.addChildBindingPoint(
-																			d -> d.name("targetId").provideValue(
-																					new BufferingDataTarget()
-																							.put(
-																									Primitive.QUALIFIED_NAME,
-																									new QualifiedName("name", namespace))
-																							.buffer()))))
-									.addChildBindingPoint(
-											d -> d
-													.name("targetId")
-													.baseModel(listModel)
-													.concrete(false)
-													.valueResolution(ValueResolution.DECLARATION_TIME)
-													.input(IOConfigurator::none)
-													.output(IOConfigurator::none)
-													.node(
-															p -> p.addChildBindingPoint(
-																	e -> e.name("element").baseModel(
-																			primitives.get(Primitive.QUALIFIED_NAME)))))
-									.addChildBindingPoint(
-											d -> d
-													.name("data")
-													.baseModel(bufferedDataModel)
-													.input(
-															i -> i.provide(ImportSource.class).invokeResolvedMethod(
-																	"dereferenceImport",
-																	i.bound("targetModel"),
-																	i.bound("targetId"),
-																	i.result()))
-													.output(
-															o -> o.provide(ImportTarget.class).invokeResolvedMethod(
-																	"referenceImport",
-																	o.bound("targetModel"),
-																	o.bound("targetId"),
-																	o.source())))));
+					t -> t
+							.withNode(Object.class)
+							.concrete(false)
+							.initializeInput(i -> i.parent())
+							.initializeOutput(o -> o.parent())
+							.addChildBindingPoint(
+									c -> c
+											.name("targetModel")
+											.input(IOConfigurator::none)
+											.output(IOConfigurator::none)
+											.withNode(new TypeToken<Model<?>>() {})
+											.baseModel((Model<Object>) referenceModel)
+											.concrete(false)
+											.valueResolution(ValueResolution.DECLARATION_TIME)
+											.addChildBindingPoint(
+													d -> d
+															.name("targetModel")
+															.withNode()
+															.provideValue(
+																	new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("model", namespace))
+																			.buffer())
+															.endNode())
+											.addChildBindingPoint(
+													d -> d
+															.name("targetId")
+															.withNode()
+															.provideValue(
+																	new BufferingDataTarget()
+																			.put(Primitive.QUALIFIED_NAME, new QualifiedName("name", namespace))
+																			.buffer())
+															.endNode())
+											.endNode())
+							.addChildBindingPoint(
+									d -> d
+											.name("targetId")
+											.input(IOConfigurator::none)
+											.output(IOConfigurator::none)
+											.withNode(listModel)
+											.concrete(false)
+											.valueResolution(ValueResolution.DECLARATION_TIME)
+											.addChildBindingPoint(
+													e -> e.name("element").withNode(primitives.get(Primitive.QUALIFIED_NAME)).endNode())
+											.endNode())
+							.addChildBindingPoint(
+									d -> d
+											.name("data")
+											.input(
+													i -> i.provide(ImportSource.class).invokeResolvedMethod(
+															"dereferenceImport",
+															i.bound("targetModel"),
+															i.bound("targetId"),
+															i.result()))
+											.output(
+													o -> o.provide(ImportTarget.class).invokeResolvedMethod(
+															"referenceImport",
+															o.bound("targetModel"),
+															o.bound("targetId"),
+															o.source()))
+											.withNode(bufferedDataModel)
+											.endNode())
+							.endNode());
 
 			/*
 			 * Having trouble annotating Map.Entry for some reason, so need this
@@ -585,35 +575,34 @@ public class BaseSchemaImpl implements BaseSchema {
 			 */
 			mapModel = factory.apply(
 					"map",
-					c -> c.dataType(new @Infer TypeToken<Map<?, ?>>() {}).node(
-							n -> n.addChildBindingPoint(
+					c -> c
+							.withNode(new @Infer TypeToken<Map<?, ?>>() {})
+							.addChildBindingPoint(
 									f -> f
 											.name("entry")
 											.bindingCondition(occurrences(between(0, null)))
 											.input(IOConfigurator::none)
 											.output(o -> o.iterate(o.source().invokeResolvedMethod("entrySet")))
-											.dataType(void.class)
-											.node(
-													p -> p
-															.initializeInput(i -> i.parent())
-															.addChildBindingPoint(
-																	k -> k
-																			.name("key")
-																			.input(IOConfigurator::none)
-																			.output(o -> o.source().invokeResolvedMethod("getKey"))
-																			.dataType(wildcard(Annotations.from(Infer.class)))
-																			.extensible(true))
-															.addChildBindingPoint(
-																	v -> v
-																			.name("value")
-																			.output(o -> o.source().invokeResolvedMethod("getValue"))
-																			.input(
-																					i -> i.target().invokeResolvedMethod(
-																							"put",
-																							i.bound("key"),
-																							i.result()))
-																			.dataType(wildcard(Annotations.from(Infer.class)))
-																			.extensible(true))))));
+											.withNode(void.class)
+											.initializeInput(i -> i.parent())
+											.addChildBindingPoint(
+													k -> k
+															.name("key")
+															.input(IOConfigurator::none)
+															.output(o -> o.source().invokeResolvedMethod("getKey"))
+															.withNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+															.extensible(true)
+															.endNode())
+											.addChildBindingPoint(
+													v -> v
+															.name("value")
+															.output(o -> o.source().invokeResolvedMethod("getValue"))
+															.input(i -> i.target().invokeResolvedMethod("put", i.bound("key"), i.result()))
+															.withNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+															.extensible(true)
+															.endNode())
+											.endNode())
+							.endNode());
 		}
 
 		@Override
@@ -745,43 +734,42 @@ public class BaseSchemaImpl implements BaseSchema {
 		 */
 		ModelHelper modelFactory = new ModelHelper() {
 			@Override
-			public <T> Model<T> apply(
-					String name,
-					Function<ModelConfigurator<?>, ModelConfigurator<T>> modelFunction) {
-				return modelFunction.apply(schemaConfigurator.addModel().name(name, namespace)).create();
+			public <T> Model<T> apply(String name, Function<ModelConfigurator, ModelFactory<T>> type) {
+				return type.apply(schemaConfigurator.addModel().name(name, namespace)).createModel();
 			}
 		};
 
 		Model<Enumeration<?>> enumerationBaseType = modelFactory.apply(
 				"enumerationBase",
-				c -> c.concrete(false).export(false).dataType(new @Infer TypeToken<Enumeration<?>>() {}));
+				c -> c.export(false).withNode(new @Infer TypeToken<Enumeration<?>>() {}).concrete(false).endNode());
 
-		Model<?> primitive = modelFactory.apply(
+		Model<Object> primitive = modelFactory.apply(
 				"primitive",
-				p -> p.concrete(false).export(false).node(
-						n -> n
-								.addChildBindingPoint(
-										c -> c
-												.name("dataType")
-												.concrete(false)
-												.baseModel(enumerationBaseType)
-												.valueResolution(ValueResolution.DECLARATION_TIME)
-												.dataType(new @Infer TypeToken<Primitive<?>>() {})
-												.input(IOConfigurator::none)
-												.output(IOConfigurator::none))
-								.addChildBindingPoint(
-										c -> c
-												.name("io")
-												.dataType(void.class)
-												.input(
-														i -> i.target().assign(
-																i
-																		.provide(DataSource.class)
-																		.invokeResolvedMethod("get", i.bound("dataType"))))
-												.output(
-														o -> o
-																.provide(DataTarget.class)
-																.invokeResolvedMethod("put", o.bound("dataType"), o.source())))));
+				p -> p
+						.export(false)
+						.withNode()
+						.concrete(false)
+						.addChildBindingPoint(
+								c -> c
+										.name("dataType")
+										.input(IOConfigurator::none)
+										.output(IOConfigurator::none)
+										.withNode(new @Infer TypeToken<Primitive<?>>() {})
+										.baseModel(enumerationBaseType)
+										.concrete(false)
+										.valueResolution(ValueResolution.DECLARATION_TIME)
+										.endNode())
+						.addChildBindingPoint(
+								c -> c
+										.name("io")
+										.input(
+												i -> i.target().assign(
+														i.provide(DataSource.class).invokeResolvedMethod("get", i.bound("dataType"))))
+										.output(
+												o -> o.provide(DataTarget.class).invokeResolvedMethod("put", o.bound("dataType"), o.source()))
+										.withNode(void.class)
+										.endNode())
+						.endNode());
 
 		primitives = new HashMap<>();
 		for (Primitive<?> dataType : Enumeration.getConstants(Primitive.class)) {
@@ -789,15 +777,16 @@ public class BaseSchemaImpl implements BaseSchema {
 					dataType,
 					modelFactory.apply(
 							dataType.name(),
-							p -> p.baseModel(primitive).dataType(dataType.dataClass()).node(
-									n -> n.addChildBindingPoint(
+							p -> p
+									.withNode(dataType.dataClass())
+									.baseModel(primitive)
+									.addChildBindingPoint(
 											c -> c
 													.name("dataType")
-													.dataType(resolvePrimitiveDataType(dataType))
-													.provideValue(
-															new BufferingDataTarget()
-																	.put(Primitive.STRING, dataType.name())
-																	.buffer())))));
+													.withNode(resolvePrimitiveDataType(dataType))
+													.provideValue(new BufferingDataTarget().put(Primitive.STRING, dataType.name()).buffer())
+													.endNode())
+									.endNode()));
 		}
 
 		derivedTypes = new DerivedImpl(modelFactory, enumerationBaseType);

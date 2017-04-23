@@ -47,9 +47,9 @@ public interface SchemaNodeConfigurator<T, E> {
 
 	Optional<Boolean> getConcrete();
 
-	SchemaNodeConfigurator<T, E> export(boolean export);
+	SchemaNodeConfigurator<T, E> extensible(boolean extensible);
 
-	Optional<Boolean> getExport();
+	Optional<Boolean> getExtensible();
 
 	default SchemaNodeConfigurator<T, E> baseModel(Model<? super T> baseModel) {
 		return baseModel(asList(baseModel));

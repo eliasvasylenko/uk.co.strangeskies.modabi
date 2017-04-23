@@ -1,15 +1,26 @@
 package uk.co.strangeskies.modabi.schema;
 
+import java.util.Optional;
+
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ModelConfigurator extends BindingPointConfigurator<ModelConfigurator> {
+	ModelConfigurator export(boolean export);
+
+	Optional<Boolean> getExport();
+
 	@Override
-	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNodeOfType(Class<V> dataType) {
-		return withNodeOfType(TypeToken.forClass(dataType));
+	default SchemaNodeConfigurator<Object, ModelFactory<Object>> withNode() {
+		return withNode(Object.class);
 	}
 
 	@Override
-	<V> SchemaNodeConfigurator<V, ModelFactory<V>> withNodeOfType(TypeToken<V> dataType);
+	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNode(Class<V> dataType) {
+		return withNode(TypeToken.forClass(dataType));
+	}
+
+	@Override
+	<V> SchemaNodeConfigurator<V, ModelFactory<V>> withNode(TypeToken<V> dataType);
 
 	@Override
 	default <V> ModelFactory<V> withoutNode(Class<V> dataType) {
@@ -20,7 +31,7 @@ public interface ModelConfigurator extends BindingPointConfigurator<ModelConfigu
 	<V> ModelFactory<V> withoutNode(TypeToken<V> dataType);
 
 	@Override
-	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNodeOfModel(Model<V> baseModel) {
-		return withNodeOfType(baseModel.dataType()).baseModel(baseModel);
+	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNode(Model<V> baseModel) {
+		return withNode(baseModel.dataType()).baseModel(baseModel);
 	}
 }

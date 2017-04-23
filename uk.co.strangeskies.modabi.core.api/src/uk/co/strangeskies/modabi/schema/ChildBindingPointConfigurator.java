@@ -13,10 +13,6 @@ public interface ChildBindingPointConfigurator<T, E extends SchemaNodeConfigurat
 		extends BindingPointConfigurator<ChildBindingPointConfigurator<T, E>> {
 	ChildBindingPointConfigurator<T, E> name(String name);
 
-	ChildBindingPointConfigurator<T, E> extensible(boolean extensible);
-
-	Optional<Boolean> getExtensible();
-
 	ChildBindingPointConfigurator<T, E> ordered(boolean ordered);
 
 	Optional<Boolean> getOrdered();
@@ -29,8 +25,7 @@ public interface ChildBindingPointConfigurator<T, E extends SchemaNodeConfigurat
 
 	OutputConfigurator<T> output();
 
-	default ChildBindingPointConfigurator<T, E> input(
-			Function<InputConfigurator<T>, Expression> inputExpression) {
+	default ChildBindingPointConfigurator<T, E> input(Function<InputConfigurator<T>, Expression> inputExpression) {
 		input().expression(inputExpression.apply(input()));
 		return this;
 	}
@@ -42,12 +37,17 @@ public interface ChildBindingPointConfigurator<T, E extends SchemaNodeConfigurat
 	}
 
 	@Override
-	default <V> SchemaNodeConfigurator<V, E> withNodeOfType(Class<V> dataType) {
-		return withNodeOfType(forClass(dataType));
+	default SchemaNodeConfigurator<Object, E> withNode() {
+		return withNode(Object.class);
 	}
 
 	@Override
-	<V> SchemaNodeConfigurator<V, E> withNodeOfType(TypeToken<V> dataType);
+	default <V> SchemaNodeConfigurator<V, E> withNode(Class<V> dataType) {
+		return withNode(forClass(dataType));
+	}
+
+	@Override
+	<V> SchemaNodeConfigurator<V, E> withNode(TypeToken<V> dataType);
 
 	@Override
 	<V> E withoutNode(TypeToken<V> dataType);
@@ -58,7 +58,7 @@ public interface ChildBindingPointConfigurator<T, E extends SchemaNodeConfigurat
 	}
 
 	@Override
-	default <V> SchemaNodeConfigurator<V, E> withNodeOfModel(Model<V> baseModel) {
-		return withNodeOfType(baseModel.dataType()).baseModel(baseModel);
+	default <V> SchemaNodeConfigurator<V, E> withNode(Model<V> baseModel) {
+		return withNode(baseModel.dataType()).baseModel(baseModel);
 	}
 }

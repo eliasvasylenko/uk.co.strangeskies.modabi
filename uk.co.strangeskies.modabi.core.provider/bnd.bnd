@@ -4,6 +4,7 @@
 	${ss;text},\
 	${ss;reflection},\
 	${ss;reflection.codegen},\
+	${ss;reflection.token},\
 	${ss;mathematics}
 
 -runbundles: \
