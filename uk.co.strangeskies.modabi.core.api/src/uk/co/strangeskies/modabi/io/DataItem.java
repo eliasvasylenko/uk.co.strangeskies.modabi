@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.utilities.Enumeration;
+import uk.co.strangeskies.utility.Enumeration;
 
 abstract class AbstractDataItem<T> implements DataItem<T> {
 	@Override

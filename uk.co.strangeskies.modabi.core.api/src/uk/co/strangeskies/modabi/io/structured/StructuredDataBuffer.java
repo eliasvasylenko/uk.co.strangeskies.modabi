@@ -36,13 +36,13 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.collection.EquivalenceComparator;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.ModabiIoException;
-import uk.co.strangeskies.utilities.EquivalenceComparator;
 
 /**
  * It shouldn't matter in what order attributes are added to a child, or whether

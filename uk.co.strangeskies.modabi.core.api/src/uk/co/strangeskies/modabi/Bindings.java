@@ -27,12 +27,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.co.strangeskies.collection.MultiHashMap;
+import uk.co.strangeskies.collection.MultiMap;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.utilities.Observable;
-import uk.co.strangeskies.utilities.Observer;
-import uk.co.strangeskies.utilities.collection.MultiHashMap;
-import uk.co.strangeskies.utilities.collection.MultiMap;
+import uk.co.strangeskies.observable.Observable;
+import uk.co.strangeskies.observable.Observer;
 
 public class Bindings {
 	public final MultiMap<Model<?>, BindingPoint<?>, Set<BindingPoint<?>>> boundNodes;
@@ -70,8 +70,7 @@ public class Bindings {
 	@SuppressWarnings("unchecked")
 	private <T> void fire(BindingPoint<T> node, T data) {
 		for (Model<?> model : listeners.keySet()) {
-			if (model.equals(node)
-					|| node.node().baseModel().filter(model::equals).findAny().isPresent()) {
+			if (model.equals(node) || node.node().baseModel().filter(model::equals).findAny().isPresent()) {
 				for (Observer<?> listener : listeners.get(model)) {
 					((Observer<? super T>) listener).notify(data);
 				}
@@ -94,12 +93,8 @@ public class Bindings {
 
 	@SuppressWarnings("unchecked")
 	public synchronized <T> Set<T> getModelBindings(Model<T> model) {
-		return boundNodes
-				.getOrDefault(model, emptySet())
-				.stream()
-				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream())
-				.map(t -> (T) t)
-				.collect(toSet());
+		return boundNodes.getOrDefault(model, emptySet()).stream()
+				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
 	}
 
 	@SuppressWarnings("unchecked")

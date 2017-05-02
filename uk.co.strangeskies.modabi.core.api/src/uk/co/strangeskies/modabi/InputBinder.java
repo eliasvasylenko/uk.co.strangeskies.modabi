@@ -25,12 +25,12 @@ import java.net.URI;
 import java.net.URL;
 import java.util.function.Consumer;
 
+import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.modabi.io.ModabiIoException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utilities.function.ThrowingSupplier;
 
 public interface InputBinder<T> {
 	<U> InputBinder<U> with(Model<U> model);

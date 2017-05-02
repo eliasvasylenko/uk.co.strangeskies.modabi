@@ -25,7 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.utilities.Copyable;
+import uk.co.strangeskies.utility.Copyable;
 
 public interface DataSource extends Copyable<DataSource> {
 	DataStreamState currentState();

@@ -18,7 +18,7 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-import uk.co.strangeskies.utilities.Copyable;
+import uk.co.strangeskies.utility.Copyable;
 
 public interface NavigableStructuredDataSource
 		extends StructuredDataSource, Copyable<NavigableStructuredDataSource> {

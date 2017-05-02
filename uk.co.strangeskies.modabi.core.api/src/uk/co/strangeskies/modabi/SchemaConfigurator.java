@@ -27,9 +27,10 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.ModelFactory;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utilities.Factory;
 
-public interface SchemaConfigurator extends Factory<Schema> {
+public interface SchemaConfigurator {
+	Schema create();
+
 	SchemaConfigurator qualifiedName(QualifiedName name);
 
 	SchemaConfigurator imports(Collection<? extends Class<?>> imports);
@@ -38,17 +39,14 @@ public interface SchemaConfigurator extends Factory<Schema> {
 
 	ModelConfigurator addModel();
 
-	default SchemaConfigurator addModel(
-			QualifiedName name,
+	default SchemaConfigurator addModel(QualifiedName name,
 			Function<ModelConfigurator, ModelFactory<?>> configuration) {
 		configuration.apply(addModel().name(name)).createModel();
 
 		return this;
 	}
 
-	SchemaConfigurator addModel(
-			String name,
-			Function<ModelConfigurator, ModelFactory<?>> configuration);
+	SchemaConfigurator addModel(String name, Function<ModelConfigurator, ModelFactory<?>> configuration);
 
 	/*
 	 * For simple programmatic generation of schemata:
@@ -59,8 +57,7 @@ public interface SchemaConfigurator extends Factory<Schema> {
 	}
 
 	default SchemaConfigurator generateModels(Class<?>... types) {
-		return generateModels(
-				Arrays.stream(types).<TypeToken<?>>map(TypeToken::forClass).collect(Collectors.toList()));
+		return generateModels(Arrays.stream(types).<TypeToken<?>>map(TypeToken::forClass).collect(Collectors.toList()));
 	}
 
 	<T> Model<T> generateModel(TypeToken<T> type);

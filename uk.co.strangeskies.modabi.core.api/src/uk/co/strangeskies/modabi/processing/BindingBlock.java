@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.utilities.Observable;
+import uk.co.strangeskies.observable.Observable;
 
 /**
  * A {@link BindingBlock} is intended to represent that a binding thread is
@@ -64,14 +64,14 @@ public interface BindingBlock extends Observable<BindingBlockEvent> {
 	Throwable getFailure();
 
 	/**
-	 * @return True if the resource or dependency should be satisfied by processes
-	 *         internal to the binding procedure, false otherwise
+	 * @return True if the resource or dependency should be satisfied by
+	 *         processes internal to the binding procedure, false otherwise
 	 */
 	boolean isInternal();
 
 	/**
-	 * Signal that the resource or dependency represented by this block has become
-	 * available
+	 * Signal that the resource or dependency represented by this block has
+	 * become available
 	 */
 	void complete() throws ExecutionException;
 
@@ -79,38 +79,38 @@ public interface BindingBlock extends Observable<BindingBlockEvent> {
 	 * Wait for availability of the resource or dependency.
 	 * 
 	 * @throws InterruptedException
-	 *           If the waiting thread is interrupted
+	 *             If the waiting thread is interrupted
 	 * @throws ExecutionException
-	 *           If the block has been notified of failure via
-	 *           {@link #fail(Throwable)}
+	 *             If the block has been notified of failure via
+	 *             {@link #fail(Throwable)}
 	 */
 	void waitUntilComplete() throws InterruptedException, ExecutionException;
 
 	/**
-	 * Wait for availability of the resource or dependency, or throw an exception
-	 * if the block does not complete within the given time.
+	 * Wait for availability of the resource or dependency, or throw an
+	 * exception if the block does not complete within the given time.
 	 * 
 	 * @param timeoutMilliseconds
-	 *          The amount of time to wait for completion
+	 *            The amount of time to wait for completion
 	 * @throws InterruptedException
-	 *           If the waiting thread is interrupted
+	 *             If the waiting thread is interrupted
 	 * @throws TimeoutException
-	 *           If the block is not satisfied within the given time
+	 *             If the block is not satisfied within the given time
 	 * @throws ExecutionException
-	 *           If the block has been notified of failure via
-	 *           {@link #fail(Throwable)}
+	 *             If the block has been notified of failure via
+	 *             {@link #fail(Throwable)}
 	 */
 	void waitUntilComplete(long timeoutMilliseconds) throws InterruptedException, TimeoutException, ExecutionException;
 
 	/**
 	 * Signal a failure in making the resource or dependency available. If
 	 * successful then pending and subsequent invocations of
-	 * {@link #waitUntilComplete()} will rethrow the given error. The failure will
-	 * be ignored if the block has already completed successfully.
+	 * {@link #waitUntilComplete()} will rethrow the given error. The failure
+	 * will be ignored if the block has already completed successfully.
 	 * 
 	 * @param cause
-	 *          An exception detailing the cause of the failure to secure the
-	 *          dependency and lift the block
+	 *            An exception detailing the cause of the failure to secure the
+	 *            dependency and lift the block
 	 * @return True if the failure was successfully registered, false otherwise
 	 */
 	boolean fail(Throwable cause);

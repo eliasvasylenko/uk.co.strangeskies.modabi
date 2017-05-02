@@ -19,7 +19,7 @@
 package uk.co.strangeskies.modabi.schema;
 
 import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
-import static uk.co.strangeskies.utilities.collection.StreamUtilities.throwingMerger;
+import static uk.co.strangeskies.collection.stream.StreamUtilities.throwingMerger;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -50,13 +50,14 @@ public interface SchemaNode<T> {
 
 	/**
 	 * @return the set of all <em>direct</em> base models, i.e. excluding those
-	 *         which are transitively implied via other more specific base models
+	 *         which are transitively implied via other more specific base
+	 *         models
 	 */
 	Stream<Model<?>> baseModel();
 
 	/**
-	 * Get the schema node configurator which created this schema node, or in the
-	 * case of a mutable configurator implementation, a copy thereof.
+	 * Get the schema node configurator which created this schema node, or in
+	 * the case of a mutable configurator implementation, a copy thereof.
 	 * 
 	 * @return the creating configurator
 	 */

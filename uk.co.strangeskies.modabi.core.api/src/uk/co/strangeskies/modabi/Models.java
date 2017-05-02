@@ -30,10 +30,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import uk.co.strangeskies.collection.MultiHashMap;
+import uk.co.strangeskies.collection.MultiMap;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utilities.collection.MultiHashMap;
-import uk.co.strangeskies.utilities.collection.MultiMap;
 
 public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	private final MultiMap<QualifiedName, Model<?>, LinkedHashSet<Model<?>>> derivedModels;
@@ -78,8 +78,8 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 			LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.name());
 
 			List<Model<? extends T>> derivedModelList = subModelList == null ? new ArrayList<>()
-					: subModelList.stream().map(m -> (Model<? extends T>) m).collect(
-							Collectors.toCollection(ArrayList::new));
+					: subModelList.stream().map(m -> (Model<? extends T>) m)
+							.collect(Collectors.toCollection(ArrayList::new));
 
 			getParentScope().ifPresent(p -> derivedModelList.addAll(p.getDerivedModels(model)));
 
@@ -97,15 +97,14 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	}
 
 	private <T> void checkType(Model<T> model, TypeToken<T> dataType) {
-		if (model != null
-				&& !model.dataType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, dataType)) {
+		if (model != null && !model.dataType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, dataType)) {
 			throw new ModabiException(t -> t.noModelFoundForType(model.name(), dataType.getType()));
 		}
 	}
 
-	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType)
-			throws InterruptedException {
-		return waitForGet(name, dataType, () -> {});
+	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType) throws InterruptedException {
+		return waitForGet(name, dataType, () -> {
+		});
 	}
 
 	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent)
@@ -115,15 +114,12 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 
 	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, int timeoutMilliseconds)
 			throws InterruptedException {
-		return waitForGet(name, dataType, () -> {}, timeoutMilliseconds);
+		return waitForGet(name, dataType, () -> {
+		}, timeoutMilliseconds);
 	}
 
-	public <T> Model<T> waitForGet(
-			QualifiedName name,
-			TypeToken<T> dataType,
-			Runnable onPresent,
-			int timeoutMilliseconds)
-			throws InterruptedException {
+	public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent,
+			int timeoutMilliseconds) throws InterruptedException {
 		@SuppressWarnings("unchecked")
 		Model<T> model = (Model<T>) waitForGet(name);
 
@@ -147,8 +143,7 @@ public class Models extends NamedSet<Models, QualifiedName, Model<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<Model<? extends T>> getModelsWithBase(
-			Collection<? extends Model<? super T>> baseModel) {
+	public <T> List<Model<? extends T>> getModelsWithBase(Collection<? extends Model<? super T>> baseModel) {
 		synchronized (getMutex()) {
 			Iterator<? extends Model<? extends T>> modelIterator = (Iterator<? extends Model<? extends T>>) baseModel
 					.iterator();

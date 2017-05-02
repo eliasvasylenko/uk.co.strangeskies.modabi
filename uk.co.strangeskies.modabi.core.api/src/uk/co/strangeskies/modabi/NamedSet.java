@@ -19,8 +19,8 @@
 package uk.co.strangeskies.modabi;
 
 import static java.util.function.Function.identity;
-import static uk.co.strangeskies.utilities.Observable.Observation.CONTINUE;
-import static uk.co.strangeskies.utilities.Observable.Observation.TERMINATE;
+import static uk.co.strangeskies.observable.Observable.Observation.CONTINUE;
+import static uk.co.strangeskies.observable.Observable.Observation.TERMINATE;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,15 +28,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import uk.co.strangeskies.utilities.IdentityProperty;
-import uk.co.strangeskies.utilities.Scoped;
-import uk.co.strangeskies.utilities.collection.ObservableSet;
-import uk.co.strangeskies.utilities.collection.ScopedObservableSet;
-import uk.co.strangeskies.utilities.collection.SynchronizedObservableSet;
-import uk.co.strangeskies.utilities.function.SetTransformationView;
+import uk.co.strangeskies.collection.SetTransformationView;
+import uk.co.strangeskies.collection.observable.ObservableSet;
+import uk.co.strangeskies.collection.observable.ScopedObservableSet;
+import uk.co.strangeskies.collection.observable.SynchronizedObservableSet;
+import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.utility.Scoped;
 
-public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @ReadOnly */ScopedObservableSet<S, T>
-		implements Scoped<S> {
+public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T>
+		extends /* @ReadOnly */ScopedObservableSet<S, T> implements Scoped<S> {
 	private final Function<T, N> namingFunction;
 	private final LinkedHashMap<N, T> elements;
 	private final Object mutex;
@@ -100,7 +100,8 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 	}
 
 	public T waitForGet(N name) throws InterruptedException {
-		return waitForGet(name, () -> {});
+		return waitForGet(name, () -> {
+		});
 	}
 
 	public T waitForGet(N name, Runnable onPresent) throws InterruptedException {
@@ -108,7 +109,8 @@ public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T> extends /* @Re
 	}
 
 	public T waitForGet(N name, int timeoutMilliseconds) throws InterruptedException {
-		return waitForGet(name, () -> {}, timeoutMilliseconds);
+		return waitForGet(name, () -> {
+		}, timeoutMilliseconds);
 	}
 
 	public T waitForGet(N name, Runnable onPresent, int timeoutMilliseconds) throws InterruptedException {

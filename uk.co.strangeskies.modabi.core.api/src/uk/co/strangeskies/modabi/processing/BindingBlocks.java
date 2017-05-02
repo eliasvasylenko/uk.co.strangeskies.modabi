@@ -23,8 +23,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import uk.co.strangeskies.utilities.Observable;
-import uk.co.strangeskies.utilities.Observer;
+import uk.co.strangeskies.observable.Observable;
+import uk.co.strangeskies.observable.Observer;
 
 public interface BindingBlocks extends Observable<BindingBlockEvent> {
 	public static BindingBlocks NON_BLOCKING = new BindingBlocks() {

@@ -24,7 +24,7 @@ import java.text.ParseException;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.utilities.Enumeration;
+import uk.co.strangeskies.utility.Enumeration;
 
 public class Primitive<T> extends Enumeration<Primitive<T>> {
 	public static final Primitive<byte[]> BINARY = new Primitive<>("binary",

@@ -33,7 +33,7 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utilities.Enumeration;
+import uk.co.strangeskies.utility.Enumeration;
 
 public interface BaseSchema extends Schema {
 	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(BaseSchema.class.getSimpleName(),
@@ -83,14 +83,14 @@ public interface BaseSchema extends Schema {
 		Model<Map<?, ?>> mapModel();
 
 		/*
-		 * during binding / unbinding magically adds items to bindings list (so can
-		 * be referenced)
+		 * during binding / unbinding magically adds items to bindings list (so
+		 * can be referenced)
 		 */
 		Model<Collection<?>> includeModel();
 
 		/*
-		 * retrieves objects already bound by SchemaBinder and 'includes' them, or
-		 * some children of them. Blocks if we are waiting for them.
+		 * retrieves objects already bound by SchemaBinder and 'includes' them,
+		 * or some children of them. Blocks if we are waiting for them.
 		 */
 		Model<Object> importModel();
 	}

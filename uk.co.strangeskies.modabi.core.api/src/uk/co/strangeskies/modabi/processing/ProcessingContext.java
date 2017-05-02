@@ -21,6 +21,7 @@ package uk.co.strangeskies.modabi.processing;
 import java.util.List;
 import java.util.Optional;
 
+import uk.co.strangeskies.collection.computingmap.ComputingMap;
 import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provisions;
@@ -34,7 +35,6 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.SchemaNode;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
-import uk.co.strangeskies.utilities.collection.computingmap.ComputingMap;
 
 public interface ProcessingContext {
 	/**
@@ -58,26 +58,27 @@ public interface ProcessingContext {
 	 * backing this context.
 	 * 
 	 * @param name
-	 *          the name of the model to fetch
+	 *            the name of the model to fetch
 	 * @return the model of the given name, or null if no such model exists
 	 */
 	Model<?> getModel(QualifiedName name);
 
 	/**
 	 * For a given extensible complex node, get a map from possible overriding
-	 * models to the nodes resulting from the application of those overrides. The
-	 * values of the map are lazily computed, then cached for further use.
+	 * models to the nodes resulting from the application of those overrides.
+	 * The values of the map are lazily computed, then cached for further use.
 	 * 
 	 * @param node
-	 *          the element to override with a model
+	 *            the element to override with a model
 	 * @return a mapping from possible overrides to override results
 	 */
 	ComputingMap<Model<?>, SchemaNode<?>> getComplexNodeOverrides(SchemaNode<?> node);
 
 	/**
 	 * The stack of schema nodes corresponding to the processing position in a
-	 * depth first traversal of a schema node tree. The object at the head of the
-	 * stack - the end of the list - is the object currently being processed.
+	 * depth first traversal of a schema node tree. The object at the head of
+	 * the stack - the end of the list - is the object currently being
+	 * processed.
 	 * 
 	 * @return a list representing the stack, in order from tail to head
 	 */
@@ -92,7 +93,7 @@ public interface ProcessingContext {
 
 	/**
 	 * @param parent
-	 *          the number of steps back through the stack to reach for a node
+	 *            the number of steps back through the stack to reach for a node
 	 * @return the node a given number of steps back from the head of the
 	 *         {@link #getBindingNodeStack()}
 	 */
@@ -104,8 +105,8 @@ public interface ProcessingContext {
 	/**
 	 * Get the stack of typed binding objects corresponding to the processing
 	 * position in a depth first traversal of a schema node tree. The object at
-	 * the head of the stack - the end of the list - is the object currently being
-	 * processed.
+	 * the head of the stack - the end of the list - is the object currently
+	 * being processed.
 	 * 
 	 * @return a list representing the stack, in order from tail to head
 	 */
@@ -120,7 +121,8 @@ public interface ProcessingContext {
 
 	/**
 	 * @param parent
-	 *          the number of steps back through the stack to reach for an object
+	 *            the number of steps back through the stack to reach for an
+	 *            object
 	 * @return the object a given number of steps back from the head of the
 	 *         {@link #getBindingObjectStack()}
 	 */
@@ -130,8 +132,9 @@ public interface ProcessingContext {
 	}
 
 	/**
-	 * @return the blocking interface through which a processing thread may signal
-	 *         that it is waiting for availability of some dependency or resource
+	 * @return the blocking interface through which a processing thread may
+	 *         signal that it is waiting for availability of some dependency or
+	 *         resource
 	 */
 	BindingBlocker bindingBlocker();
 
@@ -147,7 +150,8 @@ public interface ProcessingContext {
 	Optional<StructuredDataSource> input();
 
 	/**
-	 * @return the output data target for the processing operation, if applicable
+	 * @return the output data target for the processing operation, if
+	 *         applicable
 	 */
 	Optional<StructuredDataTarget> output();
 
@@ -166,7 +170,7 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#provide(TypeToken, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          the type of object to be provided
+	 *            the type of object to be provided
 	 * @return the provided object with respect to this context
 	 */
 	default <T> TypedObject<T> provide(TypeToken<T> type) {
@@ -178,7 +182,7 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#provide(Class, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          the type of object to be provided
+	 *            the type of object to be provided
 	 * @return the provided object with respect to this context
 	 */
 	default <T> TypedObject<T> provide(Class<T> type) {
@@ -190,7 +194,7 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#isProvided(TypeToken, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          the type of object to be provided
+	 *            the type of object to be provided
 	 * @return true if the object is available, false otherwise
 	 */
 	default boolean isProvided(TypeToken<?> type) {
@@ -202,7 +206,7 @@ public interface ProcessingContext {
 	 * context, via {@link Provisions#isProvided(Class, ProcessingContext)}.
 	 * 
 	 * @param type
-	 *          the type of object to be provided
+	 *            the type of object to be provided
 	 * @return true if the object is available, false otherwise
 	 */
 	default boolean isProvided(Class<?> type) {

@@ -18,12 +18,12 @@
  */
 package uk.co.strangeskies.modabi;
 
+import uk.co.strangeskies.collection.observable.ObservableSet;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.ReifiedToken;
-import uk.co.strangeskies.utilities.Scoped;
-import uk.co.strangeskies.utilities.collection.ObservableSet;
+import uk.co.strangeskies.utility.Scoped;
 
 public interface SchemaManager extends Scoped<SchemaManager> {
 	BaseSchema getBaseSchema();
