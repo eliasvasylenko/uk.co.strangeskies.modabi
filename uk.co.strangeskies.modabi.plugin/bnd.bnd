@@ -11,11 +11,13 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	${ss;utilities},\
-	${ss;text},\
-	${ss;mathematics},\
-	${ss;reflection},\
-	${ss;bnd},\
+	uk.co.strangeskies.observable;version=latest,\
+	uk.co.strangeskies.collections.observable;version=latest,\
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest,\
+	uk.co.strangeskies.reflection.resource;version=latest,\
+\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	uk.co.strangeskies.modabi.core.provider;version=project,\
 	uk.co.strangeskies.modabi.io.xml;version=project,\

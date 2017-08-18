@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -26,95 +28,97 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Namespace {
-	private final String namespace;
-	private final LocalDate date;
+  private final String namespace;
+  private final LocalDate date;
 
-	private final static Namespace DEFAULT = new Namespace(Namespace.class.getPackage().getName(),
-			LocalDate.of(2014, 1, 1));
+  private final static Namespace DEFAULT = new Namespace(
+      Namespace.class.getPackage().getName(),
+      LocalDate.of(2014, 1, 1));
 
-	public Namespace(String namespace, LocalDate date) {
-		this.namespace = namespace;
-		this.date = date;
+  public Namespace(String namespace, LocalDate date) {
+    this.namespace = namespace;
+    this.date = date;
 
-		if (!namespace.matches("[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*")) {
-			throw new ModabiException(t -> t.invalidNamespace(namespace));
-		}
-	}
+    if (!namespace.matches("[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*")) {
+      throw new ModabiException(MESSAGES.invalidNamespace(namespace));
+    }
+  }
 
-	public Namespace(Package namespace, LocalDate date) {
-		this.namespace = namespace.getName();
-		this.date = date;
-	}
+  public Namespace(Package namespace, LocalDate date) {
+    this.namespace = namespace.getName();
+    this.date = date;
+  }
 
-	public Package getPackage() {
-		return Package.getPackage(namespace);
-	}
+  public Package getPackage() {
+    return Package.getPackage(namespace);
+  }
 
-	public String getPackageString() {
-		return namespace;
-	}
+  public String getPackageString() {
+    return namespace;
+  }
 
-	public LocalDate getDate() {
-		return date;
-	}
+  public LocalDate getDate() {
+    return date;
+  }
 
-	@Override
-	public String toString() {
-		return namespace + ":" + date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-	}
+  @Override
+  public String toString() {
+    return namespace + ":" + date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+  }
 
-	public String toHttpString() {
-		List<String> packages = Arrays.asList(namespace.split("\\."));
-		Collections.reverse(packages);
-		return "http://" + packages.stream().collect(Collectors.joining(".")) + "/"
-				+ date.format(DateTimeFormatter.ISO_LOCAL_DATE) + "/";
-	}
+  public String toHttpString() {
+    List<String> packages = Arrays.asList(namespace.split("\\."));
+    Collections.reverse(packages);
+    return "http://" + packages.stream().collect(Collectors.joining(".")) + "/"
+        + date.format(DateTimeFormatter.ISO_LOCAL_DATE) + "/";
+  }
 
-	public static Namespace parseString(String string) {
-		int splitIndex = string.lastIndexOf(':');
+  public static Namespace parseString(String string) {
+    int splitIndex = string.lastIndexOf(':');
 
-		String packageString = string.substring(0, splitIndex);
+    String packageString = string.substring(0, splitIndex);
 
-		return new Namespace(packageString,
-				LocalDate.parse(string.substring(splitIndex + 1), DateTimeFormatter.ISO_LOCAL_DATE));
-	}
+    return new Namespace(
+        packageString,
+        LocalDate.parse(string.substring(splitIndex + 1), DateTimeFormatter.ISO_LOCAL_DATE));
+  }
 
-	public static Namespace parseHttpString(String httpString) {
-		if (httpString.indexOf("http://") != 0)
-			throw new ModabiException(t -> t.invalidNamespace(httpString));
-		if (httpString.lastIndexOf('/') != httpString.length() - 1)
-			throw new ModabiException(t -> t.invalidNamespace(httpString));
+  public static Namespace parseHttpString(String httpString) {
+    if (httpString.indexOf("http://") != 0)
+      throw new ModabiException(MESSAGES.invalidNamespace(httpString));
+    if (httpString.lastIndexOf('/') != httpString.length() - 1)
+      throw new ModabiException(MESSAGES.invalidNamespace(httpString));
 
-		String[] split = httpString.split("/");
+    String[] split = httpString.split("/");
 
-		if (split.length != 4)
-			throw new ModabiException(t -> t.invalidNamespace(httpString));
+    if (split.length != 4)
+      throw new ModabiException(MESSAGES.invalidNamespace(httpString));
 
-		String namespace = split[2];
-		String date = split[3];
+    String namespace = split[2];
+    String date = split[3];
 
-		List<String> packages = Arrays.asList(namespace.split("\\."));
-		Collections.reverse(packages);
+    List<String> packages = Arrays.asList(namespace.split("\\."));
+    Collections.reverse(packages);
 
-		String packageName = packages.stream().collect(Collectors.joining("."));
+    String packageName = packages.stream().collect(Collectors.joining("."));
 
-		return new Namespace(packageName, LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE));
-	}
+    return new Namespace(packageName, LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE));
+  }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Namespace))
-			return false;
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Namespace))
+      return false;
 
-		return namespace.equals(((Namespace) obj).namespace) && date.equals(((Namespace) obj).date);
-	}
+    return namespace.equals(((Namespace) obj).namespace) && date.equals(((Namespace) obj).date);
+  }
 
-	@Override
-	public int hashCode() {
-		return namespace.hashCode() ^ date.hashCode();
-	}
+  @Override
+  public int hashCode() {
+    return namespace.hashCode() ^ date.hashCode();
+  }
 
-	public static Namespace getDefault() {
-		return DEFAULT;
-	}
+  public static Namespace getDefault() {
+    return DEFAULT;
+  }
 }

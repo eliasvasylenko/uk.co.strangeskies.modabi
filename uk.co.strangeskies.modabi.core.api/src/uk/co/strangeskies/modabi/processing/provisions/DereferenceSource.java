@@ -19,25 +19,10 @@
 package uk.co.strangeskies.modabi.processing.provisions;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface DereferenceSource {
-	<T> T dereference(Model<T> model, List<QualifiedName> idDomain, DataSource id);
-
-	default <T> Function<DataSource, T> dereference(Model<T> model, List<QualifiedName> idDomain) {
-		Objects.requireNonNull(model);
-		Objects.requireNonNull(idDomain);
-		return id -> dereference(model, idDomain, id);
-	}
-
-	default <T> Function<List<QualifiedName>, Function<DataSource, T>> dereference(Model<T> model) {
-		return idDomain -> dereference(model, idDomain);
-	}
-
-	// <T> T dereference(BindingNode<T, ?> node);
+  <T> T dereference(Model<T> model, List<QualifiedName> idDomain, String id);
 }

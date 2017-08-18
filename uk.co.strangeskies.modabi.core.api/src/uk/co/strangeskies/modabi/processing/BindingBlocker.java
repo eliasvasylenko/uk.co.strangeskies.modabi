@@ -24,10 +24,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.BufferingDataTarget;
-import uk.co.strangeskies.modabi.io.DataItem;
-import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.Primitive;
 
 /**
  * {@link BindingBlock}s are intended to signal that a binding thread is waiting
@@ -58,86 +54,44 @@ import uk.co.strangeskies.modabi.io.Primitive;
  *
  */
 public interface BindingBlocker extends BindingBlocks {
-	/**
-	 * Create a block on a resource which can be uniquely identified by the given
-	 * namespace, and the {@link DataSource} form of the id.
-	 * <p>
-	 * The invoking thread does not immediately wait on the block, and so the
-	 * invocation returns immediately.
-	 * 
-	 * @param namespace
-	 *          The namespace of the pending dependency
-	 * @param id
-	 *          The type of the id of the pending dependency
-	 * @param id
-	 *          The value of the id of the pending dependency
-	 * @param internal
-	 *          Whether the block should only allow internal resolution, as
-	 *          opposed to possible satisfaction via external sources
-	 * @return
-	 */
-	default <T> BindingBlock block(QualifiedName namespace, Primitive<T> idType, T id, boolean internal) {
-		return block(namespace, DataItem.forDataOfType(idType, id), internal);
-	}
+  /**
+   * Create a block on a resource which can be uniquely identified by the given
+   * namespace and id.
+   * <p>
+   * The invoking thread does not immediately wait on the block, and so the
+   * invocation returns immediately.
+   * 
+   * @param namespace
+   *          The namespace of the pending dependency
+   * @param id
+   *          The id of the pending dependency
+   * @param internal
+   *          Whether the block should only allow internal resolution, as opposed
+   *          to possible satisfaction via external sources
+   * @return
+   */
+  BindingBlock block(QualifiedName namespace, String id, boolean internal);
 
-	/**
-	 * Create a block on a resource which can be uniquely identified by the given
-	 * namespace, and the {@link DataSource} form of the id.
-	 * <p>
-	 * The invoking thread does not immediately wait on the block, and so the
-	 * invocation returns immediately.
-	 * 
-	 * @param namespace
-	 *          The namespace of the pending dependency
-	 * @param id
-	 *          The data of the id of the pending dependency
-	 * @param internal
-	 *          Whether the block should only allow internal resolution, as
-	 *          opposed to possible satisfaction via external sources
-	 * @return
-	 */
-	default BindingBlock block(QualifiedName namespace, DataItem<?> id, boolean internal) {
-		return block(namespace, new BufferingDataTarget().put(id).buffer(), internal);
-	}
+  public Set<Thread> getParticipatingThreads();
 
-	/**
-	 * Create a block on a resource which can be uniquely identified by the given
-	 * namespace and id.
-	 * <p>
-	 * The invoking thread does not immediately wait on the block, and so the
-	 * invocation returns immediately.
-	 * 
-	 * @param namespace
-	 *          The namespace of the pending dependency
-	 * @param id
-	 *          The id of the pending dependency
-	 * @param internal
-	 *          Whether the block should only allow internal resolution, as
-	 *          opposed to possible satisfaction via external sources
-	 * @return
-	 */
-	BindingBlock block(QualifiedName namespace, DataSource id, boolean internal);
+  /**
+   * Register a thread as a participant in the binding/unbinding process. This
+   * helps the processor determine whether there is unblocked activity, or
+   * otherwise detect a deadlock or unsatisfied dependency.
+   * 
+   * @param processingThread
+   *          The thread participating in processing
+   */
+  void addParticipatingThread(Thread processingThread);
 
-	public Set<Thread> getParticipatingThreads();
+  /**
+   * Register the current thread as a participant in the binding/unbinding
+   * process. This helps the processor determine whether there is unblocked
+   * activity, or otherwise detect a deadlock or unsatisfied dependency.
+   */
+  default void addParticipatingThread() {
+    addParticipatingThread(Thread.currentThread());
+  }
 
-	/**
-	 * Register a thread as a participant in the binding/unbinding process. This
-	 * helps the processor determine whether there is unblocked activity, or
-	 * otherwise detect a deadlock or unsatisfied dependency.
-	 * 
-	 * @param processingThread
-	 *          The thread participating in processing
-	 */
-	void addParticipatingThread(Thread processingThread);
-
-	/**
-	 * Register the current thread as a participant in the binding/unbinding
-	 * process. This helps the processor determine whether there is unblocked
-	 * activity, or otherwise detect a deadlock or unsatisfied dependency.
-	 */
-	default void addParticipatingThread() {
-		addParticipatingThread(Thread.currentThread());
-	}
-
-	public void complete() throws InterruptedException, ExecutionException;
+  public void complete() throws InterruptedException, ExecutionException;
 }

@@ -25,56 +25,72 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 
 public class StructuredDataTest {
-	private static final QualifiedName A = name("A");
-	private static final QualifiedName B = name("B");
-	private static final QualifiedName C = name("C");
+  private static final QualifiedName A = name("A");
+  private static final QualifiedName B = name("B");
+  private static final QualifiedName C = name("C");
 
-	private static QualifiedName name(String name) {
-		return new QualifiedName(name);
-	}
+  private static QualifiedName name(String name) {
+    return new QualifiedName(name);
+  }
 
-	@Test
-	public void simpleBufferTest() {
-		NavigableStructuredDataSource buffer = StructuredDataBuffer.singleBuffer().addChild(A).addChild(B).addChild(C)
-				.getBuffer();
+  @Test
+  public void simpleBufferTest() {
+    NavigableStructuredDataReader buffer = StructuredDataBuffer
+        .singleBuffer()
+        .addChild(A)
+        .addChild(B)
+        .addChild(C)
+        .getBuffer();
 
-		assertEquals(A, buffer.startNextChild());
-		assertEquals(B, buffer.startNextChild());
-		assertEquals(C, buffer.startNextChild());
-	}
+    assertEquals(A, buffer.readNextChild());
+    assertEquals(B, buffer.readNextChild());
+    assertEquals(C, buffer.readNextChild());
+  }
 
-	@Test
-	public void hasNextChildTest() {
-		NavigableStructuredDataSource buffer = StructuredDataBuffer.singleBuffer().addChild(A).getBuffer();
+  @Test
+  public void hasNextChildTest() {
+    NavigableStructuredDataReader buffer = StructuredDataBuffer
+        .singleBuffer()
+        .addChild(A)
+        .getBuffer();
 
-		assertTrue(buffer.hasNextChild());
-	}
+    assertTrue(buffer.hasNextChild());
+  }
 
-	@Test
-	public void hasNoNextChildTest() {
-		NavigableStructuredDataSource buffer = StructuredDataBuffer.singleBuffer().addChild(A).getBuffer();
+  @Test
+  public void hasNoNextChildTest() {
+    NavigableStructuredDataReader buffer = StructuredDataBuffer
+        .singleBuffer()
+        .addChild(A)
+        .getBuffer();
 
-		buffer.startNextChild();
-		assertFalse(buffer.hasNextChild());
-	}
+    buffer.readNextChild();
+    assertFalse(buffer.hasNextChild());
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void endChildUnderflowTest() {
-		NavigableStructuredDataSource buffer = StructuredDataBuffer.singleBuffer().addChild(A).getBuffer();
+  @Test(expected = IllegalStateException.class)
+  public void endChildUnderflowTest() {
+    NavigableStructuredDataReader buffer = StructuredDataBuffer
+        .singleBuffer()
+        .addChild(A)
+        .getBuffer();
 
-		buffer.startNextChild();
-		buffer.endChild();
-	}
+    buffer.readNextChild();
+    buffer.endChild();
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void startNextChildUnderflowTest() {
-		NavigableStructuredDataSource buffer = StructuredDataBuffer.singleBuffer().addChild(A).getBuffer();
+  @Test(expected = IllegalStateException.class)
+  public void startNextChildUnderflowTest() {
+    NavigableStructuredDataReader buffer = StructuredDataBuffer
+        .singleBuffer()
+        .addChild(A)
+        .getBuffer();
 
-		buffer.startNextChild();
-		buffer.startNextChild();
-	}
+    buffer.readNextChild();
+    buffer.readNextChild();
+  }
 }

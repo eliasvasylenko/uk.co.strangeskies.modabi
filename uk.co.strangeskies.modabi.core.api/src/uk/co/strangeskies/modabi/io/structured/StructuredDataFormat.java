@@ -27,9 +27,9 @@ public interface StructuredDataFormat {
 
 	Set<String> getFileExtensions();
 
-	StructuredDataSource loadData(InputStream in);
+	StructuredDataReader loadData(InputStream in);
 
-	StructuredDataTarget saveData(OutputStream out);
+	StructuredDataWriter saveData(OutputStream out);
 
 	RewritableStructuredData modifyData(/*
 																			 * Some sort of generic rewritable &

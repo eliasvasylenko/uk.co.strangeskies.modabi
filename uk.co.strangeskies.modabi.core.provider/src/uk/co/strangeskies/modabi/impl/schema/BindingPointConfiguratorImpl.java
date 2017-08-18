@@ -36,115 +36,115 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.StructuralNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public abstract class BindingPointConfiguratorImpl<T, S extends BindingPointConfigurator<T, S>>
-		implements BindingPointConfigurator<T, S> {
-	private RuntimeException instantiationException;
+public abstract class BindingPointConfiguratorImpl<S extends BindingPointConfigurator<S>>
+    implements BindingPointConfigurator<S> {
+  private RuntimeException instantiationException;
 
-	private QualifiedName name;
-	private Boolean concrete;
-	private Boolean export;
-	private TypeToken<T> dataType;
-	private List<Model<?>> baseModel;
+  private QualifiedName name;
+  private Boolean concrete;
+  private Boolean export;
+  private TypeToken<T> dataType;
+  private List<Model<?>> baseModel;
 
-	private BindingPoint<T> result;
+  private BindingPoint<T> result;
 
-	public BindingPointConfiguratorImpl() {
-		baseModel = emptyList();
-	}
+  public BindingPointConfiguratorImpl() {
+    baseModel = emptyList();
+  }
 
-	protected BindingPointConfiguratorImpl(BindingPointConfigurator<T, S> copy) {
-		name = copy.getName().orElse(null);
-		concrete = copy.getConcrete().orElse(null);
-	}
+  protected BindingPointConfiguratorImpl(BindingPointConfigurator<S> copy) {
+    name = copy.getName().orElse(null);
+    concrete = copy.getConcrete().orElse(null);
+  }
 
-	@Override
-	public final S name(QualifiedName name) {
-		this.name = name;
+  @Override
+  public final S name(QualifiedName name) {
+    this.name = name;
 
-		return getThis();
-	}
+    return getThis();
+  }
 
-	@Override
-	public final Optional<QualifiedName> getName() {
-		return ofNullable(name);
-	}
+  @Override
+  public final Optional<QualifiedName> getName() {
+    return ofNullable(name);
+  }
 
-	@Override
-	public final S concrete(boolean concrete) {
-		this.concrete = concrete;
+  @Override
+  public final S concrete(boolean concrete) {
+    this.concrete = concrete;
 
-		return getThis();
-	}
+    return getThis();
+  }
 
-	@Override
-	public final Optional<Boolean> getConcrete() {
-		return ofNullable(concrete);
-	}
+  @Override
+  public final Optional<Boolean> getConcrete() {
+    return ofNullable(concrete);
+  }
 
-	@Override
-	public final S export(boolean export) {
-		this.export = export;
+  @Override
+  public final S export(boolean export) {
+    this.export = export;
 
-		return getThis();
-	}
+    return getThis();
+  }
 
-	@Override
-	public Optional<Boolean> getExport() {
-		return ofNullable(export);
-	}
+  @Override
+  public Optional<Boolean> getExport() {
+    return ofNullable(export);
+  }
 
-	protected boolean isChildContextAbstract() {
-		return getConcrete().orElse(false);
-	}
+  protected boolean isChildContextAbstract() {
+    return getConcrete().orElse(false);
+  }
 
-	@Override
-	public Optional<TypeToken<T>> getDataType() {
-		return ofNullable(dataType);
-	}
+  @Override
+  public Optional<TypeToken<T>> getDataType() {
+    return ofNullable(dataType);
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V> BindingPointConfigurator<V, ?> dataType(TypeToken<V> dataType) {
-		this.dataType = (TypeToken<T>) dataType;
-		return (BindingPointConfigurator<V, ?>) getThis();
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  public <V> BindingPointConfigurator<V, ?> dataType(TypeToken<V> dataType) {
+    this.dataType = (TypeToken<T>) dataType;
+    return (BindingPointConfigurator<V, ?>) getThis();
+  }
 
-	@Override
-	public BindingPointConfigurator<?, ?> baseModel(Collection<? extends Model<?>> baseModel) {
-		this.baseModel = new ArrayList<>(baseModel);
-		return getThis();
-	}
+  @Override
+  public BindingPointConfigurator<?, ?> baseModel(Collection<? extends Model<?>> baseModel) {
+    this.baseModel = new ArrayList<>(baseModel);
+    return getThis();
+  }
 
-	@Override
-	public Stream<Model<?>> getBaseModel() {
-		return baseModel.stream();
-	}
+  @Override
+  public Stream<Model<?>> getBaseModel() {
+    return baseModel.stream();
+  }
 
-	@Override
-	public SchemaNodeConfigurator node() {
-		return new SchemaNodeConfiguratorImpl(this);
-	}
+  @Override
+  public SchemaNodeConfigurator node() {
+    return new SchemaNodeConfiguratorImpl(this);
+  }
 
-	@Override
-	public SchemaNode getNode() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public StructuralNode getNode() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	protected abstract Stream<? extends BindingPoint<?>> getOverriddenBindingPoints();
+  protected abstract Stream<? extends BindingPoint<?>> getOverriddenBindingPoints();
 
-	public <U> OverrideBuilder<U> override(
-			Function<? super BindingPoint<?>, ? extends U> overriddenValues,
-			Function<? super BindingPointConfigurator<T, ?>, Optional<? extends U>> overridingValue) {
-		return new OverrideBuilder<>(
-				getOverriddenBindingPoints()
-						.flatMap(p -> streamOptional(ofNullable(overriddenValues.apply(p))))
-						.collect(toList()),
-				overridingValue.apply(this),
-				() -> findMethod(BindingPoint.class, overriddenValues::apply).getName());
-	}
+  public <U> OverrideBuilder<U> override(
+      Function<? super BindingPoint<?>, ? extends U> overriddenValues,
+      Function<? super BindingPointConfigurator<T, ?>, Optional<? extends U>> overridingValue) {
+    return new OverrideBuilder<>(
+        getOverriddenBindingPoints()
+            .flatMap(p -> streamOptional(ofNullable(overriddenValues.apply(p))))
+            .collect(toList()),
+        overridingValue.apply(this),
+        () -> findMethod(BindingPoint.class, overriddenValues::apply).getName());
+  }
 }

@@ -20,24 +20,8 @@ package uk.co.strangeskies.modabi;
 
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 
-public class DataFormats extends NamedSet<DataFormats, String, StructuredDataFormat> {
-	public DataFormats() {
-		this(null);
-	}
-
-	public DataFormats(DataFormats parent) {
-		super(StructuredDataFormat::getFormatId, parent);
-	}
-
-	@Override
-	public DataFormats nestChildScope() {
-		return new DataFormats(this);
-	}
-
-	@Override
-	public DataFormats copy() {
-		DataFormats copy = new DataFormats();
-		copy.addAll(this);
-		return copy;
-	}
+public class DataFormats extends NamedSet<String, StructuredDataFormat> {
+  public DataFormats() {
+    super(StructuredDataFormat::getFormatId);
+  }
 }

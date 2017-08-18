@@ -24,56 +24,60 @@ import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.Provisions;
+import uk.co.strangeskies.modabi.Providers;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.provisions.ImportTarget;
 import uk.co.strangeskies.modabi.processing.provisions.IncludeTarget;
 import uk.co.strangeskies.modabi.processing.provisions.ReferenceTarget;
-import uk.co.strangeskies.modabi.schema.ChildNode;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
+import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Model;
 
 public class UnbindingProviders {
-	public Function<ProcessingContext, IncludeTarget> includeTarget() {
-		return context -> new IncludeTarget() {
-			@Override
-			public <U> void include(ComplexNode<U> model, Collection<? extends U> objects) {
-				for (U object : objects)
-					context.bindings().add(model, object);
+  public Function<ProcessingContext, IncludeTarget> includeTarget() {
+    return context -> new IncludeTarget() {
+      @Override
+      public <U> void include(Model<U> model, Collection<? extends U> objects) {
+        for (U object : objects)
+          context.bindings().add(model, object);
 
-				context.output().ifPresent(o -> o.registerNamespaceHint(model.name().getNamespace()));
-			}
-		};
-	}
+        context.output().ifPresent(o -> o.registerNamespaceHint(model.name().getNamespace()));
+      }
+    };
+  }
 
-	public Function<ProcessingContext, ImportTarget> importTarget() {
-		return context -> new ImportTarget() {
-			@Override
-			public <U> DataSource referenceImport(ComplexNode<U> model, List<QualifiedName> idDomain, U object) {
-				List<ChildNode<?>> node = model.children(idDomain);
+  public Function<ProcessingContext, ImportTarget> importTarget() {
+    return context -> new ImportTarget() {
+      @Override
+      public <U> DataSource referenceImport(
+          Model<U> model,
+          List<QualifiedName> idDomain,
+          U object) {
+        List<ChildBindingPoint<?>> node = model.descendents(idDomain);
 
-				return new BindingNodeUnbinder(context, model, object).unbindToDataBuffer(node);
-			}
-		};
-	}
+        return new BindingNodeUnbinder(context, model, object).unbindToDataBuffer(node);
+      }
+    };
+  }
 
-	public Function<ProcessingContext, ReferenceTarget> referenceTarget() {
-		return context -> new ReferenceTarget() {
-			@Override
-			public <U> DataSource reference(ComplexNode<U> model, List<QualifiedName> idDomain, U object) {
-				if (!context.bindings().getModelBindings(model).contains(object))
-					throw new ModabiException("Cannot find any instance '" + object + "' bound to model '" + model.name()
-							+ "' from '" + context.bindings().getModelBindings(model) + "'");
+  public Function<ProcessingContext, ReferenceTarget> referenceTarget() {
+    return context -> new ReferenceTarget() {
+      @Override
+      public <U> DataSource reference(Model<U> model, List<QualifiedName> idDomain, U object) {
+        if (!context.bindings().getModelBindings(model).contains(object))
+          throw new ModabiException(
+              "Cannot find any instance '" + object + "' bound to model '" + model.name()
+                  + "' from '" + context.bindings().getModelBindings(model) + "'");
 
-				return importTarget().apply(context).referenceImport(model, idDomain, object);
-			}
-		};
-	}
+        return importTarget().apply(context).referenceImport(model, idDomain, object);
+      }
+    };
+  }
 
-	public void registerProviders(Provisions provisions) {
-		provisions.add(Provider.over(ReferenceTarget.class, referenceTarget()));
-		provisions.add(Provider.over(ImportTarget.class, importTarget()));
-		provisions.add(Provider.over(IncludeTarget.class, includeTarget()));
-	}
+  public void registerProviders(Providers providers) {
+    providers.add(Provider.over(ReferenceTarget.class, referenceTarget()));
+    providers.add(Provider.over(ImportTarget.class, importTarget()));
+    providers.add(Provider.over(IncludeTarget.class, includeTarget()));
+  }
 }

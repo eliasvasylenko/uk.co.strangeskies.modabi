@@ -20,11 +20,11 @@ package uk.co.strangeskies.modabi.model.building.test;
 
 import org.junit.Test;
 
-import uk.co.strangeskies.modabi.impl.SchemaManagerImpl;
+import uk.co.strangeskies.modabi.impl.SchemaManagerService;
 
 public class SchemaManagerTests {
 	@Test
 	public void buildChildScopeTest() {
-		new SchemaManagerImpl().nestChildScope();
+		new SchemaManagerService().nestChildScope();
 	}
 }

@@ -31,8 +31,6 @@ import uk.co.strangeskies.reflection.codegen.ClassDefinition;
 import uk.co.strangeskies.reflection.codegen.Expression;
 import uk.co.strangeskies.reflection.codegen.ExpressionVisitor.ValueExpressionVisitor;
 import uk.co.strangeskies.reflection.codegen.MethodDeclaration;
-import uk.co.strangeskies.reflection.codegen.ValueExpression;
-import uk.co.strangeskies.reflection.codegen.VariableExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointConfiguratorImpl<T>

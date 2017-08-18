@@ -28,55 +28,70 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import aQute.bnd.annotation.headers.ProvideCapability;
+import uk.co.strangeskies.log.Log.Level;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.osgi.ExtenderManager;
-import uk.co.strangeskies.utilities.classloading.DelegatingClassLoader;
 
-@ProvideCapability(ns = ExtenderNamespace.EXTENDER_NAMESPACE, name = ModabiExtender.MODABI_EXTENDER_NAME, version = "1.0.0")
+@ProvideCapability(
+    ns = ExtenderNamespace.EXTENDER_NAMESPACE,
+    name = ModabiExtender.MODABI_EXTENDER_NAME,
+    version = "1.0.0")
 @Component(immediate = true)
 public class ModabiExtender extends ExtenderManager {
-	public static final String MODABI_EXTENDER_NAME = "uk.co.strangeskies.modabi";
+  public static final String MODABI_EXTENDER_NAME = "uk.co.strangeskies.modabi";
 
-	@Reference
-	private SchemaManager manager;
+  @Reference
+  private SchemaManager manager;
 
-	@Override
-	protected boolean register(Bundle bundle) {
-		log(Level.INFO, "Registering bundle '" + bundle.getSymbolicName() + "' in Modabi extender");
+  @Override
+  protected boolean register(Bundle bundle) {
+    getLog().log(
+        Level.INFO,
+        "Registering bundle '" + bundle.getSymbolicName() + "' in Modabi extender");
 
-		for (BundleCapability capability : bundle.adapt(BundleWiring.class).getCapabilities(MODABI_EXTENDER_NAME)) {
-			QualifiedName schemaName = QualifiedName.parseString((String) capability.getAttributes().get("schema"));
+    for (BundleCapability capability : bundle.adapt(BundleWiring.class).getCapabilities(
+        MODABI_EXTENDER_NAME)) {
+      QualifiedName schemaName = QualifiedName
+          .parseString((String) capability.getAttributes().get("schema"));
 
-			URL resource = bundle.getResource("/" + capability.getAttributes().get("resource"));
+      URL resource = bundle.getResource("/" + capability.getAttributes().get("resource"));
 
-			new Thread(() -> {
-				log(Level.INFO, "Registering schema capability '" + schemaName + "' at resource '" + resource + "'");
+      new Thread(() -> {
+        getLog().log(
+            Level.INFO,
+            "Registering schema capability '" + schemaName + "' at resource '" + resource + "'");
 
-				try {
-					ClassLoader targetClassloader = bundle.adapt(BundleWiring.class).getClassLoader();
-					targetClassloader = new DelegatingClassLoader(targetClassloader, Schema.class.getClassLoader());
+        try {
+          ClassLoader targetClassloader = bundle.adapt(BundleWiring.class).getClassLoader();
 
-					Schema schema = manager.bindSchema().withClassLoader(targetClassloader).from(resource).resolve();
+          Schema schema = manager
+              .bindSchema()
+              .withClassLoader(targetClassloader)
+              .from(resource)
+              .resolve();
 
-					if (!schema.qualifiedName().equals(schemaName)) {
-						throw new ModabiException(
-								"Schema bound '" + schema.qualifiedName() + "' does not match declared name '" + schemaName + "'");
-					}
+          if (!schema.qualifiedName().equals(schemaName)) {
+            throw new ModabiException(
+                "Schema bound '" + schema.qualifiedName() + "' does not match declared name '"
+                    + schemaName + "'");
+          }
 
-					log(Level.INFO, "Successfully bound schema '" + schemaName + "' in Modabi extender");
-				} catch (Throwable e) {
-					log(Level.ERROR, "Failed to bind schema '" + schemaName + "' in Modabi extender", e);
-					throw e;
-				}
-			}).start();
-		}
+          getLog()
+              .log(Level.INFO, "Successfully bound schema '" + schemaName + "' in Modabi extender");
+        } catch (Throwable e) {
+          getLog()
+              .log(Level.ERROR, "Failed to bind schema '" + schemaName + "' in Modabi extender", e);
+          throw e;
+        }
+      }).start();
+    }
 
-		return true;
-	}
+    return true;
+  }
 
-	@Override
-	protected void unregister(Bundle bundle) {}
+  @Override
+  protected void unregister(Bundle bundle) {}
 }

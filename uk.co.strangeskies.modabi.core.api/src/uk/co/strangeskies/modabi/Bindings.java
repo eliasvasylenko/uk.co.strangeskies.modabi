@@ -1,129 +1,59 @@
-/*
- * Copyright (C) 2016 Elias N Vasylenko <eliasvasylenko@gmail.com>
- *
- * This file is part of uk.co.strangeskies.modabi.core.api.
- *
- * uk.co.strangeskies.modabi.core.api is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * uk.co.strangeskies.modabi.core.api is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
- */
 package uk.co.strangeskies.modabi;
 
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import uk.co.strangeskies.collection.MultiHashMap;
-import uk.co.strangeskies.collection.MultiMap;
-import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.collection.observable.ObservableSet;
+import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.observable.Observable;
-import uk.co.strangeskies.observable.Observer;
 
 public class Bindings {
-	public final MultiMap<Model<?>, BindingPoint<?>, Set<BindingPoint<?>>> boundNodes;
-	public final MultiMap<BindingPoint<?>, Object, Set<Object>> boundObjects;
+  private final Map<QualifiedName, ObservableSet<BindingFuture<?>>> bindingFutures;
+  private final Map<QualifiedName, ObservableSet<Binding<?>>> bindings;
 
-	private final MultiMap<Model<?>, Observer<?>, Collection<Observer<?>>> listeners;
+  public Bindings() {
+    bindingFutures = new HashMap<>();
+    bindings = new HashMap<>();
+  }
 
-	public Bindings() {
-		boundNodes = new MultiHashMap<>(HashSet::new);
-		boundObjects = new MultiHashMap<>(HashSet::new);
+  protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
+    BindingFuture<T> future = BindingFuture.forBinding(binding);
+    bindingFutures.get(binding.getModel().name()).add(future);
+    bindings.get(binding.getModel().name()).add(binding);
+    return future;
+  }
 
-		listeners = new MultiHashMap<>(HashSet::new);
-	}
+  <T> BindingFuture<T> addBindingFuture(BindingFuture<T> bindingFuture) {
+    new Thread(() -> {
+      try {
+        Model<? super T> model = bindingFuture.getModelFuture().get();
+        QualifiedName modelName = model.name();
 
-	public synchronized <T> void add(BindingPoint<T> element, T data) {
-		BindingPoint<T> effectiveElement = element;
+        bindingFutures.get(modelName).add(bindingFuture);
 
-		boundNodes.addToAll(effectiveElement.node().baseModel().collect(toList()), effectiveElement);
-		boundObjects.add(effectiveElement, data);
+        try {
+          bindings.get(model.name()).add(bindingFuture.get());
+        } catch (Exception e) {
+          bindingFutures.get(modelName).remove(bindingFuture);
+        }
+      } catch (Exception e) {}
+    }).start();
 
-		fire(effectiveElement, data);
-	}
+    return bindingFuture;
+  }
 
-	public synchronized <T> void add(Model<T> model, T data) {
-		Model<T> effectiveModel = model;
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public <T> ObservableSet<BindingFuture<T>> getBindingFutures(Model<T> model) {
+    synchronized (bindingFutures.get(model.name())) {
+      return (ObservableSet) bindingFutures.get(model.name());
+    }
+  }
 
-		if (boundNodes.add(effectiveModel, effectiveModel)) {
-			boundNodes.addToAll(effectiveModel.node().baseModel().collect(toList()), effectiveModel);
-		}
-		boundObjects.add(effectiveModel, data);
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public <T> ObservableSet<Binding<T>> getBindings(Model<T> model) {
+    synchronized (bindings.get(model.name())) {
+      return (ObservableSet) bindings.get(model.name());
+    }
+  }
 
-		fire(effectiveModel, data);
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> void fire(BindingPoint<T> node, T data) {
-		for (Model<?> model : listeners.keySet()) {
-			if (model.equals(node) || node.node().baseModel().filter(model::equals).findAny().isPresent()) {
-				for (Observer<?> listener : listeners.get(model)) {
-					((Observer<? super T>) listener).notify(data);
-				}
-			}
-		}
-	}
-
-	public synchronized void add(Binding<?>... bindings) {
-		add(Arrays.asList(bindings));
-	}
-
-	public synchronized void add(Collection<? extends Binding<?>> bindings) {
-		for (Binding<?> binding : bindings)
-			addCapture(binding);
-	}
-
-	private <T> void addCapture(Binding<T> binding) {
-		add(binding.getNode(), binding.getData());
-	}
-
-	@SuppressWarnings("unchecked")
-	public synchronized <T> Set<T> getModelBindings(Model<T> model) {
-		return boundNodes.getOrDefault(model, emptySet()).stream()
-				.flatMap(b -> boundObjects.getOrDefault(b, emptySet()).stream()).map(t -> (T) t).collect(toSet());
-	}
-
-	@SuppressWarnings("unchecked")
-	public synchronized <T> Set<T> getNodeBindings(BindingPoint<T> node) {
-		return boundObjects.getOrDefault(node, emptySet()).stream().map(t -> (T) t).collect(toSet());
-	}
-
-	public synchronized <T> Observable<T> changes(Model<T> model) {
-		Model<T> effectiveModel = model;
-
-		return new Observable<T>() {
-			@Override
-			public boolean addObserver(Observer<? super T> observer) {
-				synchronized (Bindings.this) {
-					return listeners.add(effectiveModel, observer);
-				}
-			}
-
-			@Override
-			public boolean removeObserver(Observer<? super T> observer) {
-				synchronized (Bindings.this) {
-					return listeners.add(effectiveModel, observer);
-				}
-			}
-		};
-	}
-
-	@Override
-	public String toString() {
-		return boundObjects.toString();
-	}
 }

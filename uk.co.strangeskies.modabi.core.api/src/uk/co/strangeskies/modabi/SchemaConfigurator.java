@@ -29,46 +29,50 @@ import uk.co.strangeskies.modabi.schema.ModelFactory;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface SchemaConfigurator {
-	Schema create();
+  Schema create();
 
-	SchemaConfigurator qualifiedName(QualifiedName name);
+  SchemaConfigurator qualifiedName(QualifiedName name);
 
-	SchemaConfigurator imports(Collection<? extends Class<?>> imports);
+  SchemaConfigurator imports(Collection<? extends Class<?>> imports);
 
-	SchemaConfigurator dependencies(Collection<? extends Schema> dependencies);
+  SchemaConfigurator dependencies(Collection<? extends Schema> dependencies);
 
-	ModelConfigurator addModel();
+  ModelConfigurator addModel();
 
-	default SchemaConfigurator addModel(QualifiedName name,
-			Function<ModelConfigurator, ModelFactory<?>> configuration) {
-		configuration.apply(addModel().name(name)).createModel();
+  default SchemaConfigurator addModel(
+      QualifiedName name,
+      Function<ModelConfigurator, ModelFactory<?>> configuration) {
+    configuration.apply(addModel().name(name)).createModel();
 
-		return this;
-	}
+    return this;
+  }
 
-	SchemaConfigurator addModel(String name, Function<ModelConfigurator, ModelFactory<?>> configuration);
+  SchemaConfigurator addModel(
+      String name,
+      Function<ModelConfigurator, ModelFactory<?>> configuration);
 
-	/*
-	 * For simple programmatic generation of schemata:
-	 */
+  /*
+   * For simple programmatic generation of schemata:
+   */
 
-	default <T> Model<T> generateModel(Class<T> type) {
-		return generateModel(TypeToken.forClass(type));
-	}
+  default <T> Model<T> generateModel(Class<T> type) {
+    return generateModel(TypeToken.forClass(type));
+  }
 
-	default SchemaConfigurator generateModels(Class<?>... types) {
-		return generateModels(Arrays.stream(types).<TypeToken<?>>map(TypeToken::forClass).collect(Collectors.toList()));
-	}
+  default SchemaConfigurator generateModels(Class<?>... types) {
+    return generateModels(
+        Arrays.stream(types).<TypeToken<?>>map(TypeToken::forClass).collect(Collectors.toList()));
+  }
 
-	<T> Model<T> generateModel(TypeToken<T> type);
+  <T> Model<T> generateModel(TypeToken<T> type);
 
-	default SchemaConfigurator generateModels(TypeToken<?>... types) {
-		return generateModels(Arrays.asList(types));
-	}
+  default SchemaConfigurator generateModels(TypeToken<?>... types) {
+    return generateModels(Arrays.asList(types));
+  }
 
-	default SchemaConfigurator generateModels(Collection<? extends TypeToken<?>> types) {
-		for (TypeToken<?> type : types)
-			generateModel(type);
-		return this;
-	}
+  default SchemaConfigurator generateModels(Collection<? extends TypeToken<?>> types) {
+    for (TypeToken<?> type : types)
+      generateModel(type);
+    return this;
+  }
 }

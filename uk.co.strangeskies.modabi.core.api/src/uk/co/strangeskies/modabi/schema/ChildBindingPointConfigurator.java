@@ -1,64 +1,63 @@
 package uk.co.strangeskies.modabi.schema;
 
-import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
-
 import java.util.Optional;
 import java.util.function.Function;
 
-import uk.co.strangeskies.reflection.codegen.Expression;
-import uk.co.strangeskies.reflection.codegen.ValueExpression;
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.schema.expression.Expression;
+import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBindingPointConfigurator<T, E extends SchemaNodeConfigurator<?, ?>>
-		extends BindingPointConfigurator<ChildBindingPointConfigurator<T, E>> {
-	ChildBindingPointConfigurator<T, E> name(String name);
+    extends ChildBindingPointFactory<E> {
+  Optional<QualifiedName> getName();
 
-	ChildBindingPointConfigurator<T, E> ordered(boolean ordered);
+  Optional<StructuralNode<?>> getNode();
 
-	Optional<Boolean> getOrdered();
+  ChildBindingPointConfigurator<T, E> name(QualifiedName name);
 
-	ChildBindingPointConfigurator<T, E> bindingCondition(BindingCondition<? super T> condition);
+  ChildBindingPointConfigurator<T, E> name(String name);
 
-	Optional<BindingCondition<? super T>> getBindingCondition();
+  default ChildBindingPointConfigurator<T, E> name(String name, Namespace namespace) {
+    return name(new QualifiedName(name, namespace));
+  }
 
-	InputConfigurator<T> input();
+  ChildBindingPointConfigurator<T, E> ordered(boolean ordered);
 
-	OutputConfigurator<T> output();
+  Optional<Boolean> getOrdered();
 
-	default ChildBindingPointConfigurator<T, E> input(Function<InputConfigurator<T>, Expression> inputExpression) {
-		input().expression(inputExpression.apply(input()));
-		return this;
-	}
+  ChildBindingPointConfigurator<T, E> bindingCondition(BindingCondition<? super T> condition);
 
-	default ChildBindingPointConfigurator<T, E> output(
-			Function<OutputConfigurator<T>, ValueExpression<T>> outputExpression) {
-		output().expression(outputExpression.apply(output()));
-		return this;
-	}
+  Optional<BindingCondition<? super T>> getBindingCondition();
 
-	@Override
-	default SchemaNodeConfigurator<Object, E> withNode() {
-		return withNode(Object.class);
-	}
+  InputConfigurator<T> input();
 
-	@Override
-	default <V> SchemaNodeConfigurator<V, E> withNode(Class<V> dataType) {
-		return withNode(forClass(dataType));
-	}
+  OutputConfigurator<T> output();
 
-	@Override
-	<V> SchemaNodeConfigurator<V, E> withNode(TypeToken<V> dataType);
+  <U> ChildBindingPointConfigurator<U, E> model(Model<U> model);
 
-	@Override
-	<V> E withoutNode(TypeToken<V> dataType);
+  <U> ChildBindingPointConfigurator<U, E> type(Class<U> type);
 
-	@Override
-	default <V> E withoutNode(Class<V> dataType) {
-		return withoutNode(forClass(dataType));
-	}
+  <U> ChildBindingPointConfigurator<U, E> type(TypeToken<U> dataType);
 
-	@Override
-	default <V> SchemaNodeConfigurator<V, E> withNode(Model<V> baseModel) {
-		return withNode(baseModel.dataType()).baseModel(baseModel);
-	}
+  default ChildBindingPointConfigurator<T, E> input(
+      Function<InputConfigurator<T>, Expression> inputExpression) {
+    input().expression(inputExpression.apply(input()));
+    return this;
+  }
+
+  default ChildBindingPointConfigurator<T, E> output(
+      Function<OutputConfigurator<T>, ValueExpression<T>> outputExpression) {
+    output().expression(outputExpression.apply(output()));
+    return this;
+  }
+
+  /**
+   * Override the {@link #model(Model)} to apply when binding to this binding
+   * point.
+   * 
+   * @return a configuration object for the override
+   */
+  SchemaNodeConfigurator<T, ChildBindingPointFactory<E>> override();
 }

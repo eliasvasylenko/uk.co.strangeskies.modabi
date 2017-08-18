@@ -7,12 +7,12 @@ Bundle-Description: \
 	${modabi-description}
 
 -buildpath: \
-	uk.co.strangeskies.modabi.core.api;version=project,\
-	${ss;utilities},\
-	${ss;text},\
-	${ss;reflection},\
-	${ss;osgi.api},\
-	${ss;mathematics}
+	uk.co.strangeskies.modabi.core.api;version=snapshot,\
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.osgi.api;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest
 
 Private-Package: \
 	uk.co.strangeskies.modabi.extender

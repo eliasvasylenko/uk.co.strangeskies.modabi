@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.StructuralNode;
 import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -19,7 +19,7 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	private final QualifiedName name;
 	private final boolean concrete;
 	private final TypeToken<T> dataType;
-	private final SchemaNode node;
+	private final StructuralNode node;
 	private final List<Model<?>> baseModel;
 
 	@SuppressWarnings("unchecked")
@@ -67,7 +67,7 @@ public abstract class BindingPointImpl<T> implements BindingPoint<T> {
 	}
 
 	@Override
-	public SchemaNode node() {
+	public StructuralNode node() {
 		return node;
 	}
 

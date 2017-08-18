@@ -18,54 +18,45 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.collection.observable.ObservableSet;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.DataLoader;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.ReifiedToken;
-import uk.co.strangeskies.utility.Scoped;
 
-public interface SchemaManager extends Scoped<SchemaManager> {
-	BaseSchema getBaseSchema();
+public interface SchemaManager {
+  BaseSchema getBaseSchema();
 
-	MetaSchema getMetaSchema();
+  MetaSchema getMetaSchema();
 
-	/**
-	 * @return a schema builder who's products will be automatically registered
-	 *         with this manager
-	 */
-	SchemaBuilder getSchemaBuilder();
+  /**
+   * @return a schema builder who's products will be automatically registered with
+   *         this manager
+   */
+  SchemaBuilder getSchemaBuilder();
 
-	/**
-	 * Create a {@link SchemaConfigurator} equivalent to one created via
-	 * {@link #getSchemaBuilder()} with a default {@link DataLoader} provided.
-	 * 
-	 * @return a schema configurator who's products will be automatically
-	 *         registered with this manager
-	 */
-	SchemaConfigurator getSchemaConfigurator();
+  /**
+   * Create a {@link SchemaConfigurator} equivalent to one created via
+   * {@link #getSchemaBuilder()} with a default {@link DataLoader} provided.
+   * 
+   * @return a schema configurator who's products will be automatically registered
+   *         with this manager
+   */
+  SchemaConfigurator getSchemaConfigurator();
 
-	<T> ObservableSet<?, BindingFuture<T>> getBindingFutures(Model<T> model);
+  Providers providers();
 
-	<T> ObservableSet<?, Binding<T>> getBindings(Model<T> model);
+  Schemata registeredSchemata();
 
-	Provisions provisions();
+  Models registeredModels();
 
-	Schemata registeredSchemata();
+  DataFormats registeredFormats();
 
-	Models registeredModels();
+  InputBinder<?> bindInput();
 
-	DataFormats registeredFormats();
+  default InputBinder<Schema> bindSchema() {
+    return bindInput().to(getMetaSchema().getSchemaModel());
+  }
 
-	InputBinder<?> bindInput();
+  <T> OutputBinder<T> bindOutput(T data);
 
-	default InputBinder<Schema> bindSchema() {
-		return bindInput().with(getMetaSchema().getSchemaModel());
-	}
-
-	<T> OutputBinder<T> bindOutput(T data);
-
-	default <T extends ReifiedToken<T>> OutputBinder<T> bindOutput(T data) {
-		return bindOutput(data).with(data.getThisTypeToken());
-	}
+  default <T extends ReifiedToken<T>> OutputBinder<T> bindOutput(T data) {
+    return bindOutput(data).from(data.getThisTypeToken());
+  }
 }

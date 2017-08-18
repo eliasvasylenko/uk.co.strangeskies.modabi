@@ -20,6 +20,8 @@ package uk.co.strangeskies.modabi;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
@@ -27,71 +29,81 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.co.strangeskies.mathematics.Range;
-import uk.co.strangeskies.modabi.io.DataItem;
-import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.Primitive;
+import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utility.Enumeration;
 
 public interface BaseSchema extends Schema {
-	public static final QualifiedName QUALIFIED_NAME = new QualifiedName(BaseSchema.class.getSimpleName(),
-			MODABI_NAMESPACE);
+  public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
+      BaseSchema.class.getSimpleName(),
+      MODABI_NAMESPACE);
 
-	<T> Model<T> primitive(Primitive<T> type);
+  Model<String> stringModel();
 
-	Derived derived();
+  Model<Object> rootModel();
 
-	public interface Derived {
-		Model<Object[]> arrayModel();
+  Model<byte[]> binaryModel();
 
-		Model<Collection<?>> collectionModel();
+  Model<BigInteger> integerModel();
 
-		Model<List<?>> listModel();
+  Model<BigDecimal> decimalModel();
 
-		Model<Set<?>> setModel();
+  Model<Integer> intModel();
 
-		Model<URI> uriModel();
+  Model<Long> longModel();
 
-		Model<URL> urlModel();
+  Model<Float> floatModel();
 
-		Model<?> referenceModel();
+  Model<Double> doubleModel();
 
-		Model<?> bindingReferenceModel();
+  Model<Boolean> booleanModel();
 
-		Model<DataSource> bufferedDataModel();
+  Model<QualifiedName> qualifiedNameModel();
 
-		Model<DataItem<?>> bufferedDataItemModel();
+  Model<Object[]> arrayModel();
 
-		Model<Range<Integer>> rangeModel();
+  Model<Collection<?>> collectionModel();
 
-		Model<Enum<?>> enumModel();
+  Model<List<?>> listModel();
 
-		Model<Enumeration<?>> enumerationModel();
+  Model<Set<?>> setModel();
 
-		Model<Package> packageModel();
+  Model<URI> uriModel();
 
-		Model<Class<?>> classModel();
+  Model<URL> urlModel();
 
-		Model<Type> typeModel();
+  Model<?> referenceModel();
 
-		Model<TypeToken<?>> typeTokenModel();
+  Model<?> bindingReferenceModel();
 
-		Model<AnnotatedType> annotatedTypeModel();
+  Model<Interval<Integer>> rangeModel();
 
-		Model<Map<?, ?>> mapModel();
+  Model<Enum<?>> enumModel();
 
-		/*
-		 * during binding / unbinding magically adds items to bindings list (so
-		 * can be referenced)
-		 */
-		Model<Collection<?>> includeModel();
+  Model<Enumeration<?>> enumerationModel();
 
-		/*
-		 * retrieves objects already bound by SchemaBinder and 'includes' them,
-		 * or some children of them. Blocks if we are waiting for them.
-		 */
-		Model<Object> importModel();
-	}
+  Model<Package> packageModel();
+
+  Model<Class<?>> classModel();
+
+  Model<Type> typeModel();
+
+  Model<TypeToken<?>> typeTokenModel();
+
+  Model<AnnotatedType> annotatedTypeModel();
+
+  Model<Map<?, ?>> mapModel();
+
+  /*
+   * during binding / unbinding magically adds items to bindings list (so can be
+   * referenced)
+   */
+  Model<Collection<?>> includeModel();
+
+  /*
+   * retrieves objects already bound by SchemaBinder and 'includes' them, or some
+   * children of them. Blocks if we are waiting for them.
+   */
+  Model<Object> importModel();
 }

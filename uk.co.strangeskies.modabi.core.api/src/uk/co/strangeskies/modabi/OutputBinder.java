@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
@@ -26,58 +28,58 @@ import java.net.URL;
 import java.util.function.Consumer;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
-import uk.co.strangeskies.modabi.io.ModabiIoException;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface OutputBinder<T> {
-	OutputBinder<T> with(Model<? super T> model);
+  OutputBinder<T> from(Model<? super T> model);
 
-	OutputBinder<T> with(TypeToken<? super T> type);
+  OutputBinder<T> from(TypeToken<? super T> type);
 
-	default OutputBinder<T> with(Class<? super T> type) {
-		return with(TypeToken.forClass(type));
-	}
+  default OutputBinder<T> from(Class<? super T> type) {
+    return from(TypeToken.forClass(type));
+  }
 
-	OutputBinder<T> with(QualifiedName modelName);
+  OutputBinder<T> from(QualifiedName modelName);
 
-	OutputBinder<T> with(QualifiedName modelName, TypeToken<? super T> type);
+  OutputBinder<T> from(QualifiedName modelName, TypeToken<? super T> type);
 
-	default OutputBinder<T> with(QualifiedName modelName, Class<? super T> type) {
-		return with(modelName, TypeToken.forClass(type));
-	}
+  default OutputBinder<T> from(QualifiedName modelName, Class<? super T> type) {
+    return from(modelName, TypeToken.forClass(type));
+  }
 
-	<U extends StructuredDataTarget> U to(U output);
+  <U extends StructuredDataWriter> U to(U output);
 
-	// BindingFuture<T> to(RewritableStructuredData output);
+  // BindingFuture<T> to(RewritableStructuredData output);
 
-	BindingFuture<T> to(File output);
+  BindingFuture<T> to(File output);
 
-	default BindingFuture<T> to(URI output) {
-		try {
-			return to(output.toURL());
-		} catch (MalformedURLException e) {
-			throw new ModabiIoException(t -> t.invalidLocation(output), e);
-		}
-	}
+  default BindingFuture<T> to(URI output) {
+    try {
+      return to(output.toURL());
+    } catch (MalformedURLException e) {
+      throw new ModabiIOException(MESSAGES.invalidLocation(output), e);
+    }
+  }
 
-	BindingFuture<T> to(URL output);
+  BindingFuture<T> to(URL output);
 
-	BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output);
+  BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output);
 
-	// Tnbinder<T> updatable();
+  // Tnbinder<T> updatable();
 
-	OutputBinder<T> withProvider(Provider provider);
+  OutputBinder<T> withProvider(Provider provider);
 
-	OutputBinder<T> withClassLoader(ClassLoader classLoader);
+  OutputBinder<T> withClassLoader(ClassLoader classLoader);
 
-	/*
-	 * Errors which are rethrown will be passed to the next error handler if
-	 * present, or dealt with as normal. Otherwise, a best effort is made at
-	 * unbinding, and the exception information will be serialised as a comment.
-	 */
-	OutputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
+  /*
+   * Errors which are rethrown will be passed to the next error handler if
+   * present, or dealt with as normal. Otherwise, a best effort is made at
+   * unbinding, and the exception information will be serialised as a comment.
+   */
+  OutputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
 
 }

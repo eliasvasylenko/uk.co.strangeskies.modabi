@@ -18,10 +18,63 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.schema.Model;
+import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
 
-public class Binding<T> extends NodeBinding<T, Model<T>> {
-	public Binding(Model<T> model, T data) {
-		super(model, data);
-	}
+import uk.co.strangeskies.modabi.schema.BindingPoint;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
+
+public class Binding<T> {
+  private final BindingPoint<? super T> node;
+  private final Model<? super T> model;
+  private final TypeToken<T> dataType;
+  private final T data;
+
+  public Binding(
+      BindingPoint<? super T> node,
+      Model<? super T> model,
+      TypeToken<T> dataType,
+      T data) {
+    this.node = node;
+    this.model = model;
+    this.dataType = dataType;
+    this.data = data;
+  }
+
+  public BindingPoint<? super T> getBindingPoint() {
+    return node;
+  }
+
+  public Model<? super T> getModel() {
+    return model;
+  }
+
+  public T getData() {
+    return data;
+  }
+
+  /*
+   * TODO This needs to be given independently of the binding point and model as
+   * it may be more specific than both. We need to be able to get the exact type
+   * out here, which may have been inferred during the binding process.
+   */
+  public TypeToken<T> getDataType() {
+    return dataType;
+  }
+
+  public TypedObject<T> getTypedData() {
+    return typedObject(dataType, data);
+  }
+
+  @Override
+  public String toString() {
+    return data + " : " + node;
+  }
+
+  // public void updateData();
+
+  // public StructuredDataSource getSource();
+
+  // public void updateSource();
 }

@@ -24,45 +24,60 @@ Bundle-Copyright: ${copyright}
 Bundle-License: LGPL <http://www.gnu.org/licenses/>
 Bundle-Version: ${modabi-version}.${tstamp}
 
+# Disable ALL Eclipse split package attributes, to ensure we import from the "aggregator" bundle(s).
+Import-Package:\
+	*;ui.workbench=!;common=!;registry=!;texteditor=!;text=!
+
 -dsannotations: *
 -dsannotations-options: inherit
 
 ## To enable baselining, uncomment the following lines:
 # -baseline: *
--buildrepo: Local
--releaserepo: Release
--pom: true,\
-		version = ${versionmask;===;${@version}}-SNAPSHOT
 
--plugin.Managed: \
+-buildrepo: Maven Local
+-releaserepo: JFrog OSS
+
+-plugin.Local:\
 \
-        aQute.bnd.deployer.repository.LocalIndexedRepo; \
-            name                =       Managed ; \
-            pretty              =       true ; \
-            local               =       ${build}/local
+	aQute.bnd.deployer.repository.LocalIndexedRepo;\
+		name				=	"Local Index";\
+		pretty				=	true;\
+		local				=	${build}/local
 
--plugin.Local: \
+-plugin.Build:\
 \
-		aQute.bnd.repository.maven.provider.MavenBndRepository; \
-			name				=		Local; \
-			index				=		${.}/local.maven
+	aQute.bnd.repository.maven.provider.MavenBndRepository;\
+		name				=	"Maven Local"
 
--plugin.StrangeSkies: \
+-plugin.Release:\
 \
-		aQute.bnd.repository.maven.provider.MavenBndRepository; \
-			name				=		StrangeSkies; \
-			index				=		${.}/strangeskies.maven; \
-			releaseUrl			=		http://oss.jfrog.org/libs-snapshot/
+	aQute.bnd.repository.maven.provider.MavenBndRepository;\
+		name				=	"JFrog OSS";\
+		snapshotUrl			=	http://oss.jfrog.org/oss-snapshot-local
 
--plugin.Release: \
+-plugin.StrangeSkies:\
 \
-		aQute.bnd.repository.maven.provider.MavenBndRepository; \
-			name				=		Modabi; \
-			index				=		${.}/modabi.maven; \
-			releaseUrl			=		http://oss.jfrog.org/libs-snapshot/
+	aQute.bnd.repository.maven.pom.provider.BndPomRepository;\
+		name				=	"Strange Skies";\
+		pom					=	${build}/strangeskies.xml;\
+		releaseUrls			=	https://oss.jfrog.org/artifactory/libs-release;\
+		snapshotUrls		=	https://oss.jfrog.org/artifactory/libs-snapshot
 
-ss: uk.co.strangeskies.${1};version=latest
-mdb: uk.co.strangeskies.modabi.${1};version=snapshot
+## Run requirement groups:
+-runrequires.base:\
+	osgi.identity;filter:='(&(osgi.identity=osgi.enroute.logger.simple.provider)(version>=0))'
+
+## Build path groups:
+-buildpath.base=\
+	osgi.enroute.base.api;version=latest
+
+testpath.base=\
+	org.jmockit:jmockit,\
+	osgi.enroute.junit.wrapper,\
+	osgi.enroute.hamcrest.wrapper,\
+	org.hamcrest:java-hamcrest
+	
+-testpath.base=${testpath.base}
 
 include.ss: jar:file:///${replace;${repo;uk.co.strangeskies.build;latest};%;%25}!/include
 
@@ -77,17 +92,6 @@ Git-SHA: ${system-allow-fail;git rev-list -1 HEAD}
 ## Run requirement groups:
 runreq.base:\
 	${req;osgi.enroute.logger.simple.provider}
-
-## Build path groups:
--buildpath.base=\
-	osgi.enroute.base.api;version=latest
-
-testpath.base=\
-	osgi.enroute.junit.wrapper,\
-	osgi.enroute.hamcrest.wrapper,\
-	org.hamcrest__java-hamcrest
-	
--testpath.base=${testpath.base}
 
 ## General configuration
 modabi-description: \

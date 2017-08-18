@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPointConfigurator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.InputInitializerConfigurator;
 import uk.co.strangeskies.modabi.schema.OutputInitializerConfigurator;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.StructuralNode;
 import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
@@ -25,7 +25,7 @@ public class SchemaNodeConfiguratorImpl implements SchemaNodeConfigurator {
 	}
 
 	@Override
-	public SchemaNode create() {
+	public StructuralNode create() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -57,7 +57,7 @@ public class SchemaNodeConfiguratorImpl implements SchemaNodeConfigurator {
 			}
 
 			@Override
-			public SchemaNode parentNode() {
+			public StructuralNode parentNode() {
 				throw new UnsupportedOperationException();
 			}
 

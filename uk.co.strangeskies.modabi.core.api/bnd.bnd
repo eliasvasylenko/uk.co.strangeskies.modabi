@@ -6,7 +6,6 @@ Bundle-Description: \
 
 -runee: JavaSE-1.8
 
-
 -buildpath: \
 	uk.co.strangeskies.utilities;version=latest,\
 	uk.co.strangeskies.collections;version=latest,\
@@ -15,8 +14,7 @@ Bundle-Description: \
 	uk.co.strangeskies.text;version=latest,\
 	uk.co.strangeskies.mathematics;version=latest,\
 	uk.co.strangeskies.reflection;version=latest,\
-	uk.co.strangeskies.reflection.token;version=latest,\
-	uk.co.strangeskies.reflection.codegen;version=latest
+	uk.co.strangeskies.reflection.token;version=latest
 
 -runfw: org.eclipse.osgi;version='[3.10.1.v20140909-1633,3.10.1.v20140909-1633]'
 
@@ -31,6 +29,7 @@ Export-Package: \
 	uk.co.strangeskies.modabi.processing,\
 	uk.co.strangeskies.modabi.processing.provisions,\
 	uk.co.strangeskies.modabi.schema,\
+	uk.co.strangeskies.modabi.schema.expression,\
 	uk.co.strangeskies.modabi.schema.building,\
 	uk.co.strangeskies.modabi.schema.bindingconditions
 

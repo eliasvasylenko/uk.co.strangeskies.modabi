@@ -22,5 +22,5 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.reflection.Imports;
 
 public interface ModelBuilder {
-	public ModelConfigurator configure(DataLoader loader, Schema schema, Imports imports);
+  public ModelConfigurator configure(Schema schema, Imports imports);
 }

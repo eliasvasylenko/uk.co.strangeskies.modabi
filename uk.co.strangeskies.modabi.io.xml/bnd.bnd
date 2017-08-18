@@ -20,6 +20,7 @@ Export-Package: uk.co.strangeskies.modabi.io.xml
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.runtime)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)'
+
 -runbundles: \
 	org.apache.felix.gogo.command;version='[0.14.0,0.14.1)',\
 	org.apache.felix.gogo.runtime;version='[0.16.2,0.16.3)',\

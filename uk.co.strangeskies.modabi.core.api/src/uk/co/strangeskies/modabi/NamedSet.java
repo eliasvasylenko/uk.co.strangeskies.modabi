@@ -19,8 +19,7 @@
 package uk.co.strangeskies.modabi;
 
 import static java.util.function.Function.identity;
-import static uk.co.strangeskies.observable.Observable.Observation.CONTINUE;
-import static uk.co.strangeskies.observable.Observable.Observation.TERMINATE;
+import static uk.co.strangeskies.observable.Observer.singleUse;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,153 +28,144 @@ import java.util.Map;
 import java.util.function.Function;
 
 import uk.co.strangeskies.collection.SetTransformationView;
-import uk.co.strangeskies.collection.observable.ObservableSet;
-import uk.co.strangeskies.collection.observable.ScopedObservableSet;
+import uk.co.strangeskies.collection.observable.ObservableSetDecorator;
 import uk.co.strangeskies.collection.observable.SynchronizedObservableSet;
+import uk.co.strangeskies.observable.Disposable;
 import uk.co.strangeskies.utility.IdentityProperty;
-import uk.co.strangeskies.utility.Scoped;
 
-public abstract class NamedSet<S extends NamedSet<S, N, T>, N, T>
-		extends /* @ReadOnly */ScopedObservableSet<S, T> implements Scoped<S> {
-	private final Function<T, N> namingFunction;
-	private final LinkedHashMap<N, T> elements;
-	private final Object mutex;
+public abstract class NamedSet<N, T> extends ObservableSetDecorator<T> {
+  private final Function<T, N> namingFunction;
+  private final LinkedHashMap<N, T> elements;
+  private final Object mutex;
 
-	public NamedSet(Function<T, N> namingFunction) {
-		this(namingFunction, null);
-	}
+  protected NamedSet(Function<T, N> namingFunction) {
+    this(namingFunction, new LinkedHashMap<>());
+  }
 
-	protected NamedSet(Function<T, N> namingFunction, S parent) {
-		this(namingFunction, parent, new LinkedHashMap<>());
-	}
+  private NamedSet(Function<T, N> namingFunction, LinkedHashMap<N, T> elements) {
+    this(
+        namingFunction,
+        elements,
+        SynchronizedObservableSet.over(
+            new ObservableSetDecorator<>(
+                new SetTransformationView<T, T>(elements.values(), identity()) {
+                  @Override
+                  public boolean add(T e) {
+                    N name = namingFunction.apply(e);
+                    if (elements.get(name) != null)
+                      return false;
 
-	private NamedSet(Function<T, N> namingFunction, S parent, LinkedHashMap<N, T> elements) {
-		this(parent, namingFunction, elements, SynchronizedObservableSet
-				.over(ObservableSet.over(new SetTransformationView<T, T>(elements.values(), identity()) {
-					@Override
-					public boolean add(T e) {
-						N name = namingFunction.apply(e);
-						if (elements.get(name) != null)
-							return false;
+                    return elements.putIfAbsent(name, e) == null;
+                  }
 
-						return elements.putIfAbsent(name, e) == null;
-					}
+                  @Override
+                  public boolean addAll(Collection<? extends T> elements) {
+                    boolean changed = false;
+                    for (T element : elements) {
+                      changed = add(element) || changed;
+                    }
+                    return changed;
+                  }
+                })));
+  }
 
-					@Override
-					public boolean addAll(Collection<? extends T> elements) {
-						boolean changed = false;
-						for (T element : elements) {
-							changed = add(element) || changed;
-						}
-						return changed;
-					}
-				})));
-	}
+  private NamedSet(
+      Function<T, N> namingFunction,
+      LinkedHashMap<N, T> elements,
+      SynchronizedObservableSet<T> set) {
+    super(set);
 
-	private NamedSet(S parent, Function<T, N> namingFunction, LinkedHashMap<N, T> elements,
-			SynchronizedObservableSet<?, T> set) {
-		super(parent, set);
+    this.namingFunction = namingFunction;
+    this.elements = elements;
+    this.mutex = set.getMutex();
+  }
 
-		this.namingFunction = namingFunction;
-		this.elements = elements;
-		this.mutex = set.getMutex();
-	}
+  public N nameOf(T element) {
+    return namingFunction.apply(element);
+  }
 
-	public N nameOf(T element) {
-		return namingFunction.apply(element);
-	}
+  protected Object getMutex() {
+    return mutex;
+  }
 
-	protected Object getMutex() {
-		return mutex;
-	}
+  public T get(N name) {
+    synchronized (getMutex()) {
+      return elements.get(name);
+    }
+  }
 
-	public T get(N name) {
-		synchronized (getMutex()) {
-			T element = elements.get(name);
-			if (element == null) {
-				element = getParentScope().map(p -> p.get(name)).orElse(null);
-			}
-			return element;
-		}
-	}
+  public T waitForGet(N name) throws InterruptedException {
+    return waitForGet(name, () -> {});
+  }
 
-	public T waitForGet(N name) throws InterruptedException {
-		return waitForGet(name, () -> {
-		});
-	}
+  public T waitForGet(N name, Runnable onPresent) throws InterruptedException {
+    return waitForGet(name, onPresent, -1);
+  }
 
-	public T waitForGet(N name, Runnable onPresent) throws InterruptedException {
-		return waitForGet(name, onPresent, -1);
-	}
+  public T waitForGet(N name, int timeoutMilliseconds) throws InterruptedException {
+    return waitForGet(name, () -> {}, timeoutMilliseconds);
+  }
 
-	public T waitForGet(N name, int timeoutMilliseconds) throws InterruptedException {
-		return waitForGet(name, () -> {
-		}, timeoutMilliseconds);
-	}
+  public T waitForGet(N name, Runnable onPresent, int timeoutMilliseconds)
+      throws InterruptedException {
+    IdentityProperty<T> result = new IdentityProperty<>();
 
-	public T waitForGet(N name, Runnable onPresent, int timeoutMilliseconds) throws InterruptedException {
-		IdentityProperty<T> result = new IdentityProperty<>();
+    synchronized (getMutex()) {
+      Disposable observation = changes().observe(singleUse(o -> c -> {
+        synchronized (getMutex()) {
+          if (result.get() != null) {
+            o.cancel();
+            return;
+          }
 
-		synchronized (getMutex()) {
-			Function<Change<T>, Observation> observer = c -> {
-				synchronized (getMutex()) {
-					if (result.get() != null) {
-						return TERMINATE;
-					}
+          for (T element : c.added()) {
+            if (nameOf(element).equals(name)) {
+              onPresent.run();
 
-					for (T element : c.added()) {
-						if (nameOf(element).equals(name)) {
-							onPresent.run();
+              result.set(element);
+              getMutex().notifyAll();
 
-							result.set(element);
-							getMutex().notifyAll();
+              o.cancel();
+              return;
+            }
+          }
+        }
+      }));
 
-							return TERMINATE;
-						}
-					}
+      T element = get(name);
 
-					return CONTINUE;
-				}
-			};
+      if (element != null) {
+        onPresent.run();
 
-			changes().addTerminatingObserver(observer);
+        result.set(element);
+        observation.cancel();
+      } else {
+        try {
+          do {
+            if (timeoutMilliseconds < 0) {
+              getMutex().wait();
+            } else {
+              getMutex().wait(timeoutMilliseconds);
+            }
+          } while (result.get() == null);
+        } catch (InterruptedException e) {
+          if (result.get() == null) {
+            observation.cancel();
+            throw e;
+          }
+        }
+      }
+    }
 
-			T element = get(name);
+    return result.get();
+  }
 
-			if (element != null) {
-				onPresent.run();
+  public Map<N, T> getElements() {
+    return new HashMap<>(this.elements);
+  }
 
-				result.set(element);
-				changes().removeTerminatingObserver(observer);
-			} else {
-				try {
-					do {
-						if (timeoutMilliseconds < 0) {
-							getMutex().wait();
-						} else {
-							getMutex().wait(timeoutMilliseconds);
-						}
-					} while (result.get() == null);
-				} catch (InterruptedException e) {
-					if (result.get() == null) {
-						changes().removeTerminatingObserver(observer);
-						throw e;
-					}
-				}
-			}
-		}
-
-		return result.get();
-	}
-
-	public Map<N, T> getElements() {
-		Map<N, T> elements = new HashMap<>(this.elements);
-		getParentScope().ifPresent(p -> elements.putAll(p.getElements()));
-		return elements;
-	}
-
-	@Override
-	public String toString() {
-		return getElements().toString();
-	}
+  @Override
+  public String toString() {
+    return getElements().toString();
+  }
 }

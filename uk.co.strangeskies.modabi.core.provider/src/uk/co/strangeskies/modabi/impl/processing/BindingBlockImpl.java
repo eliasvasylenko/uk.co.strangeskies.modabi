@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -26,172 +28,166 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
-import uk.co.strangeskies.utilities.ObservableImpl;
-import uk.co.strangeskies.utilities.Observer;
+import uk.co.strangeskies.observable.Disposable;
+import uk.co.strangeskies.observable.HotObservable;
+import uk.co.strangeskies.observable.Observer;
 
 public class BindingBlockImpl implements BindingBlock {
-	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
+  private final HotObservable<BindingBlockEvent> blockEventObservable = new HotObservable<>();
 
-	private final QualifiedName namespace;
-	private final DataSource id;
-	private final boolean internal;
+  private final QualifiedName namespace;
+  private final DataSource id;
+  private final boolean internal;
 
-	private boolean complete = false;
-	private Throwable failure = null;
+  private boolean complete = false;
+  private Throwable failure = null;
 
-	public BindingBlockImpl(QualifiedName namespace, DataSource id, boolean internal) {
-		this.namespace = namespace;
-		this.id = id;
-		this.internal = internal;
-	}
+  public BindingBlockImpl(QualifiedName namespace, DataSource id, boolean internal) {
+    this.namespace = namespace;
+    this.id = id;
+    this.internal = internal;
+  }
 
-	void fireEvent(BindingBlockEvent.Type type) {
-		blockEventObservable.fire(new BindingBlockEvent() {
-			@Override
-			public BindingBlock block() {
-				return BindingBlockImpl.this;
-			}
+  void fireEvent(BindingBlockEvent.Type type) {
+    blockEventObservable.next(new BindingBlockEvent() {
+      @Override
+      public BindingBlock block() {
+        return BindingBlockImpl.this;
+      }
 
-			@Override
-			public Type type() {
-				return type;
-			}
+      @Override
+      public Type type() {
+        return type;
+      }
 
-			@Override
-			public Thread thread() {
-				return Thread.currentThread();
-			}
-		});
-	}
+      @Override
+      public Thread thread() {
+        return Thread.currentThread();
+      }
+    });
+  }
 
-	@Override
-	public boolean addObserver(Observer<? super BindingBlockEvent> observer) {
-		return blockEventObservable.addObserver(observer);
-	}
+  @Override
+  public Disposable observe(Observer<? super BindingBlockEvent> observer) {
+    return blockEventObservable.observe(observer);
+  }
 
-	@Override
-	public boolean removeObserver(Observer<? super BindingBlockEvent> observer) {
-		return blockEventObservable.removeObserver(observer);
-	}
+  @Override
+  public QualifiedName namespace() {
+    return namespace;
+  }
 
-	@Override
-	public QualifiedName namespace() {
-		return namespace;
-	}
+  @Override
+  public DataSource id() {
+    return id;
+  }
 
-	@Override
-	public DataSource id() {
-		return id;
-	}
+  @Override
+  public synchronized boolean isEnded() {
+    return complete || failure != null;
+  }
 
-	@Override
-	public synchronized boolean isEnded() {
-		return complete || failure != null;
-	}
+  @Override
+  public synchronized boolean isSuccessful() {
+    return complete;
+  }
 
-	@Override
-	public synchronized boolean isSuccessful() {
-		return complete;
-	}
+  @Override
+  public synchronized Throwable getFailure() {
+    return failure;
+  }
 
-	@Override
-	public synchronized Throwable getFailure() {
-		return failure;
-	}
+  @Override
+  public boolean isInternal() {
+    return internal;
+  }
 
-	@Override
-	public boolean isInternal() {
-		return internal;
-	}
+  @Override
+  public synchronized void complete() throws ExecutionException {
+    if (failure != null) {
+      throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
+    }
 
-	@Override
-	public synchronized void complete() throws ExecutionException {
-		if (failure != null) {
-			throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
-		}
+    if (!complete) {
+      complete = true;
+      notifyAll();
+      fireEvent(BindingBlockEvent.Type.ENDED);
+    }
+  }
 
-		if (!complete) {
-			complete = true;
-			notifyAll();
-			fireEvent(BindingBlockEvent.Type.ENDED);
-		}
-	}
+  @Override
+  public synchronized boolean fail(Throwable cause) {
+    if (isEnded()) {
+      return false;
+    } else {
+      failure = cause;
 
-	@Override
-	public synchronized boolean fail(Throwable cause) {
-		if (isEnded()) {
-			return false;
-		} else {
-			failure = cause;
+      if (failure == null) {
+        failure = new ModabiException(MESSAGES.unknownBlockingError(this));
+      }
 
-			if (failure == null) {
-				failure = new ModabiException(t -> t.unknownBlockingError(this));
-			}
+      notifyAll();
+      fireEvent(BindingBlockEvent.Type.ENDED);
+      return true;
+    }
+  }
 
-			notifyAll();
-			fireEvent(BindingBlockEvent.Type.ENDED);
-			return true;
-		}
-	}
+  @Override
+  public synchronized void waitUntilComplete() throws InterruptedException, ExecutionException {
+    if (isEnded()) {
+      return;
+    }
 
-	@Override
-	public synchronized void waitUntilComplete() throws InterruptedException, ExecutionException {
-		if (isEnded()) {
-			return;
-		}
+    fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
-		fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
+    while (!isEnded()) {
+      tryWait();
+    }
+  }
 
-		while (!isEnded()) {
-			tryWait();
-		}
-	}
+  @Override
+  public synchronized void waitUntilComplete(long timeoutMilliseconds)
+      throws InterruptedException, TimeoutException, ExecutionException {
+    synchronized (this) {
+      if (isEnded()) {
+        return;
+      }
 
-	@Override
-	public synchronized void waitUntilComplete(long timeoutMilliseconds)
-			throws InterruptedException,
-			TimeoutException,
-			ExecutionException {
-		synchronized (this) {
-			if (isEnded()) {
-				return;
-			}
+      fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
 
-			fireEvent(BindingBlockEvent.Type.THREAD_BLOCKED);
+      long wait = 0;
+      long startTime = System.currentTimeMillis();
 
-			long wait = 0;
-			long startTime = System.currentTimeMillis();
+      while (!isEnded()) {
+        wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
+        if (wait < 0) {
+          break;
+        }
+        tryWait();
+      }
 
-			while (!isEnded()) {
-				wait = timeoutMilliseconds + startTime - System.currentTimeMillis();
-				if (wait < 0) {
-					break;
-				}
-				tryWait();
-			}
+      if (wait < 0) {
+        fireEvent(BindingBlockEvent.Type.THREAD_UNBLOCKED);
+        throw new TimeoutException("Timed out waiting for blocking dependency " + this);
+      }
+    }
+  }
 
-			if (wait < 0) {
-				fireEvent(BindingBlockEvent.Type.THREAD_UNBLOCKED);
-				throw new TimeoutException("Timed out waiting for blocking dependency " + this);
-			}
-		}
-	}
+  private void tryWait() throws ExecutionException, InterruptedException {
+    try {
+      wait();
+    } catch (InterruptedException e) {
+      if (failure == null) {
+        throw e;
+      }
+    }
+    if (failure != null) {
+      throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
+    }
+  }
 
-	private void tryWait() throws ExecutionException, InterruptedException {
-		try {
-			wait();
-		} catch (InterruptedException e) {
-			if (failure == null) {
-				throw e;
-			}
-		}
-		if (failure != null) {
-			throw new ExecutionException("Failed to resolve blocking dependency " + this, failure);
-		}
-	}
-
-	@Override
-	public String toString() {
-		return "(" + namespace + ", " + id + ", " + (internal ? "internal" : "external") + ")";
-	}
+  @Override
+  public String toString() {
+    return "(" + namespace + ", " + id + ", " + (internal ? "internal" : "external") + ")";
+  }
 }

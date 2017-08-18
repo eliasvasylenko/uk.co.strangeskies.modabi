@@ -18,22 +18,19 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.collection.observable.ObservableSet;
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
-import uk.co.strangeskies.utility.Scoped;
 
-public interface Provisions extends ObservableSet<Provisions, Provider>, Scoped<Provisions> {
-	<T> TypedObject<T> provide(TypeToken<T> type, ProcessingContext state);
+public interface Provisions {
+  <T> TypedObject<T> provide(TypeToken<T> type);
 
-	default <T> TypedObject<T> provide(Class<T> clazz, ProcessingContext state) {
-		return provide(TypeToken.forClass(clazz), state);
-	}
+  default <T> TypedObject<T> provide(Class<T> clazz) {
+    return provide(TypeToken.forClass(clazz));
+  }
 
-	boolean isProvided(TypeToken<?> type, ProcessingContext state);
+  boolean isProvided(TypeToken<?> type);
 
-	default boolean isProvided(Class<?> clazz, ProcessingContext state) {
-		return isProvided(TypeToken.forClass(clazz), state);
-	}
+  default boolean isProvided(Class<?> clazz) {
+    return isProvided(TypeToken.forClass(clazz));
+  }
 }

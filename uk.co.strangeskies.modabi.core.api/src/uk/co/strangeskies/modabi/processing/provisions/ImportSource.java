@@ -21,9 +21,8 @@ package uk.co.strangeskies.modabi.processing.provisions;
 import java.util.List;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface ImportSource {
-	<T> T dereferenceImport(Model<T> model, List<QualifiedName> idDomain, DataSource id);
+  <T> T dereferenceImport(Model<T> model, List<QualifiedName> idDomain, String id);
 }

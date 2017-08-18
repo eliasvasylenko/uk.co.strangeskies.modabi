@@ -18,24 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
-public class Schemata extends NamedSet<Schemata, QualifiedName, Schema> {
-	public Schemata() {
-		this(null);
-	}
-
-	public Schemata(Schemata parent) {
-		super(Schema::qualifiedName, parent);
-	}
-
-	@Override
-	public Schemata nestChildScope() {
-		return new Schemata(this);
-	}
-
-	@Override
-	public Schemata copy() {
-		Schemata copy = new Schemata();
-		copy.addAll(this);
-		return copy;
-	}
+public class Schemata extends NamedSet<QualifiedName, Schema> {
+  public Schemata() {
+    super(Schema::qualifiedName);
+  }
 }

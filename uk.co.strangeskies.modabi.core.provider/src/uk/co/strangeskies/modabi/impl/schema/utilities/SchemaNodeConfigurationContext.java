@@ -23,34 +23,31 @@ import java.util.List;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.DataLoader;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
-import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.StructuralNode;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 
 public interface SchemaNodeConfigurationContext {
-	ChildBindingPoint<?> bindingPoint();
+  ChildBindingPoint<?> bindingPoint();
 
-	DataLoader dataLoader();
+  DataLoader dataLoader();
 
-	Imports imports();
+  Imports imports();
 
-	BoundSet boundSet();
+  BoundSet boundSet();
 
-	List<SchemaNode> overriddenAndBaseNodes();
+  List<StructuralNode<?>> overriddenAndBaseNodes();
 
-	SchemaNodeConfigurator configurator();
+  Schema schema();
 
-	Schema schema();
-
-	/**
-	 * Invoked by a {@link SchemaNode node's} constructor when instantiation
-	 * begins. This allows a reference of the node being constructed to leak back
-	 * to the caller whilst also blocking continuation of construction until
-	 * configuration is complete and a configurator can be supplied.
-	 * 
-	 * @param node
-	 *          the node being constructed
-	 */
-	SchemaNodeConfigurator configure(SchemaNode node);
+  /**
+   * Invoked by a {@link StructuralNode node's} constructor when instantiation begins.
+   * This allows a reference of the node being constructed to leak back to the
+   * caller whilst also blocking continuation of construction until configuration
+   * is complete and a configurator can be supplied.
+   * 
+   * @param node
+   *          the node being constructed
+   */
+  void configure(StructuralNode<?> node);
 }

@@ -35,7 +35,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.ModabiIoException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
 
 public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
@@ -85,8 +85,8 @@ public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
 		this(out, true);
 	}
 
-	private static ModabiIoException xmlException(Throwable e) {
-		return new ModabiIoException(getDefaultProperties(ModabiXmlProperties.class).problemReadingFromXmlDocument(), e);
+	private static ModabiIOException xmlException(Throwable e) {
+		return new ModabiIOException(getDefaultProperties(ModabiXmlExceptionMessages.class).problemReadingFromXmlDocument(), e);
 	}
 
 	@Override

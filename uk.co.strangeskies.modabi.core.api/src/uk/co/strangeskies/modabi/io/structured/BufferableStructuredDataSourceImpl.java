@@ -23,24 +23,23 @@ import java.util.Set;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 
-public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrapper
-		implements NavigableStructuredDataSource {
-	private final StructuredDataSource wrappedComponent;
-	private final StructuredDataSource buffer;
+public class BufferableStructuredDataSourceImpl extends StructuredDataReaderWrapper
+		implements NavigableStructuredDataReader {
+	private final StructuredDataReader wrappedComponent;
+	private final StructuredDataReader buffer;
 	private final StructuredDataBuffer buffers;
 
-	public BufferableStructuredDataSourceImpl(StructuredDataSource component) {
+	public BufferableStructuredDataSourceImpl(StructuredDataReader component) {
 		this(component, StructuredDataBuffer.multipleBuffers());
 	}
 
-	private BufferableStructuredDataSourceImpl(StructuredDataSource component, StructuredDataBuffer buffers) {
+	private BufferableStructuredDataSourceImpl(StructuredDataReader component, StructuredDataBuffer buffers) {
 		this(component, buffers, buffers.openBuffer());
 	}
 
-	private BufferableStructuredDataSourceImpl(StructuredDataSource component, StructuredDataBuffer buffers,
-			StructuredDataSource buffer) {
+	private BufferableStructuredDataSourceImpl(StructuredDataReader component, StructuredDataBuffer buffers,
+			StructuredDataReader buffer) {
 		super(wrapComponent(component, buffers, buffer));
 
 		this.wrappedComponent = component;
@@ -48,20 +47,20 @@ public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrap
 		this.buffer = buffer;
 	}
 
-	protected static StructuredDataSource wrapComponent(StructuredDataSource component, StructuredDataBuffer buffers,
-			StructuredDataSource buffer) {
-		return new StructuredDataSource() {
+	protected static StructuredDataReader wrapComponent(StructuredDataReader component, StructuredDataBuffer buffers,
+			StructuredDataReader buffer) {
+		return new StructuredDataReader() {
 			@Override
-			public QualifiedName startNextChild() {
+			public QualifiedName readNextChild() {
 				if (buffer.index().equals(component.index())) {
-					QualifiedName child = component.startNextChild();
+					QualifiedName child = component.readNextChild();
 					if (child != null) {
 						buffers.addChild(child);
 						component.pipeDataAtChild(buffers);
 					}
 				}
 
-				return buffer.startNextChild();
+				return buffer.readNextChild();
 			}
 
 			@Override
@@ -70,12 +69,12 @@ public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrap
 			}
 
 			@Override
-			public NavigableStructuredDataSource buffer() {
+			public NavigableStructuredDataReader buffer() {
 				throw new AssertionError();
 			}
 
 			@Override
-			public StructuredDataSource split() {
+			public StructuredDataReader split() {
 				throw new AssertionError();
 			}
 
@@ -85,12 +84,12 @@ public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrap
 			}
 
 			@Override
-			public DataSource readProperty(QualifiedName name) {
+			public String readProperty(QualifiedName name) {
 				return buffer.readProperty(name);
 			}
 
 			@Override
-			public DataSource readContent() {
+			public String readContent() {
 				return buffer.readContent();
 			}
 
@@ -99,7 +98,7 @@ public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrap
 				if (buffer.index().equals(component.index())) {
 					return component.peekNextChild();
 				} else {
-					return buffer.startNextChild();
+					return buffer.readNextChild();
 				}
 			}
 
@@ -133,7 +132,7 @@ public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrap
 			}
 
 			@Override
-			public StructuredDataSource endChild() {
+			public StructuredDataReader endChild() {
 				if (buffer.index().equals(component.index())) {
 					component.endChild();
 					buffers.endChild();
@@ -147,17 +146,17 @@ public class BufferableStructuredDataSourceImpl extends StructuredDataSourceWrap
 	}
 
 	@Override
-	public NavigableStructuredDataSource copy() {
+	public NavigableStructuredDataReader copy() {
 		return buffer();
 	}
 
 	@Override
-	public StructuredDataSource split() {
+	public StructuredDataReader split() {
 		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers, buffer.split());
 	}
 
 	@Override
-	public NavigableStructuredDataSource buffer() {
+	public NavigableStructuredDataReader buffer() {
 		return new BufferableStructuredDataSourceImpl(wrappedComponent, buffers, buffer.buffer());
 	}
 

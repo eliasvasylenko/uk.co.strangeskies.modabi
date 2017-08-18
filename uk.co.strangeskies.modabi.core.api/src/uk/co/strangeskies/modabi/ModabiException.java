@@ -18,37 +18,19 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.util.Locale;
-import java.util.function.Function;
+import static uk.co.strangeskies.text.properties.PropertyLoader.getDefaultProperties;
 
-import uk.co.strangeskies.text.properties.Localized;
-import uk.co.strangeskies.text.properties.LocalizedRuntimeException;
-import uk.co.strangeskies.text.properties.PropertyLoader;
+public class ModabiException extends RuntimeException {
+  private static final long serialVersionUID = 1L;
 
-public class ModabiException extends LocalizedRuntimeException {
-	private static final long serialVersionUID = 1L;
+  public static final ModabiExceptionProperties MESSAGES = getDefaultProperties(
+      ModabiExceptionProperties.class);
 
-	public ModabiException(Localized<String> message) {
-		super(message);
-	}
+  public ModabiException(String message) {
+    super(message);
+  }
 
-	public ModabiException(Localized<String> message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public ModabiException(Function<ModabiProperties, Localized<String>> message) {
-		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiProperties.class)));
-	}
-
-	public ModabiException(Function<ModabiProperties, Localized<String>> message, Throwable cause) {
-		this(message.apply(PropertyLoader.getDefaultPropertyLoader().getProperties(ModabiProperties.class)), cause);
-	}
-
-	public ModabiException(String message, Throwable cause) {
-		this(Localized.forStaticLocale(message, Locale.ENGLISH), cause);
-	}
-
-	public ModabiException(String message) {
-		this(message, null);
-	}
+  public ModabiException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

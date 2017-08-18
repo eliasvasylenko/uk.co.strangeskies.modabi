@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.observable.Observable;
 
 /**
@@ -44,7 +43,7 @@ public interface BindingBlock extends Observable<BindingBlockEvent> {
 	/**
 	 * @return The id of the blocking resource
 	 */
-	DataSource id();
+	String id();
 
 	/**
 	 * @return True if the resource or dependency represented by this block is

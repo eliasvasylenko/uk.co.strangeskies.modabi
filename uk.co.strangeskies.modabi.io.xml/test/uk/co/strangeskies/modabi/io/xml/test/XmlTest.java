@@ -21,12 +21,12 @@ package uk.co.strangeskies.modabi.io.xml.test;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 
 public class XmlTest {
 	private void run() {
-		StructuredDataTarget output = new XmlTarget(System.out);
+		StructuredDataWriter output = new XmlTarget(System.out);
 
 		output.registerDefaultNamespaceHint(Namespace.getDefault());
 		output.addChild(new QualifiedName("root"));

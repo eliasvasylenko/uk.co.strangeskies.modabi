@@ -23,29 +23,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import uk.co.strangeskies.log.Log;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.text.manifest.Attribute;
-import uk.co.strangeskies.utilities.Log;
+import uk.co.strangeskies.reflection.resource.Attribute;
 
-public interface RegistrationContext extends Log {
-	void addAttributes(String attributeName, List<Attribute> attributes);
+public interface RegistrationContext {
+  void addAttributes(String attributeName, List<Attribute> attributes);
 
-	default void addAttributes(String attributeName, Attribute... attributes) {
-		addAttributes(attributeName, Arrays.asList(attributes));
-	}
+  default void addAttributes(String attributeName, Attribute... attributes) {
+    addAttributes(attributeName, Arrays.asList(attributes));
+  }
 
-	String formatId();
+  Log getLog();
 
-	SchemaManager schemaManager();
+  String formatId();
 
-	ClassLoader classLoader();
+  SchemaManager schemaManager();
 
-	Set<String> sources();
+  ClassLoader classLoader();
 
-	InputStream openSource(String sourceLocation) throws Exception;
+  Set<String> sources();
 
-	Set<QualifiedName> availableDependencies();
+  InputStream openSource(String sourceLocation) throws Exception;
 
-	InputStream openDependency(QualifiedName name) throws Exception;
+  Set<QualifiedName> availableDependencies();
+
+  InputStream openDependency(QualifiedName name) throws Exception;
 }

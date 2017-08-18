@@ -40,14 +40,14 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.ModabiIoException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.BufferableStructuredDataSourceImpl;
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSourceWrapper;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataReader;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataReaderWrapper;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
-public class XmlSource implements StructuredDataSource {
+public class XmlSource implements StructuredDataReader {
 	private final XMLStreamReader in;
 	private final List<Integer> currentLocation;
 
@@ -70,11 +70,11 @@ public class XmlSource implements StructuredDataSource {
 		pumpEvents();
 	}
 
-	public static StructuredDataSourceWrapper from(InputStream in) {
+	public static StructuredDataReaderWrapper from(InputStream in) {
 		return from(createXMLStreamReader(in));
 	}
 
-	public static StructuredDataSourceWrapper from(XMLStreamReader in) {
+	public static StructuredDataReaderWrapper from(XMLStreamReader in) {
 		return new BufferableStructuredDataSourceImpl(new XmlSource(in));
 	}
 
@@ -97,7 +97,7 @@ public class XmlSource implements StructuredDataSource {
 	}
 
 	@Override
-	public QualifiedName startNextChild() {
+	public QualifiedName readNextChild() {
 		if (nextChild == null)
 			return null;
 
@@ -131,7 +131,7 @@ public class XmlSource implements StructuredDataSource {
 			try {
 				code = in.next();
 			} catch (XMLStreamException e) {
-				throw new ModabiIoException(getDefaultProperties(ModabiXmlProperties.class).problemReadingFromXmlDocument(), e);
+				throw new ModabiIOException(getDefaultProperties(ModabiXmlExceptionMessages.class).problemReadingFromXmlDocument(), e);
 			}
 
 			switch (code) {
@@ -233,7 +233,7 @@ public class XmlSource implements StructuredDataSource {
 	}
 
 	@Override
-	public StructuredDataSource endChild() {
+	public StructuredDataReader endChild() {
 		if (nextChild != null)
 			while (pumpEvents() != null)
 				;
@@ -265,12 +265,12 @@ public class XmlSource implements StructuredDataSource {
 	}
 
 	@Override
-	public StructuredDataSource split() {
+	public StructuredDataReader split() {
 		throw new AssertionError();
 	}
 
 	@Override
-	public NavigableStructuredDataSource buffer() {
+	public NavigableStructuredDataReader buffer() {
 		throw new AssertionError();
 	}
 }

@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
+
 import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -26,61 +28,61 @@ import java.net.URL;
 import java.util.function.Consumer;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
-import uk.co.strangeskies.modabi.io.ModabiIoException;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface InputBinder<T> {
-	<U> InputBinder<U> with(Model<U> model);
+  <U> InputBinder<U> to(Model<U> model);
 
-	<U> InputBinder<U> with(TypeToken<U> type);
+  <U> InputBinder<U> to(TypeToken<U> type);
 
-	default <U> InputBinder<U> with(Class<U> type) {
-		return with(TypeToken.forClass(type));
-	}
+  default <U> InputBinder<U> to(Class<U> type) {
+    return to(TypeToken.forClass(type));
+  }
 
-	InputBinder<?> with(QualifiedName modelName);
+  InputBinder<?> to(QualifiedName modelName);
 
-	<U> InputBinder<U> with(QualifiedName modelName, TypeToken<U> type);
+  <U> InputBinder<U> to(QualifiedName modelName, TypeToken<U> type);
 
-	default <U> InputBinder<U> with(QualifiedName modelName, Class<U> type) {
-		return with(modelName, TypeToken.forClass(type));
-	}
+  default <U> InputBinder<U> to(QualifiedName modelName, Class<U> type) {
+    return to(modelName, TypeToken.forClass(type));
+  }
 
-	BindingFuture<T> from(StructuredDataSource input);
+  BindingFuture<T> from(StructuredDataReader input);
 
-	// BindingFuture<T> from(RewritableStructuredData input);
+  // BindingFuture<T> from(RewritableStructuredData input);
 
-	default BindingFuture<T> from(File input) {
-		return from(input.toURI());
-	}
+  default BindingFuture<T> from(File input) {
+    return from(input.toURI());
+  }
 
-	default BindingFuture<T> from(URI input) {
-		try {
-			return from(input.toURL());
-		} catch (MalformedURLException e) {
-			throw new ModabiIoException(t -> t.invalidLocation(input), e);
-		}
-	}
+  default BindingFuture<T> from(URI input) {
+    try {
+      return from(input.toURL());
+    } catch (MalformedURLException e) {
+      throw new ModabiIOException(MESSAGES.invalidLocation(input), e);
+    }
+  }
 
-	BindingFuture<T> from(URL input);
+  BindingFuture<T> from(URL input);
 
-	BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input);
+  BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input);
 
-	BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input);
+  BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input);
 
-	// Binder<T> updatable();
+  // Binder<T> updatable();
 
-	InputBinder<T> withProvider(Provider provider);
+  InputBinder<T> withProvider(Provider provider);
 
-	InputBinder<T> withClassLoader(ClassLoader classLoader);
+  InputBinder<T> withClassLoader(ClassLoader classLoader);
 
-	/*
-	 * Errors which are rethrown will be passed to the next error handler if
-	 * present, or dealt with as normal. Otherwise, a best effort is made at
-	 * binding.
-	 */
-	InputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
+  /*
+   * Errors which are rethrown will be passed to the next error handler if
+   * present, or dealt with as normal. Otherwise, a best effort is made at
+   * binding.
+   */
+  InputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
 }

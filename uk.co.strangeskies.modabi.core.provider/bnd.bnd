@@ -1,11 +1,22 @@
+Bundle-Name: Modabi :: Core :: Provider
+Bundle-Description: \
+	This package contains the reference implementation of the core \
+	provider of the Modabi project.\
+\
+	${modabi-description}
+
 -buildpath: \
 	uk.co.strangeskies.modabi.core.api;version=snapshot,\
-	${ss;utilities},\
-	${ss;text},\
-	${ss;reflection},\
-	${ss;reflection.codegen},\
-	${ss;reflection.token},\
-	${ss;mathematics}
+\
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.collections;version=latest,\
+	uk.co.strangeskies.collections.observable;version=latest,\
+	uk.co.strangeskies.observable;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.reflection.codegen;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest
 
 -runbundles: \
 	org.apache.felix.configadmin;version='[1.8.6,1.8.7)',\
@@ -31,12 +42,6 @@ Export-Package: \
 	uk.co.strangeskies.modabi.impl.schema.building,\
 	uk.co.strangeskies.modabi.impl.schema.utilities
 
-Bundle-Name: Modabi :: Core :: Provider
-Bundle-Description: \
-	This package contains the reference implementation of the core \
-	provider of the Modabi project.\
-\
-	${modabi-description}
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)',\
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.utilities.osgi.consolelog)',\

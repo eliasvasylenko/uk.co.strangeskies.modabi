@@ -1,37 +1,60 @@
 package uk.co.strangeskies.modabi.schema;
 
-import java.util.Optional;
+import static java.util.Arrays.asList;
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
+import java.util.Collection;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ModelConfigurator extends BindingPointConfigurator<ModelConfigurator> {
-	ModelConfigurator export(boolean export);
+public interface ModelConfigurator {
+  Optional<QualifiedName> getName();
 
-	Optional<Boolean> getExport();
+  ModelConfigurator name(QualifiedName name);
 
-	@Override
-	default SchemaNodeConfigurator<Object, ModelFactory<Object>> withNode() {
-		return withNode(Object.class);
-	}
+  default ModelConfigurator name(String name, Namespace namespace) {
+    return name(new QualifiedName(name, namespace));
+  }
 
-	@Override
-	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNode(Class<V> dataType) {
-		return withNode(TypeToken.forClass(dataType));
-	}
+  ModelConfigurator export(boolean export);
 
-	@Override
-	<V> SchemaNodeConfigurator<V, ModelFactory<V>> withNode(TypeToken<V> dataType);
+  Optional<Boolean> getExport();
 
-	@Override
-	default <V> ModelFactory<V> withoutNode(Class<V> dataType) {
-		return withoutNode(TypeToken.forClass(dataType));
-	}
+  default <U> SchemaNodeConfigurator<U, Model<U>> baseModel(Model<U> baseModel) {
+    return baseModel(baseModel.dataType(), baseModel);
+  }
 
-	@Override
-	<V> ModelFactory<V> withoutNode(TypeToken<V> dataType);
+  default <U> SchemaNodeConfigurator<U, Model<U>> baseModel(
+      Class<U> type,
+      Model<? super U> baseModel) {
+    return baseModel(forClass(type), baseModel);
+  }
 
-	@Override
-	default <V> SchemaNodeConfigurator<V, ModelFactory<V>> withNode(Model<V> baseModel) {
-		return withNode(baseModel.dataType()).baseModel(baseModel);
-	}
+  default <U> SchemaNodeConfigurator<U, Model<U>> baseModel(
+      TypeToken<U> type,
+      Model<? super U> baseModel) {
+    return baseModel(type, asList(baseModel));
+  }
+
+  default <U> SchemaNodeConfigurator<U, Model<U>> baseModel(
+      Class<U> type,
+      Collection<? extends Model<? super U>> baseModel) {
+    return baseModel(forClass(type), baseModel);
+  }
+
+  <U> SchemaNodeConfigurator<U, Model<U>> baseModel(
+      TypeToken<U> type,
+      Collection<? extends Model<? super U>> baseModel);
+
+  Stream<Model<?>> getBaseModel();
+
+  default <U> SchemaNodeConfigurator<U, Model<U>> type(Class<U> dataType) {
+    return type(forClass(dataType));
+  }
+
+  <U> SchemaNodeConfigurator<U, Model<U>> type(TypeToken<U> dataType);
 }

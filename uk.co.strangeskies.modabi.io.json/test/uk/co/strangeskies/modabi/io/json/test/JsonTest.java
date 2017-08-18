@@ -24,11 +24,11 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.json.impl.JsonTarget;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 
 public class JsonTest {
 	private void run() {
-		StructuredDataTarget output = new JsonTarget(System.out, true);
+		StructuredDataWriter output = new JsonTarget(System.out, true);
 
 		output.registerDefaultNamespaceHint(Namespace.getDefault());
 		output.addChild(new QualifiedName("root"));

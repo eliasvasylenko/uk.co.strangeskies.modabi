@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.plugin;
 
 import static java.util.stream.Collectors.toSet;
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -32,7 +33,10 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.Constants;
 
-import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.collection.observable.ObservableSet;
+import uk.co.strangeskies.function.ThrowingSupplier;
+import uk.co.strangeskies.log.Log.Level;
+import uk.co.strangeskies.modabi.ModelBinding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
@@ -41,252 +45,290 @@ import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.ComplexNode;
-import uk.co.strangeskies.text.manifest.Attribute;
-import uk.co.strangeskies.text.manifest.AttributeProperty;
-import uk.co.strangeskies.text.manifest.PropertyType;
-import uk.co.strangeskies.utilities.Log.Level;
-import uk.co.strangeskies.utilities.collection.ObservableSet;
-import uk.co.strangeskies.utilities.function.ThrowingSupplier;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.reflection.resource.Attribute;
+import uk.co.strangeskies.reflection.resource.AttributeProperty;
+import uk.co.strangeskies.reflection.resource.PropertyType;
 
 public class ModabiRegistration {
-	public static final String SCHEMA = "schema";
-	public static final String RESOURCE = "resource";
+  public static final String SCHEMA = "schema";
+  public static final String RESOURCE = "resource";
 
-	private static final String EXTENDER = "osgi.extender";
-	private static final String EXTENDER_FILTER = "(" + EXTENDER + "=" + Schema.class.getPackage().getName() + ")";
+  private static final String EXTENDER = "osgi.extender";
+  private static final String EXTENDER_FILTER = "(" + EXTENDER + "="
+      + Schema.class.getPackage().getName() + ")";
 
-	private static final String SERVICE = "osgi.service";
-	private static final String STRUCTUREDDATAFORMAT_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
-			+ StructuredDataFormat.class.getTypeName() + ")";
-	private static final String SCHEMAMANAGER_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
-			+ SchemaManager.class.getTypeName() + ")";
+  private static final String SERVICE = "osgi.service";
+  private static final String STRUCTUREDDATAFORMAT_SERVICE_FILTER = "(" + Constants.OBJECTCLASS
+      + "=" + StructuredDataFormat.class.getTypeName() + ")";
+  private static final String SCHEMAMANAGER_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
+      + SchemaManager.class.getTypeName() + ")";
 
-	private RegistrationContext context;
+  private RegistrationContext context;
 
-	/*
-	 * The schemata provided by the building bundle, mapped to their jar resource
-	 * locations:
-	 */
-	private final Map<BindingFuture<Schema>, String> providedSchemata = new HashMap<>();
-	/*
-	 * The names of required schemata from build dependencies:
-	 */
-	private final Set<QualifiedName> requiredSchemata = Collections.synchronizedSet(new HashSet<>());
-	/*
-	 * All encountered schemata which are loading or have loaded:
-	 */
-	private final Set<BindingFuture<Schema>> resolvingSchemata = new HashSet<>();
+  /*
+   * The schemata provided by the building bundle, mapped to their jar resource
+   * locations:
+   */
+  private final Map<BindingFuture<Schema>, String> providedSchemata = new HashMap<>();
+  /*
+   * The names of required schemata from build dependencies:
+   */
+  private final Set<QualifiedName> requiredSchemata = Collections.synchronizedSet(new HashSet<>());
+  /*
+   * All encountered schemata which are loading or have loaded:
+   */
+  private final Set<BindingFuture<Schema>> resolvingSchemata = new HashSet<>();
 
-	private QualifiedName getDependencyNamespace() {
-		return context.schemaManager().getMetaSchema().getSchemaModel().name();
-	}
+  private QualifiedName getDependencyNamespace() {
+    return context.schemaManager().getMetaSchema().getSchemaModel().name();
+  }
 
-	public synchronized boolean registerSchemata(RegistrationContext context) {
-		this.context = context;
+  public synchronized boolean registerSchemata(RegistrationContext context) {
+    this.context = context;
 
-		requiredSchemata.clear();
-		providedSchemata.clear();
-		resolvingSchemata.clear();
+    requiredSchemata.clear();
+    providedSchemata.clear();
+    resolvingSchemata.clear();
 
-		ComplexNode<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
-		ObservableSet<?, Binding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(schemaModel);
-		schemaBindingChanges.changes().addObserver(c -> {
-			new Thread(() -> {
-				synchronized (resolvingSchemata) {
-					resolvingSchemata.removeAll(context.schemaManager().getBindingFutures(schemaModel).stream()
-							.filter(BindingFuture::isDone).collect(Collectors.toSet()));
-				}
-				detectDeadlock();
-			}).start();
-		});
+    Model<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
+    ObservableSet<?, ModelBinding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(
+        schemaModel);
+    schemaBindingChanges.changes().observe(c -> {
+      new Thread(() -> {
+        synchronized (resolvingSchemata) {
+          resolvingSchemata.removeAll(
+              context
+                  .schemaManager()
+                  .getBindingFutures(schemaModel)
+                  .stream()
+                  .filter(BindingFuture::isDone)
+                  .collect(Collectors.toSet()));
+        }
+        detectDeadlock();
+      }).start();
+    });
 
-		if (!context.sources().isEmpty()) {
-			registerSchemaResources();
-			return true;
-		} else {
-			return false;
-		}
-	}
+    if (!context.sources().isEmpty()) {
+      registerSchemaResources();
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-	private void registerSchemaResources() {
-		try {
-			context.log(Level.TRACE, "Available dependencies: " + context.availableDependencies());
+  private void registerSchemaResources() {
+    try {
+      context
+          .getLog()
+          .log(Level.TRACE, "Available dependencies: " + context.availableDependencies());
 
-			/*
-			 * Begin binding schemata concurrently
-			 */
-			for (String resourceName : context.sources()) {
-				providedSchemata.put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName);
-			}
+      /*
+       * Begin binding schemata concurrently
+       */
+      for (String resourceName : context.sources()) {
+        providedSchemata
+            .put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName);
+      }
 
-			/*
-			 * Resolve schemata
-			 */
-			for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
-				schemaFuture.resolve();
-			}
+      /*
+       * Resolve schemata
+       */
+      for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
+        schemaFuture.resolve();
+      }
 
-			addProvisions();
-			addRequirements();
-		} catch (Throwable e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
+      addProvisions();
+      addRequirements();
+    } catch (Throwable e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
 
-	private BindingFuture<Schema> registerSchemaResource(ThrowingSupplier<InputStream, ?> inputStream) {
-		BindingFuture<Schema> bindingFuture = context.schemaManager().bindSchema().withClassLoader(context.classLoader())
-				.from(context.formatId(), inputStream);
+  private BindingFuture<Schema> registerSchemaResource(
+      ThrowingSupplier<InputStream, ?> inputStream) {
+    BindingFuture<Schema> bindingFuture = context
+        .schemaManager()
+        .bindSchema()
+        .withClassLoader(context.classLoader())
+        .from(context.formatId(), inputStream);
 
-		/*
-		 * Resolve dependencies
-		 */
-		synchronized (resolvingSchemata) {
-			bindingFuture.blocks().addObserver(event -> {
-				synchronized (resolvingSchemata) {
-					switch (event.type()) {
-					case STARTED:
-						resolveDependency(event.block());
-						break;
-					case THREAD_BLOCKED:
-						detectDeadlock();
-						break;
-					case THREAD_UNBLOCKED:
-						break;
-					case ENDED:
-						break;
-					}
-				}
-			});
+    /*
+     * Resolve dependencies
+     */
+    synchronized (resolvingSchemata) {
+      bindingFuture.blocks().observe(event -> {
+        synchronized (resolvingSchemata) {
+          switch (event.type()) {
+          case STARTED:
+            resolveDependency(event.block());
+            break;
+          case THREAD_BLOCKED:
+            detectDeadlock();
+            break;
+          case THREAD_UNBLOCKED:
+            break;
+          case ENDED:
+            break;
+          }
+        }
+      });
 
-			resolvingSchemata.add(bindingFuture);
+      resolvingSchemata.add(bindingFuture);
 
-			for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
-				resolveDependency(block);
-			}
-		}
-		detectDeadlock();
+      for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
+        resolveDependency(block);
+      }
+    }
+    detectDeadlock();
 
-		new Thread(() -> {
-			try {
-				bindingFuture.resolve();
-			} catch (Exception e) {
-				synchronized (resolvingSchemata) {
-					resolvingSchemata.remove(bindingFuture);
-				}
-				detectDeadlock();
-			}
-		}).start();
+    new Thread(() -> {
+      try {
+        bindingFuture.resolve();
+      } catch (Exception e) {
+        synchronized (resolvingSchemata) {
+          resolvingSchemata.remove(bindingFuture);
+        }
+        detectDeadlock();
+      }
+    }).start();
 
-		return bindingFuture;
-	}
+    return bindingFuture;
+  }
 
-	private void detectDeadlock() {
-		Set<BindingFuture<Schema>> resolvingSchemata;
-		synchronized (this.resolvingSchemata) {
-			resolvingSchemata = this.resolvingSchemata;
-		}
+  private void detectDeadlock() {
+    Set<BindingFuture<Schema>> resolvingSchemata;
+    synchronized (this.resolvingSchemata) {
+      resolvingSchemata = this.resolvingSchemata;
+    }
 
-		if (resolvingSchemata.stream().allMatch(f -> f.blocks().isBlocked())) {
-			Set<BindingBlock> missingDependencies = resolvingSchemata.stream().flatMap(f -> f.blocks().getBlocks().stream())
-					.collect(toSet());
+    if (resolvingSchemata.stream().allMatch(f -> f.blocks().isBlocked())) {
+      Set<BindingBlock> missingDependencies = resolvingSchemata
+          .stream()
+          .flatMap(f -> f.blocks().getBlocks().stream())
+          .collect(toSet());
 
-			ModabiException deadlockException = new ModabiException(
-					t -> t.missingDependencies(providedSchemata.keySet(), missingDependencies));
-			for (BindingFuture<?> future : resolvingSchemata) {
-				for (BindingBlock block : future.blocks().getBlocks()) {
-					block.fail(deadlockException);
-				}
-			}
+      ModabiException deadlockException = new ModabiException(
+          MESSAGES.missingDependencies(providedSchemata.keySet(), missingDependencies));
+      for (BindingFuture<?> future : resolvingSchemata) {
+        for (BindingBlock block : future.blocks().getBlocks()) {
+          block.fail(deadlockException);
+        }
+      }
 
-			throw deadlockException;
-		}
-	}
+      throw deadlockException;
+    }
+  }
 
-	private void resolveDependency(BindingBlock block) {
-		if (!block.namespace().equals(getDependencyNamespace())) {
-			/*-
-			 * TODO put this error aside and only register it if we deadlock
-			SchemaException exception = new SchemaException(
-					"Cannot resolve " + block + "; Only those external dependencies in the " + getDependencyNamespace()
-							+ " namespace may be considered at build time");
-			block.fail(exception);
-			throw exception;
-			 */
-		} else {
-			QualifiedName id = block.id().get(Primitive.QUALIFIED_NAME);
+  private void resolveDependency(BindingBlock block) {
+    if (!block.namespace().equals(getDependencyNamespace())) {
+      /*-
+       * TODO put this error aside and only register it if we deadlock
+      SchemaException exception = new SchemaException(
+      		"Cannot resolve " + block + "; Only those external dependencies in the " + getDependencyNamespace()
+      				+ " namespace may be considered at build time");
+      block.fail(exception);
+      throw exception;
+       */
+    } else {
+      QualifiedName id = block.id().get(Primitive.QUALIFIED_NAME);
 
-			if (context.availableDependencies().contains(id)) {
-				boolean added = requiredSchemata.add(id);
+      if (context.availableDependencies().contains(id)) {
+        boolean added = requiredSchemata.add(id);
 
-				if (added) {
-					registerSchemaResource(() -> context.openDependency(id));
-				}
-			}
-		}
-	}
+        if (added) {
+          registerSchemaResource(() -> context.openDependency(id));
+        }
+      }
+    }
+  }
 
-	private void addProvisions() {
-		List<Attribute> providedCapabilities = new ArrayList<>();
+  private void addProvisions() {
+    List<Attribute> providedCapabilities = new ArrayList<>();
 
-		for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
-			List<AttributeProperty<?>> properties = new ArrayList<>();
+    for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
+      List<AttributeProperty<?>> properties = new ArrayList<>();
 
-			properties.add(AttributeProperty.untyped(SCHEMA, schemaFuture.resolve().qualifiedName().toString()));
-			properties.add(AttributeProperty.untyped(RESOURCE, providedSchemata.get(schemaFuture)));
+      properties.add(
+          AttributeProperty.untyped(SCHEMA, schemaFuture.resolve().qualifiedName().toString()));
+      properties.add(AttributeProperty.untyped(RESOURCE, providedSchemata.get(schemaFuture)));
 
-			providedCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
-		}
+      providedCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
+    }
 
-		context.addAttributes(Constants.PROVIDE_CAPABILITY, providedCapabilities);
-	}
+    context.addAttributes(Constants.PROVIDE_CAPABILITY, providedCapabilities);
+  }
 
-	private void addRequirements() {
-		List<Attribute> requiredCapabilities = new ArrayList<>();
+  private void addRequirements() {
+    List<Attribute> requiredCapabilities = new ArrayList<>();
 
-		for (QualifiedName schema : requiredSchemata) {
-			List<AttributeProperty<?>> properties = new ArrayList<>();
+    for (QualifiedName schema : requiredSchemata) {
+      List<AttributeProperty<?>> properties = new ArrayList<>();
 
-			properties.add(AttributeProperty.untyped(SCHEMA, schema.toString()));
+      properties.add(AttributeProperty.untyped(SCHEMA, schema.toString()));
 
-			/*
-			 * Modabi schema requirement attributes
-			 */
-			requiredCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
-		}
+      /*
+       * Modabi schema requirement attributes
+       */
+      requiredCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));
+    }
 
-		AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(Constants.RESOLUTION_DIRECTIVE,
-				PropertyType.DIRECTIVE, Constants.MANDATORY_DIRECTIVE);
+    AttributeProperty<?> mandatoryResolution = new AttributeProperty<>(
+        Constants.RESOLUTION_DIRECTIVE,
+        PropertyType.DIRECTIVE,
+        Constants.MANDATORY_DIRECTIVE);
 
-		AttributeProperty<?> resolveEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-				PropertyType.DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+    AttributeProperty<?> resolveEffective = new AttributeProperty<>(
+        Constants.EFFECTIVE_DIRECTIVE,
+        PropertyType.DIRECTIVE,
+        Constants.EFFECTIVE_RESOLVE);
 
-		AttributeProperty<?> activeEffective = new AttributeProperty<>(Constants.EFFECTIVE_DIRECTIVE,
-				PropertyType.DIRECTIVE, Constants.EFFECTIVE_ACTIVE);
+    AttributeProperty<?> activeEffective = new AttributeProperty<>(
+        Constants.EFFECTIVE_DIRECTIVE,
+        PropertyType.DIRECTIVE,
+        Constants.EFFECTIVE_ACTIVE);
 
-		/*
-		 * StructuredDataFormat service requirement attribute
-		 */
-		requiredCapabilities.add(new Attribute(SERVICE,
-				new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE,
-						"(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + context.formatId() + "))"),
-				mandatoryResolution, activeEffective));
+    /*
+     * StructuredDataFormat service requirement attribute
+     */
+    requiredCapabilities.add(
+        new Attribute(
+            SERVICE,
+            new AttributeProperty<>(
+                Constants.FILTER_DIRECTIVE,
+                PropertyType.DIRECTIVE,
+                "(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + context.formatId()
+                    + "))"),
+            mandatoryResolution,
+            activeEffective));
 
-		/*
-		 * SchemaManager service requirement attribute
-		 */
-		requiredCapabilities.add(new Attribute(SERVICE,
-				new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, SCHEMAMANAGER_SERVICE_FILTER),
-				mandatoryResolution, activeEffective));
+    /*
+     * SchemaManager service requirement attribute
+     */
+    requiredCapabilities.add(
+        new Attribute(
+            SERVICE,
+            new AttributeProperty<>(
+                Constants.FILTER_DIRECTIVE,
+                PropertyType.DIRECTIVE,
+                SCHEMAMANAGER_SERVICE_FILTER),
+            mandatoryResolution,
+            activeEffective));
 
-		/*
-		 * Modabi extender attribute
-		 */
-		requiredCapabilities.add(new Attribute(EXTENDER,
-				new AttributeProperty<>(Constants.FILTER_DIRECTIVE, PropertyType.DIRECTIVE, EXTENDER_FILTER),
-				mandatoryResolution, resolveEffective));
+    /*
+     * Modabi extender attribute
+     */
+    requiredCapabilities.add(
+        new Attribute(
+            EXTENDER,
+            new AttributeProperty<>(
+                Constants.FILTER_DIRECTIVE,
+                PropertyType.DIRECTIVE,
+                EXTENDER_FILTER),
+            mandatoryResolution,
+            resolveEffective));
 
-		context.addAttributes(Constants.REQUIRE_CAPABILITY, requiredCapabilities);
-	}
+    context.addAttributes(Constants.REQUIRE_CAPABILITY, requiredCapabilities);
+  }
 }

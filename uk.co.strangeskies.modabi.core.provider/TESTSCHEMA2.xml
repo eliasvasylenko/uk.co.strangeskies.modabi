@@ -1,113 +1,107 @@
 <?xml version="1.0" ?>
 <schema
-	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
-	xmlns:sai="http://saiman.co.uk/2015-10-08/"
-	name="sai:PeriodicTableSchema">
+  xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+  xmlns:sai="http://saiman.co.uk/2015-10-08/"
+  name="sai:PeriodicTableSchema">
 
-	<imports>
-		uk.co.strangeskies.reflection.token.TypeToken.Infer,
-		java.util.Collection,
-		java.util.List,
-		uk.co.saiman.chemistry.Element.Group,
-		uk.co.saiman.chemistry.PeriodicTable,
-		uk.co.saiman.chemistry.Element,
-		uk.co.saiman.chemistry.isotope.Isotope
-	</imports>
+  <imports>
+    uk.co.strangeskies.reflection.token.TypeToken.Infer,
+    java.util.Collection,
+    java.util.List,
+    uk.co.saiman.chemistry.Element.Group,
+    uk.co.saiman.chemistry.PeriodicTable,
+    uk.co.saiman.chemistry.Element,
+    uk.co.saiman.chemistry.isotope.Isotope
+  </imports>
 
-	<dependencies>
-		BaseSchema
-	</dependencies>
+  <dependencies>
+    BaseSchema
+  </dependencies>
 
-	<types />
+  <types />
 
-	<models>
-		<model
-			name="sai:isotope"
-			dataType="Isotope"
-			inputBinding="null">
+  <models>
+    <model
+      name="sai:isotope"
+      dataType="Isotope"
+      initializeInput="new Isotope(${sai:massNumber}, ${sai:mass}, ${sai:abundance})">
 
-			<node
-				initializeInput="new Isotope(${../sai:massNumber}, ${../sai:mass}, ${../sai:abundance})">
+      <!-- That the above initializeInput works might seem counter intuitive 
+        at first, but it should be okay. Input must be in order, but binding doesn't 
+        have to be, so this input can be delayed until the following items are bound, 
+        as they have blank input sections. -->
 
-				<!-- That the above initializeInput works might seem counter intuitive 
-					at first, but it should be okay. Input must be in order, but binding doesn't 
-					have to be, so this input can be delayed until the following items are bound, 
-					as they have blank input sections. -->
+      <bind
+        name="sai:massNumber"
+        input="">
+        <property model="int" />
+      </bind>
 
-				<bind name="sai:massNumber">
-					<input />
-					<property type="int" />
-				</bind>
+      <bind
+        name="sai:mass"
+        input="">
+        <property model="double" />
+      </bind>
 
-				<bind name="sai:mass">
-					<input />
-					<property type="double" />
-				</bind>
+      <bind
+        name="sai:abundance"
+        input="">
+        <property model="double" />
+      </bind>
+    </model>
 
-				<bind name="sai:abundance">
-					<input />
-					<property type="double" />
-				</bind>
-			</node>
-		</model>
+    <model
+      name="sai:element"
+      dataType="Element"
+      initializeInput="new Element()">
 
-		<model
-			name="sai:element"
-			dataType="Element"
-			inputBinding="null">
+      <bind
+        name="sai:atomicNumber"
+        model="int"
+        input=".=withAtomicNumber(result)" />
 
-			<node initializeInput="new Element()">
-				<bind
-					name="sai:atomicNumber"
-					model="int"
-					input=".=withAtomicNumber(result)" />
+      <bind
+        name="sai:name"
+        model="string"
+        condition="optional"
+        input=".=withName(${.})" />
 
-				<bind
-					name="sai:name"
-					model="string"
+      <bind
+        name="sai:symbol"
+        model="string"
+        input=".=withSymbol(${.})" />
 
-					condition="optional"
-					input=".=withName(${.})" />
+      <bind
+        model="sai:isotope"
+        condition="occurrences(Range.from(0))"
+        output=".getIsotopes()[]"
+        input=".=withIsotope(${.})" />
 
-				<bind
-					name="sai:symbol"
-					model="string"
-					input=".=withSymbol(${.})" />
+      <bind
+        name="sai:group"
+        model="enum"
+        dataType="Group"
+        input=".=withGroup(${.})" />
+    </model>
 
-				<bind
-					model="sai:isotope"
-					condition="occurrences(Range.from(0))"
-					output=".getIsotopes()[]"
-					input=".=withIsotope(${.})" />
+    <model
+      name="sai:periodicTable"
+      dataType="PeriodicTable"
+      initializeInput="new">
 
-				<bind
-					name="sai:group"
-					model="enum"
-					dataType="Group"
-					input=".=withGroup(${.})" />
-			</node>
-		</model>
+      <bind
+        name="sai:name"
+        model="string" />
 
-		<model
-			name="sai:periodicTable"
-			dataType="PeriodicTable">
+      <bind
+        model="sai:element"
+        output=".getElements()[]"
+        input=".getElements().add(${.})">
 
-			<node initializeInput="new">
-				<bind
-					name="sai:name"
-					model="string" />
-
-				<bind
-					model="sai:element"
-
-					output=".getElements()[]"
-					input=".getElements().add(${.})">
-
-					<condition>
-						<occurrences range="0.." />
-					</condition>
-				</bind>
-			</node>
-		</model>
-	</models>
+        <condition>
+          <occurrences range="0.." />
+        </condition>
+      </bind>
+    </model>
+  </models>
 </schema>

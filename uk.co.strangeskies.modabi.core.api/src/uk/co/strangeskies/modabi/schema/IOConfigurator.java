@@ -1,55 +1,44 @@
 package uk.co.strangeskies.modabi.schema;
 
-import static uk.co.strangeskies.reflection.codegen.Expressions.typeTokenExpression;
+import static uk.co.strangeskies.modabi.schema.expression.Expressions.typeTokenExpression;
+import static uk.co.strangeskies.reflection.token.MethodMatcher.anyMethod;
 
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.reflection.codegen.ValueExpression;
-import uk.co.strangeskies.reflection.token.ExecutableToken;
-import uk.co.strangeskies.reflection.token.TypeArgument;
+import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface IOConfigurator {
-	<U> ValueExpression<U> none();
+  <U> ValueExpression<U> none();
 
-	ExecutableToken<ProcessingContext, ?> PROVIDE_METHOD = TypeToken
-			.forClass(ProcessingContext.class)
-			.methods()
-			.named("provide")
-			.resolveOverload(new TypeToken<TypeToken<?>>() {});
+  /*
+   * TODO Scoping here deals only with sibling binding points. Dealing with others
+   * requires bringing them into scope explicitly.
+   * 
+   * (Do we bring them into scope through some standard mechanism? Or just by way
+   * of ProcessingContext#getBindingObject etc...)
+   */
+  <U> ValueExpression<U> provideFor(ChildBindingPoint<U> type);
 
-	/*
-	 * TODO Scoping here deals only with sibling binding points. Dealing with
-	 * others requires bringing them into scope explicitly.
-	 * 
-	 * (Do we bring them into scope through some standard mechanism? Or just by
-	 * way of ProcessingContext#getBindingObject etc...)
-	 */
-	<U> ValueExpression<U> provideFor(BindingPoint<U> type);
+  default <U> ValueExpression<U> provide(TypeToken<U> type) {
+    return context().invoke(anyMethod().named("provide"), typeTokenExpression(type)).invoke(
+        anyMethod().named("getObject").returning(type));
+  }
 
-	default <U> ValueExpression<U> provide(TypeToken<U> type) {
-		TypeToken<TypedObject<U>> typedObject = new TypeToken<TypedObject<U>>() {}
-				.withTypeArguments(new TypeArgument<U>(type) {});
+  default <U> ValueExpression<U> provide(Class<U> type) {
+    return provide(TypeToken.forClass(type));
+  }
 
-		return context().invokeMethod(PROVIDE_METHOD.withTargetType(typedObject), typeTokenExpression(type)).invokeMethod(
-				typedObject.methods().named("getObject").resolveOverload().withTargetType(new TypeToken<U>() {}));
-	}
+  /**
+   * Get a value expression evaluating to a provision as per
+   * {@link #provide(TypeToken)}. The type provided is as declared as the
+   * {@link BindingPoint#dataType() data type} of the nearest containing binding
+   * point.
+   * 
+   * @return
+   */
+  ValueExpression<?> provide();
 
-	default <U> ValueExpression<U> provide(Class<U> type) {
-		return provide(TypeToken.forClass(type));
-	}
+  ValueExpression<ProcessingContext> context();
 
-	/**
-	 * Get a value expression evaluating to a provision as per
-	 * {@link #provide(TypeToken)}. The type provided is as declared as the
-	 * {@link BindingPoint#dataType() data type} of the nearest containing binding
-	 * point.
-	 * 
-	 * @return
-	 */
-	ValueExpression<?> provide();
-
-	ValueExpression<ProcessingContext> context();
-
-	ValueExpression<?> bound(String string);
+  ValueExpression<?> bound(String string);
 }

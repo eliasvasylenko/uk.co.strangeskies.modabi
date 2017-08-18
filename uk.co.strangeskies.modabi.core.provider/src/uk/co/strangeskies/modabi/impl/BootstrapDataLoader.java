@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static java.util.Arrays.asList;
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
 
@@ -28,7 +29,7 @@ import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
-import uk.co.strangeskies.utilities.Enumeration;
+import uk.co.strangeskies.utility.Enumeration;
 
 /**
  * The {@link BaseSchema base-schema} and {@link MetaSchema meta-schema} are a
@@ -57,138 +58,145 @@ import uk.co.strangeskies.utilities.Enumeration;
  * @author Elias N Vasylenko
  */
 public class BootstrapDataLoader implements DataLoader {
-	private class TargetModelSkeletonObject {
-		private final QualifiedName name;
-		private final TypeToken<? extends Model<?>> type;
+  private class TargetModelSkeletonObject {
+    private final QualifiedName name;
+    private final TypeToken<? extends Model<?>> type;
 
-		public TargetModelSkeletonObject(QualifiedName name) {
-			this.name = name;
+    public TargetModelSkeletonObject(QualifiedName name) {
+      this.name = name;
 
-			switch (name.getName()) {
-			case "model":
-				type = new TypeToken<Model<Model<?>>>() {};
-				break;
-			case "binding":
-				type = new TypeToken<Model<BindingPoint<?>>>() {};
-				break;
-			case "schema":
-				type = new TypeToken<Model<Schema>>() {};
-				break;
-			default:
-				type = null;
-			}
-		}
+      switch (name.getName()) {
+      case "model":
+        type = new TypeToken<Model<Model<?>>>() {};
+        break;
+      case "binding":
+        type = new TypeToken<Model<BindingPoint<?>>>() {};
+        break;
+      case "schema":
+        type = new TypeToken<Model<Schema>>() {};
+        break;
+      default:
+        type = null;
+      }
+    }
 
-		boolean isReady() {
-			return isComplete();
-		}
+    boolean isReady() {
+      return isComplete();
+    }
 
-		Model<?> provideObject() {
-			Model<?> model = baseSchema.models().get(name);
+    Model<?> provideObject() {
+      Model<?> model = baseSchema.models().get(name);
 
-			if (model == null)
-				model = metaSchema.models().get(name);
+      if (model == null)
+        model = metaSchema.models().get(name);
 
-			if (model == null)
-				throw new ModabiException(t -> t.noBootstrapModelFound(name));
+      if (model == null)
+        throw new ModabiException(MESSAGES.noBootstrapModelFound(name));
 
-			return model;
-		}
+      return model;
+    }
 
-		public boolean hasThisType() {
-			return type != null;
-		}
+    public boolean hasThisType() {
+      return type != null;
+    }
 
-		public TypeToken<? extends Model<?>> getThisType() {
-			return type;
-		}
-	}
+    public TypeToken<? extends Model<?>> getThisType() {
+      return type;
+    }
+  }
 
-	private Map<QualifiedName, TypedObject<? extends Model<?>>> targetModels = new HashMap<>();
-	private BaseSchema baseSchema;
-	private MetaSchema metaSchema;
+  private Map<QualifiedName, TypedObject<? extends Model<?>>> targetModels = new HashMap<>();
+  private BaseSchema baseSchema;
+  private MetaSchema metaSchema;
 
-	public void setComplete(BaseSchema baseSchema, MetaSchema metaSchema) {
-		this.baseSchema = baseSchema;
-		this.metaSchema = metaSchema;
+  public void setComplete(BaseSchema baseSchema, MetaSchema metaSchema) {
+    this.baseSchema = baseSchema;
+    this.metaSchema = metaSchema;
 
-		targetModels.values().stream().map(TypedObject::getObject).forEach(Model::name);
-		targetModels = null;
-	}
+    targetModels.values().stream().map(TypedObject::getObject).forEach(Model::name);
+    targetModels = null;
+  }
 
-	public boolean isComplete() {
-		return targetModels == null;
-	}
+  public boolean isComplete() {
+    return targetModels == null;
+  }
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public <T> List<TypedObject<? extends T>> loadData(Model<T> node, DataSource data) {
-		Namespace namespace = new Namespace(BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @Override
+  public <T> List<TypedObject<? extends T>> loadData(Model<T> node, DataSource data) {
+    Namespace namespace = new Namespace(BaseSchema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
-		if (node.name().getNamespace().equals(namespace)) {
-			switch (node.name().getName()) {
-			case "configure":
-				return Collections.emptyList();
+    if (node.name().getNamespace().equals(namespace)) {
+      switch (node.name().getName()) {
+      case "configure":
+        return Collections.emptyList();
 
-			case "format":
-				return (List) asList(
-						typedObject(forClass(BindingPoint.Format.class), BindingPoint.Format.valueOf(data.get(Primitive.STRING))));
+      case "dataType":
+        return (List) asList(
+            typedObject(
+                forClass(Primitive.class),
+                Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING))));
 
-			case "dataType":
-				return (List) asList(
-						typedObject(forClass(Primitive.class), Enumeration.valueOf(Primitive.class, data.get(Primitive.STRING))));
+      case "targetId":
+        List<QualifiedName> targetId = new ArrayList<>();
+        while (!data.isComplete()) {
+          targetId.add(data.get(Primitive.QUALIFIED_NAME));
+        }
+        return (List) asList(typedObject(new TypeToken<List<QualifiedName>>() {}, targetId));
 
-			case "targetId":
-				List<QualifiedName> targetId = new ArrayList<>();
-				while (!data.isComplete()) {
-					targetId.add(data.get(Primitive.QUALIFIED_NAME));
-				}
-				return (List) asList(typedObject(new TypeToken<List<QualifiedName>>() {}, targetId));
+      case "inline":
+        return (List) asList(typedObject(forClass(Boolean.class), data.get(Primitive.BOOLEAN)));
 
-			case "inline":
-				return (List) asList(typedObject(forClass(Boolean.class), data.get(Primitive.BOOLEAN)));
+      case "isExternal":
+        return (List) asList(typedObject(forClass(Boolean.class), data.get(Primitive.BOOLEAN)));
 
-			case "isExternal":
-				return (List) asList(typedObject(forClass(Boolean.class), data.get(Primitive.BOOLEAN)));
+      case "enumType":
+        return (List) asList(typedObject(new TypeToken<Class<Enum>>() {}, Enum.class));
 
-			case "enumType":
-				return (List) asList(typedObject(new TypeToken<Class<Enum>>() {}, Enum.class));
+      case "enumerationType":
+        return (List) asList(
+            typedObject(new TypeToken<Class<Enumeration>>() {}, Enumeration.class));
 
-			case "enumerationType":
-				return (List) asList(typedObject(new TypeToken<Class<Enumeration>>() {}, Enumeration.class));
+      case "targetModel":
+        QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
 
-			case "targetModel":
-				QualifiedName name = data.get(Primitive.QUALIFIED_NAME);
+        return (List) asList(targetModels.computeIfAbsent(name, n -> {
+          BootstrapDataLoader.TargetModelSkeletonObject skeleton = new TargetModelSkeletonObject(
+              name);
 
-				return (List) asList(targetModels.computeIfAbsent(name, n -> {
-					BootstrapDataLoader.TargetModelSkeletonObject skeleton = new TargetModelSkeletonObject(name);
+          return typedObject(
+              (TypeToken<Model<?>>) skeleton.getThisType(),
+              (Model<?>) Proxy.newProxyInstance(
+                  Model.class.getClassLoader(),
+                  new Class[] { Model.class },
+                  new InvocationHandler() {
+                    private BootstrapDataLoader.TargetModelSkeletonObject skeletonReference = skeleton;
+                    private Model<?> model;
 
-					return typedObject((TypeToken<Model<?>>) skeleton.getThisType(), (Model<?>) Proxy
-							.newProxyInstance(Model.class.getClassLoader(), new Class[] { Model.class }, new InvocationHandler() {
-								private BootstrapDataLoader.TargetModelSkeletonObject skeletonReference = skeleton;
-								private Model<?> model;
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args)
+                        throws Throwable {
+                      if (skeletonReference != null) {
+                        if (skeletonReference.isReady()) {
+                          model = skeletonReference.provideObject();
+                          skeletonReference = null;
+                        } else {
+                          if (method.getName().equals("getThisType")
+                              && skeletonReference.hasThisType()) {
+                            return skeletonReference.getThisType().getType();
+                          }
+                          throw new IllegalStateException(
+                              "Proxy for target model '" + name + "' is not ready yet");
+                        }
+                      }
 
-								@Override
-								public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-									if (skeletonReference != null) {
-										if (skeletonReference.isReady()) {
-											model = skeletonReference.provideObject();
-											skeletonReference = null;
-										} else {
-											if (method.getName().equals("getThisType") && skeletonReference.hasThisType()) {
-												return skeletonReference.getThisType().getType();
-											}
-											throw new IllegalStateException("Proxy for target model '" + name + "' is not ready yet");
-										}
-									}
+                      return method.invoke(model, args);
+                    }
+                  }));
+        }));
+      }
+    }
 
-									return method.invoke(model, args);
-								}
-							}));
-				}));
-			}
-		}
-
-		throw new ModabiException(t -> t.noBootstrapValueFound(node.name()));
-	}
+    throw new ModabiException(MESSAGES.noBootstrapValueFound(node.name()));
+  }
 }

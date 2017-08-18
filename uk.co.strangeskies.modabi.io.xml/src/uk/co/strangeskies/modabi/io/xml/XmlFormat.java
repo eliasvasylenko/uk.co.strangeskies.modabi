@@ -28,8 +28,8 @@ import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.io.structured.RewritableStructuredData;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTarget;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 
 @Component(property = "formatId=" + XmlFormat.XML_ID)
 public class XmlFormat implements StructuredDataFormat {
@@ -46,12 +46,12 @@ public class XmlFormat implements StructuredDataFormat {
 	}
 
 	@Override
-	public StructuredDataSource loadData(InputStream in) {
+	public StructuredDataReader loadData(InputStream in) {
 		return XmlSource.from(in);
 	}
 
 	@Override
-	public StructuredDataTarget saveData(OutputStream out) {
+	public StructuredDataWriter saveData(OutputStream out) {
 		return new XmlTarget(out);
 	}
 

@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,215 +33,209 @@ import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlockEvent;
 import uk.co.strangeskies.modabi.processing.BindingBlocker;
-import uk.co.strangeskies.utilities.ObservableImpl;
-import uk.co.strangeskies.utilities.Observer;
+import uk.co.strangeskies.observable.Disposable;
+import uk.co.strangeskies.observable.HotObservable;
+import uk.co.strangeskies.observable.Observer;
 
 public class BindingBlocksImpl implements BindingBlocker {
-	private final ObservableImpl<BindingBlockEvent> blockEventObservable = new ObservableImpl<>();
-	private final Set<BindingBlock> blocks = new HashSet<>();
+  private final HotObservable<BindingBlockEvent> blockEventObservable = new HotObservable<>();
+  private final Set<BindingBlock> blocks = new HashSet<>();
 
-	private Set<Thread> participatingThreads = new HashSet<>();
-	private Map<Thread, BindingBlock> participatingThreadBlocks = new HashMap<>();
+  private Set<Thread> participatingThreads = new HashSet<>();
+  private Map<Thread, BindingBlock> participatingThreadBlocks = new HashMap<>();
 
-	@Override
-	public boolean addObserver(Observer<? super BindingBlockEvent> observer) {
-		return blockEventObservable.addObserver(observer);
-	}
+  @Override
+  public Disposable observe(Observer<? super BindingBlockEvent> observer) {
+    return blockEventObservable.observe(observer);
+  }
 
-	@Override
-	public boolean removeObserver(Observer<? super BindingBlockEvent> observer) {
-		return blockEventObservable.removeObserver(observer);
-	}
+  @Override
+  public BindingBlock block(QualifiedName namespace, DataSource id, boolean internal) {
+    BindingBlock block = new BindingBlockImpl(namespace, id, internal);
+    block.addObserver(event -> {
+      switch (event.type()) {
+      case THREAD_BLOCKED:
+        startThreadBlock(block, event.thread());
+        break;
+      case THREAD_UNBLOCKED:
+        endThreadBlock(block, event.thread());
+        break;
+      case ENDED:
+        endThreadBlocks(block);
+        break;
+      case STARTED:
+        break;
+      }
+      blockEventObservable.fire(event);
+    });
 
-	@Override
-	public BindingBlock block(QualifiedName namespace, DataSource id, boolean internal) {
-		BindingBlock block = new BindingBlockImpl(namespace, id, internal);
-		block.addObserver(event -> {
-			switch (event.type()) {
-			case THREAD_BLOCKED:
-				startThreadBlock(block, event.thread());
-				break;
-			case THREAD_UNBLOCKED:
-				endThreadBlock(block, event.thread());
-				break;
-			case ENDED:
-				endThreadBlocks(block);
-				break;
-			case STARTED:
-				break;
-			}
-			blockEventObservable.fire(event);
-		});
+    synchronized (blocks) {
+      blocks.add(block);
+      blockEventObservable.next(new BindingBlockEvent() {
+        @Override
+        public BindingBlock block() {
+          return block;
+        }
 
-		synchronized (blocks) {
-			blocks.add(block);
-			blockEventObservable.fire(new BindingBlockEvent() {
-				@Override
-				public BindingBlock block() {
-					return block;
-				}
+        @Override
+        public Type type() {
+          return Type.STARTED;
+        }
 
-				@Override
-				public Type type() {
-					return Type.STARTED;
-				}
+        @Override
+        public Thread thread() {
+          return Thread.currentThread();
+        }
+      });
 
-				@Override
-				public Thread thread() {
-					return Thread.currentThread();
-				}
-			});
+      return block;
+    }
+  }
 
-			return block;
-		}
-	}
+  void startThreadBlock(BindingBlock block, Thread thread) {
+    synchronized (blocks) {
+      if (participatingThreads.contains(thread)) {
+        participatingThreadBlocks.put(thread, block);
 
-	void startThreadBlock(BindingBlock block, Thread thread) {
-		synchronized (blocks) {
-			if (participatingThreads.contains(thread)) {
-				participatingThreadBlocks.put(thread, block);
+        assertResolvable();
+      }
+    }
+  }
 
-				assertResolvable();
-			}
-		}
-	}
+  void endThreadBlock(BindingBlock block, Thread thread) {
+    synchronized (blocks) {
+      participatingThreadBlocks.remove(thread);
+    }
+  }
 
-	void endThreadBlock(BindingBlock block, Thread thread) {
-		synchronized (blocks) {
-			participatingThreadBlocks.remove(thread);
-		}
-	}
+  void endThreadBlocks(BindingBlock block) {
+    synchronized (blocks) {
+      blocks.remove(block);
+      for (Thread processingThread : participatingThreads) {
+        if (participatingThreadBlocks.get(processingThread) == block) {
+          participatingThreadBlocks.remove(processingThread);
+        }
+      }
+    }
+  }
 
-	void endThreadBlocks(BindingBlock block) {
-		synchronized (blocks) {
-			blocks.remove(block);
-			for (Thread processingThread : participatingThreads) {
-				if (participatingThreadBlocks.get(processingThread) == block) {
-					participatingThreadBlocks.remove(processingThread);
-				}
-			}
-		}
-	}
+  private void assertResolvable() {
+    synchronized (blocks) {
+      if (isDeadlocked()
+          && participatingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
+        throw new ModabiException(
+            MESSAGES.unresolvableDependencies(participatingThreadBlocks.values()));
+      }
+    }
+  }
 
-	private void assertResolvable() {
-		synchronized (blocks) {
-			if (isDeadlocked()
-					&& participatingThreadBlocks.values().stream().allMatch(BindingBlock::isInternal)) {
-				throw new ModabiException(
-						t -> t.unresolvableDependencies(participatingThreadBlocks.values()));
-			}
-		}
-	}
+  @Override
+  public void addParticipatingThread(Thread processingThread) {
+    synchronized (blocks) {
+      participatingThreads.add(processingThread);
 
-	@Override
-	public void addParticipatingThread(Thread processingThread) {
-		synchronized (blocks) {
-			participatingThreads.add(processingThread);
+      new Thread(() -> {
+        try {
+          try {
+            processingThread.join();
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        } finally {
+          synchronized (blocks) {
+            participatingThreads.remove(processingThread);
 
-			new Thread(() -> {
-				try {
-					try {
-						processingThread.join();
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
-				} finally {
-					synchronized (blocks) {
-						participatingThreads.remove(processingThread);
+            assertResolvable();
+          }
+        }
+      }).start();
+    }
+  }
 
-						assertResolvable();
-					}
-				}
-			}).start();
-		}
-	}
+  @Override
+  public Set<Thread> getParticipatingThreads() {
+    synchronized (blocks) {
+      return participatingThreads;
+    }
+  }
 
-	@Override
-	public Set<Thread> getParticipatingThreads() {
-		synchronized (blocks) {
-			return participatingThreads;
-		}
-	}
+  @Override
+  public Set<BindingBlock> getBlocks() {
+    synchronized (blocks) {
+      return new HashSet<>(blocks);
+    }
+  }
 
-	@Override
-	public Set<BindingBlock> getBlocks() {
-		synchronized (blocks) {
-			return new HashSet<>(blocks);
-		}
-	}
+  @Override
+  public void waitForAll() throws InterruptedException, ExecutionException {
+    do {
+      BindingBlock block;
 
-	@Override
-	public void waitForAll() throws InterruptedException, ExecutionException {
-		do {
-			BindingBlock block;
+      synchronized (blocks) {
+        if (!blocks.isEmpty()) {
+          block = blocks.iterator().next();
+        } else {
+          break;
+        }
+      }
 
-			synchronized (blocks) {
-				if (!blocks.isEmpty()) {
-					block = blocks.iterator().next();
-				} else {
-					break;
-				}
-			}
+      block.waitUntilComplete();
+    } while (true);
+  }
 
-			block.waitUntilComplete();
-		} while (true);
-	}
+  @Override
+  public void waitForAll(long timeoutMilliseconds)
+      throws InterruptedException, TimeoutException, ExecutionException {
+    long startTime = System.currentTimeMillis();
 
-	@Override
-	public void waitForAll(long timeoutMilliseconds)
-			throws InterruptedException,
-			TimeoutException,
-			ExecutionException {
-		long startTime = System.currentTimeMillis();
+    do {
+      BindingBlock block;
 
-		do {
-			BindingBlock block;
+      synchronized (blocks) {
+        if (!blocks.isEmpty()) {
+          block = blocks.iterator().next();
+        } else {
+          break;
+        }
+      }
 
-			synchronized (blocks) {
-				if (!blocks.isEmpty()) {
-					block = blocks.iterator().next();
-				} else {
-					break;
-				}
-			}
+      long timeLeft = timeoutMilliseconds + startTime - System.currentTimeMillis();
 
-			long timeLeft = timeoutMilliseconds + startTime - System.currentTimeMillis();
+      block.waitUntilComplete(timeLeft);
+    } while (true);
+  }
 
-			block.waitUntilComplete(timeLeft);
-		} while (true);
-	}
+  @Override
+  public boolean isBlocked() {
+    synchronized (blocks) {
+      return participatingThreadBlocks.size() > 0
+          && participatingThreadBlocks.size() >= participatingThreads.size();
+    }
+  }
 
-	@Override
-	public boolean isBlocked() {
-		synchronized (blocks) {
-			return participatingThreadBlocks.size() > 0
-					&& participatingThreadBlocks.size() >= participatingThreads.size();
-		}
-	}
+  @Override
+  public boolean isDeadlocked() {
+    synchronized (blocks) {
+      int internalBlocks = (int) participatingThreadBlocks
+          .values()
+          .stream()
+          .filter(BindingBlock::isInternal)
+          .count();
 
-	@Override
-	public boolean isDeadlocked() {
-		synchronized (blocks) {
-			int internalBlocks = (int) participatingThreadBlocks
-					.values()
-					.stream()
-					.filter(BindingBlock::isInternal)
-					.count();
+      return internalBlocks > 0 && internalBlocks >= participatingThreads.size();
+    }
+  }
 
-			return internalBlocks > 0 && internalBlocks >= participatingThreads.size();
-		}
-	}
+  @Override
+  public void complete() throws InterruptedException, ExecutionException {
+    synchronized (blocks) {
+      assertResolvable();
+      waitForAll();
+    }
+  }
 
-	@Override
-	public void complete() throws InterruptedException, ExecutionException {
-		synchronized (blocks) {
-			assertResolvable();
-			waitForAll();
-		}
-	}
-
-	@Override
-	public String toString() {
-		return blocks.toString();
-	}
+  @Override
+  public String toString() {
+    return blocks.toString();
+  }
 }

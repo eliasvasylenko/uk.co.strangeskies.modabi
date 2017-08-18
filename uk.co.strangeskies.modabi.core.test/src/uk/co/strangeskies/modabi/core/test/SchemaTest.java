@@ -41,7 +41,7 @@ import uk.co.strangeskies.modabi.declarative.InputBindingStrategy;
 import uk.co.strangeskies.modabi.io.BufferingDataTarget;
 import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.schema.ComplexNode;
@@ -114,7 +114,7 @@ public class SchemaTest extends TestBase {
 
 			System.out.println("Unbinding BaseSchema...");
 			Navigable out = StructuredDataBuffer.singleBuffer();
-			NavigableStructuredDataSource buffered = out.getBuffer();
+			NavigableStructuredDataReader buffered = out.getBuffer();
 			schemaManager.bindOutput(schemaManager.getBaseSchema()).to(out);
 			buffered.pipeNextChild(schemaManager.registeredFormats().get("xml").saveData(System.out));
 

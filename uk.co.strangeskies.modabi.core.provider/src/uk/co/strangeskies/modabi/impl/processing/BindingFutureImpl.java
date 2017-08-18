@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
+
 import java.io.InputStream;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -29,218 +31,234 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.utilities.IdentityProperty;
-import uk.co.strangeskies.utilities.Property;
-import uk.co.strangeskies.utilities.function.ThrowingSupplier;
+import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.utility.Property;
 
 public class BindingFutureImpl<T> implements BindingFuture<T> {
-	private interface TryGet<T> {
-		T tryGet() throws InterruptedException, ExecutionException, TimeoutException;
-	}
+  private interface TryGet<T> {
+    T tryGet() throws InterruptedException, ExecutionException, TimeoutException;
+  }
 
-	public static class BindingSource<T> {
-		private final Model<T> model;
-		private final Consumer<Consumer<StructuredDataSource>> data;
+  public static class BindingSource<T> {
+    private final Model<T> model;
+    private final Consumer<Consumer<StructuredDataReader>> data;
 
-		public BindingSource(Model<T> model, StructuredDataSource data) {
-			this.model = model;
-			this.data = c -> c.accept(data);
-		}
+    public BindingSource(Model<T> model, StructuredDataReader data) {
+      this.model = model;
+      this.data = c -> c.accept(data);
+    }
 
-		public BindingSource(Model<T> model, ThrowingSupplier<InputStream, ?> input, StructuredDataFormat format) {
-			this.model = model;
-			this.data = c -> {
-				try (InputStream stream = input.get()) {
-					c.accept(format.loadData(stream));
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			};
-		}
+    public BindingSource(
+        Model<T> model,
+        ThrowingSupplier<InputStream, ?> input,
+        StructuredDataFormat format) {
+      this.model = model;
+      this.data = c -> {
+        try (InputStream stream = input.get()) {
+          c.accept(format.loadData(stream));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      };
+    }
 
-		public Model<T> getModel() {
-			return model;
-		}
+    public Model<T> getModel() {
+      return model;
+    }
 
-		public void withData(Consumer<StructuredDataSource> runnable) {
-			data.accept(runnable);
-		}
+    public void withData(Consumer<StructuredDataReader> runnable) {
+      data.accept(runnable);
+    }
 
-		public <U> U withData(Function<StructuredDataSource, U> runnable) {
-			Property<U, U> result = new IdentityProperty<>();
-			data.accept(input -> {
-				result.set(runnable.apply(input));
-			});
-			return result.get();
-		}
+    public <U> U withData(Function<StructuredDataReader, U> runnable) {
+      Property<U> result = new IdentityProperty<>();
+      data.accept(input -> {
+        result.set(runnable.apply(input));
+      });
+      return result.get();
+    }
 
-		public String getName() {
-			return null;
-		}
-	}
+    public String getName() {
+      return null;
+    }
+  }
 
-	private final ProcessingContextImpl context;
+  private final ProcessingContextImpl context;
 
-	private final FutureTask<BindingSource<T>> sourceFuture;
-	private final FutureTask<T> dataFuture;
-	private final FutureTask<Model<T>> modelFuture;
+  private final FutureTask<BindingSource<T>> sourceFuture;
+  private final FutureTask<T> dataFuture;
+  private final FutureTask<Model<? super T>> modelFuture;
 
-	private Binding<T> bindingResult;
-	private boolean cancelled;
+  private Binding<T> bindingResult;
+  private boolean cancelled;
 
-	public BindingFutureImpl(ProcessingContextImpl context, ClassLoader classLoader,
-			Supplier<BindingSource<T>> modelSupplier) {
-		this.context = context;
+  public BindingFutureImpl(
+      ProcessingContextImpl context,
+      ClassLoader classLoader,
+      Supplier<BindingSource<T>> modelSupplier) {
+    this.context = context;
 
-		cancelled = false;
+    cancelled = false;
 
-		sourceFuture = new FutureTask<>(modelSupplier::get);
-		modelFuture = new FutureTask<>(() -> {
-			sourceFuture.run();
-			return sourceFuture.get().getModel();
-		});
+    sourceFuture = new FutureTask<>(modelSupplier::get);
+    modelFuture = new FutureTask<>(() -> {
+      sourceFuture.run();
+      return sourceFuture.get().getModel();
+    });
 
-		dataFuture = new FutureTask<>(() -> {
-			Thread.currentThread().setContextClassLoader(classLoader);
-			context.bindingBlocker().addParticipatingThread(Thread.currentThread());
+    dataFuture = new FutureTask<>(() -> {
+      Thread.currentThread().setContextClassLoader(classLoader);
+      context.bindingBlocker().addParticipatingThread(Thread.currentThread());
 
-			modelFuture.run();
+      modelFuture.run();
 
-			T binding = bind(sourceFuture.get());
+      T binding = bind(sourceFuture.get());
 
-			context.bindingBlocker().complete();
+      context.bindingBlocker().complete();
 
-			return binding;
-		});
-		new Thread(() -> dataFuture.run()).start();
-	}
+      return binding;
+    });
+    new Thread(() -> dataFuture.run()).start();
+  }
 
-	@Override
-	public boolean cancel(boolean mayInterruptIfRunning) {
-		synchronized (context.bindingBlocker()) {
-			if (bindingResult == null && !cancelled) {
-				Exception exception = new ModabiException(t -> t.cancelled(this));
-				for (BindingBlock block : context.bindingBlocker().getBlocks()) {
-					block.fail(exception);
-				}
-				for (Thread thread : context.bindingBlocker().getParticipatingThreads()) {
-					thread.interrupt();
-				}
-				cancelled = true;
-				return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning)
-						| modelFuture.cancel(mayInterruptIfRunning);
-			} else {
-				return false;
-			}
-		}
-	}
+  @Override
+  public boolean cancel(boolean mayInterruptIfRunning) {
+    synchronized (context.bindingBlocker()) {
+      if (bindingResult == null && !cancelled) {
+        Exception exception = new ModabiException(MESSAGES.cancelled(this));
+        for (BindingBlock block : context.bindingBlocker().getBlocks()) {
+          block.fail(exception);
+        }
+        for (Thread thread : context.bindingBlocker().getParticipatingThreads()) {
+          thread.interrupt();
+        }
+        cancelled = true;
+        return sourceFuture.cancel(mayInterruptIfRunning) | dataFuture.cancel(mayInterruptIfRunning)
+            | modelFuture.cancel(mayInterruptIfRunning);
+      } else {
+        return false;
+      }
+    }
+  }
 
-	@Override
-	public boolean isCancelled() {
-		return dataFuture.isCancelled();
-	}
+  @Override
+  public boolean isCancelled() {
+    return dataFuture.isCancelled();
+  }
 
-	@Override
-	public boolean isDone() {
-		return dataFuture.isDone();
-	}
+  @Override
+  public boolean isDone() {
+    return dataFuture.isDone();
+  }
 
-	@Override
-	public Binding<T> get() {
-		return tryGet(() -> sourceFuture.get(), dataFuture::get);
-	}
+  @Override
+  public Binding<T> get() {
+    return tryGet(() -> sourceFuture.get(), dataFuture::get);
+  }
 
-	@Override
-	public Binding<T> get(long timeout, TimeUnit unit) {
-		return tryGet(() -> sourceFuture.get(timeout, unit), () -> dataFuture.get(timeout, unit));
-	}
+  @Override
+  public Binding<T> get(long timeout, TimeUnit unit) {
+    return tryGet(() -> sourceFuture.get(timeout, unit), () -> dataFuture.get(timeout, unit));
+  }
 
-	private Binding<T> tryGet(TryGet<BindingSource<T>> getModel, TryGet<T> getData) {
-		synchronized (context.bindingBlocker()) {
-			if (bindingResult != null) {
-				return bindingResult;
-			}
+  private Binding<T> tryGet(TryGet<BindingSource<T>> getModel, TryGet<T> getData) {
+    synchronized (context.bindingBlocker()) {
+      if (bindingResult != null) {
+        return bindingResult;
+      }
 
-			if (cancelled) {
-				throw new CancellationException();
-			}
-		}
+      if (cancelled) {
+        throw new CancellationException();
+      }
+    }
 
-		String input = "unknown";
+    String input = "unknown";
 
-		String modelString = "";
-		try {
-			BindingSource<T> source = getModel.tryGet();
-			Model<T> model = source.getModel();
+    String modelString = "";
+    try {
+      BindingSource<T> source = getModel.tryGet();
+      Model<T> model = source.getModel();
 
-			modelString = " with model '" + model.name() + "'";
+      modelString = " with model '" + model.name() + "'";
 
-			input = source.getName();
+      input = source.getName();
 
-			T data = getData.tryGet();
+      T data = getData.tryGet();
 
-			bindingResult = new Binding<>(model, data);
+      bindingResult = new Binding<>(model, data);
 
-			return bindingResult;
-		} catch (InterruptedException e) {
-			throw new ProcessingException(
-					"Unexpected interrupt during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString,
-					context, e);
-		} catch (ExecutionException e) {
-			throw new ProcessingException(
-					"Exception during binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context,
-					e.getCause());
-		} catch (TimeoutException e) {
-			throw new ProcessingException(
-					"Timed out waiting for binding of '" + input + "' with blocks '" + blocks() + "'" + modelString, context, e);
-		}
-	}
+      return bindingResult;
+    } catch (InterruptedException e) {
+      throw new ProcessingException(
+          "Unexpected interrupt during binding of '" + input + "' with blocks '" + blocks() + "'"
+              + modelString,
+          context,
+          e);
+    } catch (ExecutionException e) {
+      throw new ProcessingException(
+          "Exception during binding of '" + input + "' with blocks '" + blocks() + "'"
+              + modelString,
+          context,
+          e.getCause());
+    } catch (TimeoutException e) {
+      throw new ProcessingException(
+          "Timed out waiting for binding of '" + input + "' with blocks '" + blocks() + "'"
+              + modelString,
+          context,
+          e);
+    }
+  }
 
-	@Override
-	public Future<Model<T>> getModelFuture() {
-		return modelFuture;
-	}
+  @Override
+  public Future<Model<? super T>> getModelFuture() {
+    return modelFuture;
+  }
 
-	@Override
-	public BindingBlocks blocks() {
-		return context.bindingBlocker();
-	}
+  @Override
+  public BindingBlocks blocks() {
+    return context.bindingBlocker();
+  }
 
-	private T bind(BindingSource<T> source) {
-		Model<T> model = source.getModel();
-		return source.withData((StructuredDataSource input) -> {
-			ProcessingContextImpl context = this.context.withInput(input);
+  private T bind(BindingSource<T> source) {
+    Model<T> model = source.getModel();
+    return source.withData((StructuredDataReader input) -> {
+      ProcessingContextImpl context = this.context.withInput(input);
 
-			/*
-			 * Processing should always have access to the contents of the schema
-			 * owning the associated model.
-			 */
-			for (Model<?> schemaModel : model.schema().models()) {
-				context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
-			}
+      /*
+       * Processing should always have access to the contents of the schema owning the
+       * associated model.
+       */
+      for (Model<?> schemaModel : model.schema().models()) {
+        context.bindings().add(context.manager().getMetaSchema().getMetaModel(), schemaModel);
+      }
 
-			QualifiedName inputRoot = input.startNextChild();
-			if (!inputRoot.equals(model.name()))
-				throw new ProcessingException("Model '" + model.name() + "' does not match root input node '" + inputRoot + "'",
-						context);
+      QualifiedName inputRoot = input.readNextChild();
+      if (!inputRoot.equals(model.name()))
+        throw new ProcessingException(
+            "Model '" + model.name() + "' does not match root input node '" + inputRoot + "'",
+            context);
 
-			try {
-				return new BindingNodeBinder(context).bind(model);
-			} catch (ModabiException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new ProcessingException(t -> t.unexpectedProblemProcessing(source, model), context, e);
-			}
-		});
-	}
+      try {
+        return new BindingNodeBinder(context).bind(model);
+      } catch (ModabiException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new ProcessingException(
+            ProcessingException.MESSAGES.unexpectedProblemProcessing(source, model),
+            context,
+            e);
+      }
+    });
+  }
 }

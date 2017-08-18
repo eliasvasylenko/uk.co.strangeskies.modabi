@@ -29,7 +29,7 @@ import uk.co.strangeskies.reflection.Imports;
 @Component
 public class ModelBuilderImpl implements ModelBuilder {
 	@Override
-	public ModelConfigurator<Object> configure(DataLoader loader, Schema schema, Imports imports) {
+	public ModelConfigurator configure(DataLoader loader, Schema schema, Imports imports) {
 		return new ModelConfiguratorImpl<>(loader, schema, imports);
 	}
 }

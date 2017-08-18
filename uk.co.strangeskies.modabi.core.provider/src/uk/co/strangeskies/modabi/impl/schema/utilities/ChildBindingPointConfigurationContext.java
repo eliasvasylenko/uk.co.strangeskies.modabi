@@ -24,27 +24,27 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.DataLoader;
-import uk.co.strangeskies.modabi.schema.SchemaNode;
+import uk.co.strangeskies.modabi.schema.StructuralNode;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBindingPointConfigurationContext {
-	Namespace namespace();
+  Namespace namespace();
 
-	SchemaNode parentNode();
+  StructuralNode<?> parentNode();
 
-	DataLoader dataLoader();
+  DataLoader dataLoader();
 
-	Imports imports();
+  Imports imports();
 
-	BoundSet boundSet();
+  BoundSet boundSet();
 
-	TypeToken<?> inputTargetType();
+  TypeToken<?> inputTargetType();
 
-	TypeToken<?> outputSourceType();
+  TypeToken<?> outputSourceType();
 
-	void addChildResult(ChildBindingPoint<?> result);
+  void addChildResult(ChildBindingPoint<?> result);
 
-	Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id);
+  Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id);
 }

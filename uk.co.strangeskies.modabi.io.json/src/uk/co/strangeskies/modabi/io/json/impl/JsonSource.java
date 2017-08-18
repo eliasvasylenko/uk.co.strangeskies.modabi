@@ -24,11 +24,11 @@ import java.util.Set;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataSource;
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataSource;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataSource;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataReader;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
-public class JsonSource implements StructuredDataSource {
+public class JsonSource implements StructuredDataReader {
 	@Override
 	public StructuredDataState currentState() {
 		// TODO Auto-generated method stub
@@ -54,7 +54,7 @@ public class JsonSource implements StructuredDataSource {
 	}
 
 	@Override
-	public QualifiedName startNextChild() {
+	public QualifiedName readNextChild() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -90,7 +90,7 @@ public class JsonSource implements StructuredDataSource {
 	}
 
 	@Override
-	public StructuredDataSource endChild() {
+	public StructuredDataReader endChild() {
 		// TODO Auto-generated method stub
 		return this;
 	}
@@ -102,13 +102,13 @@ public class JsonSource implements StructuredDataSource {
 	}
 
 	@Override
-	public StructuredDataSource split() {
+	public StructuredDataReader split() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public NavigableStructuredDataSource buffer() {
+	public NavigableStructuredDataReader buffer() {
 		// TODO Auto-generated method stub
 		return null;
 	}

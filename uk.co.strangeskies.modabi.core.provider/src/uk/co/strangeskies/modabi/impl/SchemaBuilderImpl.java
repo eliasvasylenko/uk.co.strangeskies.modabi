@@ -38,188 +38,173 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.impl.schema.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.impl.schema.building.ModelConfiguratorDecorator;
 import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.ModelConfigurator;
+import uk.co.strangeskies.modabi.schema.ModelFactory;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utilities.IdentityProperty;
-import uk.co.strangeskies.utilities.Property;
+import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.utility.Property;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
-	public class SchemaConfiguratorImpl implements SchemaConfigurator {
-		class ModelConfiguratorDecoratorImpl extends ModelConfiguratorDecorator {
-			public ModelConfiguratorDecoratorImpl(ModelConfigurator component) {
-				super(component);
-			}
+  public class SchemaConfiguratorImpl implements SchemaConfigurator {
+    private final ModelBuilder modelBuilder;
 
-			@Override
-			public Model<T> create() {
-				Model<T> model = super.create();
-				modelSet.add(model);
-				return model;
-			}
-		}
+    private final DataLoader loader;
 
-		private final ModelBuilder modelBuilder;
+    private QualifiedName qualifiedName;
+    private final Set<Model<?>> modelSet;
+    private final Schemata dependencySet;
+    private Imports imports;
 
-		private final DataLoader loader;
+    private Map<String, Function<ModelConfigurator, ModelFactory<?>>> pendingModelConfigurations;
 
-		private QualifiedName qualifiedName;
-		private final Set<Model<?>> modelSet;
-		private final Schemata dependencySet;
-		private Imports imports;
+    private Property<Schema> schemaProperty;
+    private Schema schemaProxy;
 
-		private Map<String, Function<ModelConfigurator<?>, ModelConfigurator<?>>> pendingModelConfigurations;
+    public SchemaConfiguratorImpl(DataLoader loader) {
+      this(loader, new ModelBuilderImpl());
+    }
 
-		private Property<Schema, Schema> schemaProperty;
-		private Schema schemaProxy;
+    public SchemaConfiguratorImpl(DataLoader loader, ModelBuilder modelBuilder) {
+      this.modelBuilder = modelBuilder;
+      this.loader = loader;
 
-		public SchemaConfiguratorImpl(DataLoader loader) {
-			this(loader, new ModelBuilderImpl());
-		}
+      modelSet = new LinkedHashSet<>();
+      dependencySet = new Schemata();
+      imports = Imports.empty(Thread.currentThread().getContextClassLoader());
 
-		public SchemaConfiguratorImpl(DataLoader loader, ModelBuilder modelBuilder) {
-			this.modelBuilder = modelBuilder;
-			this.loader = loader;
+      pendingModelConfigurations = new HashMap<>();
 
-			modelSet = new LinkedHashSet<>();
-			dependencySet = new Schemata();
-			imports = Imports.empty(Thread.currentThread().getContextClassLoader());
+      schemaProperty = new IdentityProperty<>();
+      schemaProxy = (Schema) Proxy.newProxyInstance(
+          Schema.class.getClassLoader(),
+          new Class<?>[] { Schema.class },
+          new InvocationHandler() {
+            private Property<Schema> object = schemaProperty;
 
-			pendingModelConfigurations = new HashMap<>();
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+              return method.invoke(object.get(), args);
+            }
+          });
+    }
 
-			schemaProperty = new IdentityProperty<>();
-			schemaProxy = (Schema) Proxy.newProxyInstance(
-					Schema.class.getClassLoader(),
-					new Class<?>[] { Schema.class },
-					new InvocationHandler() {
-						private Property<Schema, Schema> object = schemaProperty;
+    @Override
+    public Schema create() {
+      for (String pendingModel : pendingModelConfigurations.keySet()) {
+        addModel(
+            new QualifiedName(pendingModel, qualifiedName.getNamespace()),
+            pendingModelConfigurations.get(pendingModel));
+      }
 
-						@Override
-						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-							return method.invoke(object.get(), args);
-						}
-					});
-		}
+      final QualifiedName qualifiedName = this.qualifiedName;
+      final Models models = new Models();
+      models.addAll(modelSet);
+      final Schemata dependencies = new Schemata();
+      dependencies.addAll(dependencySet);
 
-		@Override
-		public Schema create() {
-			for (String pendingModel : pendingModelConfigurations.keySet()) {
-				addModel(
-						new QualifiedName(pendingModel, qualifiedName.getNamespace()),
-						pendingModelConfigurations.get(pendingModel));
-			}
+      schemaProperty.set(new Schema() {
+        @Override
+        public QualifiedName qualifiedName() {
+          return qualifiedName;
+        }
 
-			final QualifiedName qualifiedName = this.qualifiedName;
-			final Models models = new Models();
-			models.addAll(modelSet);
-			final Schemata dependencies = new Schemata();
-			dependencies.addAll(dependencySet);
+        @Override
+        public Models models() {
+          return models;
+        }
 
-			schemaProperty.set(new Schema() {
-				@Override
-				public QualifiedName qualifiedName() {
-					return qualifiedName;
-				}
+        @Override
+        public Schemata dependencies() {
+          return dependencies;
+        }
 
-				@Override
-				public Models models() {
-					return models;
-				}
+        @Override
+        public Imports imports() {
+          return imports;
+        }
 
-				@Override
-				public Schemata dependencies() {
-					return dependencies;
-				}
+        @Override
+        public boolean equals(Object obj) {
+          if (!(obj instanceof Schema))
+            return false;
 
-				@Override
-				public Imports imports() {
-					return imports;
-				}
+          if (obj == this)
+            return true;
 
-				@Override
-				public boolean equals(Object obj) {
-					if (!(obj instanceof Schema))
-						return false;
+          Schema other = (Schema) obj;
 
-					if (obj == this)
-						return true;
+          return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
+              && dependencies().equals(other.dependencies()) && imports().equals(other.imports());
+        }
 
-					Schema other = (Schema) obj;
+        @Override
+        public int hashCode() {
+          return Objects.hash(qualifiedName(), models(), dependencies(), imports());
+        }
 
-					return qualifiedName().equals(other.qualifiedName())
-							&& models().equals(other.models())
-							&& dependencies().equals(other.dependencies())
-							&& imports().equals(other.imports());
-				}
+        @Override
+        public String toString() {
+          return qualifiedName().toString();
+        }
+      });
+      return schemaProperty.get();
+    }
 
-				@Override
-				public int hashCode() {
-					return Objects.hash(qualifiedName(), models(), dependencies(), imports());
-				}
+    @Override
+    public SchemaConfigurator qualifiedName(QualifiedName name) {
+      qualifiedName = name;
 
-				@Override
-				public String toString() {
-					return qualifiedName().toString();
-				}
-			});
-			return schemaProperty.get();
-		}
+      return this;
+    }
 
-		@Override
-		public SchemaConfigurator qualifiedName(QualifiedName name) {
-			qualifiedName = name;
+    @Override
+    public SchemaConfigurator dependencies(Collection<? extends Schema> dependencies) {
+      dependencySet.clear();
+      dependencySet.addAll(dependencies);
 
-			return this;
-		}
+      return this;
+    }
 
-		@Override
-		public SchemaConfigurator dependencies(Collection<? extends Schema> dependencies) {
-			dependencySet.clear();
-			dependencySet.addAll(dependencies);
+    @Override
+    public SchemaConfigurator imports(Collection<? extends Class<?>> imports) {
+      this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(
+          imports);
 
-			return this;
-		}
+      return this;
+    }
 
-		@Override
-		public SchemaConfigurator imports(Collection<? extends Class<?>> imports) {
-			this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(
-					imports);
+    @Override
+    public ModelConfiguratorDecorator addModel() {
+      ModelConfigurator configurator = modelBuilder.configure(loader, schemaProxy, imports);
+      return () -> configurator;
+    }
 
-			return this;
-		}
+    @Override
+    public SchemaConfigurator addModel(
+        String name,
+        Function<ModelConfigurator, ModelFactory<?>> configuration) {
+      if (qualifiedName == null) {
+        pendingModelConfigurations.put(name, configuration);
+      } else {
+        addModel(new QualifiedName(name, qualifiedName.getNamespace()), configuration);
+      }
+      return null;
+    }
 
-		@Override
-		public ModelConfigurator addModel() {
-			return new ModelConfiguratorDecoratorImpl(
-					modelBuilder.configure(loader, schemaProxy, imports));
-		}
+    @Override
+    public <T> Model<T> generateModel(TypeToken<T> type) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException();
+    }
+  }
 
-		@Override
-		public SchemaConfigurator addModel(
-				String name,
-				Function<ModelConfigurator<?>, ModelConfigurator<?>> configuration) {
-			if (qualifiedName == null) {
-				pendingModelConfigurations.put(name, configuration);
-			} else {
-				addModel(new QualifiedName(name, qualifiedName.getNamespace()), configuration);
-			}
-			return null;
-		}
-
-		@Override
-		public <T> Model<T> generateModel(TypeToken<T> type) {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
-		}
-	}
-
-	@Override
-	public SchemaConfigurator configure(DataLoader loader) {
-		return new SchemaConfiguratorImpl(loader);
-	}
+  @Override
+  public SchemaConfigurator configure(DataLoader loader) {
+    return new SchemaConfiguratorImpl(loader);
+  }
 }
