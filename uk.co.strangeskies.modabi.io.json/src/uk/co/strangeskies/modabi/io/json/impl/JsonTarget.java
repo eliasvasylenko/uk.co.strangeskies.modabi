@@ -28,9 +28,9 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.NamespaceAliases;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriterImpl;
 
-public class JsonTarget extends StructuredDataTargetImpl<JsonTarget> {
+public class JsonTarget extends StructuredDataWriterImpl<JsonTarget> {
 	private final Appendable out;
 
 	private final Deque<JSONObject> jsonObjectStack;

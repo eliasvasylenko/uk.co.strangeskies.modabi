@@ -42,7 +42,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -60,7 +60,7 @@ public class ModabiRegistration {
 
   private static final String SERVICE = "osgi.service";
   private static final String STRUCTUREDDATAFORMAT_SERVICE_FILTER = "(" + Constants.OBJECTCLASS
-      + "=" + StructuredDataFormat.class.getTypeName() + ")";
+      + "=" + DataFormat.class.getTypeName() + ")";
   private static final String SCHEMAMANAGER_SERVICE_FILTER = "(" + Constants.OBJECTCLASS + "="
       + SchemaManager.class.getTypeName() + ")";
 

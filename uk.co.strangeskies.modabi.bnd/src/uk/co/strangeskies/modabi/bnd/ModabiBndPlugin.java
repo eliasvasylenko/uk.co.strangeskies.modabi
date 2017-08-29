@@ -33,7 +33,7 @@ import uk.co.strangeskies.log.Log;
 import uk.co.strangeskies.log.Log.Level;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.impl.SchemaManagerService;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
 
@@ -45,11 +45,11 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
   private static final Object SOURCES_PROPERTY = "sources";
   private static final String DEFAULT_SOURCE = "META-INF/schemata/*";
 
-  private final StructuredDataFormat format;
+  private final DataFormat format;
   private final Set<String> sources;
   private Log log;
 
-  public ModabiBndPlugin(StructuredDataFormat format) {
+  public ModabiBndPlugin(DataFormat format) {
     this.format = format;
 
     sources = new HashSet<>();

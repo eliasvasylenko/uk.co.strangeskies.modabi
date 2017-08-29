@@ -36,9 +36,9 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataTargetImpl;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriterImpl;
 
-public class XmlTarget extends StructuredDataTargetImpl<XmlTarget> {
+public class XmlTarget extends StructuredDataWriterImpl<XmlTarget> {
 	private final XMLStreamWriter out;
 
 	private final NamespaceStack namespaces;

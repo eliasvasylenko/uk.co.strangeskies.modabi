@@ -70,7 +70,7 @@ public interface BindingBlocker extends BindingBlocks {
    *          to possible satisfaction via external sources
    * @return
    */
-  BindingBlock block(QualifiedName namespace, String id, boolean internal);
+  BindingBlock block(QualifiedName namespace, Object id, boolean internal);
 
   public Set<Thread> getParticipatingThreads();
 

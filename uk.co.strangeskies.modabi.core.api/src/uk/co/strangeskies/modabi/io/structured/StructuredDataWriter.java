@@ -18,12 +18,15 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-import java.util.List;
+import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
+
+import java.util.Optional;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 
-public interface StructuredDataWriter {
+public interface StructuredDataWriter extends StructuredDataReader {
   /**
    * This may help some data targets, e.g. XML, organise content a little more
    * cleanly, by suggesting a default namespace for a document at the current
@@ -41,25 +44,38 @@ public interface StructuredDataWriter {
    * @param namespace
    * @return
    */
-  public StructuredDataWriter registerDefaultNamespaceHint(Namespace namespace);
+  StructuredDataWriter registerDefaultNamespaceHint(Namespace namespace);
 
-  public StructuredDataWriter registerNamespaceHint(Namespace namespace);
+  StructuredDataWriter registerNamespaceHint(Namespace namespace);
 
-  public StructuredDataWriter addChild(QualifiedName name);
+  StructuredDataWriter addChild(QualifiedName name);
 
-  public StructuredDataWriter writeProperty(QualifiedName name, String value);
+  StructuredDataWriter writeProperty(QualifiedName name, String value);
 
-  public StructuredDataWriter writeContent(String value);
+  StructuredDataWriter setPrimaryProperty(QualifiedName name);
 
-  public StructuredDataWriter endChild();
+  @Override
+  StructuredDataWriter endChild();
 
-  public StructuredDataWriter comment(String comment);
+  StructuredDataWriter comment(String comment);
 
-  public boolean hasContent();
+  @Override
+  default Optional<QualifiedName> getNextChild() {
+    return Optional.empty();
+  }
 
-  public boolean hasProperties();
+  @Override
+  default StructuredDataWriter readNextChild() {
+    throw new ModabiIOException(MESSAGES.nextChildDoesNotExist());
+  }
 
-  public boolean hasChildren();
+  @Override
+  default StructuredDataWriter skipNextChild() {
+    throw new ModabiIOException(MESSAGES.nextChildDoesNotExist());
+  }
 
-  public List<Integer> index();
+  @Override
+  default StructuredDataWriter skipChildren() {
+    return this;
+  }
 }

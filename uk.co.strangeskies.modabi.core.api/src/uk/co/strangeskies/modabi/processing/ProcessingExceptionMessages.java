@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.StructuralNode;
+import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.properties.PropertyConfiguration;
 import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
@@ -52,7 +52,7 @@ public interface ProcessingExceptionMessages {
   String cannotInvoke(
       Executable inputMethod,
       TypeToken<?> targetType,
-      StructuralNode<?> node,
+      Node<?> node,
       List<?> parameters);
 
   String mustHaveData(QualifiedName node);
@@ -80,7 +80,7 @@ public interface ProcessingExceptionMessages {
 
   String mustSupplyAttemptItems();
 
-  String unexpectedProblemProcessing(Object data, BindingPoint<?> model);
+  String unexpectedProblemProcessing(Object data, Model<?> model);
 
   String unexpectedElement(QualifiedName element);
 

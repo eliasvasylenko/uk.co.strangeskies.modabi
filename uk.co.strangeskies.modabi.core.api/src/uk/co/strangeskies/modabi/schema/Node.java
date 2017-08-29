@@ -18,11 +18,15 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
+import static java.util.Arrays.asList;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.ValueResolution;
+import uk.co.strangeskies.text.parsing.Parser;
 
 /**
  * The base interface for {@link Schema schema} element nodes. Schemata are made
@@ -37,21 +41,33 @@ import uk.co.strangeskies.modabi.ValueResolution;
 public interface Node<T> {
   boolean concrete();
 
+  boolean extensible();
+
   /**
    * Get the schema node configurator which created this schema node, or in the
    * case of a mutable configurator implementation, a copy thereof.
    * 
    * @return the creating configurator
    */
-  SchemaNodeConfigurator<T, ?> configurator();
+  NodeBuilder<T, ?> configurator();
+
+  Parser<T> parser();
 
   /**
    * @return the set of all <em>direct</em> base nodes, i.e. excluding those which
    *         are transitively implied via other more specific base nodes
    */
-  Stream<? extends Node<?>> baseNodes();
+  Stream<Node<?>> baseNodes();
 
-  ValueResolution providedValuesResolution();
+  Stream<ChildBindingPoint<?>> children();
+
+  List<ChildBindingPoint<?>> descendents(List<QualifiedName> names);
+
+  default List<ChildBindingPoint<?>> descendents(QualifiedName... names) {
+    return descendents(asList(names));
+  }
+
+  ChildBindingPoint<?> child(QualifiedName name);
 
   Optional<T> providedValue();
 }

@@ -16,4 +16,6 @@ public interface ModabiIOExceptionMessages {
   String invalidOperationOnContent();
 
   String invalidLocation(URI location);
+
+  String cannotModifyPropertiesAfterChildren();
 }

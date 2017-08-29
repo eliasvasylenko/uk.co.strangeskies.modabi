@@ -44,7 +44,7 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.plugin.ModabiRegistration;
 import uk.co.strangeskies.modabi.plugin.RegistrationContext;
 import uk.co.strangeskies.reflection.resource.Attribute;
@@ -53,7 +53,7 @@ import uk.co.strangeskies.reflection.resource.ManifestAttributeParser;
 final class BndRegistrationContext implements RegistrationContext {
   private final Log log;
   private final Analyzer analyzer;
-  private final StructuredDataFormat format;
+  private final DataFormat format;
 
   private final ClassLoader classLoader;
   private final Map<String, Resource> resources;
@@ -64,7 +64,7 @@ final class BndRegistrationContext implements RegistrationContext {
       SchemaManager manager,
       Log log,
       Analyzer analyzer,
-      StructuredDataFormat format,
+      DataFormat format,
       Set<String> sources) {
     this.log = log;
     this.analyzer = analyzer;

@@ -19,8 +19,8 @@
 package uk.co.strangeskies.modabi.impl;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static java.util.stream.Collectors.toList;
 import static uk.co.strangeskies.modabi.processing.ProcessingException.MESSAGES;
-import static uk.co.strangeskies.observable.Observable.merge;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -35,20 +35,17 @@ import java.util.function.Supplier;
 import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.InputBinder;
+import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl;
-import uk.co.strangeskies.modabi.impl.processing.BindingFutureImpl.BindingSource;
-import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
-import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.impl.BindingFutureImpl.BindingSource;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.observable.Observable;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class InputBinderImpl<T> implements InputBinder<T> {
@@ -76,7 +73,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   public static InputBinder<?> bind(ProcessingContextImpl context, DataFormats formats) {
     return new InputBinderImpl<>(context, formats, data -> {
       try {
-        return context.registeredModels().waitForGet(data.peekNextChild());
+        return context.registeredModels().getFuture(data.getNextChild().get()).get();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -92,12 +89,17 @@ public class InputBinderImpl<T> implements InputBinder<T> {
     return with(data -> {
       if (!context.registeredModels().contains(model)) {
         throw new ProcessingException(
-            MESSAGES.noModelFound(model.name(), context.registeredModels(), model.dataType()),
+            MESSAGES.noModelFound(
+                model.name(),
+                context.registeredModels().getAll().collect(toList()),
+                model.dataType()),
             context);
       }
 
-      if (!data.peekNextChild().equals(model.name())) {
-        throw new ProcessingException(MESSAGES.unexpectedElement(data.peekNextChild()), context);
+      if (!data.getNextChild().filter(model.name()::equals).isPresent()) {
+        throw new ProcessingException(
+            MESSAGES.unexpectedElement(data.getNextChild().get()),
+            context);
       }
 
       return model;
@@ -108,7 +110,11 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   public <U> InputBinder<U> to(TypeToken<U> type) {
     return with(data -> {
       try {
-        return context.registeredModels().waitForGet(data.peekNextChild(), type);
+        return context
+            .registeredModels()
+            .getFuture(data.getNextChild().get())
+            .thenApply(m -> Models.cast(m, type))
+            .get();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -185,11 +191,11 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   private BindingSource<T> getBindingSource(
       String formatId,
       ThrowingSupplier<InputStream, ?> input,
-      Predicate<StructuredDataFormat> formatPredicate,
+      Predicate<DataFormat> formatPredicate,
       boolean canRetry) {
     Set<Exception> exceptions = new HashSet<>();
 
-    Function<StructuredDataFormat, BindingSource<T>> getBindingSource = format -> {
+    Function<DataFormat, BindingSource<T>> getBindingSource = format -> {
       if (formatPredicate.test(format)) {
         try (InputStream inputStream = input.get()) {
           StructuredDataReader source = format.loadData(inputStream);
@@ -210,14 +216,11 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 
     CompletableFuture<BindingSource<T>> sourceFuture;
 
-    synchronized (formats) {
-      sourceFuture = merge(
-          Observable.of(formats),
-          formats.changes().flatMap(change -> Observable.of(change.added())))
-              .executeOn(newSingleThreadExecutor())
-              .map(getBindingSource::apply)
-              .getNext();
-    }
+    sourceFuture = formats
+        .getAllFuture()
+        .executeOn(newSingleThreadExecutor())
+        .map(getBindingSource::apply)
+        .getNext();
 
     try {
       if (sourceFuture.isCompletedExceptionally() || sourceFuture.isDone()) {
@@ -225,7 +228,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
       } else {
         BindingBlock block = context
             .bindingBlocker()
-            .block(FORMAT_BLOCK_NAMESPACE, Primitive.STRING, formatId, false);
+            .block(FORMAT_BLOCK_NAMESPACE, formatId, false);
 
         try {
           BindingSource<T> source = sourceFuture.get();

@@ -36,33 +36,28 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
-import uk.co.strangeskies.reflection.token.MethodMatcher;
-import uk.co.strangeskies.reflection.token.VariableMatcher;
+public interface ValueExpression {
+  void evaluate(ExpressionVisitor visitor);
 
-public interface ValueExpression<T> extends Expression {
-  default <R> VariableExpression<R> getField(VariableMatcher<? super T, ? super R> field) {
-    return new VariableExpression<R>() {
+  default VariableExpression getField(String field) {
+    return new VariableExpression() {
       @Override
       public void evaluate(ExpressionVisitor visitor) {
         visitor.visitGetField(ValueExpression.this, field);
       }
 
       @Override
-      public ValueExpression<R> assign(ValueExpression<? extends R> value) {
+      public ValueExpression assign(ValueExpression value) {
         return v -> v.visitSetField(ValueExpression.this, field, value);
       }
     };
   }
 
-  default <R> ValueExpression<R> invoke(
-      MethodMatcher<? super T, ? super R> invocable,
-      ValueExpression<?>... arguments) {
-    return invoke(invocable, asList(arguments));
+  default ValueExpression invoke(String methodName, ValueExpression... arguments) {
+    return invoke(methodName, asList(arguments));
   }
 
-  default <R> ValueExpression<R> invoke(
-      MethodMatcher<? super T, ? super R> invocable,
-      List<ValueExpression<?>> arguments) {
-    return v -> v.visitInvocation(this, invocable, arguments);
+  default <R> ValueExpression invoke(String methodName, List<ValueExpression> arguments) {
+    return v -> v.visitInvocation(this, methodName, arguments);
   }
 }

@@ -38,7 +38,7 @@ public class ForbiddenCondition<T> implements BindingCondition<T> {
       @Override
       public void endProcessing() {
         if (processed) {
-          throw new ProcessingException(MESSAGES.mustNotHaveData(state.getNode()), state);
+          throw new ProcessingException(MESSAGES.mustNotHaveData(state.getBindingPoint()), state);
         }
       }
     };

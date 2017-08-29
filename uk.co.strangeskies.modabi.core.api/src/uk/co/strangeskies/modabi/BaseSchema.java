@@ -41,8 +41,6 @@ public interface BaseSchema extends Schema {
 
   Model<String> stringModel();
 
-  Model<Object> rootModel();
-
   Model<byte[]> binaryModel();
 
   Model<BigInteger> integerModel();
@@ -77,6 +75,17 @@ public interface BaseSchema extends Schema {
 
   Model<?> bindingReferenceModel();
 
+  /*
+   * Denotes a given node as referenceable according to a given index
+   */
+  Model<Void> referenceIndexModel();
+
+  /*
+   * retrieves objects already bound by SchemaBinder and 'includes' them, or some
+   * children of them. Blocks if we are waiting for them.
+   */
+  Model<Object> importModel();
+
   Model<Interval<Integer>> rangeModel();
 
   Model<Enum<?>> enumModel();
@@ -95,15 +104,4 @@ public interface BaseSchema extends Schema {
 
   Model<Map<?, ?>> mapModel();
 
-  /*
-   * during binding / unbinding magically adds items to bindings list (so can be
-   * referenced)
-   */
-  Model<Collection<?>> includeModel();
-
-  /*
-   * retrieves objects already bound by SchemaBinder and 'includes' them, or some
-   * children of them. Blocks if we are waiting for them.
-   */
-  Model<Object> importModel();
 }

@@ -18,74 +18,82 @@
  */
 package uk.co.strangeskies.modabi;
 
-import static java.util.function.Function.identity;
-import static uk.co.strangeskies.observable.Observer.singleUse;
+import static uk.co.strangeskies.observable.Observer.onObservation;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-import uk.co.strangeskies.collection.SetTransformationView;
-import uk.co.strangeskies.collection.observable.ObservableSetDecorator;
-import uk.co.strangeskies.collection.observable.SynchronizedObservableSet;
-import uk.co.strangeskies.observable.Disposable;
-import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.observable.HotObservable;
+import uk.co.strangeskies.observable.Observable;
 
-public abstract class NamedSet<N, T> extends ObservableSetDecorator<T> {
+public abstract class NamedSet<N, T> {
   private final Function<T, N> namingFunction;
   private final LinkedHashMap<N, T> elements;
-  private final Object mutex;
+  private final HotObservable<N> nameObservable;
 
   protected NamedSet(Function<T, N> namingFunction) {
-    this(namingFunction, new LinkedHashMap<>());
-  }
-
-  private NamedSet(Function<T, N> namingFunction, LinkedHashMap<N, T> elements) {
-    this(
-        namingFunction,
-        elements,
-        SynchronizedObservableSet.over(
-            new ObservableSetDecorator<>(
-                new SetTransformationView<T, T>(elements.values(), identity()) {
-                  @Override
-                  public boolean add(T e) {
-                    N name = namingFunction.apply(e);
-                    if (elements.get(name) != null)
-                      return false;
-
-                    return elements.putIfAbsent(name, e) == null;
-                  }
-
-                  @Override
-                  public boolean addAll(Collection<? extends T> elements) {
-                    boolean changed = false;
-                    for (T element : elements) {
-                      changed = add(element) || changed;
-                    }
-                    return changed;
-                  }
-                })));
-  }
-
-  private NamedSet(
-      Function<T, N> namingFunction,
-      LinkedHashMap<N, T> elements,
-      SynchronizedObservableSet<T> set) {
-    super(set);
-
     this.namingFunction = namingFunction;
-    this.elements = elements;
-    this.mutex = set.getMutex();
-  }
-
-  public N nameOf(T element) {
-    return namingFunction.apply(element);
+    this.elements = new LinkedHashMap<>();
+    this.nameObservable = new HotObservable<>();
   }
 
   protected Object getMutex() {
-    return mutex;
+    return elements;
+  }
+
+  protected void add(T element) {
+    synchronized (getMutex()) {
+      N name = namingFunction.apply(element);
+      if (elements.containsKey(name))
+        throw new IllegalArgumentException();
+      elements.put(name, element);
+      nameObservable.next(name);
+    }
+  }
+
+  protected void remove(T element) {
+    synchronized (getMutex()) {
+      N name = getName(element);
+      if (name != null)
+        elements.remove(name);
+    }
+  }
+
+  public boolean containsName(N name) {
+    synchronized (getMutex()) {
+      return elements.containsKey(name);
+    }
+  }
+
+  public N getName(T element) {
+    synchronized (getMutex()) {
+      N name = namingFunction.apply(element);
+      return containsName(name) ? name : null;
+    }
+  }
+
+  public Stream<N> getAllNames() {
+    synchronized (getMutex()) {
+      return elements.keySet().stream();
+    }
+  }
+
+  public Observable<N> getAllFutureNames() {
+    synchronized (getMutex()) {
+      return Observable
+          .concat(Observable.of(elements.keySet()), nameObservable)
+          .synchronize(getMutex())
+          .then(onObservation(o -> o.requestUnbounded()));
+    }
+  }
+
+  public boolean contains(T element) {
+    synchronized (getMutex()) {
+      return containsName(namingFunction.apply(element));
+    }
   }
 
   public T get(N name) {
@@ -94,78 +102,24 @@ public abstract class NamedSet<N, T> extends ObservableSetDecorator<T> {
     }
   }
 
-  public T waitForGet(N name) throws InterruptedException {
-    return waitForGet(name, () -> {});
-  }
-
-  public T waitForGet(N name, Runnable onPresent) throws InterruptedException {
-    return waitForGet(name, onPresent, -1);
-  }
-
-  public T waitForGet(N name, int timeoutMilliseconds) throws InterruptedException {
-    return waitForGet(name, () -> {}, timeoutMilliseconds);
-  }
-
-  public T waitForGet(N name, Runnable onPresent, int timeoutMilliseconds)
-      throws InterruptedException {
-    IdentityProperty<T> result = new IdentityProperty<>();
-
+  public Stream<T> getAll() {
     synchronized (getMutex()) {
-      Disposable observation = changes().observe(singleUse(o -> c -> {
-        synchronized (getMutex()) {
-          if (result.get() != null) {
-            o.cancel();
-            return;
-          }
-
-          for (T element : c.added()) {
-            if (nameOf(element).equals(name)) {
-              onPresent.run();
-
-              result.set(element);
-              getMutex().notifyAll();
-
-              o.cancel();
-              return;
-            }
-          }
-        }
-      }));
-
-      T element = get(name);
-
-      if (element != null) {
-        onPresent.run();
-
-        result.set(element);
-        observation.cancel();
-      } else {
-        try {
-          do {
-            if (timeoutMilliseconds < 0) {
-              getMutex().wait();
-            } else {
-              getMutex().wait(timeoutMilliseconds);
-            }
-          } while (result.get() == null);
-        } catch (InterruptedException e) {
-          if (result.get() == null) {
-            observation.cancel();
-            throw e;
-          }
-        }
-      }
+      return new ArrayList<>(elements.values()).stream();
     }
-
-    return result.get();
   }
 
-  public Map<N, T> getElements() {
-    return new HashMap<>(this.elements);
+  public CompletableFuture<T> getFuture(N name) {
+    return getAllFuture().filter(t -> getName(t).equals(name)).getNext();
+  }
+
+  public Observable<T> getAllFuture() {
+    return getAllFutureNames().map(this::get);
   }
 
   @Override
   public String toString() {
-    return getElements().toString();
+    synchronized (getMutex()) {
+      return elements.toString();
+    }
   }
 }

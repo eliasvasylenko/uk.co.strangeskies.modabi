@@ -21,27 +21,25 @@ package uk.co.strangeskies.modabi.impl;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.SchemaConfigurator;
-import uk.co.strangeskies.modabi.Schemata;
 import uk.co.strangeskies.modabi.impl.schema.ModelBuilderImpl;
-import uk.co.strangeskies.modabi.schema.DataLoader;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.ModelConfigurator;
 import uk.co.strangeskies.modabi.schema.ModelFactory;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -50,161 +48,160 @@ import uk.co.strangeskies.utility.Property;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
-  public class SchemaConfiguratorImpl implements SchemaConfigurator {
-    private final ModelBuilder modelBuilder;
+  private QualifiedName qualifiedName;
+  private final Set<Model<?>> modelSet;
+  private final Set<Schema> dependencySet;
+  private Imports imports;
 
-    private final DataLoader loader;
+  private Map<String, Function<ModelBuilder, ModelFactory<?>>> pendingModelConfigurations;
 
-    private QualifiedName qualifiedName;
-    private final Set<Model<?>> modelSet;
-    private final Schemata dependencySet;
-    private Imports imports;
+  private Property<Schema> schemaProperty;
+  private Schema schemaProxy;
 
-    private Map<String, Function<ModelConfigurator, ModelFactory<?>>> pendingModelConfigurations;
+  public SchemaBuilderImpl() {
+    modelSet = new LinkedHashSet<>();
+    dependencySet = new LinkedHashSet<>();
+    imports = Imports.empty(Thread.currentThread().getContextClassLoader());
 
-    private Property<Schema> schemaProperty;
-    private Schema schemaProxy;
+    pendingModelConfigurations = new HashMap<>();
 
-    public SchemaConfiguratorImpl(DataLoader loader) {
-      this(loader, new ModelBuilderImpl());
-    }
+    schemaProperty = new IdentityProperty<>();
+    schemaProxy = (Schema) Proxy.newProxyInstance(
+        Schema.class.getClassLoader(),
+        new Class<?>[] { Schema.class },
+        new InvocationHandler() {
+          private Property<Schema> object = schemaProperty;
 
-    public SchemaConfiguratorImpl(DataLoader loader, ModelBuilder modelBuilder) {
-      this.modelBuilder = modelBuilder;
-      this.loader = loader;
+          @Override
+          public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            return method.invoke(object.get(), args);
+          }
+        });
+  }
 
-      modelSet = new LinkedHashSet<>();
-      dependencySet = new Schemata();
-      imports = Imports.empty(Thread.currentThread().getContextClassLoader());
-
-      pendingModelConfigurations = new HashMap<>();
-
-      schemaProperty = new IdentityProperty<>();
-      schemaProxy = (Schema) Proxy.newProxyInstance(
-          Schema.class.getClassLoader(),
-          new Class<?>[] { Schema.class },
-          new InvocationHandler() {
-            private Property<Schema> object = schemaProperty;
-
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-              return method.invoke(object.get(), args);
-            }
-          });
-    }
-
-    @Override
-    public Schema create() {
-      for (String pendingModel : pendingModelConfigurations.keySet()) {
-        addModel(
-            new QualifiedName(pendingModel, qualifiedName.getNamespace()),
-            pendingModelConfigurations.get(pendingModel));
-      }
-
-      final QualifiedName qualifiedName = this.qualifiedName;
-      final Models models = new Models();
-      models.addAll(modelSet);
-      final Schemata dependencies = new Schemata();
-      dependencies.addAll(dependencySet);
-
-      schemaProperty.set(new Schema() {
-        @Override
-        public QualifiedName qualifiedName() {
-          return qualifiedName;
-        }
-
-        @Override
-        public Models models() {
-          return models;
-        }
-
-        @Override
-        public Schemata dependencies() {
-          return dependencies;
-        }
-
-        @Override
-        public Imports imports() {
-          return imports;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-          if (!(obj instanceof Schema))
-            return false;
-
-          if (obj == this)
-            return true;
-
-          Schema other = (Schema) obj;
-
-          return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
-              && dependencies().equals(other.dependencies()) && imports().equals(other.imports());
-        }
-
-        @Override
-        public int hashCode() {
-          return Objects.hash(qualifiedName(), models(), dependencies(), imports());
-        }
-
-        @Override
-        public String toString() {
-          return qualifiedName().toString();
-        }
-      });
-      return schemaProperty.get();
-    }
-
-    @Override
-    public SchemaConfigurator qualifiedName(QualifiedName name) {
-      qualifiedName = name;
-
-      return this;
-    }
-
-    @Override
-    public SchemaConfigurator dependencies(Collection<? extends Schema> dependencies) {
-      dependencySet.clear();
-      dependencySet.addAll(dependencies);
-
-      return this;
-    }
-
-    @Override
-    public SchemaConfigurator imports(Collection<? extends Class<?>> imports) {
-      this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(
-          imports);
-
-      return this;
-    }
-
-    @Override
-    public ModelConfiguratorDecorator addModel() {
-      ModelConfigurator configurator = modelBuilder.configure(loader, schemaProxy, imports);
-      return () -> configurator;
-    }
-
-    @Override
-    public SchemaConfigurator addModel(
-        String name,
-        Function<ModelConfigurator, ModelFactory<?>> configuration) {
-      if (qualifiedName == null) {
-        pendingModelConfigurations.put(name, configuration);
-      } else {
-        addModel(new QualifiedName(name, qualifiedName.getNamespace()), configuration);
-      }
-      return null;
-    }
-
-    @Override
-    public <T> Model<T> generateModel(TypeToken<T> type) {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException();
-    }
+  public SchemaBuilderImpl(
+      ModelBuilder modelBuilder,
+      QualifiedName qualifiedName,
+      Set<Model<?>> modelSet,
+      Set<Schema> dependencySet,
+      Imports imports,
+      Map<String, Function<ModelBuilder, ModelFactory<?>>> pendingModelConfigurations,
+      Property<Schema> schemaProperty,
+      Schema schemaProxy) {
+    this.qualifiedName = qualifiedName;
+    this.modelSet = modelSet;
+    this.dependencySet = dependencySet;
+    this.imports = imports;
+    this.pendingModelConfigurations = pendingModelConfigurations;
+    this.schemaProxy = schemaProxy;
   }
 
   @Override
-  public SchemaConfigurator configure(DataLoader loader) {
-    return new SchemaConfiguratorImpl(loader);
+  public Schema create() {
+    for (String pendingModel : pendingModelConfigurations.keySet()) {
+      addModel(
+          new QualifiedName(pendingModel, qualifiedName.getNamespace()),
+          pendingModelConfigurations.get(pendingModel));
+    }
+
+    final QualifiedName qualifiedName = this.qualifiedName;
+    final List<Model<?>> models = new ArrayList<>();
+    models.addAll(modelSet);
+    final List<Schema> dependencies = new ArrayList<>();
+    dependencies.addAll(dependencySet);
+
+    schemaProperty.set(new Schema() {
+      @Override
+      public QualifiedName qualifiedName() {
+        return qualifiedName;
+      }
+
+      @Override
+      public Stream<Model<?>> models() {
+        return models.stream();
+      }
+
+      @Override
+      public Stream<Schema> dependencies() {
+        return dependencies.stream();
+      }
+
+      @Override
+      public Imports imports() {
+        return imports;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (!(obj instanceof Schema))
+          return false;
+
+        if (obj == this)
+          return true;
+
+        Schema other = (Schema) obj;
+
+        return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
+            && dependencies().equals(other.dependencies()) && imports().equals(other.imports());
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(qualifiedName(), models(), dependencies(), imports());
+      }
+
+      @Override
+      public String toString() {
+        return qualifiedName().toString();
+      }
+    });
+    return schemaProperty.get();
+  }
+
+  @Override
+  public SchemaBuilder qualifiedName(QualifiedName name) {
+    qualifiedName = name;
+
+    return this;
+  }
+
+  @Override
+  public SchemaBuilder dependencies(Collection<? extends Schema> dependencies) {
+    dependencySet.clear();
+    dependencySet.addAll(dependencies);
+
+    return this;
+  }
+
+  @Override
+  public SchemaBuilder imports(Collection<? extends Class<?>> imports) {
+    this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(
+        imports);
+
+    return this;
+  }
+
+  @Override
+  public ModelConfiguratorDecorator addModel() {
+    ModelBuilder configurator = new ModelBuilderImpl<>(schemaProxy);
+    return () -> configurator;
+  }
+
+  @Override
+  public SchemaBuilder addModel(
+      String name,
+      Function<ModelBuilder, ModelFactory<?>> configuration) {
+    if (qualifiedName == null) {
+      pendingModelConfigurations.put(name, configuration);
+    } else {
+      addModel(new QualifiedName(name, qualifiedName.getNamespace()), configuration);
+    }
+    return null;
+  }
+
+  @Override
+  public <T> Model<T> generateModel(TypeToken<T> type) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException();
   }
 }

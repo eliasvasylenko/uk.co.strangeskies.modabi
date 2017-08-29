@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import java.util.function.Supplier;
+
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
@@ -29,21 +31,19 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
  * @author Elias N Vasylenko
  */
 public class CoreSchemata {
-	final BaseSchema baseSchema;
-	final MetaSchema metaSchema;
+  final BaseSchema baseSchema;
+  final MetaSchema metaSchema;
 
-	public CoreSchemata(SchemaBuilder schemaBuilder) {
-		BootstrapDataLoader loader = new BootstrapDataLoader();
-		baseSchema = new BaseSchemaImpl(schemaBuilder, loader);
-		metaSchema = new MetaSchemaImpl(schemaBuilder, loader, baseSchema);
-		loader.setComplete(baseSchema, metaSchema);
-	}
+  public CoreSchemata(Supplier<SchemaBuilder> schemaBuilder) {
+    baseSchema = new BaseSchemaImpl(schemaBuilder.get());
+    metaSchema = new MetaSchemaImpl(schemaBuilder.get(), baseSchema);
+  }
 
-	public BaseSchema baseSchema() {
-		return baseSchema;
-	}
+  public BaseSchema baseSchema() {
+    return baseSchema;
+  }
 
-	public MetaSchema metaSchema() {
-		return metaSchema;
-	}
+  public MetaSchema metaSchema() {
+    return metaSchema;
+  }
 }

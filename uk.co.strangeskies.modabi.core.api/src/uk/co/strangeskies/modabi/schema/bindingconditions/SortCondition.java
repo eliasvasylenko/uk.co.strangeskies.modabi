@@ -52,7 +52,7 @@ public class SortCondition<T> implements BindingCondition<T> {
       private ProcessingException failProcess() {
         return new ProcessingException(
             MESSAGES.mustBeOrdered(
-                (ChildBindingPoint<T>) state.getNode(),
+                (ChildBindingPoint<T>) state.getBindingPoint(),
                 previousBinding,
                 (Class<? extends Comparator<?>>) comparator.getClass()),
             state);

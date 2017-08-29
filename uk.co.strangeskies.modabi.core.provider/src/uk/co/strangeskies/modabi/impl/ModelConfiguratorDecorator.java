@@ -6,15 +6,15 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.ModelConfigurator;
-import uk.co.strangeskies.modabi.schema.SchemaNodeConfigurator;
+import uk.co.strangeskies.modabi.schema.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ModelConfiguratorDecorator extends ModelConfigurator {
-  ModelConfigurator getComponent();
+public interface ModelConfiguratorDecorator extends ModelBuilder {
+  ModelBuilder getComponent();
 
   @Override
-  default ModelConfigurator name(QualifiedName name) {
+  default ModelBuilder name(QualifiedName name) {
     getComponent().name(name);
     return this;
   }
@@ -25,7 +25,7 @@ public interface ModelConfiguratorDecorator extends ModelConfigurator {
   }
 
   @Override
-  default ModelConfigurator export(boolean export) {
+  default ModelBuilder export(boolean export) {
     getComponent().export(export);
     return this;
   }
@@ -36,19 +36,24 @@ public interface ModelConfiguratorDecorator extends ModelConfigurator {
   }
 
   @Override
-  default <V> SchemaNodeConfigurator<V, Model<V>> type(TypeToken<V> dataType) {
-    return getComponent().type(dataType);
+  default <V> NodeBuilder<V, Model<V>> baseType(TypeToken<V> dataType) {
+    return getComponent().baseType(dataType);
   }
 
   @Override
-  default <U> SchemaNodeConfigurator<U, Model<U>> baseModel(
+  default <U> NodeBuilder<U, Model<U>> baseModel(
       TypeToken<U> type,
       Collection<? extends Model<? super U>> baseModel) {
     return getComponent().baseModel(type, baseModel);
   }
 
   @Override
-  default Stream<Model<?>> getBaseModel() {
+  default Stream<? extends Model<?>> getBaseModel() {
     return getComponent().getBaseModel();
+  }
+
+  @Override
+  default Optional<TypeToken<?>> getBaseType() {
+    return getComponent().getBaseType();
   }
 }

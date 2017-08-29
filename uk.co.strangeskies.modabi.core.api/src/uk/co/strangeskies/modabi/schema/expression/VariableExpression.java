@@ -32,6 +32,6 @@
  */
 package uk.co.strangeskies.modabi.schema.expression;
 
-public interface VariableExpression<T> extends ValueExpression<T> {
-  ValueExpression<T> assign(ValueExpression<? extends T> value);
+public interface VariableExpression extends ValueExpression {
+  ValueExpression assign(ValueExpression value);
 }

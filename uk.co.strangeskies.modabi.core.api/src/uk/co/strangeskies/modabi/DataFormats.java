@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi;
 
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 
-public class DataFormats extends NamedSet<String, StructuredDataFormat> {
+public class DataFormats extends NamedSet<String, DataFormat> {
   public DataFormats() {
-    super(StructuredDataFormat::getFormatId);
+    super(DataFormat::getFormatId);
   }
 }

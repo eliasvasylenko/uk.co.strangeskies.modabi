@@ -12,7 +12,7 @@ import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.StructuralNode;
+import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ModabiExceptionProperties {
@@ -67,7 +67,7 @@ public interface ModabiExceptionProperties {
 
   String mustProvideValueForNonAbstract(String propertyName);
 
-  String unexpectedOverrideError(StructuralNode<?> base);
+  String unexpectedOverrideError(Node<?> base);
 
   String executableTypeStaticMethod();
 
@@ -123,19 +123,19 @@ public interface ModabiExceptionProperties {
 
   String cannotBeInlineExtensible(QualifiedName name);
 
-  String cannotBeAbstract(StructuralNode<?> node);
+  String cannotBeAbstract(Node<?> node);
 
-  String cannotFindOutMethodWithoutResultType(StructuralNode<?> node);
+  String cannotFindOutMethodWithoutResultType(Node<?> node);
 
-  String cannotFindOutMethodWithoutTargetType(StructuralNode<?> node);
+  String cannotFindOutMethodWithoutTargetType(Node<?> node);
 
-  String cannotInferDataType(StructuralNode<?> effective, TypeToken<?> exactDataType);
+  String cannotInferDataType(Node<?> effective, TypeToken<?> exactDataType);
 
   String cannotFindUnbindingParameter(QualifiedName p);
 
-  String unbindingParameterMustBeDataNode(StructuralNode<?> node, QualifiedName p);
+  String unbindingParameterMustBeDataNode(Node<?> node, QualifiedName p);
 
-  String unbindingParameterMustOccurOnce(StructuralNode<?> effective, QualifiedName p);
+  String unbindingParameterMustOccurOnce(Node<?> effective, QualifiedName p);
 
-  String unbindingParameterMustProvideValue(StructuralNode<?> effective, QualifiedName p);
+  String unbindingParameterMustProvideValue(Node<?> effective, QualifiedName p);
 }

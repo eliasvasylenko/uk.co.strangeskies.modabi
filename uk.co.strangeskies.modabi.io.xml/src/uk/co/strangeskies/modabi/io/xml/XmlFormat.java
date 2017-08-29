@@ -26,13 +26,13 @@ import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.io.structured.RewritableStructuredData;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataWriter;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 
 @Component(property = "formatId=" + XmlFormat.XML_ID)
-public class XmlFormat implements StructuredDataFormat {
+public class XmlFormat implements DataFormat {
 	public static final String XML_ID = "xml";
 
 	@Override
@@ -56,7 +56,7 @@ public class XmlFormat implements StructuredDataFormat {
 	}
 
 	@Override
-	public RewritableStructuredData modifyData() {
+	public NavigableStructuredDataWriter modifyData() {
 		// TODO Auto-generated method stub
 		return null;
 	}

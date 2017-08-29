@@ -19,72 +19,40 @@
 package uk.co.strangeskies.modabi.io.structured;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 
-/**
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * TODO consider option of making ALL structure data interfaces derive from
- * reader! If we have a writer into an empty document that might not make sense
- * as a reader ... but at the same time isn't reading an empty document a
- * perfectly valid function to perform?
- * 
- * Think about how this affects the hierarchy when navigability comes into it.
- * 
- *
- * 
- * 
- * 
- * 
- * 
- * 
- * @author Elias N Vasylenko
- *
- */
 public interface StructuredDataReader {
-  public Namespace getDefaultNamespaceHint();
+  Namespace getDefaultNamespaceHint();
 
-  public Set<Namespace> getNamespaceHints();
+  Stream<Namespace> getNamespaceHints();
 
-  public Stream<String> getComments();
+  Stream<String> getComments();
 
-  public StructuredDataReader readNextChild();
+  StructuredDataReader readNextChild();
 
-  public Optional<QualifiedName> getNextChild();
+  QualifiedName getName();
 
-  public Set<QualifiedName> getProperties();
+  Optional<QualifiedName> getNextChild();
 
-  public Optional<String> readProperty(QualifiedName name);
+  Stream<QualifiedName> getProperties();
 
-  public Optional<String> readContent();
+  Optional<String> readProperty(QualifiedName name);
 
-  public default boolean skipNextChild() {
-    boolean hasNext = getNextChild().isPresent();
-    if (hasNext) {
-      readNextChild();
-      skipChildren();
-      endChild();
-    }
-    return hasNext;
+  Optional<String> readPrimaryProperty();
+
+  default StructuredDataReader skipNextChild() {
+    readNextChild();
+    skipChildren();
+    endChild();
+    return this;
   }
 
-  public default StructuredDataReader skipChildren() {
-    while (skipNextChild()) {}
+  default StructuredDataReader skipChildren() {
+    while (getNextChild().isPresent())
+      skipNextChild();
     return this;
   }
 
@@ -92,11 +60,11 @@ public interface StructuredDataReader {
    * throws an exception if there are more children, so call skipChildren() first,
    * or call endChildEarly, if you want to ignore them.
    */
-  public StructuredDataReader endChild();
+  StructuredDataReader endChild();
 
-  public StructuredDataPosition getPosition();
+  StructuredDataPosition getPosition();
 
-  public StructuredDataReader split();
+  StructuredDataReader split();
 
-  public NavigableStructuredDataReader buffer();
+  NavigableStructuredDataReader buffer();
 }

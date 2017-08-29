@@ -32,12 +32,10 @@
  */
 package uk.co.strangeskies.modabi.schema.expression;
 
-import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeStatic;
+import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.literal;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.tryLiteral;
 import static uk.co.strangeskies.reflection.Annotations.getModifiedProperties;
-import static uk.co.strangeskies.reflection.token.MethodMatcher.anyConstructor;
-import static uk.co.strangeskies.reflection.token.MethodMatcher.anyMethod;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -46,27 +44,26 @@ import java.util.List;
 import uk.co.strangeskies.reflection.AnnotationProperty;
 import uk.co.strangeskies.reflection.Annotations;
 
-public class AnnotationExpression implements ValueExpression<Annotation> {
-  private final ValueExpression<Annotation> expression;
+public class AnnotationExpression implements ValueExpression {
+  private final ValueExpression expression;
 
   public AnnotationExpression(Annotation annotation) {
-    List<ValueExpression<?>> arguments = new ArrayList<>();
+    List<ValueExpression> arguments = new ArrayList<>();
 
     arguments.add(literal(annotation.annotationType()));
 
     getModifiedProperties(annotation).forEach(property -> {
-      ValueExpression<?> value;
+      ValueExpression value;
       if (property.value() instanceof Annotation) {
         value = new AnnotationExpression((Annotation) property.value());
       } else {
         value = tryLiteral(property.value());
       }
 
-      arguments.add(
-          invokeStatic(AnnotationProperty.class, anyMethod(), literal(property.name()), value));
+      arguments.add(invokeConstructor(AnnotationProperty.class, literal(property.name()), value));
     });
 
-    expression = invokeStatic(Annotations.class, anyConstructor(), arguments);
+    expression = invokeConstructor(Annotations.class, arguments);
   }
 
   @Override

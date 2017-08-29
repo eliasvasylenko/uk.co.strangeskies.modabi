@@ -19,17 +19,21 @@
 package uk.co.strangeskies.modabi;
 
 import java.time.LocalDate;
+import java.util.stream.Stream;
 
+import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.Imports;
 
 public interface Schema {
-	public static final Namespace MODABI_NAMESPACE = new Namespace(Schema.class.getPackage(), LocalDate.of(2014, 1, 1));
+  public static final Namespace MODABI_NAMESPACE = new Namespace(
+      Schema.class.getPackage(),
+      LocalDate.of(2014, 1, 1));
 
-	public QualifiedName qualifiedName();
+  public QualifiedName qualifiedName();
 
-	public Imports imports();
+  public Imports imports();
 
-	public Schemata dependencies();
+  public Stream<Schema> dependencies();
 
-	public Models models();
+  public Stream<Model<?>> models();
 }

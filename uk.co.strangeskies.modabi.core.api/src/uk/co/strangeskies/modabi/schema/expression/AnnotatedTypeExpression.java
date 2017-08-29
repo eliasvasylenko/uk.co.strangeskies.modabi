@@ -36,7 +36,6 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.literal;
-import static uk.co.strangeskies.reflection.token.MethodMatcher.anyMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
@@ -46,24 +45,24 @@ import java.util.List;
 
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 
-class AnnotatedTypeExpression implements ValueExpression<AnnotatedType> {
-  private final ValueExpression<AnnotatedType> expression;
+class AnnotatedTypeExpression implements ValueExpression {
+  private final ValueExpression expression;
 
   public AnnotatedTypeExpression(AnnotatedType annotatedType) {
     Type type = annotatedType.getType();
 
     if (type instanceof Class<?>) {
-      List<ValueExpression<?>> arguments = new ArrayList<>();
+      List<ValueExpression> arguments = new ArrayList<>();
       arguments.add(literal((Class<?>) type));
       arguments.addAll(getAnnotationExpressions(annotatedType.getAnnotations()));
 
-      expression = invokeStatic(AnnotatedTypes.class, anyMethod().named("annotated"), arguments);
+      expression = invokeStatic(AnnotatedTypes.class, "annotated", arguments);
     }
 
     throw new IllegalArgumentException();
   }
 
-  private List<ValueExpression<Annotation>> getAnnotationExpressions(Annotation[] annotations) {
+  private List<ValueExpression> getAnnotationExpressions(Annotation[] annotations) {
     return stream(annotations).map(AnnotationExpression::new).collect(toList());
   }
 

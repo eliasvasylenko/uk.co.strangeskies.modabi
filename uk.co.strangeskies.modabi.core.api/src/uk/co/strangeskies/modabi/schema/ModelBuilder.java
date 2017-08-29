@@ -1,26 +1,58 @@
-/*
- * Copyright (C) 2016 Elias N Vasylenko <eliasvasylenko@gmail.com>
- *
- * This file is part of uk.co.strangeskies.modabi.core.api.
- *
- * uk.co.strangeskies.modabi.core.api is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * uk.co.strangeskies.modabi.core.api is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
- */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.reflection.Imports;
+import static java.util.Arrays.asList;
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ModelBuilder {
-  public ModelConfigurator configure(Schema schema, Imports imports);
+  Optional<QualifiedName> getName();
+
+  ModelBuilder name(QualifiedName name);
+
+  default ModelBuilder name(String name, Namespace namespace) {
+    return name(new QualifiedName(name, namespace));
+  }
+
+  ModelBuilder export(boolean export);
+
+  Optional<Boolean> getExport();
+
+  default <U> NodeBuilder<U, Model<U>> baseModel(Model<U> baseModel) {
+    return baseModel(baseModel.dataType(), baseModel);
+  }
+
+  default <U> NodeBuilder<U, Model<U>> baseModel(Class<U> type, Model<? super U> baseModel) {
+    return baseModel(forClass(type), baseModel);
+  }
+
+  default <U> NodeBuilder<U, Model<U>> baseModel(TypeToken<U> type, Model<? super U> baseModel) {
+    return baseModel(type, asList(baseModel));
+  }
+
+  default <U> NodeBuilder<U, Model<U>> baseModel(
+      Class<U> type,
+      Collection<? extends Model<? super U>> baseModel) {
+    return baseModel(forClass(type), baseModel);
+  }
+
+  <U> NodeBuilder<U, Model<U>> baseModel(
+      TypeToken<U> type,
+      Collection<? extends Model<? super U>> baseModel);
+
+  Stream<? extends Model<?>> getBaseModel();
+
+  Optional<TypeToken<?>> getBaseType();
+
+  default <U> NodeBuilder<U, Model<U>> baseType(Class<U> type) {
+    return baseType(forClass(type));
+  }
+
+  <U> NodeBuilder<U, Model<U>> baseType(TypeToken<U> type);
 }

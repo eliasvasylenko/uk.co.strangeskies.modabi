@@ -18,9 +18,29 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-import uk.co.strangeskies.utility.Copyable;
+public interface NavigableStructuredDataReader extends StructuredDataReader {
+  NavigableStructuredDataReader reset();
 
-public interface NavigableStructuredDataReader
-		extends StructuredDataReader, Copyable<NavigableStructuredDataReader> {
-	void reset();
+  @Override
+  NavigableStructuredDataReader readNextChild();
+
+  @Override
+  default NavigableStructuredDataReader skipNextChild() {
+    return (NavigableStructuredDataReader) StructuredDataReader.super.skipNextChild();
+  }
+
+  @Override
+  default NavigableStructuredDataReader skipChildren() {
+    return (NavigableStructuredDataReader) StructuredDataReader.super.skipChildren();
+  }
+
+  /**
+   * throws an exception if there are more children, so call skipChildren() first,
+   * or call endChildEarly, if you want to ignore them.
+   */
+  @Override
+  NavigableStructuredDataReader endChild();
+
+  @Override
+  NavigableStructuredDataReader split();
 }

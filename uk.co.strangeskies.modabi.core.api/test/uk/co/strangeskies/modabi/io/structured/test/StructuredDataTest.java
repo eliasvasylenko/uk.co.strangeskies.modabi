@@ -39,12 +39,11 @@ public class StructuredDataTest {
 
   @Test
   public void simpleBufferTest() {
-    NavigableStructuredDataReader buffer = StructuredDataBuffer
-        .singleBuffer()
+    NavigableStructuredDataReader buffer = new StructuredDataBuffer()
         .addChild(A)
         .addChild(B)
         .addChild(C)
-        .getBuffer();
+        .reset();
 
     assertEquals(A, buffer.readNextChild());
     assertEquals(B, buffer.readNextChild());
@@ -53,31 +52,22 @@ public class StructuredDataTest {
 
   @Test
   public void hasNextChildTest() {
-    NavigableStructuredDataReader buffer = StructuredDataBuffer
-        .singleBuffer()
-        .addChild(A)
-        .getBuffer();
+    NavigableStructuredDataReader buffer = new StructuredDataBuffer().addChild(A).reset();
 
-    assertTrue(buffer.hasNextChild());
+    assertTrue(buffer.getNextChild().isPresent());
   }
 
   @Test
   public void hasNoNextChildTest() {
-    NavigableStructuredDataReader buffer = StructuredDataBuffer
-        .singleBuffer()
-        .addChild(A)
-        .getBuffer();
+    NavigableStructuredDataReader buffer = new StructuredDataBuffer().addChild(A).reset();
 
     buffer.readNextChild();
-    assertFalse(buffer.hasNextChild());
+    assertFalse(buffer.getNextChild().isPresent());
   }
 
   @Test(expected = IllegalStateException.class)
   public void endChildUnderflowTest() {
-    NavigableStructuredDataReader buffer = StructuredDataBuffer
-        .singleBuffer()
-        .addChild(A)
-        .getBuffer();
+    NavigableStructuredDataReader buffer = new StructuredDataBuffer().addChild(A).reset();
 
     buffer.readNextChild();
     buffer.endChild();
@@ -85,10 +75,7 @@ public class StructuredDataTest {
 
   @Test(expected = IllegalStateException.class)
   public void startNextChildUnderflowTest() {
-    NavigableStructuredDataReader buffer = StructuredDataBuffer
-        .singleBuffer()
-        .addChild(A)
-        .getBuffer();
+    NavigableStructuredDataReader buffer = new StructuredDataBuffer().addChild(A).reset();
 
     buffer.readNextChild();
     buffer.readNextChild();

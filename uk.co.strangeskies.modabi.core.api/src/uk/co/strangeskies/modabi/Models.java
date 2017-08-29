@@ -23,13 +23,10 @@ import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATI
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.collection.multimap.MultiMap;
@@ -47,14 +44,10 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
   }
 
   @Override
-  public boolean add(Model<?> element) {
-    synchronized (getComponent()) {
-      boolean added = super.add(element);
-
-      if (added)
-        mapModel(element);
-
-      return added;
+  protected void add(Model<?> element) {
+    synchronized (getMutex()) {
+      super.add(element);
+      mapModel(element);
     }
   }
 
@@ -70,7 +63,7 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> List<Model<? extends T>> getDerivedModels(Model<T> model) {
+  public <T> Stream<Model<? extends T>> getDerivedModels(Model<T> model) {
     synchronized (getMutex()) {
       LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.name());
 
@@ -79,86 +72,16 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
           : subModelList.stream().map(m -> (Model<? extends T>) m).collect(
               Collectors.toCollection(ArrayList::new));
 
-      return derivedModelList;
+      return derivedModelList.stream();
     }
   }
 
-  public <T> Model<T> get(QualifiedName name, TypeToken<T> dataType) {
-    @SuppressWarnings("unchecked")
-    Model<T> model = (Model<T>) get(name);
-
-    checkType(model, dataType);
-
-    return model;
-  }
-
-  private <T> void checkType(Model<T> model, TypeToken<T> dataType) {
+  @SuppressWarnings("unchecked")
+  public static <T> Model<T> cast(Model<?> model, TypeToken<T> dataType) {
     if (model != null
         && !model.dataType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, dataType)) {
       throw new ModabiException(MESSAGES.noModelFoundForType(model.name(), dataType.getType()));
     }
-  }
-
-  public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType)
-      throws InterruptedException {
-    return waitForGet(name, dataType, () -> {});
-  }
-
-  public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, Runnable onPresent)
-      throws InterruptedException {
-    return waitForGet(name, dataType, onPresent, -1);
-  }
-
-  public <T> Model<T> waitForGet(QualifiedName name, TypeToken<T> dataType, int timeoutMilliseconds)
-      throws InterruptedException {
-    return waitForGet(name, dataType, () -> {}, timeoutMilliseconds);
-  }
-
-  public <T> Model<T> waitForGet(
-      QualifiedName name,
-      TypeToken<T> dataType,
-      Runnable onPresent,
-      int timeoutMilliseconds) throws InterruptedException {
-    @SuppressWarnings("unchecked")
-    Model<T> model = (Model<T>) waitForGet(name);
-
-    checkType(model, dataType);
-
-    return model;
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T> List<Model<T>> getModelsWithType(TypeToken<T> dataType) {
-    synchronized (getMutex()) {
-      Set<Model<?>> models = classModels.get(dataType.getType());
-
-      List<Model<T>> modelsWithType = models == null
-          ? Collections.emptyList()
-          : models.stream().map(m -> (Model<T>) m).collect(Collectors.toList());
-
-      return modelsWithType;
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T> List<Model<? extends T>> getModelsWithBase(
-      Collection<? extends Model<? super T>> baseModel) {
-    synchronized (getMutex()) {
-      Iterator<? extends Model<? extends T>> modelIterator = (Iterator<? extends Model<? extends T>>) baseModel
-          .iterator();
-
-      List<Model<? extends T>> subModels = new ArrayList<Model<? extends T>>(
-          getDerivedModels(modelIterator.next()));
-
-      modelIterator = subModels.iterator();
-      while (modelIterator.hasNext())
-        if (!modelIterator.next().concrete())
-          modelIterator.remove();
-
-      while (modelIterator.hasNext())
-        subModels.retainAll(getDerivedModels(modelIterator.next()));
-
-      return subModels;
-    }
+    return (Model<T>) model;
   }
 }

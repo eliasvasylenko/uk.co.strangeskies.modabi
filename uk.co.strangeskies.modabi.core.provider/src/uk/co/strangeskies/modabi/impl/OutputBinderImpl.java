@@ -38,8 +38,7 @@ import uk.co.strangeskies.modabi.OutputBinder;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
-import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
@@ -137,7 +136,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
     /*
      * TODO blocking waitandget???
      */
-    StructuredDataFormat format = formats.get(extension);
+    DataFormat format = formats.get(extension);
 
     if (format == null) {
       throw new ProcessingException(MESSAGES.noFormatFoundFor(extension), prepareContext());

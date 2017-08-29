@@ -22,32 +22,29 @@ import java.util.List;
 
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.DataLoader;
-import uk.co.strangeskies.modabi.schema.StructuralNode;
+import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 
 public interface SchemaNodeConfigurationContext {
   ChildBindingPoint<?> bindingPoint();
 
-  DataLoader dataLoader();
-
   Imports imports();
 
   BoundSet boundSet();
 
-  List<StructuralNode<?>> overriddenAndBaseNodes();
+  List<Node<?>> overriddenAndBaseNodes();
 
   Schema schema();
 
   /**
-   * Invoked by a {@link StructuralNode node's} constructor when instantiation begins.
-   * This allows a reference of the node being constructed to leak back to the
-   * caller whilst also blocking continuation of construction until configuration
-   * is complete and a configurator can be supplied.
+   * Invoked by a {@link StructuralNode node's} constructor when instantiation
+   * begins. This allows a reference of the node being constructed to leak back to
+   * the caller whilst also blocking continuation of construction until
+   * configuration is complete and a configurator can be supplied.
    * 
    * @param node
    *          the node being constructed
    */
-  void configure(StructuralNode<?> node);
+  void configure(Node<?> node);
 }

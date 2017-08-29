@@ -33,25 +33,31 @@
 package uk.co.strangeskies.modabi.schema.expression;
 
 import static java.util.Arrays.asList;
-import static uk.co.strangeskies.reflection.token.MethodMatcher.anyMethod;
 
 import java.util.List;
 
-import uk.co.strangeskies.reflection.token.MethodMatcher;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class Expressions {
   private Expressions() {}
 
-  public static <T> ValueExpression<T> nullLiteral() {
+  public static ValueExpression receiver(TypeToken<?> token) {
+    return v -> v.visitReceiver();
+  }
+
+  public static ValueExpression receiver(Class<?> token) {
+    return v -> v.visitReceiver();
+  }
+
+  public static ValueExpression nullLiteral() {
     return v -> v.visitNull();
   }
 
-  private static <T> ValueExpression<T> literalImpl(T value) {
+  private static ValueExpression literalImpl(Object value) {
     return v -> v.visitLiteral(value);
   }
 
-  public static ValueExpression<?> tryLiteral(Object object) {
+  public static ValueExpression tryLiteral(Object object) {
     if (object instanceof String || object instanceof Integer || object instanceof Float
         || object instanceof Long || object instanceof Double || object instanceof Byte
         || object instanceof Character || object instanceof Class<?>) {
@@ -60,43 +66,42 @@ public class Expressions {
     throw new IllegalArgumentException();
   }
 
-  public static ValueExpression<String> literal(String value) {
+  public static ValueExpression literal(String value) {
     return literalImpl(value);
   }
 
-  public static ValueExpression<Integer> literal(int value) {
+  public static ValueExpression literal(int value) {
     return literalImpl(value);
   }
 
-  public static ValueExpression<Float> literal(float value) {
+  public static ValueExpression literal(float value) {
     return literalImpl(value);
   }
 
-  public static ValueExpression<Long> literal(long value) {
+  public static ValueExpression literal(long value) {
     return literalImpl(value);
   }
 
-  public static ValueExpression<Double> literal(double value) {
+  public static ValueExpression literal(double value) {
     return literalImpl(value);
   }
 
-  public static ValueExpression<Byte> literal(byte value) {
+  public static ValueExpression literal(byte value) {
     return literalImpl(value);
   }
 
-  public static ValueExpression<Character> literal(char value) {
+  public static ValueExpression literal(char value) {
     return literalImpl(value);
   }
 
-  public static <T> ValueExpression<Class<T>> literal(Class<T> value) {
+  public static <T> ValueExpression literal(Class<T> value) {
     return literalImpl(value);
   }
 
-  public static <T> ValueExpression<T> invokeStatic(
+  public static ValueExpression invokeConstructor(
       Class<?> declaringClass,
-      MethodMatcher<?, ? super T> executable,
-      ValueExpression<?>... arguments) {
-    return invokeStatic(declaringClass, executable, asList(arguments));
+      ValueExpression... arguments) {
+    return invokeConstructor(declaringClass, asList(arguments));
   }
 
   /**
@@ -109,20 +114,42 @@ public class Expressions {
    * @return an expression describing the invocation of the given static
    *         executable with the given argument expressions
    */
-  public static <T> ValueExpression<T> invokeStatic(
+  public static ValueExpression invokeConstructor(
       Class<?> declaringClass,
-      MethodMatcher<?, ? super T> method,
-      List<ValueExpression<?>> arguments) {
-    return v -> v.visitStaticInvocation(declaringClass, method, arguments);
+      List<ValueExpression> arguments) {
+    return v -> v.visitConstructorInvocation(declaringClass, arguments);
   }
 
-  public static <T> ValueExpression<? extends TypeToken<T>> typeTokenExpression(
-      TypeToken<T> token) {
+  public static ValueExpression invokeStatic(
+      Class<?> declaringClass,
+      String methodName,
+      ValueExpression... arguments) {
+    return invokeStatic(declaringClass, methodName, asList(arguments));
+  }
+
+  /**
+   * @param <T>
+   *          the type of the result of the execution
+   * @param executable
+   *          the executable to be invoked
+   * @param arguments
+   *          the expressions of the arguments of the invocation
+   * @return an expression describing the invocation of the given static
+   *         executable with the given argument expressions
+   */
+  public static ValueExpression invokeStatic(
+      Class<?> declaringClass,
+      String methodName,
+      List<ValueExpression> arguments) {
+    return v -> v.visitStaticInvocation(declaringClass, methodName, arguments);
+  }
+
+  public static ValueExpression typeToken(TypeToken<?> token) {
     return v -> v.visitCast(
         token.getThisTypeToken(),
         invokeStatic(
             TypeToken.class,
-            anyMethod().named("forType"),
+            "forType",
             new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
   }
 }

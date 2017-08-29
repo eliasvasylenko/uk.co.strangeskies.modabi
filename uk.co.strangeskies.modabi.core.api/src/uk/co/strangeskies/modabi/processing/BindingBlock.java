@@ -34,83 +34,86 @@ import uk.co.strangeskies.observable.Observable;
  * 
  * @author Elias N Vasylenko
  */
-public interface BindingBlock extends Observable<BindingBlockEvent> {
-	/**
-	 * @return The namespace of the blocking resource
-	 */
-	QualifiedName namespace();
+public interface BindingBlock {
+  Observable<BindingBlockEvent> events();
 
-	/**
-	 * @return The id of the blocking resource
-	 */
-	String id();
+  /**
+   * @return The namespace of the blocking resource
+   */
+  QualifiedName namespace();
 
-	/**
-	 * @return True if the resource or dependency represented by this block is
-	 *         satisfied or failed, false otherwise
-	 */
-	boolean isEnded();
+  /**
+   * @return The id of the blocking resource
+   */
+  Object id();
 
-	/**
-	 * @return True if the resource or dependency represented by this block has
-	 *         completed, and was successful, false otherwise
-	 */
-	boolean isSuccessful();
+  /**
+   * @return True if the resource or dependency represented by this block is
+   *         satisfied or failed, false otherwise
+   */
+  boolean isEnded();
 
-	/**
-	 * @return If the block has failed, the exception cause
-	 */
-	Throwable getFailure();
+  /**
+   * @return True if the resource or dependency represented by this block has
+   *         completed, and was successful, false otherwise
+   */
+  boolean isSuccessful();
 
-	/**
-	 * @return True if the resource or dependency should be satisfied by
-	 *         processes internal to the binding procedure, false otherwise
-	 */
-	boolean isInternal();
+  /**
+   * @return If the block has failed, the exception cause
+   */
+  Throwable getFailure();
 
-	/**
-	 * Signal that the resource or dependency represented by this block has
-	 * become available
-	 */
-	void complete() throws ExecutionException;
+  /**
+   * @return True if the resource or dependency should be satisfied by processes
+   *         internal to the binding procedure, false otherwise
+   */
+  boolean isInternal();
 
-	/**
-	 * Wait for availability of the resource or dependency.
-	 * 
-	 * @throws InterruptedException
-	 *             If the waiting thread is interrupted
-	 * @throws ExecutionException
-	 *             If the block has been notified of failure via
-	 *             {@link #fail(Throwable)}
-	 */
-	void waitUntilComplete() throws InterruptedException, ExecutionException;
+  /**
+   * Signal that the resource or dependency represented by this block has become
+   * available
+   */
+  void complete() throws ExecutionException;
 
-	/**
-	 * Wait for availability of the resource or dependency, or throw an
-	 * exception if the block does not complete within the given time.
-	 * 
-	 * @param timeoutMilliseconds
-	 *            The amount of time to wait for completion
-	 * @throws InterruptedException
-	 *             If the waiting thread is interrupted
-	 * @throws TimeoutException
-	 *             If the block is not satisfied within the given time
-	 * @throws ExecutionException
-	 *             If the block has been notified of failure via
-	 *             {@link #fail(Throwable)}
-	 */
-	void waitUntilComplete(long timeoutMilliseconds) throws InterruptedException, TimeoutException, ExecutionException;
+  /**
+   * Wait for availability of the resource or dependency.
+   * 
+   * @throws InterruptedException
+   *           If the waiting thread is interrupted
+   * @throws ExecutionException
+   *           If the block has been notified of failure via
+   *           {@link #fail(Throwable)}
+   */
+  void waitUntilComplete() throws InterruptedException, ExecutionException;
 
-	/**
-	 * Signal a failure in making the resource or dependency available. If
-	 * successful then pending and subsequent invocations of
-	 * {@link #waitUntilComplete()} will rethrow the given error. The failure
-	 * will be ignored if the block has already completed successfully.
-	 * 
-	 * @param cause
-	 *            An exception detailing the cause of the failure to secure the
-	 *            dependency and lift the block
-	 * @return True if the failure was successfully registered, false otherwise
-	 */
-	boolean fail(Throwable cause);
+  /**
+   * Wait for availability of the resource or dependency, or throw an exception if
+   * the block does not complete within the given time.
+   * 
+   * @param timeoutMilliseconds
+   *          The amount of time to wait for completion
+   * @throws InterruptedException
+   *           If the waiting thread is interrupted
+   * @throws TimeoutException
+   *           If the block is not satisfied within the given time
+   * @throws ExecutionException
+   *           If the block has been notified of failure via
+   *           {@link #fail(Throwable)}
+   */
+  void waitUntilComplete(long timeoutMilliseconds)
+      throws InterruptedException, TimeoutException, ExecutionException;
+
+  /**
+   * Signal a failure in making the resource or dependency available. If
+   * successful then pending and subsequent invocations of
+   * {@link #waitUntilComplete()} will rethrow the given error. The failure will
+   * be ignored if the block has already completed successfully.
+   * 
+   * @param cause
+   *          An exception detailing the cause of the failure to secure the
+   *          dependency and lift the block
+   * @return True if the failure was successfully registered, false otherwise
+   */
+  boolean fail(Throwable cause);
 }

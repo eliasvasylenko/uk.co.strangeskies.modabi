@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi;
 
+import java.util.stream.Stream;
+
 import uk.co.strangeskies.reflection.token.ReifiedToken;
 
 public interface SchemaManager {
@@ -31,16 +33,7 @@ public interface SchemaManager {
    */
   SchemaBuilder getSchemaBuilder();
 
-  /**
-   * Create a {@link SchemaConfigurator} equivalent to one created via
-   * {@link #getSchemaBuilder()} with a default {@link DataLoader} provided.
-   * 
-   * @return a schema configurator who's products will be automatically registered
-   *         with this manager
-   */
-  SchemaConfigurator getSchemaConfigurator();
-
-  Providers providers();
+  Stream<Provider> getProviders();
 
   Schemata registeredSchemata();
 

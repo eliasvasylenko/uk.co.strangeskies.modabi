@@ -18,98 +18,70 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 
-public class StructuredDataReaderWrapper implements StructuredDataReader {
-  private StructuredDataReader component;
-
-  public StructuredDataReaderWrapper(StructuredDataReader component) {
-    this.component = component;
-  }
-
-  protected StructuredDataReader getComponent() {
-    return component;
-  }
+public interface StructuredDataReaderWrapper extends StructuredDataReader {
+  StructuredDataReader getComponent();
 
   @Override
-  public Namespace getDefaultNamespaceHint() {
-    currentState().assertValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START);
+  default Namespace getDefaultNamespaceHint() {
     return getComponent().getDefaultNamespaceHint();
   }
 
   @Override
-  public Set<Namespace> getNamespaceHints() {
-    currentState().assertValid(StructuredDataState.UNSTARTED, StructuredDataState.ELEMENT_START);
+  default Stream<Namespace> getNamespaceHints() {
     return getComponent().getNamespaceHints();
   }
 
   @Override
-  public List<String> getComments() {
-    currentState().assertValid(
-        StructuredDataState.UNSTARTED,
-        StructuredDataState.ELEMENT_START,
-        StructuredDataState.POPULATED_ELEMENT);
+  default Stream<String> getComments() {
     return getComponent().getComments();
   }
 
   @Override
-  public QualifiedName readNextChild() {
-    enterState(StructuredDataState.ELEMENT_START);
-    return getComponent().readNextChild();
-  }
-
-  @Override
-  public String readProperty(QualifiedName name) {
-    return getComponent().readProperty(name);
-  }
-
-  @Override
-  public String readContent() {
-    return getComponent().readContent();
-  }
-
-  @Override
-  public StructuredDataReader endChild() {
-    if (index().isEmpty())
-      enterState(StructuredDataState.FINISHED);
-    else
-      enterState(StructuredDataState.POPULATED_ELEMENT);
-    getComponent().endChild();
-
+  default StructuredDataReader readNextChild() {
+    getComponent();
     return this;
   }
 
   @Override
-  public QualifiedName peekNextChild() {
-    return getComponent().peekNextChild();
+  default Optional<QualifiedName> getNextChild() {
+    return getComponent().getNextChild();
   }
 
   @Override
-  public Set<QualifiedName> getProperties() {
+  default Stream<QualifiedName> getProperties() {
     return getComponent().getProperties();
   }
 
   @Override
-  public boolean hasNextChild() {
-    return getComponent().hasNextChild();
+  default Optional<String> readProperty(QualifiedName name) {
+    return getComponent().readProperty(name);
   }
 
   @Override
-  public List<Integer> index() {
-    return getComponent().index();
+  default Optional<String> readPrimaryProperty() {
+    return getComponent().readPrimaryProperty();
   }
 
   @Override
-  public StructuredDataReader split() {
-    return new StructuredDataReaderWrapper(getComponent().split());
+  default StructuredDataReader endChild() {
+    getComponent().endChild();
+    return this;
   }
 
   @Override
-  public NavigableStructuredDataReader buffer() {
-    return new NavigableStructuredDataSourceWrapper(getComponent().buffer());
+  default StructuredDataPosition getPosition() {
+    return getComponent().getPosition();
   }
+
+  @Override
+  StructuredDataReader split();
+
+  @Override
+  NavigableStructuredDataReader buffer();
 }

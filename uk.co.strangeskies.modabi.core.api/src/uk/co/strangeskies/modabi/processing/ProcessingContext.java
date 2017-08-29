@@ -31,7 +31,7 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.StructuralNode;
+import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface ProcessingContext {
@@ -70,7 +70,7 @@ public interface ProcessingContext {
    *          the element to override with a model
    * @return a mapping from possible overrides to override results
    */
-  ComputingMap<Model<?>, StructuralNode<?>> getComplexNodeOverrides(StructuralNode<?> node);
+  ComputingMap<Model<?>, Node<?>> getComplexNodeOverrides(Node<?> node);
 
   /**
    * The stack of schema nodes corresponding to the processing position in a depth
@@ -84,8 +84,8 @@ public interface ProcessingContext {
   /**
    * @return the node at the head of the {@link #getBindingNodeStack()}.
    */
-  default BindingPoint<?> getNode() {
-    return getBindingNode(0);
+  default BindingPoint<?> getBindingPoint() {
+    return getBindingPoint(0);
   }
 
   /**
@@ -94,7 +94,7 @@ public interface ProcessingContext {
    * @return the node a given number of steps back from the head of the
    *         {@link #getBindingNodeStack()}
    */
-  default BindingPoint<?> getBindingNode(int parent) {
+  default BindingPoint<?> getBindingPoint(int parent) {
     int index = getBindingNodeStack().size() - (1 + parent);
     return index >= 0 ? getBindingNodeStack().get(index) : null;
   }

@@ -33,7 +33,7 @@ public class OccurrencesCondition<T> implements BindingCondition<T> {
 
       public void failProcess() {
         throw new ProcessingException(
-            MESSAGES.mustHaveDataWithinRange((ChildBindingPoint<?>) state.getNode(), range),
+            MESSAGES.mustHaveDataWithinRange((ChildBindingPoint<?>) state.getBindingPoint(), range),
             state);
       }
 

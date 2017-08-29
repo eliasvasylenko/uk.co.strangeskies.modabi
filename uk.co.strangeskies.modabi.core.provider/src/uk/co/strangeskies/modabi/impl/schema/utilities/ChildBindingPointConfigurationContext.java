@@ -23,8 +23,7 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.DataLoader;
-import uk.co.strangeskies.modabi.schema.StructuralNode;
+import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -32,9 +31,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public interface ChildBindingPointConfigurationContext {
   Namespace namespace();
 
-  StructuralNode<?> parentNode();
-
-  DataLoader dataLoader();
+  Node<?> parentNode();
 
   Imports imports();
 

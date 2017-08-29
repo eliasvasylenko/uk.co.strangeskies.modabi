@@ -6,7 +6,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface Model<T> extends StructuralNode<T> {
+public interface Model<T> extends Node<T> {
   QualifiedName name();
 
   TypeToken<T> dataType();
@@ -18,4 +18,6 @@ public interface Model<T> extends StructuralNode<T> {
   Stream<Model<?>> baseModel();
 
   Schema schema();
+
+  boolean export();
 }

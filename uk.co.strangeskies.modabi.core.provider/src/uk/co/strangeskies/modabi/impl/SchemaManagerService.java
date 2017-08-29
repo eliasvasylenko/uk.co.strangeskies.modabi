@@ -18,47 +18,29 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import uk.co.strangeskies.collection.observable.ScopedObservableSet;
 import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.InputBinder;
 import uk.co.strangeskies.modabi.MetaSchema;
 import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.OutputBinder;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.Providers;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.SchemaConfigurator;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.impl.processing.BindingProviders;
-import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
-import uk.co.strangeskies.modabi.impl.processing.UnbindingProviders;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataFormat;
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.schema.DataLoader;
+import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 /**
  * A schema manager implementation for an OSGi context.
@@ -79,65 +61,82 @@ import uk.co.strangeskies.reflection.token.TypeToken.Infer;
  */
 @Component(immediate = true)
 public class SchemaManagerService implements SchemaManager {
-  private final SchemaBuilder schemaBuilder;
+  class ModelsImpl extends Models {
+    @Override
+    public void add(Model<?> element) {
+      super.add(element);
+    }
+  }
+
+  class SchemataImpl extends Schemata {
+    @Override
+    public void add(Schema element) {
+      super.add(element);
+    }
+  }
+
+  class DataFormatsImpl extends DataFormats {
+    @Override
+    public void add(DataFormat element) {
+      super.add(element);
+    }
+
+    @Override
+    public void remove(DataFormat element) {
+      super.remove(element);
+    }
+  }
+
+  private final Supplier<SchemaBuilder> schemaBuilder;
   private final CoreSchemata coreSchemata;
-  private final Providers providers;
+  private final Set<Provider> providers;
 
   /*
    * Schemata, models, and data types registered to this manager.
    */
-  private final Schemata registeredSchemata;
-  private final Models registeredModels;
-  
+  private final SchemataImpl registeredSchemata;
+  private final ModelsImpl registeredModels;
+
   /*
    * Data formats available for binding and unbinding
    */
-  private final DataFormats dataFormats;
+  private final DataFormatsImpl dataFormats;
 
   public SchemaManagerService() {
-    this(new SchemaBuilderImpl());
+    this(SchemaBuilderImpl::new);
   }
 
-  public SchemaManagerService(SchemaBuilder schemaBuilder /* TODO , Log log */) {
+  public SchemaManagerService(Supplier<SchemaBuilder> schemaBuilder /* TODO , Log log */) {
     this(schemaBuilder, new CoreSchemata(schemaBuilder));
   }
 
   public SchemaManagerService(
-      SchemaBuilder schemaBuilder,
+      Supplier<SchemaBuilder> schemaBuilder,
       CoreSchemata coreSchemata /* TODO , Log log */) {
     this.schemaBuilder = schemaBuilder;
     this.coreSchemata = coreSchemata;
 
-    registeredSchemata = new Schemata();
-    registeredSchemata.changes().weakReference(this).observe(
-        m -> m.owner().registerSchemata(m.message().added()));
+    registeredSchemata = new SchemataImpl();
+    registeredModels = new ModelsImpl();
+    dataFormats = new DataFormatsImpl();
+    providers = new HashSet<>();
 
-    registeredModels = new Models();
-
-    providers = new ProvidersImpl();
-
-    dataFormats = new DataFormats();
+    registeredSchemata.getAllFuture().weakReference(this).observe(
+        m -> m.owner().registerSchema(m.message()));
 
     /*
      * Register schema builder provider
      */
-    providers().add(Provider.over(SchemaBuilder.class, c -> c.manager().getSchemaBuilder()));
+    providers.add(Provider.over(SchemaBuilder.class, c -> c.manager().getSchemaBuilder()));
 
     /*
      * Register collection providers
      */
-    providers().add(Provider.over(ProcessingContext.class, c -> c));
-    providers().add(Provider.over(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>()));
-    providers().add(Provider.over(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>()));
-    providers().add(
-        Provider.over(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>()));
-    providers().add(Provider.over(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>()));
-    providers().add(Provider.over(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>()));
+    new CoreProviders().getProviders().forEach(providers::add);
+    new InputProviders().getProviders().forEach(providers::add);
+    new OutputProviders().getProviders().forEach(providers::add);
 
-    new BindingProviders().registerProviders(providers());
-    new UnbindingProviders().registerProviders(providers());
-
-    registeredSchemata().add(coreSchemata.metaSchema());
+    registeredSchemata.add(coreSchemata.metaSchema());
   }
 
   public ProcessingContextImpl getProcessingContext() {
@@ -145,59 +144,37 @@ public class SchemaManagerService implements SchemaManager {
   }
 
   @Override
-  public SchemaConfigurator getSchemaConfigurator() {
-    return getSchemaBuilder().configure(DataNodeBinder.dataLoader(getProcessingContext()));
-  }
-
-  @Override
   public SchemaBuilder getSchemaBuilder() {
-    return new SchemaBuilder() {
+    return new SchemaBuilderDecorator() {
+      private SchemaBuilder component = schemaBuilder.get();
+
       @Override
-      public SchemaConfigurator configure(DataLoader loader) {
-        return new SchemaConfiguratorDecorator() {
-          private SchemaConfigurator component = schemaBuilder.configure(loader);
+      public SchemaBuilder getComponent() {
+        return component;
+      }
 
-          @Override
-          public SchemaConfigurator getComponent() {
-            return component;
-          }
+      @Override
+      public void setComponent(SchemaBuilder component) {
+        this.component = component;
+      }
 
-          @Override
-          public Schema create() {
-            Schema schema = SchemaConfiguratorDecorator.super.create();
-            registeredSchemata().add(schema);
-            return schema;
-          }
-        };
+      @Override
+      public Schema create() {
+        Schema schema = SchemaBuilderDecorator.super.create();
+        registeredSchemata.add(schema);
+        return schema;
       }
     };
   }
 
-  private void registerSchemata(Set<Schema> added) {
-    for (Schema schema : added) {
-      for (Model<?> model : schema.models())
-        registerModel(model);
-
-      for (Schema dependency : schema.dependencies())
-        registeredSchemata.add(dependency);
-
-      Model<Schema> schemaModel = coreSchemata.metaSchema().getSchemaModel();
-      RootBindingPoint<Schema> bindingPoint = new RootBindingPoint<>(schemaModel);
-      registerBindingImpl(new Binding<>(bindingPoint, schemaModel, forClass(Schema.class), schema));
-    }
+  private void registerSchema(Schema schema) {
+    schema.dependencies().forEach(this::registerSchema);
+    schema.models().forEach(this::registerModel);
   }
 
   private void registerModel(Model<?> model) {
     synchronized (registeredModels) {
-      if (registeredModels.add(model)) {
-
-        /*
-         * TODO add/fetch scope on parent first if we have a parent, then add nested one
-         * here
-         */
-        bindingFutures.put(model.name(), ScopedObservableSet.over(HashSet::new));
-        bindings.put(model.name(), ScopedObservableSet.over(HashSet::new));
-      }
+      registeredModels.add(model);
     }
   }
 
@@ -240,16 +217,16 @@ public class SchemaManagerService implements SchemaManager {
       cardinality = ReferenceCardinality.MULTIPLE,
       policy = ReferencePolicy.DYNAMIC,
       unbind = "unregisterDataInterface")
-  void registerDataInterface(StructuredDataFormat loader) {
-    registeredFormats().add(loader);
+  void registerDataInterface(DataFormat loader) {
+    dataFormats.add(loader);
   }
 
-  void unregisterDataInterface(StructuredDataFormat loader) {
-    registeredFormats().remove(loader);
+  void unregisterDataInterface(DataFormat loader) {
+    dataFormats.remove(loader);
   }
 
   @Override
-  public Providers providers() {
-    return providers;
+  public Stream<Provider> getProviders() {
+    return providers.stream();
   }
 }
