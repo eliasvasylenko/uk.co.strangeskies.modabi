@@ -54,11 +54,11 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
   private void mapModel(Model<?> model) {
     List<Model<?>> models = new ArrayList<>();
     models.add(model);
-    model.baseModel().forEach(models::add);
+    model.baseModels().forEach(models::add);
 
     derivedModels.addToAll(models.stream().map(Model::name).collect(Collectors.toSet()), model);
 
-    if (model.concrete())
+    if (model.rootNode().concrete())
       classModels.add(model.dataType().getType(), model);
   }
 

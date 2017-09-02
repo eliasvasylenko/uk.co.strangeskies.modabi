@@ -178,14 +178,14 @@ public class SchemaTest extends TestBase {
 	public void manualSchemaCreationTest() {
 		SchemaManager schemaManager = getService(SchemaManager.class);
 
-		SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator().qualifiedName(
+		SchemaConfigurator generatedSchema = schemaManager.getSchemaConfigurator().name(
 				new QualifiedName("testExtentions", Namespace.getDefault()));
 
 		Model<List<?>> intListType = generatedSchema
 				.addModel()
 				.name("intSet", Namespace.getDefault())
 				.baseModel(schemaManager.getBaseSchema().derived().listModel())
-				.addChild(e -> e.data().name("element").baseType(schemaManager.getBaseSchema().primitive(Primitive.INT)))
+				.addChild(e -> e.data().name("element").rootNode(schemaManager.getBaseSchema().primitive(Primitive.INT)))
 				.create();
 		System.out.println(intListType.dataType());
 
@@ -202,12 +202,12 @@ public class SchemaTest extends TestBase {
 				.addChild(s -> s.complex().name("entrySet").addChild(e -> e
 						.complex()
 						.name("entry")
-						.addChild(k -> k.data().name("key").baseType(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
+						.addChild(k -> k.data().name("key").rootNode(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
 						.addChild(v -> v
 								.complex()
 								.name("value")
 								.<Object>model((ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
-								.addChild(c -> c.data().name("content").baseType(schemaManager.getBaseSchema().primitive(Primitive.INT))))))
+								.addChild(c -> c.data().name("content").rootNode(schemaManager.getBaseSchema().primitive(Primitive.INT))))))
 				.create();
 		System.out.println(stringIntMapModel.dataType());
 		System.out.println("    ~# " + stringIntMapModel.dataType().getResolver().getBounds());
@@ -257,9 +257,9 @@ public class SchemaTest extends TestBase {
 										.name("key")
 										.inputNone()
 										.format(SimpleNode.Format.PROPERTY)
-										.baseType(schemaManager.getBaseSchema().derived().listType())
+										.rootNode(schemaManager.getBaseSchema().derived().listType())
 										.addChild(
-												l -> l.data().name("element").baseType(schemaManager.getBaseSchema().primitive(Primitive.BINARY))))
+												l -> l.data().name("element").rootNode(schemaManager.getBaseSchema().primitive(Primitive.BINARY))))
 								.addChild(v -> v
 										.complex()
 										.name("value")
@@ -269,13 +269,13 @@ public class SchemaTest extends TestBase {
 												.complex()
 												.name("entry")
 												.addChild(
-														k -> k.data().name("key").baseType(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
+														k -> k.data().name("key").rootNode(schemaManager.getBaseSchema().primitive(Primitive.STRING)))
 												.addChild(vv -> vv
 														.complex()
 														.name("value")
 														.<Object>model(
 																(ComplexNode<Object>) schemaManager.getBaseSchema().baseModels().simpleModel())
-														.addChild(cc -> cc.data().name("content").baseType(
+														.addChild(cc -> cc.data().name("content").rootNode(
 																schemaManager.getBaseSchema().primitive(Primitive.INT)))))))))
 				.create();
 		System.out.println(mapModel3.dataType());

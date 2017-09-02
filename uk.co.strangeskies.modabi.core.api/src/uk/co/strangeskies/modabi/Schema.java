@@ -22,18 +22,13 @@ import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.Imports;
 
 public interface Schema {
-  public static final Namespace MODABI_NAMESPACE = new Namespace(
-      Schema.class.getPackage(),
-      LocalDate.of(2014, 1, 1));
+  Namespace MODABI_NAMESPACE = new Namespace(Schema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
-  public QualifiedName qualifiedName();
+  QualifiedName qualifiedName();
 
-  public Imports imports();
+  Stream<Schema> dependencies();
 
-  public Stream<Schema> dependencies();
-
-  public Stream<Model<?>> models();
+  Stream<Model<?>> models();
 }

@@ -31,10 +31,13 @@ import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface InputBinder<T> {
+  <U> InputBinder<U> to(BindingPoint<U> bindingPoint);
+
   <U> InputBinder<U> to(Model<U> model);
 
   <U> InputBinder<U> to(TypeToken<U> type);
@@ -51,15 +54,15 @@ public interface InputBinder<T> {
     return to(modelName, TypeToken.forClass(type));
   }
 
-  BindingFuture<T> from(StructuredDataReader input);
+  BindingFuture<? extends T> from(StructuredDataReader input);
 
   // BindingFuture<T> from(RewritableStructuredData input);
 
-  default BindingFuture<T> from(File input) {
+  default BindingFuture<? extends T> from(File input) {
     return from(input.toURI());
   }
 
-  default BindingFuture<T> from(URI input) {
+  default BindingFuture<? extends T> from(URI input) {
     try {
       return from(input.toURL());
     } catch (MalformedURLException e) {
@@ -67,11 +70,11 @@ public interface InputBinder<T> {
     }
   }
 
-  BindingFuture<T> from(URL input);
+  BindingFuture<? extends T> from(URL input);
 
-  BindingFuture<T> from(ThrowingSupplier<InputStream, ?> input);
+  BindingFuture<? extends T> from(ThrowingSupplier<InputStream, ?> input);
 
-  BindingFuture<T> from(String formatId, ThrowingSupplier<InputStream, ?> input);
+  BindingFuture<? extends T> from(String formatId, ThrowingSupplier<InputStream, ?> input);
 
   // Binder<T> updatable();
 

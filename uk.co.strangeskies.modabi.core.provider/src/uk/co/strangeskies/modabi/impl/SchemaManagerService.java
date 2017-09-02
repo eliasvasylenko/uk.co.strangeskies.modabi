@@ -39,6 +39,14 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
+import uk.co.strangeskies.modabi.impl.processing.CoreProviders;
+import uk.co.strangeskies.modabi.impl.processing.InputBinderImpl;
+import uk.co.strangeskies.modabi.impl.processing.InputProviders;
+import uk.co.strangeskies.modabi.impl.processing.OutputBinderImpl;
+import uk.co.strangeskies.modabi.impl.processing.OutputProviders;
+import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
+import uk.co.strangeskies.modabi.impl.schema.SchemaBuilderDecorator;
+import uk.co.strangeskies.modabi.impl.schema.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.schema.Model;
 
@@ -68,13 +76,6 @@ public class SchemaManagerService implements SchemaManager {
     }
   }
 
-  class SchemataImpl extends Schemata {
-    @Override
-    public void add(Schema element) {
-      super.add(element);
-    }
-  }
-
   class DataFormatsImpl extends DataFormats {
     @Override
     public void add(DataFormat element) {
@@ -94,7 +95,7 @@ public class SchemaManagerService implements SchemaManager {
   /*
    * Schemata, models, and data types registered to this manager.
    */
-  private final SchemataImpl registeredSchemata;
+  private final Schemata registeredSchemata;
   private final ModelsImpl registeredModels;
 
   /*
@@ -116,7 +117,7 @@ public class SchemaManagerService implements SchemaManager {
     this.schemaBuilder = schemaBuilder;
     this.coreSchemata = coreSchemata;
 
-    registeredSchemata = new SchemataImpl();
+    registeredSchemata = new Schemata();
     registeredModels = new ModelsImpl();
     dataFormats = new DataFormatsImpl();
     providers = new HashSet<>();
@@ -127,7 +128,7 @@ public class SchemaManagerService implements SchemaManager {
     /*
      * Register schema builder provider
      */
-    providers.add(Provider.over(SchemaBuilder.class, c -> c.manager().getSchemaBuilder()));
+    providers.add(Provider.over(SchemaBuilder.class, c -> getSchemaBuilder()));
 
     /*
      * Register collection providers
@@ -143,8 +144,7 @@ public class SchemaManagerService implements SchemaManager {
     return new ProcessingContextImpl(this);
   }
 
-  @Override
-  public SchemaBuilder getSchemaBuilder() {
+  protected SchemaBuilder getSchemaBuilder() {
     return new SchemaBuilderDecorator() {
       private SchemaBuilder component = schemaBuilder.get();
 
@@ -190,7 +190,8 @@ public class SchemaManagerService implements SchemaManager {
 
   @Override
   public InputBinder<?> bindInput() {
-    return InputBinderImpl.bind(getProcessingContext(), registeredFormats());
+    return InputBinderImpl
+        .bind(getProcessingContext(), registeredFormats(), getBaseSchema().rootModel());
   }
 
   @Override

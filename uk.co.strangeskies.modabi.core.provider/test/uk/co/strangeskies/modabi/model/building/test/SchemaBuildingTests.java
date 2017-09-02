@@ -35,10 +35,7 @@ public class SchemaBuildingTests {
 		new SchemaManagerService();
 	}
 
-	/*
-	 * TODO This won't work until JDK-8146167 is fixed.
-	 */
-	// @Test
+	@Test
 	public void fixMeUp() {
 		System.out.println(new @Infer TypeToken<SortedSet<?>>() {}
 				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})

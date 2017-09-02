@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.impl;
 import static java.util.Arrays.asList;
 import static uk.co.strangeskies.reflection.codegen.InvocationExpression.invokeResolvedStatic;
 
-import java.util.Arrays;
 import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.BaseSchema;
@@ -54,36 +53,43 @@ import uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedCondition;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
+import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.utility.Property;
 
 public class MetaSchemaImpl implements MetaSchema {
   private interface ModelHelper {
-    <T> Model<T> apply(String name, Function<ModelBuilder, Model<T>> type);
+    <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type);
   }
 
   private final Schema metaSchema;
   private Model<Schema> schemaModel;
   private Model<Model<?>> metaModel;
 
-  public MetaSchemaImpl(SchemaBuilder schema, BaseSchema base) {
+  public MetaSchemaImpl(SchemaBuilder schemaBuilder, BaseSchema base) {
     QualifiedName name = QUALIFIED_NAME;
     Namespace namespace = name.getNamespace();
 
     /*
      * Schema
      */
-    schema = schema.qualifiedName(name).dependencies(Arrays.asList(base));
+    Property<SchemaBuilder> schemaConfigurator = new IdentityProperty<>(schemaBuilder.name(name));
 
     /*
      * Models
      */
-    buildModels(new ModelHelper() {
+    ModelHelper modelFactory = new ModelHelper() {
       @Override
-      public <T> Model<T> apply(String name, Function<ModelBuilder, Model<T>> modelFunction) {
-        return modelFunction.apply(schema.addModel().name(new QualifiedName(name, namespace)));
+      public <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type) {
+        Property<Model<T>> completion = new IdentityProperty<>();
+        schemaConfigurator.set(
+            type
+                .apply(schemaConfigurator.get().addModel().name(new QualifiedName(name, namespace)))
+                .endModel(completion::set));
+        return completion.get();
       }
-    }, base, namespace);
+    };
 
-    metaSchema = schema.create();
+    metaSchema = schemaBuilder.create();
   }
 
   private void buildModels(ModelHelper factory, BaseSchema base, Namespace namespace) {
@@ -97,7 +103,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<ModelBuilder<?>> metaModelBase = factory.apply(
         "modelBase",
         m -> m
-            .baseModel(bindingPointModelBase)
+            .rootNode(bindingPointModelBase)
             .dataType(new TypeToken<ModelBuilder<?>>() {})
             .concrete(false)
             .export(false));
@@ -105,7 +111,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<ChildBindingPointBuilder<?>> childBindingPointModelBase = factory.apply(
         "childBindingPointBase",
         m -> m
-            .baseModel(bindingPointModelBase)
+            .rootNode(bindingPointModelBase)
             .dataType(new TypeToken<ChildBindingPointBuilder<?>>() {})
             .concrete(false)
             .export(false));
@@ -119,23 +125,23 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<AndCondition<?>> andModel = factory.apply(
         "andCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<AndCondition<?>>() {})
             .node(
                 n -> n.addChildBindingPoint(
                     c -> c
                         .name("conditions")
                         .input(i -> invokeResolvedStatic(AndCondition.class, "and", i.result()))
-                        .baseModel(base.derived().setModel())
+                        .rootNode(base.derived().setModel())
                         .node(
                             p -> p.addChildBindingPoint(
-                                h -> h.name("element").baseModel(bindingConditionModel))))));
+                                h -> h.name("element").rootNode(bindingConditionModel))))));
 
     Model<OrCondition<?>> orModel = factory.apply(
         "orCondition",
         m -> m
-            .baseType(new @Infer TypeToken<OrCondition<?>>() {})
-            .baseModel(bindingConditionModel)
+            .rootNode(new @Infer TypeToken<OrCondition<?>>() {})
+            .rootNode(bindingConditionModel)
             .addChildBindingPoint(
                 c -> c
                     .name("conditions")
@@ -144,15 +150,15 @@ public class MetaSchemaImpl implements MetaSchema {
                             forStaticMethod(
                                 OrCondition.class.getMethod("or", BindingCondition.class)),
                             i.result()))
-                    .override()
-                    .baseModel(base.setModel())
-                    .addChildBindingPoint(h -> h.name("element").baseModel(bindingConditionModel)))
+                    .overrideNode()
+                    .rootNode(base.setModel())
+                    .addChildBindingPoint(h -> h.name("element").rootNode(bindingConditionModel)))
             .endNode());
 
     Model<RequiredCondition<?>> requiredModel = factory.apply(
         "requiredCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<RequiredCondition<?>>() {})
             .node(
                 n -> n.initializeInput(
@@ -161,7 +167,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<ForbiddenCondition<?>> forbiddenModel = factory.apply(
         "forbiddenCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<ForbiddenCondition<?>>() {})
             .node(
                 n -> n.initializeInput(
@@ -170,7 +176,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<OptionalCondition<?>> optionalModel = factory.apply(
         "optionalCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<OptionalCondition<?>>() {})
             .node(
                 n -> n.initializeInput(
@@ -179,7 +185,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<AscendingSortCondition<?>> sortAscendingModel = factory.apply(
         "sortAscendingCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<AscendingSortCondition<?>>() {})
             .node(
                 n -> n.initializeInput(
@@ -188,7 +194,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<DescendingSortCondition<?>> sortDescendingModel = factory.apply(
         "sortDescendingCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<DescendingSortCondition<?>>() {})
             .node(
                 n -> n.initializeInput(
@@ -197,7 +203,7 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<SynchronizedCondition<?>> synchronizedModel = factory.apply(
         "synchronizedCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<SynchronizedCondition<?>>() {})
             .node(
                 n -> n.initializeInput(
@@ -206,11 +212,11 @@ public class MetaSchemaImpl implements MetaSchema {
     Model<OccurrencesCondition<?>> occurrencesModel = factory.apply(
         "occurrencesCondition",
         m -> m
-            .baseModel(bindingConditionModel)
+            .rootNode(bindingConditionModel)
             .dataType(new @Infer TypeToken<OccurrencesCondition<?>>() {})
             .node(
                 n -> n.addChildBindingPoint(
-                    c -> c.name("range").baseModel(base.derived().rangeModel()).input(
+                    c -> c.name("range").rootNode(base.derived().rangeModel()).input(
                         i -> invokeResolvedStatic(
                             OccurrencesCondition.class,
                             "occurrences",
@@ -222,64 +228,64 @@ public class MetaSchemaImpl implements MetaSchema {
         "bindingPoint",
         m -> m
             .concrete(false)
-            .baseModel(bindingPointModelBase)
+            .rootNode(bindingPointModelBase)
             .dataType(new TypeToken<BindingPointConfigurator<?, ?>>() {})
             .node(
                 n -> n
                     .addChildBindingPoint(
                         c -> c
                             .name("name")
-                            .baseModel(base.primitive(Primitive.STRING))
+                            .rootNode(base.primitive(Primitive.STRING))
                             .bindingCondition(optional()))
                     .addChildBindingPoint(
                         c -> c
                             .name("export")
-                            .baseModel(base.primitive(Primitive.BOOLEAN))
+                            .rootNode(base.primitive(Primitive.BOOLEAN))
                             .bindingCondition(optional()))
                     .addChildBindingPoint(
                         c -> c
                             .name("concrete")
-                            .baseModel(base.primitive(Primitive.BOOLEAN))
+                            .rootNode(base.primitive(Primitive.BOOLEAN))
                             .bindingCondition(optional()))
                     .addChildBindingPoint(
-                        c -> c.name("baseModel").baseModel(metaModelBase).bindingCondition(
+                        c -> c.name("baseModel").rootNode(metaModelBase).bindingCondition(
                             optional()))
                     .addChildBindingPoint(
                         c -> c
                             .name("dataType")
-                            .baseModel(base.derived().typeTokenModel())
+                            .rootNode(base.derived().typeTokenModel())
                             .bindingCondition(optional()))));
 
     Model<ModelBuilder<?>> metaModel = factory.apply(
         "model",
-        m -> m.baseModel(asList(metaModelBase, bindingPointModel)).dataType(
+        m -> m.rootNode(asList(metaModelBase, bindingPointModel)).dataType(
             new @Infer TypeToken<ModelBuilder<?>>() {}));
 
     Model<ChildBindingPointBuilder<?>> childBindingPointModel = factory.apply(
         "childBindingPoint",
         m -> m
-            .baseModel(bindingPointModel)
+            .rootNode(bindingPointModel)
             .dataType(new TypeToken<ChildBindingPointBuilder<?>>() {})
             .node(
                 n -> n
                     .addChildBindingPoint(
                         c -> c
                             .name("extensible")
-                            .baseModel(base.primitive(Primitive.BOOLEAN))
+                            .rootNode(base.primitive(Primitive.BOOLEAN))
                             .bindingCondition(optional()))
                     .addChildBindingPoint(
-                        c -> c.name("condition").baseModel(bindingConditionModel).bindingCondition(
+                        c -> c.name("condition").rootNode(bindingConditionModel).bindingCondition(
                             optional()))
                     .addChildBindingPoint(
                         c -> c
                             .name("valueResolution")
-                            .baseModel(base.derived().enumModel())
+                            .rootNode(base.derived().enumModel())
                             .dataType(ValueResolution.class)
                             .bindingCondition(optional()))
                     .addChildBindingPoint(
                         c -> c
                             .name("value")
-                            .baseModel(base.derived().bufferedDataModel())
+                            .rootNode(base.derived().bufferedDataModel())
                             .input(i -> i.target().invokeResolvedMethod("provideValue", i.result()))
                             .output(o -> o.source().invokeResolvedMethod("getProvidedValue"))
                             .bindingCondition(optional()))));
@@ -291,7 +297,7 @@ public class MetaSchemaImpl implements MetaSchema {
                 .addChildBindingPoint(
                     b -> b
                         .name("concrete")
-                        .baseModel(base.primitive(Primitive.BOOLEAN))
+                        .rootNode(base.primitive(Primitive.BOOLEAN))
                         .bindingCondition(optional()))
                 .addChildBindingPoint(
                     b -> b

@@ -39,6 +39,8 @@ public interface BaseSchema extends Schema {
       BaseSchema.class.getSimpleName(),
       MODABI_NAMESPACE);
 
+  Model<Object> rootModel();
+
   Model<String> stringModel();
 
   Model<byte[]> binaryModel();
@@ -103,5 +105,4 @@ public interface BaseSchema extends Schema {
   Model<AnnotatedType> annotatedTypeModel();
 
   Model<Map<?, ?>> mapModel();
-
 }

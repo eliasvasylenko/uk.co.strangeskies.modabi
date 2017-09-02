@@ -23,8 +23,6 @@ import java.util.Optional;
 
 import uk.co.strangeskies.collection.computingmap.ComputingMap;
 import uk.co.strangeskies.modabi.Models;
-import uk.co.strangeskies.modabi.ProcessedBindings;
-import uk.co.strangeskies.modabi.Provisions;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;

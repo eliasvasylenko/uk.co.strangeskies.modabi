@@ -15,7 +15,6 @@ import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
-import uk.co.strangeskies.modabi.schema.ChildBindingPointFactory;
 import uk.co.strangeskies.modabi.schema.InputBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
@@ -41,7 +40,6 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
    */
   private final Map<ValueExpression, ValueExpression> iterationExpressions;
 
-  @SuppressWarnings("unchecked")
   public ChildBindingPointBuilderImpl(ChildBindingPointBuilder<T, E> other) {
     context = null;
 
@@ -71,12 +69,14 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public InputBuilder<T> input() {
-    
+  public InputBuilder input() {
+    return new InputBuilderImpl();
   }
 
   @Override
-  public OutputBuilder<T> output() {}
+  public OutputBuilder output() {
+    return new OutputBuilderImpl();
+  }
 
   @Override
   public final ChildBindingPointBuilder<T, E> name(String name) {
@@ -148,7 +148,19 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public NodeBuilder<T, ChildBindingPointFactory<E>> override() {
+  public NodeBuilder<T, ChildBindingPointBuilder<T, E>> overrideNode() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Optional<Model<? super T>> getModel() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Optional<TypeToken<T>> getType() {
     // TODO Auto-generated method stub
     return null;
   }

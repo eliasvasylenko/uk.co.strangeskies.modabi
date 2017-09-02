@@ -48,7 +48,7 @@ public interface NodeBuilder<T, E> {
 
   InputInitializerBuilder initializeInput();
 
-  OutputInitializerBuilder<?> initializeOutput();
+  OutputInitializerBuilder initializeOutput();
 
   default NodeBuilder<T, E> initializeInput(
       Function<? super InputInitializerBuilder, ? extends ValueExpression> initializer) {
@@ -57,7 +57,7 @@ public interface NodeBuilder<T, E> {
   }
 
   default NodeBuilder<T, E> initializeOutput(
-      Function<? super OutputInitializerBuilder<?>, ? extends ValueExpression> initializer) {
+      Function<? super OutputInitializerBuilder, ? extends ValueExpression> initializer) {
     initializeOutput().expression(initializer.apply(initializeOutput()));
     return this;
   }
@@ -65,7 +65,7 @@ public interface NodeBuilder<T, E> {
   ChildBindingPointBuilder<?, NodeBuilder<T, E>> addChildBindingPoint();
 
   default NodeBuilder<T, E> addChildBindingPoint(
-      Function<ChildBindingPointBuilder<?, NodeBuilder<T, E>>, ChildBindingPointFactory<NodeBuilder<T, E>>> configuration) {
+      Function<ChildBindingPointBuilder<?, NodeBuilder<T, E>>, ChildBindingPointBuilder<?, NodeBuilder<T, E>>> configuration) {
     configuration.apply(addChildBindingPoint()).endChild();
 
     return this;

@@ -8,8 +8,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ChildBindingPointBuilder<T, E extends NodeBuilder<?, ?>>
-    extends ChildBindingPointFactory<E> {
+public interface ChildBindingPointBuilder<T, E extends NodeBuilder<?, ?>> {
   Optional<QualifiedName> getName();
 
   Optional<Node<?>> getNode();
@@ -30,9 +29,9 @@ public interface ChildBindingPointBuilder<T, E extends NodeBuilder<?, ?>>
 
   Optional<BindingCondition<? super T>> getBindingCondition();
 
-  InputBuilder<T> input();
+  InputBuilder input();
 
-  OutputBuilder<T> output();
+  OutputBuilder output();
 
   <U> ChildBindingPointBuilder<U, E> model(Model<U> model);
 
@@ -45,13 +44,13 @@ public interface ChildBindingPointBuilder<T, E extends NodeBuilder<?, ?>>
   Optional<TypeToken<T>> getType();
 
   default ChildBindingPointBuilder<T, E> input(
-      Function<InputBuilder<T>, ValueExpression> inputExpression) {
+      Function<InputBuilder, ValueExpression> inputExpression) {
     input().expression(inputExpression.apply(input()));
     return this;
   }
 
   default ChildBindingPointBuilder<T, E> output(
-      Function<OutputBuilder<T>, ValueExpression> outputExpression) {
+      Function<OutputBuilder, ValueExpression> outputExpression) {
     output().expression(outputExpression.apply(output()));
     return this;
   }
@@ -62,5 +61,7 @@ public interface ChildBindingPointBuilder<T, E extends NodeBuilder<?, ?>>
    * 
    * @return a configuration object for the override
    */
-  NodeBuilder<T, ChildBindingPointFactory<E>> override();
+  NodeBuilder<T, ChildBindingPointBuilder<T, E>> overrideNode();
+
+  E endChild();
 }

@@ -15,52 +15,39 @@ import uk.co.strangeskies.modabi.schema.InputInitializerBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.OutputInitializerBuilder;
-import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 public class NodeBuilderImpl<T, E> implements NodeBuilder<T, E> {
-  private final ChildBindingPointBuilderImpl<?, ?> parent;
+  private final E parent;
+  private final Boolean concrete;
+  private final Boolean extensible;
+  private final T provided;
 
-  public NodeBuilderImpl(ChildBindingPointBuilderImpl<?, ?> parent) {
+  public NodeBuilderImpl(E parent) {
     this.parent = parent;
+    this.concrete = null;
+    this.extensible = null;
+    this.provided = null;
+  }
+
+  public NodeBuilderImpl(E parent, Boolean concrete, Boolean extensible, T provided) {
+    this.parent = parent;
+    this.concrete = concrete;
+    this.extensible = extensible;
+    this.provided = provided;
   }
 
   @Override
   public InputInitializerBuilder initializeInput() {
-    return new InputInitializerBuilderImpl() {
-      @Override
-      public ValueExpression bound(ChildBindingPoint<?> bindingPoint) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      @Override
-      public ValueExpression bound(QualifiedName bindingPoint) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      @Override
-      public ValueExpression binding(ChildBindingPoint<?> bindingPoint) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      @Override
-      public ValueExpression binding(QualifiedName bindingPoint) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-    };
+    return new InputInitializerBuilderImpl();
   }
 
   @Override
-  public OutputInitializerBuilder<?> initializeOutput() {
-    // TODO Auto-generated method stub
-    return null;
+  public OutputInitializerBuilder initializeOutput() {
+    return new OutputInitializerBuilderImpl();
   }
 
   @Override
@@ -131,32 +118,28 @@ public class NodeBuilderImpl<T, E> implements NodeBuilder<T, E> {
 
   @Override
   public NodeBuilder<T, E> concrete(boolean concrete) {
-    // TODO Auto-generated method stub
-    return null;
+    return new NodeBuilderImpl<>(parent, concrete, extensible, provided);
   }
 
   @Override
   public Optional<Boolean> getConcrete() {
-    // TODO Auto-generated method stub
-    return null;
+    return Optional.ofNullable(concrete);
   }
 
   @Override
   public NodeBuilder<T, E> extensible(boolean extensible) {
-    // TODO Auto-generated method stub
-    return null;
+    return new NodeBuilderImpl<>(parent, concrete, extensible, provided);
   }
 
   @Override
   public Optional<Boolean> getExtensible() {
-    // TODO Auto-generated method stub
-    return null;
+    return Optional.ofNullable(extensible);
   }
 
   @Override
   public E endNode() {
     // TODO Auto-generated method stub
-    return null;
+    return parent;
   }
 
   @Override

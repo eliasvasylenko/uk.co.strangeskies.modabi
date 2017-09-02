@@ -18,36 +18,27 @@
  */
 package uk.co.strangeskies.modabi;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.ModelFactory;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface SchemaBuilder {
   Schema create();
 
-  SchemaBuilder qualifiedName(QualifiedName name);
+  SchemaBuilder name(QualifiedName name);
 
   SchemaBuilder imports(Collection<? extends Class<?>> imports);
 
   SchemaBuilder dependencies(Collection<? extends Schema> dependencies);
 
-  ModelBuilder addModel();
+  ModelBuilder<?> addModel();
 
-  default SchemaBuilder addModel(
-      QualifiedName name,
-      Function<ModelBuilder, ModelFactory<?>> configuration) {
-    configuration.apply(addModel().name(name)).createModel();
-
-    return this;
+  default SchemaBuilder addModel(Function<ModelBuilder<?>, ModelBuilder<?>> configuration) {
+    return configuration.apply(addModel()).endModel();
   }
-
-  SchemaBuilder addModel(String name, Function<ModelBuilder, ModelFactory<?>> configuration);
 
   /*
    * For simple programmatic generation of schemata:
@@ -57,20 +48,5 @@ public interface SchemaBuilder {
     return generateModel(TypeToken.forClass(type));
   }
 
-  default SchemaBuilder generateModels(Class<?>... types) {
-    return generateModels(
-        Arrays.stream(types).<TypeToken<?>>map(TypeToken::forClass).collect(Collectors.toList()));
-  }
-
   <T> Model<T> generateModel(TypeToken<T> type);
-
-  default SchemaBuilder generateModels(TypeToken<?>... types) {
-    return generateModels(Arrays.asList(types));
-  }
-
-  default SchemaBuilder generateModels(Collection<? extends TypeToken<?>> types) {
-    for (TypeToken<?> type : types)
-      generateModel(type);
-    return this;
-  }
 }

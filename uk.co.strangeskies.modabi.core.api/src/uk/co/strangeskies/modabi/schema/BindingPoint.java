@@ -20,9 +20,23 @@ public interface BindingPoint<T> {
   TypeToken<T> dataType();
 
   /**
+   * Get the model to bind to this point.
+   * 
+   * This may be the root model/null TODO there is currently no concept of a root
+   * model, need to decide on this. It may also be extensible, and if extensible
+   * it may also be abstract.
+   * 
+   * As this model may be extensible, this means it may not be the most specific
+   * model ultimately used for any given binding made to this point. Rather, it
+   * gives an upper bound on the model which may be used.
+   * 
    * @return the model to bind to this point
    */
   Model<? super T> model();
+
+  static <T> BindingPoint<T> anonymous(Model<T> model) {
+    return anonymous(model.dataType(), model);
+  }
 
   static <T> BindingPoint<T> anonymous(TypeToken<T> dataType, Model<? super T> model) {
     return new BindingPoint<T>() {

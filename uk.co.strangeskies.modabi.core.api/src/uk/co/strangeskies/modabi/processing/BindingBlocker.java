@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.processing;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -71,6 +72,12 @@ public interface BindingBlocker extends BindingBlocks {
    * @return
    */
   BindingBlock block(QualifiedName namespace, Object id, boolean internal);
+
+  <T> CompletableFuture<T> block(
+      QualifiedName namespace,
+      Object id,
+      boolean internal,
+      CompletableFuture<T> future);
 
   public Set<Thread> getParticipatingThreads();
 

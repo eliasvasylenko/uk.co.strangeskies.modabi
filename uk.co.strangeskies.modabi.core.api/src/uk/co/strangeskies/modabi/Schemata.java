@@ -22,4 +22,9 @@ public class Schemata extends NamedSet<QualifiedName, Schema> {
   public Schemata() {
     super(Schema::qualifiedName);
   }
+
+  @Override
+  public void add(Schema element) {
+    super.add(element);
+  }
 }

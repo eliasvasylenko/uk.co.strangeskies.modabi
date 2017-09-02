@@ -24,4 +24,9 @@ public class DataFormats extends NamedSet<String, DataFormat> {
   public DataFormats() {
     super(DataFormat::getFormatId);
   }
+
+  @Override
+  protected void add(DataFormat element) {
+    super.add(element);
+  }
 }

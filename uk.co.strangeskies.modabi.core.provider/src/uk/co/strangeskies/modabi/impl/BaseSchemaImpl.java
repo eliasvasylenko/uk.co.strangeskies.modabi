@@ -65,17 +65,19 @@ import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.expression.Expressions;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.Annotations;
-import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 import uk.co.strangeskies.utility.Enumeration;
+import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.utility.Property;
 
 public class BaseSchemaImpl implements BaseSchema {
   private interface ModelHelper {
-    <T> Model<T> apply(String name, Function<ModelBuilder, Model<T>> type);
+    <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type);
   }
 
+  private final Model<Object> rootModel;
   private final Model<String> stringModel;
   private final Model<byte[]> binaryModel;
   private final Model<BigInteger> integerModel;
@@ -124,22 +126,29 @@ public class BaseSchemaImpl implements BaseSchema {
     /*
      * Schema
      */
-    SchemaBuilder schemaConfigurator = schemaBuilder.qualifiedName(name);
+    Property<SchemaBuilder> schemaConfigurator = new IdentityProperty<>(schemaBuilder.name(name));
 
     /*
      * Models
      */
     ModelHelper modelFactory = new ModelHelper() {
       @Override
-      public <T> Model<T> apply(String name, Function<ModelBuilder, Model<T>> type) {
-        return type.apply(schemaConfigurator.addModel().name(name, namespace));
+      public <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type) {
+        Property<Model<T>> completion = new IdentityProperty<>();
+        schemaConfigurator.set(
+            type
+                .apply(schemaConfigurator.get().addModel().name(new QualifiedName(name, namespace)))
+                .endModel(completion::set));
+        return completion.get();
       }
     };
+
+    rootModel = modelFactory.apply("root", p -> p.rootNode(Object.class).concrete(false).endNode());
 
     stringModel = modelFactory.apply(
         "string",
         p -> p
-            .baseType(String.class)
+            .rootNode(String.class)
             .initializeInput(i -> i.provide(new TypeToken<Supplier<String>>() {}).invoke("get"))
             .initializeOutput(
                 o -> o
@@ -150,7 +159,7 @@ public class BaseSchemaImpl implements BaseSchema {
     binaryModel = modelFactory.apply(
         "binary",
         t -> t
-            .baseType(byte[].class)
+            .rootNode(byte[].class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -165,7 +174,7 @@ public class BaseSchemaImpl implements BaseSchema {
     integerModel = modelFactory.apply(
         "integer",
         t -> t
-            .baseType(BigInteger.class)
+            .rootNode(BigInteger.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -176,7 +185,7 @@ public class BaseSchemaImpl implements BaseSchema {
     decimalModel = modelFactory.apply(
         "integer",
         t -> t
-            .baseType(BigDecimal.class)
+            .rootNode(BigDecimal.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -187,7 +196,7 @@ public class BaseSchemaImpl implements BaseSchema {
     intModel = modelFactory.apply(
         "int",
         t -> t
-            .baseType(int.class)
+            .rootNode(int.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -199,7 +208,7 @@ public class BaseSchemaImpl implements BaseSchema {
     longModel = modelFactory.apply(
         "long",
         t -> t
-            .baseType(long.class)
+            .rootNode(long.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -211,7 +220,7 @@ public class BaseSchemaImpl implements BaseSchema {
     floatModel = modelFactory.apply(
         "float",
         t -> t
-            .baseType(float.class)
+            .rootNode(float.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -223,7 +232,7 @@ public class BaseSchemaImpl implements BaseSchema {
     doubleModel = modelFactory.apply(
         "long",
         t -> t
-            .baseType(double.class)
+            .rootNode(double.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -236,7 +245,7 @@ public class BaseSchemaImpl implements BaseSchema {
     booleanModel = modelFactory.apply(
         "long",
         t -> t
-            .baseType(boolean.class)
+            .rootNode(boolean.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -249,7 +258,7 @@ public class BaseSchemaImpl implements BaseSchema {
     qualifiedNameModel = modelFactory.apply(
         "long",
         t -> t
-            .baseType(QualifiedName.class)
+            .rootNode(QualifiedName.class)
             .addChildBindingPoint(
                 c -> c
                     .model(stringModel)
@@ -262,7 +271,7 @@ public class BaseSchemaImpl implements BaseSchema {
     arrayModel = modelFactory.apply(
         "array",
         t -> t
-            .baseType(new @Infer TypeToken<Object[]>() {})
+            .rootNode(new @Infer TypeToken<Object[]>() {})
             .initializeInput(i -> i.provide(new TypeToken<List<?>>() {}))
             .initializeOutput(o -> invokeStatic(Arrays.class, "asList", o.parent()))
             .addChildBindingPoint(
@@ -283,7 +292,7 @@ public class BaseSchemaImpl implements BaseSchema {
     collectionModel = modelFactory.apply(
         "collection",
         t -> t
-            .baseType(new @Infer TypeToken<Collection<?>>() {})
+            .rootNode(new @Infer TypeToken<Collection<?>>() {})
             .initializeInput(i -> i.provide())
             .addChildBindingPoint(
                 c -> c
@@ -296,16 +305,16 @@ public class BaseSchemaImpl implements BaseSchema {
 
     listModel = modelFactory.apply(
         "list",
-        t -> t.baseModel(new @Infer TypeToken<List<?>>() {}, collectionModel).endNode());
+        t -> t.rootNode(new @Infer TypeToken<List<?>>() {}, collectionModel).endNode());
 
     setModel = modelFactory.apply(
         "set",
-        t -> t.baseModel(new @Infer TypeToken<Set<?>>() {}, collectionModel).endNode());
+        t -> t.rootNode(new @Infer TypeToken<Set<?>>() {}, collectionModel).endNode());
 
     uriModel = modelFactory.apply(
         "uri",
         t -> t
-            .baseType(URI.class)
+            .rootNode(URI.class)
             .addChildBindingPoint(
                 u -> u
                     .name("uriString")
@@ -317,7 +326,7 @@ public class BaseSchemaImpl implements BaseSchema {
     urlModel = modelFactory.apply(
         "url",
         t -> t
-            .baseType(URL.class)
+            .rootNode(URL.class)
             .addChildBindingPoint(
                 u -> u
                     .name("urlString")
@@ -331,7 +340,7 @@ public class BaseSchemaImpl implements BaseSchema {
         "referenceBase",
         t -> t
             .export(false)
-            .baseType(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+            .rootNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
             .concrete(false)
             .addChildBindingPoint(
                 d -> d
@@ -339,7 +348,7 @@ public class BaseSchemaImpl implements BaseSchema {
                     .input(IOBuilder::none)
                     .output(IOBuilder::none)
                     .type(new @Infer TypeToken<Model<?>>() {})
-                    .override()
+                    .overrideNode()
                     .endNode())
             .addChildBindingPoint(
                 d -> d
@@ -347,7 +356,7 @@ public class BaseSchemaImpl implements BaseSchema {
                     .input(IOBuilder::none)
                     .output(IOBuilder::none)
                     .model(listModel)
-                    .override()
+                    .overrideNode()
                     .concrete(false)
                     .addChildBindingPoint(e -> e.name("element").model(qualifiedNameModel))
                     .endNode())
@@ -373,21 +382,21 @@ public class BaseSchemaImpl implements BaseSchema {
     referenceModel = modelFactory.apply(
         "reference",
         t -> t
-            .baseModel(referenceBaseModel)
+            .rootNode(referenceBaseModel)
             .concrete(false)
             .addChildBindingPoint(
                 c -> c
                     .name("targetModel")
                     .model(referenceBaseModel)
                     .type(new @Infer TypeToken<Model<?>>() {})
-                    .override()
+                    .overrideNode()
                     .concrete(false)
                     .addChildBindingPoint(
                         d -> d
                             .name("targetModel")
                             .model(referenceBaseModel)
                             .type(new @Infer TypeToken<Model<?>>() {})
-                            .override()
+                            .overrideNode()
                             .provideValue(
                                 typedObject(new TypeToken<Model<Model<?>>>() {}, metaModelProxy))
                             .addChildBindingPoint(
@@ -395,7 +404,7 @@ public class BaseSchemaImpl implements BaseSchema {
                                     .name("targetModel")
                                     .model(referenceBaseModel)
                                     .type(new @Infer TypeToken<Model<?>>() {})
-                                    .override()
+                                    .overrideNode()
                                     .concrete(false)
                                     .provideValue(
                                         typedObject(
@@ -406,7 +415,7 @@ public class BaseSchemaImpl implements BaseSchema {
                                 e -> e
                                     .name("targetId")
                                     .type(new TypeToken<List<QualifiedName>>() {})
-                                    .override()
+                                    .overrideNode()
                                     .provideValue(
                                         typedObject(
                                             new TypeToken<List<QualifiedName>>() {},
@@ -418,7 +427,7 @@ public class BaseSchemaImpl implements BaseSchema {
                     .addChildBindingPoint(
                         d -> d
                             .name("targetId")
-                            .override()
+                            .overrideNode()
                             .provideValue(
                                 typedObject(
                                     new TypeToken<List<QualifiedName>>() {},
@@ -433,7 +442,7 @@ public class BaseSchemaImpl implements BaseSchema {
     Model<Object> bindingReferenceModel = (Model<Object>) modelFactory.apply(
         "bindingReference",
         t -> t
-            .baseType(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+            .rootNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
             .concrete(false)
             .initializeInput(i -> i.provide(ReferenceReader.class))
             .addChildBindingPoint(
@@ -442,18 +451,18 @@ public class BaseSchemaImpl implements BaseSchema {
                     .model(referenceModel)
                     .input(IOBuilder::none)
                     .output(IOBuilder::none)
-                    .override()
+                    .overrideNode()
                     .addChildBindingPoint(
                         d -> d
                             .name("targetModel")
-                            .override()
+                            .overrideNode()
                             .provideValue(
                                 typedObject(new TypeToken<Model<Node<?>>>() {}, nodeModelProxy))
                             .endNode())
                     .addChildBindingPoint(
                         e -> e
                             .name("targetId")
-                            .override()
+                            .overrideNode()
                             .provideValue(
                                 typedObject(
                                     new TypeToken<List<QualifiedName>>() {},
@@ -518,7 +527,7 @@ public class BaseSchemaImpl implements BaseSchema {
     referenceIndexModel = modelFactory.apply(
         "include",
         t -> t
-            .baseType(Void.class)
+            .rootNode(Void.class)
             .concrete(false)
             .addChildBindingPoint(
                 c -> c.name("targetBinding").input(IOBuilder::none).output(IOBuilder::none).model(
@@ -532,7 +541,7 @@ public class BaseSchemaImpl implements BaseSchema {
     importModel = modelFactory.apply(
         "import",
         t -> t
-            .baseType(Object.class)
+            .rootNode(Object.class)
             .concrete(false)
             .initializeInput(i -> i.parent())
             .initializeOutput(o -> o.parent())
@@ -542,19 +551,19 @@ public class BaseSchemaImpl implements BaseSchema {
                     .input(IOBuilder::none)
                     .output(IOBuilder::none)
                     .model(referenceModel)
-                    .override()
+                    .overrideNode()
                     .concrete(false)
                     .addChildBindingPoint(
                         d -> d
                             .name("targetModel")
-                            .override()
+                            .overrideNode()
                             .provideValue(
                                 typedObject(new TypeToken<Model<Model<?>>>() {}, metaModelProxy))
                             .endNode())
                     .addChildBindingPoint(
                         d -> d
                             .name("targetId")
-                            .override()
+                            .overrideNode()
                             .provideValue(
                                 typedObject(
                                     new TypeToken<List<QualifiedName>>() {},
@@ -567,7 +576,7 @@ public class BaseSchemaImpl implements BaseSchema {
                     .input(IOBuilder::none)
                     .output(IOBuilder::none)
                     .model(listModel)
-                    .override()
+                    .overrideNode()
                     .concrete(false)
                     .addChildBindingPoint(e -> e.name("element").model(qualifiedNameModel))
                     .endNode())
@@ -592,7 +601,7 @@ public class BaseSchemaImpl implements BaseSchema {
     packageModel = modelFactory.apply(
         "package",
         t -> t
-            .baseType(Package.class)
+            .rootNode(Package.class)
             .addChildBindingPoint(
                 p -> p
                     .name("name")
@@ -604,7 +613,7 @@ public class BaseSchemaImpl implements BaseSchema {
     typeModel = modelFactory.apply(
         "type",
         t -> t
-            .baseType(Type.class)
+            .rootNode(Type.class)
             .addChildBindingPoint(
                 p -> p
                     .name("name")
@@ -614,12 +623,12 @@ public class BaseSchemaImpl implements BaseSchema {
             .endNode());
 
     classModel = modelFactory
-        .apply("class", t -> t.baseModel(new TypeToken<Class<?>>() {}, typeModel).endNode());
+        .apply("class", t -> t.rootNode(new TypeToken<Class<?>>() {}, typeModel).endNode());
 
     annotatedTypeModel = modelFactory.apply(
         "annotatedType",
         t -> t
-            .baseType(AnnotatedType.class)
+            .rootNode(AnnotatedType.class)
             .addChildBindingPoint(
                 p -> p
                     .name("name")
@@ -631,7 +640,7 @@ public class BaseSchemaImpl implements BaseSchema {
     typeTokenModel = modelFactory.apply(
         "typeToken",
         t -> t
-            .baseType(new TypeToken<TypeToken<?>>() {})
+            .rootNode(new TypeToken<TypeToken<?>>() {})
             .addChildBindingPoint(
                 c -> c
                     .model(annotatedTypeModel)
@@ -642,7 +651,7 @@ public class BaseSchemaImpl implements BaseSchema {
     enumModel = modelFactory.apply(
         "enum",
         t -> t
-            .baseType(new TypeToken<Enum<?>>() {})
+            .rootNode(new TypeToken<Enum<?>>() {})
             .concrete(false)
             .addChildBindingPoint(
                 c -> c
@@ -672,7 +681,7 @@ public class BaseSchemaImpl implements BaseSchema {
     enumerationModel = modelFactory.apply(
         "enumeration",
         t -> t
-            .baseType(new TypeToken<Enumeration<?>>() {})
+            .rootNode(new TypeToken<Enumeration<?>>() {})
             .concrete(false)
             .addChildBindingPoint(
                 c -> c
@@ -702,7 +711,7 @@ public class BaseSchemaImpl implements BaseSchema {
     rangeModel = modelFactory.apply(
         "range",
         t -> t
-            .baseType(new TypeToken<Interval<Integer>>() {})
+            .rootNode(new TypeToken<Interval<Integer>>() {})
             .addChildBindingPoint(
                 p -> p
                     .name("string")
@@ -716,7 +725,12 @@ public class BaseSchemaImpl implements BaseSchema {
     /*
      * Schema
      */
-    baseSchema = schemaConfigurator.create();
+    baseSchema = schemaConfigurator.get().create();
+  }
+
+  @Override
+  public Model<Object> rootModel() {
+    return rootModel;
   }
 
   @Override
@@ -893,11 +907,6 @@ public class BaseSchemaImpl implements BaseSchema {
   @Override
   public int hashCode() {
     return baseSchema.hashCode();
-  }
-
-  @Override
-  public Imports imports() {
-    return Imports.empty();
   }
 
   @Override

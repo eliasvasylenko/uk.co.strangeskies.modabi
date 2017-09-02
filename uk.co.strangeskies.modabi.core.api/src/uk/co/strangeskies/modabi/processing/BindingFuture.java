@@ -18,36 +18,36 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.ModabiException;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 
-public interface BindingFuture<T> extends Future<Binding<T>> {
+public interface BindingFuture<T> extends Future<Binding<? extends T>> {
   Future<Model<? super T>> getModelFuture();
+
+  Future<BindingPoint<? super T>> getBindingPointFuture();
 
   BindingBlocks blocks();
 
-  @Override
-  Binding<T> get();
-
-  @Override
-  Binding<T> get(long timeout, TimeUnit unit);
-
-  default T resolve() {
+  default T resolve() throws InterruptedException, ExecutionException {
     return get().getData();
   }
 
-  default T resolve(long timeout) {
-    return get(timeout, TimeUnit.MILLISECONDS).getData();
+  default T resolve(long timeout, TimeUnit unit)
+      throws InterruptedException, ExecutionException, TimeoutException {
+    return get(timeout, unit).getData();
   }
 
-  default Binding<T> getNow() {
+  default Binding<? extends T> getNow() throws InterruptedException, ExecutionException {
     BindingBlocks blockingBindings = blocks();
 
     if (!isDone() && cancel(true))
@@ -56,7 +56,7 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
     return get();
   }
 
-  default T resolveNow() {
+  default T resolveNow() throws InterruptedException, ExecutionException {
     return getNow().getData();
   }
 
@@ -89,9 +89,12 @@ public interface BindingFuture<T> extends Future<Binding<T>> {
 
       @Override
       public Future<Model<? super U>> getModelFuture() {
-        FutureTask<Model<? super U>> modelFuture = new FutureTask<>(binding::getModel);
-        modelFuture.run();
-        return modelFuture;
+        return completedFuture(binding.getModel());
+      }
+
+      @Override
+      public Future<BindingPoint<? super U>> getBindingPointFuture() {
+        return completedFuture(binding.getBindingPoint());
       }
 
       @Override

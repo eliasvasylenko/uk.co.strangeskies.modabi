@@ -27,12 +27,6 @@ public interface SchemaManager {
 
   MetaSchema getMetaSchema();
 
-  /**
-   * @return a schema builder who's products will be automatically registered with
-   *         this manager
-   */
-  SchemaBuilder getSchemaBuilder();
-
   Stream<Provider> getProviders();
 
   Schemata registeredSchemata();
