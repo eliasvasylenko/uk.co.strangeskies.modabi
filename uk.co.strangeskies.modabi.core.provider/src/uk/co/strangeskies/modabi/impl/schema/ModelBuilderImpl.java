@@ -75,7 +75,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
     return Optional.ofNullable(export);
   }
 
-  protected <U> NodeBuilder<U, ModelBuilder<U>> baseModelImpl(
+  protected <U> NodeBuilder<U, ModelBuilder<U>> rootNodeImpl(
       TypeToken<U> dataType,
       Collection<? extends Model<? super U>> baseModel) {
     return new NodeBuilderImpl<>(new NodeBuilderContext<U, ModelBuilder<U>>() {
@@ -106,7 +106,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
   public <U> NodeBuilder<U, ModelBuilder<U>> rootNode(
       TypeToken<U> type,
       Collection<? extends Model<? super U>> baseModel) {
-    return baseModelImpl(requireNonNull(type), requireNonNull(baseModel));
+    return rootNodeImpl(requireNonNull(type), requireNonNull(baseModel));
   }
 
   @Override
@@ -116,7 +116,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
 
   @Override
   public <U> NodeBuilder<U, ModelBuilder<U>> rootNode(TypeToken<U> type) {
-    return baseModelImpl(requireNonNull(type), emptySet());
+    return rootNodeImpl(requireNonNull(type), emptySet());
   }
 
   public Optional<NodeImpl<T>> getRootNode() {

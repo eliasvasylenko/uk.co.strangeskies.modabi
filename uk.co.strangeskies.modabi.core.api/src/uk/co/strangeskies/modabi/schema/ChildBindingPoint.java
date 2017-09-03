@@ -34,7 +34,7 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
    * 
    * @return
    */
-  BindingCondition<? super T> bindingCondition();
+  BindingCondition bindingCondition();
 
   Node<?> parent();
 }

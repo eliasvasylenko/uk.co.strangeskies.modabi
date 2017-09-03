@@ -13,7 +13,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
   private final QualifiedName name;
   private final boolean ordered;
-  private final BindingCondition<? super T> condition;
+  private final BindingCondition condition;
 
   @SuppressWarnings("unchecked")
   protected ChildBindingPointImpl(ChildBindingPointBuilderImpl<T, ?> configurator) {
@@ -27,12 +27,12 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .validateOverride((a, b) -> a || !b)
         .get();
 
-    BindingCondition<?> condition = configurator
-        .<BindingCondition<?>>overrideChildren(
+    BindingCondition condition = configurator
+        .<BindingCondition>overrideChildren(
             ChildBindingPoint::bindingCondition,
             ChildBindingPointBuilder::getBindingCondition)
         .get();
-    this.condition = (BindingCondition<? super T>) condition;
+    this.condition = (BindingCondition) condition;
   }
 
   @Override
@@ -46,7 +46,7 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
   }
 
   @Override
-  public BindingCondition<? super T> bindingCondition() {
+  public BindingCondition bindingCondition() {
     return condition;
   }
 

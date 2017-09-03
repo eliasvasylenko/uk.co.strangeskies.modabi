@@ -118,9 +118,9 @@ public class MetaSchemaImpl implements MetaSchema {
 
     /* Binding Condition Models */
 
-    Model<BindingCondition<?>> bindingConditionModel = factory.apply(
+    Model<BindingCondition> bindingConditionModel = factory.apply(
         "bindingCondition",
-        m -> m.concrete(false).dataType(new @Infer TypeToken<BindingCondition<?>>() {}));
+        m -> m.concrete(false).dataType(new @Infer TypeToken<BindingCondition>() {}));
 
     Model<AndCondition<?>> andModel = factory.apply(
         "andCondition",
