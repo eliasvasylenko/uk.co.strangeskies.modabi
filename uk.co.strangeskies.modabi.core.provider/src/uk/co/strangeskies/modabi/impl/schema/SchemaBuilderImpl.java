@@ -152,4 +152,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException();
   }
+
+  public SchemaBuilder endModel(ModelImpl<?> model) {
+    // TODO Auto-generated method stub
+    return this;
+  }
 }

@@ -16,13 +16,12 @@ public interface IOBuilderImpl extends IOBuilder {
 
   @Override
   default ValueExpression context() {
-    return receiver(IOInterface.class).getField("context");
+    return receiver().getField("context"); // ProcessingContextImpl
   }
 
   @Override
   default ValueExpression binding(String string) {
-    // TODO Auto-generated method stub
-    return null;
+    return context().invoke("bindings"); // TODO
   }
 
   @Override

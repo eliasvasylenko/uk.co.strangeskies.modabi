@@ -1,9 +1,9 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
@@ -11,20 +11,22 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelImpl<T> implements Model<T> {
   private final NodeImpl<T> rootNode;
-  private final Schema schema;
   private final QualifiedName name;
   private final boolean export;
+  private final Collection<Model<?>> baseModels;
+  private final TypeToken<T> dataType;
 
   protected ModelImpl(ModelBuilderImpl<T> configurator) {
-    rootNode = configurator.getRootNode();
-    schema = configurator.getSchema();
+    rootNode = configurator.getRootNode().orElse(new NodeImpl<>());
     name = configurator.getName().get();
-    export = configurator.overrideModelChildren(Model::export, ModelBuilder::getExport).get();
-  }
-
-  @Override
-  public Schema schema() {
-    return schema;
+    export = configurator
+        .overrideModelChildren(Model::export, ModelBuilder::getExport)
+        .orDefault(true)
+        .get();
+    baseModels = null;
+    dataType = null;
+    // dataType = configurator.overrideModelChildren(Model::dataType,
+    // ModelBuilder::getDataType).get();
   }
 
   @Override
@@ -44,13 +46,11 @@ public class ModelImpl<T> implements Model<T> {
 
   @Override
   public TypeToken<T> dataType() {
-    // TODO Auto-generated method stub
-    return null;
+    return dataType;
   }
 
   @Override
   public Stream<Model<?>> baseModels() {
-    // TODO Auto-generated method stub
-    return null;
+    return baseModels.stream();
   }
 }

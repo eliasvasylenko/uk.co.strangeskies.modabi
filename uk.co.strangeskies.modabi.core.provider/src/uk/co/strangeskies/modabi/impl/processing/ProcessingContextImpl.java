@@ -73,11 +73,6 @@ public class ProcessingContextImpl implements ProcessingContext {
 
   private final BindingBlocker bindingFutureBlocker;
 
-  /*
-   * Registered models and types
-   */
-  private final Models registeredModels;
-
   public ProcessingContextImpl(SchemaManager manager) {
     this.manager = manager;
 
@@ -85,8 +80,6 @@ public class ProcessingContextImpl implements ProcessingContext {
     bindingStack = Collections.emptyList();
     providers = Collections.emptySet();
     bindings = new ProcessedBindings();
-
-    registeredModels = manager.registeredModels();
 
     bindingFutureBlocker = new BindingBlocksImpl();
   }
@@ -99,7 +92,7 @@ public class ProcessingContextImpl implements ProcessingContext {
       StructuredDataReader input,
       StructuredDataWriter output,
       BindingBlocker blocker) {
-    manager = parentContext.manager();
+    this.manager = parentContext.manager();
 
     this.objectStack = objectStack;
     this.bindingStack = bindingStack;
@@ -109,9 +102,7 @@ public class ProcessingContextImpl implements ProcessingContext {
     this.input = input;
     this.output = output;
 
-    registeredModels = parentContext.registeredModels();
-
-    bindingFutureBlocker = blocker;
+    this.bindingFutureBlocker = blocker;
   }
 
   @Override
@@ -144,13 +135,15 @@ public class ProcessingContextImpl implements ProcessingContext {
     List<Model<?>> models;
 
     if (node.baseNodes() != null && !node.baseNodes().isEmpty()) {
-      models = registeredModels
+      models = manager
+          .registeredModels()
           .getModelsWithBase(node.baseNodes())
           .stream()
           .filter(n -> node.getDataType().isAssignableFrom(n.getDataType()))
           .collect(Collectors.toList());
     } else {
-      models = registeredModels
+      models = manager
+          .registeredModels()
           .getAll()
           .filter(c -> node.getDataType().isAssignableFrom(c.dataType()))
           .collect(Collectors.toList());

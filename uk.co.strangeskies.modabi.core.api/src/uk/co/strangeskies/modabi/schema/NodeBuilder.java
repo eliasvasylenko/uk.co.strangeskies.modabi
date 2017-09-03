@@ -62,10 +62,10 @@ public interface NodeBuilder<T, E> {
     return this;
   }
 
-  ChildBindingPointBuilder<?, NodeBuilder<T, E>> addChildBindingPoint();
+  ChildBindingPointBuilder<Object, NodeBuilder<T, E>> addChildBindingPoint();
 
   default NodeBuilder<T, E> addChildBindingPoint(
-      Function<ChildBindingPointBuilder<?, NodeBuilder<T, E>>, ChildBindingPointBuilder<?, NodeBuilder<T, E>>> configuration) {
+      Function<ChildBindingPointBuilder<Object, NodeBuilder<T, E>>, ChildBindingPointBuilder<?, NodeBuilder<T, E>>> configuration) {
     configuration.apply(addChildBindingPoint()).endChild();
 
     return this;

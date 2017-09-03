@@ -53,9 +53,11 @@ public interface ModelBuilder<T> {
 
   Stream<Model<? super T>> getBaseModel();
 
-  Optional<TypeToken<T>> getBaseType();
+  Optional<TypeToken<T>> getDataType();
 
-  SchemaBuilder endModel();
+  default SchemaBuilder endModel() {
+    return endModel(m -> {});
+  }
 
   SchemaBuilder endModel(Consumer<Model<T>> completion);
 }

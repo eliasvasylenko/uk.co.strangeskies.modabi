@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
 import uk.co.strangeskies.modabi.schema.OutputBuilder;
+import uk.co.strangeskies.modabi.schema.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 
 public class OutputBuilderImpl implements IOBuilderImpl, OutputBuilder {
@@ -12,14 +13,7 @@ public class OutputBuilderImpl implements IOBuilderImpl, OutputBuilder {
 
   @Override
   public ValueExpression source() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ValueExpression iterate(ValueExpression values) {
-    // TODO Auto-generated method stub
-    return null;
+    return Expressions.parameter(0);
   }
 
   @Override

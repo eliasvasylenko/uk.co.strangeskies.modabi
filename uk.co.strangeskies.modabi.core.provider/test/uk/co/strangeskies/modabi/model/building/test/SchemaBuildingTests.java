@@ -30,21 +30,24 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class SchemaBuildingTests {
-	@Test
-	public void buildBaseSchemataTest() {
-		new SchemaManagerService();
-	}
+  @Test
+  public void buildBaseSchemataTest() {
+    new SchemaManagerService();
+  }
 
-	@Test
-	public void fixMeUp() {
-		System.out.println(new @Infer TypeToken<SortedSet<?>>() {}
-				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
-				.resolve());
-		System.out.println(new TypeToken<@Infer SortedSet<?>>() {}
-				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
-				.resolve());
-		System.out.println(new TypeToken<SortedSet<@Infer ?>>() {}
-				.withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
-				.resolve());
-	}
+  @Test
+  public void fixMeUp() {
+    System.out.println(
+        new @Infer TypeToken<SortedSet<?>>() {}
+            .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+            .resolve());
+    System.out.println(
+        new TypeToken<@Infer SortedSet<?>>() {}
+            .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+            .resolve());
+    System.out.println(
+        new TypeToken<SortedSet<@Infer ?>>() {}
+            .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+            .resolve());
+  }
 }

@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.impl;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.schema.bindingconditions.OccurrencesCondition.occurrences;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeStatic;
@@ -279,8 +280,8 @@ public class BaseSchemaImpl implements BaseSchema {
                     .name("element")
                     .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
                     .input(i -> i.target().invoke("add", i.result()))
-                    .output(o -> o.iterate(o.source()))
-                    .bindingCondition(occurrences(Interval.bounded(0, null))))
+                    .output(o -> o.source().iterate())
+                    .bindingCondition(occurrences(leftBounded(0))))
             .addChildBindingPoint(
                 c -> c
                     .name("toArray")
@@ -299,8 +300,8 @@ public class BaseSchemaImpl implements BaseSchema {
                     .name("element")
                     .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
                     .input(i -> i.target().invoke("add", i.result()))
-                    .output(o -> o.iterate(o.source()))
-                    .bindingCondition(occurrences(Interval.bounded(0, null))))
+                    .output(o -> o.source().iterate())
+                    .bindingCondition(occurrences(Interval.leftBounded(0))))
             .endNode());
 
     listModel = modelFactory.apply(
@@ -343,13 +344,8 @@ public class BaseSchemaImpl implements BaseSchema {
             .rootNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
             .concrete(false)
             .addChildBindingPoint(
-                d -> d
-                    .name("targetModel")
-                    .input(IOBuilder::none)
-                    .output(IOBuilder::none)
-                    .type(new @Infer TypeToken<Model<?>>() {})
-                    .overrideNode()
-                    .endNode())
+                d -> d.name("targetModel").input(IOBuilder::none).output(IOBuilder::none).type(
+                    new @Infer TypeToken<Model<?>>() {}))
             .addChildBindingPoint(
                 d -> d
                     .name("targetId")

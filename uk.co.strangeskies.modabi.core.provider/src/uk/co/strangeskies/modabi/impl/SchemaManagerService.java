@@ -45,7 +45,6 @@ import uk.co.strangeskies.modabi.impl.processing.InputProviders;
 import uk.co.strangeskies.modabi.impl.processing.OutputBinderImpl;
 import uk.co.strangeskies.modabi.impl.processing.OutputProviders;
 import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
-import uk.co.strangeskies.modabi.impl.schema.SchemaBuilderDecorator;
 import uk.co.strangeskies.modabi.impl.schema.SchemaBuilderImpl;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -128,7 +127,7 @@ public class SchemaManagerService implements SchemaManager {
     /*
      * Register schema builder provider
      */
-    providers.add(Provider.over(SchemaBuilder.class, c -> getSchemaBuilder()));
+    providers.add(Provider.over(SchemaBuilder.class, c -> schemaBuilder.get()));
 
     /*
      * Register collection providers
@@ -142,29 +141,6 @@ public class SchemaManagerService implements SchemaManager {
 
   public ProcessingContextImpl getProcessingContext() {
     return new ProcessingContextImpl(this);
-  }
-
-  protected SchemaBuilder getSchemaBuilder() {
-    return new SchemaBuilderDecorator() {
-      private SchemaBuilder component = schemaBuilder.get();
-
-      @Override
-      public SchemaBuilder getComponent() {
-        return component;
-      }
-
-      @Override
-      public void setComponent(SchemaBuilder component) {
-        this.component = component;
-      }
-
-      @Override
-      public Schema create() {
-        Schema schema = SchemaBuilderDecorator.super.create();
-        registeredSchemata.add(schema);
-        return schema;
-      }
-    };
   }
 
   private void registerSchema(Schema schema) {

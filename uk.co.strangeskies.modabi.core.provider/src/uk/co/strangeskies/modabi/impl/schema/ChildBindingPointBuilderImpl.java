@@ -3,14 +3,13 @@ package uk.co.strangeskies.modabi.impl.schema;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointConfigurationContext;
+import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointBuilderContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -26,33 +25,51 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
     implements ChildBindingPointBuilder<T, E> {
-  private final ChildBindingPointConfigurationContext context;
+  private final ChildBindingPointBuilderContext context;
 
-  private ValueExpression inputExpression;
-  private ValueExpression outputExpression;
+  private final QualifiedName name;
+  private final Model<? super T> model;
+  private final TypeToken<T> type;
 
-  private BindingCondition<? super T> bindingCondition;
-  private Boolean ordered;
+  private final ValueExpression inputExpression;
+  private final ValueExpression outputExpression;
 
-  /*
-   * A mapping from placeholder iteration item expressions to the iterable
-   * expressions they come from.
-   */
-  private final Map<ValueExpression, ValueExpression> iterationExpressions;
+  private final BindingCondition<? super T> bindingCondition;
+  private final Boolean ordered;
 
-  public ChildBindingPointBuilderImpl(ChildBindingPointBuilder<T, E> other) {
-    context = null;
+  private final NodeImpl<T> overriddenNode;
 
-    iterationExpressions = new HashMap<>();
+  public ChildBindingPointBuilderImpl(ChildBindingPointBuilderContext context) {
+    this.context = context;
+    this.name = null;
+    this.model = null;
+    this.type = null;
+    this.inputExpression = null;
+    this.outputExpression = null;
+    this.bindingCondition = null;
+    this.ordered = null;
+    this.overriddenNode = null;
   }
 
-  public ChildBindingPointBuilderImpl(ChildBindingPointConfigurationContext context) {
+  public ChildBindingPointBuilderImpl(
+      ChildBindingPointBuilderContext context,
+      QualifiedName name,
+      Model<? super T> model,
+      TypeToken<T> type,
+      ValueExpression inputExpression,
+      ValueExpression outputExpression,
+      BindingCondition<? super T> bindingCondition,
+      Boolean ordered,
+      NodeImpl<T> overriddenNode) {
     this.context = context;
-
-    /*
-     * output
-     */
-    iterationExpressions = new HashMap<>();
+    this.name = name;
+    this.model = model;
+    this.type = type;
+    this.inputExpression = inputExpression;
+    this.outputExpression = outputExpression;
+    this.bindingCondition = bindingCondition;
+    this.ordered = ordered;
+    this.overriddenNode = overriddenNode;
   }
 
   protected Stream<ChildBindingPoint<?>> getOverriddenBindingPoints() {
@@ -80,13 +97,21 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
 
   @Override
   public final ChildBindingPointBuilder<T, E> name(String name) {
-    return name(name, context.namespace());
+    return name(name, context.namespace().get());
   }
 
   @Override
   public ChildBindingPointBuilder<T, E> ordered(boolean ordered) {
-    this.ordered = ordered;
-    return this;
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        model,
+        type,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
   }
 
   @Override
@@ -95,9 +120,18 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public ChildBindingPointBuilder<T, E> bindingCondition(BindingCondition<? super T> condition) {
-    this.bindingCondition = condition;
-    return this;
+  public ChildBindingPointBuilder<T, E> bindingCondition(
+      BindingCondition<? super T> bindingCondition) {
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        model,
+        type,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
   }
 
   @Override
@@ -125,32 +159,76 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
 
   @Override
   public ChildBindingPointBuilder<T, E> name(QualifiedName name) {
-    // TODO Auto-generated method stub
-    return null;
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        model,
+        type,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
   }
 
   @Override
-  public <U> ChildBindingPointBuilder<U, E> model(Model<U> model) {
-    // TODO Auto-generated method stub
-    return null;
+  public <U extends T> ChildBindingPointBuilder<U, E> model(Model<U> model) {
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        model,
+        null,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
   }
 
   @Override
-  public <U> ChildBindingPointBuilder<U, E> type(Class<U> type) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public <U> ChildBindingPointBuilder<U, E> type(TypeToken<U> dataType) {
-    // TODO Auto-generated method stub
-    return null;
+  public <U extends T> ChildBindingPointBuilder<U, E> type(TypeToken<U> type) {
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        null,
+        type,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
   }
 
   @Override
   public NodeBuilder<T, ChildBindingPointBuilder<T, E>> overrideNode() {
     // TODO Auto-generated method stub
-    return null;
+    return new NodeBuilderImpl<>(new NodeBuilderContext<T, ChildBindingPointBuilder<T, E>>() {
+      @Override
+      public Stream<Node<? super T>> overrideNode() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public Optional<Namespace> namespace() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public ChildBindingPointBuilder<T, E> endNode(NodeImpl<T> oerridden) {
+        return new ChildBindingPointBuilderImpl<>(
+            context,
+            name,
+            model,
+            type,
+            inputExpression,
+            outputExpression,
+            bindingCondition,
+            ordered,
+            overriddenNode);
+      }
+    });
   }
 
   @Override

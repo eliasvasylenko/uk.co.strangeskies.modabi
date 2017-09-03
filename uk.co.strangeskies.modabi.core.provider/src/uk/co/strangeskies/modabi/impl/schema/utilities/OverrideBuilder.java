@@ -167,7 +167,7 @@ public class OverrideBuilder<T> {
 
     if (isOverridden() && mergeOverride != null) {
       for (T inheritedValue : inheritedValues) {
-        value = mergeOverride.apply(override.get(), inheritedValue);
+        value = mergeOverride.apply(value, inheritedValue);
       }
     }
 
@@ -190,6 +190,6 @@ public class OverrideBuilder<T> {
   }
 
   private boolean isOverridden() {
-    return override != null;
+    return override.isPresent();
   }
 }

@@ -33,13 +33,15 @@ public interface ChildBindingPointBuilder<T, E extends NodeBuilder<?, ?>> {
 
   OutputBuilder output();
 
-  <U> ChildBindingPointBuilder<U, E> model(Model<U> model);
+  <U extends T> ChildBindingPointBuilder<U, E> model(Model<U> model);
 
   Optional<Model<? super T>> getModel();
 
-  <U> ChildBindingPointBuilder<U, E> type(Class<U> type);
+  default <U extends T> ChildBindingPointBuilder<U, E> type(Class<U> type) {
+    return type(TypeToken.forClass(type));
+  }
 
-  <U> ChildBindingPointBuilder<U, E> type(TypeToken<U> dataType);
+  <U extends T> ChildBindingPointBuilder<U, E> type(TypeToken<U> dataType);
 
   Optional<TypeToken<T>> getType();
 

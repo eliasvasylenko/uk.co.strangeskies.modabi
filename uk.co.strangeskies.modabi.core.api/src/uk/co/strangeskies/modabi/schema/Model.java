@@ -36,9 +36,4 @@ public interface Model<T> {
    *         which are transitively implied via other more specific base models
    */
   Stream<Model<?>> baseModels();
-
-  /**
-   * @return the schema this model is defined in
-   */
-  Schema schema();
 }

@@ -25,4 +25,10 @@ public interface ExpressionVisitor {
   void visitNull();
 
   <T> void visitLiteral(T value);
+
+  void visitIteration(ValueExpression value);
+
+  void visitGetParameter(int i);
+
+  void visitSetParameter(int i, ValueExpression value);
 }

@@ -11,14 +11,24 @@ import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.text.parsing.Parser;
 
 public class NodeImpl<T> implements Node<T> {
-  private boolean extensible;
-  private boolean concrete;
+  private final boolean extensible;
+  private final boolean concrete;
+
+  protected NodeImpl() {
+    extensible = false;
+    concrete = true;
+  }
 
   protected NodeImpl(NodeBuilderImpl<T, ?> configurator) {
     extensible = configurator
         .overrideChildren(Node::extensible, NodeBuilder::getExtensible)
         .validateOverride((a, b) -> true)
         .orDefault(false)
+        .get();
+    concrete = configurator
+        .overrideChildren(Node::concrete, NodeBuilder::getConcrete)
+        .validateOverride((a, b) -> true)
+        .orDefault(true)
         .get();
 
     /*

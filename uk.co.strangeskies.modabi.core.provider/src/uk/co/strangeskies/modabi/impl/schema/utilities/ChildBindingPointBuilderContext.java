@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.impl.schema.utilities;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -28,8 +29,8 @@ import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ChildBindingPointConfigurationContext {
-  Namespace namespace();
+public interface ChildBindingPointBuilderContext {
+  Optional<Namespace> namespace();
 
   Node<?> parentNode();
 

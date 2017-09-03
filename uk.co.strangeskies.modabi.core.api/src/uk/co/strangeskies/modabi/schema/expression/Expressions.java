@@ -41,11 +41,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public class Expressions {
   private Expressions() {}
 
-  public static ValueExpression receiver(TypeToken<?> token) {
-    return v -> v.visitReceiver();
-  }
-
-  public static ValueExpression receiver(Class<?> token) {
+  public static ValueExpression receiver() {
     return v -> v.visitReceiver();
   }
 
@@ -151,5 +147,19 @@ public class Expressions {
             TypeToken.class,
             "forType",
             new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
+  }
+
+  public static VariableExpression parameter(int i) {
+    return new VariableExpression() {
+      @Override
+      public void evaluate(ExpressionVisitor visitor) {
+        visitor.visitGetParameter(i);
+      }
+
+      @Override
+      public ValueExpression assign(ValueExpression value) {
+        return v -> v.visitSetParameter(i, value);
+      }
+    };
   }
 }
