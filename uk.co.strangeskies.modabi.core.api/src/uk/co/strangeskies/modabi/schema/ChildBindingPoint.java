@@ -26,7 +26,7 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
    */
   boolean ordered();
 
-  Node<T> override();
+  Node override();
 
   /**
    * The binding condition of a binding point describes if and when that point can
@@ -34,7 +34,7 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
    * 
    * @return
    */
-  BindingCondition bindingCondition();
+  BindingCondition<T> bindingCondition();
 
-  Node<?> parent();
+  Node parent();
 }

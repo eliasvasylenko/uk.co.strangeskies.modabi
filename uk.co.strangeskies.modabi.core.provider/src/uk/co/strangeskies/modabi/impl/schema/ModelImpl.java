@@ -1,5 +1,9 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import static java.util.stream.Collectors.toList;
+import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
+
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -10,23 +14,28 @@ import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelImpl<T> implements Model<T> {
-  private final NodeImpl<T> rootNode;
+  private final NodeImpl rootNode;
   private final QualifiedName name;
   private final boolean export;
-  private final Collection<Model<?>> baseModels;
+  private final Collection<Model<? super T>> baseModels;
   private final TypeToken<T> dataType;
 
+  @SuppressWarnings("unchecked")
   protected ModelImpl(ModelBuilderImpl<T> configurator) {
-    rootNode = configurator.getRootNode().orElse(new NodeImpl<>());
+    rootNode = configurator.getRootNode().orElse(new NodeImpl());
     name = configurator.getName().get();
     export = configurator
         .overrideModelChildren(Model::export, ModelBuilder::getExport)
-        .orDefault(true)
+        .or(true)
         .get();
-    baseModels = null;
-    dataType = null;
-    // dataType = configurator.overrideModelChildren(Model::dataType,
-    // ModelBuilder::getDataType).get();
+    dataType = configurator
+        .overrideModelChildren(Model::dataType, ModelBuilder::getDataType)
+        .mergeOverride((o, b) -> o.withConstraintTo(SUBTYPE, b))
+        .or(forClass(Object.class))
+        .tryGet()
+        .map(t -> (TypeToken<T>) t)
+        .get();
+    baseModels = configurator.getBaseModel().collect(toList());
   }
 
   @Override
@@ -40,7 +49,7 @@ public class ModelImpl<T> implements Model<T> {
   }
 
   @Override
-  public Node<T> rootNode() {
+  public Node rootNode() {
     return rootNode;
   }
 
@@ -50,7 +59,7 @@ public class ModelImpl<T> implements Model<T> {
   }
 
   @Override
-  public Stream<Model<?>> baseModels() {
+  public Stream<Model<? super T>> baseModels() {
     return baseModels.stream();
   }
 }

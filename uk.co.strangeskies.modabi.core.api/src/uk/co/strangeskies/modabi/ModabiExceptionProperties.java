@@ -67,7 +67,7 @@ public interface ModabiExceptionProperties {
 
   String mustProvideValueForNonAbstract(String propertyName);
 
-  String unexpectedOverrideError(Node<?> base);
+  String unexpectedOverrideError(Node base);
 
   String executableTypeStaticMethod();
 
@@ -123,19 +123,19 @@ public interface ModabiExceptionProperties {
 
   String cannotBeInlineExtensible(QualifiedName name);
 
-  String cannotBeAbstract(Node<?> node);
+  String cannotBeAbstract(Node node);
 
-  String cannotFindOutMethodWithoutResultType(Node<?> node);
+  String cannotFindOutMethodWithoutResultType(Node node);
 
-  String cannotFindOutMethodWithoutTargetType(Node<?> node);
+  String cannotFindOutMethodWithoutTargetType(Node node);
 
-  String cannotInferDataType(Node<?> effective, TypeToken<?> exactDataType);
+  String cannotInferDataType(Node effective, TypeToken<?> exactDataType);
 
   String cannotFindUnbindingParameter(QualifiedName p);
 
-  String unbindingParameterMustBeDataNode(Node<?> node, QualifiedName p);
+  String unbindingParameterMustBeDataNode(Node node, QualifiedName p);
 
-  String unbindingParameterMustOccurOnce(Node<?> effective, QualifiedName p);
+  String unbindingParameterMustOccurOnce(Node effective, QualifiedName p);
 
-  String unbindingParameterMustProvideValue(Node<?> effective, QualifiedName p);
+  String unbindingParameterMustProvideValue(Node effective, QualifiedName p);
 }

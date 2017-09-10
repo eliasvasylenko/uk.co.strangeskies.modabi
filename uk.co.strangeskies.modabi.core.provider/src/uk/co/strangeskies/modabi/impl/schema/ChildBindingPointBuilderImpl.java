@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static uk.co.strangeskies.collection.stream.StreamUtilities.streamOptional;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -11,7 +12,7 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointBuilderContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
-import uk.co.strangeskies.modabi.schema.BindingCondition;
+import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.InputBuilder;
@@ -23,21 +24,21 @@ import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
-    implements ChildBindingPointBuilder<T, E> {
+public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
+    implements ChildBindingPointBuilder<E> {
   private final ChildBindingPointBuilderContext context;
 
   private final QualifiedName name;
-  private final Model<? super T> model;
-  private final TypeToken<T> type;
+  private final Model<?> model;
+  private final TypeToken<?> type;
 
   private final ValueExpression inputExpression;
   private final ValueExpression outputExpression;
 
-  private final BindingCondition bindingCondition;
+  private final BindingConditionPrototype bindingCondition;
   private final Boolean ordered;
 
-  private final NodeImpl<T> overriddenNode;
+  private final NodeImpl overriddenNode;
 
   public ChildBindingPointBuilderImpl(ChildBindingPointBuilderContext context) {
     this.context = context;
@@ -54,13 +55,13 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   public ChildBindingPointBuilderImpl(
       ChildBindingPointBuilderContext context,
       QualifiedName name,
-      Model<? super T> model,
-      TypeToken<T> type,
+      Model<?> model,
+      TypeToken<?> type,
       ValueExpression inputExpression,
       ValueExpression outputExpression,
-      BindingCondition bindingCondition,
+      BindingConditionPrototype bindingCondition,
       Boolean ordered,
-      NodeImpl<T> overriddenNode) {
+      NodeImpl overriddenNode) {
     this.context = context;
     this.name = name;
     this.model = model;
@@ -78,7 +79,7 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
 
   public <U> OverrideBuilder<U> overrideChildren(
       Function<? super ChildBindingPoint<?>, ? extends U> overriddenValues,
-      Function<? super ChildBindingPointBuilder<T, E>, Optional<? extends U>> overridingValue) {
+      Function<? super ChildBindingPointBuilder<E>, Optional<? extends U>> overridingValue) {
     return new OverrideBuilder<>(
         getOverriddenBindingPoints().map(overriddenValues::apply).collect(toList()),
         overridingValue.apply(this),
@@ -86,22 +87,53 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public InputBuilder input() {
-    return new InputBuilderImpl();
+  public InputBuilder<E> input() {
+    return new InputBuilderImpl<>(
+        inputExpression -> new ChildBindingPointBuilderImpl<>(
+            context,
+            name,
+            model,
+            type,
+            inputExpression,
+            outputExpression,
+            bindingCondition,
+            ordered,
+            overriddenNode));
   }
 
   @Override
-  public OutputBuilder output() {
-    return new OutputBuilderImpl();
+  public ValueExpression getInput() {
+    return null;
   }
 
   @Override
-  public final ChildBindingPointBuilder<T, E> name(String name) {
+  public OutputBuilder<E> output() {
+    return new OutputBuilderImpl<>(
+        outputExpression -> new ChildBindingPointBuilderImpl<>(
+            context,
+            name,
+            model,
+            type,
+            inputExpression,
+            outputExpression,
+            bindingCondition,
+            ordered,
+            overriddenNode));
+  }
+
+  @Override
+  public ValueExpression getOutput() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public final ChildBindingPointBuilder<E> name(String name) {
     return name(name, context.namespace().get());
   }
 
   @Override
-  public ChildBindingPointBuilder<T, E> ordered(boolean ordered) {
+  public ChildBindingPointBuilder<E> ordered(boolean ordered) {
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
@@ -120,8 +152,7 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public ChildBindingPointBuilder<T, E> bindingCondition(
-      BindingCondition bindingCondition) {
+  public ChildBindingPointBuilder<E> bindingCondition(BindingConditionPrototype bindingCondition) {
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
@@ -135,7 +166,7 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public Optional<BindingCondition> getBindingCondition() {
+  public Optional<BindingConditionPrototype> getBindingCondition() {
     return ofNullable(bindingCondition);
   }
 
@@ -147,18 +178,17 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
 
   @Override
   public Optional<QualifiedName> getName() {
+    return Optional.ofNullable(name);
+  }
+
+  @Override
+  public Optional<Node> getNode() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public Optional<Node<?>> getNode() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ChildBindingPointBuilder<T, E> name(QualifiedName name) {
+  public ChildBindingPointBuilder<E> name(QualifiedName name) {
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
@@ -172,36 +202,65 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
   }
 
   @Override
-  public <U extends T> NodeBuilder<U, ChildBindingPointBuilder<U, E>> overrideNode(
-      TypeToken<U> type) {
-    return overrideNodeImpl(type, null);
+  public Optional<Model<?>> getModel() {
+    return Optional.ofNullable(model);
   }
 
   @Override
-  public <U extends T> NodeBuilder<U, ChildBindingPointBuilder<U, E>> overrideNode(
-      TypeToken<U> type,
-      Model<? super U> model) {
-    return overrideNodeImpl(type, model);
+  public Optional<TypeToken<?>> getType() {
+    return Optional.ofNullable(type);
   }
 
-  protected <U extends T> NodeBuilder<U, ChildBindingPointBuilder<U, E>> overrideNodeImpl(
-      TypeToken<U> type,
-      Model<? super U> model) {
-    return new NodeBuilderImpl<>(new NodeBuilderContext<U, ChildBindingPointBuilder<U, E>>() {
+  @Override
+  public Optional<Node> getNodeOverride() {
+    return Optional.ofNullable(overriddenNode);
+  }
+
+  @Override
+  public <U> ChildBindingPointBuilder<E> model(Model<? super U> baseModel, TypeToken<U> type) {
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        model,
+        type,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
+  }
+
+  @Override
+  public <U> ChildBindingPointBuilder<E> type(TypeToken<U> type) {
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        model,
+        type,
+        inputExpression,
+        outputExpression,
+        bindingCondition,
+        ordered,
+        overriddenNode);
+  }
+
+  @Override
+  public <U> NodeBuilder<ChildBindingPointBuilder<E>> overrideNode() {
+    return new NodeBuilderImpl<>(new NodeBuilderContext<ChildBindingPointBuilder<E>>() {
       @Override
       public Optional<Namespace> namespace() {
         return getName().map(QualifiedName::getNamespace);
       }
 
       @Override
-      public Stream<Node<? super U>> overrideNode() {
+      public Stream<Node> overrideNode() {
         return Stream.concat(
-            Stream.of(model.rootNode()),
+            streamOptional(getModel().map(Model::rootNode)),
             getOverriddenBindingPoints().map(ChildBindingPoint::override));
       }
 
       @Override
-      public ChildBindingPointBuilder<U, E> endNode(NodeImpl<U> overriddenNode) {
+      public ChildBindingPointBuilder<E> endNode(NodeImpl overriddenNode) {
         return new ChildBindingPointBuilderImpl<>(
             context,
             name,
@@ -214,20 +273,5 @@ public class ChildBindingPointBuilderImpl<T, E extends NodeBuilder<?, ?>>
             overriddenNode);
       }
     });
-  }
-
-  @Override
-  public Optional<Model<? super T>> getModel() {
-    return Optional.ofNullable(model);
-  }
-
-  @Override
-  public Optional<TypeToken<T>> getType() {
-    return Optional.ofNullable(type);
-  }
-
-  @Override
-  public Optional<Node<T>> getNodeOverride() {
-    return Optional.ofNullable(overriddenNode);
   }
 }

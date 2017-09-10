@@ -18,39 +18,28 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
-import static java.util.Arrays.asList;
-import static uk.co.strangeskies.reflection.codegen.InvocationExpression.invokeResolvedStatic;
+import static uk.co.strangeskies.mathematics.Interval.leftBounded;
+import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.allOf;
+import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
+import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.optional;
+import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.synchronous;
+import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeStatic;
 
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.MetaSchema;
-import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.ValueResolution;
-import uk.co.strangeskies.modabi.io.Primitive;
-import uk.co.strangeskies.modabi.schema.BindingCondition;
-import uk.co.strangeskies.modabi.schema.BindingPointConfigurator;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.IOBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
-import uk.co.strangeskies.modabi.schema.bindingconditions.AndCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.AscendingSortCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.DescendingSortCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.ForbiddenCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.OccurrencesCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.OptionalCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.OrCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.RequiredCondition;
-import uk.co.strangeskies.modabi.schema.bindingconditions.SynchronizedCondition;
-import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 import uk.co.strangeskies.utility.IdentityProperty;
@@ -90,226 +79,152 @@ public class MetaSchemaImpl implements MetaSchema {
     };
 
     metaSchema = schemaBuilder.create();
-  }
-
-  private void buildModels(ModelHelper factory, BaseSchema base, Namespace namespace) {
-    /* Node Base Models */
-
-    Model<BindingPointConfigurator<?>> bindingPointModelBase = factory.apply(
-        "bindingPointBase",
-        m -> m.dataType(new TypeToken<BindingPointConfigurator<?>>() {}).concrete(false).export(
-            false));
-
-    Model<ModelBuilder<?>> metaModelBase = factory.apply(
-        "modelBase",
-        m -> m
-            .rootNode(bindingPointModelBase)
-            .dataType(new TypeToken<ModelBuilder<?>>() {})
-            .concrete(false)
-            .export(false));
-
-    Model<ChildBindingPointBuilder<?>> childBindingPointModelBase = factory.apply(
-        "childBindingPointBase",
-        m -> m
-            .rootNode(bindingPointModelBase)
-            .dataType(new TypeToken<ChildBindingPointBuilder<?>>() {})
-            .concrete(false)
-            .export(false));
 
     /* Binding Condition Models */
 
-    Model<BindingCondition> bindingConditionModel = factory.apply(
+    Model<BindingConditionPrototype> bindingConditionModel = modelFactory.apply(
         "bindingCondition",
-        m -> m.concrete(false).dataType(new @Infer TypeToken<BindingCondition>() {}));
+        m -> m
+            .rootNode(new @Infer TypeToken<BindingConditionPrototype>() {})
+            .extensible(true)
+            .concrete(false)
+            .endNode());
 
-    Model<AndCondition<?>> andModel = factory.apply(
+    Model<BindingConditionPrototype> allOfModel = modelFactory.apply(
         "andCondition",
         m -> m
-            .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<AndCondition<?>>() {})
-            .node(
-                n -> n.addChildBindingPoint(
-                    c -> c
-                        .name("conditions")
-                        .input(i -> invokeResolvedStatic(AndCondition.class, "and", i.result()))
-                        .rootNode(base.derived().setModel())
-                        .node(
-                            p -> p.addChildBindingPoint(
-                                h -> h.name("element").rootNode(bindingConditionModel))))));
-
-    Model<OrCondition<?>> orModel = factory.apply(
-        "orCondition",
-        m -> m
-            .rootNode(new @Infer TypeToken<OrCondition<?>>() {})
             .rootNode(bindingConditionModel)
             .addChildBindingPoint(
                 c -> c
                     .name("conditions")
-                    .input(
-                        i -> invokeStatic(
-                            forStaticMethod(
-                                OrCondition.class.getMethod("or", BindingCondition.class)),
-                            i.result()))
+                    .input(i -> invokeStatic(BindingConditionPrototype.class, "allOf", i.result()))
+                    .model(base.setModel())
                     .overrideNode()
-                    .rootNode(base.setModel())
-                    .addChildBindingPoint(h -> h.name("element").rootNode(bindingConditionModel)))
+                    .addChildBindingPoint(h -> h.name("element").model(bindingConditionModel))
+                    .endNode())
             .endNode());
 
-    Model<RequiredCondition<?>> requiredModel = factory.apply(
+    Model<BindingConditionPrototype> anyOfModel = modelFactory.apply(
+        "andCondition",
+        m -> m
+            .rootNode(bindingConditionModel)
+            .addChildBindingPoint(
+                c -> c
+                    .name("conditions")
+                    .input(i -> invokeStatic(BindingConditionPrototype.class, "anyOf", i.result()))
+                    .model(base.setModel())
+                    .overrideNode()
+                    .addChildBindingPoint(h -> h.name("element").model(bindingConditionModel))
+                    .endNode())
+            .endNode());
+
+    Model<BindingConditionPrototype> requiredModel = modelFactory.apply(
         "requiredCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<RequiredCondition<?>>() {})
-            .node(
-                n -> n.initializeInput(
-                    i -> invokeResolvedStatic(RequiredCondition.class, "required"))));
+            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "required"))
+            .endNode());
 
-    Model<ForbiddenCondition<?>> forbiddenModel = factory.apply(
+    Model<BindingConditionPrototype> forbiddenModel = modelFactory.apply(
         "forbiddenCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<ForbiddenCondition<?>>() {})
-            .node(
-                n -> n.initializeInput(
-                    i -> invokeResolvedStatic(ForbiddenCondition.class, "forbidden"))));
+            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "forbidden"))
+            .endNode());
 
-    Model<OptionalCondition<?>> optionalModel = factory.apply(
+    Model<BindingConditionPrototype> optionalModel = modelFactory.apply(
         "optionalCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<OptionalCondition<?>>() {})
-            .node(
-                n -> n.initializeInput(
-                    i -> invokeResolvedStatic(OptionalCondition.class, "optional"))));
+            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "optional"))
+            .endNode());
 
-    Model<AscendingSortCondition<?>> sortAscendingModel = factory.apply(
+    Model<BindingConditionPrototype> sortAscendingModel = modelFactory.apply(
         "sortAscendingCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<AscendingSortCondition<?>>() {})
-            .node(
-                n -> n.initializeInput(
-                    i -> invokeResolvedStatic(AscendingSortCondition.class, "ascending"))));
+            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "ascending"))
+            .endNode());
 
-    Model<DescendingSortCondition<?>> sortDescendingModel = factory.apply(
+    Model<BindingConditionPrototype> sortDescendingModel = modelFactory.apply(
         "sortDescendingCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<DescendingSortCondition<?>>() {})
-            .node(
-                n -> n.initializeInput(
-                    i -> invokeResolvedStatic(DescendingSortCondition.class, "descending"))));
+            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "descending"))
+            .endNode());
 
-    Model<SynchronizedCondition<?>> synchronizedModel = factory.apply(
+    Model<BindingConditionPrototype> synchronizedModel = modelFactory.apply(
         "synchronizedCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<SynchronizedCondition<?>>() {})
-            .node(
-                n -> n.initializeInput(
-                    i -> invokeResolvedStatic(SynchronizedCondition.class, "asynchronous"))));
+            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "synchronous"))
+            .endNode());
 
-    Model<OccurrencesCondition<?>> occurrencesModel = factory.apply(
+    Model<BindingConditionPrototype> occurrencesModel = modelFactory.apply(
         "occurrencesCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .dataType(new @Infer TypeToken<OccurrencesCondition<?>>() {})
-            .node(
-                n -> n.addChildBindingPoint(
-                    c -> c.name("range").rootNode(base.derived().rangeModel()).input(
-                        i -> invokeResolvedStatic(
-                            OccurrencesCondition.class,
-                            "occurrences",
-                            i.result())))));
+            .addChildBindingPoint(
+                c -> c.name("range").model(base.rangeModel()).input(
+                    i -> invokeStatic(BindingConditionPrototype.class, "occurrences", i.result())))
+            .endNode());
 
     /* Node Models */
 
-    Model<BindingPointConfigurator<?, ?>> bindingPointModel = factory.apply(
+    Model<ModelBuilder<?>> metaModelBase = modelFactory.apply(
+        "metaModelBase",
+        m -> m
+            .export(false)
+            .rootNode(new TypeToken<ModelBuilder<?>>() {})
+            .concrete(false)
+            .endNode());
+
+    Model<ChildBindingPointBuilder<?>> bindingPointModel = modelFactory.apply(
         "bindingPoint",
         m -> m
-            .concrete(false)
-            .rootNode(bindingPointModelBase)
-            .dataType(new TypeToken<BindingPointConfigurator<?, ?>>() {})
-            .node(
-                n -> n
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("name")
-                            .rootNode(base.primitive(Primitive.STRING))
-                            .bindingCondition(optional()))
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("export")
-                            .rootNode(base.primitive(Primitive.BOOLEAN))
-                            .bindingCondition(optional()))
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("concrete")
-                            .rootNode(base.primitive(Primitive.BOOLEAN))
-                            .bindingCondition(optional()))
-                    .addChildBindingPoint(
-                        c -> c.name("baseModel").rootNode(metaModelBase).bindingCondition(
-                            optional()))
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("dataType")
-                            .rootNode(base.derived().typeTokenModel())
-                            .bindingCondition(optional()))));
+            .rootNode(new TypeToken<ChildBindingPointBuilder<?>>() {})
+            .addChildBindingPoint(
+                c -> c.name("name").model(base.stringModel()).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c.name("export").model(base.booleanModel()).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c.name("concrete").model(base.booleanModel()).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c.name("baseModel").model(metaModelBase).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c.name("dataType").model(base.typeTokenModel()).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c.name("extensible").model(base.booleanModel()).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c.name("condition").model(bindingConditionModel).bindingCondition(optional()))
+            .addChildBindingPoint(
+                c -> c
+                    .name("value")
+                    // TODO .rootNode(base.bufferedDataModel())
+                    .input(i -> i.target().invoke("provideValue", i.result()))
+                    .output(o -> o.source().invoke("getProvidedValue"))
+                    .bindingCondition(optional()))
+            .endNode());
 
-    Model<ModelBuilder<?>> metaModel = factory.apply(
-        "model",
-        m -> m.rootNode(asList(metaModelBase, bindingPointModel)).dataType(
-            new @Infer TypeToken<ModelBuilder<?>>() {}));
-
-    Model<ChildBindingPointBuilder<?>> childBindingPointModel = factory.apply(
-        "childBindingPoint",
-        m -> m
-            .rootNode(bindingPointModel)
-            .dataType(new TypeToken<ChildBindingPointBuilder<?>>() {})
-            .node(
-                n -> n
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("extensible")
-                            .rootNode(base.primitive(Primitive.BOOLEAN))
-                            .bindingCondition(optional()))
-                    .addChildBindingPoint(
-                        c -> c.name("condition").rootNode(bindingConditionModel).bindingCondition(
-                            optional()))
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("valueResolution")
-                            .rootNode(base.derived().enumModel())
-                            .dataType(ValueResolution.class)
-                            .bindingCondition(optional()))
-                    .addChildBindingPoint(
-                        c -> c
-                            .name("value")
-                            .rootNode(base.derived().bufferedDataModel())
-                            .input(i -> i.target().invokeResolvedMethod("provideValue", i.result()))
-                            .output(o -> o.source().invokeResolvedMethod("getProvidedValue"))
-                            .bindingCondition(optional()))));
-
-    Model<NodeBuilder> nodeModel = factory.apply(
+    Model<NodeBuilder<?>> nodeModel = modelFactory.apply(
         "node",
-        m -> m.concrete(false).dataType(new TypeToken<NodeBuilder>() {}).node(
-            n -> n
-                .addChildBindingPoint(
-                    b -> b
-                        .name("concrete")
-                        .rootNode(base.primitive(Primitive.BOOLEAN))
-                        .bindingCondition(optional()))
-                .addChildBindingPoint(
-                    b -> b
-                        .name("child")
-                        .extensible(true)
-                        .concrete(false)
-                        .dataType(new TypeToken<ChildBindingPoint<?>>() {})
-                        .output(IOBuilder::none)
-                        .bindingCondition(asynchronous().and(occurrences(between(0, null)))))
-                .addChildBindingPoint(
-                    b -> b.name("create").output(IOBuilder::none).input(
-                        i -> i.target().assign(i.target().invokeResolvedMethod("create"))))));
+        m -> m
+            .rootNode(new TypeToken<NodeBuilder<?>>() {})
+            .addChildBindingPoint(
+                b -> b.name("concrete").model(base.booleanModel()).bindingCondition(optional()))
+            .addChildBindingPoint(
+                b -> b
+                    .name("child")
+                    .model(bindingPointModel)
+                    .output(IOBuilder::none)
+                    .bindingCondition(allOf(synchronous(), occurrences(leftBounded(0)))))
+            .addChildBindingPoint(
+                b -> b.name("create").output(IOBuilder::none).input(
+                    i -> i.target().assign(i.target().invoke("create"))))
+            .endNode());
+
+    Model<ModelBuilder<?>> metaModel = modelFactory
+        .apply("model", m -> m.rootNode(metaModelBase).endNode());
 
     /*
      * 
@@ -341,12 +256,12 @@ public class MetaSchemaImpl implements MetaSchema {
   }
 
   @Override
-  public Schemata dependencies() {
+  public Stream<Schema> dependencies() {
     return metaSchema.dependencies();
   }
 
   @Override
-  public Models models() {
+  public Stream<Model<?>> models() {
     return metaSchema.models();
   }
 
@@ -368,11 +283,6 @@ public class MetaSchemaImpl implements MetaSchema {
   @Override
   public int hashCode() {
     return metaSchema.hashCode();
-  }
-
-  @Override
-  public Imports imports() {
-    return Imports.empty().withImport(Schema.class);
   }
 
   @Override

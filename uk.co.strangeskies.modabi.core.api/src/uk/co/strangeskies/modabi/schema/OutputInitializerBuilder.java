@@ -2,10 +2,8 @@ package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 
-public interface OutputInitializerBuilder extends IOBuilder {
+public interface OutputInitializerBuilder<E> extends IOBuilder<NodeBuilder<E>> {
   ValueExpression parent();
 
   ValueExpression outputObject();
-
-  void expression(ValueExpression expression);
 }

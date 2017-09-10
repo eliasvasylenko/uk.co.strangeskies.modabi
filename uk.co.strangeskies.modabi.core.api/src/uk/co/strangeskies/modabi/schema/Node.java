@@ -38,26 +38,26 @@ import uk.co.strangeskies.text.parsing.Parser;
  *
  * @param <S>
  */
-public interface Node<T> {
+public interface Node {
   boolean concrete();
 
   boolean extensible();
 
   /**
-   * Get the schema node configurator which created this schema node, or in the
-   * case of a mutable configurator implementation, a copy thereof.
+   * Get the schema node builder which created this schema node, or in the
+   * case of a mutable builder implementation, a copy thereof.
    * 
-   * @return the creating configurator
+   * @return the creating builder
    */
-  NodeBuilder<T, ?> configurator();
+  NodeBuilder<?> configurator();
 
-  Parser<T> parser();
+  Parser<?> parser();
 
   /**
    * @return the set of all <em>direct</em> base nodes, i.e. excluding those which
    *         are transitively implied via other more specific base nodes
    */
-  Stream<Node<?>> baseNodes();
+  Stream<Node> baseNodes();
 
   Stream<ChildBindingPoint<?>> children();
 
@@ -69,5 +69,5 @@ public interface Node<T> {
 
   ChildBindingPoint<?> child(QualifiedName name);
 
-  Optional<T> providedValue();
+  Optional<?> providedValue();
 }

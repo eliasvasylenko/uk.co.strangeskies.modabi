@@ -1,15 +1,18 @@
 package uk.co.strangeskies.modabi.impl.schema;
 
+import java.util.function.Function;
+
+import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.InputBuilder;
+import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.modabi.schema.expression.VariableExpression;
 
-public class InputBuilderImpl implements IOBuilderImpl, InputBuilder {
-  @Override
-  public ValueExpression none() {
-    // TODO Auto-generated method stub
-    return null;
+public class InputBuilderImpl<E extends NodeBuilder<?>>
+    extends IOBuilderImpl<ChildBindingPointBuilder<E>> implements InputBuilder<E> {
+  public InputBuilderImpl(Function<ValueExpression, ChildBindingPointBuilder<E>> endExpression) {
+    super(endExpression);
   }
 
   @Override
@@ -21,17 +24,5 @@ public class InputBuilderImpl implements IOBuilderImpl, InputBuilder {
   @Override
   public VariableExpression target() {
     return Expressions.parameter(0);
-  }
-
-  @Override
-  public void expression(ValueExpression inputExpression) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public ValueExpression getExpression() {
-    // TODO Auto-generated method stub
-    return null;
   }
 }

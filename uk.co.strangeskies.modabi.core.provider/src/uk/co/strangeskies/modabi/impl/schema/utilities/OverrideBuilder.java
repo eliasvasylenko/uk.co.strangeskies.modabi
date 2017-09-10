@@ -16,6 +16,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import uk.co.strangeskies.collection.stream.StreamUtilities;
 import uk.co.strangeskies.modabi.ModabiException;
 
 /**
@@ -85,7 +86,7 @@ public class OverrideBuilder<T> {
     }
   }
 
-  public OverrideBuilder<T> orMerged(Function<? super Collection<T>, ? extends T> merge) {
+  public OverrideBuilder<T> orMerged(Function<? super Collection<? extends T>, ? extends T> merge) {
     if (!inheritedValues.isEmpty() && !isOverridden()) {
       T merged = merge.apply(inheritedValues);
 
@@ -102,7 +103,7 @@ public class OverrideBuilder<T> {
 
   public OverrideBuilder<T> orMerged(BinaryOperator<T> merge) {
     return orMerged(
-        s -> s.stream().reduce(merge).orElseThrow(
+        s -> StreamUtilities.<T>upcastStream(s.stream()).reduce(merge).orElseThrow(
             () -> new ModabiException(
                 MESSAGES.cannotMergeIncompatibleProperties(propertyName.get(), inheritedValues))));
   }
@@ -162,7 +163,7 @@ public class OverrideBuilder<T> {
             concrete);
   }
 
-  public T tryGet() {
+  public Optional<T> tryGet() {
     T value = override.get();
 
     if (isOverridden() && mergeOverride != null) {
@@ -171,11 +172,11 @@ public class OverrideBuilder<T> {
       }
     }
 
-    return value;
+    return Optional.ofNullable(value);
   }
 
   public T get() {
-    T value = tryGet();
+    T value = tryGet().orElse(null);
 
     if (value == null && concrete) {
       if (inheritedValues.isEmpty()) {

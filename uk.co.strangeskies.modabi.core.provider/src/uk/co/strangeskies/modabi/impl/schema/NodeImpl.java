@@ -10,7 +10,7 @@ import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.text.parsing.Parser;
 
-public class NodeImpl<T> implements Node<T> {
+public class NodeImpl implements Node {
   private final boolean extensible;
   private final boolean concrete;
 
@@ -19,7 +19,7 @@ public class NodeImpl<T> implements Node<T> {
     concrete = true;
   }
 
-  protected NodeImpl(NodeBuilderImpl<T, ?> configurator) {
+  protected NodeImpl(NodeBuilderImpl<?> configurator) {
     extensible = configurator
         .overrideChildren(Node::extensible, NodeBuilder::getExtensible)
         .validateOverride((a, b) -> true)
@@ -39,13 +39,16 @@ public class NodeImpl<T> implements Node<T> {
      * exact type is inferred as we go along in such cases. Just propagate this
      * information out through the API to here.
      * 
-     * We still need a special (perhaps internal?) DataLoader api here rather than
-     * just passing through the source SchemaManager directly, as BaseSchema and
-     * MetaSchema are built before the SchemaManager. They need their results
-     * spoofing since they are built before the normal binding process and models
-     * can be available.
+     * TODO One of the difficulties last time was the bootstrapping issue. We need
+     * to bind against the NodeImpl being instantiated to get the provided value,
+     * but to complete instantiation of the NodeImpl we need to have the provided
+     * value. Previously this was particularly tricky because we needed to know the
+     * type of the node before hand, but also the type of the bound object could
+     * inform the ultimate type of the node if it is more specific. We don't have
+     * this problem now, as the type is specified in the containing child binding
+     * point. Rejoice!
      * 
-     * TODO 2 generalize providing these values to allow buffering structured data,
+     * TODO 2 Generalize providing these values to allow buffering structured data,
      * too. i.e. StructuredDataSource instead of DataSource
      */
     // configurator.dataLoader().loadData(this, valuesBuffer);
@@ -62,19 +65,19 @@ public class NodeImpl<T> implements Node<T> {
   }
 
   @Override
-  public NodeBuilder<T, ?> configurator() {
+  public NodeBuilder<?> configurator() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public Parser<T> parser() {
+  public Parser<?> parser() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public Stream<Node<?>> baseNodes() {
+  public Stream<Node> baseNodes() {
     // TODO Auto-generated method stub
     return null;
   }
@@ -98,7 +101,7 @@ public class NodeImpl<T> implements Node<T> {
   }
 
   @Override
-  public Optional<T> providedValue() {
+  public Optional<?> providedValue() {
     // TODO Auto-generated method stub
     return null;
   }

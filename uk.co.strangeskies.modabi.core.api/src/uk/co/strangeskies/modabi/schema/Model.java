@@ -3,7 +3,6 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface Model<T> {
@@ -13,7 +12,7 @@ public interface Model<T> {
 
   TypeToken<T> dataType();
 
-  Node<T> rootNode();
+  Node rootNode();
 
   /**
    * 
@@ -35,5 +34,5 @@ public interface Model<T> {
    * @return the set of all <em>direct</em> base models, i.e. excluding those
    *         which are transitively implied via other more specific base models
    */
-  Stream<Model<?>> baseModels();
+  Stream<Model<? super T>> baseModels();
 }

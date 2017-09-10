@@ -32,7 +32,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public interface ChildBindingPointBuilderContext {
   Optional<Namespace> namespace();
 
-  Node<?> parentNode();
+  Node parentNode();
 
   Imports imports();
 

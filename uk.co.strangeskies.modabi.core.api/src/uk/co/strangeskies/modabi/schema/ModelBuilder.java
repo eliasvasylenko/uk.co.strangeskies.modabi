@@ -21,35 +21,33 @@ public interface ModelBuilder<T> {
 
   Optional<Boolean> getExport();
 
-  default <U> NodeBuilder<U, ModelBuilder<U>> rootNode(Model<U> baseModel) {
+  default <U> NodeBuilder<ModelBuilder<U>> rootNode(Model<U> baseModel) {
     return rootNode(baseModel.dataType(), baseModel);
   }
 
-  default <U> NodeBuilder<U, ModelBuilder<U>> rootNode(Class<U> type, Model<? super U> baseModel) {
+  default <U> NodeBuilder<ModelBuilder<U>> rootNode(Class<U> type, Model<? super U> baseModel) {
     return rootNode(forClass(type), baseModel);
   }
 
-  default <U> NodeBuilder<U, ModelBuilder<U>> rootNode(
-      TypeToken<U> type,
-      Model<? super U> baseModel) {
+  default <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type, Model<? super U> baseModel) {
     return rootNode(type, asList(baseModel));
   }
 
-  default <U> NodeBuilder<U, ModelBuilder<U>> rootNode(
+  default <U> NodeBuilder<ModelBuilder<U>> rootNode(
       Class<U> type,
       Collection<? extends Model<? super U>> baseModel) {
     return rootNode(forClass(type), baseModel);
   }
 
-  <U> NodeBuilder<U, ModelBuilder<U>> rootNode(
+  <U> NodeBuilder<ModelBuilder<U>> rootNode(
       TypeToken<U> type,
       Collection<? extends Model<? super U>> baseModel);
 
-  default <U> NodeBuilder<U, ModelBuilder<U>> rootNode(Class<U> type) {
+  default <U> NodeBuilder<ModelBuilder<U>> rootNode(Class<U> type) {
     return rootNode(forClass(type));
   }
 
-  <U> NodeBuilder<U, ModelBuilder<U>> rootNode(TypeToken<U> type);
+  <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type);
 
   Stream<Model<? super T>> getBaseModel();
 

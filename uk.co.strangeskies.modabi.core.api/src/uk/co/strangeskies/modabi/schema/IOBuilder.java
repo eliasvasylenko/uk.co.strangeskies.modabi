@@ -6,7 +6,9 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface IOBuilder {
+public interface IOBuilder<T> {
+  T expression(ValueExpression outputExpression);
+
   ValueExpression none();
 
   /*

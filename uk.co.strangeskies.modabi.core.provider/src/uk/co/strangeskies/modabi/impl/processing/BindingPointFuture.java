@@ -17,7 +17,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingPointFuture<T> extends CompletableFuture<BindingPoint<T>> {
   protected BindingPointFuture(ProcessingContextImpl context, BindingPoint<T> bindingPoint) {
-    if (!context.manager().registeredSchemata().contains(bindingPoint.model().schema())) {
+    if (!context.manager().registeredModels().contains(bindingPoint.model())) {
       throw new ProcessingException(
           MESSAGES.noModelFound(
               bindingPoint.model().name(),

@@ -33,7 +33,7 @@ public interface SchemaNodeConfigurationContext {
 
   BoundSet boundSet();
 
-  List<Node<?>> overriddenAndBaseNodes();
+  List<Node> overriddenAndBaseNodes();
 
   Schema schema();
 
@@ -46,5 +46,5 @@ public interface SchemaNodeConfigurationContext {
    * @param node
    *          the node being constructed
    */
-  void configure(Node<?> node);
+  void configure(Node node);
 }

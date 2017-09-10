@@ -52,7 +52,7 @@ public interface ProcessingExceptionMessages {
   String cannotInvoke(
       Executable inputMethod,
       TypeToken<?> targetType,
-      Node<?> node,
+      Node node,
       List<?> parameters);
 
   String mustHaveData(QualifiedName node);
@@ -85,4 +85,6 @@ public interface ProcessingExceptionMessages {
   String unexpectedElement(QualifiedName element);
 
   String inverseCondition(String localizedMessage);
+
+  String validationFailed(ChildBindingPoint<?> bindingPoint, String expressionString);
 }

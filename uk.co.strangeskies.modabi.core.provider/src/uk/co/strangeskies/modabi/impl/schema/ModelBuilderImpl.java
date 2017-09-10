@@ -29,7 +29,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
 
   private final Set<Model<? super T>> baseModel;
   private final TypeToken<T> dataType;
-  private final NodeImpl<T> rootNode;
+  private final NodeImpl rootNode;
 
   public ModelBuilderImpl(SchemaBuilderImpl schema) {
     this.schema = schema;
@@ -46,7 +46,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       Boolean export,
       Set<Model<? super T>> baseModels,
       TypeToken<T> dataType,
-      NodeImpl<T> rootNode) {
+      NodeImpl rootNode) {
     this.schema = schema;
     this.name = name;
     this.export = export;
@@ -75,22 +75,22 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
     return Optional.ofNullable(export);
   }
 
-  protected <U> NodeBuilder<U, ModelBuilder<U>> rootNodeImpl(
+  protected <U> NodeBuilder<ModelBuilder<U>> rootNodeImpl(
       TypeToken<U> dataType,
       Collection<? extends Model<? super U>> baseModel) {
-    return new NodeBuilderImpl<>(new NodeBuilderContext<U, ModelBuilder<U>>() {
+    return new NodeBuilderImpl<>(new NodeBuilderContext<ModelBuilder<U>>() {
       @Override
       public Optional<Namespace> namespace() {
         return getName().map(QualifiedName::getNamespace);
       }
 
       @Override
-      public Stream<Node<? super U>> overrideNode() {
+      public Stream<Node> overrideNode() {
         return baseModel.stream().map(Model::rootNode);
       }
 
       @Override
-      public ModelBuilder<U> endNode(NodeImpl<U> rootNode) {
+      public ModelBuilder<U> endNode(NodeImpl rootNode) {
         return new ModelBuilderImpl<>(
             schema,
             name,
@@ -103,7 +103,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
   }
 
   @Override
-  public <U> NodeBuilder<U, ModelBuilder<U>> rootNode(
+  public <U> NodeBuilder<ModelBuilder<U>> rootNode(
       TypeToken<U> type,
       Collection<? extends Model<? super U>> baseModel) {
     return rootNodeImpl(requireNonNull(type), requireNonNull(baseModel));
@@ -115,11 +115,11 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
   }
 
   @Override
-  public <U> NodeBuilder<U, ModelBuilder<U>> rootNode(TypeToken<U> type) {
+  public <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type) {
     return rootNodeImpl(requireNonNull(type), emptySet());
   }
 
-  public Optional<NodeImpl<T>> getRootNode() {
+  public Optional<NodeImpl> getRootNode() {
     return Optional.ofNullable(rootNode);
   }
 

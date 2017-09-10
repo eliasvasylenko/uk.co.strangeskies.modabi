@@ -2,37 +2,56 @@ package uk.co.strangeskies.modabi.impl.schema;
 
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.receiver;
 
+import java.util.function.Function;
+
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.IOBuilder;
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 
-public interface IOBuilderImpl extends IOBuilder {
+public class IOBuilderImpl<T> implements IOBuilder<T> {
+  private final Function<ValueExpression, T> endExpression;
+
+  public IOBuilderImpl(Function<ValueExpression, T> endExpression) {
+    this.endExpression = endExpression;
+  }
+
   @Override
-  default ValueExpression provide() {
+  public ValueExpression none() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  default ValueExpression context() {
+  public ValueExpression provide() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ValueExpression context() {
     return receiver().getField("context"); // ProcessingContextImpl
   }
 
   @Override
-  default ValueExpression binding(String string) {
+  public ValueExpression binding(String string) {
     return context().invoke("bindings"); // TODO
   }
 
   @Override
-  default ValueExpression binding(QualifiedName bindingPoint) {
+  public ValueExpression binding(QualifiedName bindingPoint) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  default ValueExpression binding(ChildBindingPoint<?> bindingPoint) {
+  public ValueExpression binding(ChildBindingPoint<?> bindingPoint) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public T expression(ValueExpression expression) {
+    return endExpression.apply(expression);
   }
 }

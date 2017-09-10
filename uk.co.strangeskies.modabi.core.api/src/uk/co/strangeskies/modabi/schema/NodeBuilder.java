@@ -37,45 +37,43 @@ import uk.co.strangeskies.reflection.token.TypedObject;
  *          schema node configurator, or in the case of the root, a factory for
  *          the model
  */
-public interface NodeBuilder<T, E> {
-  NodeBuilder<T, E> concrete(boolean concrete);
+public interface NodeBuilder<E> {
+  NodeBuilder<E> concrete(boolean concrete);
 
   Optional<Boolean> getConcrete();
 
-  NodeBuilder<T, E> extensible(boolean extensible);
+  NodeBuilder<E> extensible(boolean extensible);
 
   Optional<Boolean> getExtensible();
 
-  InputInitializerBuilder initializeInput();
+  InputInitializerBuilder<E> initializeInput();
 
-  OutputInitializerBuilder initializeOutput();
+  OutputInitializerBuilder<E> initializeOutput();
 
-  default NodeBuilder<T, E> initializeInput(
-      Function<? super InputInitializerBuilder, ? extends ValueExpression> initializer) {
-    initializeInput().expression(initializer.apply(initializeInput()));
-    return this;
+  default NodeBuilder<E> initializeInput(
+      Function<? super InputInitializerBuilder<E>, ? extends ValueExpression> initializer) {
+    return initializeInput().expression(initializer.apply(initializeInput()));
   }
 
-  default NodeBuilder<T, E> initializeOutput(
-      Function<? super OutputInitializerBuilder, ? extends ValueExpression> initializer) {
-    initializeOutput().expression(initializer.apply(initializeOutput()));
-    return this;
+  default NodeBuilder<E> initializeOutput(
+      Function<? super OutputInitializerBuilder<E>, ? extends ValueExpression> initializer) {
+    return initializeOutput().expression(initializer.apply(initializeOutput()));
   }
 
-  ChildBindingPointBuilder<Object, NodeBuilder<T, E>> addChildBindingPoint();
+  ChildBindingPointBuilder<NodeBuilder<E>> addChildBindingPoint();
 
-  default NodeBuilder<T, E> addChildBindingPoint(
-      Function<ChildBindingPointBuilder<Object, NodeBuilder<T, E>>, ChildBindingPointBuilder<?, NodeBuilder<T, E>>> configuration) {
+  default NodeBuilder<E> addChildBindingPoint(
+      Function<ChildBindingPointBuilder<NodeBuilder<E>>, ChildBindingPointBuilder<NodeBuilder<E>>> configuration) {
     configuration.apply(addChildBindingPoint()).endChild();
 
     return this;
   }
 
-  List<ChildBindingPointBuilder<?, NodeBuilder<T, E>>> getChildBindingPoints();
+  List<ChildBindingPointBuilder<NodeBuilder<E>>> getChildBindingPoints();
 
   E endNode();
 
-  NodeBuilder<T, E> provideValue(TypedObject<?> value);
+  NodeBuilder<E> provideValue(TypedObject<?> value);
 
-  Optional<T> getProvidedValue();
+  Optional<?> getProvidedValue();
 }

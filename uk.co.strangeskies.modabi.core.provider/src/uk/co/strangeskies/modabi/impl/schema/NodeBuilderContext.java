@@ -6,10 +6,10 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.schema.Node;
 
-public interface NodeBuilderContext<T, E> {
+public interface NodeBuilderContext<E> {
   Optional<Namespace> namespace();
 
-  Stream<Node<? super T>> overrideNode();
+  Stream<Node> overrideNode();
 
-  E endNode(NodeImpl<T> node);
+  E endNode(NodeImpl node);
 }

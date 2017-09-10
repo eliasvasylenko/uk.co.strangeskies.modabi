@@ -10,10 +10,10 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ChildBindingPointBuilder<E extends NodeBuilder<?, ?>> {
+public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
   Optional<QualifiedName> getName();
 
-  Optional<Node<?>> getNode();
+  Optional<Node> getNode();
 
   ChildBindingPointBuilder<E> name(QualifiedName name);
 
@@ -27,38 +27,36 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?, ?>> {
 
   Optional<Boolean> getOrdered();
 
-  ChildBindingPointBuilder<E> bindingCondition(BindingCondition condition);
+  ChildBindingPointBuilder<E> bindingCondition(BindingConditionPrototype condition);
 
-  Optional<BindingCondition> getBindingCondition();
+  Optional<BindingConditionPrototype> getBindingCondition();
 
-  InputBuilder input();
+  InputBuilder<E> input();
 
-  OutputBuilder output();
+  OutputBuilder<E> output();
 
-  default ChildBindingPointBuilder<T, E> input(
-      Function<InputBuilder, ValueExpression> inputExpression) {
+  default ChildBindingPointBuilder<E> input(
+      Function<InputBuilder<E>, ValueExpression> inputExpression) {
     input().expression(inputExpression.apply(input()));
     return this;
   }
 
   ValueExpression getInput();
 
-  default ChildBindingPointBuilder<T, E> output(
-      Function<OutputBuilder, ValueExpression> outputExpression) {
+  default ChildBindingPointBuilder<E> output(
+      Function<OutputBuilder<E>, ValueExpression> outputExpression) {
     output().expression(outputExpression.apply(output()));
     return this;
   }
 
   ValueExpression getOutput();
 
-  default <U extends T> ChildBindingPointBuilder<U, E> model(Model<U> model) {
-    return model(model.dataType(), model);
+  default <U> ChildBindingPointBuilder<E> model(Model<U> model) {
+    return model(model, model.dataType());
   }
 
-  default <U extends T> ChildBindingPointBuilder<U, E> model(
-      Class<U> type,
-      Model<? super U> model) {
-    return model(forClass(type), model);
+  default <U> ChildBindingPointBuilder<E> model(Model<? super U> model, Class<U> type) {
+    return model(model, forClass(type));
   }
 
   /**
@@ -67,21 +65,21 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?, ?>> {
    * 
    * @return a configuration object for the override
    */
-  <U extends T> NodeBuilder<U, ChildBindingPointBuilder<U, E>> overrideNode(
-      TypeToken<U> type,
-      Model<? super U> baseModel);
+  <U> ChildBindingPointBuilder<E> model(Model<? super U> baseModel, TypeToken<U> type);
 
-  default <U extends T> NodeBuilder<U, ChildBindingPointBuilder<U, E>> overrideNode(Class<U> type) {
-    return overrideNode(forClass(type));
+  default <U> ChildBindingPointBuilder<E> type(Class<U> type) {
+    return type(forClass(type));
   }
 
-  <U extends T> NodeBuilder<U, ChildBindingPointBuilder<U, E>> overrideNode(TypeToken<U> type);
+  <U> ChildBindingPointBuilder<E> type(TypeToken<U> type);
 
-  Optional<Node<T>> getNodeOverride();
+  <U> NodeBuilder<ChildBindingPointBuilder<E>> overrideNode();
 
-  Optional<Model<? super T>> getModel();
+  Optional<Node> getNodeOverride();
 
-  Optional<TypeToken<T>> getType();
+  Optional<Model<?>> getModel();
+
+  Optional<TypeToken<?>> getType();
 
   E endChild();
 }

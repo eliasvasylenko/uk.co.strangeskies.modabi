@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.impl;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
-import static uk.co.strangeskies.modabi.schema.bindingconditions.OccurrencesCondition.occurrences;
+import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
@@ -118,7 +118,7 @@ public class BaseSchemaImpl implements BaseSchema {
    * TODO bootstrap proxies to reference models which aren't built yet
    */
   private Model<Model<?>> metaModelProxy;
-  private Model<Node<?>> nodeModelProxy;
+  private Model<Node> nodeModelProxy;
 
   public BaseSchemaImpl(SchemaBuilder schemaBuilder) {
     QualifiedName name = BaseSchema.QUALIFIED_NAME;
@@ -453,7 +453,7 @@ public class BaseSchemaImpl implements BaseSchema {
                             .name("targetModel")
                             .overrideNode()
                             .provideValue(
-                                typedObject(new TypeToken<Model<Node<?>>>() {}, nodeModelProxy))
+                                typedObject(new TypeToken<Model<Node>>() {}, nodeModelProxy))
                             .endNode())
                     .addChildBindingPoint(
                         e -> e

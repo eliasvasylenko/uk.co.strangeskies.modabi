@@ -31,6 +31,4 @@ public @interface BindingPoint {
 	String input() default "";
 
 	String output() default "";
-
-	BindingCondition condition() default @BindingCondition;
 }
