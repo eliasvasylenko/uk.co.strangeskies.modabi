@@ -18,13 +18,10 @@
  */
 package uk.co.strangeskies.modabi.core.test;
 
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import uk.co.strangeskies.modabi.testing.TestBase;
-import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ReferenceTest extends TestBase {
   private static final String NAMED_VALUE_MODEL = "namedValue";
@@ -32,7 +29,7 @@ public class ReferenceTest extends TestBase {
 
   @Test(timeout = TEST_TIMEOUT_MILLISECONDS)
   public void loadReferenceTestSchema() {
-    Assert.assertNotNull(getModel(NAMED_VALUE_MODEL, new TypeToken<NamedValue>() {}));
-    Assert.assertNotNull(getModel(STRING_REFERENCS_MODEL, new TypeToken<List<NamedValue>>() {}));
+    Assert.assertNotNull(getModel(NAMED_VALUE_MODEL));
+    Assert.assertNotNull(getModel(STRING_REFERENCS_MODEL));
   }
 }

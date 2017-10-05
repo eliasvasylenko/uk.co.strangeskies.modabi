@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 import static uk.co.strangeskies.observable.Observer.onObservation;
 
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public abstract class NamedSet<N, T> {
     synchronized (getMutex()) {
       N name = namingFunction.apply(element);
       if (elements.containsKey(name))
-        throw new IllegalArgumentException();
+        throw new ModabiException(MESSAGES.cannotAcceptDuplicate(name));
       elements.put(name, element);
       nameObservable.next(name);
     }

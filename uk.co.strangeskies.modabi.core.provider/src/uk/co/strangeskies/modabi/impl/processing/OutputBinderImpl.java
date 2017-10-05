@@ -168,12 +168,12 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
   }
 
   @Override
-  public BindingFuture<? super T> to(Path output) {
+  public BindingFuture<? extends T> to(Path output) {
     return toResource(output.getFileName().toString(), () -> FileChannel.open(output, WRITE));
   }
 
   @Override
-  public BindingFuture<? super T> to(URL output) {
+  public BindingFuture<? extends T> to(URL output) {
     try {
       return toResource(
           output.getQuery(),
@@ -183,7 +183,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
     }
   }
 
-  public BindingFuture<? super T> toResource(
+  public BindingFuture<? extends T> toResource(
       String resourceName,
       ThrowingSupplier<WritableByteChannel, ?> output) {
     int lastDot = resourceName.lastIndexOf(".");
@@ -197,7 +197,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
   }
 
   @Override
-  public BindingFuture<? super T> to(
+  public BindingFuture<? extends T> to(
       String extension,
       ThrowingSupplier<WritableByteChannel, ?> output) {
     return with(extension, output, f -> f.getFileExtensions().anyMatch(extension::equals), false)
@@ -205,11 +205,11 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
   }
 
   @Override
-  public BindingFuture<? super T> to(StructuredDataWriter output) {
+  public BindingFuture<? extends T> to(StructuredDataWriter output) {
     return with(forData(output)).getBindingFuture();
   }
 
-  private BindingFuture<? super T> getBindingFuture() {
+  private BindingFuture<? extends T> getBindingFuture() {
     return writeBindingFuture(context, bindingPointFuture, dataWriterFuture, classLoader, data);
   }
 }

@@ -136,7 +136,7 @@ public class SchemaManagerService implements SchemaManager {
     new InputProviders().getProviders().forEach(providers::add);
     new OutputProviders().getProviders().forEach(providers::add);
 
-    registeredSchemata.add(coreSchemata.metaSchema());
+    registerSchema(coreSchemata.metaSchema());
   }
 
   public ProcessingContextImpl getProcessingContext() {

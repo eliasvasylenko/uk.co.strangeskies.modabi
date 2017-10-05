@@ -70,10 +70,8 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   @Override
   public Schema create() {
     final QualifiedName qualifiedName = this.qualifiedName;
-    final List<Model<?>> models = new ArrayList<>();
-    models.addAll(modelSet);
-    final List<Schema> dependencies = new ArrayList<>();
-    dependencies.addAll(dependencySet);
+    final List<Model<?>> models = new ArrayList<>(modelSet);
+    final List<Schema> dependencies = new ArrayList<>(dependencySet);
 
     schemaProperty.set(new Schema() {
       @Override
@@ -154,7 +152,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   }
 
   public SchemaBuilder endModel(ModelImpl<?> model) {
-    // TODO Auto-generated method stub
+    modelSet.add(model);
     return this;
   }
 }

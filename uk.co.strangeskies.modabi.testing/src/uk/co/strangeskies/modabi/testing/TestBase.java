@@ -26,13 +26,11 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
-import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
  * A simple superclass for testing over schema processing, providing some
@@ -94,12 +92,12 @@ public abstract class TestBase {
     return getService(SchemaManager.class);
   }
 
-  protected <T> Model<T> getModel(String name, TypeToken<T> type) {
-    return getModel(new QualifiedName(name, getDefaultNamespace()), type);
+  protected Model<?> getModel(String name) {
+    return getModel(new QualifiedName(name, getDefaultNamespace()));
   }
 
-  protected <T> Model<T> getModel(QualifiedName name, TypeToken<T> type) {
-    return Models.cast(manager().registeredModels().getFuture(name).join(), type);
+  protected Model<?> getModel(QualifiedName name) {
+    return manager().registeredModels().getFuture(name).join();
   }
 
   protected ReadableByteChannel getResouce(String resource) {

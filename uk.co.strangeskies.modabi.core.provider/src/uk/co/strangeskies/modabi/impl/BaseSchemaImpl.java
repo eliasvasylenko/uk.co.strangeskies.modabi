@@ -184,7 +184,7 @@ public class BaseSchemaImpl implements BaseSchema {
             .endNode());
 
     decimalModel = modelFactory.apply(
-        "integer",
+        "decimal",
         t -> t
             .rootNode(BigDecimal.class)
             .addChildBindingPoint(
@@ -231,7 +231,7 @@ public class BaseSchemaImpl implements BaseSchema {
             .endNode());
 
     doubleModel = modelFactory.apply(
-        "long",
+        "double",
         t -> t
             .rootNode(double.class)
             .addChildBindingPoint(
@@ -244,7 +244,7 @@ public class BaseSchemaImpl implements BaseSchema {
             .endNode());
 
     booleanModel = modelFactory.apply(
-        "long",
+        "boolean",
         t -> t
             .rootNode(boolean.class)
             .addChildBindingPoint(
@@ -257,7 +257,7 @@ public class BaseSchemaImpl implements BaseSchema {
             .endNode());
 
     qualifiedNameModel = modelFactory.apply(
-        "long",
+        "qualifiedName",
         t -> t
             .rootNode(QualifiedName.class)
             .addChildBindingPoint(

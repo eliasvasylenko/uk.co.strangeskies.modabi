@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.impl;
 
+import static java.util.Collections.singleton;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.allOf;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
@@ -61,7 +62,8 @@ public class MetaSchemaImpl implements MetaSchema {
     /*
      * Schema
      */
-    Property<SchemaBuilder> schemaConfigurator = new IdentityProperty<>(schemaBuilder.name(name));
+    Property<SchemaBuilder> schemaConfigurator = new IdentityProperty<>(
+        schemaBuilder.name(name).dependencies(singleton(base)));
 
     /*
      * Models
@@ -78,7 +80,7 @@ public class MetaSchemaImpl implements MetaSchema {
       }
     };
 
-    metaSchema = schemaBuilder.create();
+    metaSchema = schemaConfigurator.get().create();
 
     /* Binding Condition Models */
 

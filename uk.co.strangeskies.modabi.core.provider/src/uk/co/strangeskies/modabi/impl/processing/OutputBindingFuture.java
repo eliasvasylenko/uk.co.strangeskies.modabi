@@ -19,7 +19,6 @@
 package uk.co.strangeskies.modabi.impl.processing;
 
 import static java.util.function.Function.identity;
-import static uk.co.strangeskies.modabi.processing.ProcessingException.MESSAGES;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -31,12 +30,10 @@ import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.processing.Blocks;
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.observable.Observable;
-import uk.co.strangeskies.reflection.classloading.ContextClassLoaderExecutor;
 
 public class OutputBindingFuture<T> implements BindingFuture<T> {
   private final ProcessingContextImpl context;
@@ -60,16 +57,17 @@ public class OutputBindingFuture<T> implements BindingFuture<T> {
     });
   }
 
-  public static <T> OutputBindingFuture<? super T> writeBindingFuture(
+  public static <T> OutputBindingFuture<? extends T> writeBindingFuture(
       ProcessingContextImpl context,
       BindingPointFuture<T> bindingPoint,
       StructuredDataFuture<StructuredDataWriter> dataWriter,
       ClassLoader classLoader,
       Object data) {
+    context = context.withBindingObject(data);
+
     CompletableFuture<Binding<? extends T>> dataFuture = CompletableFuture
         .allOf(bindingPoint, dataWriter)
-        .thenApply(
-            v -> bind(context, classLoader, bindingPoint.getNow(null), dataWriter.getNow(null)));
+        .thenApply(v -> bind(context, classLoader, bindingPoint.join(), dataWriter.join()));
 
     return new OutputBindingFuture<>(context, bindingPoint, dataFuture);
   }
@@ -81,40 +79,8 @@ public class OutputBindingFuture<T> implements BindingFuture<T> {
       StructuredDataReader input) {
     context = context.withInput(input);
 
-    return new NodeReader<T>().bind(context, bindingPoint);
+    return new NodeWriter<T>().bind(context, bindingPoint);
   }
-  /*
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * TODO Get rid of the manual thread counting rubbish as follows:
-   * 
-   * TODO Where a thread would currently be blocking for a resource, require that
-   * instead the thread registers a callback for when the resource is available
-   * and then ends. This way the code which releases the lock can trigger the
-   * callback and it can be delegated to an executor or something.
-   * 
-   * TODO is this feasible? Some of the blocks may occur in strange places such as
-   * during object construction. This would make it impossible. Investigate!
-   * 
-   * TODO uh maybe not, still have to count active threads to detect deadlock...
-   * perhaps require than things be executed on a special executor...
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   */
 
   @Override
   public Binding<? extends T> get() throws InterruptedException, ExecutionException {
@@ -175,30 +141,5 @@ public class OutputBindingFuture<T> implements BindingFuture<T> {
   public Observable<Binding<T>> observable() {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @SuppressWarnings("unchecked")
-  private <U extends T> void unbindImpl(
-      ProcessingContext context,
-      Model<? super U> model,
-      StructuredDataWriter output) {
-    output.registerDefaultNamespaceHint(model.name().getNamespace());
-
-    try {
-      context.output().get().addChild(model.name());
-
-      ClassLoader classLoader = this.classLoader != null
-          ? this.classLoader
-          : Thread.currentThread().getContextClassLoader();
-
-      new ContextClassLoaderExecutor(r -> r.run(), classLoader)
-          .execute(() -> new BindingNodeUnbinder(context, model, (U) data).unbind());
-
-      context.output().get().endChild();
-    } catch (ProcessingException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new ProcessingException(MESSAGES.unexpectedProblemProcessing(data, model), context, e);
-    }
   }
 }

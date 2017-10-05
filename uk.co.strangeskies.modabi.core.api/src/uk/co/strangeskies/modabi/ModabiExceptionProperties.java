@@ -126,4 +126,6 @@ public interface ModabiExceptionProperties {
   String unbindingParameterMustOccurOnce(Node effective, QualifiedName p);
 
   String unbindingParameterMustProvideValue(Node effective, QualifiedName p);
+
+  String cannotAcceptDuplicate(Object name);
 }

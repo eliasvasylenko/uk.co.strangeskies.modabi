@@ -53,13 +53,13 @@ public interface OutputBinder<T> {
     return from(modelName, TypeToken.forClass(type));
   }
 
-  BindingFuture<? super T> to(StructuredDataWriter output);
+  BindingFuture<? extends T> to(StructuredDataWriter output);
 
   // BindingFuture<T> to(RewritableStructuredData output);
 
-  BindingFuture<? super T> to(Path output);
+  BindingFuture<? extends T> to(Path output);
 
-  default BindingFuture<? super T> to(URI output) {
+  default BindingFuture<? extends T> to(URI output) {
     try {
       return to(output.toURL());
     } catch (MalformedURLException e) {
@@ -67,9 +67,9 @@ public interface OutputBinder<T> {
     }
   }
 
-  BindingFuture<? super T> to(URL output);
+  BindingFuture<? extends T> to(URL output);
 
-  BindingFuture<? super T> to(String extension, ThrowingSupplier<WritableByteChannel, ?> output);
+  BindingFuture<? extends T> to(String extension, ThrowingSupplier<WritableByteChannel, ?> output);
 
   // Tnbinder<T> updatable();
 
