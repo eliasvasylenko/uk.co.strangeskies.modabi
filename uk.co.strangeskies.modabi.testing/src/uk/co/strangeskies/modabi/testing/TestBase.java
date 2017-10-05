@@ -18,12 +18,15 @@
  */
 package uk.co.strangeskies.modabi.testing;
 
-import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
+import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
@@ -38,68 +41,68 @@ import uk.co.strangeskies.reflection.token.TypeToken;
  * @author Elias N Vasylenko
  */
 public abstract class TestBase {
-	protected static final int SERVICE_TIMEOUT_MILLISECONDS = 2000;
-	protected static final int TEST_TIMEOUT_MILLISECONDS = 3000;
-	protected static final String XML_POSTFIX = ".xml";
+  protected static final int SERVICE_TIMEOUT_MILLISECONDS = 2000;
+  protected static final int TEST_TIMEOUT_MILLISECONDS = 3000;
+  protected static final String XML_POSTFIX = ".xml";
 
-	private final Namespace defaultNamespace;
-	private final int serviceTimeoutMilliseconds;
+  private final Namespace defaultNamespace;
+  private final int serviceTimeoutMilliseconds;
 
-	public TestBase() {
-		this(Schema.MODABI_NAMESPACE);
-	}
+  public TestBase() {
+    this(Schema.MODABI_NAMESPACE);
+  }
 
-	public TestBase(Namespace defaultNamespace) {
-		this(defaultNamespace, SERVICE_TIMEOUT_MILLISECONDS);
-	}
+  public TestBase(Namespace defaultNamespace) {
+    this(defaultNamespace, SERVICE_TIMEOUT_MILLISECONDS);
+  }
 
-	public TestBase(Namespace defaultNamespace, int serviceTimeoutMilliseconds) {
-		this.serviceTimeoutMilliseconds = serviceTimeoutMilliseconds;
-		this.defaultNamespace = defaultNamespace;
-	}
+  public TestBase(Namespace defaultNamespace, int serviceTimeoutMilliseconds) {
+    this.serviceTimeoutMilliseconds = serviceTimeoutMilliseconds;
+    this.defaultNamespace = defaultNamespace;
+  }
 
-	public Namespace getDefaultNamespace() {
-		return defaultNamespace;
-	}
+  public Namespace getDefaultNamespace() {
+    return defaultNamespace;
+  }
 
-	public int getServiceTimeoutMilliseconds() {
-		return serviceTimeoutMilliseconds;
-	}
+  public int getServiceTimeoutMilliseconds() {
+    return serviceTimeoutMilliseconds;
+  }
 
-	protected <T> T getService(Class<T> clazz) {
-		try {
-			BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+  protected ClassLoader getClassLoader() {
+    return FrameworkUtil.getBundle(getClass()).adapt(BundleWiring.class).getClassLoader();
+  }
 
-			ServiceTracker<T, T> st = new ServiceTracker<>(context, clazz, null);
-			st.open();
-			try {
-				return st.waitForService(getServiceTimeoutMilliseconds());
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			throw t;
-		}
-	}
+  protected <T> T getService(Class<T> clazz) {
+    try {
+      BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
 
-	protected SchemaManager manager() {
-		return getService(SchemaManager.class);
-	}
+      ServiceTracker<T, T> st = new ServiceTracker<>(context, clazz, null);
+      st.open();
+      try {
+        return st.waitForService(getServiceTimeoutMilliseconds());
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Throwable t) {
+      t.printStackTrace();
+      throw t;
+    }
+  }
 
-	protected <T> Model<T> getModel(String name, TypeToken<T> type) {
-		return getModel(new QualifiedName(name, getDefaultNamespace()), type);
-	}
+  protected SchemaManager manager() {
+    return getService(SchemaManager.class);
+  }
 
-	protected <T> Model<T> getModel(QualifiedName name, TypeToken<T> type) {
-		try {
-			return manager().registeredModels().waitForGet(name, type);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
+  protected <T> Model<T> getModel(String name, TypeToken<T> type) {
+    return getModel(new QualifiedName(name, getDefaultNamespace()), type);
+  }
 
-	protected InputStream getResouce(String resource) {
-		return getClass().getResourceAsStream(resource + XML_POSTFIX);
-	}
+  protected <T> Model<T> getModel(QualifiedName name, TypeToken<T> type) {
+    return Models.cast(manager().registeredModels().getFuture(name).join(), type);
+  }
+
+  protected ReadableByteChannel getResouce(String resource) {
+    return Channels.newChannel(getClass().getResourceAsStream(resource + XML_POSTFIX));
+  }
 }

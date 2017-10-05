@@ -7,9 +7,10 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	${ss;utilities},\
-	${ss;reflection},\
-	${ss;mathematics},\
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest,\
 	uk.co.strangeskies.modabi.core.api;version=project
 
 

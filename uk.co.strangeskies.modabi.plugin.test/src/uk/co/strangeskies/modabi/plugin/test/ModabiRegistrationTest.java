@@ -101,12 +101,12 @@ public class ModabiRegistrationTest {
 			}
 
 			@Override
-			public Set<String> sources() {
+			public Set<String> getSources() {
 				return sources;
 			}
 
 			@Override
-			public SchemaManager schemaManager() {
+			public SchemaManager getSchemaManager() {
 				return manager;
 			}
 
@@ -121,7 +121,7 @@ public class ModabiRegistrationTest {
 			}
 
 			@Override
-			public String formatId() {
+			public String getFormatId() {
 				return "xml";
 			}
 
@@ -131,7 +131,7 @@ public class ModabiRegistrationTest {
 			}
 
 			@Override
-			public Set<QualifiedName> availableDependencies() {
+			public Set<QualifiedName> getAvailableDependencies() {
 				return dependendencies;
 			}
 

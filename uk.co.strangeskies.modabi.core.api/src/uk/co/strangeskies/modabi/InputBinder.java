@@ -20,12 +20,11 @@ package uk.co.strangeskies.modabi;
 
 import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
 
-import java.io.File;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.function.Consumer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
@@ -40,9 +39,9 @@ public interface InputBinder<T> {
 
   <U> InputBinder<U> to(Model<U> model);
 
-  <U> InputBinder<U> to(TypeToken<U> type);
+  <U> InputBinder<? extends U> to(TypeToken<U> type);
 
-  default <U> InputBinder<U> to(Class<U> type) {
+  default <U> InputBinder<? extends U> to(Class<U> type) {
     return to(TypeToken.forClass(type));
   }
 
@@ -58,8 +57,8 @@ public interface InputBinder<T> {
 
   // BindingFuture<T> from(RewritableStructuredData input);
 
-  default BindingFuture<? extends T> from(File input) {
-    return from(input.toURI());
+  default BindingFuture<? extends T> from(Path input) {
+    return from(input.toUri());
   }
 
   default BindingFuture<? extends T> from(URI input) {
@@ -72,20 +71,13 @@ public interface InputBinder<T> {
 
   BindingFuture<? extends T> from(URL input);
 
-  BindingFuture<? extends T> from(ThrowingSupplier<InputStream, ?> input);
+  BindingFuture<? extends T> from(ThrowingSupplier<ReadableByteChannel, ?> input);
 
-  BindingFuture<? extends T> from(String formatId, ThrowingSupplier<InputStream, ?> input);
+  BindingFuture<? extends T> from(String extension, ThrowingSupplier<ReadableByteChannel, ?> input);
 
   // Binder<T> updatable();
 
   InputBinder<T> withProvider(Provider provider);
 
   InputBinder<T> withClassLoader(ClassLoader classLoader);
-
-  /*
-   * Errors which are rethrown will be passed to the next error handler if
-   * present, or dealt with as normal. Otherwise, a best effort is made at
-   * binding.
-   */
-  InputBinder<T> withErrorHandler(Consumer<Exception> errorHandler);
 }

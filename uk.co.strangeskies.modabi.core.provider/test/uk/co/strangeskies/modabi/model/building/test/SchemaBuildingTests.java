@@ -25,14 +25,25 @@ import java.util.SortedSet;
 
 import org.junit.Test;
 
+import mockit.Injectable;
 import uk.co.strangeskies.modabi.impl.SchemaManagerService;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class SchemaBuildingTests {
+  @Injectable
+  private StructuredDataWriter writer;
+
   @Test
   public void buildBaseSchemataTest() {
     new SchemaManagerService();
+  }
+
+  @Test
+  public void bindOutBaseSchemaTest() {
+    SchemaManagerService manager = new SchemaManagerService();
+    manager.bindOutput(manager.getBaseSchema()).to(writer);
   }
 
   @Test

@@ -6,7 +6,7 @@ Bundle-Description: \
 	${modabi-description}
 
 -buildpath: \
-	uk.co.strangeskies.modabi.core.api;version=snapshot,\
+	uk.co.strangeskies.modabi.core.api;version=project,\
 \
 	uk.co.strangeskies.utilities;version=latest,\
 	uk.co.strangeskies.collections;version=latest,\

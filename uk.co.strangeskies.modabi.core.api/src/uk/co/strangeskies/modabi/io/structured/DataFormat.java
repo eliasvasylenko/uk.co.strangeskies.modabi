@@ -18,21 +18,19 @@
  */
 package uk.co.strangeskies.modabi.io.structured;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Set;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.stream.Stream;
 
 public interface DataFormat {
-	String getFormatId();
+  String getFormatId();
 
-	Set<String> getFileExtensions();
+  Stream<String> getFileExtensions();
 
-	StructuredDataReader loadData(InputStream in);
+  StructuredDataReader readData(ReadableByteChannel bytes);
 
-	StructuredDataWriter saveData(OutputStream out);
+  StructuredDataWriter writeData(WritableByteChannel bytes);
 
-	NavigableStructuredDataWriter modifyData(/*
-																			 * Some sort of generic rewritable &
-																			 * navigable byte data interface...
-																			 */);
+  NavigableStructuredDataWriter modifyData(SeekableByteChannel bytes);
 }

@@ -111,7 +111,7 @@ public abstract class ModabiBndPlugin implements AnalyzerPlugin, Plugin {
       scanSchemaAnnotations(analyzer);
 
       RegistrationContext context = new BndRegistrationContext(
-          MANAGER.nestChildScope(),
+          MANAGER,
           log,
           analyzer,
           format,

@@ -26,7 +26,7 @@ public class DataFormats extends NamedSet<String, DataFormat> {
   }
 
   @Override
-  protected void add(DataFormat element) {
+  public void add(DataFormat element) {
     super.add(element);
   }
 }

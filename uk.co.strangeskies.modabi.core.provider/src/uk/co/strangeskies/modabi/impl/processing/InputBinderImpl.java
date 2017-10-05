@@ -18,12 +18,15 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static java.nio.channels.Channels.newChannel;
 import static uk.co.strangeskies.modabi.impl.processing.BindingPointFuture.bindingPointFuture;
+import static uk.co.strangeskies.modabi.impl.processing.BindingPointFuture.inputBindingPointFuture;
 import static uk.co.strangeskies.modabi.impl.processing.InputBindingFuture.readBindingFuture;
+import static uk.co.strangeskies.modabi.impl.processing.StructuredDataFuture.forData;
+import static uk.co.strangeskies.modabi.impl.processing.StructuredDataFuture.forDataReader;
 
-import java.io.InputStream;
 import java.net.URL;
-import java.util.function.Consumer;
+import java.nio.channels.ReadableByteChannel;
 import java.util.function.Predicate;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
@@ -43,7 +46,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   private final DataFormats formats;
 
   private final BindingPointFuture<T> bindingPointFuture;
-  private final DataReaderFuture dataReaderFuture;
+  private final StructuredDataFuture<StructuredDataReader> dataReaderFuture;
 
   private final ClassLoader classLoader;
 
@@ -51,7 +54,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
       ProcessingContextImpl context,
       DataFormats formats,
       BindingPointFuture<T> bindingPointFuture,
-      DataReaderFuture dataReaderFuture,
+      StructuredDataFuture<StructuredDataReader> dataReaderFuture,
       ClassLoader classLoader) {
     this.context = context;
     this.formats = formats;
@@ -83,12 +86,6 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   }
 
   @Override
-  public InputBinder<T> withErrorHandler(Consumer<Exception> errorHandler) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public InputBinderImpl<T> withClassLoader(ClassLoader classLoader) {
     return new InputBinderImpl<>(
         context,
@@ -107,7 +104,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
         classLoader);
   }
 
-  protected InputBinderImpl<T> with(DataReaderFuture dataReaderFuture) {
+  protected InputBinderImpl<T> with(StructuredDataFuture<StructuredDataReader> dataReaderFuture) {
     return new InputBinderImpl<>(
         context,
         formats,
@@ -118,14 +115,14 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 
   protected InputBinderImpl<T> with(
       String formatId,
-      ThrowingSupplier<InputStream, ?> input,
+      ThrowingSupplier<ReadableByteChannel, ?> input,
       Predicate<DataFormat> formatPredicate,
       boolean canRetry) {
     return new InputBinderImpl<>(
         context,
         formats,
         bindingPointFuture,
-        new DataReaderFuture(context, formats, formatId, input, formatPredicate, canRetry),
+        forDataReader(context, formats, formatId, input, formatPredicate, canRetry),
         classLoader);
   }
 
@@ -140,8 +137,8 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   }
 
   @Override
-  public <U> InputBinder<U> to(TypeToken<U> type) {
-    return with(bindingPointFuture(context, type));
+  public <U> InputBinder<? extends U> to(TypeToken<U> type) {
+    return with(inputBindingPointFuture(context, type));
 
   }
 
@@ -152,39 +149,42 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 
   @Override
   public <U> InputBinder<U> to(QualifiedName name, TypeToken<U> type) {
-    return with(bindingPointFuture(context, name, type));
+    return with(inputBindingPointFuture(context, name, type));
   }
 
   @Override
   public BindingFuture<? extends T> from(URL input) {
-    String extension = input.getPath().substring(0, input.getPath().lastIndexOf("."));
+    return fromResource(input.getQuery(), () -> newChannel(input.openStream()));
+  }
 
-    if (extension != null) {
-      return fromExtension(extension, input::openStream);
-    } else {
-      return from(input::openStream);
+  public BindingFuture<? extends T> fromResource(
+      String resourceName,
+      ThrowingSupplier<ReadableByteChannel, ?> output) {
+    int lastDot = resourceName.lastIndexOf(".");
+
+    if (lastDot == -1) {
+      return from(output);
     }
+
+    String extension = resourceName.substring(0, lastDot);
+    return from(extension, output);
   }
 
   @Override
   public BindingFuture<? extends T> from(StructuredDataReader dataReader) {
-    return with(new DataReaderFuture(dataReader)).getBindingFuture();
+    return with(forData(dataReader)).getBindingFuture();
   }
 
   @Override
-  public BindingFuture<? extends T> from(ThrowingSupplier<InputStream, ?> input) {
+  public BindingFuture<? extends T> from(ThrowingSupplier<ReadableByteChannel, ?> input) {
     return with(null, input, f -> true, true).getBindingFuture();
   }
 
   @Override
-  public BindingFuture<? extends T> from(String formatId, ThrowingSupplier<InputStream, ?> input) {
-    return with(formatId, input, f -> f.getFormatId().equals(formatId), false).getBindingFuture();
-  }
-
-  private BindingFuture<? extends T> fromExtension(
+  public BindingFuture<? extends T> from(
       String extension,
-      ThrowingSupplier<InputStream, ?> input) {
-    return with(extension, input, f -> f.getFileExtensions().contains(extension), true)
+      ThrowingSupplier<ReadableByteChannel, ?> input) {
+    return with(extension, input, f -> f.getFileExtensions().anyMatch(extension::equals), false)
         .getBindingFuture();
   }
 

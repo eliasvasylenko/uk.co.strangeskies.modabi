@@ -18,6 +18,7 @@
  */
 package uk.co.strangeskies.modabi.processing;
 
+import static java.util.Collections.singleton;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 
@@ -30,28 +31,37 @@ import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.observable.ColdObservable;
+import uk.co.strangeskies.observable.Observable;
 
 public interface BindingFuture<T> extends Future<Binding<? extends T>> {
   Future<Model<? super T>> getModelFuture();
 
   Future<BindingPoint<? super T>> getBindingPointFuture();
 
-  BindingBlocks blocks();
+  Blocks blocks();
 
-  default T resolve() throws InterruptedException, ExecutionException {
-    return get().getData();
+  Observable<Binding<T>> observable();
+
+  default T resolve() {
+    try {
+      return get().getData();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  default T resolve(long timeout, TimeUnit unit)
-      throws InterruptedException, ExecutionException, TimeoutException {
-    return get(timeout, unit).getData();
+  default T resolve(long timeout, TimeUnit unit) {
+    try {
+      return get(timeout, unit).getData();
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   default Binding<? extends T> getNow() throws InterruptedException, ExecutionException {
-    BindingBlocks blockingBindings = blocks();
-
     if (!isDone() && cancel(true))
-      throw new ModabiException(MESSAGES.missingDependencies(blockingBindings));
+      throw new ModabiException(MESSAGES.missingDependencies(blocks()));
 
     return get();
   }
@@ -83,6 +93,11 @@ public interface BindingFuture<T> extends Future<Binding<? extends T>> {
       }
 
       @Override
+      public Observable<Binding<U>> observable() {
+        return new ColdObservable<>(singleton(binding));
+      }
+
+      @Override
       public Binding<U> get(long timeout, TimeUnit unit) {
         return binding;
       }
@@ -98,8 +113,8 @@ public interface BindingFuture<T> extends Future<Binding<? extends T>> {
       }
 
       @Override
-      public BindingBlocks blocks() {
-        return BindingBlocks.NON_BLOCKING;
+      public Blocks blocks() {
+        return new Blocks() {};
       }
     };
   }

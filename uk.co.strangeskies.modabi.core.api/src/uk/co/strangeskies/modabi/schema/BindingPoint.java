@@ -33,22 +33,4 @@ public interface BindingPoint<T> {
    * @return the model to bind to this point
    */
   Model<? super T> model();
-
-  static <T> BindingPoint<T> anonymous(Model<T> model) {
-    return anonymous(model.dataType(), model);
-  }
-
-  static <T> BindingPoint<T> anonymous(TypeToken<T> dataType, Model<? super T> model) {
-    return new BindingPoint<T>() {
-      @Override
-      public TypeToken<T> dataType() {
-        return dataType;
-      }
-
-      @Override
-      public Model<? super T> model() {
-        return model;
-      }
-    };
-  }
 }

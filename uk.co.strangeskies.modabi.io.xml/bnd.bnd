@@ -7,8 +7,8 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	${ss;utilities},\
-	${ss;text},\
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
 	uk.co.strangeskies.modabi.core.api;version=project,\
 	org.apache.servicemix.bundles.stax-utils
 	

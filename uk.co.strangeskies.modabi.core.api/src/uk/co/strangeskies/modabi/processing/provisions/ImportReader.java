@@ -20,9 +20,10 @@ package uk.co.strangeskies.modabi.processing.provisions;
 
 import java.util.List;
 
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface ImportReader {
-  <T> T dereferenceImport(Model<T> model, List<QualifiedName> idDomain, String id);
+  <T> Binding<T> dereferenceImport(Model<T> model, List<QualifiedName> idDomain, String id);
 }

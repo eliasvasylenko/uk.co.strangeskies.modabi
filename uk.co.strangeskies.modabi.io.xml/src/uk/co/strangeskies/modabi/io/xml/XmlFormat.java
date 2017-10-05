@@ -18,46 +18,45 @@
  */
 package uk.co.strangeskies.modabi.io.xml;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataWriter;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
+import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataWriter;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 
 @Component(property = "formatId=" + XmlFormat.XML_ID)
 public class XmlFormat implements DataFormat {
-	public static final String XML_ID = "xml";
+  public static final String XML_ID = "xml";
 
-	@Override
-	public String getFormatId() {
-		return XML_ID;
-	}
+  @Override
+  public String getFormatId() {
+    return XML_ID;
+  }
 
-	@Override
-	public Set<String> getFileExtensions() {
-		return new LinkedHashSet<>(Arrays.asList(XML_ID));
-	}
+  @Override
+  public Stream<String> getFileExtensions() {
+    return Stream.of(XML_ID);
+  }
 
-	@Override
-	public StructuredDataReader loadData(InputStream in) {
-		return XmlSource.from(in);
-	}
+  @Override
+  public StructuredDataReader readData(ReadableByteChannel channel) {
+    return XmlSource.from(channel);
+  }
 
-	@Override
-	public StructuredDataWriter saveData(OutputStream out) {
-		return new XmlTarget(out);
-	}
+  @Override
+  public StructuredDataWriter writeData(WritableByteChannel channel) {
+    return new XmlTarget(channel, false);
+  }
 
-	@Override
-	public NavigableStructuredDataWriter modifyData() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public NavigableStructuredDataWriter modifyData(SeekableByteChannel channel) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

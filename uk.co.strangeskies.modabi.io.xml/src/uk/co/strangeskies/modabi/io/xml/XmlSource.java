@@ -18,17 +18,16 @@
  */
 package uk.co.strangeskies.modabi.io.xml;
 
+import static java.nio.channels.Channels.newInputStream;
 import static uk.co.strangeskies.text.properties.PropertyLoader.getDefaultProperties;
 
-import java.io.InputStream;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
@@ -39,238 +38,206 @@ import javax.xml.stream.XMLStreamReader;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataSource;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
-import uk.co.strangeskies.modabi.io.structured.BufferableStructuredDataSourceImpl;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataReader;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataPosition;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataReaderWrapper;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataState;
 
 public class XmlSource implements StructuredDataReader {
-	private final XMLStreamReader in;
-	private final List<Integer> currentLocation;
+  private final XMLStreamReader in;
+  private final StructuredDataPositionImpl currentLocation;
 
-	private QualifiedName nextChild;
-	private final List<String> comments;
-	private final Map<QualifiedName, DataSource> properties;
-	private String content;
+  private QualifiedName currentChild;
+  private QualifiedName nextChild;
+  private final List<String> comments;
+  private final Map<QualifiedName, String> properties;
+  private String primaryProperty;
 
-	private final NamespaceStack namespaceStack;
+  private final NamespaceStack namespaceStack;
 
-	private XmlSource(XMLStreamReader in) {
-		this.in = in;
-		currentLocation = new ArrayList<>();
+  private XmlSource(XMLStreamReader in) {
+    this.in = in;
+    currentLocation = new StructuredDataPositionImpl();
 
-		comments = new ArrayList<>();
-		properties = new HashMap<>();
+    comments = new ArrayList<>();
+    properties = new HashMap<>();
 
-		namespaceStack = new NamespaceStack();
+    namespaceStack = new NamespaceStack();
 
-		pumpEvents();
-	}
+    pumpEvents();
+  }
 
-	public static StructuredDataReaderWrapper from(InputStream in) {
-		return from(createXMLStreamReader(in));
-	}
+  public static StructuredDataReader from(ReadableByteChannel in) {
+    return from(createXMLStreamReader(in));
+  }
 
-	public static StructuredDataReaderWrapper from(XMLStreamReader in) {
-		return new BufferableStructuredDataSourceImpl(new XmlSource(in));
-	}
+  public static StructuredDataReader from(XMLStreamReader in) {
+    return new XmlSource(in);
+  }
 
-	private static XMLStreamReader createXMLStreamReader(InputStream in) {
-		try {
-			return XMLInputFactory.newInstance().createXMLStreamReader(in);
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new ModabiException("", e);
-		}
-	}
+  private static XMLStreamReader createXMLStreamReader(ReadableByteChannel in) {
+    try {
+      return XMLInputFactory.newInstance().createXMLStreamReader(newInputStream(in));
+    } catch (XMLStreamException | FactoryConfigurationError e) {
+      throw new ModabiException("", e);
+    }
+  }
 
-	@Override
-	public Namespace getDefaultNamespaceHint() {
-		return namespaceStack.getDefaultNamespace();
-	}
+  @Override
+  public Namespace getDefaultNamespaceHint() {
+    return namespaceStack.getDefaultNamespace();
+  }
 
-	@Override
-	public Set<Namespace> getNamespaceHints() {
-		return namespaceStack.getAliasSet().getNamespaces();
-	}
+  @Override
+  public Stream<Namespace> getNamespaceHints() {
+    return namespaceStack.getAliasSet().getNamespaces();
+  }
 
-	@Override
-	public QualifiedName readNextChild() {
-		if (nextChild == null)
-			return null;
+  @Override
+  public StructuredDataReader readNextChild() {
+    if (nextChild == null)
+      return null;
 
-		currentLocation.add(0);
+    currentLocation.push();
 
-		return pumpEvents();
-	}
+    return pumpEvents();
+  }
 
-	@Override
-	public QualifiedName peekNextChild() {
-		return nextChild;
-	}
+  @Override
+  public Optional<QualifiedName> getNextChild() {
+    return Optional.ofNullable(nextChild);
+  }
 
-	@Override
-	public boolean hasNextChild() {
-		return nextChild != null;
-	}
+  private StructuredDataReader pumpEvents() {
+    if (nextChild != null)
+      fillProperties();
 
-	private QualifiedName pumpEvents() {
-		if (nextChild != null)
-			fillProperties();
+    currentChild = nextChild;
+    nextChild = null;
 
-		QualifiedName thisChild = nextChild;
-		nextChild = null;
+    comments.clear();
 
-		comments.clear();
+    boolean done = false;
+    do {
+      int code;
+      try {
+        code = in.next();
+      } catch (XMLStreamException e) {
+        throw new ModabiIOException(
+            getDefaultProperties(ModabiXmlExceptionMessages.class).problemReadingFromXmlDocument(),
+            e);
+      }
 
-		boolean done = false;
-		do {
-			int code;
-			try {
-				code = in.next();
-			} catch (XMLStreamException e) {
-				throw new ModabiIOException(getDefaultProperties(ModabiXmlExceptionMessages.class).problemReadingFromXmlDocument(), e);
-			}
+      switch (code) {
+      case XMLStreamReader.START_ELEMENT:
+        primaryProperty = "";
 
-			switch (code) {
-			case XMLStreamReader.START_ELEMENT:
-				content = "";
+        QName name = in.getName();
+        QualifiedName qualifiedName = new QualifiedName(
+            name.getLocalPart(),
+            Namespace.parseHttpString(name.getNamespaceURI()));
 
-				QName name = in.getName();
-				QualifiedName qualifiedName = new QualifiedName(name.getLocalPart(),
-						Namespace.parseHttpString(name.getNamespaceURI()));
+        nextChild = qualifiedName;
 
-				nextChild = qualifiedName;
+        done = true;
+        break;
+      case XMLStreamReader.END_DOCUMENT:
+      case XMLStreamReader.END_ELEMENT:
+        done = true;
+        break;
+      case XMLStreamReader.COMMENT:
+        comments.add(in.getText());
+        break;
+      case XMLStreamReader.CHARACTERS:
+        primaryProperty += in.getText();
+        break;
+      }
+    } while (!done);
 
-				done = true;
-				break;
-			case XMLStreamReader.END_DOCUMENT:
-			case XMLStreamReader.END_ELEMENT:
-				done = true;
-				break;
-			case XMLStreamReader.COMMENT:
-				comments.add(in.getText());
-				break;
-			case XMLStreamReader.CHARACTERS:
-				content += in.getText();
-				break;
-			}
-		} while (!done);
+    return this;
+  }
 
-		return thisChild;
-	}
+  private void fillProperties() {
+    /*
+     * Namespaces:
+     */
+    namespaceStack.push();
+    for (int i = 0; i < in.getNamespaceCount(); i++) {
+      namespaceStack
+          .addNamespace(Namespace.parseHttpString(in.getNamespaceURI(i)), in.getNamespacePrefix(i));
+    }
+    String defaultNamespaceString = in.getNamespaceURI();
+    if (defaultNamespaceString != null)
+      namespaceStack.setDefaultNamespace(Namespace.parseHttpString(defaultNamespaceString));
 
-	private void fillProperties() {
-		/*
-		 * Namespaces:
-		 */
-		namespaceStack.push();
-		for (int i = 0; i < in.getNamespaceCount(); i++) {
-			namespaceStack.addNamespace(Namespace.parseHttpString(in.getNamespaceURI(i)), in.getNamespacePrefix(i));
-		}
-		String defaultNamespaceString = in.getNamespaceURI();
-		if (defaultNamespaceString != null)
-			namespaceStack.setDefaultNamespace(Namespace.parseHttpString(defaultNamespaceString));
+    /*
+     * Properties:
+     */
+    properties.clear();
 
-		/*
-		 * Properties:
-		 */
-		properties.clear();
+    for (int i = 0; i < in.getAttributeCount(); i++) {
+      String namespaceString = in.getAttributeNamespace(i);
+      if (namespaceString == null)
+        namespaceString = in.getNamespaceContext().getNamespaceURI("");
+      Namespace namespace = Namespace.parseHttpString(namespaceString);
 
-		for (int i = 0; i < in.getAttributeCount(); i++) {
-			String namespaceString = in.getAttributeNamespace(i);
-			if (namespaceString == null)
-				namespaceString = in.getNamespaceContext().getNamespaceURI("");
-			Namespace namespace = Namespace.parseHttpString(namespaceString);
+      QualifiedName propertyName = new QualifiedName(in.getAttributeLocalName(i), namespace);
 
-			QualifiedName propertyName = new QualifiedName(in.getAttributeLocalName(i), namespace);
+      properties.put(propertyName, in.getAttributeValue(i));
+    }
+  }
 
-			properties.put(propertyName, DataSource.parseString(in.getAttributeValue(i), parseName()));
-		}
-	}
+  @Override
+  public Stream<QualifiedName> getProperties() {
+    return properties.keySet().stream();
+  }
 
-	private Function<String, QualifiedName> parseName() {
-		NamespaceStack namespaceStack = this.namespaceStack.copy();
+  @Override
+  public Optional<String> readProperty(QualifiedName name) {
+    return Optional.ofNullable(properties.get(name));
+  }
 
-		return name -> {
-			String[] splitName = name.split(":", 2);
+  @Override
+  public StructuredDataReader endChild() {
+    if (nextChild != null)
+      while (pumpEvents() != null)
+        ;
+    currentLocation.pop();
 
-			String prefix;
-			if (splitName.length == 2)
-				prefix = splitName[0];
-			else
-				prefix = "";
+    pumpEvents();
 
-			Namespace namespace = namespaceStack.getNamespace(prefix);
+    namespaceStack.pop();
 
-			if (namespace == null)
-				throw new ModabiException(
-						"Cannot find namespace with prefix '" + prefix + "' for name '" + name + "' in current context");
+    return this;
+  }
 
-			return new QualifiedName(splitName[splitName.length - 1], namespace);
-		};
-	}
+  @Override
+  public Stream<String> getComments() {
+    return comments.stream();
+  }
 
-	@Override
-	public Set<QualifiedName> getProperties() {
-		return new HashSet<>(properties.keySet());
-	}
+  @Override
+  public StructuredDataReader split() {
+    throw new AssertionError();
+  }
 
-	@Override
-	public DataSource readProperty(QualifiedName name) {
-		return properties.get(name);
-	}
+  @Override
+  public NavigableStructuredDataReader buffer() {
+    throw new AssertionError();
+  }
 
-	@Override
-	public DataSource readContent() {
-		if (content == null || content.trim().equals("")) {
-			return null;
-		} else {
-			return DataSource.parseString(content, parseName());
-		}
-	}
+  @Override
+  public QualifiedName getName() {
+    return currentChild;
+  }
 
-	@Override
-	public StructuredDataReader endChild() {
-		if (nextChild != null)
-			while (pumpEvents() != null)
-				;
-		currentLocation.remove(currentLocation.size() - 1);
-		if (!currentLocation.isEmpty()) {
-			currentLocation.add(currentLocation.remove(currentLocation.size() - 1) + 1);
-		}
+  @Override
+  public Optional<String> readPrimaryProperty() {
+    return Optional.ofNullable(primaryProperty);
+  }
 
-		pumpEvents();
-
-		namespaceStack.pop();
-
-		return this;
-	}
-
-	@Override
-	public List<Integer> index() {
-		return Collections.unmodifiableList(currentLocation);
-	}
-
-	@Override
-	public List<String> getComments() {
-		return comments;
-	}
-
-	@Override
-	public StructuredDataState currentState() {
-		throw new AssertionError();
-	}
-
-	@Override
-	public StructuredDataReader split() {
-		throw new AssertionError();
-	}
-
-	@Override
-	public NavigableStructuredDataReader buffer() {
-		throw new AssertionError();
-	}
+  @Override
+  public StructuredDataPosition getPosition() {
+    return currentLocation;
+  }
 }

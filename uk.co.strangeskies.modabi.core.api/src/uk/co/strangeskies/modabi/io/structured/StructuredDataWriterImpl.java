@@ -20,8 +20,10 @@ package uk.co.strangeskies.modabi.io.structured;
 
 import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -34,7 +36,9 @@ public abstract class StructuredDataWriterImpl<S extends StructuredDataWriterImp
     implements StructuredDataWriter {
   private PositionStackItem position;
 
-  public StructuredDataWriterImpl() {}
+  public StructuredDataWriterImpl() {
+    position = new PositionStackItem(null, null, 0);
+  }
 
   @Override
   public QualifiedName getName() {
@@ -43,8 +47,7 @@ public abstract class StructuredDataWriterImpl<S extends StructuredDataWriterImp
 
   @Override
   public StructuredDataPosition getPosition() {
-    // TODO Auto-generated method stub
-    return null;
+    return position;
   }
 
   @Override
@@ -153,7 +156,7 @@ public abstract class StructuredDataWriterImpl<S extends StructuredDataWriterImp
   }
 }
 
-class PositionStackItem {
+class PositionStackItem implements StructuredDataPosition {
   private final PositionStackItem parent;
 
   private final QualifiedName name;
@@ -212,5 +215,31 @@ class PositionStackItem {
 
   public PositionStackItem addChild(QualifiedName name) {
     return new PositionStackItem(this, name, childIndex++);
+  }
+
+  public List<Integer> getStack() {
+    PositionStackItem ancestor = this;
+    List<Integer> indices = new ArrayList<>();
+    do {
+      indices.add(ancestor.getIndex());
+      ancestor = ancestor.getParent();
+    } while (ancestor != null);
+    return indices;
+  }
+
+  @Override
+  public int getDepth() {
+    return getStack().size() - 1;
+  }
+
+  @Override
+  public int getIndex(int depth) {
+    List<Integer> stack = getStack();
+    return stack.get(stack.size() - 1 - depth);
+  }
+
+  @Override
+  public int getIndex() {
+    return index;
   }
 }

@@ -171,8 +171,9 @@ public class SchemaManagerService implements SchemaManager {
   }
 
   @Override
-  public <T> OutputBinder<T> bindOutput(T data) {
-    return OutputBinderImpl.bind(getProcessingContext(), registeredFormats(), data);
+  public <T> OutputBinder<? super T> bindOutput(T data) {
+    return OutputBinderImpl
+        .bind(getProcessingContext(), registeredFormats(), getBaseSchema().rootModel(), data);
   }
 
   @Override

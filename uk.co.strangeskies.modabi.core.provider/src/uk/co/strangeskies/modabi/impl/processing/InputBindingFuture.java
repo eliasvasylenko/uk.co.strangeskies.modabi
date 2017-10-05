@@ -27,12 +27,12 @@ import java.util.concurrent.TimeUnit;
 
 import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
-import uk.co.strangeskies.modabi.processing.BindingBlock;
-import uk.co.strangeskies.modabi.processing.BindingBlocks;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.Blocks;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.observable.Observable;
 
 public class InputBindingFuture<T> implements BindingFuture<T> {
   private final ProcessingContextImpl context;
@@ -59,7 +59,7 @@ public class InputBindingFuture<T> implements BindingFuture<T> {
   public static <T> InputBindingFuture<? extends T> readBindingFuture(
       ProcessingContextImpl context,
       BindingPointFuture<T> bindingPoint,
-      DataReaderFuture dataReader,
+      StructuredDataFuture<StructuredDataReader> dataReader,
       ClassLoader classLoader) {
     CompletableFuture<Binding<? extends T>> dataFuture = CompletableFuture
         .allOf(bindingPoint, dataReader)
@@ -138,12 +138,7 @@ public class InputBindingFuture<T> implements BindingFuture<T> {
   }
 
   private ProcessingException onFail(Throwable t) {
-    for (BindingBlock block : context.bindingBlocker().getBlocks()) {
-      block.fail(t);
-    }
-    for (Thread thread : context.bindingBlocker().getParticipatingThreads()) {
-      thread.interrupt();
-    }
+    context.cancel();
 
     String input = "unknown";
 
@@ -166,7 +161,14 @@ public class InputBindingFuture<T> implements BindingFuture<T> {
   }
 
   @Override
-  public BindingBlocks blocks() {
-    return context.bindingBlocker();
+  public Blocks blocks() {
+    // TODO implement Blocks interface
+    return null;
+  }
+
+  @Override
+  public Observable<Binding<T>> observable() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

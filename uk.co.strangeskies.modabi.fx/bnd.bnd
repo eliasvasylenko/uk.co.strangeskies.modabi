@@ -9,7 +9,7 @@ Bundle-Description: \
 
 -buildpath: \
 	osgi.enroute.base.api,\
-	${ss;utilities},\
-	${mdb;core.api}
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.modabi.core.api;version=snapshot
 
 Export-Package: uk.co.strangeskies.modabi.fx

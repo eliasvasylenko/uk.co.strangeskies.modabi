@@ -18,34 +18,31 @@
  */
 package uk.co.strangeskies.modabi.plugin;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 
-import java.io.InputStream;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.osgi.framework.Constants;
 
-import uk.co.strangeskies.collection.observable.ObservableSet;
 import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.log.Log.Level;
-import uk.co.strangeskies.modabi.ModelBinding;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
-import uk.co.strangeskies.modabi.processing.BindingBlock;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.processing.Blocks;
 import uk.co.strangeskies.reflection.resource.Attribute;
 import uk.co.strangeskies.reflection.resource.AttributeProperty;
 import uk.co.strangeskies.reflection.resource.PropertyType;
@@ -70,7 +67,7 @@ public class ModabiRegistration {
    * The schemata provided by the building bundle, mapped to their jar resource
    * locations:
    */
-  private final Map<BindingFuture<Schema>, String> providedSchemata = new HashMap<>();
+  private final Map<BindingFuture<? extends Schema>, String> providedSchemata = new HashMap<>();
   /*
    * The names of required schemata from build dependencies:
    */
@@ -78,10 +75,10 @@ public class ModabiRegistration {
   /*
    * All encountered schemata which are loading or have loaded:
    */
-  private final Set<BindingFuture<Schema>> resolvingSchemata = new HashSet<>();
+  private final Set<BindingFuture<? extends Schema>> resolvingSchemata = new HashSet<>();
 
   private QualifiedName getDependencyNamespace() {
-    return context.schemaManager().getMetaSchema().getSchemaModel().name();
+    return context.getSchemaManager().getMetaSchema().getSchemaModel().name();
   }
 
   public synchronized boolean registerSchemata(RegistrationContext context) {
@@ -91,25 +88,7 @@ public class ModabiRegistration {
     providedSchemata.clear();
     resolvingSchemata.clear();
 
-    Model<Schema> schemaModel = context.schemaManager().getMetaSchema().getSchemaModel();
-    ObservableSet<?, ModelBinding<Schema>> schemaBindingChanges = context.schemaManager().getBindings(
-        schemaModel);
-    schemaBindingChanges.changes().observe(c -> {
-      new Thread(() -> {
-        synchronized (resolvingSchemata) {
-          resolvingSchemata.removeAll(
-              context
-                  .schemaManager()
-                  .getBindingFutures(schemaModel)
-                  .stream()
-                  .filter(BindingFuture::isDone)
-                  .collect(Collectors.toSet()));
-        }
-        detectDeadlock();
-      }).start();
-    });
-
-    if (!context.sources().isEmpty()) {
+    if (context.getSources().count() > 0) {
       registerSchemaResources();
       return true;
     } else {
@@ -119,24 +98,22 @@ public class ModabiRegistration {
 
   private void registerSchemaResources() {
     try {
-      context
-          .getLog()
-          .log(Level.TRACE, "Available dependencies: " + context.availableDependencies());
+      context.getLog().log(
+          Level.TRACE,
+          "Available dependencies: "
+              + context.getAvailableDependencies().map(Objects::toString).collect(joining(", ")));
 
       /*
        * Begin binding schemata concurrently
        */
-      for (String resourceName : context.sources()) {
-        providedSchemata
-            .put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName);
-      }
+      context.getSources().forEach(
+          resourceName -> providedSchemata
+              .put(registerSchemaResource(() -> context.openSource(resourceName)), resourceName));
 
       /*
        * Resolve schemata
        */
-      for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
-        schemaFuture.resolve();
-      }
+      providedSchemata.keySet().forEach(BindingFuture::resolve);
 
       addProvisions();
       addRequirements();
@@ -146,19 +123,19 @@ public class ModabiRegistration {
     }
   }
 
-  private BindingFuture<Schema> registerSchemaResource(
-      ThrowingSupplier<InputStream, ?> inputStream) {
-    BindingFuture<Schema> bindingFuture = context
-        .schemaManager()
+  private BindingFuture<? extends Schema> registerSchemaResource(
+      ThrowingSupplier<ReadableByteChannel, ?> inputStream) {
+    BindingFuture<? extends Schema> bindingFuture = context
+        .getSchemaManager()
         .bindSchema()
-        .withClassLoader(context.classLoader())
-        .from(context.formatId(), inputStream);
+        .withClassLoader(context.getClassLoader())
+        .from(context.getFormatId(), inputStream);
 
     /*
      * Resolve dependencies
      */
     synchronized (resolvingSchemata) {
-      bindingFuture.blocks().observe(event -> {
+      bindingFuture.blocks().getFutureBlocks().observe(event -> {
         synchronized (resolvingSchemata) {
           switch (event.type()) {
           case STARTED:
@@ -176,10 +153,12 @@ public class ModabiRegistration {
       });
 
       resolvingSchemata.add(bindingFuture);
+      bindingFuture.observable().synchronize(resolvingSchemata).observe(o -> {
+        resolvingSchemata.remove(bindingFuture);
+        detectDeadlock();
+      });
 
-      for (BindingBlock block : bindingFuture.blocks().getBlocks()) {
-        resolveDependency(block);
-      }
+      bindingFuture.blocks().getBlocks().forEach(this::resolveDependency);
     }
     detectDeadlock();
 
@@ -198,31 +177,29 @@ public class ModabiRegistration {
   }
 
   private void detectDeadlock() {
-    Set<BindingFuture<Schema>> resolvingSchemata;
+    Set<BindingFuture<? extends Schema>> resolvingSchemata;
     synchronized (this.resolvingSchemata) {
       resolvingSchemata = this.resolvingSchemata;
     }
 
-    if (resolvingSchemata.stream().allMatch(f -> f.blocks().isBlocked())) {
-      Set<BindingBlock> missingDependencies = resolvingSchemata
+    if (resolvingSchemata.stream().allMatch(f -> f.blocks().getBlocks().count() > 0)) {
+      Set<Blocks<?>> missingDependencies = resolvingSchemata
           .stream()
-          .flatMap(f -> f.blocks().getBlocks().stream())
+          .flatMap(f -> f.blocks().getBlocks())
           .collect(toSet());
 
       ModabiException deadlockException = new ModabiException(
           MESSAGES.missingDependencies(providedSchemata.keySet(), missingDependencies));
       for (BindingFuture<?> future : resolvingSchemata) {
-        for (BindingBlock block : future.blocks().getBlocks()) {
-          block.fail(deadlockException);
-        }
+        future.blocks().getBlocks().forEach(block -> block.fail(deadlockException));
       }
 
       throw deadlockException;
     }
   }
 
-  private void resolveDependency(BindingBlock block) {
-    if (!block.namespace().equals(getDependencyNamespace())) {
+  private void resolveDependency(Blocks<?> block) {
+    if (!block.getNamespace().equals(getDependencyNamespace())) {
       /*-
        * TODO put this error aside and only register it if we deadlock
       SchemaException exception = new SchemaException(
@@ -232,9 +209,9 @@ public class ModabiRegistration {
       throw exception;
        */
     } else {
-      QualifiedName id = block.id().get(Primitive.QUALIFIED_NAME);
+      QualifiedName id = (QualifiedName) block.getID();
 
-      if (context.availableDependencies().contains(id)) {
+      if (context.getAvailableDependencies().anyMatch(id::equals)) {
         boolean added = requiredSchemata.add(id);
 
         if (added) {
@@ -247,7 +224,7 @@ public class ModabiRegistration {
   private void addProvisions() {
     List<Attribute> providedCapabilities = new ArrayList<>();
 
-    for (BindingFuture<Schema> schemaFuture : providedSchemata.keySet()) {
+    for (BindingFuture<? extends Schema> schemaFuture : providedSchemata.keySet()) {
       List<AttributeProperty<?>> properties = new ArrayList<>();
 
       properties.add(
@@ -298,7 +275,7 @@ public class ModabiRegistration {
             new AttributeProperty<>(
                 Constants.FILTER_DIRECTIVE,
                 PropertyType.DIRECTIVE,
-                "(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + context.formatId()
+                "(&" + STRUCTUREDDATAFORMAT_SERVICE_FILTER + "(formatId=" + context.getFormatId()
                     + "))"),
             mandatoryResolution,
             activeEffective));

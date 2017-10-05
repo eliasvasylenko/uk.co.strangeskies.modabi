@@ -57,8 +57,7 @@ public interface StructuredDataReader {
   }
 
   /**
-   * throws an exception if there are more children, so call skipChildren() first,
-   * or call endChildEarly, if you want to ignore them.
+   * throws an exception if there are more children, so call skipChildren() first.
    */
   StructuredDataReader endChild();
 

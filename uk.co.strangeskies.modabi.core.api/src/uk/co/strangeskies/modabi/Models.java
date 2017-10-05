@@ -18,9 +18,6 @@
  */
 package uk.co.strangeskies.modabi;
 
-import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
-import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -30,6 +27,7 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.collection.multimap.MultiMap;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -76,12 +74,44 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> Model<T> cast(Model<?> model, TypeToken<T> dataType) {
-    if (model != null
-        && !model.dataType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, dataType)) {
-      throw new ModabiException(MESSAGES.noModelFoundForType(model.name(), dataType.getType()));
-    }
-    return (Model<T>) model;
+  private static <T> BindingPoint<T> build(Model<?> model, TypeToken<T> type) {
+    return new BindingPoint<T>() {
+      @Override
+      public TypeToken<T> dataType() {
+        return type;
+      }
+
+      @SuppressWarnings("unchecked")
+      @Override
+      public Model<? super T> model() {
+        return (Model<? super T>) model;
+      }
+    };
+  }
+
+  public static <T> BindingPoint<T> getBindingPoint(Model<T> model) {
+    return build(model, model.dataType());
+  }
+
+  public static <T> BindingPoint<? extends T> getInputBindingPoint(
+      Model<?> model,
+      TypeToken<T> type) {
+    /*
+     * TODO verify that the model can bind to type (considering extensibility &
+     * contravariance) then derive the actual type we're binding to (upper bounded
+     * on the model type and given type)
+     */
+
+    return build(model, type);
+  }
+
+  public static <T> BindingPoint<? super T> getOutputBindingPoint(
+      Model<?> model,
+      TypeToken<T> type) {
+    /*
+     * TODO verify that the model can bind output from the type (considering
+     * extensibility & covariance)
+     */
+    return build(model, type);
   }
 }

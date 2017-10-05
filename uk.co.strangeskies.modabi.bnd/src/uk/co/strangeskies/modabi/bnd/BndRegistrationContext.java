@@ -18,13 +18,14 @@
  */
 package uk.co.strangeskies.modabi.bnd;
 
+import static java.nio.channels.Channels.newChannel;
 import static java.util.stream.Collectors.toList;
 import static uk.co.strangeskies.log.Log.forwardingLog;
 
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
 
 import org.osgi.framework.Constants;
 
@@ -80,17 +82,17 @@ final class BndRegistrationContext implements RegistrationContext {
   }
 
   @Override
-  public SchemaManager schemaManager() {
+  public SchemaManager getSchemaManager() {
     return manager;
   }
 
   @Override
-  public String formatId() {
+  public String getFormatId() {
     return format.getFormatId();
   }
 
   @Override
-  public ClassLoader classLoader() {
+  public ClassLoader getClassLoader() {
     return classLoader;
   }
 
@@ -100,26 +102,27 @@ final class BndRegistrationContext implements RegistrationContext {
   }
 
   @Override
-  public Set<String> sources() {
-    return resources.keySet();
+  public Stream<String> getSources() {
+    return resources.keySet().stream();
   }
 
   @Override
-  public InputStream openSource(String sourceLocation) throws Exception {
-    return resources.get(sourceLocation).openInputStream();
+  public ReadableByteChannel openSource(String sourceLocation) throws Exception {
+    return newChannel(resources.get(sourceLocation).openInputStream());
   }
 
   @Override
-  public Set<QualifiedName> availableDependencies() {
-    return availableDependencies.keySet();
+  public Stream<QualifiedName> getAvailableDependencies() {
+    return availableDependencies.keySet().stream();
   }
 
   @Override
-  public InputStream openDependency(QualifiedName name) throws Exception {
-    availableDependencies();
-    return availableDependencies.get(name).openInputStream();
+  public ReadableByteChannel openDependency(QualifiedName name) throws Exception {
+    getAvailableDependencies();
+    return newChannel(availableDependencies.get(name).openInputStream());
   }
 
+  @Override
   public Log getLog() {
     return forwardingLog(() -> log);
   }

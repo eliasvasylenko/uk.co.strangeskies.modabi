@@ -21,15 +21,11 @@ package uk.co.strangeskies.modabi.processing;
 import java.util.List;
 import java.util.Optional;
 
-import uk.co.strangeskies.collection.computingmap.ComputingMap;
-import uk.co.strangeskies.modabi.Models;
-import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
-import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface ProcessingContext {
@@ -39,36 +35,9 @@ public interface ProcessingContext {
   SchemaManager manager();
 
   /**
-   * @return all models registered in the {@link SchemaManager} backing this
-   *         context
-   */
-  Models registeredModels();
-
-  /**
    * @return objects provided by schema manager for certain types
    */
   Provisions provisions();
-
-  /**
-   * Get the model of the given name registered in the {@link SchemaManager}
-   * backing this context.
-   * 
-   * @param name
-   *          the name of the model to fetch
-   * @return the model of the given name, or null if no such model exists
-   */
-  Model<?> getModel(QualifiedName name);
-
-  /**
-   * For a given extensible complex node, get a map from possible overriding
-   * models to the nodes resulting from the application of those overrides. The
-   * values of the map are lazily computed, then cached for further use.
-   * 
-   * @param node
-   *          the element to override with a model
-   * @return a mapping from possible overrides to override results
-   */
-  ComputingMap<Model<?>, Node> getComplexNodeOverrides(Node node);
 
   /**
    * The stack of schema nodes corresponding to the processing position in a depth
@@ -126,16 +95,15 @@ public interface ProcessingContext {
   }
 
   /**
-   * @return the blocking interface through which a processing thread may signal
-   *         that it is waiting for availability of some dependency or resource
+   * @return objects which have been bound so far during processing
    */
-  BindingBlocker bindingBlocker();
+  Bindings localBindings();
 
   /**
-   * @return objects which have been bound so far and which are visible from this
+   * @return objects which have been bound so far in the set provided to this
    *         processing context
    */
-  ProcessedBindings bindings();
+  Bindings globalBindings();
 
   /**
    * @return the input data source for the processing operation, if applicable

@@ -18,10 +18,10 @@
  */
 package uk.co.strangeskies.modabi.plugin;
 
-import java.io.InputStream;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.log.Log;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -37,17 +37,17 @@ public interface RegistrationContext {
 
   Log getLog();
 
-  String formatId();
+  String getFormatId();
 
-  SchemaManager schemaManager();
+  SchemaManager getSchemaManager();
 
-  ClassLoader classLoader();
+  ClassLoader getClassLoader();
 
-  Set<String> sources();
+  Stream<String> getSources();
 
-  InputStream openSource(String sourceLocation) throws Exception;
+  ReadableByteChannel openSource(String sourceLocation) throws Exception;
 
-  Set<QualifiedName> availableDependencies();
+  Stream<QualifiedName> getAvailableDependencies();
 
-  InputStream openDependency(QualifiedName name) throws Exception;
+  ReadableByteChannel openDependency(QualifiedName name) throws Exception;
 }

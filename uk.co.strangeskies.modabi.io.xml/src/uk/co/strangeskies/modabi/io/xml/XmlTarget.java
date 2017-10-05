@@ -18,9 +18,11 @@
  */
 package uk.co.strangeskies.modabi.io.xml;
 
+import static java.nio.channels.Channels.newOutputStream;
 import static uk.co.strangeskies.text.properties.PropertyLoader.getDefaultProperties;
 
 import java.io.OutputStream;
+import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,173 +33,183 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import javanet.staxutils.IndentingXMLStreamWriter;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
+import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriterImpl;
 
 public class XmlTarget extends StructuredDataWriterImpl<XmlTarget> {
-	private final XMLStreamWriter out;
+  private final XMLStreamWriter out;
 
-	private final NamespaceStack namespaces;
-	private boolean started;
+  private final NamespaceStack namespaces;
+  private boolean started;
 
-	private QualifiedName currentChild;
-	private final Map<QualifiedName, String> properties;
-	private final List<String> comments;
+  private QualifiedName currentChild;
+  private final Map<QualifiedName, String> properties;
+  private final List<String> comments;
 
-	public XmlTarget(XMLStreamWriter out) {
-		this.out = out;
+  public XmlTarget(XMLStreamWriter out) {
+    this.out = out;
 
-		namespaces = new NamespaceStack();
-		started = false;
+    namespaces = new NamespaceStack();
+    started = false;
 
-		properties = new LinkedHashMap<>();
-		comments = new ArrayList<>();
+    properties = new LinkedHashMap<>();
+    comments = new ArrayList<>();
 
-		try {
-			out.setNamespaceContext(namespaces);
-			out.writeStartDocument();
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw xmlException(e);
-		}
-	}
+    try {
+      out.setNamespaceContext(namespaces);
+      out.writeStartDocument();
+    } catch (XMLStreamException | FactoryConfigurationError e) {
+      throw xmlException(e);
+    }
+  }
 
-	public XmlTarget(OutputStream out, boolean formatted) {
-		this(createXMLStreamWriter(out, formatted));
-	}
+  public XmlTarget(OutputStream out, boolean formatted) {
+    this(createXMLStreamWriter(out, formatted));
+  }
 
-	private static XMLStreamWriter createXMLStreamWriter(OutputStream out, boolean formatted) {
-		try {
-			XMLOutputFactory factory = XMLOutputFactory.newInstance();
-			XMLStreamWriter writer = factory.createXMLStreamWriter(out);
-			if (formatted)
-				writer = new IndentingXMLStreamWriter(writer);
-			return writer;
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw xmlException(e);
-		}
-	}
+  public XmlTarget(WritableByteChannel out, boolean formatted) {
+    this(createXMLStreamWriter(newOutputStream(out), formatted));
+  }
 
-	public XmlTarget(OutputStream out) {
-		this(out, true);
-	}
+  private static XMLStreamWriter createXMLStreamWriter(OutputStream out, boolean formatted) {
+    try {
+      XMLOutputFactory factory = XMLOutputFactory.newInstance();
+      XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+      if (formatted)
+        ;// TODO writer = new IndentingXMLStreamWriter(writer);
+      return writer;
+    } catch (XMLStreamException | FactoryConfigurationError e) {
+      throw xmlException(e);
+    }
+  }
 
-	private static ModabiIOException xmlException(Throwable e) {
-		return new ModabiIOException(getDefaultProperties(ModabiXmlExceptionMessages.class).problemReadingFromXmlDocument(), e);
-	}
+  public XmlTarget(OutputStream out) {
+    this(out, true);
+  }
 
-	@Override
-	public void registerDefaultNamespaceHintImpl(Namespace namespace) {
-		namespaces.setDefaultNamespace(namespace);
-	}
+  private static ModabiIOException xmlException(Throwable e) {
+    return new ModabiIOException(
+        getDefaultProperties(ModabiXmlExceptionMessages.class).problemReadingFromXmlDocument(),
+        e);
+  }
 
-	@Override
-	public void registerNamespaceHintImpl(Namespace namespace) {
-		namespaces.addNamespace(namespace);
-	}
+  @Override
+  public void registerDefaultNamespaceHintImpl(Namespace namespace) {
+    namespaces.setDefaultNamespace(namespace);
+  }
 
-	private boolean outputCurrentChild(boolean selfClosing) {
-		try {
-			boolean done = currentChild != null;
+  @Override
+  public void registerNamespaceHintImpl(Namespace namespace) {
+    namespaces.addNamespace(namespace);
+  }
 
-			if (done) {
-				// write start of element
-				if (selfClosing) {
-					out.writeEmptyElement(currentChild.getNamespace().toHttpString(), currentChild.getName());
-				} else {
-					out.writeStartElement(currentChild.getNamespace().toHttpString(), currentChild.getName());
-				}
+  private boolean outputCurrentChild(boolean selfClosing) {
+    try {
+      boolean done = currentChild != null;
 
-				// write namespaces
-				if (namespaces.getAliasSet().getDefaultNamespace() != null)
-					out.writeDefaultNamespace(namespaces.getDefaultNamespace().toHttpString());
-				for (Namespace namespace : namespaces.getAliasSet().getNamespaces())
-					out.writeNamespace(namespaces.getNamespaceAlias(namespace), namespace.toHttpString());
-				namespaces.push();
+      if (done) {
+        // write start of element
+        if (selfClosing) {
+          out.writeEmptyElement(currentChild.getNamespace().toHttpString(), currentChild.getName());
+        } else {
+          out.writeStartElement(currentChild.getNamespace().toHttpString(), currentChild.getName());
+        }
 
-				// write properties
-				for (QualifiedName property : properties.keySet())
-					out.writeAttribute(property.getNamespace().toHttpString(), property.getName(), properties.get(property));
-				properties.clear();
+        // write namespaces
+        if (namespaces.getAliasSet().getDefaultNamespace() != null)
+          out.writeDefaultNamespace(namespaces.getDefaultNamespace().toHttpString());
+        for (Namespace namespace : namespaces.getAliasSet().getNamespaces())
+          out.writeNamespace(namespaces.getNamespaceAlias(namespace), namespace.toHttpString());
+        namespaces.push();
 
-				// write comments
-				for (String comment : comments)
-					out.writeComment(comment);
-				comments.clear();
+        // write properties
+        for (QualifiedName property : properties.keySet())
+          out.writeAttribute(
+              property.getNamespace().toHttpString(),
+              property.getName(),
+              properties.get(property));
+        properties.clear();
 
-				started = true;
-				currentChild = null;
-			} else if (!started) {
-				for (String comment : comments)
-					out.writeComment(comment);
-				comments.clear();
-			}
+        // write comments
+        for (String comment : comments)
+          out.writeComment(comment);
+        comments.clear();
 
-			return done;
-		} catch (XMLStreamException e) {
-			throw xmlException(e);
-		}
-	}
+        started = true;
+        currentChild = null;
+      } else if (!started) {
+        for (String comment : comments)
+          out.writeComment(comment);
+        comments.clear();
+      }
 
-	@Override
-	public void addChildImpl(QualifiedName name) {
-		outputCurrentChild(false);
-		currentChild = name;
-	}
+      return done;
+    } catch (XMLStreamException e) {
+      throw xmlException(e);
+    }
+  }
 
-	@Override
-	public void endChildImpl() {
-		try {
-			if (!outputCurrentChild(true))
-				out.writeEndElement();
-		} catch (XMLStreamException e) {
-			throw xmlException(e);
-		}
+  @Override
+  public void addChildImpl(QualifiedName name) {
+    outputCurrentChild(false);
+    currentChild = name;
+  }
 
-		namespaces.pop();
-		if (namespaces.isBase())
-			try {
-				out.writeEndDocument();
-				out.flush();
-			} catch (XMLStreamException e) {
-				throw xmlException(e);
-			}
-	}
+  @Override
+  public StructuredDataWriter endChild() {
+    try {
+      if (!outputCurrentChild(true))
+        out.writeEndElement();
+    } catch (XMLStreamException e) {
+      throw xmlException(e);
+    }
 
-	@Override
-	public DataTarget writePropertyImpl(QualifiedName name) {
-		return DataTarget.composeString(s -> properties.put(name, s), this::composeName);
-	}
+    namespaces.pop();
+    if (namespaces.isBase())
+      try {
+        out.writeEndDocument();
+        out.flush();
+      } catch (XMLStreamException e) {
+        throw xmlException(e);
+      }
 
-	@Override
-	public DataTarget writeContentImpl() {
-		outputCurrentChild(false);
+    return this;
+  }
 
-		return DataTarget.composeString(s -> {
-			try {
-				out.writeCharacters(s);
-			} catch (XMLStreamException e) {
-				throw xmlException(e);
-			}
-		}, this::composeName);
-	}
+  @Override
+  public DataTarget writePropertyImpl(QualifiedName name) {
+    return DataTarget.composeString(s -> properties.put(name, s), this::composeName);
+  }
 
-	private String composeName(QualifiedName name) {
-		String prefix = namespaces.getNamespaceAlias(name.getNamespace());
-		if (prefix.length() > 0)
-			prefix += ":";
-		return prefix + name.getName();
-	}
+  @Override
+  public DataTarget writeContentImpl() {
+    outputCurrentChild(false);
 
-	@Override
-	public void commentImpl(String comment) {
-		try {
-			out.writeComment(comment);
-		} catch (XMLStreamException e) {
-			throw xmlException(e);
-		}
-	}
+    return DataTarget.composeString(s -> {
+      try {
+        out.writeCharacters(s);
+      } catch (XMLStreamException e) {
+        throw xmlException(e);
+      }
+    }, this::composeName);
+  }
+
+  private String composeName(QualifiedName name) {
+    String prefix = namespaces.getNamespaceAlias(name.getNamespace());
+    if (prefix.length() > 0)
+      prefix += ":";
+    return prefix + name.getName();
+  }
+
+  @Override
+  public void commentImpl(String comment) {
+    try {
+      out.writeComment(comment);
+    } catch (XMLStreamException e) {
+      throw xmlException(e);
+    }
+  }
 }

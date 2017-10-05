@@ -22,91 +22,92 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class NamespaceAliases {
-	private Namespace defaultNamespace;
-	private final Map<Namespace, String> namespaceAliases;
-	private final Map<String, Namespace> aliasedNamespaces;
+  private Namespace defaultNamespace;
+  private final Map<Namespace, String> namespaceAliases;
+  private final Map<String, Namespace> aliasedNamespaces;
 
-	public NamespaceAliases() {
-		namespaceAliases = new HashMap<>();
-		aliasedNamespaces = new HashMap<>();
-	}
+  public NamespaceAliases() {
+    namespaceAliases = new HashMap<>();
+    aliasedNamespaces = new HashMap<>();
+  }
 
-	public NamespaceAliases(NamespaceAliases namespaceAliases) {
-		this.defaultNamespace = namespaceAliases.defaultNamespace;
-		this.namespaceAliases = new HashMap<>(namespaceAliases.namespaceAliases);
-		this.aliasedNamespaces = new HashMap<>(namespaceAliases.aliasedNamespaces);
-	}
+  public NamespaceAliases(NamespaceAliases namespaceAliases) {
+    this.defaultNamespace = namespaceAliases.defaultNamespace;
+    this.namespaceAliases = new HashMap<>(namespaceAliases.namespaceAliases);
+    this.aliasedNamespaces = new HashMap<>(namespaceAliases.aliasedNamespaces);
+  }
 
-	public String getNameString(QualifiedName name) {
-		String alias = namespaceAliases.get(name.getNamespace());
-		if (alias != null)
-			return alias + ":" + name.getName();
+  public String getNameString(QualifiedName name) {
+    String alias = namespaceAliases.get(name.getNamespace());
+    if (alias != null)
+      return alias + ":" + name.getName();
 
-		return name.toString();
-	}
+    return name.toString();
+  }
 
-	private String generateAlias(Namespace namespace) {
-		Set<String> existingAliases = new HashSet<>(namespaceAliases.values());
+  private String generateAlias(Namespace namespace) {
+    Set<String> existingAliases = new HashSet<>(namespaceAliases.values());
 
-		String alias = "";
-		do {
-			alias += "a";
-		} while (existingAliases.contains(alias));
+    String alias = "";
+    do {
+      alias += "a";
+    } while (existingAliases.contains(alias));
 
-		return alias;
-	}
+    return alias;
+  }
 
-	public boolean addNamespace(Namespace namespace, String alias) {
-		if (getAlias(namespace) != null)
-			return false;
+  public boolean addNamespace(Namespace namespace, String alias) {
+    if (getAlias(namespace) != null)
+      return false;
 
-		namespaceAliases.put(namespace, alias);
-		aliasedNamespaces.put(alias, namespace);
+    namespaceAliases.put(namespace, alias);
+    aliasedNamespaces.put(alias, namespace);
 
-		return true;
-	}
+    return true;
+  }
 
-	public String addNamespace(Namespace namespace) {
-		String alias = getAlias(namespace);
+  public String addNamespace(Namespace namespace) {
+    String alias = getAlias(namespace);
 
-		if (alias == null) {
-			alias = generateAlias(namespace);
+    if (alias == null) {
+      alias = generateAlias(namespace);
 
-			addNamespace(namespace, alias);
-		}
+      addNamespace(namespace, alias);
+    }
 
-		return alias;
-	}
+    return alias;
+  }
 
-	public Set<Namespace> getNamespaces() {
-		return namespaceAliases.keySet();
-	}
+  public Stream<Namespace> getNamespaces() {
+    return namespaceAliases.keySet().stream();
+  }
 
-	public String getAlias(Namespace namespace) {
-		if (namespaceAliases.containsKey(namespace))
-			return namespaceAliases.get(namespace);
+  public String getAlias(Namespace namespace) {
+    if (namespaceAliases.containsKey(namespace))
+      return namespaceAliases.get(namespace);
 
-		return null;
-	}
+    return null;
+  }
 
-	public Namespace getNamespace(String alias) {
-		if (aliasedNamespaces.containsKey(alias))
-			return aliasedNamespaces.get(alias);
+  public Namespace getNamespace(String alias) {
+    if (aliasedNamespaces.containsKey(alias))
+      return aliasedNamespaces.get(alias);
 
-		return null;
-	}
+    return null;
+  }
 
-	public NamespaceAliases copy() {
-		return new NamespaceAliases(this);
-	}
+  public NamespaceAliases copy() {
+    return new NamespaceAliases(this);
+  }
 
-	public void setDefaultNamespace(Namespace namespace) {
-		defaultNamespace = namespace;
-	}
+  public void setDefaultNamespace(Namespace namespace) {
+    defaultNamespace = namespace;
+  }
 
-	public Namespace getDefaultNamespace() {
-		return defaultNamespace;
-	}
+  public Namespace getDefaultNamespace() {
+    return defaultNamespace;
+  }
 }

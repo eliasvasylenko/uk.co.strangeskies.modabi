@@ -32,31 +32,19 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import uk.co.strangeskies.collection.computingmap.ComputingMap;
-import uk.co.strangeskies.collection.computingmap.DeferredComputingMap;
-import uk.co.strangeskies.modabi.Models;
+import uk.co.strangeskies.modabi.Bindings;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.impl.BindingNodeOverrider;
-import uk.co.strangeskies.modabi.io.BufferingDataTarget;
-import uk.co.strangeskies.modabi.io.DataTarget;
 import uk.co.strangeskies.modabi.io.structured.NavigableStructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataBuffer.Navigable;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
-import uk.co.strangeskies.modabi.processing.BindingBlocker;
-import uk.co.strangeskies.modabi.processing.ProcessedBindings;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 import uk.co.strangeskies.modabi.processing.Provisions;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
-import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
@@ -66,12 +54,11 @@ public class ProcessingContextImpl implements ProcessingContext {
   private final List<TypedObject<?>> objectStack;
   private final List<BindingPoint<?>> bindingStack;
   private final Set<Provider> providers;
-  private final ProcessedBindings bindings;
+  private final Bindings localBindings;
+  private final Bindings globalBindings;
 
   private StructuredDataReader input;
   private StructuredDataWriter output;
-
-  private final BindingBlocker bindingFutureBlocker;
 
   public ProcessingContextImpl(SchemaManager manager) {
     this.manager = manager;
@@ -79,9 +66,8 @@ public class ProcessingContextImpl implements ProcessingContext {
     objectStack = Collections.emptyList();
     bindingStack = Collections.emptyList();
     providers = Collections.emptySet();
-    bindings = new ProcessedBindings();
-
-    bindingFutureBlocker = new BindingBlocksImpl();
+    localBindings = new Bindings();
+    globalBindings = new Bindings();
   }
 
   protected ProcessingContextImpl(
@@ -90,19 +76,17 @@ public class ProcessingContextImpl implements ProcessingContext {
       List<BindingPoint<?>> bindingStack,
       Set<Provider> providers,
       StructuredDataReader input,
-      StructuredDataWriter output,
-      BindingBlocker blocker) {
+      StructuredDataWriter output) {
     this.manager = parentContext.manager();
 
     this.objectStack = objectStack;
     this.bindingStack = bindingStack;
     this.providers = providers;
-    this.bindings = parentContext.bindings(); // TODO erase bindings in failed sections
+    this.localBindings = parentContext.localBindings(); // TODO erase bindings in failed sections
+    this.globalBindings = parentContext.globalBindings();
 
     this.input = input;
     this.output = output;
-
-    this.bindingFutureBlocker = blocker;
   }
 
   @Override
@@ -130,42 +114,6 @@ public class ProcessingContextImpl implements ProcessingContext {
     return Optional.ofNullable(output);
   }
 
-  @SuppressWarnings("unchecked")
-  private ComputingMap<Model<?>, Node<?>> getComplexNodeOverrideMap(Node<?> node) {
-    List<Model<?>> models;
-
-    if (node.baseNodes() != null && !node.baseNodes().isEmpty()) {
-      models = manager
-          .registeredModels()
-          .getModelsWithBase(node.baseNodes())
-          .stream()
-          .filter(n -> node.getDataType().isAssignableFrom(n.getDataType()))
-          .collect(Collectors.toList());
-    } else {
-      models = manager
-          .registeredModels()
-          .getAll()
-          .filter(c -> node.getDataType().isAssignableFrom(c.dataType()))
-          .collect(Collectors.toList());
-    }
-
-    ComputingMap<Model<?>, Node<?>> overrideMap = new DeferredComputingMap<>(
-        model -> getComplexNodeOverride(node, model));
-    overrideMap.putAll(models);
-
-    return overrideMap;
-  }
-
-  private <T> Node<?> getComplexNodeOverride(Node node, Model<?> model) {
-    return new BindingNodeOverrider(provisions().provide(SchemaBuilder.class, this).getObject())
-        .override(node, model);
-  }
-
-  @Override
-  public ProcessedBindings bindings() {
-    return bindings;
-  }
-
   public Set<Provider> getProviders() {
     return providers;
   }
@@ -184,45 +132,25 @@ public class ProcessingContextImpl implements ProcessingContext {
         bindingStack,
         unmodifiableSet(providers),
         input,
-        output,
-        bindingFutureBlocker);
+        output);
   }
 
   @Override
-  public Model<?> getModel(QualifiedName nextElement) {
-    return getModel.apply(nextElement);
+  public Bindings localBindings() {
+    return localBindings;
   }
 
   @Override
-  public ComputingMap<Model<?>, Node<?>> getComplexNodeOverrides(Node<?> node) {
-    return modelCache.apply(node);
-  }
-
-  @Override
-  public BindingBlocker bindingBlocker() {
-    return bindingFutureBlocker;
+  public Bindings globalBindings() {
+    return globalBindings;
   }
 
   public ProcessingContextImpl withInput(StructuredDataReader input) {
-    return new ProcessingContextImpl(
-        this,
-        objectStack,
-        bindingStack,
-        providers,
-        input,
-        output,
-        bindingFutureBlocker);
+    return new ProcessingContextImpl(this, objectStack, bindingStack, providers, input, output);
   }
 
   public ProcessingContextImpl withOutput(StructuredDataWriter output) {
-    return new ProcessingContextImpl(
-        this,
-        objectStack,
-        bindingStack,
-        providers,
-        input,
-        output,
-        bindingFutureBlocker);
+    return new ProcessingContextImpl(this, objectStack, bindingStack, providers, input, output);
   }
 
   public <T> ProcessingContextImpl withBindingObject(TypedObject<?> target) {
@@ -247,8 +175,7 @@ public class ProcessingContextImpl implements ProcessingContext {
         bindingStack,
         providers,
         input,
-        output,
-        bindingFutureBlocker);
+        output);
   }
 
   public <T> ProcessingContextImpl withBindingNode(BindingPoint<?> node) {
@@ -273,8 +200,7 @@ public class ProcessingContextImpl implements ProcessingContext {
         unmodifiableList(nodeStack),
         providers,
         input,
-        output,
-        bindingFutureBlocker);
+        output);
   }
 
   public void attemptUnbinding(Consumer<ProcessingContextImpl> unbindingMethod) {
@@ -398,8 +324,8 @@ public class ProcessingContextImpl implements ProcessingContext {
     throw onFailure.apply(failures);
   }
 
-  @Override
-  public Models registeredModels() {
-    return registeredModels;
+  public void cancel() {
+    // TODO Auto-generated method stub
+
   }
 }

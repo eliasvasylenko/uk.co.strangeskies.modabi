@@ -41,9 +41,9 @@ public interface SchemaManager {
     return bindInput().to(getMetaSchema().getSchemaModel());
   }
 
-  <T> OutputBinder<T> bindOutput(T data);
+  <T> OutputBinder<? super T> bindOutput(T data);
 
-  default <T extends ReifiedToken<T>> OutputBinder<T> bindOutput(T data) {
+  default <T extends ReifiedToken<T>> OutputBinder<? super T> bindOutput(T data) {
     return bindOutput(data).from(data.getThisTypeToken());
   }
 }

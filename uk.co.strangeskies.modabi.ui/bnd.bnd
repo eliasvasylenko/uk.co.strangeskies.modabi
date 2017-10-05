@@ -11,7 +11,7 @@ Bundle-Description: \
 
 -buildpath: \
 	osgi.enroute.base.api,\
-	${ss;utilities},\
+	uk.co.strangeskies.utilities;version=latest,\
 	uk.co.strangeskies.modabi.core.api;version=snapshot
 
 Export-Package: uk.co.strangeskies.modabi.ui

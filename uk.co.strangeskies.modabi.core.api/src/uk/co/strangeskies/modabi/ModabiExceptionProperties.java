@@ -7,20 +7,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.processing.BindingBlock;
-import uk.co.strangeskies.modabi.processing.BindingBlocks;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.processing.Blocks;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ModabiExceptionProperties {
-  String missingDependencies(BindingBlocks blockingBindings);
-
-  String missingDependencies(
-      Collection<? extends BindingFuture<?>> futures,
-      Collection<? extends BindingBlock> missingDependencies);
+  String missingDependencies(Blocks dependencies);
 
   String invalidDataSource(Object source);
 
@@ -49,12 +43,6 @@ public interface ModabiExceptionProperties {
   }
 
   String noChildFound(List<QualifiedName> child, QualifiedName parent, String children);
-
-  String unknownBlockingError(BindingBlock block);
-
-  String unresolvableDependencies(Collection<? extends BindingBlock> values);
-
-  String cancelled(BindingFuture<?> binding);
 
   /*
    * Property overriding

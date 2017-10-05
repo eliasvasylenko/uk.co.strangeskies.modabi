@@ -20,28 +20,27 @@ package uk.co.strangeskies.modabi.io.xml.test;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.io.Primitive;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.io.xml.XmlTarget;
 
 public class XmlTest {
-	private void run() {
-		StructuredDataWriter output = new XmlTarget(System.out);
+  private void run() {
+    StructuredDataWriter output = new XmlTarget(System.out);
 
-		output.registerDefaultNamespaceHint(Namespace.getDefault());
-		output.addChild(new QualifiedName("root"));
-		output.addChild(new QualifiedName("poot"));
-		output.writeProperty(new QualifiedName("groot")).put(Primitive.BOOLEAN, true)
-				.terminate();
-		output.writeContent().put(Primitive.DOUBLE, 2d).put(Primitive.STRING, "coot")
-				.terminate();
-		output.endChild();
-		output.addChild(new QualifiedName("joot"));
-		output.endChild();
-		output.endChild();
-	}
+    output
+        .registerDefaultNamespaceHint(Namespace.getDefault())
+        .addChild(new QualifiedName("root"))
+        .addChild(new QualifiedName("poot"))
+        .writeProperty(new QualifiedName("groot"), "boot")
+        .setPrimaryProperty(new QualifiedName("shoot"))
+        .writeProperty(new QualifiedName("shoot"), "coot")
+        .endChild()
+        .addChild(new QualifiedName("joot"))
+        .endChild()
+        .endChild();
+  }
 
-	public static void main(String... args) {
-		new XmlTest().run();
-	}
+  public static void main(String... args) {
+    new XmlTest().run();
+  }
 }

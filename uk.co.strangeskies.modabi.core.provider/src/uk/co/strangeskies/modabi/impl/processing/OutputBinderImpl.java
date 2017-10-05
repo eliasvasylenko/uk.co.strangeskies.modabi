@@ -18,80 +18,142 @@
  */
 package uk.co.strangeskies.modabi.impl.processing;
 
+import static java.nio.file.StandardOpenOption.WRITE;
+import static uk.co.strangeskies.modabi.impl.processing.BindingPointFuture.bindingPointFuture;
+import static uk.co.strangeskies.modabi.impl.processing.BindingPointFuture.outputBindingPointFuture;
+import static uk.co.strangeskies.modabi.impl.processing.OutputBindingFuture.writeBindingFuture;
+import static uk.co.strangeskies.modabi.impl.processing.StructuredDataFuture.forData;
+import static uk.co.strangeskies.modabi.impl.processing.StructuredDataFuture.forDataWriter;
 import static uk.co.strangeskies.modabi.processing.ProcessingException.MESSAGES;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
+import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.OutputBinder;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.impl.processing.BindingNodeUnbinder;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.processing.BindingFuture;
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.reflection.classloading.ContextClassLoaderExecutor;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class OutputBinderImpl<T> implements OutputBinder<T> {
   private final ProcessingContextImpl context;
   private final DataFormats formats;
-  private final T data;
+  private final Object data;
 
-  private final Supplier<List<Model<? super T>>> unbindingFunction;
+  private final BindingPointFuture<T> bindingPointFuture;
+  private final StructuredDataFuture<StructuredDataWriter> dataWriterFuture;
 
-  private final Set<Provider> providers;
   private ClassLoader classLoader;
 
   protected OutputBinderImpl(
       ProcessingContextImpl context,
       DataFormats formats,
-      T data,
-      Supplier<List<Model<? super T>>> unbindingFunction) {
+      Object data,
+      BindingPointFuture<T> bindingPointFuture,
+      StructuredDataFuture<StructuredDataWriter> dataWriterFuture,
+      ClassLoader classLoader) {
     this.context = context;
     this.formats = formats;
     this.data = data;
-    this.unbindingFunction = unbindingFunction;
-
-    providers = new HashSet<>();
+    this.bindingPointFuture = bindingPointFuture;
+    this.dataWriterFuture = dataWriterFuture;
+    this.classLoader = classLoader;
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> OutputBinder<T> bind(
+  public static <T> OutputBinder<? super T> bind(
       ProcessingContextImpl context,
       DataFormats formats,
+      Model<Object> rootModel,
       T data) {
-    return new OutputBinderImpl<>(context, formats, data, null).from((Class<T>) data.getClass());
-  }
-
-  protected OutputBinder<T> from(Supplier<List<Model<? super T>>> unbindingFunction) {
-    return new OutputBinderImpl<>(context, formats, data, unbindingFunction);
-  }
-
-  @Override
-  public OutputBinder<T> from(TypeToken<? super T> dataType) {
-    return from(
-        () -> context.registeredModels().getModelsWithType(dataType).stream().collect(
-            Collectors.toList()));
+    return new OutputBinderImpl<>(
+        context,
+        formats,
+        data,
+        bindingPointFuture(context, rootModel),
+        null,
+        Thread.currentThread().getContextClassLoader());
   }
 
   @Override
-  public OutputBinder<T> from(Model<? super T> model) {
-    return from(() -> Arrays.asList(model));
+  public OutputBinderImpl<T> withProvider(Provider provider) {
+    return new OutputBinderImpl<>(
+        context.withProvider(provider),
+        formats,
+        data,
+        bindingPointFuture,
+        dataWriterFuture,
+        classLoader);
+  }
+
+  @Override
+  public OutputBinderImpl<T> withClassLoader(ClassLoader classLoader) {
+    return new OutputBinderImpl<>(
+        context,
+        formats,
+        data,
+        bindingPointFuture,
+        dataWriterFuture,
+        classLoader);
+  }
+
+  protected <U> OutputBinderImpl<U> with(BindingPointFuture<U> bindingPointFuture) {
+    return new OutputBinderImpl<>(
+        context,
+        formats,
+        data,
+        bindingPointFuture,
+        dataWriterFuture,
+        classLoader);
+  }
+
+  protected OutputBinderImpl<T> with(StructuredDataFuture<StructuredDataWriter> dataWriterFuture) {
+    return new OutputBinderImpl<>(
+        context,
+        formats,
+        data,
+        bindingPointFuture,
+        dataWriterFuture,
+        classLoader);
+  }
+
+  protected OutputBinderImpl<T> with(
+      String formatId,
+      ThrowingSupplier<WritableByteChannel, ?> output,
+      Predicate<DataFormat> formatPredicate,
+      boolean canRetry) {
+    return new OutputBinderImpl<T>(
+        context,
+        formats,
+        data,
+        bindingPointFuture,
+        forDataWriter(context, formats, formatId, output, formatPredicate, canRetry),
+        classLoader);
+  }
+
+  @Override
+  public <U> OutputBinder<U> from(BindingPoint<U> bindingPoint) {
+    return with(bindingPointFuture(context, bindingPoint));
+  }
+
+  @Override
+  public <U> OutputBinder<U> from(Model<U> model) {
+    return with(bindingPointFuture(context, model));
+  }
+
+  @Override
+  public <U> OutputBinder<? super U> from(TypeToken<U> dataType) {
+    return with(outputBindingPointFuture(context, dataType));
   }
 
   @SuppressWarnings("unchecked")
@@ -101,122 +163,53 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
   }
 
   @Override
-  public OutputBinder<T> from(QualifiedName modelName, TypeToken<? super T> type) {
-    return from(() -> Arrays.asList(context.registeredModels().get(modelName, type)));
+  public <U> OutputBinder<U> from(QualifiedName modelName, TypeToken<U> type) {
+    return with(outputBindingPointFuture(context, modelName, type));
   }
 
   @Override
-  public BindingFuture<T> to(File output) {
-    return toResource(output.getName(), () -> new FileOutputStream(output));
+  public BindingFuture<? super T> to(Path output) {
+    return toResource(output.getFileName().toString(), () -> FileChannel.open(output, WRITE));
   }
 
   @Override
-  public BindingFuture<T> to(URL output) {
+  public BindingFuture<? super T> to(URL output) {
     try {
-      return toResource(output.getQuery(), output.openConnection()::getOutputStream);
+      return toResource(
+          output.getQuery(),
+          () -> Channels.newChannel(output.openConnection().getOutputStream()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public BindingFuture<T> toResource(
+  public BindingFuture<? super T> toResource(
       String resourceName,
-      ThrowingSupplier<OutputStream, ?> output) {
-    String extension = resourceName.substring(0, resourceName.lastIndexOf("."));
+      ThrowingSupplier<WritableByteChannel, ?> output) {
+    int lastDot = resourceName.lastIndexOf(".");
 
-    if (extension == null) {
-      throw new ProcessingException(MESSAGES.noFormatFoundFor(resourceName), prepareContext());
+    if (lastDot == -1) {
+      throw new ProcessingException(MESSAGES.noFormatFoundFor(resourceName), context);
     }
 
+    String extension = resourceName.substring(0, lastDot);
     return to(extension, output);
   }
 
   @Override
-  public BindingFuture<T> to(String extension, ThrowingSupplier<OutputStream, ?> output) {
-    /*
-     * TODO blocking waitandget???
-     */
-    DataFormat format = formats.get(extension);
-
-    if (format == null) {
-      throw new ProcessingException(MESSAGES.noFormatFoundFor(extension), prepareContext());
-    }
-
-    try (OutputStream stream = output.get()) {
-      to(format.saveData(stream));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    return null;
+  public BindingFuture<? super T> to(
+      String extension,
+      ThrowingSupplier<WritableByteChannel, ?> output) {
+    return with(extension, output, f -> f.getFileExtensions().anyMatch(extension::equals), false)
+        .getBindingFuture();
   }
 
   @Override
-  public <U extends StructuredDataWriter> U to(U output) {
-    ProcessingContextImpl context = prepareContext();
-    context = context.withOutput(output);
-
-    List<? extends Model<? super T>> models = unbindingFunction.get();
-
-    if (models.isEmpty()) {
-      throw new ProcessingException("Cannot find any model to unbind '" + data + "'", context);
-    }
-
-    ProcessingContextImpl finalContext = context;
-    context.attemptUnbindingUntilSuccessful(models, (c, m) -> {
-      unbindImpl(c, m, output);
-    });
-
-    return output;
+  public BindingFuture<? super T> to(StructuredDataWriter output) {
+    return with(forData(output)).getBindingFuture();
   }
 
-  private ProcessingContextImpl prepareContext() {
-    ProcessingContextImpl context = this.context.withNestedProvisionScope();
-    context.provisions().addAll(providers);
-
-    return context;
-  }
-
-  @SuppressWarnings("unchecked")
-  private <U extends T> void unbindImpl(
-      ProcessingContext context,
-      Model<? super U> model,
-      StructuredDataWriter output) {
-    output.registerDefaultNamespaceHint(model.name().getNamespace());
-
-    try {
-      context.output().get().addChild(model.name());
-
-      ClassLoader classLoader = this.classLoader != null
-          ? this.classLoader
-          : Thread.currentThread().getContextClassLoader();
-
-      new ContextClassLoaderExecutor(r -> r.run(), classLoader)
-          .execute(() -> new BindingNodeUnbinder(context, model, (U) data).unbind());
-
-      context.output().get().endChild();
-    } catch (ProcessingException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new ProcessingException(MESSAGES.unexpectedProblemProcessing(data, model), context, e);
-    }
-  }
-
-  @Override
-  public OutputBinder<T> withClassLoader(ClassLoader classLoader) {
-    this.classLoader = classLoader;
-    return this;
-  }
-
-  @Override
-  public OutputBinder<T> withProvider(Provider provider) {
-    providers.add(provider);
-    return this;
-  }
-
-  @Override
-  public OutputBinder<T> withErrorHandler(Consumer<Exception> errorHandler) {
-    // TODO Auto-generated method stub
-    return null;
+  private BindingFuture<? super T> getBindingFuture() {
+    return writeBindingFuture(context, bindingPointFuture, dataWriterFuture, classLoader, data);
   }
 }

@@ -1,6 +1,5 @@
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.processing.BindingBlocker;
 import uk.co.strangeskies.modabi.processing.ProcessingContext;
 import uk.co.strangeskies.modabi.processing.ProcessingException;
 
@@ -35,7 +34,7 @@ public interface BindingConditionEvaluation<T> {
    * <p>
    * This method may block to wait for resources. Unless timely release of the
    * block can be guaranteed by other means, this should usually be done via the
-   * {@link BindingBlocker} of the {@link ProcessingContext running process} to
+   * {@link BlockingExecutor} of the {@link ProcessingContext running process} to
    * make sure deadlocks and unsatisfied dependencies can be properly detected and
    * reported.
    * 

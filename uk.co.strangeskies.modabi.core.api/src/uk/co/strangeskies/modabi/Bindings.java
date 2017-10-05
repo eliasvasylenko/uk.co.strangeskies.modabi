@@ -1,59 +1,72 @@
 package uk.co.strangeskies.modabi;
 
-import java.util.HashMap;
-import java.util.Map;
+import static uk.co.strangeskies.collection.stream.StreamUtilities.streamOptional;
+import static uk.co.strangeskies.observable.Observer.onObservation;
 
-import uk.co.strangeskies.collection.observable.ObservableSet;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import uk.co.strangeskies.collection.stream.StreamUtilities;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.observable.HotObservable;
+import uk.co.strangeskies.observable.Observable;
 
 public class Bindings {
-  private final Map<QualifiedName, ObservableSet<BindingFuture<?>>> bindingFutures;
-  private final Map<QualifiedName, ObservableSet<Binding<?>>> bindings;
+  private final Set<Binding<?>> bindings;
+  private final HotObservable<Binding<?>> bindingObservable;
 
   public Bindings() {
-    bindingFutures = new HashMap<>();
-    bindings = new HashMap<>();
+    bindings = new LinkedHashSet<>();
+    bindingObservable = new HotObservable<>();
   }
 
-  protected <T> BindingFuture<T> registerBindingImpl(Binding<T> binding) {
-    BindingFuture<T> future = BindingFuture.forBinding(binding);
-    bindingFutures.get(binding.getModel().name()).add(future);
-    bindings.get(binding.getModel().name()).add(binding);
-    return future;
+  protected Object getMutex() {
+    return bindings;
   }
 
-  <T> BindingFuture<T> addBindingFuture(BindingFuture<T> bindingFuture) {
-    new Thread(() -> {
-      try {
-        Model<? super T> model = bindingFuture.getModelFuture().get();
-        QualifiedName modelName = model.name();
-
-        bindingFutures.get(modelName).add(bindingFuture);
-
-        try {
-          bindings.get(model.name()).add(bindingFuture.get());
-        } catch (Exception e) {
-          bindingFutures.get(modelName).remove(bindingFuture);
-        }
-      } catch (Exception e) {}
-    }).start();
-
-    return bindingFuture;
-  }
-
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  public <T> ObservableSet<BindingFuture<T>> getBindingFutures(Model<T> model) {
-    synchronized (bindingFutures.get(model.name())) {
-      return (ObservableSet) bindingFutures.get(model.name());
+  protected void add(Binding<?> binding) {
+    synchronized (getMutex()) {
+      if (!bindings.add(binding))
+        throw new IllegalArgumentException();
+      bindingObservable.next(binding);
     }
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  public <T> ObservableSet<Binding<T>> getBindings(Model<T> model) {
-    synchronized (bindings.get(model.name())) {
-      return (ObservableSet) bindings.get(model.name());
+  public Stream<Binding<?>> getAllBindings() {
+    synchronized (getMutex()) {
+      return bindings.stream();
     }
   }
 
+  public Observable<Binding<?>> getAllFutureBindings() {
+    synchronized (getMutex()) {
+      return Observable.concat(
+          Observable.of(bindings).then(onObservation(o -> o.requestUnbounded())),
+          bindingObservable);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> Optional<Binding<? extends T>> matchModel(Binding<?> binding, Model<T> model) {
+    if (StreamUtilities.<Model<?>>flatMapRecursive(model, m -> m.baseModels()).anyMatch(
+        model::equals)) {
+      return Optional.of((Binding<? extends T>) binding);
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  public <T> Stream<Binding<? extends T>> getAllBindings(Model<T> model) {
+    synchronized (getMutex()) {
+      return getAllBindings().flatMap(b -> streamOptional(matchModel(b, model)));
+    }
+  }
+
+  public <T> Observable<Binding<? extends T>> getAllFutureBindings(Model<T> model) {
+    synchronized (getMutex()) {
+      return getAllFutureBindings().concatMap(b -> Observable.of(matchModel(b, model)));
+    }
+  }
 }

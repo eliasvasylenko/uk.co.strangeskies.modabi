@@ -22,6 +22,7 @@ import static uk.co.strangeskies.observable.Observer.onObservation;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -31,7 +32,7 @@ import uk.co.strangeskies.observable.Observable;
 
 public abstract class NamedSet<N, T> {
   private final Function<T, N> namingFunction;
-  private final LinkedHashMap<N, T> elements;
+  private final Map<N, T> elements;
   private final HotObservable<N> nameObservable;
 
   protected NamedSet(Function<T, N> namingFunction) {
@@ -83,10 +84,9 @@ public abstract class NamedSet<N, T> {
 
   public Observable<N> getAllFutureNames() {
     synchronized (getMutex()) {
-      return Observable
-          .concat(Observable.of(elements.keySet()), nameObservable)
-          .synchronize(getMutex())
-          .then(onObservation(o -> o.requestUnbounded()));
+      return Observable.concat(
+          Observable.of(elements.keySet()).then(onObservation(o -> o.requestUnbounded())),
+          nameObservable);
     }
   }
 

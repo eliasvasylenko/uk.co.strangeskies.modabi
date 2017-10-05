@@ -42,10 +42,6 @@ public class Binding<T> {
     this.data = data;
   }
 
-  public static <T> Binding<T> anonymous(Model<? super T> model, TypeToken<T> dataType, T data) {
-    return new Binding<>(BindingPoint.anonymous(dataType, model), model, dataType, data);
-  }
-
   public BindingPoint<? super T> getBindingPoint() {
     return node;
   }
