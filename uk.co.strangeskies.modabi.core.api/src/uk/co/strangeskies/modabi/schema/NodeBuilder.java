@@ -22,20 +22,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
+import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 /**
  * 
  * @author Elias N Vasylenko
  *
- * @param <T,
- *          E> the data type of the node, as defined by the binding point it
- *          attaches to
  * @param <E>
- *          the end product of the configurator, which will either be the parent
- *          schema node configurator, or in the case of the root, a factory for
- *          the model
+ *          the end product of the builder, which will either be the parent
+ *          schema node builder, or in the case of the root, a factory for the
+ *          model
  */
 public interface NodeBuilder<E> {
   NodeBuilder<E> concrete(boolean concrete);
@@ -46,19 +43,13 @@ public interface NodeBuilder<E> {
 
   Optional<Boolean> getExtensible();
 
-  InputInitializerBuilder<E> initializeInput();
+  NodeBuilder<E> inputInitialization(Expression expression);
 
-  OutputInitializerBuilder<E> initializeOutput();
+  Expression getInputInitialization();
 
-  default NodeBuilder<E> initializeInput(
-      Function<? super InputInitializerBuilder<E>, ? extends ValueExpression> initializer) {
-    return initializeInput().expression(initializer.apply(initializeInput()));
-  }
+  NodeBuilder<E> outputInitialization(Expression expression);
 
-  default NodeBuilder<E> initializeOutput(
-      Function<? super OutputInitializerBuilder<E>, ? extends ValueExpression> initializer) {
-    return initializeOutput().expression(initializer.apply(initializeOutput()));
-  }
+  Expression getOutputInitialization();
 
   ChildBindingPointBuilder<NodeBuilder<E>> addChildBindingPoint();
 

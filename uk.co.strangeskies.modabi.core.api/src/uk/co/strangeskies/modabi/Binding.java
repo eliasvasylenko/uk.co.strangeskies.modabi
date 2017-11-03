@@ -42,6 +42,10 @@ public class Binding<T> {
     this.data = data;
   }
 
+  public Binding(BindingPoint<? super T> node, Model<? super T> model, TypedObject<T> data) {
+    this(node, model, data.getTypeToken(), data.getObject());
+  }
+
   public BindingPoint<? super T> getBindingPoint() {
     return node;
   }
@@ -69,7 +73,7 @@ public class Binding<T> {
 
   @Override
   public String toString() {
-    return data + " : " + node;
+    return data + " : " + node.model() + "<" + node.dataType() + ">";
   }
 
   // public void updateData();

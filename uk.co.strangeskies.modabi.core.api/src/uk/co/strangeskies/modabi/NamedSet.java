@@ -19,7 +19,8 @@
 package uk.co.strangeskies.modabi;
 
 import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
-import static uk.co.strangeskies.observable.Observer.onObservation;
+import static uk.co.strangeskies.observable.Observable.concat;
+import static uk.co.strangeskies.observable.Observable.of;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -85,9 +86,7 @@ public abstract class NamedSet<N, T> {
 
   public Observable<N> getAllFutureNames() {
     synchronized (getMutex()) {
-      return Observable.concat(
-          Observable.of(elements.keySet()).then(onObservation(o -> o.requestUnbounded())),
-          nameObservable);
+      return concat(of(elements.keySet()).requestUnbounded(), nameObservable).requestUnbounded();
     }
   }
 

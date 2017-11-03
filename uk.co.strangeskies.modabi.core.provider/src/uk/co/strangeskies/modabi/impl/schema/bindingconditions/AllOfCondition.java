@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
@@ -30,7 +30,7 @@ public class AllOfCondition<T> extends BindingConditionImpl<T> {
   }
 
   @Override
-  public BindingConditionEvaluation<T> forState(ProcessingContext state) {
+  public BindingConditionEvaluation<T> forState(BindingContext state) {
     return new BindingConditionEvaluation<T>() {
       private final List<BindingConditionEvaluation<? super T>> conditionEvaluations = conditions
           .stream()
@@ -64,7 +64,7 @@ public class AllOfCondition<T> extends BindingConditionImpl<T> {
         }
 
         if (!exceptions.isEmpty()) {
-          throw ProcessingException.mergeExceptions(state, exceptions);
+          throw BindingException.mergeExceptions(state, exceptions);
         }
       }
     };

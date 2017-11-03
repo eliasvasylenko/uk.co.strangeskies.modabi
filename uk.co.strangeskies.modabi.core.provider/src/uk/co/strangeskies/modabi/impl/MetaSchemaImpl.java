@@ -20,11 +20,15 @@ package uk.co.strangeskies.modabi.impl;
 
 import static java.util.Collections.singleton;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
+import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
+import static uk.co.strangeskies.modabi.expression.Expressions.none;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.allOf;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.optional;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.synchronous;
-import static uk.co.strangeskies.modabi.schema.expression.Expressions.invokeStatic;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.result;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.source;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.target;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -37,7 +41,7 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
-import uk.co.strangeskies.modabi.schema.IOBuilder;
+import uk.co.strangeskies.modabi.schema.BindingExpressions;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
@@ -53,7 +57,6 @@ public class MetaSchemaImpl implements MetaSchema {
 
   private final Schema metaSchema;
   private Model<Schema> schemaModel;
-  private Model<Model<?>> metaModel;
 
   public MetaSchemaImpl(SchemaBuilder schemaBuilder, BaseSchema base) {
     QualifiedName name = QUALIFIED_NAME;
@@ -99,7 +102,7 @@ public class MetaSchemaImpl implements MetaSchema {
             .addChildBindingPoint(
                 c -> c
                     .name("conditions")
-                    .input(i -> invokeStatic(BindingConditionPrototype.class, "allOf", i.result()))
+                    .input(invokeStatic(BindingConditionPrototype.class, "allOf", result()))
                     .model(base.setModel())
                     .overrideNode()
                     .addChildBindingPoint(h -> h.name("element").model(bindingConditionModel))
@@ -113,7 +116,7 @@ public class MetaSchemaImpl implements MetaSchema {
             .addChildBindingPoint(
                 c -> c
                     .name("conditions")
-                    .input(i -> invokeStatic(BindingConditionPrototype.class, "anyOf", i.result()))
+                    .input(invokeStatic(BindingConditionPrototype.class, "anyOf", result()))
                     .model(base.setModel())
                     .overrideNode()
                     .addChildBindingPoint(h -> h.name("element").model(bindingConditionModel))
@@ -124,42 +127,42 @@ public class MetaSchemaImpl implements MetaSchema {
         "requiredCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "required"))
+            .inputInitialization(invokeStatic(BindingConditionPrototype.class, "required"))
             .endNode());
 
     Model<BindingConditionPrototype> forbiddenModel = modelFactory.apply(
         "forbiddenCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "forbidden"))
+            .inputInitialization(invokeStatic(BindingConditionPrototype.class, "forbidden"))
             .endNode());
 
     Model<BindingConditionPrototype> optionalModel = modelFactory.apply(
         "optionalCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "optional"))
+            .inputInitialization(invokeStatic(BindingConditionPrototype.class, "optional"))
             .endNode());
 
     Model<BindingConditionPrototype> sortAscendingModel = modelFactory.apply(
         "sortAscendingCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "ascending"))
+            .inputInitialization(invokeStatic(BindingConditionPrototype.class, "ascending"))
             .endNode());
 
     Model<BindingConditionPrototype> sortDescendingModel = modelFactory.apply(
         "sortDescendingCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "descending"))
+            .inputInitialization(invokeStatic(BindingConditionPrototype.class, "descending"))
             .endNode());
 
     Model<BindingConditionPrototype> synchronizedModel = modelFactory.apply(
         "synchronizedCondition",
         m -> m
             .rootNode(bindingConditionModel)
-            .initializeInput(i -> invokeStatic(BindingConditionPrototype.class, "synchronous"))
+            .inputInitialization(invokeStatic(BindingConditionPrototype.class, "synchronous"))
             .endNode());
 
     Model<BindingConditionPrototype> occurrencesModel = modelFactory.apply(
@@ -168,7 +171,7 @@ public class MetaSchemaImpl implements MetaSchema {
             .rootNode(bindingConditionModel)
             .addChildBindingPoint(
                 c -> c.name("range").model(base.rangeModel()).input(
-                    i -> invokeStatic(BindingConditionPrototype.class, "occurrences", i.result())))
+                    invokeStatic(BindingConditionPrototype.class, "occurrences", result())))
             .endNode());
 
     /* Node Models */
@@ -203,8 +206,8 @@ public class MetaSchemaImpl implements MetaSchema {
                 c -> c
                     .name("value")
                     // TODO .rootNode(base.bufferedDataModel())
-                    .input(i -> i.target().invoke("provideValue", i.result()))
-                    .output(o -> o.source().invoke("getProvidedValue"))
+                    .input(target().invoke("provideValue", result()))
+                    .output(source().invoke("getProvidedValue"))
                     .bindingCondition(optional()))
             .endNode());
 
@@ -215,14 +218,11 @@ public class MetaSchemaImpl implements MetaSchema {
             .addChildBindingPoint(
                 b -> b.name("concrete").model(base.booleanModel()).bindingCondition(optional()))
             .addChildBindingPoint(
-                b -> b
-                    .name("child")
-                    .model(bindingPointModel)
-                    .output(IOBuilder::none)
-                    .bindingCondition(allOf(synchronous(), occurrences(leftBounded(0)))))
+                b -> b.name("child").model(bindingPointModel).output(none()).bindingCondition(
+                    allOf(synchronous(), occurrences(leftBounded(0)))))
             .addChildBindingPoint(
-                b -> b.name("create").output(IOBuilder::none).input(
-                    i -> i.target().assign(i.target().invoke("create"))))
+                b -> b.name("create").output(none()).input(
+                    target().assign(target().invoke("create"))))
             .endNode());
 
     Model<ModelBuilder<?>> metaModel = modelFactory
@@ -270,11 +270,6 @@ public class MetaSchemaImpl implements MetaSchema {
   @Override
   public Model<Schema> getSchemaModel() {
     return schemaModel;
-  }
-
-  @Override
-  public Model<Model<?>> getMetaModel() {
-    return metaModel;
   }
 
   @Override

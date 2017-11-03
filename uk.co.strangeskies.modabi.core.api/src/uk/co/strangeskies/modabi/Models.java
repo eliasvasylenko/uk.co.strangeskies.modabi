@@ -61,7 +61,7 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> Stream<Model<? extends T>> getDerivedModels(Model<T> model) {
+  public <T> Stream<Model<? extends T>> getDerived(Model<T> model) {
     synchronized (getMutex()) {
       LinkedHashSet<Model<?>> subModelList = derivedModels.get(model.name());
 

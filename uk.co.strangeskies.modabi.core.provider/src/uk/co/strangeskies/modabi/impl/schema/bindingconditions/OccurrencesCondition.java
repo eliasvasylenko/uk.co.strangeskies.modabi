@@ -1,10 +1,10 @@
 package uk.co.strangeskies.modabi.impl.schema.bindingconditions;
 
-import static uk.co.strangeskies.modabi.processing.ProcessingException.MESSAGES;
+import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
 
 import uk.co.strangeskies.mathematics.Interval;
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -24,12 +24,12 @@ public class OccurrencesCondition<T> extends BindingConditionImpl<T> {
   }
 
   @Override
-  public BindingConditionEvaluation<T> forState(ProcessingContext state) {
+  public BindingConditionEvaluation<T> forState(BindingContext state) {
     return new BindingConditionEvaluation<T>() {
       private int count = 0;
 
       public void failProcess() {
-        throw new ProcessingException(
+        throw new BindingException(
             MESSAGES.mustHaveDataWithinRange((ChildBindingPoint<?>) state.getBindingPoint(), range),
             state);
       }

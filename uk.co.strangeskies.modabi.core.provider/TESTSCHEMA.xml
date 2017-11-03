@@ -85,7 +85,6 @@
 
 				<bind
 					name="script"
-					condition="?"
 					type="string">
 
 					<condition>
@@ -97,7 +96,6 @@
 
 				<bind
 					name="resource"
-					condition="!script"
 					type="string">
 
 					<condition>
@@ -109,7 +107,6 @@
 
 				<bind
 					name="language"
-					condition="script | ?"
 					type="string">
 
 					<condition>

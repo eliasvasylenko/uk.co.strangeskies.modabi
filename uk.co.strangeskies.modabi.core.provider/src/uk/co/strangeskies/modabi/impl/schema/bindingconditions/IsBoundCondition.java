@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.impl.schema.bindingconditions;
 
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -14,7 +14,7 @@ public class IsBoundCondition<T> extends BindingConditionImpl<T> {
   }
 
   @Override
-  public BindingConditionEvaluation<T> forState(ProcessingContext state) {
+  public BindingConditionEvaluation<T> forState(BindingContext state) {
     throw new UnsupportedOperationException(); // TODO
   }
 }

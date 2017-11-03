@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.text.parsing.Parser;
 
 /**
@@ -44,14 +45,18 @@ public interface Node {
   boolean extensible();
 
   /**
-   * Get the schema node builder which created this schema node, or in the
-   * case of a mutable builder implementation, a copy thereof.
+   * Get the schema node builder which created this schema node, or in the case of
+   * a mutable builder implementation, a copy thereof.
    * 
    * @return the creating builder
    */
   NodeBuilder<?> configurator();
 
   Parser<?> parser();
+
+  Expression initializeInputExpression();
+
+  Expression initializeOutputExpression();
 
   /**
    * @return the set of all <em>direct</em> base nodes, i.e. excluding those which

@@ -27,9 +27,9 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
+import uk.co.strangeskies.modabi.binding.BindingFuture;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;

@@ -1,11 +1,11 @@
 package uk.co.strangeskies.modabi.impl.schema.bindingconditions;
 
-import static uk.co.strangeskies.modabi.processing.ProcessingException.MESSAGES;
+import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
 
 import java.util.Comparator;
 
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -25,7 +25,7 @@ public class SortCondition<T> extends BindingConditionImpl<T> {
   }
 
   @Override
-  public BindingConditionEvaluation<T> forState(ProcessingContext state) {
+  public BindingConditionEvaluation<T> forState(BindingContext state) {
     return new BindingConditionEvaluation<T>() {
       private T previousBinding;
 
@@ -46,8 +46,8 @@ public class SortCondition<T> extends BindingConditionImpl<T> {
       public void endProcessing() {}
 
       @SuppressWarnings("unchecked")
-      private ProcessingException failProcess() {
-        return new ProcessingException(
+      private BindingException failProcess() {
+        return new BindingException(
             MESSAGES.mustBeOrdered(
                 (ChildBindingPoint<T>) state.getBindingPoint(),
                 previousBinding,

@@ -3,11 +3,10 @@ package uk.co.strangeskies.modabi.schema;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
+import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
@@ -31,25 +30,13 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   Optional<BindingConditionPrototype> getBindingCondition();
 
-  InputBuilder<E> input();
+  ChildBindingPointBuilder<E> input(Expression expression);
 
-  OutputBuilder<E> output();
+  Expression getInput();
 
-  default ChildBindingPointBuilder<E> input(
-      Function<InputBuilder<E>, ValueExpression> inputExpression) {
-    input().expression(inputExpression.apply(input()));
-    return this;
-  }
+  ChildBindingPointBuilder<E> output(Expression expression);
 
-  ValueExpression getInput();
-
-  default ChildBindingPointBuilder<E> output(
-      Function<OutputBuilder<E>, ValueExpression> outputExpression) {
-    output().expression(outputExpression.apply(output()));
-    return this;
-  }
-
-  ValueExpression getOutput();
+  Expression getOutput();
 
   default <U> ChildBindingPointBuilder<E> model(Model<U> model) {
     return model(model, model.dataType());

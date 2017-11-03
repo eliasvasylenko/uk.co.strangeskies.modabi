@@ -29,7 +29,7 @@ import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaManager;
-import uk.co.strangeskies.modabi.processing.BindingFuture;
+import uk.co.strangeskies.modabi.binding.BindingFuture;
 import uk.co.strangeskies.reflection.token.TypeParameter;
 import uk.co.strangeskies.reflection.token.TypeToken;
 

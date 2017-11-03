@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.schema;
 import java.util.Collection;
 
 import uk.co.strangeskies.mathematics.Interval;
-import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
+import uk.co.strangeskies.modabi.expression.Expression;
 
 @FunctionalInterface
 public interface BindingConditionPrototype {
@@ -55,7 +55,7 @@ public interface BindingConditionPrototype {
     return v -> v.descending();
   }
 
-  static BindingConditionPrototype sorted(ValueExpression comparator) {
+  static BindingConditionPrototype sorted(Expression comparator) {
     return v -> v.sorted(comparator);
   }
 
@@ -71,7 +71,7 @@ public interface BindingConditionPrototype {
     return v -> v.isNotBound();
   }
 
-  static BindingConditionPrototype validated(ValueExpression predicate) {
+  static BindingConditionPrototype validated(Expression predicate) {
     return v -> v.validated(predicate);
   }
 

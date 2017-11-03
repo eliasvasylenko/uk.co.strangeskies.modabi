@@ -1,9 +1,9 @@
 package uk.co.strangeskies.modabi.impl.schema.bindingconditions;
 
-import static uk.co.strangeskies.modabi.processing.ProcessingException.MESSAGES;
+import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
 
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 
@@ -18,7 +18,7 @@ public class ForbiddenCondition<T> extends BindingConditionImpl<T> {
   }
 
   @Override
-  public BindingConditionEvaluation<T> forState(ProcessingContext state) {
+  public BindingConditionEvaluation<T> forState(BindingContext state) {
     return new BindingConditionEvaluation<T>() {
       private boolean processed = false;
 
@@ -33,7 +33,7 @@ public class ForbiddenCondition<T> extends BindingConditionImpl<T> {
       @Override
       public void endProcessing() {
         if (processed) {
-          throw new ProcessingException(MESSAGES.mustNotHaveData(state.getBindingPoint()), state);
+          throw new BindingException(MESSAGES.mustNotHaveData(state.getBindingPoint()), state);
         }
       }
     };

@@ -39,15 +39,15 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
-import uk.co.strangeskies.modabi.impl.processing.CoreProviders;
-import uk.co.strangeskies.modabi.impl.processing.InputBinderImpl;
-import uk.co.strangeskies.modabi.impl.processing.InputProviders;
-import uk.co.strangeskies.modabi.impl.processing.OutputBinderImpl;
-import uk.co.strangeskies.modabi.impl.processing.OutputProviders;
-import uk.co.strangeskies.modabi.impl.processing.ProcessingContextImpl;
-import uk.co.strangeskies.modabi.impl.schema.SchemaBuilderImpl;
+import uk.co.strangeskies.modabi.binding.impl.BindingContextImpl;
+import uk.co.strangeskies.modabi.binding.impl.CoreProviders;
+import uk.co.strangeskies.modabi.binding.impl.InputBinderImpl;
+import uk.co.strangeskies.modabi.binding.impl.InputProviders;
+import uk.co.strangeskies.modabi.binding.impl.OutputBinderImpl;
+import uk.co.strangeskies.modabi.binding.impl.OutputProviders;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 
 /**
  * A schema manager implementation for an OSGi context.
@@ -139,13 +139,17 @@ public class SchemaManagerService implements SchemaManager {
     registerSchema(coreSchemata.metaSchema());
   }
 
-  public ProcessingContextImpl getProcessingContext() {
-    return new ProcessingContextImpl(this);
+  public BindingContextImpl getProcessingContext() {
+    return new BindingContextImpl(this);
   }
 
   private void registerSchema(Schema schema) {
-    schema.dependencies().forEach(this::registerSchema);
-    schema.models().forEach(this::registerModel);
+    try {
+      schema.dependencies().forEach(this::registerSchema);
+      schema.models().forEach(this::registerModel);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private void registerModel(Model<?> model) {

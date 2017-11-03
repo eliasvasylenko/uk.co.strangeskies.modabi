@@ -18,18 +18,28 @@
  */
 package uk.co.strangeskies.modabi.model.building.test;
 
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.result;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.source;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.target;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
 
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 
 import mockit.Injectable;
+import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.impl.SchemaManagerService;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
+import uk.co.strangeskies.utility.IdentityProperty;
+import uk.co.strangeskies.utility.Property;
 
 public class SchemaBuildingTests {
   @Injectable
@@ -43,7 +53,31 @@ public class SchemaBuildingTests {
   @Test
   public void bindOutBaseSchemaTest() {
     SchemaManagerService manager = new SchemaManagerService();
-    manager.bindOutput(manager.getBaseSchema()).to(writer);
+
+    Property<Model<String>> daftModel = new IdentityProperty<>();
+
+    Schema schema = new SchemaBuilderImpl()
+        .name(new QualifiedName("SillyBillies"))
+        .addModel()
+        .name(new QualifiedName("daft"))
+        .rootNode(String.class)
+        .addChildBindingPoint(
+            c -> c
+                .name("kid")
+                .model(manager.getBaseSchema().stringModel())
+                .input(target().assign(result()))
+                .output(source()))
+        .endNode()
+        .endModel(daftModel::set)
+        .create();
+
+    manager.registeredSchemata().add(schema);
+
+    try {
+      System.out.println(manager.bindOutput("test-string").from(daftModel.get()).to(writer).get());
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test

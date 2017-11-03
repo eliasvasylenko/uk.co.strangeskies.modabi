@@ -1,14 +1,14 @@
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
-import uk.co.strangeskies.modabi.processing.ProcessingException;
+import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.BindingException;
 
 /**
  * A binding context evaluation represents the current state of the
  * {@link BindingCondition binding condition} specified for a particular
- * {@link BindingPoint binding point} within a running {@link ProcessingContext
+ * {@link BindingPoint binding point} within a running {@link BindingContext
  * binding process}. An instance of this class should be generated via the
- * {@link BindingCondition#forState(ProcessingContext)} method.
+ * {@link BindingCondition#forState(BindingContext)} method.
  * 
  * <p>
  * If any of the methods of this class report that they were unsuccessful, the
@@ -34,11 +34,11 @@ public interface BindingConditionEvaluation<T> {
    * <p>
    * This method may block to wait for resources. Unless timely release of the
    * block can be guaranteed by other means, this should usually be done via the
-   * {@link BlockingExecutor} of the {@link ProcessingContext running process} to
+   * {@link BlockingExecutor} of the {@link BindingContext running process} to
    * make sure deadlocks and unsatisfied dependencies can be properly detected and
    * reported.
    * 
-   * @throws ProcessingException
+   * @throws BindingException
    *           if the next item was unable to begin processing successfully
    */
   void beginProcessingNext();
@@ -54,7 +54,7 @@ public interface BindingConditionEvaluation<T> {
    * 
    * @param binding
    *          the item that was bound
-   * @throws ProcessingException
+   * @throws BindingException
    *           if the next item was unable to complete processing successfully
    */
   void completeProcessingNext(T binding);
@@ -68,7 +68,7 @@ public interface BindingConditionEvaluation<T> {
    * the bound object associated with each invocation of
    * {@link #beginProcessingNext()}.
    * 
-   * @throws ProcessingException
+   * @throws BindingException
    *           if the process was unable to complete successfully
    */
   void endProcessing();

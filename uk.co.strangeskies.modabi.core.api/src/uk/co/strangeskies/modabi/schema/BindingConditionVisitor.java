@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import uk.co.strangeskies.mathematics.Interval;
-import uk.co.strangeskies.modabi.schema.expression.ValueExpression;
+import uk.co.strangeskies.modabi.expression.Expression;
 
 public interface BindingConditionVisitor {
   default void allOf(BindingConditionPrototype... conditions) {
@@ -29,7 +29,7 @@ public interface BindingConditionVisitor {
 
   void descending();
 
-  void sorted(ValueExpression comparator);
+  void sorted(Expression comparator);
 
   void occurrences(Interval<Integer> range);
 
@@ -37,7 +37,7 @@ public interface BindingConditionVisitor {
 
   void isNotBound(/* TODO */);
 
-  void validated(ValueExpression predicate);
+  void validated(Expression predicate);
 
   void synchronous();
 }

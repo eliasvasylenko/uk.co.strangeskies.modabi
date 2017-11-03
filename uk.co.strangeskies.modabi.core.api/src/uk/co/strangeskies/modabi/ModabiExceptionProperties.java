@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.processing.Blocks;
+import uk.co.strangeskies.modabi.binding.Blocks;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
@@ -128,4 +128,10 @@ public interface ModabiExceptionProperties {
   String unbindingParameterMustProvideValue(Node effective, QualifiedName p);
 
   String cannotAcceptDuplicate(Object name);
+
+  String cannotResolveVariable(String name);
+
+  String cannotPerformCast(TypeToken<?> to, TypeToken<?> from);
+
+  String cannotPerformAssignment(TypeToken<?> to, TypeToken<?> from);
 }

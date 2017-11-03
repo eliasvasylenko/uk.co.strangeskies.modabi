@@ -21,12 +21,12 @@ package uk.co.strangeskies.modabi;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.processing.ProcessingContext;
+import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.reflection.ConstraintFormula.Kind;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface Provider {
-	<T> T provide(TypeToken<T> requestedType, ProcessingContext context);
+	<T> T provide(TypeToken<T> requestedType, BindingContext context);
 
 	static <T> Provider over(TypeToken<T> providedType, Supplier<T> provider) {
 		return over(providedType, s -> provider.get());
@@ -36,17 +36,17 @@ public interface Provider {
 		return over(TypeToken.forClass(providedType), provider);
 	}
 
-	static <T> Provider over(TypeToken<T> providedType, Function<ProcessingContext, T> provider) {
+	static <T> Provider over(TypeToken<T> providedType, Function<BindingContext, T> provider) {
 		return new Provider() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public <U> U provide(TypeToken<U> requestedType, ProcessingContext context) {
+			public <U> U provide(TypeToken<U> requestedType, BindingContext context) {
 				return Provider.canEqual(requestedType, providedType) ? (U) provider.apply(context) : null;
 			}
 		};
 	}
 
-	static <T> Provider over(Class<T> providedClass, Function<ProcessingContext, T> provider) {
+	static <T> Provider over(Class<T> providedClass, Function<BindingContext, T> provider) {
 		return over(TypeToken.forClass(providedClass), provider);
 	}
 
