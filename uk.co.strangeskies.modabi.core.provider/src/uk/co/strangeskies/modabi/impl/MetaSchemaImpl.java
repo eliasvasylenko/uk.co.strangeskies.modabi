@@ -21,7 +21,6 @@ package uk.co.strangeskies.modabi.impl;
 import static java.util.Collections.singleton;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.expression.Expressions.none;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.allOf;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.optional;
@@ -41,7 +40,6 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
-import uk.co.strangeskies.modabi.schema.BindingExpressions;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
@@ -218,10 +216,10 @@ public class MetaSchemaImpl implements MetaSchema {
             .addChildBindingPoint(
                 b -> b.name("concrete").model(base.booleanModel()).bindingCondition(optional()))
             .addChildBindingPoint(
-                b -> b.name("child").model(bindingPointModel).output(none()).bindingCondition(
+                b -> b.name("child").model(bindingPointModel).noOutput().bindingCondition(
                     allOf(synchronous(), occurrences(leftBounded(0)))))
             .addChildBindingPoint(
-                b -> b.name("create").output(none()).input(
+                b -> b.name("create").noOutput().input(
                     target().assign(target().invoke("create"))))
             .endNode());
 

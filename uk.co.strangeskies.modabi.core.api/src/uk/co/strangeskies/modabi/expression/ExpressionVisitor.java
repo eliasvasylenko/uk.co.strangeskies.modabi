@@ -28,6 +28,4 @@ public interface ExpressionVisitor {
   void visitNamedAssignment(String name, Expression value);
 
   void visitNamedInvocation(String name, List<Expression> arguments);
-
-  void visitMacro(String macro);
 }

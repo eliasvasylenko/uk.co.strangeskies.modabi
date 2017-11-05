@@ -12,10 +12,12 @@ import java.util.function.Function;
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.binding.impl.BindingContextImpl;
+import uk.co.strangeskies.modabi.expression.CaptureFunction;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
 import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.expression.Scope;
 import uk.co.strangeskies.reflection.token.FieldToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -36,14 +38,14 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCompiler {
   @Override
   public <T> T compile(Expression expression, TypeToken<T> implementationType) {
-    return compile(expression, implementationType, forClass(void.class)).apply(null);
+    return compile(expression, implementationType, v -> null).capture(null);
   }
 
   @Override
-  public <T, C> Function<C, T> compile(
+  public <T, C> CaptureFunction<C, T> compile(
       Expression expression,
       TypeToken<T> implementationType,
-      TypeToken<C> captureScope) {
+      Scope<C> captureScope) {
     ExpressionVisitorImpl<T, C> visitor = new ExpressionVisitorImpl<>(
         new CompilationTarget<>(expression, implementationType, captureScope));
     expression.evaluate(visitor);
@@ -54,12 +56,12 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
   private static class CompilationTarget<T, C> {
     public final Expression expression;
     public final TypeToken<T> implementationType;
-    public final TypeToken<C> captureScope;
+    public final Scope<C> captureScope;
 
     public CompilationTarget(
         Expression expression,
         TypeToken<T> implementationType,
-        TypeToken<C> captureScope) {
+        Scope<C> captureScope) {
       this.expression = expression;
       this.implementationType = implementationType;
       this.captureScope = captureScope;
@@ -204,47 +206,6 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
       default:
         throw new ModabiException(MESSAGES.cannotResolveVariable(name));
       }
-    }
-
-    @Override
-    public <U> void visitProvision(TypeToken<U> typeToken) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void visitProvision() {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void visitBoundValue(QualifiedName bindingPoint) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void visitBoundValue(String bindingPoint) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void visitBinding(QualifiedName bindingPoint) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void visitBinding(String bindingPoint) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void visitNone() {
-      throw new UnsupportedOperationException();
     }
 
     @Override

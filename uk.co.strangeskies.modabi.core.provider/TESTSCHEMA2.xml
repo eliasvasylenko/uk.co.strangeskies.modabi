@@ -24,8 +24,7 @@
     <model
       name="sai:isotope"
       dataType="Isotope"
-      initializeInput="new Isotope(${sai:massNumber}, ${sai:mass}, ${sai:abundance})"
-      initializeInput2="new Isotope(`sai:massNumber`, `sai:mass`, `sai:abundance`)">
+      initializeInput="new Isotope($sai:massNumber, $sai:mass, $sai:abundance)">
 
       <!-- That the above initializeInput works might seem counter intuitive 
         at first, but it should be okay. Input must be in order, but binding doesn't 
@@ -59,30 +58,30 @@
       <bind
         name="sai:atomicNumber"
         model="int"
-        input=".=withAtomicNumber(result)" />
+        input=".=withAtomicNumber($)" />
 
       <bind
         name="sai:name"
         model="string"
         condition="optional"
-        input=".=withName(${.})" />
+        input=".=withName($)" />
 
       <bind
         name="sai:symbol"
         model="string"
-        input=".=withSymbol(${.})" />
+        input=".=withSymbol($)" />
 
       <bind
         model="sai:isotope"
         condition="occurrences(Range.from(0))"
         output=".getIsotopes()[]"
-        input=".=withIsotope(${.})" />
+        input=".=withIsotope($)" />
 
       <bind
         name="sai:group"
         model="enum"
         dataType="Group"
-        input=".=withGroup(${.})" />
+        input=".=withGroup($)" />
     </model>
 
     <model
@@ -97,7 +96,7 @@
       <bind
         model="sai:element"
         output=".getElements()[]"
-        input=".getElements().add(${.})">
+        input=".getElements().add($)">
 
         <condition>
           <occurrences range="0.." />

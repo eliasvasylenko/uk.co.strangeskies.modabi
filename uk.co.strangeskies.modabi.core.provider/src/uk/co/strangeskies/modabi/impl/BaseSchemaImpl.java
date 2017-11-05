@@ -23,7 +23,6 @@ import static java.util.Collections.singletonList;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.expression.Expressions.none;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.binding;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
@@ -283,7 +282,7 @@ public class BaseSchemaImpl implements BaseSchema {
                     .name("toArray")
                     .type(void.class)
                     .input(target().assign(target().invoke("toArray")))
-                    .output(none()))
+                    .noOutput())
             .endNode());
 
     collectionModel = modelFactory.apply(
@@ -340,13 +339,13 @@ public class BaseSchemaImpl implements BaseSchema {
             .rootNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
             .concrete(false)
             .addChildBindingPoint(
-                d -> d.name("targetModel").input(none()).output(none()).type(
+                d -> d.name("targetModel").noInput().noOutput().type(
                     new @Infer TypeToken<Model<?>>() {}))
             .addChildBindingPoint(
                 d -> d
                     .name("targetId")
-                    .input(none())
-                    .output(none())
+                    .noInput()
+                    .noOutput()
                     .model(listModel)
                     .overrideNode()
                     .concrete(false)
@@ -441,8 +440,8 @@ public class BaseSchemaImpl implements BaseSchema {
                 c -> c
                     .name("targetNode")
                     .model(referenceModel)
-                    .input(none())
-                    .output(none())
+                    .noInput()
+                    .noOutput()
                     .overrideNode()
                     .addChildBindingPoint(
                         d -> d
@@ -522,7 +521,7 @@ public class BaseSchemaImpl implements BaseSchema {
             .rootNode(Void.class)
             .concrete(false)
             .addChildBindingPoint(
-                c -> c.name("targetBinding").input(none()).output(none()).model(
+                c -> c.name("targetBinding").noInput().noOutput().model(
                     bindingReferenceModel))
             .inputInitialization(
                 i -> invokeStatic(IncludeWriter.class, "include", binding("targetBinding")))
@@ -540,8 +539,8 @@ public class BaseSchemaImpl implements BaseSchema {
             .addChildBindingPoint(
                 c -> c
                     .name("targetModel")
-                    .input(none())
-                    .output(none())
+                    .noInput()
+                    .noOutput()
                     .model(referenceModel)
                     .overrideNode()
                     .concrete(false)
@@ -565,8 +564,8 @@ public class BaseSchemaImpl implements BaseSchema {
             .addChildBindingPoint(
                 d -> d
                     .name("targetId")
-                    .input(none())
-                    .output(none())
+                    .noInput()
+                    .noOutput()
                     .model(listModel)
                     .overrideNode()
                     .concrete(false)
@@ -648,8 +647,8 @@ public class BaseSchemaImpl implements BaseSchema {
             .addChildBindingPoint(
                 c -> c
                     .name("enumType")
-                    .input(none())
-                    .output(none())
+                    .noInput()
+                    .noOutput()
                     .type(new TypeToken<Class<? extends Enum<?>>>() {})
                     .input(
                         provide(BindingContext.class)
@@ -677,8 +676,8 @@ public class BaseSchemaImpl implements BaseSchema {
             .addChildBindingPoint(
                 c -> c
                     .name("enumType")
-                    .input(none())
-                    .output(none())
+                    .noInput()
+                    .noOutput()
                     .type(new TypeToken<Class<? extends Enumeration<?>>>() {})
                     .input(
                         provide(BindingContext.class)

@@ -53,6 +53,8 @@ public class BindingExpressions {
   public static final String PROVIDE_METHOD = "provide";
   public static final String BOUND_VALUE_METHOD = "bound";
   public static final String BINDING_METHOD = "binding";
+  public static final String BOUND_PREFIX = "$";
+  public static final String BINDING_PREFIX = "$$";
 
   private BindingExpressions() {}
 
@@ -89,18 +91,18 @@ public class BindingExpressions {
   }
 
   public static Expression boundValue(String bindingPoint) {
-    return invokeNamed(BOUND_VALUE_METHOD, typeToken(typeToken));
+    return named(BOUND_PREFIX + bindingPoint);
   }
 
   public static Expression boundValue(QualifiedName bindingPoint) {
-    return v -> v.visitBoundValue(bindingPoint);
+    return named(BOUND_PREFIX + bindingPoint);
   }
 
   public static Expression binding(String bindingPoint) {
-    return v -> v.visitBinding(bindingPoint);
+    return named(BINDING_PREFIX + bindingPoint);
   }
 
   public static Expression binding(QualifiedName bindingPoint) {
-    return v -> v.visitBinding(bindingPoint);
+    return named(BINDING_PREFIX + bindingPoint);
   }
 }

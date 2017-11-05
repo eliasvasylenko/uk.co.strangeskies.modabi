@@ -30,9 +30,13 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   Optional<BindingConditionPrototype> getBindingCondition();
 
+  ChildBindingPointBuilder<E> noInput();
+
   ChildBindingPointBuilder<E> input(Expression expression);
 
   Expression getInput();
+
+  ChildBindingPointBuilder<E> noOutput();
 
   ChildBindingPointBuilder<E> output(Expression expression);
 

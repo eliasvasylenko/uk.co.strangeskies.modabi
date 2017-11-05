@@ -1,7 +1,5 @@
 package uk.co.strangeskies.modabi.expression;
 
-import java.util.function.Function;
-
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
@@ -18,8 +16,8 @@ public interface FunctionalExpressionCompiler {
    */
   <T> T compile(Expression expression, TypeToken<T> implementationType);
 
-  <T, C> Function<C, T> compile(
+  <T, C> CaptureFunction<C, T> compile(
       Expression expression,
       TypeToken<T> implementationType,
-      TypeToken<C> captureScope);
+      Scope<C> captureScope);
 }
