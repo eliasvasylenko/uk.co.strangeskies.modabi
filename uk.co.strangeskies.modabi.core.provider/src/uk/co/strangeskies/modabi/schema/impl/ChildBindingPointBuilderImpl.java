@@ -19,12 +19,15 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
+import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl.OverriddenNode;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     implements ChildBindingPointBuilder<E> {
-  private final ChildBindingPointBuilderContext context;
+  private static final Expression NO_IO = v -> {};
+
+  private final ChildBindingPointBuilderContext<E> context;
 
   private final QualifiedName name;
   private final Model<?> model;
@@ -36,9 +39,9 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   private final BindingConditionPrototype bindingCondition;
   private final Boolean ordered;
 
-  private final NodeImpl overriddenNode;
+  private final OverriddenNode overriddenNode;
 
-  public ChildBindingPointBuilderImpl(ChildBindingPointBuilderContext context) {
+  public ChildBindingPointBuilderImpl(ChildBindingPointBuilderContext<E> context) {
     this.context = context;
     this.name = null;
     this.model = null;
@@ -51,7 +54,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   }
 
   public ChildBindingPointBuilderImpl(
-      ChildBindingPointBuilderContext context,
+      ChildBindingPointBuilderContext<E> context,
       QualifiedName name,
       Model<?> model,
       TypeToken<?> type,
@@ -59,7 +62,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
       Expression outputExpression,
       BindingConditionPrototype bindingCondition,
       Boolean ordered,
-      NodeImpl overriddenNode) {
+      OverriddenNode overriddenNode) {
     this.context = context;
     this.name = name;
     this.model = model;
@@ -99,8 +102,18 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   }
 
   @Override
+  public ChildBindingPointBuilder<E> noInput() {
+    return input(NO_IO);
+  }
+
+  @Override
   public Expression getInput() {
-    return null;
+    return hasNoInput() ? null : input;
+  }
+
+  @Override
+  public boolean hasNoInput() {
+    return input == NO_IO;
   }
 
   @Override
@@ -118,9 +131,18 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   }
 
   @Override
+  public ChildBindingPointBuilder<E> noOutput() {
+    return output(NO_IO);
+  }
+
+  @Override
   public Expression getOutput() {
-    // TODO Auto-generated method stub
-    return null;
+    return hasNoOutput() ? null : output;
+  }
+
+  @Override
+  public boolean hasNoOutput() {
+    return output == NO_IO;
   }
 
   @Override
@@ -168,8 +190,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
 
   @Override
   public E endChild() {
-    // TODO Auto-generated method stub
-    return null;
+    return context.addChildResult(this);
   }
 
   @Override
@@ -208,12 +229,16 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   }
 
   @Override
-  public Optional<Node> getNodeOverride() {
-    return Optional.ofNullable(overriddenNode);
+  public Optional<NodeBuilderImpl<?>> getNodeOverride() {
+    return Optional.ofNullable(overriddenNode).map(n -> n.builder);
+  }
+
+  protected Optional<NodeImpl> getNodeOverrideImpl() {
+    return Optional.ofNullable(overriddenNode).map(n -> n.node);
   }
 
   @Override
-  public <U> ChildBindingPointBuilder<E> model(Model<? super U> baseModel, TypeToken<U> type) {
+  public <U> ChildBindingPointBuilder<E> model(Model<? super U> model, TypeToken<U> type) {
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
@@ -250,13 +275,14 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
 
       @Override
       public Stream<Node> overrideNode() {
-        return Stream.concat(
-            streamOptional(getModel().map(Model::rootNode)),
-            getOverriddenBindingPoints().map(ChildBindingPoint::override));
+        return Stream
+            .concat(
+                streamOptional(getModel().map(Model::rootNode)),
+                getOverriddenBindingPoints().map(ChildBindingPoint::override));
       }
 
       @Override
-      public ChildBindingPointBuilder<E> endNode(NodeImpl overriddenNode) {
+      public ChildBindingPointBuilder<E> endNode(NodeBuilderImpl<?> nodeBuilder) {
         return new ChildBindingPointBuilderImpl<>(
             context,
             name,
@@ -266,8 +292,18 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
             output,
             bindingCondition,
             ordered,
-            overriddenNode);
+            new OverriddenNode(nodeBuilder));
       }
     });
+  }
+
+  static class Child {
+    public final ChildBindingPointImpl<?> child;
+    public final ChildBindingPointBuilderImpl<?> builder;
+
+    public Child(ChildBindingPointBuilderImpl<?> builder) {
+      this.child = new ChildBindingPointImpl<>(builder);
+      this.builder = builder;
+    }
   }
 }

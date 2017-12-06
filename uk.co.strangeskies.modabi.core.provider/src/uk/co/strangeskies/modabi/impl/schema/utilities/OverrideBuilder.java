@@ -86,6 +86,14 @@ public class OverrideBuilder<T> {
     }
   }
 
+  public OverrideBuilder<T> orDefault(Supplier<T> value) {
+    if (concrete) {
+      return or(value);
+    } else {
+      return this;
+    }
+  }
+
   public OverrideBuilder<T> orMerged(Function<? super Collection<? extends T>, ? extends T> merge) {
     if (!inheritedValues.isEmpty() && !isOverridden()) {
       T merged = merge.apply(inheritedValues);
@@ -103,9 +111,13 @@ public class OverrideBuilder<T> {
 
   public OverrideBuilder<T> orMerged(BinaryOperator<T> merge) {
     return orMerged(
-        s -> StreamUtilities.<T>upcastStream(s.stream()).reduce(merge).orElseThrow(
-            () -> new ModabiException(
-                MESSAGES.cannotMergeIncompatibleProperties(propertyName.get(), inheritedValues))));
+        s -> StreamUtilities
+            .<T>upcastStream(s.stream())
+            .reduce(merge)
+            .orElseThrow(
+                () -> new ModabiException(
+                    MESSAGES
+                        .cannotMergeIncompatibleProperties(propertyName.get(), inheritedValues))));
   }
 
   /**
@@ -153,18 +165,22 @@ public class OverrideBuilder<T> {
   }
 
   public OverrideBuilder<T> or(T value) {
+    return or(() -> value);
+  }
+
+  public OverrideBuilder<T> or(Supplier<T> value) {
     return isOverridden()
         ? this
         : new OverrideBuilder<>(
             propertyName,
             inheritedValues,
-            ofNullable(value),
+            ofNullable(value.get()),
             mergeOverride,
             concrete);
   }
 
   public Optional<T> tryGet() {
-    T value = override.get();
+    T value = override.orElse(null);
 
     if (isOverridden() && mergeOverride != null) {
       for (T inheritedValue : inheritedValues) {

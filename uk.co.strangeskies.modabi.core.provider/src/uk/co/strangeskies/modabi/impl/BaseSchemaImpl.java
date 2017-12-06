@@ -70,14 +70,14 @@ import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.property.IdentityProperty;
+import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.Annotations;
 import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 import uk.co.strangeskies.utility.Enumeration;
-import uk.co.strangeskies.utility.IdentityProperty;
-import uk.co.strangeskies.utility.Property;
 
 public class BaseSchemaImpl implements BaseSchema {
   private interface ModelHelper {
@@ -521,8 +521,7 @@ public class BaseSchemaImpl implements BaseSchema {
             .rootNode(Void.class)
             .concrete(false)
             .addChildBindingPoint(
-                c -> c.name("targetBinding").noInput().noOutput().model(
-                    bindingReferenceModel))
+                c -> c.name("targetBinding").noInput().noOutput().model(bindingReferenceModel))
             .inputInitialization(
                 i -> invokeStatic(IncludeWriter.class, "include", binding("targetBinding")))
             .outputInitialization(

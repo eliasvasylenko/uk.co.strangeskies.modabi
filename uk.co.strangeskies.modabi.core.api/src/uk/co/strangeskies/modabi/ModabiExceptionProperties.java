@@ -134,4 +134,6 @@ public interface ModabiExceptionProperties {
   String cannotPerformCast(TypeToken<?> to, TypeToken<?> from);
 
   String cannotPerformAssignment(TypeToken<?> to, TypeToken<?> from);
+
+  String typeMustBeFunctionalInterface(TypeToken<?> implementationType);
 }

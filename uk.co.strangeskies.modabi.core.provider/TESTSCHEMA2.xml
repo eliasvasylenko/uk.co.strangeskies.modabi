@@ -74,7 +74,7 @@
       <bind
         model="sai:isotope"
         condition="occurrences(Range.from(0))"
-        output=".getIsotopes()[]"
+        output=".getIsotopes()..."
         input=".=withIsotope($)" />
 
       <bind
@@ -95,7 +95,7 @@
 
       <bind
         model="sai:element"
-        output=".getElements()[]"
+        output=".getElements()..."
         input=".getElements().add($)">
 
         <condition>

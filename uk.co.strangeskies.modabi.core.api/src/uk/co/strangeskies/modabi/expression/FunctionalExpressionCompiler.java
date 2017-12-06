@@ -19,5 +19,5 @@ public interface FunctionalExpressionCompiler {
   <T, C> CaptureFunction<C, T> compile(
       Expression expression,
       TypeToken<T> implementationType,
-      Scope<C> captureScope);
+      TypeToken<C> captureScope);
 }

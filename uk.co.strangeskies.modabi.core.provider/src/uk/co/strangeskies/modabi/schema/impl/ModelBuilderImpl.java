@@ -20,6 +20,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
+import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl.OverriddenNode;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelBuilderImpl<T> implements ModelBuilder<T> {
@@ -29,7 +30,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
 
   private final Set<Model<? super T>> baseModel;
   private final TypeToken<T> dataType;
-  private final NodeImpl rootNode;
+  private final OverriddenNode rootNode;
 
   public ModelBuilderImpl(SchemaBuilderImpl schema) {
     this.schema = schema;
@@ -46,7 +47,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       Boolean export,
       Set<Model<? super T>> baseModels,
       TypeToken<T> dataType,
-      NodeImpl rootNode) {
+      OverriddenNode rootNode) {
     this.schema = schema;
     this.name = name;
     this.export = export;
@@ -90,14 +91,14 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       }
 
       @Override
-      public ModelBuilder<U> endNode(NodeImpl rootNode) {
+      public ModelBuilder<U> endNode(NodeBuilderImpl<?> rootNode) {
         return new ModelBuilderImpl<>(
             schema,
             name,
             export,
             new HashSet<>(baseModel),
             dataType,
-            rootNode);
+            new OverriddenNode(rootNode));
       }
     });
   }
@@ -119,8 +120,13 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
     return rootNodeImpl(requireNonNull(type), emptySet());
   }
 
-  public Optional<NodeImpl> getRootNode() {
-    return Optional.ofNullable(rootNode);
+  @Override
+  public Optional<NodeBuilderImpl<?>> getRootNode() {
+    return Optional.ofNullable(rootNode).map(n -> n.builder);
+  }
+
+  protected Optional<NodeImpl> getRootNodeImpl() {
+    return Optional.ofNullable(rootNode).map(n -> n.node);
   }
 
   @Override

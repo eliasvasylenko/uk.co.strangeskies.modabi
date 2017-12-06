@@ -55,12 +55,10 @@ public interface NodeBuilder<E> {
 
   default NodeBuilder<E> addChildBindingPoint(
       Function<ChildBindingPointBuilder<NodeBuilder<E>>, ChildBindingPointBuilder<NodeBuilder<E>>> configuration) {
-    configuration.apply(addChildBindingPoint()).endChild();
-
-    return this;
+    return configuration.apply(addChildBindingPoint()).endChild();
   }
 
-  List<ChildBindingPointBuilder<NodeBuilder<E>>> getChildBindingPoints();
+  List<? extends ChildBindingPointBuilder<?>> getChildBindingPoints();
 
   E endNode();
 

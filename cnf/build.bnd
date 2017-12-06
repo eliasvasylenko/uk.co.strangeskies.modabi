@@ -28,7 +28,6 @@ Bundle-Version: ${modabi-version}.${tstamp}
 Import-Package:\
 	*;ui.workbench=!;common=!;registry=!;texteditor=!;text=!
 
--dsannotations: *
 -dsannotations-options: inherit
 
 ## To enable baselining, uncomment the following lines:

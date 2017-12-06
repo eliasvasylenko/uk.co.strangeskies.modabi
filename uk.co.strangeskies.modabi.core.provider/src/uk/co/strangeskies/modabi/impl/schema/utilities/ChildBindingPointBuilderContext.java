@@ -25,11 +25,12 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ChildBindingPointBuilderContext {
+public interface ChildBindingPointBuilderContext<E> {
   Optional<Namespace> namespace();
 
   Node parentNode();
@@ -42,7 +43,7 @@ public interface ChildBindingPointBuilderContext {
 
   TypeToken<?> outputSourceType();
 
-  void addChildResult(ChildBindingPoint<?> result);
-
   Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id);
+
+  E addChildResult(ChildBindingPointBuilderImpl<?> child);
 }

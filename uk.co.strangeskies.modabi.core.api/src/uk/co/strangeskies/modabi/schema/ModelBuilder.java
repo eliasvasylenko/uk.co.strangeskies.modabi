@@ -49,6 +49,8 @@ public interface ModelBuilder<T> {
 
   <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type);
 
+  Optional<? extends NodeBuilder<?>> getRootNode();
+
   Stream<Model<? super T>> getBaseModel();
 
   Optional<TypeToken<T>> getDataType();

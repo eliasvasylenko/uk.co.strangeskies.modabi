@@ -33,9 +33,9 @@ import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
+import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utility.Property;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {

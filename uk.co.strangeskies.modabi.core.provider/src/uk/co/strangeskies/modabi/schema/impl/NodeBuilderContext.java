@@ -11,5 +11,5 @@ public interface NodeBuilderContext<E> {
 
   Stream<Node> overrideNode();
 
-  E endNode(NodeImpl node);
+  E endNode(NodeBuilderImpl<?> nodeBuilder);
 }

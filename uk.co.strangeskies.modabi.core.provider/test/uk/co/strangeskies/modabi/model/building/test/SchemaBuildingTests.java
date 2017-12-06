@@ -36,10 +36,10 @@ import uk.co.strangeskies.modabi.impl.SchemaManagerService;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
+import uk.co.strangeskies.property.IdentityProperty;
+import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
-import uk.co.strangeskies.utility.IdentityProperty;
-import uk.co.strangeskies.utility.Property;
 
 public class SchemaBuildingTests {
   @Injectable
@@ -82,17 +82,20 @@ public class SchemaBuildingTests {
 
   @Test
   public void fixMeUp() {
-    System.out.println(
-        new @Infer TypeToken<SortedSet<?>>() {}
-            .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
-            .resolve());
-    System.out.println(
-        new TypeToken<@Infer SortedSet<?>>() {}
-            .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
-            .resolve());
-    System.out.println(
-        new TypeToken<SortedSet<@Infer ?>>() {}
-            .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
-            .resolve());
+    System.out
+        .println(
+            new @Infer TypeToken<SortedSet<?>>() {}
+                .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+                .resolve());
+    System.out
+        .println(
+            new TypeToken<@Infer SortedSet<?>>() {}
+                .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+                .resolve());
+    System.out
+        .println(
+            new TypeToken<SortedSet<@Infer ?>>() {}
+                .withConstraintTo(LOOSE_COMPATIBILILTY, new TypeToken<Set<String>>() {})
+                .resolve());
   }
 }

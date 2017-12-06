@@ -26,10 +26,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.binding.BindingFuture;
 import uk.co.strangeskies.modabi.binding.Blocks;
-import uk.co.strangeskies.modabi.binding.BindingException;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -76,10 +75,10 @@ public class OutputBindingFuture<T> implements BindingFuture<T> {
       BindingContextImpl context,
       ClassLoader classLoader,
       BindingPoint<T> bindingPoint,
-      StructuredDataReader input,
+      StructuredDataWriter output,
       Object data) {
-    context = context.withInput(input);
-    return new NodeWriter<T>().bind(context, bindingPoint, (T) data);
+    context = context.withOutput(output);
+    return new NodeWriter().bind(context, bindingPoint, (T) data);
   }
 
   @Override

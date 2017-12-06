@@ -45,22 +45,16 @@ import uk.co.strangeskies.modabi.expression.MutableExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingExpressions {
-  public static final String CONTEXT_VALUE = "context";
   public static final String TARGET_VALUE = "target";
   public static final String RESULT_VALUE = "result";
   public static final String SOURCE_VALUE = "source";
   public static final String PARENT_VALUE = "parent";
   public static final String PROVIDE_METHOD = "provide";
-  public static final String BOUND_VALUE_METHOD = "bound";
-  public static final String BINDING_METHOD = "binding";
   public static final String BOUND_PREFIX = "$";
-  public static final String BINDING_PREFIX = "$$";
+  public static final String BINDING_PREFIX = "%";
+  public static final String BINDING_POINT_PREFIX = "@";
 
   private BindingExpressions() {}
-
-  public static Expression context() {
-    return named(CONTEXT_VALUE);
-  }
 
   public static Expression provide() {
     return invokeNamed(PROVIDE_METHOD);
@@ -104,5 +98,13 @@ public class BindingExpressions {
 
   public static Expression binding(QualifiedName bindingPoint) {
     return named(BINDING_PREFIX + bindingPoint);
+  }
+
+  public static Expression bindingPoint(String bindingPoint) {
+    return named(BINDING_POINT_PREFIX + bindingPoint);
+  }
+
+  public static Expression bindingPoint(QualifiedName bindingPoint) {
+    return named(BINDING_POINT_PREFIX + bindingPoint);
   }
 }

@@ -36,11 +36,15 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   Expression getInput();
 
-  ChildBindingPointBuilder<E> noOutput();
+  boolean hasNoInput();
 
   ChildBindingPointBuilder<E> output(Expression expression);
 
+  ChildBindingPointBuilder<E> noOutput();
+
   Expression getOutput();
+
+  boolean hasNoOutput();
 
   default <U> ChildBindingPointBuilder<E> model(Model<U> model) {
     return model(model, model.dataType());
@@ -66,7 +70,7 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   <U> NodeBuilder<ChildBindingPointBuilder<E>> overrideNode();
 
-  Optional<Node> getNodeOverride();
+  Optional<? extends NodeBuilder<?>> getNodeOverride();
 
   Optional<Model<?>> getModel();
 

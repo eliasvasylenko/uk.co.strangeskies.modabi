@@ -43,10 +43,10 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
+import uk.co.strangeskies.property.IdentityProperty;
+import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
-import uk.co.strangeskies.utility.IdentityProperty;
-import uk.co.strangeskies.utility.Property;
 
 public class MetaSchemaImpl implements MetaSchema {
   private interface ModelHelper {
@@ -219,8 +219,7 @@ public class MetaSchemaImpl implements MetaSchema {
                 b -> b.name("child").model(bindingPointModel).noOutput().bindingCondition(
                     allOf(synchronous(), occurrences(leftBounded(0)))))
             .addChildBindingPoint(
-                b -> b.name("create").noOutput().input(
-                    target().assign(target().invoke("create"))))
+                b -> b.name("create").noOutput().input(target().assign(target().invoke("create"))))
             .endNode());
 
     Model<ModelBuilder<?>> metaModel = modelFactory

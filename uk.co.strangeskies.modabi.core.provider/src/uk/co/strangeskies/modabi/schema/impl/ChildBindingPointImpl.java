@@ -25,11 +25,13 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
     name = configurator
         .overrideChildren(ChildBindingPoint::name, ChildBindingPointBuilder::getName)
         .validateOverride(Objects::equals)
+        .or(() -> configurator.getModel().get().name())
         .get();
 
     ordered = configurator
         .overrideChildren(ChildBindingPoint::ordered, ChildBindingPointBuilder::getOrdered)
         .validateOverride((a, b) -> a || !b)
+        .or(false)
         .get();
 
     type = null; // TODO
@@ -39,13 +41,14 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .validateOverride((a, b) -> a.equals(b) || a.baseModels().anyMatch(b::equals))
         .tryGet()
         .map(m -> (Model<? super T>) m)
-        .get();
+        .orElse(null);
 
     BindingConditionPrototype condition = configurator
         .overrideChildren(
             b -> b.bindingCondition()::accept,
             ChildBindingPointBuilder::getBindingCondition)
         .orMerged(c -> BindingConditionPrototype.allOf(c))
+        .or(v -> v.required())
         .get();
     this.condition = new BindingConditionFactory<>(type).create(condition);
   }

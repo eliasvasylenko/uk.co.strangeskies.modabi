@@ -1,23 +1,31 @@
 package uk.co.strangeskies.modabi.expression.impl;
 
+import static java.lang.reflect.Modifier.isStatic;
+import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static uk.co.strangeskies.collection.stream.StreamUtilities.throwingReduce;
 import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
+import static uk.co.strangeskies.reflection.token.ExecutableToken.staticMethods;
+import static uk.co.strangeskies.reflection.token.MethodMatcher.anyMethod;
+import static uk.co.strangeskies.reflection.token.OverloadResolver.resolveOverload;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 import static uk.co.strangeskies.reflection.token.TypeToken.forNull;
+import static uk.co.strangeskies.reflection.token.VariableMatcher.anyVariable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.binding.impl.BindingContextImpl;
 import uk.co.strangeskies.modabi.expression.CaptureFunction;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
-import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.expression.Scope;
+import uk.co.strangeskies.reflection.token.ExecutableToken;
 import uk.co.strangeskies.reflection.token.FieldToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -38,60 +46,136 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCompiler {
   @Override
   public <T> T compile(Expression expression, TypeToken<T> implementationType) {
-    return compile(expression, implementationType, v -> null).capture(null);
+    return compile(expression, implementationType, forClass(void.class)).capture(null);
   }
 
   @Override
   public <T, C> CaptureFunction<C, T> compile(
       Expression expression,
       TypeToken<T> implementationType,
-      Scope<C> captureScope) {
-    ExpressionVisitorImpl<T, C> visitor = new ExpressionVisitorImpl<>(
-        new CompilationTarget<>(expression, implementationType, captureScope));
-    expression.evaluate(visitor);
-    CompiledExpression<?> compiled = visitor.getCompiledExpression();
-    return null; // TODO
-  }
+      TypeToken<C> captureScope) {
+    Class<?> implementationClass = implementationType.getErasedType();
 
-  private static class CompilationTarget<T, C> {
-    public final Expression expression;
-    public final TypeToken<T> implementationType;
-    public final Scope<C> captureScope;
+    if (!implementationClass.isInterface())
+      throw new ModabiException(MESSAGES.typeMustBeFunctionalInterface(implementationType));
 
-    public CompilationTarget(
-        Expression expression,
-        TypeToken<T> implementationType,
-        Scope<C> captureScope) {
-      this.expression = expression;
-      this.implementationType = implementationType;
-      this.captureScope = captureScope;
-    }
+    ExecutableToken<T, ?> executable = stream(implementationClass.getMethods())
+        .filter(m -> !m.isDefault() && !isStatic(m.getModifiers()))
+        .reduce(
+            throwingReduce(
+                (a, b) -> new ModabiException(
+                    MESSAGES.typeMustBeFunctionalInterface(implementationType))))
+        .map(ExecutableToken::forMethod)
+        .map(e -> e.withReceiverType(implementationType))
+        .orElseThrow(
+            () -> new ModabiException(MESSAGES.typeMustBeFunctionalInterface(implementationType)));
+
+    ExpressionVisitorImpl<T, C> visitor = new ExpressionVisitorImpl<>(executable, captureScope);
+
+    TypeToken<?> returnType = visitor.compileStep(expression).type;
+    List<Instructions> instructions = new ArrayList<>(visitor.instructions);
+
+    /*
+     * TODO this is wrong! the returnType needs to be a lower bound of the
+     * executable return type, but withTargetType uses it as an upper bound.
+     */
+    // executable = executable.withTargetType(returnType);
+
+    /*
+     * TODO so now we have the return type and the compiled steps...
+     */
+
+    return c -> {
+      @SuppressWarnings("unchecked")
+      T result = (T) newProxyInstance(
+          implementationType.getErasedType().getClassLoader(),
+          new Class<?>[] { implementationType.getErasedType() },
+          (proxy, method, args) -> {
+            /*
+             * TODO delegate to default method implementations
+             */
+            ExecutionContext context = new ExecutionContext(instructions, c, args);
+            context.next();
+            return context.pop();
+          });
+
+      return result;
+    };
   }
 
   private static class ExpressionVisitorImpl<T, C> implements ExpressionVisitor {
-    CompilationTarget<T, C> target;
-    CompiledExpression<?> compiled;
+    private final ExecutableToken<T, ?> executable;
+    private final TypeToken<C> captureScope;
 
-    public ExpressionVisitorImpl(CompilationTarget<T, C> target) {
-      this.target = target;
-    }
+    private final List<Instructions> instructions;
+    private final List<InstructionDescription> stack;
+    private int maximumStackSize;
 
-    public CompiledExpression<?> getCompiledExpression() {
-      if (compiled == null)
-        throw new IllegalStateException(); // TODO error message
-      return compiled;
+    public ExpressionVisitorImpl(ExecutableToken<T, ?> executable, TypeToken<C> captureScope) {
+      this.executable = executable;
+      this.captureScope = captureScope;
+
+      this.instructions = new ArrayList<>();
+      this.stack = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
-    public <U> void complete(TypeToken<U> type, Function<BindingContextImpl, Object> function) {
-      if (compiled != null)
-        throw new IllegalStateException();
-      this.compiled = new CompiledExpression<>(type, (Function<BindingContextImpl, U>) function);
+    private void completeStep(TypeToken<?> type, Instructions step) {
+      instructions.add(step);
+      stack.add(new InstructionDescription(type));
+      maximumStackSize = Math.max(maximumStackSize, stack.size());
     }
 
-    public List<CompiledExpression<?>> compileAll(List<Expression> valueExpressions) {
-      return valueExpressions.stream().map(FunctionalExpressionCompilerImpl.this::compile).collect(
-          toList());
+    private InstructionDescription compileStep(Expression expression) {
+      expression.evaluate(this);
+      return stack.remove(stack.size() - 1);
+    }
+
+    private List<InstructionDescription> compileAllSteps(Collection<Expression> expressions) {
+      expressions.forEach(e -> e.evaluate(this));
+
+      ArrayList<InstructionDescription> metadata = new ArrayList<>(expressions.size());
+      int cutFrom = stack.size() - expressions.size();
+      for (int i = 0; i < expressions.size(); i++)
+        metadata.add(stack.remove(cutFrom));
+
+      return metadata;
+    }
+
+    private <U> void visitInvocationImpl(
+        InstructionDescription receiver,
+        Supplier<Stream<? extends ExecutableToken<?, ?>>> executables,
+        List<Expression> arguments) {
+      List<InstructionDescription> compiledArguments = compileAllSteps(arguments);
+
+      List<TypeToken<?>> argumentTypes = compiledArguments
+          .stream()
+          .map(m -> m.type)
+          .collect(toList());
+
+      @SuppressWarnings("unchecked")
+      ExecutableToken<Object, ?> executable = (ExecutableToken<Object, ?>) executables
+          .get()
+          .collect(resolveOverload(argumentTypes));
+
+      int actualArgumentCount = (int) executable.getParameters().count();
+      if (executable.isVariableArityInvocation()) {
+        /*
+         * TODO logic to pop the last k items from the stack, add them to an array, then
+         * push that array onto the stack.
+         */
+        throw new UnsupportedOperationException();
+      }
+
+      if (receiver != null) {
+        completeStep(
+            executable.getReturnType(),
+            c -> c.push(executable.invoke(c.pop(), c.pop(actualArgumentCount))));
+      } else {
+        completeStep(
+            executable.getReturnType(),
+            c -> c.push(executable.invoke(null, c.pop(actualArgumentCount))));
+      }
     }
 
     @Override
@@ -99,119 +183,186 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
         Class<U> type,
         String method,
         List<Expression> arguments) {
-      List<CompiledExpression<?>> expressions = compileAll(arguments);
+      visitInvocationImpl(
+          null,
+          () -> staticMethods(type).filter(anyMethod().named(method)),
+          arguments);
     }
 
     @Override
     public void visitInvocation(Expression receiver, String method, List<Expression> arguments) {
-      List<CompiledExpression<?>> expressions = compileAll(arguments);
+      InstructionDescription receiverMetadata = compileStep(receiver);
+
+      visitInvocationImpl(
+          receiverMetadata,
+          () -> receiverMetadata.type.methods().filter(anyMethod().named(method)),
+          arguments);
     }
 
     @Override
     public <U> void visitConstructorInvocation(Class<U> type, List<Expression> arguments) {
-      List<CompiledExpression<?>> expressions = compileAll(arguments);
+      visitInvocationImpl(null, () -> forClass(type).infer().constructors(), arguments);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <U> void visitCast(TypeToken<U> type, Expression value) {
-      CompiledExpression<?> castFrom = compile(value);
+      InstructionDescription valueMetadata = compileStep(value);
 
-      if (!type.isCastableFrom(castFrom.getType()))
-        throw new ModabiException(MESSAGES.cannotPerformCast(type, castFrom.getType()));
+      if (!type.isCastableFrom(valueMetadata.type))
+        throw new ModabiException(MESSAGES.cannotPerformCast(type, valueMetadata.type));
 
-      complete(type, a -> (U) castFrom.getFunction().apply(a));
+      completeStep(type, c -> valueMetadata.type.cast(c.peek()));
+    }
+
+    private void visitFieldImpl(InstructionDescription receiver, String variable) {
+      @SuppressWarnings("unchecked")
+      FieldToken<Object, ?> field = (FieldToken<Object, ?>) receiver.type
+          .fields()
+          .filter(anyVariable().named(variable))
+          .findAny()
+          .get();
+
+      completeStep(field.getFieldType(), c -> c.push(field.get(c.pop())));
     }
 
     @Override
     public void visitField(Expression receiver, String variable) {
-      CompiledExpression<?> receiverExpression = compile(receiver);
-      Function<BindingContextImpl, ?> receiverFunction = receiverExpression.getFunction();
+      InstructionDescription receiverMetadata = compileStep(receiver);
+      visitFieldImpl(receiverMetadata, variable);
+    }
 
-      // TODO resolve the properly! Don't just take random member...
-      FieldToken<?, ?> field = receiverExpression.getType().fields().findAny().get();
+    private void visitFieldAssignmentImpl(
+        InstructionDescription receiver,
+        String variable,
+        Expression value) {
+      InstructionDescription valueMetadata = compileStep(value);
 
-      complete(field.getFieldType(), c -> field.get(receiverFunction.apply(c)));
+      @SuppressWarnings("unchecked")
+      FieldToken<Object, Object> field = (FieldToken<Object, Object>) receiver.type
+          .fields()
+          .filter(anyVariable().named(variable))
+          .findAny()
+          .get();
+
+      if (!field.getFieldType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, valueMetadata.type))
+        throw new ModabiException(
+            MESSAGES.cannotPerformAssignment(field.getFieldType(), valueMetadata.type));
+
+      completeStep(field.getFieldType(), c -> {
+        Object v = c.pop();
+        field.set(c.pop(), v);
+        c.push(v);
+      });
     }
 
     @Override
     public void visitFieldAssignment(Expression receiver, String variable, Expression value) {
-      CompiledExpression<?> receiverExpression = compile(receiver);
-      Function<BindingContextImpl, ?> receiverFunction = receiverExpression.getFunction();
-
-      CompiledExpression<?> valueExpression = compile(value);
-      Function<BindingContextImpl, ?> valueFunction = valueExpression.getFunction();
-
-      // TODO resolve the properly! Don't just take random member...
-      FieldToken<?, ?> field = receiverExpression.getType().fields().findAny().get();
-
-      if (!field
-          .getFieldType()
-          .satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, valueExpression.getType()))
-        throw new ModabiException(
-            MESSAGES.cannotPerformAssignment(field.getFieldType(), valueExpression.getType()));
-
-      complete(
-          field.getFieldType(),
-          c -> field.set(receiverFunction.apply(c), valueFunction.apply(c)));
+      InstructionDescription receiverMetadata = compileStep(receiver);
+      visitFieldAssignmentImpl(receiverMetadata, variable, value);
     }
 
     @Override
     public void visitNull() {
-      complete(forNull(), c -> null);
+      completeStep(forNull(), c -> c.push(null));
     }
 
     @Override
     public void visitLiteral(Object value) {
-      complete(forClass(value.getClass()), c -> value);
+      completeStep(forClass(value.getClass()), c -> c.push(value));
     }
 
     @Override
     public void visitIteration(Expression value) {
-      // TODO Auto-generated method stub
+      InstructionDescription iterable = compileStep(value);
 
+      // TODO special cases for arrays and streams
+      TypeToken<?> itemType = iterable.type
+          .resolveSupertype(Iterable.class)
+          .getTypeArguments()
+          .findAny()
+          .get()
+          .getTypeToken();
+      completeStep(itemType, c -> {
+        Iterable<?> i = (Iterable<?>) c.pop();
+        for (Object o : i) {
+          c.push(o);
+          c.next();
+        }
+      });
+
+      /*
+       * TODO We loop in order of evaluation, i.e.:
+       * 
+       * a[].b()[].c(d[].e, f[])[]
+       * 
+       * goes
+       * 
+       * for each A in a X = A.b() for each B in X for each D in d Y = D.e for each F
+       * in f Z = B.c(Y, F) for each C in Z for each W in C result += W;
+       * 
+       * Which means converting to a stack based evaluation model (where _ pops).
+       * 
+       * a -> _[] -> _.b() -> _[] -> d -> _[] -> _.e -> f -> _[] -> _.c(_, _)
+       * 
+       * This effectively leaves a whole list of things on the stack when we're
+       * done... I guess how to deal with that is left to the compiler? What does
+       * FunctionalExpressionCompiler do? Valid options include: - collapse to
+       * array/list/stream/iterator - discard all but last - discard all
+       * 
+       * We can have a special operator which short circuits this collapse over the
+       * most recent sub-expression in the stack as opposed to leaving it until the
+       * whole expression has been evaluated
+       * 
+       * e.g. instead of:
+       * 
+       * takeItem(a[].b[]))
+       * 
+       * we could have:
+       * 
+       * takeList(COLLAPSE_TO_LIST(a[].b[]))
+       * 
+       * a -> _[] -> b -> _[] -> COLLAPSE_TO_LIST(_, _) -> takeList(_)
+       */
     }
 
     @Override
-    public void visitNamed(String name) {
-      switch (name) {
-      case Expressions.CONTEXT_VALUE:
-        break;
-      case Expressions.PARENT_VALUE:
-        break;
-      case Expressions.RESULT_VALUE:
-        break;
-      case Expressions.SOURCE_VALUE:
-        break;
-      case Expressions.TARGET_VALUE:
-        break;
-      default:
-        throw new ModabiException(MESSAGES.cannotResolveVariable(name));
-      }
+    public void visitNamed(String variable) {
+      /*
+       * TODO if the variable name matches a parameter, get that! else:
+       */
+
+      InstructionDescription receiverMetadata = compileCaptureStep();
+      visitFieldImpl(receiverMetadata, variable);
     }
 
     @Override
-    public void visitNamedAssignment(String name, Expression value) {
-      switch (name) {
-      case Expressions.CONTEXT_VALUE:
-        break;
-      case Expressions.PARENT_VALUE:
-        break;
-      case Expressions.RESULT_VALUE:
-        break;
-      case Expressions.SOURCE_VALUE:
-        break;
-      case Expressions.TARGET_VALUE:
-        break;
-      default:
-        throw new ModabiException(MESSAGES.cannotResolveVariable(name));
-      }
+    public void visitNamedAssignment(String variable, Expression value) {
+      /*
+       * TODO if the variable name matches a parameter, assign to that! else:
+       */
+
+      InstructionDescription receiverMetadata = compileCaptureStep();
+      visitFieldAssignmentImpl(receiverMetadata, variable, value);
+    }
+
+    private InstructionDescription compileCaptureStep() {
+      instructions.add(c -> c.pushCapture());
+      return new InstructionDescription(captureScope);
+    }
+
+    private InstructionDescription compileArgumentStep(int i) {
+      instructions.add(c -> c.pushArgument(i));
+      return new InstructionDescription(
+          executable.getParameters().skip(i).findFirst().get().getTypeToken());
     }
 
     @Override
-    public void visitNamedInvocation(String name, List<Expression> arguments) {
-      // TODO Auto-generated method stub
-
+    public void visitNamedInvocation(String method, List<Expression> arguments) {
+      InstructionDescription receiverMetadata = compileCaptureStep();
+      visitInvocationImpl(
+          receiverMetadata,
+          () -> receiverMetadata.type.methods().filter(anyMethod().named(method)),
+          arguments);
     }
   }
 }

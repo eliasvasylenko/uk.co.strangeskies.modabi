@@ -22,7 +22,7 @@ public class ModelImpl<T> implements Model<T> {
 
   @SuppressWarnings("unchecked")
   protected ModelImpl(ModelBuilderImpl<T> configurator) {
-    rootNode = configurator.getRootNode().orElse(new NodeImpl());
+    rootNode = configurator.getRootNodeImpl().orElse(new NodeImpl());
     name = configurator.getName().get();
     export = configurator
         .overrideModelChildren(Model::export, ModelBuilder::getExport)

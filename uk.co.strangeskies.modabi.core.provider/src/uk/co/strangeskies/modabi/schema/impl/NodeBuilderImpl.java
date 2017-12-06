@@ -1,7 +1,10 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,6 +19,7 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
+import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl.Child;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -31,6 +35,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
   private final Expression inputInitialization;
   private final Expression outputInitialization;
 
+  private final List<Child> children;
+
   public NodeBuilderImpl(NodeBuilderContext<E> context) {
     this.context = context;
 
@@ -40,6 +46,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
 
     this.inputInitialization = null;
     this.outputInitialization = null;
+
+    this.children = Collections.emptyList();
   }
 
   public NodeBuilderImpl(
@@ -48,7 +56,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
       Boolean extensible,
       Object provided,
       Expression inputExpression,
-      Expression outputExpression) {
+      Expression outputExpression,
+      List<Child> children) {
     this.context = context;
 
     this.concrete = concrete;
@@ -57,6 +66,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
 
     this.inputInitialization = inputExpression;
     this.outputInitialization = outputExpression;
+
+    this.children = children;
   }
 
   @Override
@@ -72,7 +83,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         extensible,
         provided,
         inputInitialization,
-        outputInitialization);
+        outputInitialization,
+        children);
   }
 
   @Override
@@ -88,64 +100,133 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         extensible,
         provided,
         inputInitialization,
-        outputInitialization);
+        outputInitialization,
+        children);
   }
 
   @Override
   public ChildBindingPointBuilder<NodeBuilder<E>> addChildBindingPoint() {
-    return new ChildBindingPointBuilderImpl<>(new ChildBindingPointBuilderContext() {
-      @Override
-      public Optional<Namespace> namespace() {
-        return context.namespace();
-      }
+    return new ChildBindingPointBuilderImpl<>(
+        new ChildBindingPointBuilderContext<NodeBuilder<E>>() {
+          @Override
+          public Optional<Namespace> namespace() {
+            return context.namespace();
+          }
 
-      @Override
-      public Node parentNode() {
-        throw new UnsupportedOperationException();
-      }
+          @Override
+          public Node parentNode() {
+            throw new UnsupportedOperationException();
+          }
 
-      @Override
-      public Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id) {
-        // TODO Auto-generated method stub
-        return null;
-      }
+          @Override
+          public Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id) {
+            // TODO Auto-generated method stub
+            return null;
+          }
 
-      @Override
-      public TypeToken<?> outputSourceType() {
-        // TODO Auto-generated method stub
-        return null;
-      }
+          @Override
+          public TypeToken<?> outputSourceType() {
+            // TODO Auto-generated method stub
+            return null;
+          }
 
-      @Override
-      public TypeToken<?> inputTargetType() {
-        // TODO Auto-generated method stub
-        return null;
-      }
+          @Override
+          public TypeToken<?> inputTargetType() {
+            // TODO Auto-generated method stub
+            return null;
+          }
 
-      @Override
-      public Imports imports() {
-        // TODO Auto-generated method stub
-        return null;
-      }
+          @Override
+          public Imports imports() {
+            // TODO Auto-generated method stub
+            return null;
+          }
 
-      @Override
-      public BoundSet boundSet() {
-        // TODO Auto-generated method stub
-        return null;
-      }
+          @Override
+          public BoundSet boundSet() {
+            // TODO Auto-generated method stub
+            return null;
+          }
 
-      @Override
-      public void addChildResult(ChildBindingPoint<?> result) {
-        // TODO Auto-generated method stub
-
-      }
-    });
+          @Override
+          public NodeBuilder<E> addChildResult(ChildBindingPointBuilderImpl<?> child) {
+            List<Child> children = new ArrayList<>(NodeBuilderImpl.this.children.size() + 1);
+            children.addAll(NodeBuilderImpl.this.children);
+            children.add(new Child(child));
+            return new NodeBuilderImpl<>(
+                context,
+                concrete,
+                extensible,
+                provided,
+                inputInitialization,
+                outputInitialization,
+                children);
+          }
+        });
   }
 
+  /*
+   * 
+   * 
+   * 
+   * TODO where did I land on this? do we need to keep the builder or can it just
+   * be the child binding point itself?
+   * 
+   * We need to keep the builder if we want to be able to bind out a schema
+   * 
+   * Options:
+   * 
+   * 1) don't keep the builder here and don't allow us to bind out a schema or
+   * schemabuilder
+   * 
+   * 2) do keep the builder here but discard it from the final Schema objects so
+   * we can bind out from the schemabuilder but not the schema
+   * 
+   * 3) do keep the builder here and in the final schema objects so we can bind
+   * out from the schemabuilder and schema
+   * 
+   * I think option 2) strikes the best balance. We don't need all binding
+   * processes to be two way! Some may only support input, some may only support
+   * output! This isn't necessarily something to hide from or a design failure!
+   * 
+   * We don't really need to have output binding for a schema object since they're
+   * generally bound in from files and they're immutable.
+   * 
+   * It may be useful to have a graphical schema editor at some point, which means
+   * some sort of output binding is necessary ... But this can function by having
+   * output binding available on a schemabuilder not the schema itself.
+   * 
+   * 
+   * 
+   * 
+   * So, INTERNALLY the NodeBuilder and ChildBindingPointBuilder will probably
+   * wish to instantiate their respective Node and ChildBindingPoint objects when
+   * the endNode() and endChild() methods are invoked respectively. But this isn't
+   * technically a requirement as these classes will only be exposed by the API
+   * once SchemaBuilder.create() is invoked. !!!!!! that may not be strictly true
+   * because of SchemaBuilder endModel(Consumer<Model<T>> completion);...
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   */
   @Override
-  public List<ChildBindingPointBuilder<NodeBuilder<E>>> getChildBindingPoints() {
-    // TODO Auto-generated method stub
-    return null;
+  public List<ChildBindingPointBuilderImpl<?>> getChildBindingPoints() {
+    return children.stream().map(c -> c.builder).collect(toList());
+  }
+
+  protected List<ChildBindingPointImpl<?>> getChildBindingPointsImpl() {
+    return children.stream().map(c -> c.child).collect(toList());
   }
 
   public <U> OverrideBuilder<U> overrideChildren(
@@ -165,7 +246,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         extensible,
         provided,
         inputInitialization,
-        outputInitialization);
+        outputInitialization,
+        children);
   }
 
   @Override
@@ -181,7 +263,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         extensible,
         provided,
         inputInitialization,
-        outputInitialization);
+        outputInitialization,
+        children);
   }
 
   @Override
@@ -191,7 +274,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
 
   @Override
   public E endNode() {
-    return context.endNode(new NodeImpl(this));
+    return context.endNode(this);
   }
 
   @Override
@@ -202,11 +285,22 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         extensible,
         provided,
         inputInitialization,
-        outputInitialization);
+        outputInitialization,
+        children);
   }
 
   @Override
   public Optional<?> getProvidedValue() {
     return Optional.ofNullable(provided);
+  }
+
+  static class OverriddenNode {
+    public final NodeImpl node;
+    public final NodeBuilderImpl<?> builder;
+
+    public OverriddenNode(NodeBuilderImpl<?> builder) {
+      this.node = new NodeImpl(builder);
+      this.builder = builder;
+    }
   }
 }

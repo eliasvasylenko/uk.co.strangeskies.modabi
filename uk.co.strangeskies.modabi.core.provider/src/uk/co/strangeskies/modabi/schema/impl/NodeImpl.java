@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static uk.co.strangeskies.collection.stream.StreamUtilities.upcastStream;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -14,6 +16,7 @@ import uk.co.strangeskies.text.parsing.Parser;
 public class NodeImpl implements Node {
   private final boolean extensible;
   private final boolean concrete;
+  private List<ChildBindingPointImpl<?>> children;
 
   protected NodeImpl() {
     extensible = false;
@@ -31,6 +34,8 @@ public class NodeImpl implements Node {
         .validateOverride((a, b) -> true)
         .orDefault(true)
         .get();
+
+    children = configurator.getChildBindingPointsImpl();
 
     /*
      * TODO load "provided" values
@@ -85,8 +90,7 @@ public class NodeImpl implements Node {
 
   @Override
   public Stream<ChildBindingPoint<?>> children() {
-    // TODO Auto-generated method stub
-    return null;
+    return upcastStream(children.stream());
   }
 
   @Override
