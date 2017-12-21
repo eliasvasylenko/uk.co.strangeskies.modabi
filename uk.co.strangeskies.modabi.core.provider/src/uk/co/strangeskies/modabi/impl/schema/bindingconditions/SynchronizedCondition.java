@@ -1,8 +1,9 @@
 package uk.co.strangeskies.modabi.impl.schema.bindingconditions;
 
 import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
 
 /**
  * A binding condition which only allows processing of each item to proceed once
@@ -10,11 +11,7 @@ import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
  * 
  * @author Elias N Vasylenko
  */
-public class SynchronizedCondition<T> extends BindingConditionImpl<T> {
-  public SynchronizedCondition(BindingConditionPrototype prototype) {
-    super(prototype);
-  }
-
+public class SynchronizedCondition<T> implements BindingCondition<T> {
   @Override
   public BindingConditionEvaluation<T> forState(BindingContext state) {
     return new BindingConditionEvaluation<T>() {
@@ -41,5 +38,10 @@ public class SynchronizedCondition<T> extends BindingConditionImpl<T> {
       @Override
       public void endProcessing() {}
     };
+  }
+
+  @Override
+  public void accept(BindingConditionVisitor visitor) {
+    visitor.synchronous();
   }
 }

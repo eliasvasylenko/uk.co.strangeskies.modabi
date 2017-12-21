@@ -12,8 +12,6 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
   Optional<QualifiedName> getName();
 
-  Optional<Node> getNode();
-
   ChildBindingPointBuilder<E> name(QualifiedName name);
 
   ChildBindingPointBuilder<E> name(String name);

@@ -6,9 +6,14 @@ import java.util.function.Predicate;
 
 import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
+import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.reflection.token.TypeArgument;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
  * A rule to specify that a binding point must be processed a number of times
@@ -16,17 +21,19 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
  * 
  * @author Elias N Vasylenko
  */
-public class ValidationCondition<T> extends BindingConditionImpl<T> {
-  private final String expressionString;
+public class ValidationCondition<T> implements BindingCondition<T> {
+  private final Expression expression;
   private final Predicate<T> test;
 
   public ValidationCondition(
-      BindingConditionPrototype prototype,
-      String expressionString,
-      Predicate<T> test) {
-    super(prototype);
-    this.expressionString = expressionString;
-    this.test = test;
+      Expression expression,
+      TypeToken<T> type,
+      FunctionalExpressionCompiler compiler) {
+    this.expression = expression;
+    this.test = compiler
+        .compile(
+            expression,
+            new TypeToken<Predicate<T>>() {}.withTypeArguments(new TypeArgument<T>(type) {}));
   }
 
   @Override
@@ -34,8 +41,7 @@ public class ValidationCondition<T> extends BindingConditionImpl<T> {
     return new BindingConditionEvaluation<T>() {
       public void failProcess() {
         throw new BindingException(
-            MESSAGES
-                .validationFailed((ChildBindingPoint<?>) state.getBindingPoint(), expressionString),
+            MESSAGES.validationFailed((ChildBindingPoint<?>) state.getBindingPoint(), expression),
             state);
       }
 
@@ -52,5 +58,10 @@ public class ValidationCondition<T> extends BindingConditionImpl<T> {
       @Override
       public void endProcessing() {}
     };
+  }
+
+  @Override
+  public void accept(BindingConditionVisitor visitor) {
+    visitor.validated(expression);
   }
 }

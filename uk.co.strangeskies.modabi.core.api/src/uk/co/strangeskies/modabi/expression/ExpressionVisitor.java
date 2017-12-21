@@ -5,7 +5,7 @@ import java.util.List;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ExpressionVisitor {
-  <T> void visitCast(TypeToken<T> type, Expression value);
+  <T> void visitCast(TypeToken<T> type, Expression expression);
 
   void visitField(Expression receiver, String variable);
 

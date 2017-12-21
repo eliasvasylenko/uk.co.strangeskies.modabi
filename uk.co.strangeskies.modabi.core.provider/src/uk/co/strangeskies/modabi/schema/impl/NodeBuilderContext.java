@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Node;
 
 public interface NodeBuilderContext<E> {
@@ -12,4 +13,6 @@ public interface NodeBuilderContext<E> {
   Stream<Node> overrideNode();
 
   E endNode(NodeBuilderImpl<?> nodeBuilder);
+
+  FunctionalExpressionCompiler expressionCompiler();
 }

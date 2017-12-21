@@ -26,6 +26,7 @@ import java.util.List;
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.ModabiProperties;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -86,5 +87,5 @@ public interface ProcessingExceptionMessages {
 
   String inverseCondition(String localizedMessage);
 
-  String validationFailed(ChildBindingPoint<?> bindingPoint, String expressionString);
+  String validationFailed(ChildBindingPoint<?> bindingPoint, Expression expression);
 }

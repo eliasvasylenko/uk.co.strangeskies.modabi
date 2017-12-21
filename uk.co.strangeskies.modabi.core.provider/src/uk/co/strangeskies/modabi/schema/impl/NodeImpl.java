@@ -71,12 +71,6 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public NodeBuilder<?> configurator() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public Parser<?> parser() {
     // TODO Auto-generated method stub
     return null;

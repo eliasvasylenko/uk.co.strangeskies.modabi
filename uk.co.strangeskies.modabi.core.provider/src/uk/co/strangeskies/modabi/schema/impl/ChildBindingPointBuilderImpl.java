@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointBuilderContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
@@ -140,6 +141,10 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return hasNoOutput() ? null : output;
   }
 
+  protected FunctionalExpressionCompiler getExpressionCompiler() {
+    return context.expressionCompiler();
+  }
+
   @Override
   public boolean hasNoOutput() {
     return output == NO_IO;
@@ -196,12 +201,6 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   @Override
   public Optional<QualifiedName> getName() {
     return Optional.ofNullable(name);
-  }
-
-  @Override
-  public Optional<Node> getNode() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override
@@ -268,6 +267,11 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   @Override
   public <U> NodeBuilder<ChildBindingPointBuilder<E>> overrideNode() {
     return new NodeBuilderImpl<>(new NodeBuilderContext<ChildBindingPointBuilder<E>>() {
+      @Override
+      public FunctionalExpressionCompiler expressionCompiler() {
+        return context.expressionCompiler();
+      }
+
       @Override
       public Optional<Namespace> namespace() {
         return getName().map(QualifiedName::getNamespace);

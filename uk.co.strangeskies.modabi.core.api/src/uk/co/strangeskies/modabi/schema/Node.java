@@ -44,14 +44,6 @@ public interface Node {
 
   boolean extensible();
 
-  /**
-   * Get the schema node builder which created this schema node, or in the case of
-   * a mutable builder implementation, a copy thereof.
-   * 
-   * @return the creating builder
-   */
-  NodeBuilder<?> configurator();
-
   Parser<?> parser();
 
   Expression initializeInputExpression();

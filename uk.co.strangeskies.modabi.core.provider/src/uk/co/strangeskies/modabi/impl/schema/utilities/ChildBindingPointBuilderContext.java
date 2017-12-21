@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
@@ -46,4 +47,6 @@ public interface ChildBindingPointBuilderContext<E> {
   Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id);
 
   E addChildResult(ChildBindingPointBuilderImpl<?> child);
+
+  FunctionalExpressionCompiler expressionCompiler();
 }

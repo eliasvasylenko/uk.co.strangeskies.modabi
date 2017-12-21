@@ -27,10 +27,12 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.property.Property;
@@ -43,6 +45,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   private final Set<Model<?>> modelSet;
   private final Set<Schema> dependencySet;
   private Imports imports;
+
+  @Reference
+  private FunctionalExpressionCompiler expressionCompiler;
 
   public SchemaBuilderImpl() {
     modelSet = new LinkedHashSet<>();
@@ -127,8 +132,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder imports(Collection<? extends Class<?>> imports) {
-    this.imports = Imports.empty(Thread.currentThread().getContextClassLoader()).withImports(
-        imports);
+    this.imports = Imports
+        .empty(Thread.currentThread().getContextClassLoader())
+        .withImports(imports);
 
     return this;
   }
@@ -148,5 +154,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   public SchemaBuilder endModel(ModelImpl<?> model) {
     modelSet.add(model);
     return this;
+  }
+
+  protected FunctionalExpressionCompiler getExpressionCompiler() {
+    return expressionCompiler;
   }
 }

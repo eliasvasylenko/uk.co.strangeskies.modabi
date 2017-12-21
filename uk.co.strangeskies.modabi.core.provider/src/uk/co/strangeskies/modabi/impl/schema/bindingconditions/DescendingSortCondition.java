@@ -1,6 +1,9 @@
 package uk.co.strangeskies.modabi.impl.schema.bindingconditions;
 
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import static uk.co.strangeskies.modabi.expression.Expressions.named;
+
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
  * A rule to specify that a binding point must be processed a number of times
@@ -9,7 +12,7 @@ import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
  * @author Elias N Vasylenko
  */
 public class DescendingSortCondition<T extends Comparable<? super T>> extends SortCondition<T> {
-  public DescendingSortCondition(BindingConditionPrototype prototype) {
-    super(prototype, (a, b) -> b.compareTo(a));
+  public DescendingSortCondition(FunctionalExpressionCompiler compiler) {
+    super(named("b").invoke("compareTo", named("a")), new TypeToken<T>() {}, compiler);
   }
 }

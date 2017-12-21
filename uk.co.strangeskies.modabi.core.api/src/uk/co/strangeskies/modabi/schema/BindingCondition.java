@@ -12,8 +12,6 @@ import uk.co.strangeskies.modabi.binding.BindingContext;
  * 
  * @author Elias N Vasylenko
  */
-public interface BindingCondition<T> {
-  void accept(BindingConditionVisitor visitor);
-
+public interface BindingCondition<T> extends BindingConditionPrototype {
   BindingConditionEvaluation<T> forState(BindingContext state);
 }

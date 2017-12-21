@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.osgi.service.component.annotations.Component;
+
 import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.expression.CaptureFunction;
 import uk.co.strangeskies.modabi.expression.Expression;
@@ -29,20 +31,7 @@ import uk.co.strangeskies.reflection.token.ExecutableToken;
 import uk.co.strangeskies.reflection.token.FieldToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-/*
- * 
- * 
- * 
- * TODO plan of implementation:
- * 
- * - for now compile expressions after the fact, when we already
- * have the full node graph built. This is easier as we don't have
- * to worry about expressions which block on 
- * 
- * 
- * 
- * 
- */
+@Component
 public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCompiler {
   @Override
   public <T> T compile(Expression expression, TypeToken<T> implementationType) {
@@ -85,21 +74,30 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
      * TODO so now we have the return type and the compiled steps...
      */
 
-    return c -> {
-      @SuppressWarnings("unchecked")
-      T result = (T) newProxyInstance(
-          implementationType.getErasedType().getClassLoader(),
-          new Class<?>[] { implementationType.getErasedType() },
-          (proxy, method, args) -> {
-            /*
-             * TODO delegate to default method implementations
-             */
-            ExecutionContext context = new ExecutionContext(instructions, c, args);
-            context.next();
-            return context.pop();
-          });
+    return new CaptureFunction<C, T>() {
+      @Override
+      public T capture(C capture) {
+        @SuppressWarnings("unchecked")
+        T result = (T) newProxyInstance(
+            implementationType.getErasedType().getClassLoader(),
+            new Class<?>[] { implementationType.getErasedType() },
+            (proxy, method, args) -> {
+              /*
+               * TODO delegate to default method implementations
+               */
+              ExecutionContext context = new ExecutionContext(instructions, capture, args);
+              context.next();
+              return context.pop();
+            });
 
-      return result;
+        return result;
+      }
+
+      @Override
+      public TypeToken<T> getExactType() {
+        // TODO Auto-generated method stub
+        return null;
+      }
     };
   }
 
@@ -119,7 +117,6 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
       this.stack = new ArrayList<>();
     }
 
-    @SuppressWarnings("unchecked")
     private void completeStep(TypeToken<?> type, Instructions step) {
       instructions.add(step);
       stack.add(new InstructionDescription(type));

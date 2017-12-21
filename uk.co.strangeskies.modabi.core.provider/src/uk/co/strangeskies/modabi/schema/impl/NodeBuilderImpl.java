@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointBuilderContext;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
@@ -111,6 +112,11 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
           @Override
           public Optional<Namespace> namespace() {
             return context.namespace();
+          }
+
+          @Override
+          public FunctionalExpressionCompiler expressionCompiler() {
+            return context.expressionCompiler();
           }
 
           @Override

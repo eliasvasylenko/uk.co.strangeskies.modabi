@@ -6,22 +6,28 @@ import java.util.Comparator;
 
 import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
+import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.reflection.token.TypeArgument;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
-/**
- * A rule to specify that a binding point must be processed a number of times
- * within a given range.
- * 
- * @author Elias N Vasylenko
- */
-public class SortCondition<T> extends BindingConditionImpl<T> {
+public class SortCondition<T> implements BindingCondition<T> {
+  private final Expression expression;
   private final Comparator<? super T> comparator;
 
-  public SortCondition(BindingConditionPrototype prototype, Comparator<? super T> comparator) {
-    super(prototype);
-    this.comparator = comparator;
+  public SortCondition(
+      Expression expression,
+      TypeToken<T> type,
+      FunctionalExpressionCompiler compiler) {
+    this.expression = expression;
+    this.comparator = compiler
+        .compile(
+            expression,
+            new TypeToken<Comparator<T>>() {}.withTypeArguments(new TypeArgument<T>(type) {}));
   }
 
   @Override
@@ -48,12 +54,18 @@ public class SortCondition<T> extends BindingConditionImpl<T> {
       @SuppressWarnings("unchecked")
       private BindingException failProcess() {
         return new BindingException(
-            MESSAGES.mustBeOrdered(
-                (ChildBindingPoint<T>) state.getBindingPoint(),
-                previousBinding,
-                (Class<? extends Comparator<?>>) comparator.getClass()),
+            MESSAGES
+                .mustBeOrdered(
+                    (ChildBindingPoint<T>) state.getBindingPoint(),
+                    previousBinding,
+                    (Class<? extends Comparator<?>>) comparator.getClass()),
             state);
       }
     };
+  }
+
+  @Override
+  public void accept(BindingConditionVisitor visitor) {
+    visitor.sorted(expression);
   }
 }

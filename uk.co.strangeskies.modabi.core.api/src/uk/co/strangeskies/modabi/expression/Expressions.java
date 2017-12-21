@@ -155,11 +155,16 @@ public class Expressions {
   }
 
   public static Expression typeToken(TypeToken<?> token) {
-    return v -> v.visitCast(
-        token.getThisTypeToken(),
-        invokeStatic(
-            TypeToken.class,
-            "forType",
-            new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
+    return v -> v
+        .visitCast(
+            token.getThisTypeToken(),
+            invokeStatic(
+                TypeToken.class,
+                "forType",
+                new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
+  }
+
+  public static Expression cast(TypeToken<?> type, Expression expression) {
+    return v -> v.visitCast(type, expression);
   }
 }

@@ -5,8 +5,9 @@ import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
+import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 
 /**
@@ -15,11 +16,10 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
  * 
  * @author Elias N Vasylenko
  */
-public class OccurrencesCondition<T> extends BindingConditionImpl<T> {
+public class OccurrencesCondition<T> implements BindingCondition<T> {
   private final Interval<Integer> range;
 
-  public OccurrencesCondition(BindingConditionPrototype prototype, Interval<Integer> range) {
-    super(prototype);
+  public OccurrencesCondition(Interval<Integer> range) {
     this.range = range;
   }
 
@@ -51,5 +51,10 @@ public class OccurrencesCondition<T> extends BindingConditionImpl<T> {
         }
       }
     };
+  }
+
+  @Override
+  public void accept(BindingConditionVisitor visitor) {
+    visitor.occurrences(range);
   }
 }

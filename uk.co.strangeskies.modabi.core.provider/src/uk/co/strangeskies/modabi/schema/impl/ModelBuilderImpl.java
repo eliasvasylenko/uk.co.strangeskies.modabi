@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
@@ -80,6 +81,11 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       TypeToken<U> dataType,
       Collection<? extends Model<? super U>> baseModel) {
     return new NodeBuilderImpl<>(new NodeBuilderContext<ModelBuilder<U>>() {
+      @Override
+      public FunctionalExpressionCompiler expressionCompiler() {
+        return schema.getExpressionCompiler();
+      }
+
       @Override
       public Optional<Namespace> namespace() {
         return getName().map(QualifiedName::getNamespace);

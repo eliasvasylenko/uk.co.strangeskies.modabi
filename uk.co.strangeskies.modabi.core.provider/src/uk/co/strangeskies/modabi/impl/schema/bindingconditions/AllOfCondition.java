@@ -13,15 +13,12 @@ import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
 
-public class AllOfCondition<T> extends BindingConditionImpl<T> {
+public class AllOfCondition<T> implements BindingCondition<T> {
   private final List<BindingCondition<? super T>> conditions;
 
-  public AllOfCondition(
-      BindingConditionPrototype prototype,
-      Collection<? extends BindingCondition<? super T>> conditions) {
-    super(prototype);
+  public AllOfCondition(Collection<? extends BindingCondition<? super T>> conditions) {
     this.conditions = new ArrayList<>(conditions);
   }
 
@@ -68,5 +65,10 @@ public class AllOfCondition<T> extends BindingConditionImpl<T> {
         }
       }
     };
+  }
+
+  @Override
+  public void accept(BindingConditionVisitor visitor) {
+    visitor.allOf(conditions);
   }
 }

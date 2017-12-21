@@ -50,7 +50,8 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .orMerged(c -> BindingConditionPrototype.allOf(c))
         .or(v -> v.required())
         .get();
-    this.condition = new BindingConditionFactory<>(type).create(condition);
+    this.condition = new BindingConditionFactory<>(type, configurator.getExpressionCompiler())
+        .create(condition);
   }
 
   @Override
