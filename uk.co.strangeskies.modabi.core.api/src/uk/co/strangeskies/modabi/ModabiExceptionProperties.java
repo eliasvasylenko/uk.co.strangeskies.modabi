@@ -7,15 +7,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import uk.co.strangeskies.modabi.binding.Blocks;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ModabiExceptionProperties {
-  String missingDependencies(Blocks dependencies);
-
   String invalidDataSource(Object source);
 
   String incompatibleTypes(Type a, Type b);

@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static java.util.Collections.emptyList;
 import static uk.co.strangeskies.collection.stream.StreamUtilities.upcastStream;
 
 import java.util.List;
@@ -7,28 +8,22 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.text.parsing.Parser;
 
 public class NodeImpl implements Node {
-  private final boolean extensible;
   private final boolean concrete;
-  private List<ChildBindingPointImpl<?>> children;
+  private final List<ChildBindingPointImpl<?>> children;
 
   protected NodeImpl() {
-    extensible = false;
     concrete = true;
+    children = emptyList();
   }
 
   protected NodeImpl(NodeBuilderImpl<?> configurator) {
-    extensible = configurator
-        .overrideChildren(Node::extensible, NodeBuilder::getExtensible)
-        .validateOverride((a, b) -> true)
-        .orDefault(false)
-        .get();
     concrete = configurator
         .overrideChildren(Node::concrete, NodeBuilder::getConcrete)
         .validateOverride((a, b) -> true)
@@ -66,11 +61,6 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public boolean extensible() {
-    return extensible;
-  }
-
-  @Override
   public Parser<?> parser() {
     // TODO Auto-generated method stub
     return null;
@@ -88,15 +78,14 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public List<ChildBindingPoint<?>> descendents(List<QualifiedName> names) {
+  public Stream<ChildBindingPoint<?>> descendents(List<QualifiedName> names) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ChildBindingPoint<?> child(QualifiedName name) {
-    // TODO Auto-generated method stub
-    return null;
+    return children.stream().filter(c -> c.name().equals(name)).findFirst().get();
   }
 
   @Override
@@ -106,15 +95,14 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public Expression initializeInputExpression() {
+  public BindingFunction initializeInputFunction() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public Expression initializeOutputExpression() {
+  public BindingFunction initializeOutputExpression() {
     // TODO Auto-generated method stub
     return null;
   }
-
 }

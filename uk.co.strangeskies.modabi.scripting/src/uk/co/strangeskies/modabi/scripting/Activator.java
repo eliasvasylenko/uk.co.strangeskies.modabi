@@ -29,14 +29,16 @@ import uk.co.strangeskies.modabi.SchemaManager;
 
 @Component
 public class Activator {
-	@Reference
-	ScriptEngineManager scriptEngineManager;
+  @Reference
+  ScriptEngineManager scriptEngineManager;
 
-	@Reference
-	SchemaManager schemaManager;
+  @Reference
+  SchemaManager schemaManager;
 
-	@Activate
-	public void activate() {
-		schemaManager.provisions().add(Provider.over(ScriptEngineManager.class, () -> scriptEngineManager));
-	}
+  @Activate
+  public void activate() {
+    schemaManager
+        .provisions()
+        .add(Provider.over(ScriptEngineManager.class, () -> scriptEngineManager));
+  }
 }

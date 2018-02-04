@@ -39,10 +39,6 @@ public interface NodeBuilder<E> {
 
   Optional<Boolean> getConcrete();
 
-  NodeBuilder<E> extensible(boolean extensible);
-
-  Optional<Boolean> getExtensible();
-
   NodeBuilder<E> inputInitialization(Expression expression);
 
   Expression getInputInitialization();

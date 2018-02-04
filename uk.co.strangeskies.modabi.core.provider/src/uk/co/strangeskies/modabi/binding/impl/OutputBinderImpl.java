@@ -18,28 +18,26 @@
  */
 package uk.co.strangeskies.modabi.binding.impl;
 
+import static java.lang.Thread.currentThread;
 import static java.nio.file.StandardOpenOption.WRITE;
-import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
-import static uk.co.strangeskies.modabi.binding.impl.BindingPointFuture.bindingPointFuture;
-import static uk.co.strangeskies.modabi.binding.impl.BindingPointFuture.outputBindingPointFuture;
-import static uk.co.strangeskies.modabi.binding.impl.OutputBindingFuture.writeBindingFuture;
-import static uk.co.strangeskies.modabi.binding.impl.StructuredDataFuture.forData;
-import static uk.co.strangeskies.modabi.binding.impl.StructuredDataFuture.forDataWriter;
+import static uk.co.strangeskies.modabi.DataFormats.getExtension;
+import static uk.co.strangeskies.modabi.Models.getBindingPoint;
+import static uk.co.strangeskies.modabi.Models.getOutputBindingPoint;
+import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
 
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
-import java.util.function.Predicate;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.OutputBinder;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.binding.BindingFuture;
-import uk.co.strangeskies.modabi.binding.BindingException;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
@@ -51,8 +49,8 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
   private final DataFormats formats;
   private final Object data;
 
-  private final BindingPointFuture<T> bindingPointFuture;
-  private final StructuredDataFuture<StructuredDataWriter> dataWriterFuture;
+  private final BindingPoint<T> bindingPoint;
+  private final StructuredDataWriter dataWriter;
 
   private ClassLoader classLoader;
 
@@ -60,29 +58,28 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
       BindingContextImpl context,
       DataFormats formats,
       Object data,
-      BindingPointFuture<T> bindingPointFuture,
-      StructuredDataFuture<StructuredDataWriter> dataWriterFuture,
+      BindingPoint<T> bindingPoint,
+      StructuredDataWriter dataWriter,
       ClassLoader classLoader) {
     this.context = context;
     this.formats = formats;
     this.data = data;
-    this.bindingPointFuture = bindingPointFuture;
-    this.dataWriterFuture = dataWriterFuture;
+    this.bindingPoint = bindingPoint;
+    this.dataWriter = dataWriter;
     this.classLoader = classLoader;
   }
 
   public static <T> OutputBinder<? super T> bind(
       BindingContextImpl context,
       DataFormats formats,
-      Model<Object> rootModel,
       T data) {
     return new OutputBinderImpl<>(
         context,
         formats,
         data,
-        bindingPointFuture(context, rootModel),
+        getBindingPoint(context.manager().schemata().getBaseSchema().rootModel()),
         null,
-        Thread.currentThread().getContextClassLoader());
+        currentThread().getContextClassLoader());
   }
 
   @Override
@@ -91,69 +88,52 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
         context.withProvider(provider),
         formats,
         data,
-        bindingPointFuture,
-        dataWriterFuture,
+        bindingPoint,
+        dataWriter,
         classLoader);
   }
 
   @Override
   public OutputBinderImpl<T> withClassLoader(ClassLoader classLoader) {
-    return new OutputBinderImpl<>(
-        context,
-        formats,
-        data,
-        bindingPointFuture,
-        dataWriterFuture,
-        classLoader);
+    return new OutputBinderImpl<>(context, formats, data, bindingPoint, dataWriter, classLoader);
   }
 
-  protected <U> OutputBinderImpl<U> with(BindingPointFuture<U> bindingPointFuture) {
-    return new OutputBinderImpl<>(
-        context,
-        formats,
-        data,
-        bindingPointFuture,
-        dataWriterFuture,
-        classLoader);
+  protected <U> OutputBinderImpl<U> with(BindingPoint<U> bindingPoint) {
+    return new OutputBinderImpl<>(context, formats, data, bindingPoint, dataWriter, classLoader);
   }
 
-  protected OutputBinderImpl<T> with(StructuredDataFuture<StructuredDataWriter> dataWriterFuture) {
-    return new OutputBinderImpl<>(
-        context,
-        formats,
-        data,
-        bindingPointFuture,
-        dataWriterFuture,
-        classLoader);
+  protected OutputBinderImpl<T> with(StructuredDataWriter dataWriter) {
+    return new OutputBinderImpl<>(context, formats, data, bindingPoint, dataWriter, classLoader);
   }
 
   protected OutputBinderImpl<T> with(
       String formatId,
-      ThrowingSupplier<WritableByteChannel, ?> output,
-      Predicate<DataFormat> formatPredicate,
-      boolean canRetry) {
-    return new OutputBinderImpl<T>(
-        context,
-        formats,
-        data,
-        bindingPointFuture,
-        forDataWriter(context, formats, formatId, output, formatPredicate, canRetry),
-        classLoader);
+      ThrowingSupplier<WritableByteChannel, ?> output) {
+    DataFormat format = formats.getFormat(formatId);
+    StructuredDataWriter dataWriter;
+    try {
+      dataWriter = format.writeData(output.get());
+    } catch (Exception e) {
+      throw new ModabiIOException(MESSAGES.cannotOpenResource(), e);
+    }
+
+    return new OutputBinderImpl<T>(context, formats, data, bindingPoint, dataWriter, classLoader);
   }
 
   @Override
   public <U> OutputBinder<U> from(BindingPoint<U> bindingPoint) {
-    return with(bindingPointFuture(context, bindingPoint));
+    return with(bindingPoint);
   }
 
   @Override
   public <U> OutputBinder<U> from(Model<U> model) {
-    return with(bindingPointFuture(context, model));
+    return with(getBindingPoint(model));
   }
 
   @Override
   public <U> OutputBinder<? super U> from(TypeToken<U> dataType) {
-    return with(outputBindingPointFuture(context, dataType));
+    return with(
+        getOutputBindingPoint(context.manager().schemata().getBaseSchema().rootModel(), dataType));
   }
 
   @SuppressWarnings("unchecked")
@@ -164,52 +144,40 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 
   @Override
   public <U> OutputBinder<U> from(QualifiedName modelName, TypeToken<U> type) {
-    return with(outputBindingPointFuture(context, modelName, type));
+    return with(getOutputBindingPoint(context.manager().schemata().models().get(modelName), type));
   }
 
   @Override
-  public BindingFuture<? extends T> to(Path output) {
-    return toResource(output.getFileName().toString(), () -> FileChannel.open(output, WRITE));
+  public Binding<? extends T> to(Path output) {
+    return to(getExtension(output.getFileName().toString()), () -> FileChannel.open(output, WRITE));
   }
 
   @Override
-  public BindingFuture<? extends T> to(URL output) {
+  public Binding<? extends T> to(URL output) {
     try {
-      return toResource(
-          output.getQuery(),
+      return to(
+          getExtension(output.getQuery()),
           () -> Channels.newChannel(output.openConnection().getOutputStream()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public BindingFuture<? extends T> toResource(
-      String resourceName,
-      ThrowingSupplier<WritableByteChannel, ?> output) {
-    int lastDot = resourceName.lastIndexOf(".");
-
-    if (lastDot == -1) {
-      throw new BindingException(MESSAGES.noFormatFoundFor(resourceName), context);
-    }
-
-    String extension = resourceName.substring(0, lastDot);
-    return to(extension, output);
-  }
-
   @Override
-  public BindingFuture<? extends T> to(
+  public Binding<? extends T> to(
       String extension,
       ThrowingSupplier<WritableByteChannel, ?> output) {
-    return with(extension, output, f -> f.getFileExtensions().anyMatch(extension::equals), false)
-        .getBindingFuture();
+    return with(extension, output).getBinding();
   }
 
   @Override
-  public BindingFuture<? extends T> to(StructuredDataWriter output) {
-    return with(forData(output)).getBindingFuture();
+  public Binding<? extends T> to(StructuredDataWriter output) {
+    return with(output).getBinding();
   }
 
-  private BindingFuture<? extends T> getBindingFuture() {
-    return writeBindingFuture(context, bindingPointFuture, dataWriterFuture, classLoader, data);
+  @SuppressWarnings("unchecked")
+  private Binding<? extends T> getBinding() {
+    BindingContextImpl context = this.context.withOutput(dataWriter);
+    return new NodeWriter().bind(context, bindingPoint, (T) data);
   }
 }

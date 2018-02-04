@@ -22,24 +22,47 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.reflection.token.ReifiedToken;
 
+/*
+ * TODO Can we get rid of this? Most of this central management isn't necessary.
+ * 
+ * We can provide SchemaBuilder/InputBinder/OutputBinder as bundle
+ * scoped, wiring up and providing only the things that bundle needs:
+ * 
+ * - providers/schemata/data-types can be wired in and out through services
+ * 
+ * - the build tool plugin already adds all the necessary package imports and
+ *   lists required/provided services
+ * 
+ * - the build tool can be extended to wire services through DS by generating XML,
+ *   this means a schema can have requirements on all the schemata / providers /
+ *   data-types they depend on with service filters on names (possibly versions).
+ *   this solves ordering!!!
+ *   
+ * - TODO can we do away with all the tedious futures crap?
+ * 
+ * - The above only solves ordering for building schema ... unless we somehow make
+ *   the bundle-scoped Schemata service instance wait for all the needed stuff to
+ *   resolve... can we do this with individual DS schemata service instances filtered
+ *   with a servicepermission to only be internal to the bundle? This doesn't even
+ *   need to be DS on second thoughts... but it would probably make it easier.
+ *   
+ * - TODO uses directive can be used on arbitrary provided capabilities!!!!! Put a
+ *   uses directive on the cap (probs either a Schema service or the current extender
+ *   pattern stuff)  
+ * 
+ * A bundle can add schemata to the Schemata service wired to it, but they will
+ * not be exposed outside. Is this okay? Are there use-cases for wanting to do
+ * that? No I don't think so, if a user wants to manually load or programmatically
+ * generate a schema they can share it through other means.
+ */
 public interface SchemaManager {
-  BaseSchema getBaseSchema();
-
-  MetaSchema getMetaSchema();
-
   Stream<Provider> getProviders();
 
-  Schemata registeredSchemata();
+  Schemata schemata();
 
-  Models registeredModels();
-
-  DataFormats registeredFormats();
+  DataFormats dataFormats();
 
   InputBinder<?> bindInput();
-
-  default InputBinder<Schema> bindSchema() {
-    return bindInput().to(getMetaSchema().getSchemaModel());
-  }
 
   <T> OutputBinder<? super T> bindOutput(T data);
 

@@ -60,10 +60,6 @@ public interface ProcessingExceptionMessages {
 
   String mustNotHaveData(BindingPoint<?> bindingPoint);
 
-  String noFormatFound();
-
-  String noFormatFoundFor(String id);
-
   String noProviderFound(TypeToken<?> type);
 
   <T> String mustBeOrdered(

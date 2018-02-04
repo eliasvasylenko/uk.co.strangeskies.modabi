@@ -26,7 +26,21 @@ public interface ChildBindingPoint<T> extends BindingPoint<T> {
    */
   boolean ordered();
 
+  /**
+   * If the binding point is extensible then it cannot also provide an
+   * {@link #override() override}. The actual exact model which is bound to the
+   * node is flexible, it may be any model which fully extends the {@link #model()
+   * model} of the binding point.
+   * 
+   * @return
+   */
+  boolean extensible();
+
   Node override();
+
+  BindingFunction inputExpression();
+
+  BindingFunction outputExpression();
 
   /**
    * The binding condition of a binding point describes if and when that point can

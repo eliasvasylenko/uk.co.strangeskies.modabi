@@ -25,13 +25,13 @@ import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATI
 
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 
 import mockit.Injectable;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.expression.impl.FunctionalExpressionCompilerImpl;
 import uk.co.strangeskies.modabi.impl.SchemaManagerService;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -56,7 +56,7 @@ public class SchemaBuildingTests {
 
     Property<Model<String>> daftModel = new IdentityProperty<>();
 
-    Schema schema = new SchemaBuilderImpl()
+    Schema schema = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl())
         .name(new QualifiedName("SillyBillies"))
         .addModel()
         .name(new QualifiedName("daft"))
@@ -64,20 +64,16 @@ public class SchemaBuildingTests {
         .addChildBindingPoint(
             c -> c
                 .name("kid")
-                .model(manager.getBaseSchema().stringModel())
+                .model(manager.schemata().getBaseSchema().stringModel())
                 .input(target().assign(result()))
                 .output(source()))
         .endNode()
         .endModel(daftModel::set)
         .create();
 
-    manager.registeredSchemata().add(schema);
+    manager.schemata().add(schema);
 
-    try {
-      System.out.println(manager.bindOutput("test-string").from(daftModel.get()).to(writer).get());
-    } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
-    }
+    System.out.println(manager.bindOutput("test-string").from(daftModel.get()).to(writer));
   }
 
   @Test

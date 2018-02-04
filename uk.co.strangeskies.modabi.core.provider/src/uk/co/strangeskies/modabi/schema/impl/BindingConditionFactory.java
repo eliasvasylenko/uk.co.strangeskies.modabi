@@ -11,19 +11,19 @@ import java.util.List;
 
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.AllOfCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.AnyOfCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.ForbiddenCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.IsBoundCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.IsNotBoundCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.OccurrencesCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.SortCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.SynchronizedCondition;
-import uk.co.strangeskies.modabi.impl.schema.bindingconditions.ValidationCondition;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.AllOfCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.AnyOfCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.ForbiddenCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.IsBoundCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.IsNotBoundCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.OccurrencesCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.SortCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.SynchronizedCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconditions.ValidationCondition;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingConditionFactory<T> {

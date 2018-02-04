@@ -18,6 +18,9 @@
  */
 package uk.co.strangeskies.modabi;
 
+import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
+
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 
 public class DataFormats extends NamedSet<String, DataFormat> {
@@ -28,5 +31,22 @@ public class DataFormats extends NamedSet<String, DataFormat> {
   @Override
   public void add(DataFormat element) {
     super.add(element);
+  }
+
+  public static String getExtension(String resourceName) {
+    int lastDot = resourceName.lastIndexOf(".");
+
+    if (lastDot == -1) {
+      throw new ModabiIOException(MESSAGES.missingFileExtension(resourceName));
+    }
+
+    return resourceName.substring(0, lastDot);
+  }
+
+  public DataFormat getFormat(String extension) {
+    return getAll()
+        .filter(f -> f.getFileExtensions().anyMatch(extension::equals))
+        .findFirst()
+        .orElseThrow(() -> new ModabiIOException(MESSAGES.noFormatFound(extension)));
   }
 }

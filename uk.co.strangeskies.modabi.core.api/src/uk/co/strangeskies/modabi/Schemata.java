@@ -19,12 +19,34 @@
 package uk.co.strangeskies.modabi;
 
 public class Schemata extends NamedSet<QualifiedName, Schema> {
-  public Schemata() {
-    super(Schema::qualifiedName);
+  private final BaseSchema baseSchema;
+  private final Models models;
+
+  public Schemata(BaseSchema baseSchema) {
+    super(Schema::name);
+    this.baseSchema = baseSchema;
+    this.models = new Models();
   }
 
   @Override
   public void add(Schema element) {
+    /*
+     * TODO if the set already contains any of the given schema names (inc. deps.)
+     * and they are not identity equivalent, then fail without changing the set.
+     * 
+     * TODO if the set of models already contains any of the model names provided by
+     * the new schemata or its dependencies, then fail without changing the set.
+     * 
+     * TODO add all the dependencies of the schemata
+     */
     super.add(element);
+  }
+
+  public Models models() {
+    return models;
+  }
+
+  public BaseSchema getBaseSchema() {
+    return baseSchema;
   }
 }

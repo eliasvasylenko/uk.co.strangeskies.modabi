@@ -3,22 +3,29 @@ package uk.co.strangeskies.modabi.schema.impl;
 import java.util.Objects;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.modabi.schema.impl.bindingfunctions.InputFunction;
+import uk.co.strangeskies.modabi.schema.impl.bindingfunctions.OutputFunction;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
   private final QualifiedName name;
 
+  private final boolean extensible;
   private final TypeToken<T> type;
   private final Model<? super T> model;
 
   private final boolean ordered;
   private final BindingCondition<T> condition;
+  private final BindingFunction input;
+  private final BindingFunction output;
 
   @SuppressWarnings("unchecked")
   protected ChildBindingPointImpl(ChildBindingPointBuilderImpl<?> configurator) {
@@ -26,6 +33,12 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .overrideChildren(ChildBindingPoint::name, ChildBindingPointBuilder::getName)
         .validateOverride(Objects::equals)
         .or(() -> configurator.getModel().get().name())
+        .get();
+
+    extensible = configurator
+        .overrideChildren(ChildBindingPoint::extensible, ChildBindingPointBuilder::getExtensible)
+        .validateOverride((a, b) -> true)
+        .orDefault(false)
         .get();
 
     ordered = configurator
@@ -43,15 +56,33 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .map(m -> (Model<? super T>) m)
         .orElse(null);
 
-    BindingConditionPrototype condition = configurator
+    BindingConditionPrototype conditionPrototype = configurator
         .overrideChildren(
-            b -> b.bindingCondition()::accept,
+            b -> b.bindingCondition().getPrototype(),
             ChildBindingPointBuilder::getBindingCondition)
         .orMerged(c -> BindingConditionPrototype.allOf(c))
         .or(v -> v.required())
         .get();
-    this.condition = new BindingConditionFactory<>(type, configurator.getExpressionCompiler())
-        .create(condition);
+    condition = new BindingConditionFactory<>(type, configurator.getExpressionCompiler())
+        .create(conditionPrototype);
+
+    // TODO deal with hasInput
+    Expression inputExpression = configurator
+        .overrideChildren(
+            b -> b.inputExpression().getExpression(),
+            ChildBindingPointBuilder::getInput)
+        .validateOverride((a, b) -> false)
+        .get();
+    input = new InputFunction(inputExpression, configurator.getExpressionCompiler());
+
+    // TODO deal with hasOutput
+    Expression outputExpression = configurator
+        .overrideChildren(
+            b -> b.outputExpression().getExpression(),
+            ChildBindingPointBuilder::getOutput)
+        .validateOverride((a, b) -> false)
+        .get();
+    output = new OutputFunction(outputExpression, configurator.getExpressionCompiler());
   }
 
   @Override
@@ -67,6 +98,11 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
   @Override
   public BindingCondition<T> bindingCondition() {
     return condition;
+  }
+
+  @Override
+  public boolean extensible() {
+    return extensible;
   }
 
   @Override
@@ -89,5 +125,15 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
   public Node parent() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public BindingFunction inputExpression() {
+    return input;
+  }
+
+  @Override
+  public BindingFunction outputExpression() {
+    return output;
   }
 }

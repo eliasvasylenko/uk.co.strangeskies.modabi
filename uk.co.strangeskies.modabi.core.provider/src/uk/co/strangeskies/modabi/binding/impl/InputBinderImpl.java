@@ -18,23 +18,26 @@
  */
 package uk.co.strangeskies.modabi.binding.impl;
 
+import static java.lang.Thread.currentThread;
 import static java.nio.channels.Channels.newChannel;
-import static uk.co.strangeskies.modabi.binding.impl.BindingPointFuture.bindingPointFuture;
-import static uk.co.strangeskies.modabi.binding.impl.BindingPointFuture.inputBindingPointFuture;
-import static uk.co.strangeskies.modabi.binding.impl.InputBindingFuture.readBindingFuture;
-import static uk.co.strangeskies.modabi.binding.impl.StructuredDataFuture.forData;
-import static uk.co.strangeskies.modabi.binding.impl.StructuredDataFuture.forDataReader;
+import static java.nio.file.StandardOpenOption.READ;
+import static uk.co.strangeskies.modabi.DataFormats.getExtension;
+import static uk.co.strangeskies.modabi.Models.getBindingPoint;
+import static uk.co.strangeskies.modabi.Models.getInputBindingPoint;
+import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
 
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.function.Predicate;
+import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
+import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.InputBinder;
 import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.binding.BindingFuture;
+import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
@@ -45,34 +48,31 @@ public class InputBinderImpl<T> implements InputBinder<T> {
   private final BindingContextImpl context;
   private final DataFormats formats;
 
-  private final BindingPointFuture<T> bindingPointFuture;
-  private final StructuredDataFuture<StructuredDataReader> dataReaderFuture;
+  private final BindingPoint<T> bindingPoint;
+  private final StructuredDataReader dataReader;
 
   private final ClassLoader classLoader;
 
   protected InputBinderImpl(
       BindingContextImpl context,
       DataFormats formats,
-      BindingPointFuture<T> bindingPointFuture,
-      StructuredDataFuture<StructuredDataReader> dataReaderFuture,
+      BindingPoint<T> bindingPoint,
+      StructuredDataReader dataReader,
       ClassLoader classLoader) {
     this.context = context;
     this.formats = formats;
-    this.bindingPointFuture = bindingPointFuture;
-    this.dataReaderFuture = dataReaderFuture;
+    this.bindingPoint = bindingPoint;
+    this.dataReader = dataReader;
     this.classLoader = classLoader;
   }
 
-  public static InputBinder<?> bind(
-      BindingContextImpl context,
-      DataFormats formats,
-      Model<Object> rootModel) {
+  public static InputBinder<?> bind(BindingContextImpl context, DataFormats formats) {
     return new InputBinderImpl<>(
         context,
         formats,
-        bindingPointFuture(context, rootModel),
+        getBindingPoint(context.manager().schemata().getBaseSchema().rootModel()),
         null,
-        Thread.currentThread().getContextClassLoader());
+        currentThread().getContextClassLoader());
   }
 
   @Override
@@ -80,115 +80,89 @@ public class InputBinderImpl<T> implements InputBinder<T> {
     return new InputBinderImpl<>(
         context.withProvider(provider),
         formats,
-        bindingPointFuture,
-        dataReaderFuture,
+        bindingPoint,
+        dataReader,
         classLoader);
   }
 
   @Override
   public InputBinderImpl<T> withClassLoader(ClassLoader classLoader) {
-    return new InputBinderImpl<>(
-        context,
-        formats,
-        bindingPointFuture,
-        dataReaderFuture,
-        classLoader);
+    return new InputBinderImpl<>(context, formats, bindingPoint, dataReader, classLoader);
   }
 
-  protected <U> InputBinderImpl<U> with(BindingPointFuture<U> bindingPointFuture) {
-    return new InputBinderImpl<>(
-        context,
-        formats,
-        bindingPointFuture,
-        dataReaderFuture,
-        classLoader);
+  protected <U> InputBinderImpl<U> with(BindingPoint<U> bindingPoint) {
+    return new InputBinderImpl<>(context, formats, bindingPoint, dataReader, classLoader);
   }
 
-  protected InputBinderImpl<T> with(StructuredDataFuture<StructuredDataReader> dataReaderFuture) {
-    return new InputBinderImpl<>(
-        context,
-        formats,
-        bindingPointFuture,
-        dataReaderFuture,
-        classLoader);
+  protected InputBinderImpl<T> with(StructuredDataReader dataReader) {
+    return new InputBinderImpl<>(context, formats, bindingPoint, dataReader, classLoader);
   }
 
   protected InputBinderImpl<T> with(
       String formatId,
-      ThrowingSupplier<ReadableByteChannel, ?> input,
-      Predicate<DataFormat> formatPredicate,
-      boolean canRetry) {
-    return new InputBinderImpl<>(
-        context,
-        formats,
-        bindingPointFuture,
-        forDataReader(context, formats, formatId, input, formatPredicate, canRetry),
-        classLoader);
+      ThrowingSupplier<ReadableByteChannel, ?> input) {
+    DataFormat format = formats.getFormat(formatId);
+    StructuredDataReader dataReader;
+    try {
+      dataReader = format.readData(input.get());
+    } catch (Exception e) {
+      throw new ModabiIOException(MESSAGES.cannotOpenResource(), e);
+    }
+
+    return new InputBinderImpl<>(context, formats, bindingPoint, dataReader, classLoader);
   }
 
   @Override
   public <U> InputBinder<U> to(BindingPoint<U> bindingPoint) {
-    return with(bindingPointFuture(context, bindingPoint));
+    return with(bindingPoint);
   }
 
   @Override
   public <U> InputBinder<U> to(Model<U> model) {
-    return with(bindingPointFuture(context, model));
+    return with(getBindingPoint(model));
   }
 
   @Override
   public <U> InputBinder<? extends U> to(TypeToken<U> type) {
-    return with(inputBindingPointFuture(context, type));
+    return with(
+        getInputBindingPoint(context.manager().schemata().getBaseSchema().rootModel(), type));
 
   }
 
   @Override
-  public InputBinder<?> to(QualifiedName name) {
-    return with(bindingPointFuture(context, name));
+  public InputBinder<?> to(QualifiedName modelName) {
+    return with(getBindingPoint(context.manager().schemata().models().get(modelName)));
   }
 
   @Override
-  public <U> InputBinder<U> to(QualifiedName name, TypeToken<U> type) {
-    return with(inputBindingPointFuture(context, name, type));
+  public <U> InputBinder<U> to(QualifiedName modelName, TypeToken<U> type) {
+    return with(getInputBindingPoint(context.manager().schemata().models().get(modelName), type));
   }
 
   @Override
-  public BindingFuture<? extends T> from(URL input) {
-    return fromResource(input.getQuery(), () -> newChannel(input.openStream()));
-  }
-
-  public BindingFuture<? extends T> fromResource(
-      String resourceName,
-      ThrowingSupplier<ReadableByteChannel, ?> output) {
-    int lastDot = resourceName.lastIndexOf(".");
-
-    if (lastDot == -1) {
-      return from(output);
-    }
-
-    String extension = resourceName.substring(0, lastDot);
-    return from(extension, output);
+  public Binding<? extends T> from(Path input) {
+    return from(getExtension(input.getFileName().toString()), () -> FileChannel.open(input, READ));
   }
 
   @Override
-  public BindingFuture<? extends T> from(StructuredDataReader dataReader) {
-    return with(forData(dataReader)).getBindingFuture();
+  public Binding<? extends T> from(URL input) {
+    return from(getExtension(input.getQuery()), () -> newChannel(input.openStream()));
   }
 
   @Override
-  public BindingFuture<? extends T> from(ThrowingSupplier<ReadableByteChannel, ?> input) {
-    return with(null, input, f -> true, true).getBindingFuture();
+  public Binding<? extends T> from(StructuredDataReader dataReader) {
+    return with(dataReader).getBinding();
   }
 
   @Override
-  public BindingFuture<? extends T> from(
+  public Binding<? extends T> from(
       String extension,
       ThrowingSupplier<ReadableByteChannel, ?> input) {
-    return with(extension, input, f -> f.getFileExtensions().anyMatch(extension::equals), false)
-        .getBindingFuture();
+    return with(extension, input).getBinding();
   }
 
-  private BindingFuture<? extends T> getBindingFuture() {
-    return readBindingFuture(context, bindingPointFuture, dataReaderFuture, classLoader);
+  private Binding<? extends T> getBinding() {
+    BindingContextImpl context = this.context.withInput(dataReader);
+    return new NodeReader<T>().bind(context, bindingPoint);
   }
 }

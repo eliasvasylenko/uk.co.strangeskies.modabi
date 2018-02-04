@@ -15,13 +15,13 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl.OverriddenNode;
+import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelBuilderImpl<T> implements ModelBuilder<T> {

@@ -19,28 +19,20 @@
 package uk.co.strangeskies.modabi;
 
 import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
-import static uk.co.strangeskies.observable.Observable.concat;
-import static uk.co.strangeskies.observable.Observable.of;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import uk.co.strangeskies.observable.HotObservable;
-import uk.co.strangeskies.observable.Observable;
 
 public abstract class NamedSet<N, T> {
   private final Function<T, N> namingFunction;
   private final Map<N, T> elements;
-  private final HotObservable<N> nameObservable;
 
   protected NamedSet(Function<T, N> namingFunction) {
     this.namingFunction = namingFunction;
     this.elements = new LinkedHashMap<>();
-    this.nameObservable = new HotObservable<>();
   }
 
   protected Object getMutex() {
@@ -53,7 +45,6 @@ public abstract class NamedSet<N, T> {
       if (elements.containsKey(name))
         throw new ModabiException(MESSAGES.cannotAcceptDuplicate(name));
       elements.put(name, element);
-      nameObservable.next(name);
     }
   }
 
@@ -84,12 +75,6 @@ public abstract class NamedSet<N, T> {
     }
   }
 
-  public Observable<N> getAllFutureNames() {
-    synchronized (getMutex()) {
-      return concat(of(elements.keySet()).requestUnbounded(), nameObservable).requestUnbounded();
-    }
-  }
-
   public boolean contains(T element) {
     synchronized (getMutex()) {
       return containsName(namingFunction.apply(element));
@@ -106,14 +91,6 @@ public abstract class NamedSet<N, T> {
     synchronized (getMutex()) {
       return new ArrayList<>(elements.values()).stream();
     }
-  }
-
-  public CompletableFuture<T> getFuture(N name) {
-    return getAllFuture().filter(t -> getName(t).equals(name)).getNext();
-  }
-
-  public Observable<T> getAllFuture() {
-    return getAllFutureNames().map(this::get);
   }
 
   @Override

@@ -24,6 +24,10 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   Optional<Boolean> getOrdered();
 
+  ChildBindingPointBuilder<E> extensible(boolean extensible);
+
+  Optional<Boolean> getExtensible();
+
   ChildBindingPointBuilder<E> bindingCondition(BindingConditionPrototype condition);
 
   Optional<BindingConditionPrototype> getBindingCondition();
@@ -32,7 +36,7 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   ChildBindingPointBuilder<E> input(Expression expression);
 
-  Expression getInput();
+  Optional<Expression> getInput();
 
   boolean hasNoInput();
 
@@ -40,7 +44,7 @@ public interface ChildBindingPointBuilder<E extends NodeBuilder<?>> {
 
   ChildBindingPointBuilder<E> noOutput();
 
-  Expression getOutput();
+  Optional<Expression> getOutput();
 
   boolean hasNoOutput();
 

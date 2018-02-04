@@ -28,14 +28,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.DataFormats;
 import uk.co.strangeskies.modabi.InputBinder;
-import uk.co.strangeskies.modabi.MetaSchema;
-import uk.co.strangeskies.modabi.Models;
 import uk.co.strangeskies.modabi.OutputBinder;
 import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.SchemaManager;
 import uk.co.strangeskies.modabi.Schemata;
@@ -45,8 +41,8 @@ import uk.co.strangeskies.modabi.binding.impl.InputBinderImpl;
 import uk.co.strangeskies.modabi.binding.impl.InputProviders;
 import uk.co.strangeskies.modabi.binding.impl.OutputBinderImpl;
 import uk.co.strangeskies.modabi.binding.impl.OutputProviders;
+import uk.co.strangeskies.modabi.expression.impl.FunctionalExpressionCompilerImpl;
 import uk.co.strangeskies.modabi.io.structured.DataFormat;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 
 /**
@@ -68,13 +64,6 @@ import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
  */
 @Component(immediate = true)
 public class SchemaManagerService implements SchemaManager {
-  class ModelsImpl extends Models {
-    @Override
-    public void add(Model<?> element) {
-      super.add(element);
-    }
-  }
-
   class DataFormatsImpl extends DataFormats {
     @Override
     public void add(DataFormat element) {
@@ -94,16 +83,20 @@ public class SchemaManagerService implements SchemaManager {
   /*
    * Schemata, models, and data types registered to this manager.
    */
-  private final Schemata registeredSchemata;
-  private final ModelsImpl registeredModels;
+  private final Schemata schemata;
 
   /*
    * Data formats available for binding and unbinding
    */
   private final DataFormatsImpl dataFormats;
 
+  // TODO constructor injection
   public SchemaManagerService() {
-    this(SchemaBuilderImpl::new);
+    this(new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl()));
+  }
+
+  private SchemaManagerService(SchemaBuilderImpl schemaBuilder) {
+    this(() -> schemaBuilder);
   }
 
   public SchemaManagerService(Supplier<SchemaBuilder> schemaBuilder /* TODO , Log log */) {
@@ -116,13 +109,9 @@ public class SchemaManagerService implements SchemaManager {
     this.schemaBuilder = schemaBuilder;
     this.coreSchemata = coreSchemata;
 
-    registeredSchemata = new Schemata();
-    registeredModels = new ModelsImpl();
+    schemata = new Schemata(coreSchemata.baseSchema());
     dataFormats = new DataFormatsImpl();
     providers = new HashSet<>();
-
-    registeredSchemata.getAllFuture().weakReference(this).observe(
-        m -> m.owner().registerSchema(m.message()));
 
     /*
      * Register schema builder provider
@@ -136,62 +125,30 @@ public class SchemaManagerService implements SchemaManager {
     new InputProviders().getProviders().forEach(providers::add);
     new OutputProviders().getProviders().forEach(providers::add);
 
-    registerSchema(coreSchemata.metaSchema());
+    schemata.add(coreSchemata.metaSchema());
   }
 
   public BindingContextImpl getProcessingContext() {
     return new BindingContextImpl(this);
   }
 
-  private void registerSchema(Schema schema) {
-    try {
-      schema.dependencies().forEach(this::registerSchema);
-      schema.models().forEach(this::registerModel);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void registerModel(Model<?> model) {
-    synchronized (registeredModels) {
-      registeredModels.add(model);
-    }
-  }
-
-  @Override
-  public MetaSchema getMetaSchema() {
-    return coreSchemata.metaSchema();
-  }
-
-  @Override
-  public BaseSchema getBaseSchema() {
-    return coreSchemata.baseSchema();
-  }
-
   @Override
   public InputBinder<?> bindInput() {
-    return InputBinderImpl
-        .bind(getProcessingContext(), registeredFormats(), getBaseSchema().rootModel());
+    return InputBinderImpl.bind(getProcessingContext(), dataFormats());
   }
 
   @Override
   public <T> OutputBinder<? super T> bindOutput(T data) {
-    return OutputBinderImpl
-        .bind(getProcessingContext(), registeredFormats(), getBaseSchema().rootModel(), data);
+    return OutputBinderImpl.bind(getProcessingContext(), dataFormats(), data);
   }
 
   @Override
-  public Schemata registeredSchemata() {
-    return registeredSchemata;
+  public Schemata schemata() {
+    return schemata;
   }
 
   @Override
-  public Models registeredModels() {
-    return registeredModels;
-  }
-
-  @Override
-  public DataFormats registeredFormats() {
+  public DataFormats dataFormats() {
     return dataFormats;
   }
 

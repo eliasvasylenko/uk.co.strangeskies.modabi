@@ -39,8 +39,20 @@ import java.util.List;
 /**
  * Expressions are designed to be decoupled from the mechanism of evaluation or
  * compilation as there are a number of different strategies which could be
- * employed with various performance and API tradeoffs. An example of such a
- * strategy is provided by {@link FunctionalExpressionCompiler}.
+ * employed with various performance and API tradeoffs.
+ * <p>
+ * Typically expressions are evaluated or compiled according to the Java
+ * language specification, when dealing with e.g. override resolution and type
+ * inference. Where forms of expressions don't match one-to-one with forms
+ * allowed by the Java language specification, differences in behavior should be
+ * documented in {@link ExpressionVisitor} on the relevant method.
+ * <p>
+ * Compiler implementations may choose to provide information about the types
+ * which were inferred during compilation of an expression.
+ * <p>
+ * The {@link #evaluate(ExpressionVisitor)} method of an expression should only
+ * invoke methods on the given visitor and should otherwise be idempotent and
+ * have no side-effects.
  * 
  * @author Elias N Vasylenko
  */

@@ -27,7 +27,6 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
-import uk.co.strangeskies.modabi.binding.BindingFuture;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
@@ -53,13 +52,13 @@ public interface OutputBinder<T> {
     return from(modelName, TypeToken.forClass(type));
   }
 
-  BindingFuture<? extends T> to(StructuredDataWriter output);
+  Binding<? extends T> to(StructuredDataWriter output);
 
   // BindingFuture<T> to(RewritableStructuredData output);
 
-  BindingFuture<? extends T> to(Path output);
+  Binding<? extends T> to(Path output);
 
-  default BindingFuture<? extends T> to(URI output) {
+  default Binding<? extends T> to(URI output) {
     try {
       return to(output.toURL());
     } catch (MalformedURLException e) {
@@ -67,9 +66,9 @@ public interface OutputBinder<T> {
     }
   }
 
-  BindingFuture<? extends T> to(URL output);
+  Binding<? extends T> to(URL output);
 
-  BindingFuture<? extends T> to(String extension, ThrowingSupplier<WritableByteChannel, ?> output);
+  Binding<? extends T> to(String extension, ThrowingSupplier<WritableByteChannel, ?> output);
 
   // Tnbinder<T> updatable();
 

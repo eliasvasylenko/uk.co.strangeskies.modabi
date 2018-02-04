@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.text.parsing.Parser;
 
 /**
@@ -42,13 +41,11 @@ import uk.co.strangeskies.text.parsing.Parser;
 public interface Node {
   boolean concrete();
 
-  boolean extensible();
-
   Parser<?> parser();
 
-  Expression initializeInputExpression();
+  BindingFunction initializeInputFunction();
 
-  Expression initializeOutputExpression();
+  BindingFunction initializeOutputExpression();
 
   /**
    * @return the set of all <em>direct</em> base nodes, i.e. excluding those which
@@ -58,9 +55,9 @@ public interface Node {
 
   Stream<ChildBindingPoint<?>> children();
 
-  List<ChildBindingPoint<?>> descendents(List<QualifiedName> names);
+  Stream<ChildBindingPoint<?>> descendents(List<QualifiedName> names);
 
-  default List<ChildBindingPoint<?>> descendents(QualifiedName... names) {
+  default Stream<ChildBindingPoint<?>> descendents(QualifiedName... names) {
     return descendents(asList(names));
   }
 

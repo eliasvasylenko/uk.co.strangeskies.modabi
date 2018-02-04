@@ -67,8 +67,10 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
 
       List<Model<? extends T>> derivedModelList = subModelList == null
           ? new ArrayList<>()
-          : subModelList.stream().map(m -> (Model<? extends T>) m).collect(
-              Collectors.toCollection(ArrayList::new));
+          : subModelList
+              .stream()
+              .map(m -> (Model<? extends T>) m)
+              .collect(Collectors.toCollection(ArrayList::new));
 
       return derivedModelList.stream();
     }

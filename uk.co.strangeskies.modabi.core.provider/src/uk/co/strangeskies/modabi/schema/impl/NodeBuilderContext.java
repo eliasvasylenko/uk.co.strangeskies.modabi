@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Node;
 
 public interface NodeBuilderContext<E> {

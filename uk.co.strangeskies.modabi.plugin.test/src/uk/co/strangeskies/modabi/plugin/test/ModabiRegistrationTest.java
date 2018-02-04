@@ -159,7 +159,7 @@ public class ModabiRegistrationTest {
 		System.out.println();
 		System.out.println(getService(SchemaManager.class).registeredModels());
 		System.out.println(getService(SchemaManager.class).registeredTypes());
-		System.out.println(getService(SchemaManager.class).registeredSchemata());
+		System.out.println(getService(SchemaManager.class).schemata());
 	}
 
 	@Test // (timeout = TIMEOUT_MILLISECONDS)

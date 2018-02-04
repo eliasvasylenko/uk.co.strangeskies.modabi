@@ -13,14 +13,14 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointBuilderContext;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl.Child;
+import uk.co.strangeskies.modabi.schema.impl.utilities.ChildBindingPointBuilderContext;
+import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -30,7 +30,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
   private final NodeBuilderContext<E> context;
 
   private final Boolean concrete;
-  private final Boolean extensible;
   private final Object provided;
 
   private final Expression inputInitialization;
@@ -42,7 +41,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     this.context = context;
 
     this.concrete = null;
-    this.extensible = null;
     this.provided = null;
 
     this.inputInitialization = null;
@@ -54,7 +52,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
   public NodeBuilderImpl(
       NodeBuilderContext<E> context,
       Boolean concrete,
-      Boolean extensible,
       Object provided,
       Expression inputExpression,
       Expression outputExpression,
@@ -62,7 +59,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     this.context = context;
 
     this.concrete = concrete;
-    this.extensible = extensible;
     this.provided = provided;
 
     this.inputInitialization = inputExpression;
@@ -81,7 +77,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     return new NodeBuilderImpl<>(
         context,
         concrete,
-        extensible,
         provided,
         inputInitialization,
         outputInitialization,
@@ -98,7 +93,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     return new NodeBuilderImpl<>(
         context,
         concrete,
-        extensible,
         provided,
         inputInitialization,
         outputInitialization,
@@ -162,7 +156,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
             return new NodeBuilderImpl<>(
                 context,
                 concrete,
-                extensible,
                 provided,
                 inputInitialization,
                 outputInitialization,
@@ -249,7 +242,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     return new NodeBuilderImpl<>(
         context,
         concrete,
-        extensible,
         provided,
         inputInitialization,
         outputInitialization,
@@ -262,23 +254,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
   }
 
   @Override
-  public NodeBuilder<E> extensible(boolean extensible) {
-    return new NodeBuilderImpl<>(
-        context,
-        concrete,
-        extensible,
-        provided,
-        inputInitialization,
-        outputInitialization,
-        children);
-  }
-
-  @Override
-  public Optional<Boolean> getExtensible() {
-    return Optional.ofNullable(extensible);
-  }
-
-  @Override
   public E endNode() {
     return context.endNode(this);
   }
@@ -288,7 +263,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     return new NodeBuilderImpl<>(
         context,
         concrete,
-        extensible,
         provided,
         inputInitialization,
         outputInitialization,

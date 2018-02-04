@@ -12,6 +12,11 @@ import uk.co.strangeskies.modabi.binding.BindingContext;
  * 
  * @author Elias N Vasylenko
  */
-public interface BindingCondition<T> extends BindingConditionPrototype {
+public interface BindingCondition<T> {
+  /**
+   * @return The prototype from which this condition was compiled
+   */
+  BindingConditionPrototype getPrototype();
+  
   BindingConditionEvaluation<T> forState(BindingContext state);
 }

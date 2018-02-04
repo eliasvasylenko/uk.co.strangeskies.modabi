@@ -27,7 +27,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
-import uk.co.strangeskies.modabi.binding.BindingFuture;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
 import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
@@ -53,15 +52,13 @@ public interface InputBinder<T> {
     return to(modelName, TypeToken.forClass(type));
   }
 
-  BindingFuture<? extends T> from(StructuredDataReader input);
+  Binding<? extends T> from(StructuredDataReader input);
 
   // BindingFuture<T> from(RewritableStructuredData input);
 
-  default BindingFuture<? extends T> from(Path input) {
-    return from(input.toUri());
-  }
+  Binding<? extends T> from(Path input);
 
-  default BindingFuture<? extends T> from(URI input) {
+  default Binding<? extends T> from(URI input) {
     try {
       return from(input.toURL());
     } catch (MalformedURLException e) {
@@ -69,11 +66,9 @@ public interface InputBinder<T> {
     }
   }
 
-  BindingFuture<? extends T> from(URL input);
+  Binding<? extends T> from(URL input);
 
-  BindingFuture<? extends T> from(ThrowingSupplier<ReadableByteChannel, ?> input);
-
-  BindingFuture<? extends T> from(String extension, ThrowingSupplier<ReadableByteChannel, ?> input);
+  Binding<? extends T> from(String extension, ThrowingSupplier<ReadableByteChannel, ?> input);
 
   // Binder<T> updatable();
 

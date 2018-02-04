@@ -23,10 +23,12 @@ import java.util.stream.Stream;
 import org.osgi.service.component.annotations.Component;
 
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.expression.CaptureFunction;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.expression.functional.FunctionCapture;
+import uk.co.strangeskies.modabi.expression.functional.FunctionImplementation;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.token.ExecutableToken;
 import uk.co.strangeskies.reflection.token.FieldToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -34,12 +36,14 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 @Component
 public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCompiler {
   @Override
-  public <T> T compile(Expression expression, TypeToken<T> implementationType) {
+  public <T> FunctionImplementation<T> compile(
+      Expression expression,
+      TypeToken<T> implementationType) {
     return compile(expression, implementationType, forClass(void.class)).capture(null);
   }
 
   @Override
-  public <T, C> CaptureFunction<C, T> compile(
+  public <T, C> FunctionCapture<C, T> compile(
       Expression expression,
       TypeToken<T> implementationType,
       TypeToken<C> captureScope) {
@@ -74,9 +78,9 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
      * TODO so now we have the return type and the compiled steps...
      */
 
-    return new CaptureFunction<C, T>() {
+    return new FunctionCapture<C, T>() {
       @Override
-      public T capture(C capture) {
+      public FunctionImplementation<T> capture(C capture) {
         @SuppressWarnings("unchecked")
         T result = (T) newProxyInstance(
             implementationType.getErasedType().getClassLoader(),
@@ -90,11 +94,52 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
               return context.pop();
             });
 
-        return result;
+        return new FunctionImplementation<T>() {
+          @Override
+          public T getInstance() {
+            return result;
+          }
+
+          @Override
+          public BoundSet getBounds() {
+            // TODO Auto-generated method stub
+            return null;
+          }
+
+          @Override
+          public TypeToken<T> getResolvedFunctionType() {
+            // TODO Auto-generated method stub
+            return null;
+          }
+
+          @Override
+          public TypeToken<T> getFunctionType() {
+            // TODO Auto-generated method stub
+            return null;
+          }
+        };
       }
 
       @Override
-      public TypeToken<T> getExactType() {
+      public BoundSet getBounds() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public TypeToken<C> getCaptureType() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public TypeToken<T> getFunctionType() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public TypeToken<T> getResolvedFunctionType() {
         // TODO Auto-generated method stub
         return null;
       }

@@ -26,7 +26,7 @@ import uk.co.strangeskies.modabi.schema.Model;
 public interface Schema {
   Namespace MODABI_NAMESPACE = new Namespace(Schema.class.getPackage(), LocalDate.of(2014, 1, 1));
 
-  QualifiedName qualifiedName();
+  QualifiedName name();
 
   Stream<Schema> dependencies();
 

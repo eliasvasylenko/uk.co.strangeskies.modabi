@@ -228,7 +228,7 @@ public class ModabiRegistration {
       List<AttributeProperty<?>> properties = new ArrayList<>();
 
       properties.add(
-          AttributeProperty.untyped(SCHEMA, schemaFuture.resolve().qualifiedName().toString()));
+          AttributeProperty.untyped(SCHEMA, schemaFuture.resolve().name().toString()));
       properties.add(AttributeProperty.untyped(RESOURCE, providedSchemata.get(schemaFuture)));
 
       providedCapabilities.add(new Attribute(Schema.class.getPackage().getName(), properties));

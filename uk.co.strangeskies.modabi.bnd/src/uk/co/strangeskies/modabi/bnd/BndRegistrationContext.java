@@ -78,7 +78,7 @@ final class BndRegistrationContext implements RegistrationContext {
 
     this.manager = manager;
 
-    manager.registeredFormats().add(format);
+    manager.dataFormats().add(format);
   }
 
   @Override

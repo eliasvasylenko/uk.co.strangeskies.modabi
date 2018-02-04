@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static java.lang.Thread.currentThread;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -32,7 +34,7 @@ import org.osgi.service.component.annotations.Reference;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.property.Property;
@@ -46,10 +48,19 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   private final Set<Schema> dependencySet;
   private Imports imports;
 
+  // TODO constructor injection
   @Reference
   private FunctionalExpressionCompiler expressionCompiler;
 
-  public SchemaBuilderImpl() {
+  public SchemaBuilderImpl(FunctionalExpressionCompiler expressionCompiler) {
+    this.expressionCompiler = expressionCompiler;
+
+    modelSet = new LinkedHashSet<>();
+    dependencySet = new LinkedHashSet<>();
+    imports = Imports.empty(Thread.currentThread().getContextClassLoader());
+  }
+
+  SchemaBuilderImpl() {
     modelSet = new LinkedHashSet<>();
     dependencySet = new LinkedHashSet<>();
     imports = Imports.empty(Thread.currentThread().getContextClassLoader());
@@ -75,7 +86,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
     return new Schema() {
       @Override
-      public QualifiedName qualifiedName() {
+      public QualifiedName name() {
         return qualifiedName;
       }
 
@@ -99,18 +110,18 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
         Schema other = (Schema) obj;
 
-        return qualifiedName().equals(other.qualifiedName()) && models().equals(other.models())
+        return name().equals(other.name()) && models().equals(other.models())
             && dependencies().equals(other.dependencies());
       }
 
       @Override
       public int hashCode() {
-        return Objects.hash(qualifiedName(), models(), dependencies());
+        return Objects.hash(name(), models(), dependencies());
       }
 
       @Override
       public String toString() {
-        return qualifiedName().toString();
+        return name().toString();
       }
     };
   }
@@ -132,9 +143,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder imports(Collection<? extends Class<?>> imports) {
-    this.imports = Imports
-        .empty(Thread.currentThread().getContextClassLoader())
-        .withImports(imports);
+    this.imports = Imports.empty(currentThread().getContextClassLoader()).withImports(imports);
 
     return this;
   }

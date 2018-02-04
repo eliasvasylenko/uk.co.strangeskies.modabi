@@ -48,12 +48,25 @@
         input="">
         <property model="double" />
       </bind>
+
+      <!-- an alternative to the initialize input section -->
+      <bind
+        model="void"
+        input="new Isotope($sai:massNumber, $sai:mass, $sai:abundance)" />
     </model>
 
+    <!-- Skip the 'dataType' attribute to say that it is inferred (and resolved) 
+      automatically based on the sequence of child binding points. The problem 
+      with this is that output of binding points can't be resolved before knowing 
+      this... damn... -->
     <model
       name="sai:element"
-      dataType="Element"
       initializeInput="new Element()">
+
+      <!-- an alternative to the initialize input section -->
+      <bind
+        model="void"
+        input="new Element()" />
 
       <bind
         name="sai:atomicNumber"
@@ -74,20 +87,24 @@
       <bind
         model="sai:isotope"
         condition="occurrences(Range.from(0))"
-        output=".getIsotopes()..."
-        input=".=withIsotope($)" />
+        output=".getIsotopes()[]"
+        input="target = target.withIsotope($)" />
 
       <bind
         name="sai:group"
         model="enum"
         dataType="Group"
-        input=".=withGroup($)" />
+        input="taret = target.withGroup($)" />
     </model>
 
     <model
       name="sai:periodicTable"
-      dataType="PeriodicTable"
-      initializeInput="new">
+      initializeInput="new PeriodicTable()">
+
+      <!-- an alternative to the initialize input section -->
+      <bind
+        model="void"
+        input="new PeriodicTable()" />
 
       <bind
         name="sai:name"
@@ -95,8 +112,8 @@
 
       <bind
         model="sai:element"
-        output=".getElements()..."
-        input=".getElements().add($)">
+        output="source.getElements()[]"
+        input="target.getElements().add($)">
 
         <condition>
           <occurrences range="0.." />

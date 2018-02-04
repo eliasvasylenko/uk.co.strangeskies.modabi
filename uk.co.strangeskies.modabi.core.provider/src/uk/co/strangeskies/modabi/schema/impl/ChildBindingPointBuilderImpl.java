@@ -11,9 +11,7 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.impl.schema.utilities.ChildBindingPointBuilderContext;
-import uk.co.strangeskies.modabi.impl.schema.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
@@ -21,6 +19,8 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl.OverriddenNode;
+import uk.co.strangeskies.modabi.schema.impl.utilities.ChildBindingPointBuilderContext;
+import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -31,6 +31,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   private final ChildBindingPointBuilderContext<E> context;
 
   private final QualifiedName name;
+
+  private final Boolean extensible;
   private final Model<?> model;
   private final TypeToken<?> type;
 
@@ -45,8 +47,11 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   public ChildBindingPointBuilderImpl(ChildBindingPointBuilderContext<E> context) {
     this.context = context;
     this.name = null;
+
+    this.extensible = null;
     this.model = null;
     this.type = null;
+
     this.input = null;
     this.output = null;
     this.bindingCondition = null;
@@ -57,6 +62,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   public ChildBindingPointBuilderImpl(
       ChildBindingPointBuilderContext<E> context,
       QualifiedName name,
+      Boolean extensible,
       Model<?> model,
       TypeToken<?> type,
       Expression inputExpression,
@@ -66,6 +72,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
       OverriddenNode overriddenNode) {
     this.context = context;
     this.name = name;
+    this.extensible = extensible;
     this.model = model;
     this.type = type;
     this.input = inputExpression;
@@ -93,6 +100,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
         model,
         type,
         input,
@@ -108,8 +116,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   }
 
   @Override
-  public Expression getInput() {
-    return hasNoInput() ? null : input;
+  public Optional<Expression> getInput() {
+    return hasNoInput() ? Optional.empty() : Optional.ofNullable(input);
   }
 
   @Override
@@ -122,6 +130,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
         model,
         type,
         input,
@@ -137,8 +146,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   }
 
   @Override
-  public Expression getOutput() {
-    return hasNoOutput() ? null : output;
+  public Optional<Expression> getOutput() {
+    return hasNoOutput() ? Optional.empty() : Optional.ofNullable(output);
   }
 
   protected FunctionalExpressionCompiler getExpressionCompiler() {
@@ -160,6 +169,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
         model,
         type,
         input,
@@ -179,6 +189,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
         model,
         type,
         input,
@@ -208,6 +219,27 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
+        model,
+        type,
+        input,
+        output,
+        bindingCondition,
+        ordered,
+        overriddenNode);
+  }
+
+  @Override
+  public Optional<Boolean> getExtensible() {
+    return Optional.ofNullable(extensible);
+  }
+
+  @Override
+  public ChildBindingPointBuilder<E> extensible(boolean extensible) {
+    return new ChildBindingPointBuilderImpl<>(
+        context,
+        name,
+        extensible,
         model,
         type,
         input,
@@ -241,6 +273,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
         model,
         type,
         input,
@@ -255,6 +288,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return new ChildBindingPointBuilderImpl<>(
         context,
         name,
+        extensible,
         model,
         type,
         input,
@@ -290,6 +324,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         return new ChildBindingPointBuilderImpl<>(
             context,
             name,
+            extensible,
             model,
             type,
             input,

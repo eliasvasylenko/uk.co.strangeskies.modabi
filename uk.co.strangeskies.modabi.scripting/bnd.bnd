@@ -7,11 +7,15 @@ Bundle-Description: \
 -runee: JavaSE-1.8
 
 -buildpath: \
-	${ss;utilities},\
-	${ss;text},\
-	${ss;reflection},\
-	${ss;mathematics},\
-	${mdb;core.api}
+	uk.co.strangeskies.collections,\
+	uk.co.strangeskies.observable,\
+	uk.co.strangeskies.collections.observable,\
+	uk.co.strangeskies.utilities,\
+	uk.co.strangeskies.text,\
+	uk.co.strangeskies.reflection,\
+	uk.co.strangeskies.reflection.token,\
+	uk.co.strangeskies.mathematics,\
+	uk.co.strangeskies.modabi.core.api
 
 Import-Package: \
 	javax.script,\

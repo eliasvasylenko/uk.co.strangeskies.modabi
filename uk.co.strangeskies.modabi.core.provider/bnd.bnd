@@ -40,7 +40,7 @@ Export-Package: \
 	uk.co.strangeskies.modabi.binding.impl,\
 	uk.co.strangeskies.modabi.impl.schema.old,\
 	uk.co.strangeskies.modabi.impl.schema.building,\
-	uk.co.strangeskies.modabi.impl.schema.utilities
+	uk.co.strangeskies.modabi.schema.impl.utilities
 
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=uk.co.strangeskies.modabi.core.provider)',\

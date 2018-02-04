@@ -18,19 +18,19 @@
  */
 package uk.co.strangeskies.modabi.scripting;
 
-import uk.co.strangeskies.reflection.Reified;
+import uk.co.strangeskies.reflection.token.ReifiedToken;
 
-public interface ScriptObject<T> extends Reified<ScriptObject<T>> {
-	String getLanguage();
+public interface ScriptObject<T> extends ReifiedToken<ScriptObject<T>> {
+  String getLanguage();
 
-	String getObjectName();
+  String getObjectName();
 
-	String getScript();
+  String getScript();
 
-	String getResource();
+  String getResource();
 
-	@SuppressWarnings("unchecked")
-	default T cast() {
-		return (T) this;
-	}
+  @SuppressWarnings("unchecked")
+  default T cast() {
+    return (T) this;
+  }
 }

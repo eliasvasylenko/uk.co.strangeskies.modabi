@@ -1,185 +1,140 @@
 <?xml version="1.0" ?>
 <schema
-	xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
-	name="ScriptingSchema">
+  xmlns="http://modabi.strangeskies.co.uk/2014-01-01/"
+  name="ScriptingSchema">
 
-	<dependencies>
-		BaseSchema
-	</dependencies>
+  <dependencies>
+    BaseSchema
+  </dependencies>
 
-	<imports>
-		java.lang.Object,
+  <imports>
+    java.lang.Object,
 
-		javax.script.ScriptEngineManager,
-		javax.script.ScriptEngine,
-		javax.script.Invocable,
+    javax.script.ScriptEngineManager,
+    javax.script.ScriptEngine,
+    javax.script.Invocable,
 
-		uk.co.strangeskies.reflection.token.TypeToken,
-		uk.co.strangeskies.reflection.token.TypeToken.Infer,
+    uk.co.strangeskies.reflection.token.TypeToken,
+    uk.co.strangeskies.reflection.token.TypeToken.Infer,
 
-		uk.co.strangeskies.modabi.scripting.ScriptObject,
-		uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder,
-		uk.co.strangeskies.modabi.processing.ProcessingContext,
-		uk.co.strangeskies.modabi.schema.Model
-	</imports>
+    uk.co.strangeskies.modabi.scripting.ScriptObject,
+    uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder,
+    uk.co.strangeskies.modabi.processing.ProcessingContext,
+    uk.co.strangeskies.modabi.schema.Model
+  </imports>
 
-	<types />
+  <types />
 
-	<models>
-		<model
-			name="scriptObject"
-			type="@Infer ?"
-			abstractness="ABSTRACT">
+  <models>
+    <model
+      name="scriptObject"
+      type="@Infer ?"
+      abstractness="ABSTRACT"
+      initializeInput="provide(ScriptObjectBuilder.class)">
 
-			<node
-				format="complex"
-				initializeInput="provide(ScriptEngineManager.class)">
+      <bind
+        name="objectName"
+        condition="?"
+        model="string" />
 
-				<input>
-					<!-- method taking two parameters on the current target object, with 
-						the result assigned as the new target object -->
-					<assign>
-						<target />
-						<method name="hello">
-							<target />
-							<!-- empty provide means "provide the type of the enclosing binding 
-								point" -->
-							<provide />
-							<cast type="SomeType">
-								<binding>someNode</binding>
-							</cast>
-						</method>
-					</assign>
+      <bind
+        name="script"
+        type="string">
 
-					target = target.hello(provide(), (SomeType)
-					bindingResult(${somenamespace:someNode}))
-				</input>
+        <condition>
+          <optional />
+        </condition>
 
-				<bind
-					name="objectName"
-					condition="?"
-					model="string" />
+        <content />
+      </bind>
 
-				<bind
-					name="objectType"
-					type="TypeToken{?}"
-					outputField="null">
+      <bind
+        name="resource"
+        type="string">
 
-					<data initializeInput="provide(ProcessingContext.class)">
-						<bind
-							name="getBindingNode"
-							outputField="null"
-							postInputType="Model{?}"
-							chainedInput="true"
-							castInput="true"
-							model="int">
+        <condition>
+          <isNotBound binding="script" />
+        </condition>
 
-							<value>1</value>
-						</bind>
+        <property />
+      </bind>
 
-						<inputSequence
-							name="dataType"
-							chainedInput="true" />
-					</data>
-				</bind>
+      <bind
+        name="language"
+        type="string">
 
-				<bind
-					name="script"
-					type="string">
+        <condition>
+          <or>
+            <isBound binding="script" />
+            <and>
+              <isNotBound binding="script" />
+              <optional />
+            </and>
+          </or>
+        </condition>
 
-					<condition>
-						<optional />
-					</condition>
+        <property />
+      </bind>
 
-					<content />
-				</bind>
+      <bindInput
+        name="create"
+        chainedInput="true" />
 
-				<bind
-					name="resource"
-					type="string">
+      <inputSequence
+        name="cast"
+        chainedInput="true" />
 
-					<condition>
-						<isNotBound binding="script" />
-					</condition>
+      <!-- TEST FORM OF REFERENCES: -->
+      <!-- expected -->
+      <bind model="reference">
+        <data>
+          <bind name="targetModel">someModel</bind>
 
-					<property />
-				</bind>
+          <bind name="targetId">id</bind>
 
-				<bind
-					name="language"
-					type="string">
+          <value>123</value>
+        </data>
+      </bind>
 
-					<condition>
-						<or>
-							<isBound binding="script" />
-							<optional />
-						</or>
-					</condition>
+      <!-- better? -->
+      <bind model="reference">
+        <data>
+          <value
+            targetModel="hello"
+            targetId="name">
 
-					<property />
-				</bind>
+            theName
+          </value>
+        </data>
+      </bind>
 
-				<bindInput
-					name="create"
-					chainedInput="true" />
+      <!-- better??? -->
+      <bind model="reference">
+        <value
+          targetModel="hello"
+          targetId="name">
+          theName
+        </value>
+      </bind>
 
-				<inputSequence
-					name="cast"
-					chainedInput="true" />
+      <!-- alternative collapse??? -->
+      <bind model="reference">
+        <data
+          targetModel="hello"
+          targetId="name">
 
-				<!-- TEST FORM OF REFERENCES: -->
-				<!-- expected -->
-				<bind model="reference">
-					<data>
-						<bind name="targetModel">someModel</bind>
+          theName
+        </data>
+      </bind>
 
-						<bind name="targetId">id</bind>
+      <!-- ideal -->
+      <bind
+        model="reference"
+        targetModel="hello"
+        targetId="name">
 
-						<value>123</value>
-					</data>
-				</bind>
-
-				<!-- better? -->
-				<bind model="reference">
-					<data>
-						<value
-							model="reference"
-							targetModel="hello">
-
-							theName
-						</value>
-					</data>
-				</bind>
-
-				<!-- better??? -->
-				<bind model="reference">
-					<value
-						model="reference"
-						targetModel="hello">
-
-						theName
-					</value>
-				</bind>
-
-				<!-- alternative collapse??? -->
-				<bind model="reference">
-					<data
-						model="reference"
-						targetModel="hello">
-
-						theName
-					</data>
-				</bind>
-
-				<!-- ideal -->
-				<bind
-					model="reference"
-					targetModel="hello"
-					targetId="name">
-
-					theName
-				</bind>
-			</node>
-		</model>
-	</models>
+        theName
+      </bind>
+    </model>
+  </models>
 </schema>

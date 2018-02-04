@@ -21,6 +21,7 @@ public interface ExpressionVisitor {
 
   void visitLiteral(Object value);
 
+  // TODO document how this fits in with the type inference/evaluation model etc.
   void visitIteration(Expression value);
 
   void visitNamed(String name);

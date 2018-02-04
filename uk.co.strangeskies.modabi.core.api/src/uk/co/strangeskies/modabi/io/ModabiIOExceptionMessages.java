@@ -18,4 +18,10 @@ public interface ModabiIOExceptionMessages {
   String invalidLocation(URI location);
 
   String cannotModifyPropertiesAfterChildren();
+
+  String missingFileExtension(String resourceName);
+
+  String noFormatFound(String id);
+
+  String cannotOpenResource();
 }

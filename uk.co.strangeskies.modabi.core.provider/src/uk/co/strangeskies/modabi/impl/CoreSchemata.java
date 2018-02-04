@@ -31,8 +31,8 @@ import uk.co.strangeskies.modabi.SchemaBuilder;
  * @author Elias N Vasylenko
  */
 public class CoreSchemata {
-  final BaseSchema baseSchema;
-  final MetaSchema metaSchema;
+  private final BaseSchema baseSchema;
+  private final MetaSchema metaSchema;
 
   public CoreSchemata(Supplier<SchemaBuilder> schemaBuilder) {
     baseSchema = new BaseSchemaImpl(schemaBuilder.get());

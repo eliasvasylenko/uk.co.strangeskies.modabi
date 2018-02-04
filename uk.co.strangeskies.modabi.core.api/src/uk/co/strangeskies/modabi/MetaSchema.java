@@ -21,9 +21,11 @@ package uk.co.strangeskies.modabi;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public interface MetaSchema extends Schema {
-  public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
+  QualifiedName QUALIFIED_NAME = new QualifiedName(
       MetaSchema.class.getSimpleName(),
       MODABI_NAMESPACE);
 
-  public Model<Schema> getSchemaModel();
+  Model<Schema> getSchemaModel();
+
+  Model<SchemaBuilder> getSchemaBuilderModel();
 }
