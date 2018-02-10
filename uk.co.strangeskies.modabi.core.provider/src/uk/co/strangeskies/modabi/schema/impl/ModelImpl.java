@@ -9,8 +9,8 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelImpl<T> implements Model<T> {

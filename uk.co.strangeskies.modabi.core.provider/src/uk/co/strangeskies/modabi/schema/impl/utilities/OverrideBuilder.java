@@ -3,7 +3,7 @@ package uk.co.strangeskies.modabi.schema.impl.utilities;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static uk.co.strangeskies.collection.stream.StreamUtilities.upcastOptional;
-import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
+import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
 
 import java.util.Collection;
 import java.util.HashSet;

@@ -15,12 +15,12 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
-import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl.Child;
 import uk.co.strangeskies.modabi.schema.impl.utilities.ChildBindingPointBuilderContext;
 import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.schema.meta.ChildBindingPointBuilder;
+import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -114,8 +114,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
           }
 
           @Override
-          public Node parentNode() {
-            throw new UnsupportedOperationException();
+          public NodeBuilderImpl<?> parent() {
+            return NodeBuilderImpl.this;
           }
 
           @Override

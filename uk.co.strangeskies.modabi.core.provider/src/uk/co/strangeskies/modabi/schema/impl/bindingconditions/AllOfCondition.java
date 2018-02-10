@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 
 public class AllOfCondition<T> implements BindingCondition<T> {
   private final List<BindingCondition<? super T>> conditions;

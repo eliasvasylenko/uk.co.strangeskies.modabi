@@ -1,0 +1,14 @@
+Bundle-Name: Modabi :: Common
+Bundle-Description: \
+	This package contains the core API for the Modabi project.\
+\
+	${modabi-description}
+
+-buildpath: \
+	uk.co.strangeskies.text;version=latest
+
+Export-Package: \
+	uk.co.strangeskies.modabi
+
+-includeresource: \
+	res

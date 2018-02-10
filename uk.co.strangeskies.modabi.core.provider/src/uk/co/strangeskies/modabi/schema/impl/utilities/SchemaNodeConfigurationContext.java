@@ -20,9 +20,9 @@ package uk.co.strangeskies.modabi.schema.impl.utilities;
 
 import java.util.List;
 
-import uk.co.strangeskies.modabi.Schema;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 

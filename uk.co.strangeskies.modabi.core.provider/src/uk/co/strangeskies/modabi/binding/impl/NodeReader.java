@@ -1,6 +1,6 @@
 package uk.co.strangeskies.modabi.binding.impl;
 
-import uk.co.strangeskies.modabi.Binding;
+import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 
 public class NodeReader<T> {

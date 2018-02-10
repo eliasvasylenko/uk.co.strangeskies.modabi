@@ -25,16 +25,17 @@ import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
+import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl;
+import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ChildBindingPointBuilderContext<E> {
+public interface ChildBindingPointBuilderContext<E extends NodeBuilder<?>> {
   Optional<Namespace> namespace();
 
-  Node parentNode();
+  NodeBuilderImpl<?> parent();
 
   Imports imports();
 

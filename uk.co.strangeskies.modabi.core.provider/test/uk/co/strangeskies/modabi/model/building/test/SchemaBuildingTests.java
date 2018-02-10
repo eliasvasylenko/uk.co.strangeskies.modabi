@@ -30,12 +30,15 @@ import org.junit.Test;
 
 import mockit.Injectable;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
+import uk.co.strangeskies.modabi.binding.impl.BindingServiceImpl;
 import uk.co.strangeskies.modabi.expression.impl.FunctionalExpressionCompilerImpl;
-import uk.co.strangeskies.modabi.impl.SchemaManagerService;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
+import uk.co.strangeskies.modabi.impl.CoreSchemata;
+import uk.co.strangeskies.modabi.io.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.modabi.schema.Schemata;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
+import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
 import uk.co.strangeskies.property.IdentityProperty;
 import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -47,14 +50,18 @@ public class SchemaBuildingTests {
 
   @Test
   public void buildBaseSchemataTest() {
-    new SchemaManagerService();
+    SchemaBuilder builder = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl());
+    new CoreSchemata(() -> builder);
   }
 
   @Test
   public void bindOutBaseSchemaTest() {
-    SchemaManagerService manager = new SchemaManagerService();
-
     Property<Model<String>> daftModel = new IdentityProperty<>();
+
+    SchemaBuilder builder = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl());
+    CoreSchemata coreSchemata = new CoreSchemata(() -> builder);
+    Schemata schemata = new Schemata(coreSchemata.baseSchema());
+    schemata.add(coreSchemata.metaSchema());
 
     Schema schema = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl())
         .name(new QualifiedName("SillyBillies"))
@@ -64,16 +71,18 @@ public class SchemaBuildingTests {
         .addChildBindingPoint(
             c -> c
                 .name("kid")
-                .model(manager.schemata().getBaseSchema().stringModel())
+                .model(schemata.getBaseSchema().stringModel())
                 .input(target().assign(result()))
                 .output(source()))
         .endNode()
         .endModel(daftModel::set)
         .create();
 
-    manager.schemata().add(schema);
+    schemata.add(schema);
 
-    System.out.println(manager.bindOutput("test-string").from(daftModel.get()).to(writer));
+    System.out
+        .println(
+            new BindingServiceImpl().bindOutput("test-string").from(daftModel.get()).to(writer));
   }
 
   @Test

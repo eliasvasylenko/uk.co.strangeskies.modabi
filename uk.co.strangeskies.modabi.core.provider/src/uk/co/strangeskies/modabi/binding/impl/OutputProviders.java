@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.Provider;
 import uk.co.strangeskies.modabi.binding.provisions.ImportWriter;
 import uk.co.strangeskies.modabi.binding.provisions.IncludeWriter;
 import uk.co.strangeskies.modabi.binding.provisions.ReferenceWriter;
+import uk.co.strangeskies.modabi.schema.Binding;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 
@@ -43,8 +43,9 @@ public class OutputProviders {
           context.bindings().add(binding);
 
           // TODO try figure out if/why this was necessary...
-          context.output().ifPresent(
-              o -> o.registerNamespaceHint(binding.getModel().name().getNamespace()));
+          context
+              .output()
+              .ifPresent(o -> o.registerNamespaceHint(binding.getModel().name().getNamespace()));
         }
       }
     };
@@ -76,9 +77,10 @@ public class OutputProviders {
   }
 
   public Stream<Provider> getProviders() {
-    return Stream.of(
-        Provider.over(ReferenceWriter.class, referenceWriter()),
-        Provider.over(ImportWriter.class, importWriter()),
-        Provider.over(IncludeWriter.class, includeWriter()));
+    return Stream
+        .of(
+            Provider.over(ReferenceWriter.class, referenceWriter()),
+            Provider.over(ImportWriter.class, importWriter()),
+            Provider.over(IncludeWriter.class, includeWriter()));
   }
 }

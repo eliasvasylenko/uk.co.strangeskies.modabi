@@ -5,13 +5,15 @@ import static uk.co.strangeskies.modabi.schema.BindingExpressions.BINDING_PREFIX
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.BOUND_PREFIX;
 import static uk.co.strangeskies.text.parsing.Parser.matchingAll;
 
-import uk.co.strangeskies.modabi.Binding;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
 import uk.co.strangeskies.modabi.expression.Preprocessor;
+import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
+import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointImpl;
 import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl;
 import uk.co.strangeskies.reflection.token.TypeArgument;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -19,22 +21,47 @@ import uk.co.strangeskies.text.parsing.Parser;
 
 public class BindingFunctionPreprocessor implements Preprocessor {
   private final ExpressionVisitor expressionVisitor;
-  private final NodeBuilderImpl<?> bindingNode;
   private final Parser<QualifiedName> qualifiedNameParser;
+
+  private final ChildBindingPointImpl<?> bindingPoint;
+  private final NodeBuilderImpl<?> bindingNode;
 
   public BindingFunctionPreprocessor(
       ExpressionVisitor expressionVisitor,
-      NodeBuilderImpl<?> bindingNode,
-      Parser<QualifiedName> qualifiedNameParser) {
+      Parser<QualifiedName> qualifiedNameParser,
+      NodeBuilderImpl<?> bindingNode) {
     this.expressionVisitor = expressionVisitor;
+    this.bindingPoint = null;
     this.bindingNode = bindingNode;
     this.qualifiedNameParser = qualifiedNameParser;
   }
 
   public BindingFunctionPreprocessor(
       ExpressionVisitor expressionVisitor,
+      Parser<QualifiedName> qualifiedNameParser,
+      ChildBindingPointImpl<?> bindingPoint,
+      ChildBindingPointBuilderImpl<?> bindingPointBuilder) {
+    this.expressionVisitor = expressionVisitor;
+    this.bindingPoint = bindingPoint;
+    this.bindingNode = bindingPointBuilder.getParent();
+    this.qualifiedNameParser = qualifiedNameParser;
+  }
+
+  public BindingFunctionPreprocessor(
+      ExpressionVisitor expressionVisitor,
       NodeBuilderImpl<?> bindingNode) {
-    this(expressionVisitor, bindingNode, matchingAll(QualifiedName::parseString));
+    this(expressionVisitor, matchingAll(QualifiedName::parseString), bindingNode);
+  }
+
+  public BindingFunctionPreprocessor(
+      ExpressionVisitor expressionVisitor,
+      ChildBindingPointImpl<?> bindingPoint,
+      ChildBindingPointBuilderImpl<?> bindingPointBuilder) {
+    this(
+        expressionVisitor,
+        matchingAll(QualifiedName::parseString),
+        bindingPoint,
+        bindingPointBuilder);
   }
 
   @Override

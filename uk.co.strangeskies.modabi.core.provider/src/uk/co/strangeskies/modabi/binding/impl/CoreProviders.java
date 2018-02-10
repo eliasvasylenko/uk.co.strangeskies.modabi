@@ -29,19 +29,20 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import uk.co.strangeskies.modabi.Provider;
-import uk.co.strangeskies.modabi.binding.BindingContext;
+import uk.co.strangeskies.modabi.binding.Provider;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class CoreProviders {
   public Stream<Provider> getProviders() {
-    return Stream.of(
-        Provider.over(BindingContext.class, c -> c),
-        Provider.over(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>()),
-        Provider.over(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>()),
-        Provider.over(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>()),
-        Provider.over(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>()),
-        Provider.over(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>()));
+    return Stream
+        .of(
+            Provider.over(BindingContext.class, c -> c),
+            Provider.over(new @Infer TypeToken<SortedSet<?>>() {}, () -> new TreeSet<>()),
+            Provider.over(new @Infer TypeToken<Set<?>>() {}, () -> new HashSet<>()),
+            Provider.over(new @Infer TypeToken<LinkedHashSet<?>>() {}, () -> new LinkedHashSet<>()),
+            Provider.over(new @Infer TypeToken<List<?>>() {}, () -> new ArrayList<>()),
+            Provider.over(new @Infer TypeToken<Map<?, ?>>() {}, () -> new HashMap<>()));
   }
 }

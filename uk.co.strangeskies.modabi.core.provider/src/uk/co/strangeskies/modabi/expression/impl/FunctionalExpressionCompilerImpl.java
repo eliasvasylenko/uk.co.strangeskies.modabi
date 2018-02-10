@@ -33,6 +33,25 @@ import uk.co.strangeskies.reflection.token.ExecutableToken;
 import uk.co.strangeskies.reflection.token.FieldToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
+/*
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * TODO create new exceptions for expressions
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 @Component
 public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCompiler {
   @Override
@@ -50,18 +69,20 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
     Class<?> implementationClass = implementationType.getErasedType();
 
     if (!implementationClass.isInterface())
-      throw new ModabiException(MESSAGES.typeMustBeFunctionalInterface(implementationType));
+      throw new ModabiException(
+          MESSAGES.typeMustBeFunctionalInterface(implementationType.getType()));
 
     ExecutableToken<T, ?> executable = stream(implementationClass.getMethods())
         .filter(m -> !m.isDefault() && !isStatic(m.getModifiers()))
         .reduce(
             throwingReduce(
                 (a, b) -> new ModabiException(
-                    MESSAGES.typeMustBeFunctionalInterface(implementationType))))
+                    MESSAGES.typeMustBeFunctionalInterface(implementationType.getType()))))
         .map(ExecutableToken::forMethod)
         .map(e -> e.withReceiverType(implementationType))
         .orElseThrow(
-            () -> new ModabiException(MESSAGES.typeMustBeFunctionalInterface(implementationType)));
+            () -> new ModabiException(
+                MESSAGES.typeMustBeFunctionalInterface(implementationType.getType())));
 
     ExpressionVisitorImpl<T, C> visitor = new ExpressionVisitorImpl<>(executable, captureScope);
 
@@ -251,7 +272,8 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
       InstructionDescription valueMetadata = compileStep(value);
 
       if (!type.isCastableFrom(valueMetadata.type))
-        throw new ModabiException(MESSAGES.cannotPerformCast(type, valueMetadata.type));
+        throw new ModabiException(
+            MESSAGES.cannotPerformCast(type.getType(), valueMetadata.type.getType()));
 
       completeStep(type, c -> valueMetadata.type.cast(c.peek()));
     }
@@ -262,7 +284,7 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
           .fields()
           .filter(anyVariable().named(variable))
           .findAny()
-          .get();
+          .orElseThrow(() -> new RuntimeException(" no var " + variable));
 
       completeStep(field.getFieldType(), c -> c.push(field.get(c.pop())));
     }
@@ -288,7 +310,10 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
 
       if (!field.getFieldType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, valueMetadata.type))
         throw new ModabiException(
-            MESSAGES.cannotPerformAssignment(field.getFieldType(), valueMetadata.type));
+            MESSAGES
+                .cannotPerformAssignment(
+                    field.getFieldType().getType(),
+                    valueMetadata.type.getType()));
 
       completeStep(field.getFieldType(), c -> {
         Object v = c.pop();

@@ -21,10 +21,10 @@ package uk.co.strangeskies.modabi.binding.impl;
 import static java.lang.Thread.currentThread;
 import static java.nio.channels.Channels.newChannel;
 import static java.nio.file.StandardOpenOption.READ;
-import static uk.co.strangeskies.modabi.DataFormats.getExtension;
-import static uk.co.strangeskies.modabi.Models.getBindingPoint;
-import static uk.co.strangeskies.modabi.Models.getInputBindingPoint;
+import static uk.co.strangeskies.modabi.io.DataFormats.getExtension;
 import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
+import static uk.co.strangeskies.modabi.schema.Models.getBindingPoint;
+import static uk.co.strangeskies.modabi.schema.Models.getInputBindingPoint;
 
 import java.net.URL;
 import java.nio.channels.FileChannel;
@@ -32,14 +32,14 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
-import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.DataFormats;
-import uk.co.strangeskies.modabi.InputBinder;
-import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.binding.InputBinder;
+import uk.co.strangeskies.modabi.binding.Provider;
+import uk.co.strangeskies.modabi.io.DataFormat;
+import uk.co.strangeskies.modabi.io.DataFormats;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
-import uk.co.strangeskies.modabi.io.structured.DataFormat;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataReader;
+import uk.co.strangeskies.modabi.io.StructuredDataReader;
+import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -70,7 +70,7 @@ public class InputBinderImpl<T> implements InputBinder<T> {
     return new InputBinderImpl<>(
         context,
         formats,
-        getBindingPoint(context.manager().schemata().getBaseSchema().rootModel()),
+        getBindingPoint(context.schemata().getBaseSchema().rootModel()),
         null,
         currentThread().getContextClassLoader());
   }
@@ -124,19 +124,18 @@ public class InputBinderImpl<T> implements InputBinder<T> {
 
   @Override
   public <U> InputBinder<? extends U> to(TypeToken<U> type) {
-    return with(
-        getInputBindingPoint(context.manager().schemata().getBaseSchema().rootModel(), type));
+    return with(getInputBindingPoint(context.schemata().getBaseSchema().rootModel(), type));
 
   }
 
   @Override
   public InputBinder<?> to(QualifiedName modelName) {
-    return with(getBindingPoint(context.manager().schemata().models().get(modelName)));
+    return with(getBindingPoint(context.schemata().models().get(modelName)));
   }
 
   @Override
   public <U> InputBinder<U> to(QualifiedName modelName, TypeToken<U> type) {
-    return with(getInputBindingPoint(context.manager().schemata().models().get(modelName), type));
+    return with(getInputBindingPoint(context.schemata().models().get(modelName), type));
   }
 
   @Override

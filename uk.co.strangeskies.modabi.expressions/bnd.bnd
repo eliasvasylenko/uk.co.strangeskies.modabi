@@ -1,0 +1,15 @@
+Bundle-Name: Modabi :: Expressions
+Bundle-Description: \
+	This package contains the binding expressions API for Modabi.\
+\
+	${modabi-description}
+
+-buildpath: \
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.collections;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest
+
+Export-Package: \
+	uk.co.strangeskies.modabi.expression,\
+	uk.co.strangeskies.modabi.expression.functional

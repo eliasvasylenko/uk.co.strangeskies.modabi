@@ -20,10 +20,10 @@ package uk.co.strangeskies.modabi.binding.impl;
 
 import static java.lang.Thread.currentThread;
 import static java.nio.file.StandardOpenOption.WRITE;
-import static uk.co.strangeskies.modabi.DataFormats.getExtension;
-import static uk.co.strangeskies.modabi.Models.getBindingPoint;
-import static uk.co.strangeskies.modabi.Models.getOutputBindingPoint;
+import static uk.co.strangeskies.modabi.io.DataFormats.getExtension;
 import static uk.co.strangeskies.modabi.io.ModabiIOException.MESSAGES;
+import static uk.co.strangeskies.modabi.schema.Models.getBindingPoint;
+import static uk.co.strangeskies.modabi.schema.Models.getOutputBindingPoint;
 
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -32,14 +32,14 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 
 import uk.co.strangeskies.function.ThrowingSupplier;
-import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.DataFormats;
-import uk.co.strangeskies.modabi.OutputBinder;
-import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.binding.OutputBinder;
+import uk.co.strangeskies.modabi.binding.Provider;
+import uk.co.strangeskies.modabi.io.DataFormat;
+import uk.co.strangeskies.modabi.io.DataFormats;
 import uk.co.strangeskies.modabi.io.ModabiIOException;
-import uk.co.strangeskies.modabi.io.structured.DataFormat;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
+import uk.co.strangeskies.modabi.io.StructuredDataWriter;
+import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -77,7 +77,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
         context,
         formats,
         data,
-        getBindingPoint(context.manager().schemata().getBaseSchema().rootModel()),
+        getBindingPoint(context.schemata().getBaseSchema().rootModel()),
         null,
         currentThread().getContextClassLoader());
   }
@@ -132,8 +132,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 
   @Override
   public <U> OutputBinder<? super U> from(TypeToken<U> dataType) {
-    return with(
-        getOutputBindingPoint(context.manager().schemata().getBaseSchema().rootModel(), dataType));
+    return with(getOutputBindingPoint(context.schemata().getBaseSchema().rootModel(), dataType));
   }
 
   @SuppressWarnings("unchecked")
@@ -144,7 +143,7 @@ public class OutputBinderImpl<T> implements OutputBinder<T> {
 
   @Override
   public <U> OutputBinder<U> from(QualifiedName modelName, TypeToken<U> type) {
-    return with(getOutputBindingPoint(context.manager().schemata().models().get(modelName), type));
+    return with(getOutputBindingPoint(context.schemata().models().get(modelName), type));
   }
 
   @Override

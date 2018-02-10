@@ -14,13 +14,13 @@ import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
-import uk.co.strangeskies.modabi.schema.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl.OverriddenNode;
 import uk.co.strangeskies.modabi.schema.impl.utilities.ChildBindingPointBuilderContext;
 import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.schema.meta.ChildBindingPointBuilder;
+import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -80,6 +80,10 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     this.bindingCondition = bindingCondition;
     this.ordered = ordered;
     this.overriddenNode = overriddenNode;
+  }
+
+  public NodeBuilderImpl<?> getParent() {
+    return context.parent();
   }
 
   protected Stream<ChildBindingPoint<?>> getOverriddenBindingPoints() {

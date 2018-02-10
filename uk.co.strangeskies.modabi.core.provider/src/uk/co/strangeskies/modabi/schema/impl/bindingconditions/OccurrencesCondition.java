@@ -3,11 +3,11 @@ package uk.co.strangeskies.modabi.schema.impl.bindingconditions;
 import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
 
 import uk.co.strangeskies.mathematics.Interval;
-import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 
 /**

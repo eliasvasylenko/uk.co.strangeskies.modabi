@@ -20,9 +20,9 @@ package uk.co.strangeskies.modabi.impl;
 
 import java.util.function.Supplier;
 
-import uk.co.strangeskies.modabi.BaseSchema;
-import uk.co.strangeskies.modabi.MetaSchema;
-import uk.co.strangeskies.modabi.SchemaBuilder;
+import uk.co.strangeskies.modabi.schema.BaseSchema;
+import uk.co.strangeskies.modabi.schema.meta.MetaSchema;
+import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
 
 /**
  * Class for bootstrapping core schemata, i.e. an implementation of

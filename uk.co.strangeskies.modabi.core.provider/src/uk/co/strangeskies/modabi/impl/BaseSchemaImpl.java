@@ -52,24 +52,22 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.w3c.dom.ranges.Range;
-
 import uk.co.strangeskies.mathematics.Interval;
-import uk.co.strangeskies.modabi.BaseSchema;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaBuilder;
-import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.provisions.ImportReader;
 import uk.co.strangeskies.modabi.binding.provisions.ImportWriter;
 import uk.co.strangeskies.modabi.binding.provisions.IncludeWriter;
 import uk.co.strangeskies.modabi.binding.provisions.ReferenceReader;
 import uk.co.strangeskies.modabi.binding.provisions.ReferenceWriter;
 import uk.co.strangeskies.modabi.expression.Expressions;
+import uk.co.strangeskies.modabi.schema.BaseSchema;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
 import uk.co.strangeskies.property.IdentityProperty;
 import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
@@ -753,8 +751,8 @@ public class BaseSchemaImpl implements BaseSchema {
                 .addChildBindingPoint(
                     p -> p
                         .name("string")
-                        .input(i -> invokeStatic(Range.class, "parse", result()))
-                        .output(o -> invokeStatic(Range.class, "compose", source()))
+                        .input(i -> invokeStatic(Interval.class, "parse", result()))
+                        .output(o -> invokeStatic(Interval.class, "compose", source()))
                         .model(stringModel))
                 .endNode());
 

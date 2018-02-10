@@ -8,11 +8,11 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
-import uk.co.strangeskies.modabi.schema.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.impl.bindingfunctions.InputFunction;
 import uk.co.strangeskies.modabi.schema.impl.bindingfunctions.OutputFunction;
+import uk.co.strangeskies.modabi.schema.meta.ChildBindingPointBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
@@ -73,7 +73,11 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
             ChildBindingPointBuilder::getInput)
         .validateOverride((a, b) -> false)
         .get();
-    input = new InputFunction(inputExpression, configurator.getExpressionCompiler());
+    input = new InputFunction(
+        this,
+        configurator,
+        inputExpression,
+        configurator.getExpressionCompiler());
 
     // TODO deal with hasOutput
     Expression outputExpression = configurator
@@ -82,7 +86,11 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
             ChildBindingPointBuilder::getOutput)
         .validateOverride((a, b) -> false)
         .get();
-    output = new OutputFunction(outputExpression, configurator.getExpressionCompiler());
+    output = new OutputFunction(
+        this,
+        configurator,
+        outputExpression,
+        configurator.getExpressionCompiler());
   }
 
   @Override

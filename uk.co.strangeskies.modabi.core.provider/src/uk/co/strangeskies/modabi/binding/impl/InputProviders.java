@@ -25,15 +25,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.Bindings;
-import uk.co.strangeskies.modabi.Provider;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.binding.BindingException;
-import uk.co.strangeskies.modabi.binding.Blocks;
+import uk.co.strangeskies.modabi.binding.Provider;
 import uk.co.strangeskies.modabi.binding.provisions.ImportReader;
 import uk.co.strangeskies.modabi.binding.provisions.ReferenceReader;
+import uk.co.strangeskies.modabi.schema.Binding;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.property.IdentityProperty;
 import uk.co.strangeskies.property.Property;
@@ -156,8 +154,9 @@ public class InputProviders {
   }
 
   public Stream<Provider> getProviders() {
-    return Stream.of(
-        Provider.over(ReferenceReader.class, referenceReader()),
-        Provider.over(ImportReader.class, importReader()));
+    return Stream
+        .of(
+            Provider.over(ReferenceReader.class, referenceReader()),
+            Provider.over(ImportReader.class, importReader()));
   }
 }

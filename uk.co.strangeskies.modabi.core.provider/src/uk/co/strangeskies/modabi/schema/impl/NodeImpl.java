@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
-import uk.co.strangeskies.modabi.schema.NodeBuilder;
+import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
 import uk.co.strangeskies.text.parsing.Parser;
 
 public class NodeImpl implements Node {

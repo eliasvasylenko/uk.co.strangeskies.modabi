@@ -1,0 +1,23 @@
+Bundle-Name: Modabi :: Schemata
+Bundle-Description: \
+	This package contains the core schemata API for the Modabi project.\
+\
+	${modabi-description}
+
+-buildpath: \
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.collections;version=latest,\
+	uk.co.strangeskies.collections.observable;version=latest,\
+	uk.co.strangeskies.observable;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest,\
+\
+	uk.co.strangeskies.modabi.expressions;version=latest,\
+	uk.co.strangeskies.modabi.common;version=latest
+
+Export-Package: uk.co.strangeskies.modabi.schema
+
+-includeresource: \
+	res

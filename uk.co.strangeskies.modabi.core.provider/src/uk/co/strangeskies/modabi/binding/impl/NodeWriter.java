@@ -3,8 +3,8 @@ package uk.co.strangeskies.modabi.binding.impl;
 import static uk.co.strangeskies.collection.stream.StreamUtilities.throwingReduce;
 import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
 
-import uk.co.strangeskies.modabi.Binding;
-import uk.co.strangeskies.modabi.io.structured.StructuredDataWriter;
+import uk.co.strangeskies.modabi.io.StructuredDataWriter;
+import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;

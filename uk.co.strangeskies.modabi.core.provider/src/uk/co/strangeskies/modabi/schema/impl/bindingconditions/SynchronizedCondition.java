@@ -1,10 +1,10 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingconditions;
 
-import uk.co.strangeskies.modabi.binding.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
+import uk.co.strangeskies.modabi.schema.BindingContext;
 
 /**
  * A binding condition which only allows processing of each item to proceed once

@@ -1,0 +1,21 @@
+Bundle-Name: Modabi :: IO
+Bundle-Description: \
+	This package contains the resource IO API for the Modabi project.\
+\
+	${modabi-description}
+
+-buildpath: \
+	uk.co.strangeskies.modabi.common;version=latest,\
+\
+	uk.co.strangeskies.utilities;version=latest,\
+	uk.co.strangeskies.collections;version=latest,\
+	uk.co.strangeskies.collections.observable;version=latest,\
+	uk.co.strangeskies.observable;version=latest,\
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.mathematics;version=latest,\
+	uk.co.strangeskies.reflection;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest
+
+Export-Package: \
+	uk.co.strangeskies.modabi.io,\
+	uk.co.strangeskies.modabi.io.structured

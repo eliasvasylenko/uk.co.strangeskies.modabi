@@ -1,0 +1,8 @@
+Bundle-Name: Modabi :: Declarative
+Bundle-Description: \
+	This package contains the declarative annotation API for the Modabi project.\
+\
+	${modabi-description}
+
+Export-Package: \
+	uk.co.strangeskies.modabi.declarative

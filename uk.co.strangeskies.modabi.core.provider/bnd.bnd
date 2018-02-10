@@ -6,7 +6,12 @@ Bundle-Description: \
 	${modabi-description}
 
 -buildpath: \
-	uk.co.strangeskies.modabi.core.api;version=project,\
+	uk.co.strangeskies.modabi.common;version=project,\
+	uk.co.strangeskies.modabi.schemata;version=project,\
+	uk.co.strangeskies.modabi.io;version=project,\
+	uk.co.strangeskies.modabi.binding;version=project,\
+	uk.co.strangeskies.modabi.meta;version=project,\
+	uk.co.strangeskies.modabi.expressions;version=project,\
 \
 	uk.co.strangeskies.utilities;version=latest,\
 	uk.co.strangeskies.collections;version=latest,\
@@ -37,9 +42,10 @@ Bundle-Description: \
 
 Export-Package: \
 	uk.co.strangeskies.modabi.impl,\
+	uk.co.strangeskies.modabi.expression.impl,\
 	uk.co.strangeskies.modabi.binding.impl,\
-	uk.co.strangeskies.modabi.impl.schema.old,\
-	uk.co.strangeskies.modabi.impl.schema.building,\
+	uk.co.strangeskies.modabi.schema.impl,\
+	uk.co.strangeskies.modabi.schema.impl.bindingconditions,\
 	uk.co.strangeskies.modabi.schema.impl.utilities
 
 -runrequires: \

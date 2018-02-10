@@ -32,11 +32,11 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.Schema;
-import uk.co.strangeskies.modabi.SchemaBuilder;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
+import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
 import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
