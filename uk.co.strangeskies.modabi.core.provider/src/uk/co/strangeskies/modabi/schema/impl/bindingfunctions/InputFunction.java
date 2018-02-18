@@ -1,9 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
-import java.util.function.Consumer;
-
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.functional.FunctionImplementation;
+import uk.co.strangeskies.modabi.expression.functional.FunctionCapture;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
@@ -12,8 +10,20 @@ import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointImpl;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class InputFunction implements BindingFunction {
+  public interface InputFunctionInterface {
+    void bind();
+  }
+
+  public class InputFunctionCapture {
+    public Object target;
+
+    public BindingContext context;
+  }
+
   private final Expression expression;
-  private final FunctionImplementation<Consumer<BindingContext>> bindingFunction;
+  private final FunctionCapture<InputFunctionCapture, InputFunctionInterface> bindingFunction;
+  private final TypeToken<?> typeBefore;
+  private final TypeToken<?> typeAfter;
 
   /*
    * 
@@ -81,10 +91,14 @@ public class InputFunction implements BindingFunction {
       ChildBindingPointBuilderImpl<?> bindingPointBuilder,
       Expression expression,
       FunctionalExpressionCompiler compiler) {
-    this.expression = visitor -> expression
+    this.expression = expression;
+    Expression processedExpression = visitor -> expression
         .evaluate(new BindingFunctionPreprocessor(visitor, bindingPoint, bindingPointBuilder));
     this.bindingFunction = compiler
-        .compile(expression, new TypeToken<Consumer<BindingContext>>() {});
+        .compile(
+            processedExpression,
+            new TypeToken<InputFunctionInterface>() {},
+            new TypeToken<InputFunctionCapture>() {});
   }
 
   @Override
@@ -94,6 +108,19 @@ public class InputFunction implements BindingFunction {
 
   @Override
   public void apply(BindingContext context) {
-    bindingFunction.getInstance().accept(context);
+    InputFunctionCapture capture = new InputFunctionCapture();
+    capture.target = context.getBindingObject();
+    capture.context = context;
+    bindingFunction.capture(capture).getInstance().bind();
+  }
+
+  @Override
+  public TypeToken<?> getTypeBefore() {
+    return typeBefore;
+  }
+
+  @Override
+  public TypeToken<?> getTypeAfter() {
+    return typeAfter;
   }
 }

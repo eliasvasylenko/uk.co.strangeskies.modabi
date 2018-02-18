@@ -1,7 +1,10 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
+
 import java.util.Objects;
 
+import uk.co.strangeskies.collection.stream.StreamUtilities;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.schema.BindingCondition;
@@ -47,11 +50,19 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .or(false)
         .get();
 
-    type = null; // TODO
+    /*
+     * TODO get proper type information for binding point, validate overrides, etc.
+     */
+    TypeToken<?> type = configurator
+        .overrideChildren(ChildBindingPoint::dataType, ChildBindingPointBuilder::getType)
+        .orDefault(forClass(Object.class))
+        .get();
+    this.type = (TypeToken<T>) type;
 
     model = configurator
         .overrideChildren(ChildBindingPoint::model, ChildBindingPointBuilder::getModel)
-        .validateOverride((a, b) -> a.equals(b) || a.baseModels().anyMatch(b::equals))
+        .validateOverride(
+            (a, b) -> StreamUtilities.<Model<?>>iterate(a, m -> m.baseModel()).anyMatch(b::equals))
         .tryGet()
         .map(m -> (Model<? super T>) m)
         .orElse(null);
@@ -60,10 +71,10 @@ public class ChildBindingPointImpl<T> implements ChildBindingPoint<T> {
         .overrideChildren(
             b -> b.bindingCondition().getPrototype(),
             ChildBindingPointBuilder::getBindingCondition)
-        .orMerged(c -> BindingConditionPrototype.allOf(c))
+        .mergeOverride((a, b) -> BindingConditionPrototype.allOf(a, b))
         .or(v -> v.required())
         .get();
-    condition = new BindingConditionFactory<>(type, configurator.getExpressionCompiler())
+    condition = new BindingConditionFactory<>(this.type, configurator.getExpressionCompiler())
         .create(conditionPrototype);
 
     // TODO deal with hasInput

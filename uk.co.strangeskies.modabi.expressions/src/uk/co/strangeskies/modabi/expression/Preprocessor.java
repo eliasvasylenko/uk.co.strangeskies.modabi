@@ -1,5 +1,7 @@
 package uk.co.strangeskies.modabi.expression;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -19,34 +21,52 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public interface Preprocessor extends ExpressionVisitor {
   ExpressionVisitor visitor();
 
+  default Expression process(Expression expression) {
+    return v -> {
+      if (v == visitor())
+        expression.evaluate(this);
+      else
+        expression.evaluate(v);
+    };
+  }
+
+  default List<Expression> processList(List<Expression> arguments) {
+    return arguments.stream().map(this::process).collect(toList());
+  }
+
   @Override
   default <T> void visitCast(TypeToken<T> type, Expression expression) {
-    visitor().visitCast(type, expression);
+    visitor().visitCast(type, process(expression));
+  }
+
+  @Override
+  default <T> void visitCheck(TypeToken<T> type, Expression expression) {
+    visitor().visitCheck(type, process(expression));
   }
 
   @Override
   default void visitField(Expression receiver, String variable) {
-    visitor().visitField(receiver, variable);
+    visitor().visitField(process(receiver), variable);
   }
 
   @Override
   default void visitFieldAssignment(Expression receiver, String variable, Expression value) {
-    visitor().visitFieldAssignment(receiver, variable, value);
+    visitor().visitFieldAssignment(process(receiver), variable, v -> value.evaluate(this));
   }
 
   @Override
   default void visitInvocation(Expression receiver, String method, List<Expression> arguments) {
-    visitor().visitInvocation(receiver, method, arguments);
+    visitor().visitInvocation(process(receiver), method, processList(arguments));
   }
 
   @Override
   default <T> void visitConstructorInvocation(Class<T> type, List<Expression> arguments) {
-    visitor().visitConstructorInvocation(type, arguments);
+    visitor().visitConstructorInvocation(type, processList(arguments));
   }
 
   @Override
   default <T> void visitStaticInvocation(Class<T> type, String method, List<Expression> arguments) {
-    visitor().visitStaticInvocation(type, method, arguments);
+    visitor().visitStaticInvocation(type, method, processList(arguments));
   }
 
   @Override
@@ -61,7 +81,7 @@ public interface Preprocessor extends ExpressionVisitor {
 
   @Override
   default void visitIteration(Expression value) {
-    visitor().visitIteration(value);
+    visitor().visitIteration(process(value));
   }
 
   @Override
@@ -71,11 +91,11 @@ public interface Preprocessor extends ExpressionVisitor {
 
   @Override
   default void visitNamedAssignment(String name, Expression value) {
-    visitor().visitNamedAssignment(name, value);
+    visitor().visitNamedAssignment(name, process(value));
   }
 
   @Override
   default void visitNamedInvocation(String name, List<Expression> arguments) {
-    visitor().visitNamedInvocation(name, arguments);
+    visitor().visitNamedInvocation(name, processList(arguments));
   }
 }

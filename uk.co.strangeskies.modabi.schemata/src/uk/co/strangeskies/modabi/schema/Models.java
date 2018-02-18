@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.collection.multimap.MultiHashMap;
 import uk.co.strangeskies.collection.multimap.MultiMap;
+import uk.co.strangeskies.collection.stream.StreamUtilities;
 import uk.co.strangeskies.modabi.NamedSet;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -51,8 +52,7 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
 
   private void mapModel(Model<?> model) {
     List<Model<?>> models = new ArrayList<>();
-    models.add(model);
-    model.baseModels().forEach(models::add);
+    StreamUtilities.<Model<?>>iterate(model, m -> m.baseModel()).forEach(models::add);
 
     derivedModels.addToAll(models.stream().map(Model::name).collect(Collectors.toSet()), model);
 

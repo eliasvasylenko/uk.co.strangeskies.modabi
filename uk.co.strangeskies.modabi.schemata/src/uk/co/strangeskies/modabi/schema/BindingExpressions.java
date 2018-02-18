@@ -33,6 +33,7 @@
 package uk.co.strangeskies.modabi.schema;
 
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeNamed;
+import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.modabi.expression.Expressions.named;
 import static uk.co.strangeskies.modabi.expression.Expressions.typeToken;
 import static uk.co.strangeskies.reflection.token.TypeToken.forType;
@@ -41,6 +42,7 @@ import java.lang.reflect.Type;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.expression.MutableExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -51,8 +53,6 @@ public class BindingExpressions {
   public static final String PARENT_VALUE = "parent";
   public static final String PROVIDE_METHOD = "provide";
   public static final String BOUND_PREFIX = "$";
-  public static final String BINDING_PREFIX = "%";
-  public static final String BINDING_POINT_PREFIX = "@";
 
   private BindingExpressions() {}
 
@@ -92,19 +92,10 @@ public class BindingExpressions {
     return named(BOUND_PREFIX + bindingPoint);
   }
 
-  public static Expression binding(String bindingPoint) {
-    return named(BINDING_PREFIX + bindingPoint);
-  }
-
-  public static Expression binding(QualifiedName bindingPoint) {
-    return named(BINDING_PREFIX + bindingPoint);
-  }
-
-  public static Expression bindingPoint(String bindingPoint) {
-    return named(BINDING_POINT_PREFIX + bindingPoint);
-  }
-
-  public static Expression bindingPoint(QualifiedName bindingPoint) {
-    return named(BINDING_POINT_PREFIX + bindingPoint);
+  public static Expression qualifiedName(QualifiedName bindingPoint) {
+    return invokeStatic(
+        QualifiedName.class,
+        "parseString",
+        Expressions.literal(bindingPoint.toString()));
   }
 }

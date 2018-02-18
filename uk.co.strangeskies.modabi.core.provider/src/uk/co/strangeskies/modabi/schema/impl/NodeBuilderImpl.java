@@ -1,14 +1,12 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -35,6 +33,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
   private final Expression inputInitialization;
   private final Expression outputInitialization;
 
+  private final List<ChildBindingPoint<?>> overriddenChildren;
   private final List<Child> children;
 
   public NodeBuilderImpl(NodeBuilderContext<E> context) {
@@ -46,7 +45,12 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     this.inputInitialization = null;
     this.outputInitialization = null;
 
-    this.children = Collections.emptyList();
+    this.overriddenChildren = context
+        .overrideNode()
+        .map(Node::children)
+        .map(c -> c.collect(toList()))
+        .orElse(emptyList());
+    this.children = emptyList();
   }
 
   public NodeBuilderImpl(
@@ -55,6 +59,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
       Object provided,
       Expression inputExpression,
       Expression outputExpression,
+      List<ChildBindingPoint<?>> overriddenChildren,
       List<Child> children) {
     this.context = context;
 
@@ -64,6 +69,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     this.inputInitialization = inputExpression;
     this.outputInitialization = outputExpression;
 
+    this.overriddenChildren = overriddenChildren;
     this.children = children;
   }
 
@@ -80,6 +86,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         provided,
         inputInitialization,
         outputInitialization,
+        overriddenChildren,
         children);
   }
 
@@ -96,6 +103,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         provided,
         inputInitialization,
         outputInitialization,
+        overriddenChildren,
         children);
   }
 
@@ -114,14 +122,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
           }
 
           @Override
-          public NodeBuilderImpl<?> parent() {
-            return NodeBuilderImpl.this;
-          }
-
-          @Override
-          public Stream<ChildBindingPoint<?>> overrideChild(QualifiedName id) {
-            // TODO Auto-generated method stub
-            return null;
+          public Optional<ChildBindingPoint<?>> overrideChild(QualifiedName id) {
+            return overriddenChildren.stream().filter(c -> c.name().equals(id)).findFirst();
           }
 
           @Override
@@ -138,8 +140,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
 
           @Override
           public Imports imports() {
-            // TODO Auto-generated method stub
-            return null;
+            return context.imports();
           }
 
           @Override
@@ -159,6 +160,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
                 provided,
                 inputInitialization,
                 outputInitialization,
+                overriddenChildren,
                 children);
           }
         });
@@ -224,7 +226,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     return children.stream().map(c -> c.builder).collect(toList());
   }
 
-  protected List<ChildBindingPointImpl<?>> getChildBindingPointsImpl() {
+  public List<ChildBindingPointImpl<?>> getChildBindingPointsImpl() {
     return children.stream().map(c -> c.child).collect(toList());
   }
 
@@ -232,9 +234,9 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
       Function<Node, ? extends U> node,
       Function<NodeBuilder<?>, Optional<? extends U>> builder) {
     return new OverrideBuilder<>(
-        context.overrideNode().map(node).collect(toSet()),
-        builder.apply(this),
-        () -> "unnamed property");
+        () -> "unnamed property",
+        context.overrideNode().map(node),
+        builder.apply(this));
   }
 
   @Override
@@ -245,6 +247,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         provided,
         inputInitialization,
         outputInitialization,
+        overriddenChildren,
         children);
   }
 
@@ -266,6 +269,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
         provided,
         inputInitialization,
         outputInitialization,
+        overriddenChildren,
         children);
   }
 

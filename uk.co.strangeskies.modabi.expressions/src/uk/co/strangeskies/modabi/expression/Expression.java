@@ -36,6 +36,8 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import uk.co.strangeskies.reflection.token.TypeToken;
+
 /**
  * Expressions are designed to be decoupled from the mechanism of evaluation or
  * compilation as there are a number of different strategies which could be
@@ -71,6 +73,14 @@ public interface Expression {
         return v -> v.visitFieldAssignment(Expression.this, field, value);
       }
     };
+  }
+
+  default Expression cast(TypeToken<?> type) {
+    return v -> v.visitCast(type, this);
+  }
+
+  default Expression check(TypeToken<?> type) {
+    return v -> v.visitCheck(type, this);
   }
 
   default Expression invoke(String methodName, Expression... arguments) {

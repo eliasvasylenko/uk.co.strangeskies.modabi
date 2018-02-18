@@ -1,13 +1,12 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-import static uk.co.strangeskies.collection.stream.StreamUtilities.streamOptional;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import uk.co.strangeskies.collection.stream.StreamUtilities;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
@@ -21,6 +20,7 @@ import uk.co.strangeskies.modabi.schema.impl.utilities.ChildBindingPointBuilderC
 import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.meta.ChildBindingPointBuilder;
 import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.Methods;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -82,21 +82,17 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     this.overriddenNode = overriddenNode;
   }
 
-  public NodeBuilderImpl<?> getParent() {
-    return context.parent();
-  }
-
-  protected Stream<ChildBindingPoint<?>> getOverriddenBindingPoints() {
-    return getName().map(context::overrideChild).orElse(Stream.empty());
+  protected Optional<ChildBindingPoint<?>> getOverriddenBindingPoints() {
+    return getName().map(context::overrideChild).orElse(Optional.empty());
   }
 
   public <U> OverrideBuilder<U> overrideChildren(
       Function<? super ChildBindingPoint<?>, ? extends U> overriddenValues,
       Function<? super ChildBindingPointBuilder<E>, Optional<? extends U>> overridingValue) {
     return new OverrideBuilder<>(
-        getOverriddenBindingPoints().map(overriddenValues::apply).collect(toList()),
-        overridingValue.apply(this),
-        () -> Methods.findMethod(ChildBindingPoint.class, overriddenValues::apply).getName());
+        () -> Methods.findMethod(ChildBindingPoint.class, overriddenValues::apply).getName(),
+        getOverriddenBindingPoints().map(overriddenValues::apply),
+        overridingValue.apply(this));
   }
 
   @Override
@@ -268,7 +264,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     return Optional.ofNullable(overriddenNode).map(n -> n.builder);
   }
 
-  protected Optional<NodeImpl> getNodeOverrideImpl() {
+  public Optional<NodeImpl> getNodeOverrideImpl() {
     return Optional.ofNullable(overriddenNode).map(n -> n.node);
   }
 
@@ -311,16 +307,23 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
       }
 
       @Override
+      public Imports imports() {
+        return context.imports();
+      }
+
+      @Override
       public Optional<Namespace> namespace() {
         return getName().map(QualifiedName::getNamespace);
       }
 
       @Override
-      public Stream<Node> overrideNode() {
+      public Optional<Node> overrideNode() {
         return Stream
-            .concat(
-                streamOptional(getModel().map(Model::rootNode)),
-                getOverriddenBindingPoints().map(ChildBindingPoint::override));
+            .of(
+                getModel().map(Model::rootNode),
+                getOverriddenBindingPoints().map(ChildBindingPoint::override))
+            .flatMap(StreamUtilities::streamOptional)
+            .findFirst();
       }
 
       @Override

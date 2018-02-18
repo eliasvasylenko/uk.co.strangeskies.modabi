@@ -1,11 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.util.stream.Collectors.toList;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
-
-import java.util.Collection;
-import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -17,7 +13,7 @@ public class ModelImpl<T> implements Model<T> {
   private final NodeImpl rootNode;
   private final QualifiedName name;
   private final boolean export;
-  private final Collection<Model<? super T>> baseModels;
+  private final Model<? super T> baseModel;
   private final TypeToken<T> dataType;
 
   @SuppressWarnings("unchecked")
@@ -35,7 +31,7 @@ public class ModelImpl<T> implements Model<T> {
         .tryGet()
         .map(t -> (TypeToken<T>) t)
         .get();
-    baseModels = configurator.getBaseModel().collect(toList());
+    baseModel = configurator.getBaseModel().orElse(null); // TODO some root model
   }
 
   @Override
@@ -59,8 +55,8 @@ public class ModelImpl<T> implements Model<T> {
   }
 
   @Override
-  public Stream<Model<? super T>> baseModels() {
-    return baseModels.stream();
+  public Model<? super T> baseModel() {
+    return baseModel;
   }
 
   @Override

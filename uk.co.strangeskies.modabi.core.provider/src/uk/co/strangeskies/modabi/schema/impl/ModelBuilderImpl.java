@@ -1,16 +1,10 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
@@ -22,6 +16,7 @@ import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
+import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ModelBuilderImpl<T> implements ModelBuilder<T> {
@@ -29,7 +24,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
   private final QualifiedName name;
   private final Boolean export;
 
-  private final Set<Model<? super T>> baseModel;
+  private final Model<? super T> baseModel;
   private final TypeToken<T> dataType;
   private final OverriddenNode rootNode;
 
@@ -37,7 +32,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
     this.schema = schema;
     name = null;
     export = null;
-    baseModel = emptySet();
+    baseModel = null;
     dataType = null;
     rootNode = null;
   }
@@ -46,13 +41,13 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       SchemaBuilderImpl schema,
       QualifiedName name,
       Boolean export,
-      Set<Model<? super T>> baseModels,
+      Model<? super T> baseModel,
       TypeToken<T> dataType,
       OverriddenNode rootNode) {
     this.schema = schema;
     this.name = name;
     this.export = export;
-    this.baseModel = baseModels;
+    this.baseModel = baseModel;
     this.dataType = dataType;
     this.rootNode = rootNode;
   }
@@ -79,11 +74,16 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
 
   protected <U> NodeBuilder<ModelBuilder<U>> rootNodeImpl(
       TypeToken<U> dataType,
-      Collection<? extends Model<? super U>> baseModel) {
+      Model<? super U> baseModel) {
     return new NodeBuilderImpl<>(new NodeBuilderContext<ModelBuilder<U>>() {
       @Override
       public FunctionalExpressionCompiler expressionCompiler() {
         return schema.getExpressionCompiler();
+      }
+
+      @Override
+      public Imports imports() {
+        return schema.getImports();
       }
 
       @Override
@@ -92,8 +92,8 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       }
 
       @Override
-      public Stream<Node> overrideNode() {
-        return baseModel.stream().map(Model::rootNode);
+      public Optional<Node> overrideNode() {
+        return getBaseModel().map(Model::rootNode);
       }
 
       @Override
@@ -102,7 +102,7 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
             schema,
             name,
             export,
-            new HashSet<>(baseModel),
+            baseModel,
             dataType,
             new OverriddenNode(rootNode));
       }
@@ -110,20 +110,18 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
   }
 
   @Override
-  public <U> NodeBuilder<ModelBuilder<U>> rootNode(
-      TypeToken<U> type,
-      Collection<? extends Model<? super U>> baseModel) {
+  public <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type, Model<? super U> baseModel) {
     return rootNodeImpl(requireNonNull(type), requireNonNull(baseModel));
   }
 
   @Override
-  public Stream<Model<? super T>> getBaseModel() {
-    return baseModel.stream();
+  public Optional<Model<? super T>> getBaseModel() {
+    return Optional.ofNullable(baseModel);
   }
 
   @Override
   public <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type) {
-    return rootNodeImpl(requireNonNull(type), emptySet());
+    return rootNodeImpl(requireNonNull(type), null);
   }
 
   @Override
@@ -144,9 +142,9 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
       Function<Model<? super T>, ? extends U> node,
       Function<ModelBuilder<T>, Optional<? extends U>> builder) {
     return new OverrideBuilder<>(
-        getBaseModel().map(node).collect(Collectors.toList()),
-        builder.apply(this),
-        () -> "unnamed property");
+        () -> "unnamed property",
+        getBaseModel().map(node),
+        builder.apply(this));
   }
 
   @Override

@@ -1,22 +1,24 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.BINDING_POINT_PREFIX;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.BINDING_PREFIX;
+import static java.util.Arrays.asList;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.BOUND_PREFIX;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.PARENT_VALUE;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.RESULT_VALUE;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.SOURCE_VALUE;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.TARGET_VALUE;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.qualifiedName;
+import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
 import static uk.co.strangeskies.text.parsing.Parser.matchingAll;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
 import uk.co.strangeskies.modabi.expression.Preprocessor;
-import uk.co.strangeskies.modabi.schema.Binding;
-import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointImpl;
 import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl;
-import uk.co.strangeskies.reflection.token.TypeArgument;
-import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.parsing.Parser;
 
 public class BindingFunctionPreprocessor implements Preprocessor {
@@ -80,76 +82,75 @@ public class BindingFunctionPreprocessor implements Preprocessor {
      */
 
     if (name.isEmpty()) {
-      // TODO it's the binding point currently being built!
-      return null;
+      return bindingPoint;
+
     } else {
-      // TODO it's the named binding point!
       QualifiedName qualifiedName = qualifiedNameParser.parse(name);
-      return null;
+      return bindingNode
+          .getChildBindingPointsImpl()
+          .stream()
+          .filter(p -> qualifiedName.equals(p.name()))
+          .findAny()
+          .orElseThrow(() -> new ModabiSchemaException(MESSAGES.noChildFound(qualifiedName)));
     }
   }
 
-  private Expression rawBindingPointExpression(ChildBindingPoint<?> bindingPoint) {
-    return null; // TODO locate the binding point during processing through the context
-  }
-
-  private Expression rawBindingExpression(ChildBindingPoint<?> bindingPoint) {
-    Expression bindingPointExpression = rawBindingPointExpression(bindingPoint);
-    return null; // TODO locate the binding during processing through the context
-  }
-
-  private <T> void visitBindingPointExpression(ChildBindingPoint<T> bindingPoint) {
-    visitor()
-        .visitCast(
-            new TypeToken<BindingPoint<T>>() {}
-                .withTypeArguments(new TypeArgument<T>(bindingPoint.dataType()) {}),
-            rawBindingPointExpression(bindingPoint));
-  }
-
-  private <T> void visitBindingExpression(ChildBindingPoint<T> bindingPoint) {
-    visitor()
-        .visitCast(
-            new TypeToken<Binding<T>>() {}
-                .withTypeArguments(new TypeArgument<T>(bindingPoint.dataType()) {}),
-            rawBindingExpression(bindingPoint));
+  private Expression rawBindingExpression(QualifiedName bindingPoint) {
+    return v -> v
+        .visitInvocation(
+            c -> c.visitNamed("context"),
+            "getBoundObject",
+            asList(qualifiedName(bindingPoint)));
   }
 
   private void visitBoundExpression(ChildBindingPoint<?> bindingPoint) {
-    visitor()
-        .visitCast(bindingPoint.dataType(), rawBindingExpression(bindingPoint).invoke("getData"));
+    Preprocessor.super.visitCast(
+        bindingPoint.dataType(),
+        rawBindingExpression(bindingPoint.name()).invoke("getObject"));
   }
 
   @Override
   public void visitNamed(String name) {
-    if (name.startsWith(BINDING_POINT_PREFIX)) {
-      name = name.substring(BINDING_POINT_PREFIX.length());
-      visitBindingPointExpression(findBindingPoint(name));
+    if (name.equals(TARGET_VALUE)) {
+      visitor().visitCast(bindingPoint.getTargetType(), v -> v.visitNamed(TARGET_VALUE));
 
-    } else if (name.startsWith(BINDING_PREFIX)) {
-      name = name.substring(BINDING_PREFIX.length());
-      visitBindingExpression(findBindingPoint(name));
+    } else if (name.equals(RESULT_VALUE)) {
+      visitBoundExpression(bindingPoint);
+
+    } else if (name.equals(SOURCE_VALUE)) {
+      visitor().visitCast(bindingNode.getSourceType(), v -> v.visitNamed(TARGET_VALUE));
+
+    } else if (name.equals(PARENT_VALUE)) {
+      throw new UnsupportedOperationException("PARENT not supported yet");
 
     } else if (name.startsWith(BOUND_PREFIX)) {
       name = name.substring(BOUND_PREFIX.length());
       visitBoundExpression(findBindingPoint(name));
 
     } else {
-      visitor().visitNamed(name);
+      Preprocessor.super.visitNamed(name);
     }
   }
 
   @Override
   public void visitNamedAssignment(String name, Expression value) {
-    if (name.startsWith(BINDING_POINT_PREFIX)) {
-      // TODO throw, can't assign to this
+    if (name.equals(TARGET_VALUE)) {
+      visitor().visitNamedAssignment(name, process(value.check(bindingNode.getTargetType())));
 
-    } else if (name.startsWith(BINDING_PREFIX)) {
-      // TODO throw, can't assign to this
+    } else if (name.equals(RESULT_VALUE)) {
+      visitBoundExpression(bindingPoint);
+
+    } else if (name.equals(SOURCE_VALUE)) {
+      visitor().visitNamedAssignment(name, process(value.check(bindingNode.getSourceType())));
+
+    } else if (name.equals(PARENT_VALUE)) {
+      throw new UnsupportedOperationException("PARENT not supported yet");
 
     } else if (name.startsWith(BOUND_PREFIX)) {
-      // TODO throw, can't assign to this
-    }
+      throw new ModabiSchemaException(MESSAGES.cannotAssignToBoundObject());
 
-    visitor().visitNamedAssignment(name, value);
+    } else {
+      Preprocessor.super.visitNamedAssignment(name, v -> value.evaluate(this));
+    }
   }
 }

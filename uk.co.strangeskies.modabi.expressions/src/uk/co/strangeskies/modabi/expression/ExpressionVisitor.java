@@ -7,6 +7,20 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 public interface ExpressionVisitor {
   <T> void visitCast(TypeToken<T> type, Expression expression);
 
+  /**
+   * This is similar to the behavior of a cast with some subtle differences.
+   * 
+   * Rather than the expression making the cast taking the given type, it retains
+   * the type of the given expression.
+   * 
+   * Rather than the given expression being checked for cast-compatibility with
+   * the given type, it creates a loose-compatibility bound with the given type.
+   * 
+   * @param type
+   * @param expression
+   */
+  <T> void visitCheck(TypeToken<T> type, Expression expression);
+
   void visitField(Expression receiver, String variable);
 
   void visitFieldAssignment(Expression receiver, String variable, Expression value);

@@ -44,10 +44,6 @@ public interface ModabiSchemaExceptionProperties {
    */
   <T> String cannotOverrideIncompatibleProperty(String propertyName, T base, T override);
 
-  String cannotMergeIncompatibleProperties(String propertyName, Collection<?> values);
-
-  String mustOverrideIncompatibleProperties(String propertyName, Collection<?> values);
-
   String mustProvideValueForNonAbstract(String propertyName);
 
   String unexpectedOverrideError(Node base);
@@ -131,4 +127,8 @@ public interface ModabiSchemaExceptionProperties {
   String cannotPerformAssignment(TypeToken<?> to, TypeToken<?> from);
 
   String typeMustBeFunctionalInterface(TypeToken<?> implementationType);
+
+  String noChildFound(QualifiedName qualifiedName);
+
+  String cannotAssignToBoundObject();
 }

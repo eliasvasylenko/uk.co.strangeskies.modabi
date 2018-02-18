@@ -8,6 +8,7 @@ import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.impl.BindingContextImpl;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 public class NodeWriter {

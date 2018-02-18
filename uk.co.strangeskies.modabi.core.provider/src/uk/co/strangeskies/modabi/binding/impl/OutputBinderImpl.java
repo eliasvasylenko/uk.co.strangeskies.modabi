@@ -42,6 +42,7 @@ import uk.co.strangeskies.modabi.io.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.impl.BindingContextImpl;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class OutputBinderImpl<T> implements OutputBinder<T> {

@@ -7,10 +7,11 @@ import uk.co.strangeskies.modabi.binding.InputBinder;
 import uk.co.strangeskies.modabi.binding.OutputBinder;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.expression.impl.FunctionalExpressionCompilerImpl;
-import uk.co.strangeskies.modabi.impl.CoreSchemata;
 import uk.co.strangeskies.modabi.io.DataFormat;
 import uk.co.strangeskies.modabi.io.DataFormats;
 import uk.co.strangeskies.modabi.schema.Schemata;
+import uk.co.strangeskies.modabi.schema.impl.BindingContextImpl;
+import uk.co.strangeskies.modabi.schema.impl.CoreSchemata;
 import uk.co.strangeskies.modabi.schema.impl.SchemaBuilderImpl;
 
 /*

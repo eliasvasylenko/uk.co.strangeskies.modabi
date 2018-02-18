@@ -18,9 +18,7 @@
  */
 package uk.co.strangeskies.modabi.scripting;
 
-import uk.co.strangeskies.reflection.token.ReifiedToken;
-
-public interface ScriptObject<T> extends ReifiedToken<ScriptObject<T>> {
+public interface ScriptObject<T> extends TypedObject<ScriptObject<T>> {
   String getLanguage();
 
   String getObjectName();

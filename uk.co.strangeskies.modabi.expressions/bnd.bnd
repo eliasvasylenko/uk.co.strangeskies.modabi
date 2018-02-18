@@ -8,7 +8,10 @@ Bundle-Description: \
 	uk.co.strangeskies.utilities;version=latest,\
 	uk.co.strangeskies.collections;version=latest,\
 	uk.co.strangeskies.reflection;version=latest,\
-	uk.co.strangeskies.reflection.token;version=latest
+	uk.co.strangeskies.text;version=latest,\
+	uk.co.strangeskies.reflection.token;version=latest,\
+\
+	uk.co.strangeskies.modabi.common;version=latest
 
 Export-Package: \
 	uk.co.strangeskies.modabi.expression,\

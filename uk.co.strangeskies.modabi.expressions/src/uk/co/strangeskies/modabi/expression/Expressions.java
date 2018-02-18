@@ -163,8 +163,4 @@ public class Expressions {
                 "forType",
                 new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
   }
-
-  public static Expression cast(TypeToken<?> type, Expression expression) {
-    return v -> v.visitCast(type, expression);
-  }
 }

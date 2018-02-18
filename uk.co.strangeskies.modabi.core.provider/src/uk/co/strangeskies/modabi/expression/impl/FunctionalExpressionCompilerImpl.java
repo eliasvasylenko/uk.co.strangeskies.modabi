@@ -2,10 +2,11 @@ package uk.co.strangeskies.modabi.expression.impl;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static uk.co.strangeskies.collection.stream.StreamUtilities.throwingReduce;
-import static uk.co.strangeskies.modabi.ModabiException.MESSAGES;
+import static uk.co.strangeskies.modabi.expression.ExpressionException.MESSAGES;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
 import static uk.co.strangeskies.reflection.token.ExecutableToken.staticMethods;
 import static uk.co.strangeskies.reflection.token.MethodMatcher.anyMethod;
@@ -22,36 +23,20 @@ import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 
-import uk.co.strangeskies.modabi.ModabiException;
 import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.ExpressionException;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
+import uk.co.strangeskies.modabi.expression.ExpressionWriter;
 import uk.co.strangeskies.modabi.expression.functional.FunctionCapture;
 import uk.co.strangeskies.modabi.expression.functional.FunctionImplementation;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.expression.functional.Named;
 import uk.co.strangeskies.reflection.BoundSet;
+import uk.co.strangeskies.reflection.token.ExecutableParameter;
 import uk.co.strangeskies.reflection.token.ExecutableToken;
 import uk.co.strangeskies.reflection.token.FieldToken;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-/*
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * TODO create new exceptions for expressions
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- */
 @Component
 public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCompiler {
   @Override
@@ -69,23 +54,24 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
     Class<?> implementationClass = implementationType.getErasedType();
 
     if (!implementationClass.isInterface())
-      throw new ModabiException(
+      throw new ExpressionException(
           MESSAGES.typeMustBeFunctionalInterface(implementationType.getType()));
 
     ExecutableToken<T, ?> executable = stream(implementationClass.getMethods())
         .filter(m -> !m.isDefault() && !isStatic(m.getModifiers()))
         .reduce(
             throwingReduce(
-                (a, b) -> new ModabiException(
+                (a, b) -> new ExpressionException(
                     MESSAGES.typeMustBeFunctionalInterface(implementationType.getType()))))
         .map(ExecutableToken::forMethod)
         .map(e -> e.withReceiverType(implementationType))
         .orElseThrow(
-            () -> new ModabiException(
+            () -> new ExpressionException(
                 MESSAGES.typeMustBeFunctionalInterface(implementationType.getType())));
 
     ExpressionVisitorImpl<T, C> visitor = new ExpressionVisitorImpl<>(executable, captureScope);
 
+    System.out.println("=======================================");
     TypeToken<?> returnType = visitor.compileStep(expression).type;
     List<Instructions> instructions = new ArrayList<>(visitor.instructions);
 
@@ -185,12 +171,15 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
 
     private void completeStep(TypeToken<?> type, Instructions step) {
       instructions.add(step);
+      System.out.println("  ++");
       stack.add(new InstructionDescription(type));
       maximumStackSize = Math.max(maximumStackSize, stack.size());
     }
 
     private InstructionDescription compileStep(Expression expression) {
+      System.out.println("->  " + new ExpressionWriter().evaluate(expression));
       expression.evaluate(this);
+      System.out.println("  --      @ " + stack.get(stack.size() - 1).type);
       return stack.remove(stack.size() - 1);
     }
 
@@ -246,6 +235,8 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
         Class<U> type,
         String method,
         List<Expression> arguments) {
+      System.out.println("s " + type + "." + method);
+
       visitInvocationImpl(
           null,
           () -> staticMethods(type).filter(anyMethod().named(method)),
@@ -256,6 +247,8 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
     public void visitInvocation(Expression receiver, String method, List<Expression> arguments) {
       InstructionDescription receiverMetadata = compileStep(receiver);
 
+      System.out.println("m " + receiverMetadata.type.getErasedType() + "." + method);
+
       visitInvocationImpl(
           receiverMetadata,
           () -> receiverMetadata.type.methods().filter(anyMethod().named(method)),
@@ -264,6 +257,8 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
 
     @Override
     public <U> void visitConstructorInvocation(Class<U> type, List<Expression> arguments) {
+      System.out.println("c " + type);
+
       visitInvocationImpl(null, () -> forClass(type).infer().constructors(), arguments);
     }
 
@@ -271,11 +266,28 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
     public <U> void visitCast(TypeToken<U> type, Expression value) {
       InstructionDescription valueMetadata = compileStep(value);
 
-      if (!type.isCastableFrom(valueMetadata.type))
-        throw new ModabiException(
-            MESSAGES.cannotPerformCast(type.getType(), valueMetadata.type.getType()));
+      /*
+       * TODO cast check is not yet supported, must imply necessary bounds
+       */
+      // if (!type.isCastableFrom(valueMetadata.type))
+      // throw new ExpressionException(MESSAGES.cannotPerformCast(type,
+      // valueMetadata.type));
 
-      completeStep(type, c -> valueMetadata.type.cast(c.peek()));
+      completeStep(type, c -> {});
+    }
+
+    @Override
+    public <U> void visitCheck(TypeToken<U> type, Expression value) {
+      InstructionDescription valueMetadata = compileStep(value);
+
+      /*
+       * TODO check is not yet supported, must imply necessary bounds
+       */
+      // if (!type.isCastableFrom(valueMetadata.type))
+      // throw new ExpressionException(MESSAGES.cannotPerformCast(type,
+      // valueMetadata.type));
+
+      completeStep(valueMetadata.type, c -> {});
     }
 
     private void visitFieldImpl(InstructionDescription receiver, String variable) {
@@ -284,7 +296,8 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
           .fields()
           .filter(anyVariable().named(variable))
           .findAny()
-          .orElseThrow(() -> new RuntimeException(" no var " + variable));
+          .orElseThrow(
+              () -> new ExpressionException(MESSAGES.cannotResolveField(receiver.type, variable)));
 
       completeStep(field.getFieldType(), c -> c.push(field.get(c.pop())));
     }
@@ -306,14 +319,12 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
           .fields()
           .filter(anyVariable().named(variable))
           .findAny()
-          .get();
+          .orElseThrow(
+              () -> new ExpressionException(MESSAGES.cannotResolveField(receiver.type, variable)));
 
       if (!field.getFieldType().satisfiesConstraintFrom(LOOSE_COMPATIBILILTY, valueMetadata.type))
-        throw new ModabiException(
-            MESSAGES
-                .cannotPerformAssignment(
-                    field.getFieldType().getType(),
-                    valueMetadata.type.getType()));
+        throw new ExpressionException(
+            MESSAGES.cannotPerformAssignment(field.getFieldType(), valueMetadata.type));
 
       completeStep(field.getFieldType(), c -> {
         Object v = c.pop();
@@ -356,50 +367,35 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
           c.next();
         }
       });
-
-      /*
-       * TODO We loop in order of evaluation, i.e.:
-       * 
-       * a[].b()[].c(d[].e, f[])[]
-       * 
-       * goes
-       * 
-       * for each A in a X = A.b() for each B in X for each D in d Y = D.e for each F
-       * in f Z = B.c(Y, F) for each C in Z for each W in C result += W;
-       * 
-       * Which means converting to a stack based evaluation model (where _ pops).
-       * 
-       * a -> _[] -> _.b() -> _[] -> d -> _[] -> _.e -> f -> _[] -> _.c(_, _)
-       * 
-       * This effectively leaves a whole list of things on the stack when we're
-       * done... I guess how to deal with that is left to the compiler? What does
-       * FunctionalExpressionCompiler do? Valid options include: - collapse to
-       * array/list/stream/iterator - discard all but last - discard all
-       * 
-       * We can have a special operator which short circuits this collapse over the
-       * most recent sub-expression in the stack as opposed to leaving it until the
-       * whole expression has been evaluated
-       * 
-       * e.g. instead of:
-       * 
-       * takeItem(a[].b[]))
-       * 
-       * we could have:
-       * 
-       * takeList(COLLAPSE_TO_LIST(a[].b[]))
-       * 
-       * a -> _[] -> b -> _[] -> COLLAPSE_TO_LIST(_, _) -> takeList(_)
-       */
     }
 
     @Override
     public void visitNamed(String variable) {
-      /*
-       * TODO if the variable name matches a parameter, get that! else:
-       */
+      ExecutableParameter parameter = executable
+          .getParameters()
+          .filter(p -> variable.equals(getName(p)))
+          .findAny()
+          .orElse(null);
 
-      InstructionDescription receiverMetadata = compileCaptureStep();
-      visitFieldImpl(receiverMetadata, variable);
+      if (parameter != null) {
+        int index = asList(parameter.getParameter().getDeclaringExecutable().getParameters())
+            .indexOf(parameter.getParameter());
+
+        completeStep(parameter.getTypeToken(), c -> c.pushArgument(index));
+      } else {
+        InstructionDescription receiverMetadata = compileCaptureStep();
+        visitFieldImpl(receiverMetadata, variable);
+      }
+    }
+
+    private Object getName(ExecutableParameter parameter) {
+      if (parameter.getParameter().isNamePresent())
+        return parameter.getName();
+
+      if (parameter.getParameter().isAnnotationPresent(Named.class))
+        return parameter.getParameter().getAnnotation(Named.class).value();
+
+      return null;
     }
 
     @Override
@@ -415,12 +411,6 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
     private InstructionDescription compileCaptureStep() {
       instructions.add(c -> c.pushCapture());
       return new InstructionDescription(captureScope);
-    }
-
-    private InstructionDescription compileArgumentStep(int i) {
-      instructions.add(c -> c.pushArgument(i));
-      return new InstructionDescription(
-          executable.getParameters().skip(i).findFirst().get().getTypeToken());
     }
 
     @Override

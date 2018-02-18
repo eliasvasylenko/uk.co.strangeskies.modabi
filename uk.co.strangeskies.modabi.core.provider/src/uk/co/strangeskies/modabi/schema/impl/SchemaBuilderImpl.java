@@ -148,6 +148,10 @@ public class SchemaBuilderImpl implements SchemaBuilder {
     return this;
   }
 
+  Imports getImports() {
+    return imports != null ? imports : Imports.empty();
+  }
+
   @Override
   public ModelBuilder<?> addModel() {
     ModelBuilder<?> configurator = new ModelBuilderImpl<>(this);
