@@ -22,6 +22,7 @@ osgi-bundle:uk.co.strangeskies.modabi.common:1.0.0.201802101330
 osgi-bundle:uk.co.strangeskies.modabi.common:1.0.0.201802110002
 osgi-bundle:uk.co.strangeskies.modabi.common:1.0.0.201802181813
 osgi-bundle:uk.co.strangeskies.modabi.common:1.0.0.201802182010
+osgi-bundle:uk.co.strangeskies.modabi.common:1.0.0.201802192050
 osgi-bundle:uk.co.strangeskies.modabi.core:1.0.0.201802052241
 osgi-bundle:uk.co.strangeskies.modabi.core:1.0.0.201802052242
 osgi-bundle:uk.co.strangeskies.modabi.core:1.0.0.201802052245
@@ -689,6 +690,7 @@ osgi-bundle:uk.co.strangeskies.modabi.expressions:1.0.0.201802170956
 osgi-bundle:uk.co.strangeskies.modabi.expressions:1.0.0.201802181255
 osgi-bundle:uk.co.strangeskies.modabi.expressions:1.0.0.201802181813
 osgi-bundle:uk.co.strangeskies.modabi.expressions:1.0.0.201802182010
+osgi-bundle:uk.co.strangeskies.modabi.expressions:1.0.0.201802192050
 osgi-bundle:uk.co.strangeskies.modabi.extender:1.0.0.201708052000
 osgi-bundle:uk.co.strangeskies.modabi.extender:1.0.0.201708052001
 osgi-bundle:uk.co.strangeskies.modabi.extender:1.0.0.201708052006
@@ -1536,6 +1538,7 @@ osgi-bundle:uk.co.strangeskies.modabi.io:1.0.0.201802170911
 osgi-bundle:uk.co.strangeskies.modabi.io:1.0.0.201802181255
 osgi-bundle:uk.co.strangeskies.modabi.io:1.0.0.201802181813
 osgi-bundle:uk.co.strangeskies.modabi.io:1.0.0.201802182010
+osgi-bundle:uk.co.strangeskies.modabi.io:1.0.0.201802192050
 osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802052343
 osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802052346
 osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802052347
@@ -1609,6 +1612,13 @@ osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802181813
 osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802182008
 osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802182009
 osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802182010
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192048
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192050
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192110
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192134
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192135
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192137
+osgi-bundle:uk.co.strangeskies.modabi.meta:1.0.0.201802192227
 osgi-bundle:uk.co.strangeskies.modabi.plugin:1.0.0.201708051859
 osgi-bundle:uk.co.strangeskies.modabi.plugin:1.0.0.201708052013
 osgi-bundle:uk.co.strangeskies.modabi.plugin:1.0.0.201708052014
@@ -1726,6 +1736,9 @@ osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802171444
 osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802181255
 osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802182009
 osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802182010
+osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802192048
+osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802192050
+osgi-bundle:uk.co.strangeskies.modabi.schemata:1.0.0.201802192227
 osgi-bundle:uk.co.strangeskies.modabi.testing:1.0.0.201710042014
 osgi-bundle:uk.co.strangeskies.modabi.testing:1.0.0.201710042023
 osgi-bundle:uk.co.strangeskies.modabi.testing:1.0.0.201710042024

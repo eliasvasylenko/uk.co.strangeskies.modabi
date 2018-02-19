@@ -18,8 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
@@ -32,7 +30,6 @@ import static uk.co.strangeskies.modabi.schema.BindingExpressions.source;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.target;
 import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
 import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
-import static uk.co.strangeskies.reflection.token.TypedObject.typedObject;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
@@ -54,17 +51,11 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.binding.provisions.ImportReader;
-import uk.co.strangeskies.modabi.binding.provisions.ImportWriter;
-import uk.co.strangeskies.modabi.binding.provisions.IncludeWriter;
-import uk.co.strangeskies.modabi.binding.provisions.ReferenceReader;
-import uk.co.strangeskies.modabi.binding.provisions.ReferenceWriter;
 import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingExpressions;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
@@ -94,11 +85,6 @@ public class BaseSchemaImpl implements BaseSchema {
   private final Model<Boolean> booleanModel;
   private final Model<QualifiedName> qualifiedNameModel;
 
-  private final Model<Object> referenceModel;
-  private final Model<Object> bindingReferenceModel;
-  private final Model<Void> referenceIndexModel;
-  private final Model<Object> importModel;
-
   private final Model<Package> packageModel;
   private final Model<Class<?>> classModel;
   private final Model<Type> typeModel;
@@ -117,12 +103,6 @@ public class BaseSchemaImpl implements BaseSchema {
   private final Model<Map<?, ?>> mapModel;
 
   private final Schema baseSchema;
-
-  /*
-   * TODO bootstrap proxies to reference models which aren't built yet
-   */
-  private Model<Model<?>> metaModelProxy;
-  private Model<Node> nodeModelProxy;
 
   public BaseSchemaImpl(SchemaBuilder schemaBuilder) {
     QualifiedName name = BaseSchema.QUALIFIED_NAME;
@@ -160,9 +140,10 @@ public class BaseSchemaImpl implements BaseSchema {
             "string",
             p -> p
                 .rootNode(String.class)
-                .inputInitialization(provide(new TypeToken<Supplier<String>>() {}).invoke("get"))
-                .outputInitialization(
-                    provide(new TypeToken<Consumer<String>>() {}).invoke("accept", source()))
+                .addChildBindingPoint()
+                .input(provide(new TypeToken<Supplier<String>>() {}).invoke("get"))
+                .output(provide(new TypeToken<Consumer<String>>() {}).invoke("accept", source()))
+                .endChild()
                 .endNode());
 
     binaryModel = modelFactory
@@ -287,8 +268,10 @@ public class BaseSchemaImpl implements BaseSchema {
             "array",
             t -> t
                 .rootNode(new @Infer TypeToken<Object[]>() {})
-                .inputInitialization(provide(new TypeToken<List<?>>() {}))
-                .outputInitialization(invokeStatic(Arrays.class, "asList", parent()))
+                .addChildBindingPoint()
+                .input(provide(new TypeToken<List<?>>() {}))
+                .output(invokeStatic(Arrays.class, "asList", parent()))
+                .endChild()
                 .addChildBindingPoint(
                     c -> c
                         .name("element")
@@ -309,7 +292,9 @@ public class BaseSchemaImpl implements BaseSchema {
             "collection",
             t -> t
                 .rootNode(new @Infer TypeToken<Collection<?>>() {})
-                .inputInitialization(provide())
+                .addChildBindingPoint()
+                .input(provide())
+                .endChild()
                 .addChildBindingPoint(
                     c -> c
                         .name("element")
@@ -353,280 +338,6 @@ public class BaseSchemaImpl implements BaseSchema {
                         .model(stringModel)
                         .input(target().assign(invokeConstructor(URL.class, result())))
                         .output(source().invoke("toString")))
-                .endNode());
-
-    @SuppressWarnings("unchecked")
-    Model<Object> referenceBaseModel = (Model<Object>) modelFactory
-        .apply(
-            "referenceBase",
-            t -> t
-                .export(false)
-                .rootNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-                .concrete(false)
-                .addChildBindingPoint(
-                    d -> d
-                        .name("targetModel")
-                        .noInput()
-                        .noOutput()
-                        .type(new @Infer TypeToken<Model<?>>() {}))
-                .addChildBindingPoint(
-                    d -> d
-                        .name("targetId")
-                        .noInput()
-                        .noOutput()
-                        .model(listModel)
-                        .overrideNode()
-                        .concrete(false)
-                        .addChildBindingPoint(e -> e.name("element").model(qualifiedNameModel))
-                        .endNode())
-                .addChildBindingPoint(
-                    d -> d
-                        .name("data")
-                        .model(stringModel)
-                        .input(
-                            target()
-                                .assign(
-                                    provide(ReferenceReader.class)
-                                        .invoke(
-                                            "dereference",
-                                            boundValue("targetModel"),
-                                            boundValue("targetId"),
-                                            result())))
-                        .output(
-                            provide(ReferenceWriter.class)
-                                .invoke(
-                                    "reference",
-                                    boundValue("targetModel"),
-                                    boundValue("targetId"),
-                                    source())))
-                .endNode());
-
-    referenceModel = modelFactory
-        .apply(
-            "reference",
-            t -> t
-                .rootNode(referenceBaseModel)
-                .concrete(false)
-                .addChildBindingPoint(
-                    c -> c
-                        .name("targetModel")
-                        .model(referenceBaseModel)
-                        .type(new @Infer TypeToken<Model<?>>() {})
-                        .overrideNode()
-                        .concrete(false)
-                        .addChildBindingPoint(
-                            d -> d
-                                .name("targetModel")
-                                .model(referenceBaseModel)
-                                .type(new @Infer TypeToken<Model<?>>() {})
-                                .overrideNode()
-                                .provideValue(
-                                    typedObject(
-                                        new TypeToken<Model<Model<?>>>() {},
-                                        metaModelProxy))
-                                .addChildBindingPoint(
-                                    e -> e
-                                        .name("targetModel")
-                                        .model(referenceBaseModel)
-                                        .type(new @Infer TypeToken<Model<?>>() {})
-                                        .overrideNode()
-                                        .concrete(false)
-                                        .provideValue(
-                                            typedObject(
-                                                new TypeToken<Model<Model<?>>>() {},
-                                                metaModelProxy))
-                                        .endNode())
-                                .addChildBindingPoint(
-                                    e -> e
-                                        .name("targetId")
-                                        .type(new TypeToken<List<QualifiedName>>() {})
-                                        .overrideNode()
-                                        .provideValue(
-                                            typedObject(
-                                                new TypeToken<List<QualifiedName>>() {},
-                                                asList(
-                                                    new QualifiedName("configurator", namespace),
-                                                    new QualifiedName("name", namespace))))
-                                        .endNode())
-                                .endNode())
-                        .addChildBindingPoint(
-                            d -> d
-                                .name("targetId")
-                                .overrideNode()
-                                .provideValue(
-                                    typedObject(
-                                        new TypeToken<List<QualifiedName>>() {},
-                                        asList(
-                                            new QualifiedName("configurator", namespace),
-                                            new QualifiedName("name", namespace))))
-                                .endNode())
-                        .endNode())
-                .endNode());
-
-    @SuppressWarnings("unchecked")
-    Model<Object> bindingReferenceModel = (Model<Object>) modelFactory
-        .apply(
-            "bindingReference",
-            t -> t
-                .rootNode(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-                .concrete(false)
-                .inputInitialization(provide(ReferenceReader.class))
-                .addChildBindingPoint(
-                    c -> c
-                        .name("targetNode")
-                        .model(referenceModel)
-                        .noInput()
-                        .noOutput()
-                        .overrideNode()
-                        .addChildBindingPoint(
-                            d -> d
-                                .name("targetModel")
-                                .overrideNode()
-                                .provideValue(
-                                    typedObject(new TypeToken<Model<Node>>() {}, nodeModelProxy))
-                                .endNode())
-                        .addChildBindingPoint(
-                            e -> e
-                                .name("targetId")
-                                .overrideNode()
-                                .provideValue(
-                                    typedObject(
-                                        new TypeToken<List<QualifiedName>>() {},
-                                        asList(
-                                            new QualifiedName("configurator", namespace),
-                                            new QualifiedName("name", namespace))))
-                                .endNode())
-                        .endNode())
-                .endNode());
-    this.bindingReferenceModel = bindingReferenceModel;
-
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * TODO this marks binding points as referenceable. Bear in mind this is NOT
-     * nodes, it is binding points. For a binding point marked as referenceable
-     * using this model, all items bound to that binding point will be added to the
-     * ProcessedBindings object in the processing context.
-     * 
-     * 
-     * TODO change of design! Things are only added to the ProcessedBindings object
-     * in the context if done explicitly e.g. by using this model.
-     * 
-     * 
-     * 
-     * 
-     * 
-     * TODO the information for how to get an index id from an object, and how to
-     * load an index id from a string, should be given here. This means it no longer
-     * has to be a part of ReferenceWriter etc.
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     */
-    referenceIndexModel = modelFactory
-        .apply(
-            "include",
-            t -> t
-                .rootNode(Void.class)
-                .concrete(false)
-                .addChildBindingPoint(
-                    c -> c.name("targetBinding").noInput().noOutput().model(bindingReferenceModel))
-                .inputInitialization(
-                    invokeStatic(IncludeWriter.class, "include", boundValue("targetBinding")))
-                .outputInitialization(
-                    invokeStatic(IncludeWriter.class, "include", boundValue("targetBinding")))
-                .endNode());
-
-    importModel = modelFactory
-        .apply(
-            "import",
-            t -> t
-                .rootNode(Object.class)
-                .concrete(false)
-                .inputInitialization(parent())
-                .outputInitialization(parent())
-                .addChildBindingPoint(
-                    c -> c
-                        .name("targetModel")
-                        .noInput()
-                        .noOutput()
-                        .model(referenceModel)
-                        .overrideNode()
-                        .concrete(false)
-                        .addChildBindingPoint(
-                            d -> d
-                                .name("targetModel")
-                                .overrideNode()
-                                .provideValue(
-                                    typedObject(
-                                        new TypeToken<Model<Model<?>>>() {},
-                                        metaModelProxy))
-                                .endNode())
-                        .addChildBindingPoint(
-                            d -> d
-                                .name("targetId")
-                                .overrideNode()
-                                .provideValue(
-                                    typedObject(
-                                        new TypeToken<List<QualifiedName>>() {},
-                                        singletonList(new QualifiedName("name", namespace))))
-                                .endNode())
-                        .endNode())
-                .addChildBindingPoint(
-                    d -> d
-                        .name("targetId")
-                        .noInput()
-                        .noOutput()
-                        .model(listModel)
-                        .overrideNode()
-                        .concrete(false)
-                        .addChildBindingPoint(e -> e.name("element").model(qualifiedNameModel))
-                        .endNode())
-                .addChildBindingPoint(
-                    d -> d
-                        .name("data")
-                        .input(
-                            provide(ImportReader.class)
-                                .invoke(
-                                    "dereferenceImport",
-                                    boundValue("targetModel"),
-                                    boundValue("targetId"),
-                                    result()))
-                        .output(
-                            provide(ImportWriter.class)
-                                .invoke(
-                                    "referenceImport",
-                                    boundValue("targetModel"),
-                                    boundValue("targetId"),
-                                    source()))
-                        .model(stringModel))
                 .endNode());
 
     packageModel = modelFactory
@@ -858,26 +569,6 @@ public class BaseSchemaImpl implements BaseSchema {
   @Override
   public Model<Interval<Integer>> rangeModel() {
     return rangeModel;
-  }
-
-  @Override
-  public Model<?> referenceModel() {
-    return referenceModel;
-  }
-
-  @Override
-  public Model<?> bindingReferenceModel() {
-    return bindingReferenceModel;
-  }
-
-  @Override
-  public Model<Void> referenceIndexModel() {
-    return referenceIndexModel;
-  }
-
-  @Override
-  public Model<Object> importModel() {
-    return importModel;
   }
 
   @Override

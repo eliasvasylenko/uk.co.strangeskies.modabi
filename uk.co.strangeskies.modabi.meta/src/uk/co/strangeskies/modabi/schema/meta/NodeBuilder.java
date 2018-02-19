@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
 /**
@@ -38,14 +37,6 @@ public interface NodeBuilder<E> {
   NodeBuilder<E> concrete(boolean concrete);
 
   Optional<Boolean> getConcrete();
-
-  NodeBuilder<E> inputInitialization(Expression expression);
-
-  Expression getInputInitialization();
-
-  NodeBuilder<E> outputInitialization(Expression expression);
-
-  Expression getOutputInitialization();
 
   ChildBindingPointBuilder<NodeBuilder<E>> addChildBindingPoint();
 

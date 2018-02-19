@@ -42,10 +42,6 @@ public interface Node {
 
   Parser<?> parser();
 
-  BindingFunction initializeInputFunction();
-
-  BindingFunction initializeOutputExpression();
-
   /**
    * @return the set of all <em>direct</em> base nodes, i.e. excluding those which
    *         are transitively implied via other more specific base nodes

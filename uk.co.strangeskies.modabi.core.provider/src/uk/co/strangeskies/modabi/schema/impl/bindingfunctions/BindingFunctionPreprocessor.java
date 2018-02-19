@@ -18,7 +18,6 @@ import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointImpl;
-import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl;
 import uk.co.strangeskies.text.parsing.Parser;
 
 public class BindingFunctionPreprocessor implements Preprocessor {
@@ -26,17 +25,7 @@ public class BindingFunctionPreprocessor implements Preprocessor {
   private final Parser<QualifiedName> qualifiedNameParser;
 
   private final ChildBindingPointImpl<?> bindingPoint;
-  private final NodeBuilderImpl<?> bindingNode;
-
-  public BindingFunctionPreprocessor(
-      ExpressionVisitor expressionVisitor,
-      Parser<QualifiedName> qualifiedNameParser,
-      NodeBuilderImpl<?> bindingNode) {
-    this.expressionVisitor = expressionVisitor;
-    this.bindingPoint = null;
-    this.bindingNode = bindingNode;
-    this.qualifiedNameParser = qualifiedNameParser;
-  }
+  private final ChildBindingPointBuilderImpl<?> bindingPointBuilder;
 
   public BindingFunctionPreprocessor(
       ExpressionVisitor expressionVisitor,
@@ -44,15 +33,9 @@ public class BindingFunctionPreprocessor implements Preprocessor {
       ChildBindingPointImpl<?> bindingPoint,
       ChildBindingPointBuilderImpl<?> bindingPointBuilder) {
     this.expressionVisitor = expressionVisitor;
-    this.bindingPoint = bindingPoint;
-    this.bindingNode = bindingPointBuilder.getParent();
     this.qualifiedNameParser = qualifiedNameParser;
-  }
-
-  public BindingFunctionPreprocessor(
-      ExpressionVisitor expressionVisitor,
-      NodeBuilderImpl<?> bindingNode) {
-    this(expressionVisitor, matchingAll(QualifiedName::parseString), bindingNode);
+    this.bindingPoint = bindingPoint;
+    this.bindingPointBuilder = bindingPointBuilder;
   }
 
   public BindingFunctionPreprocessor(
@@ -86,7 +69,7 @@ public class BindingFunctionPreprocessor implements Preprocessor {
 
     } else {
       QualifiedName qualifiedName = qualifiedNameParser.parse(name);
-      return bindingNode
+      return bindingPointBuilder
           .getChildBindingPointsImpl()
           .stream()
           .filter(p -> qualifiedName.equals(p.name()))
@@ -112,13 +95,13 @@ public class BindingFunctionPreprocessor implements Preprocessor {
   @Override
   public void visitNamed(String name) {
     if (name.equals(TARGET_VALUE)) {
-      visitor().visitCast(bindingPoint.getTargetType(), v -> v.visitNamed(TARGET_VALUE));
+      visitor().visitCast(bindingPointBuilder.getTargetType(), v -> v.visitNamed(TARGET_VALUE));
 
     } else if (name.equals(RESULT_VALUE)) {
       visitBoundExpression(bindingPoint);
 
     } else if (name.equals(SOURCE_VALUE)) {
-      visitor().visitCast(bindingNode.getSourceType(), v -> v.visitNamed(TARGET_VALUE));
+      visitor().visitCast(bindingPointBuilder.getSourceType(), v -> v.visitNamed(TARGET_VALUE));
 
     } else if (name.equals(PARENT_VALUE)) {
       throw new UnsupportedOperationException("PARENT not supported yet");
@@ -135,13 +118,15 @@ public class BindingFunctionPreprocessor implements Preprocessor {
   @Override
   public void visitNamedAssignment(String name, Expression value) {
     if (name.equals(TARGET_VALUE)) {
-      visitor().visitNamedAssignment(name, process(value.check(bindingNode.getTargetType())));
+      visitor()
+          .visitNamedAssignment(name, process(value.check(bindingPointBuilder.getTargetType())));
 
     } else if (name.equals(RESULT_VALUE)) {
       visitBoundExpression(bindingPoint);
 
     } else if (name.equals(SOURCE_VALUE)) {
-      visitor().visitNamedAssignment(name, process(value.check(bindingNode.getSourceType())));
+      visitor()
+          .visitNamedAssignment(name, process(value.check(bindingPointBuilder.getSourceType())));
 
     } else if (name.equals(PARENT_VALUE)) {
       throw new UnsupportedOperationException("PARENT not supported yet");

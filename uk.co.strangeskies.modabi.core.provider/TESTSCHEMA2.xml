@@ -23,72 +23,53 @@
   <models>
     <model
       name="sai:isotope"
-      dataType="Isotope"
-      initializeInput="new Isotope($sai:massNumber, $sai:mass, $sai:abundance)">
-
-      <!-- That the above initializeInput works might seem counter intuitive 
-        at first, but it should be okay. Input must be in order, but binding doesn't 
-        have to be, so this input can be delayed until the following items are bound, 
-        as they have blank input sections. -->
+      dataType="Isotope">
 
       <bind
         name="sai:massNumber"
-        input="">
-        <property model="int" />
-      </bind>
+        input=""
+        model="int" />
 
       <bind
         name="sai:mass"
-        input="">
-        <property model="double" />
-      </bind>
+        input=""
+        model="double" />
 
       <bind
         name="sai:abundance"
-        input="">
-        <property model="double" />
-      </bind>
+        input=""
+        model="double" />
 
-      <!-- an alternative to the initialize input section -->
-      <bind
-        model="void"
-        input="new Isotope($sai:massNumber, $sai:mass, $sai:abundance)" />
+      <bind input="new Isotope($sai:massNumber, $sai:mass, $sai:abundance)" />
     </model>
 
-    <!-- Skip the 'dataType' attribute to say that it is inferred (and resolved) 
-      automatically based on the sequence of child binding points. The problem 
-      with this is that output of binding points can't be resolved before knowing 
-      this... damn... -->
     <model
       name="sai:element"
-      initializeInput="new Element()">
+      dataType="Element">
 
-      <!-- an alternative to the initialize input section -->
-      <bind
-        model="void"
-        input="new Element()" />
+      <bind input="new Element()" />
 
       <bind
         name="sai:atomicNumber"
         model="int"
-        input=".=withAtomicNumber($)" />
+        input="target = target.withAtomicNumber($)" />
 
       <bind
         name="sai:name"
         model="string"
         condition="optional"
-        input=".=withName($)" />
+        input="target = target.withName($)" />
 
       <bind
         name="sai:symbol"
         model="string"
-        input=".=withSymbol($)" />
+        input="target = target.withSymbol($)" />
 
       <bind
         model="sai:isotope"
         condition="occurrences(Range.from(0))"
         output=".getIsotopes()[]"
-        input="target = target.withIsotope($)" />
+        input="target = target.withIsotope($[])" />
 
       <bind
         name="sai:group"
@@ -99,12 +80,9 @@
 
     <model
       name="sai:periodicTable"
-      initializeInput="new PeriodicTable()">
+      dataType="PeriodicTable">
 
-      <!-- an alternative to the initialize input section -->
-      <bind
-        model="void"
-        input="new PeriodicTable()" />
+      <bind input="new PeriodicTable()" />
 
       <bind
         name="sai:name"

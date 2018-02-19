@@ -73,21 +73,6 @@ public interface BaseSchema extends Schema {
 
   Model<URL> urlModel();
 
-  Model<?> referenceModel();
-
-  Model<?> bindingReferenceModel();
-
-  /*
-   * Denotes a given node as referenceable according to a given index
-   */
-  Model<Void> referenceIndexModel();
-
-  /*
-   * retrieves objects already bound by SchemaBinder and 'includes' them, or some
-   * children of them. Blocks if we are waiting for them.
-   */
-  Model<Object> importModel();
-
   Model<Interval<Integer>> rangeModel();
 
   Model<Enum<?>> enumModel();

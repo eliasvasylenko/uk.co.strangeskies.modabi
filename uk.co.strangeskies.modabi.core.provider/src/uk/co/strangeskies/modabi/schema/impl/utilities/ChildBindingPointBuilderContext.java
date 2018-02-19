@@ -19,9 +19,9 @@
 package uk.co.strangeskies.modabi.schema.impl.utilities;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.impl.ChildBindingPointBuilderImpl;
@@ -37,11 +37,11 @@ public interface ChildBindingPointBuilderContext<E extends NodeBuilder<?>> {
 
   BoundSet boundSet();
 
-  TypeToken<?> inputTargetType();
+  TypeToken<?> parentType();
 
-  TypeToken<?> outputSourceType();
+  Stream<ChildBindingPoint<?>> inheritedChildren();
 
-  Optional<ChildBindingPoint<?>> overrideChild(QualifiedName id);
+  Optional<ChildBindingPoint<?>> previousChild();
 
   E addChildResult(ChildBindingPointBuilderImpl<?> child);
 

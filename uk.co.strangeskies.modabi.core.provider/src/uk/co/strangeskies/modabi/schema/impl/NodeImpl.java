@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
@@ -90,18 +89,6 @@ public class NodeImpl implements Node {
 
   @Override
   public Optional<?> providedValue() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public BindingFunction initializeInputFunction() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public BindingFunction initializeOutputExpression() {
     // TODO Auto-generated method stub
     return null;
   }

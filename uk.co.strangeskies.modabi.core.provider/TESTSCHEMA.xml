@@ -29,8 +29,9 @@
     <model
       name="scriptObject"
       type="@Infer ?"
-      abstractness="ABSTRACT"
-      initializeInput="provide(ScriptObjectBuilder.class)">
+      abstractness="ABSTRACT">
+
+      <bind input="provide(ScriptObjectBuilder.class)" />
 
       <bind
         name="objectName"

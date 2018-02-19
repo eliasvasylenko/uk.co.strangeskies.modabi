@@ -133,7 +133,9 @@ public class MetaSchemaImpl implements MetaSchema {
             "requiredCondition",
             m -> m
                 .rootNode(bindingConditionModel)
-                .inputInitialization(invokeStatic(BindingConditionPrototype.class, "required"))
+                .addChildBindingPoint()
+                .input(invokeStatic(BindingConditionPrototype.class, "required"))
+                .endChild()
                 .endNode());
 
     Model<BindingConditionPrototype> forbiddenModel = modelFactory
@@ -141,7 +143,9 @@ public class MetaSchemaImpl implements MetaSchema {
             "forbiddenCondition",
             m -> m
                 .rootNode(bindingConditionModel)
-                .inputInitialization(invokeStatic(BindingConditionPrototype.class, "forbidden"))
+                .addChildBindingPoint()
+                .input(invokeStatic(BindingConditionPrototype.class, "forbidden"))
+                .endChild()
                 .endNode());
 
     Model<BindingConditionPrototype> optionalModel = modelFactory
@@ -149,7 +153,9 @@ public class MetaSchemaImpl implements MetaSchema {
             "optionalCondition",
             m -> m
                 .rootNode(bindingConditionModel)
-                .inputInitialization(invokeStatic(BindingConditionPrototype.class, "optional"))
+                .addChildBindingPoint()
+                .input(invokeStatic(BindingConditionPrototype.class, "optional"))
+                .endChild()
                 .endNode());
 
     Model<BindingConditionPrototype> sortAscendingModel = modelFactory
@@ -157,7 +163,9 @@ public class MetaSchemaImpl implements MetaSchema {
             "sortAscendingCondition",
             m -> m
                 .rootNode(bindingConditionModel)
-                .inputInitialization(invokeStatic(BindingConditionPrototype.class, "ascending"))
+                .addChildBindingPoint()
+                .input(invokeStatic(BindingConditionPrototype.class, "ascending"))
+                .endChild()
                 .endNode());
 
     Model<BindingConditionPrototype> sortDescendingModel = modelFactory
@@ -165,7 +173,9 @@ public class MetaSchemaImpl implements MetaSchema {
             "sortDescendingCondition",
             m -> m
                 .rootNode(bindingConditionModel)
-                .inputInitialization(invokeStatic(BindingConditionPrototype.class, "descending"))
+                .addChildBindingPoint()
+                .input(invokeStatic(BindingConditionPrototype.class, "descending"))
+                .endChild()
                 .endNode());
 
     Model<BindingConditionPrototype> synchronizedModel = modelFactory
@@ -173,7 +183,9 @@ public class MetaSchemaImpl implements MetaSchema {
             "synchronizedCondition",
             m -> m
                 .rootNode(bindingConditionModel)
-                .inputInitialization(invokeStatic(BindingConditionPrototype.class, "synchronous"))
+                .addChildBindingPoint()
+                .input(invokeStatic(BindingConditionPrototype.class, "synchronous"))
+                .endChild()
                 .endNode());
 
     Model<BindingConditionPrototype> occurrencesModel = modelFactory

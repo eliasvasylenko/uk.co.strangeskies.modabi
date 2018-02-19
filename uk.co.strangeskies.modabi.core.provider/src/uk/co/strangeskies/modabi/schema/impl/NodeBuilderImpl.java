@@ -7,10 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
 import uk.co.strangeskies.modabi.schema.Node;
@@ -30,10 +29,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
   private final Boolean concrete;
   private final Object provided;
 
-  private final Expression inputInitialization;
-  private final Expression outputInitialization;
-
-  private final List<ChildBindingPoint<?>> overriddenChildren;
+  private final List<ChildBindingPoint<?>> inheritedChildren;
   private final List<Child> children;
 
   public NodeBuilderImpl(NodeBuilderContext<E> context) {
@@ -42,10 +38,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     this.concrete = null;
     this.provided = null;
 
-    this.inputInitialization = null;
-    this.outputInitialization = null;
-
-    this.overriddenChildren = context
+    this.inheritedChildren = context
         .overrideNode()
         .map(Node::children)
         .map(c -> c.collect(toList()))
@@ -57,8 +50,6 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
       NodeBuilderContext<E> context,
       Boolean concrete,
       Object provided,
-      Expression inputExpression,
-      Expression outputExpression,
       List<ChildBindingPoint<?>> overriddenChildren,
       List<Child> children) {
     this.context = context;
@@ -66,45 +57,8 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
     this.concrete = concrete;
     this.provided = provided;
 
-    this.inputInitialization = inputExpression;
-    this.outputInitialization = outputExpression;
-
-    this.overriddenChildren = overriddenChildren;
+    this.inheritedChildren = overriddenChildren;
     this.children = children;
-  }
-
-  @Override
-  public Expression getInputInitialization() {
-    return inputInitialization;
-  }
-
-  @Override
-  public NodeBuilder<E> inputInitialization(Expression inputInitialization) {
-    return new NodeBuilderImpl<>(
-        context,
-        concrete,
-        provided,
-        inputInitialization,
-        outputInitialization,
-        overriddenChildren,
-        children);
-  }
-
-  @Override
-  public Expression getOutputInitialization() {
-    return outputInitialization;
-  }
-
-  @Override
-  public NodeBuilder<E> outputInitialization(Expression outputInitialization) {
-    return new NodeBuilderImpl<>(
-        context,
-        concrete,
-        provided,
-        inputInitialization,
-        outputInitialization,
-        overriddenChildren,
-        children);
   }
 
   @Override
@@ -122,20 +76,15 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
           }
 
           @Override
-          public Optional<ChildBindingPoint<?>> overrideChild(QualifiedName id) {
-            return overriddenChildren.stream().filter(c -> c.name().equals(id)).findFirst();
+          public Stream<ChildBindingPoint<?>> inheritedChildren() {
+            return inheritedChildren.stream();
           }
 
           @Override
-          public TypeToken<?> outputSourceType() {
-            // TODO Auto-generated method stub
-            return null;
-          }
-
-          @Override
-          public TypeToken<?> inputTargetType() {
-            // TODO Auto-generated method stub
-            return null;
+          public Optional<ChildBindingPoint<?>> previousChild() {
+            return children.isEmpty()
+                ? Optional.empty()
+                : Optional.of(children.get(children.size() - 1).child);
           }
 
           @Override
@@ -154,73 +103,16 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
             List<Child> children = new ArrayList<>(NodeBuilderImpl.this.children.size() + 1);
             children.addAll(NodeBuilderImpl.this.children);
             children.add(new Child(child));
-            return new NodeBuilderImpl<>(
-                context,
-                concrete,
-                provided,
-                inputInitialization,
-                outputInitialization,
-                overriddenChildren,
-                children);
+            return new NodeBuilderImpl<>(context, concrete, provided, inheritedChildren, children);
+          }
+
+          @Override
+          public TypeToken<?> parentType() {
+            return context.getType();
           }
         });
   }
 
-  /*
-   * 
-   * 
-   * 
-   * TODO where did I land on this? do we need to keep the builder or can it just
-   * be the child binding point itself?
-   * 
-   * We need to keep the builder if we want to be able to bind out a schema
-   * 
-   * Options:
-   * 
-   * 1) don't keep the builder here and don't allow us to bind out a schema or
-   * schemabuilder
-   * 
-   * 2) do keep the builder here but discard it from the final Schema objects so
-   * we can bind out from the schemabuilder but not the schema
-   * 
-   * 3) do keep the builder here and in the final schema objects so we can bind
-   * out from the schemabuilder and schema
-   * 
-   * I think option 2) strikes the best balance. We don't need all binding
-   * processes to be two way! Some may only support input, some may only support
-   * output! This isn't necessarily something to hide from or a design failure!
-   * 
-   * We don't really need to have output binding for a schema object since they're
-   * generally bound in from files and they're immutable.
-   * 
-   * It may be useful to have a graphical schema editor at some point, which means
-   * some sort of output binding is necessary ... But this can function by having
-   * output binding available on a schemabuilder not the schema itself.
-   * 
-   * 
-   * 
-   * 
-   * So, INTERNALLY the NodeBuilder and ChildBindingPointBuilder will probably
-   * wish to instantiate their respective Node and ChildBindingPoint objects when
-   * the endNode() and endChild() methods are invoked respectively. But this isn't
-   * technically a requirement as these classes will only be exposed by the API
-   * once SchemaBuilder.create() is invoked. !!!!!! that may not be strictly true
-   * because of SchemaBuilder endModel(Consumer<Model<T>> completion);...
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   */
   @Override
   public List<ChildBindingPointBuilderImpl<?>> getChildBindingPoints() {
     return children.stream().map(c -> c.builder).collect(toList());
@@ -241,14 +133,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
 
   @Override
   public NodeBuilder<E> concrete(boolean concrete) {
-    return new NodeBuilderImpl<>(
-        context,
-        concrete,
-        provided,
-        inputInitialization,
-        outputInitialization,
-        overriddenChildren,
-        children);
+    return new NodeBuilderImpl<>(context, concrete, provided, inheritedChildren, children);
   }
 
   @Override
@@ -263,14 +148,7 @@ public class NodeBuilderImpl<E> implements NodeBuilder<E> {
 
   @Override
   public NodeBuilder<E> provideValue(TypedObject<?> provided) {
-    return new NodeBuilderImpl<>(
-        context,
-        concrete,
-        provided,
-        inputInitialization,
-        outputInitialization,
-        overriddenChildren,
-        children);
+    return new NodeBuilderImpl<>(context, concrete, provided, inheritedChildren, children);
   }
 
   @Override

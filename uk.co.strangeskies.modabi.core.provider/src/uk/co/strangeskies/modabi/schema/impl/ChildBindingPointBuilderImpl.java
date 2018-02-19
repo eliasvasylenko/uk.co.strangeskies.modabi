@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.Optional.ofNullable;
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -36,6 +37,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
   private final Model<?> model;
   private final TypeToken<?> type;
 
+  private final TypeToken<?> inputTarget;
+  private final TypeToken<?> outputSource;
   private final Expression input;
   private final Expression output;
 
@@ -52,8 +55,18 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     this.model = null;
     this.type = null;
 
+    this.inputTarget = context
+        .previousChild()
+        .<TypeToken<?>>map(c -> c.inputExpression().getTypeAfter())
+        .orElseGet(() -> forClass(void.class));
+    this.outputSource = context
+        .previousChild()
+        .<TypeToken<?>>map(c -> c.inputExpression().getTypeAfter())
+        .orElseGet(context::parentType);
+
     this.input = null;
     this.output = null;
+
     this.bindingCondition = null;
     this.ordered = null;
     this.overriddenNode = null;
@@ -65,6 +78,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
       Boolean extensible,
       Model<?> model,
       TypeToken<?> type,
+      TypeToken<?> inputTarget,
+      TypeToken<?> outputSource,
       Expression inputExpression,
       Expression outputExpression,
       BindingConditionPrototype bindingCondition,
@@ -75,6 +90,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     this.extensible = extensible;
     this.model = model;
     this.type = type;
+    this.inputTarget = inputTarget;
+    this.outputSource = outputSource;
     this.input = inputExpression;
     this.output = outputExpression;
     this.bindingCondition = bindingCondition;
@@ -82,7 +99,15 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
     this.overriddenNode = overriddenNode;
   }
 
-  protected Optional<ChildBindingPoint<?>> getOverriddenBindingPoints() {
+  public TypeToken<?> getSourceType() {
+    return outputSource;
+  }
+
+  public TypeToken<?> getTargetType() {
+    return inputTarget;
+  }
+
+  protected Optional<ChildBindingPoint<?>> getOverriddenBindingPoint() {
     return getName().map(context::overrideChild).orElse(Optional.empty());
   }
 
@@ -91,7 +116,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
       Function<? super ChildBindingPointBuilder<E>, Optional<? extends U>> overridingValue) {
     return new OverrideBuilder<>(
         () -> Methods.findMethod(ChildBindingPoint.class, overriddenValues::apply).getName(),
-        getOverriddenBindingPoints().map(overriddenValues::apply),
+        getOverriddenBindingPoint().map(overriddenValues::apply),
         overridingValue.apply(this));
   }
 
@@ -103,6 +128,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -133,6 +160,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -172,6 +201,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -192,6 +223,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -222,6 +255,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -242,6 +277,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -276,6 +313,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -291,6 +330,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         extensible,
         model,
         type,
+        inputTarget,
+        outputSource,
         input,
         output,
         bindingCondition,
@@ -321,7 +362,7 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
         return Stream
             .of(
                 getModel().map(Model::rootNode),
-                getOverriddenBindingPoints().map(ChildBindingPoint::override))
+                getOverriddenBindingPoint().map(ChildBindingPoint::override))
             .flatMap(StreamUtilities::streamOptional)
             .findFirst();
       }
@@ -334,6 +375,8 @@ public class ChildBindingPointBuilderImpl<E extends NodeBuilder<?>>
             extensible,
             model,
             type,
+            inputTarget,
+            outputSource,
             input,
             output,
             bindingCondition,
