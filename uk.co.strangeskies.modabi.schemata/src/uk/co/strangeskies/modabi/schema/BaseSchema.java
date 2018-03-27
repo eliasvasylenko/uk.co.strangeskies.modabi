@@ -35,15 +35,24 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.utility.Enumeration;
 
 public interface BaseSchema extends Schema {
-  public static final QualifiedName QUALIFIED_NAME = new QualifiedName(
+  public static final QualifiedName BASE_SCHEMA = new QualifiedName(
       BaseSchema.class.getSimpleName(),
       MODABI_NAMESPACE);
 
+  QualifiedName ROOT_MODEL = name("root");
+
   Model<Object> rootModel();
 
-  Model<String> stringModel();
-
-  Model<byte[]> binaryModel();
+  /*
+   * Primitives
+   */
+  QualifiedName INTEGER_MODEL = name("integer");
+  QualifiedName DECIMAL_MODEL = name("decimal");
+  QualifiedName INT_MODEL = name("int");
+  QualifiedName LONG_MODEL = name("long");
+  QualifiedName FLOAT_MODEL = name("float");
+  QualifiedName DOUBLE_MODEL = name("double");
+  QualifiedName BOOLEAN_MODEL = name("boolean");
 
   Model<BigInteger> integerModel();
 
@@ -59,7 +68,30 @@ public interface BaseSchema extends Schema {
 
   Model<Boolean> booleanModel();
 
-  Model<QualifiedName> qualifiedNameModel();
+  /*
+   * Basics
+   */
+  QualifiedName STRING_MODEL = name("string");
+  QualifiedName BINARY_MODEL = name("binary");
+  QualifiedName ENUM_MODEL = name("enum");
+  QualifiedName ENUMERATION_MODEL = name("enumeration");
+
+  Model<String> stringModel();
+
+  Model<byte[]> binaryModel();
+
+  Model<Enum<?>> enumModel();
+
+  Model<Enumeration<?>> enumerationModel();
+
+  /*
+   * Collections
+   */
+  QualifiedName ARRAY_MODEL = name("array");
+  QualifiedName COLLECTION_MODEL = name("collection");
+  QualifiedName LIST_MODEL = name("list");
+  QualifiedName SET_MODEL = name("set");
+  QualifiedName MAP_MODEL = name("map");
 
   Model<Object[]> arrayModel();
 
@@ -69,15 +101,36 @@ public interface BaseSchema extends Schema {
 
   Model<Set<?>> setModel();
 
+  Model<Map<?, ?>> mapModel();
+
+  /*
+   * External library
+   */
+  QualifiedName URI_MODEL = name("uri");
+  QualifiedName URL_MODEL = name("url");
+
   Model<URI> uriModel();
 
   Model<URL> urlModel();
 
-  Model<Interval<Integer>> rangeModel();
+  /*
+   * Internal library
+   */
+  QualifiedName QUALIFIED_NAME_MODEL = name("qualifiedName");
+  QualifiedName INTERVAL_MODEL = name("interval");
 
-  Model<Enum<?>> enumModel();
+  Model<QualifiedName> qualifiedNameModel();
 
-  Model<Enumeration<?>> enumerationModel();
+  Model<Interval<Integer>> intervalModel();
+
+  /*
+   * Reflection
+   */
+  QualifiedName PACKAGE_MODEL = name("package");
+  QualifiedName CLASS_MODEL = name("class");
+  QualifiedName TYPE_MODEL = name("type");
+  QualifiedName ANNOTATED_TYPE_MODEL = name("annotatedType");
+  QualifiedName TYPE_TOKEN_MODEL = name("typeToken");
 
   Model<Package> packageModel();
 
@@ -85,9 +138,13 @@ public interface BaseSchema extends Schema {
 
   Model<Type> typeModel();
 
-  Model<TypeToken<?>> typeTokenModel();
-
   Model<AnnotatedType> annotatedTypeModel();
 
-  Model<Map<?, ?>> mapModel();
+  Model<TypeToken<?>> typeTokenModel();
+
+  // TODO iirc Java 9 will allow this to be static
+  @Deprecated
+  static QualifiedName name(String name) {
+    return new QualifiedName(name, BASE_SCHEMA.getNamespace());
+  }
 }

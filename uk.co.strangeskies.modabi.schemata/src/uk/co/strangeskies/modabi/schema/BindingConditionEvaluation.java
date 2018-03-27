@@ -47,7 +47,7 @@ public interface BindingConditionEvaluation<T> {
    * <p>
    * This method will always be called as early as possible, with the stipulation
    * that processing order is maintained for a binding point which is
-   * {@link ChildBindingPoint#ordered() ordered},
+   * {@link Child#ordered() ordered},
    * 
    * @param binding
    *          the item that was bound

@@ -16,7 +16,7 @@ public interface BindingPoint<T> {
    * 
    * @return the type of the binding point
    */
-  TypeToken<T> dataType();
+  TypeToken<T> type();
 
   /**
    * Get the model to bind to this point.

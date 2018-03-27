@@ -23,7 +23,8 @@
   <models>
     <model
       name="sai:isotope"
-      dataType="Isotope">
+      dataType="Isotope"
+      pattern="[ $sai:massNumber ; $sai:mass ; $sai:abundance ]">
 
       <bind
         name="sai:massNumber"

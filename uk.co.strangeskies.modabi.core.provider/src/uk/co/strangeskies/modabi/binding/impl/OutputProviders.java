@@ -31,7 +31,7 @@ import uk.co.strangeskies.modabi.binding.provisions.IncludeWriter;
 import uk.co.strangeskies.modabi.binding.provisions.ReferenceWriter;
 import uk.co.strangeskies.modabi.schema.Binding;
 import uk.co.strangeskies.modabi.schema.BindingContext;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.Model;
 
 public class OutputProviders {
@@ -55,7 +55,7 @@ public class OutputProviders {
     return context -> new ImportWriter() {
       @Override
       public <U> String referenceImport(Model<U> model, List<QualifiedName> idDomain, U object) {
-        List<ChildBindingPoint<?>> node = model.descendents(idDomain);
+        List<Child<?>> node = model.descendents(idDomain);
 
         return null; // TODO
       }

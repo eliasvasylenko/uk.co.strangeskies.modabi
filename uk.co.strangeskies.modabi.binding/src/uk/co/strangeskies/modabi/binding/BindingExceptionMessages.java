@@ -28,7 +28,7 @@ import uk.co.strangeskies.modabi.ModabiProperties;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -63,11 +63,11 @@ public interface BindingExceptionMessages {
   String noProviderFound(TypeToken<?> type);
 
   <T> String mustBeOrdered(
-      ChildBindingPoint<T> node,
+      Child<T> node,
       T lastItem,
       Class<? extends Comparator<?>> order);
 
-  default String mustHaveDataWithinRange(ChildBindingPoint<?> node, Interval<Integer> range) {
+  default String mustHaveDataWithinRange(Child<?> node, Interval<Integer> range) {
     return mustHaveDataWithinRange(node.name(), Interval.compose(range));
   }
 
@@ -83,5 +83,5 @@ public interface BindingExceptionMessages {
 
   String inverseCondition(String localizedMessage);
 
-  String validationFailed(ChildBindingPoint<?> bindingPoint, Expression expression);
+  String validationFailed(Child<?> bindingPoint, Expression expression);
 }

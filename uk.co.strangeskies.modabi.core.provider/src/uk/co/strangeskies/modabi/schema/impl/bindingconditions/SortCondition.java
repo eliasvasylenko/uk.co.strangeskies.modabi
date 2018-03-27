@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.BindingContext;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.reflection.token.TypeArgument;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -57,7 +57,7 @@ public class SortCondition<T> implements BindingCondition<T> {
         return new BindingException(
             MESSAGES
                 .mustBeOrdered(
-                    (ChildBindingPoint<T>) state.getBindingPoint(),
+                    (Child<T>) state.getBindingPoint(),
                     previousBinding,
                     (Class<? extends Comparator<?>>) comparator.getClass()),
             state);

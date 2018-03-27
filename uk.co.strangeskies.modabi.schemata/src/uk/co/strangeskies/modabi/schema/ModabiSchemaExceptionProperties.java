@@ -30,7 +30,7 @@ public interface ModabiSchemaExceptionProperties {
   default String noChildFound(
       List<QualifiedName> child,
       QualifiedName parent,
-      List<? extends ChildBindingPoint<?>> children) {
+      List<? extends Child<?>> children) {
     return noChildFound(
         child,
         parent,
@@ -45,8 +45,6 @@ public interface ModabiSchemaExceptionProperties {
   <T> String cannotOverrideIncompatibleProperty(String propertyName, T base, T override);
 
   String mustProvideValueForNonAbstract(String propertyName);
-
-  String unexpectedOverrideError(Node base);
 
   String executableTypeStaticMethod();
 
@@ -102,21 +100,21 @@ public interface ModabiSchemaExceptionProperties {
 
   String cannotBeInlineExtensible(QualifiedName name);
 
-  String cannotBeAbstract(Node node);
+  String cannotBeAbstract(Model<?> node);
 
-  String cannotFindOutMethodWithoutResultType(Node node);
+  String cannotFindOutMethodWithoutResultType(Model<?> node);
 
-  String cannotFindOutMethodWithoutTargetType(Node node);
+  String cannotFindOutMethodWithoutTargetType(Model<?> node);
 
-  String cannotInferDataType(Node effective, TypeToken<?> exactDataType);
+  String cannotInferDataType(Model<?> effective, TypeToken<?> exactDataType);
 
   String cannotFindUnbindingParameter(QualifiedName p);
 
-  String unbindingParameterMustBeDataNode(Node node, QualifiedName p);
+  String unbindingParameterMustBeDataNode(Model<?> node, QualifiedName p);
 
-  String unbindingParameterMustOccurOnce(Node effective, QualifiedName p);
+  String unbindingParameterMustOccurOnce(Model<?> effective, QualifiedName p);
 
-  String unbindingParameterMustProvideValue(Node effective, QualifiedName p);
+  String unbindingParameterMustProvideValue(Model<?> effective, QualifiedName p);
 
   String cannotAcceptDuplicate(Object name);
 

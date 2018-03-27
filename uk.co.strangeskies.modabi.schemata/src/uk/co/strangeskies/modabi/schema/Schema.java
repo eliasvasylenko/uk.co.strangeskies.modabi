@@ -31,5 +31,5 @@ public interface Schema {
 
   Stream<Schema> dependencies();
 
-  Stream<Model<?>> models();
+  Models models();
 }

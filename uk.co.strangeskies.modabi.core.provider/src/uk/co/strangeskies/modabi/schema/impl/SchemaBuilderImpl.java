@@ -18,13 +18,16 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.lang.Thread.currentThread;
+import static uk.co.strangeskies.collection.stream.StreamUtilities.upcastStream;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -34,6 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
@@ -43,10 +47,9 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 @Component
 public class SchemaBuilderImpl implements SchemaBuilder {
-  private QualifiedName qualifiedName;
-  private final Set<Model<?>> modelSet;
-  private final Set<Schema> dependencySet;
-  private Imports imports;
+  private final QualifiedName name;
+  private final Map<ModelBuilderImpl, ModelImpl<?>> models;
+  private final Set<Schema> dependencies;
 
   // TODO constructor injection
   @Reference
@@ -55,34 +58,45 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   public SchemaBuilderImpl(FunctionalExpressionCompiler expressionCompiler) {
     this.expressionCompiler = expressionCompiler;
 
-    modelSet = new LinkedHashSet<>();
-    dependencySet = new LinkedHashSet<>();
-    imports = Imports.empty(Thread.currentThread().getContextClassLoader());
+    name = null;
+    models = new LinkedHashMap<>();
+    dependencies = new LinkedHashSet<>();
   }
 
   SchemaBuilderImpl() {
-    modelSet = new LinkedHashSet<>();
-    dependencySet = new LinkedHashSet<>();
-    imports = Imports.empty(Thread.currentThread().getContextClassLoader());
+    name = null;
+    models = new LinkedHashMap<>();
+    dependencies = new LinkedHashSet<>();
+  }
+
+  private SchemaBuilderImpl(
+      FunctionalExpressionCompiler expressionCompiler,
+      QualifiedName qualifiedName,
+      Map<ModelBuilderImpl, ModelImpl<?>> models,
+      Set<Schema> dependencies) {
+    this.expressionCompiler = expressionCompiler;
+    this.name = qualifiedName;
+    this.models = models;
+    this.dependencies = dependencies;
   }
 
   public SchemaBuilderImpl(
-      ModelBuilder<?> modelBuilder,
+      ModelBuilder modelBuilder,
       QualifiedName qualifiedName,
-      Set<Model<?>> modelSet,
-      Set<Schema> dependencySet,
+      Map<ModelBuilderImpl, ModelImpl<?>> models,
+      Set<Schema> dependencies,
       Imports imports,
       Property<Schema> schemaProperty) {
-    this.qualifiedName = qualifiedName;
-    this.modelSet = modelSet;
-    this.dependencySet = dependencySet;
+    this.name = qualifiedName;
+    this.models = models;
+    this.dependencies = dependencies;
   }
 
   @Override
   public Schema create() {
-    final QualifiedName qualifiedName = this.qualifiedName;
-    final List<Model<?>> models = new ArrayList<>(modelSet);
-    final List<Schema> dependencies = new ArrayList<>(dependencySet);
+    final QualifiedName qualifiedName = this.name;
+    final Models models = new Models(this.models.values());
+    final List<Schema> dependencies = new ArrayList<>(this.dependencies);
 
     return new Schema() {
       @Override
@@ -91,8 +105,8 @@ public class SchemaBuilderImpl implements SchemaBuilder {
       }
 
       @Override
-      public Stream<Model<?>> models() {
-        return models.stream();
+      public Models models() {
+        return models;
       }
 
       @Override
@@ -128,34 +142,31 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder name(QualifiedName name) {
-    qualifiedName = name;
+    return new SchemaBuilderImpl(expressionCompiler, name, models, dependencies);
+  }
 
-    return this;
+  @Override
+  public Optional<QualifiedName> getName() {
+    return Optional.ofNullable(name);
   }
 
   @Override
   public SchemaBuilder dependencies(Collection<? extends Schema> dependencies) {
-    dependencySet.clear();
-    dependencySet.addAll(dependencies);
-
-    return this;
+    return new SchemaBuilderImpl(
+        expressionCompiler,
+        name,
+        models,
+        new LinkedHashSet<>(dependencies));
   }
 
   @Override
-  public SchemaBuilder imports(Collection<? extends Class<?>> imports) {
-    this.imports = Imports.empty(currentThread().getContextClassLoader()).withImports(imports);
-
-    return this;
-  }
-
-  Imports getImports() {
-    return imports != null ? imports : Imports.empty();
+  public Stream<Schema> getDependencies() {
+    return dependencies.stream();
   }
 
   @Override
-  public ModelBuilder<?> addModel() {
-    ModelBuilder<?> configurator = new ModelBuilderImpl<>(this);
-    return configurator;
+  public ModelBuilder.NameStep addModel() {
+    return new ModelBuilderImpl(this);
   }
 
   @Override
@@ -164,12 +175,23 @@ public class SchemaBuilderImpl implements SchemaBuilder {
     throw new UnsupportedOperationException();
   }
 
-  public SchemaBuilder endModel(ModelImpl<?> model) {
-    modelSet.add(model);
-    return this;
+  public SchemaBuilder endModel(ModelBuilderImpl modelBuilder) {
+    Map<ModelBuilderImpl, ModelImpl<?>> models = new LinkedHashMap<>(this.models);
+    models.put(modelBuilder, new ModelImpl<>(modelBuilder));
+    return new SchemaBuilderImpl(expressionCompiler, name, models, dependencies);
+  }
+
+  @Override
+  public Stream<ModelBuilder> getModels() {
+    return upcastStream(models.keySet().stream());
   }
 
   protected FunctionalExpressionCompiler getExpressionCompiler() {
     return expressionCompiler;
+  }
+
+  protected Model<?> getModel(QualifiedName baseModel) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

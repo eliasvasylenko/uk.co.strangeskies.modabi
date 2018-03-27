@@ -70,6 +70,8 @@ public class ExpressionWriter implements ExpressionVisitor {
       complete("\"" + value + "\"");
     } else if (value instanceof Number) {
       complete(value.toString()); // TODO
+    } else if (value instanceof Class<?>) {
+      complete(((Class<?>) value).getName() + ".class");
     }
   }
 

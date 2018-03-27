@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.schema;
 
 /**
  * A {@link BindingCondition binding condition} is associated with a
- * {@link ChildBindingPoint binding point}, and specifies rules for determining
+ * {@link Child binding point}, and specifies rules for determining
  * whether items may be bound to that point during some processing operation.
  * <p>
  * Upon reaching the associated binding point during some process, it is

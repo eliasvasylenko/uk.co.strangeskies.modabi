@@ -160,7 +160,7 @@ public class Expressions {
             token.getThisTypeToken(),
             invokeStatic(
                 TypeToken.class,
-                "forType",
+                "forAnnotatedType",
                 new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
   }
 }

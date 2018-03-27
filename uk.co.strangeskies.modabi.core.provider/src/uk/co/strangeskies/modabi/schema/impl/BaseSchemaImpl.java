@@ -23,11 +23,9 @@ import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.parent;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.provide;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.result;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.source;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.target;
 import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
 import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
 
@@ -44,23 +42,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.mathematics.Interval;
-import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingExpressions;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
-import uk.co.strangeskies.property.IdentityProperty;
-import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.AnnotatedTypes;
 import uk.co.strangeskies.reflection.Annotations;
 import uk.co.strangeskies.reflection.Types;
@@ -69,541 +63,469 @@ import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 import uk.co.strangeskies.utility.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
-  private interface ModelHelper {
-    <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type);
-  }
-
-  private final Model<Object> rootModel;
-  private final Model<String> stringModel;
-  private final Model<byte[]> binaryModel;
-  private final Model<BigInteger> integerModel;
-  private final Model<BigDecimal> decimalModel;
-  private final Model<Integer> intModel;
-  private final Model<Long> longModel;
-  private final Model<Float> floatModel;
-  private final Model<Double> doubleModel;
-  private final Model<Boolean> booleanModel;
-  private final Model<QualifiedName> qualifiedNameModel;
-
-  private final Model<Package> packageModel;
-  private final Model<Class<?>> classModel;
-  private final Model<Type> typeModel;
-  private final Model<AnnotatedType> annotatedTypeModel;
-  private final Model<TypeToken<?>> typeTokenModel;
-  private final Model<Enum<?>> enumModel;
-  private final Model<Enumeration<?>> enumerationModel;
-  private final Model<Interval<Integer>> rangeModel;
-  private final Model<Object[]> arrayModel;
-  private final Model<Collection<?>> collectionModel;
-  private final Model<List<?>> listModel;
-  private final Model<Set<?>> setModel;
-  private final Model<URI> uriModel;
-  private final Model<URL> urlModel;
-
-  private final Model<Map<?, ?>> mapModel;
-
   private final Schema baseSchema;
 
   public BaseSchemaImpl(SchemaBuilder schemaBuilder) {
-    QualifiedName name = BaseSchema.QUALIFIED_NAME;
-    Namespace namespace = name.getNamespace();
+    schemaBuilder = schemaBuilder.name(BASE_SCHEMA);
 
-    /*
-     * Schema
-     */
-    Property<SchemaBuilder> schemaConfigurator = new IdentityProperty<>(schemaBuilder.name(name));
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(ROOT_MODEL)
+        .type(Object.class)
+        .partial()
+        .endModel();
 
-    /*
-     * Models
-     */
-    ModelHelper modelFactory = new ModelHelper() {
-      @Override
-      public <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type) {
-        Property<Model<T>> completion = new IdentityProperty<>();
-        schemaConfigurator
-            .set(
-                type
-                    .apply(
-                        schemaConfigurator
-                            .get()
-                            .addModel()
-                            .name(new QualifiedName(name, namespace)))
-                    .endModel(completion::set));
-        return completion.get();
-      }
-    };
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(STRING_MODEL)
+        .type(String.class)
+        .addChild()
+        .name(STRING_MODEL)
+        .input(provide(new TypeToken<Supplier<String>>() {}).invoke("get"))
+        .output(provide(new TypeToken<Consumer<String>>() {}).invoke("accept", object()))
+        .endChild()
+        .endModel();
 
-    rootModel = modelFactory.apply("root", p -> p.rootNode(Object.class).concrete(false).endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(BINARY_MODEL)
+        .type(byte[].class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(
+                    BindingExpressions
+                        .object()
+                        .assign(
+                            invokeStatic(Base64.class, "getDecoder")
+                                .invoke("decode", boundValue())))
+                .output(
+                    invokeStatic(Base64.class, "getEncoder").invoke("encodeToString", object())))
+        .endModel();
 
-    stringModel = modelFactory
-        .apply(
-            "string",
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(INTEGER_MODEL)
+        .type(BigInteger.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeConstructor(BigInteger.class, boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(DECIMAL_MODEL)
+        .type(BigDecimal.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeConstructor(BigDecimal.class, boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(INT_MODEL)
+        .type(int.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeStatic(Integer.class, "parseInt", boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(LONG_MODEL)
+        .type(long.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeStatic(Long.class, "parseLong", boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(FLOAT_MODEL)
+        .type(float.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeStatic(Float.class, "parseFloat", boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(DOUBLE_MODEL)
+        .type(double.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeStatic(Double.class, "parseDouble", boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(BOOLEAN_MODEL)
+        .type(boolean.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeStatic(Boolean.class, "parseBoolean", boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(QUALIFIED_NAME_MODEL)
+        .type(QualifiedName.class)
+        .addChild(
+            c -> c
+                .model(STRING_MODEL)
+                .input(object().assign(invokeStatic(Boolean.class, "parseBoolean", boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(ARRAY_MODEL)
+        .type(new @Infer TypeToken<Object[]>() {})
+        .addChild()
+        .input(provide(new TypeToken<List<?>>() {}))
+        .output(invokeStatic(Arrays.class, "asList", parent()))
+        .endChild()
+        .addChild(
+            c -> c
+                .name("element")
+                .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+                .input(object().invoke("add", boundValue()))
+                .output(object().iterate())
+                .bindingCondition(occurrences(leftBounded(0))))
+        .addChild(
+            c -> c
+                .name("toArray")
+                .type(void.class)
+                .input(object().assign(object().invoke("toArray")))
+                .noOutput())
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(COLLECTION_MODEL)
+        .type(new @Infer TypeToken<Collection<?>>() {})
+        .addChild()
+        .input(provide())
+        .endChild()
+        .addChild(
+            c -> c
+                .name("element")
+                .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
+                .input(object().invoke("add", boundValue()))
+                .output(object().iterate())
+                .bindingCondition(occurrences(leftBounded(0))))
+        .endModel()
+
+        .addModel()
+        .name(LIST_MODEL)
+        .type(new @Infer TypeToken<List<?>>() {})
+        .baseModel("collection")
+        .endModel()
+
+        .addModel()
+        .name(SET_MODEL)
+        .type(new @Infer TypeToken<Set<?>>() {})
+        .baseModel("collection")
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(URI_MODEL)
+        .type(URI.class)
+        .addChild(
+            u -> u
+                .name("uriString")
+                .model(STRING_MODEL)
+                .input(object().assign(invokeConstructor(URI.class, boundValue())))
+                .output(object().invoke("toString")))
+        .endModel()
+
+        .addModel()
+        .name(URL_MODEL)
+        .type(URL.class)
+        .addChild(
+            u -> u
+                .name("urlString")
+                .model(STRING_MODEL)
+                .input(object().assign(invokeConstructor(URL.class, boundValue())))
+                .output(object().invoke("toString")))
+        .endModel();
+
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(PACKAGE_MODEL)
+        .type(Package.class)
+        .addChild(
             p -> p
-                .rootNode(String.class)
-                .addChildBindingPoint()
-                .input(provide(new TypeToken<Supplier<String>>() {}).invoke("get"))
-                .output(provide(new TypeToken<Consumer<String>>() {}).invoke("accept", source()))
-                .endChild()
-                .endNode());
+                .name("name")
+                .model(STRING_MODEL)
+                .input(invokeStatic(Package.class, "getPackage"))
+                .output(object().invoke("getName")))
+        .endModel();
 
-    binaryModel = modelFactory
-        .apply(
-            "binary",
-            t -> t
-                .rootNode(byte[].class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(
-                            BindingExpressions
-                                .target()
-                                .assign(
-                                    invokeStatic(Base64.class, "getDecoder")
-                                        .invoke("decode", result())))
-                        .output(
-                            invokeStatic(Base64.class, "getEncoder")
-                                .invoke("encodeToString", source())))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(TYPE_MODEL)
+        .type(Type.class)
+        .addChild(
+            p -> p
+                .name("name")
+                .model(STRING_MODEL)
+                .input(invokeStatic(Types.class, "fromString", boundValue()))
+                .output(invokeStatic(Types.class, "toString", object())))
+        .endModel();
 
-    integerModel = modelFactory
-        .apply(
-            "integer",
-            t -> t
-                .rootNode(BigInteger.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(target().assign(invokeConstructor(BigInteger.class, result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(CLASS_MODEL)
+        .type(new TypeToken<Class<?>>() {})
+        .baseModel(TYPE_MODEL)
+        .endModel();
 
-    decimalModel = modelFactory
-        .apply(
-            "decimal",
-            t -> t
-                .rootNode(BigDecimal.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(target().assign(invokeConstructor(BigDecimal.class, result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(ANNOTATED_TYPE_MODEL)
+        .type(AnnotatedType.class)
+        .addChild(
+            p -> p
+                .name("name")
+                .model(STRING_MODEL)
+                .input(invokeStatic(AnnotatedTypes.class, "fromString", boundValue()))
+                .output(invokeStatic(AnnotatedTypes.class, "toString", object())))
+        .endModel();
 
-    intModel = modelFactory
-        .apply(
-            "int",
-            t -> t
-                .rootNode(int.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(target().assign(invokeStatic(Integer.class, "parseInt", result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(TYPE_TOKEN_MODEL)
+        .type(new TypeToken<TypeToken<?>>() {})
+        .addChild(
+            c -> c
+                .model(ANNOTATED_TYPE_MODEL)
+                .input(invokeStatic(TypeToken.class, "overAnnotatedType", boundValue()))
+                .output(object().invoke("getAnnotatedDeclaration")))
+        .endModel();
 
-    longModel = modelFactory
-        .apply(
-            "long",
-            t -> t
-                .rootNode(long.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(target().assign(invokeStatic(Long.class, "parseLong", result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(ENUM_MODEL)
+        .type(new TypeToken<Enum<?>>() {})
+        .partial()
+        .addChild(
+            c -> c
+                .name("enumType")
+                .noInput()
+                .noOutput()
+                .type(new TypeToken<Class<? extends Enum<?>>>() {})
+                .input(
+                    provide(BindingContext.class)
+                        .invoke("getBindingNode")
+                        .invoke("dataType")
+                        .invoke("getRawType")))
+        .addChild(
+            p -> p
+                .name("name")
+                .input(
+                    Expressions
+                        .invokeStatic(
+                            Enumeration.class,
+                            "valueOfEnum",
+                            boundValue("enumType"),
+                            boundValue()))
+                .output(object().invoke("getName"))
+                .model(STRING_MODEL))
+        .endModel();
 
-    floatModel = modelFactory
-        .apply(
-            "float",
-            t -> t
-                .rootNode(float.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(target().assign(invokeStatic(Float.class, "parseFloat", result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(ENUMERATION_MODEL)
+        .type(new TypeToken<Enumeration<?>>() {})
+        .partial()
+        .addChild(
+            c -> c
+                .name("enumType")
+                .noInput()
+                .noOutput()
+                .type(new TypeToken<Class<? extends Enumeration<?>>>() {})
+                .input(
+                    provide(BindingContext.class)
+                        .invoke("getBindingNode")
+                        .invoke("dataType")
+                        .invoke("getRawType")))
+        .addChild(
+            p -> p
+                .name("name")
+                .input(
+                    invokeStatic(
+                        Enumeration.class,
+                        "valueOf",
+                        boundValue("enumType"),
+                        boundValue()))
+                .output(object().invoke("getName"))
+                .model(STRING_MODEL))
+        .endModel();
 
-    doubleModel = modelFactory
-        .apply(
-            "double",
-            t -> t
-                .rootNode(double.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(target().assign(invokeStatic(Double.class, "parseDouble", result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(INTERVAL_MODEL)
+        .type(new TypeToken<Interval<Integer>>() {})
+        .addChild(
+            p -> p
+                .name("string")
+                .input(invokeStatic(Interval.class, "parse", boundValue()))
+                .output(invokeStatic(Interval.class, "compose", object()))
+                .model(STRING_MODEL))
+        .endModel();
 
-    booleanModel = modelFactory
-        .apply(
-            "boolean",
-            t -> t
-                .rootNode(boolean.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(
-                            target().assign(invokeStatic(Boolean.class, "parseBoolean", result())))
-                        .output(source().invoke("toString")))
-                .endNode());
+    baseSchema = schemaBuilder.create();
+  }
 
-    qualifiedNameModel = modelFactory
-        .apply(
-            "qualifiedName",
-            t -> t
-                .rootNode(QualifiedName.class)
-                .addChildBindingPoint(
-                    c -> c
-                        .model(stringModel)
-                        .input(
-                            target().assign(invokeStatic(Boolean.class, "parseBoolean", result())))
-                        .output(source().invoke("toString")))
-                .endNode());
-
-    arrayModel = modelFactory
-        .apply(
-            "array",
-            t -> t
-                .rootNode(new @Infer TypeToken<Object[]>() {})
-                .addChildBindingPoint()
-                .input(provide(new TypeToken<List<?>>() {}))
-                .output(invokeStatic(Arrays.class, "asList", parent()))
-                .endChild()
-                .addChildBindingPoint(
-                    c -> c
-                        .name("element")
-                        .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-                        .input(target().invoke("add", result()))
-                        .output(source().iterate())
-                        .bindingCondition(occurrences(leftBounded(0))))
-                .addChildBindingPoint(
-                    c -> c
-                        .name("toArray")
-                        .type(void.class)
-                        .input(target().assign(target().invoke("toArray")))
-                        .noOutput())
-                .endNode());
-
-    collectionModel = modelFactory
-        .apply(
-            "collection",
-            t -> t
-                .rootNode(new @Infer TypeToken<Collection<?>>() {})
-                .addChildBindingPoint()
-                .input(provide())
-                .endChild()
-                .addChildBindingPoint(
-                    c -> c
-                        .name("element")
-                        .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-                        .input(target().invoke("add", result()))
-                        .output(source().iterate())
-                        .bindingCondition(occurrences(leftBounded(0))))
-                .endNode());
-
-    listModel = modelFactory
-        .apply(
-            "list",
-            t -> t.rootNode(new @Infer TypeToken<List<?>>() {}, collectionModel).endNode());
-
-    setModel = modelFactory
-        .apply(
-            "set",
-            t -> t.rootNode(new @Infer TypeToken<Set<?>>() {}, collectionModel).endNode());
-
-    uriModel = modelFactory
-        .apply(
-            "uri",
-            t -> t
-                .rootNode(URI.class)
-                .addChildBindingPoint(
-                    u -> u
-                        .name("uriString")
-                        .model(stringModel)
-                        .input(target().assign(invokeConstructor(URI.class, result())))
-                        .output(source().invoke("toString")))
-                .endNode());
-
-    urlModel = modelFactory
-        .apply(
-            "url",
-            t -> t
-                .rootNode(URL.class)
-                .addChildBindingPoint(
-                    u -> u
-                        .name("urlString")
-                        .model(stringModel)
-                        .input(target().assign(invokeConstructor(URL.class, result())))
-                        .output(source().invoke("toString")))
-                .endNode());
-
-    packageModel = modelFactory
-        .apply(
-            "package",
-            t -> t
-                .rootNode(Package.class)
-                .addChildBindingPoint(
-                    p -> p
-                        .name("name")
-                        .model(stringModel)
-                        .input(invokeStatic(Package.class, "getPackage"))
-                        .output(source().invoke("getName")))
-                .endNode());
-
-    typeModel = modelFactory
-        .apply(
-            "type",
-            t -> t
-                .rootNode(Type.class)
-                .addChildBindingPoint(
-                    p -> p
-                        .name("name")
-                        .model(stringModel)
-                        .input(invokeStatic(Types.class, "fromString", result()))
-                        .output(invokeStatic(Types.class, "toString", source())))
-                .endNode());
-
-    classModel = modelFactory
-        .apply("class", t -> t.rootNode(new TypeToken<Class<?>>() {}, typeModel).endNode());
-
-    annotatedTypeModel = modelFactory
-        .apply(
-            "annotatedType",
-            t -> t
-                .rootNode(AnnotatedType.class)
-                .addChildBindingPoint(
-                    p -> p
-                        .name("name")
-                        .model(stringModel)
-                        .input(invokeStatic(AnnotatedTypes.class, "fromString", result()))
-                        .output(invokeStatic(AnnotatedTypes.class, "toString", source())))
-                .endNode());
-
-    typeTokenModel = modelFactory
-        .apply(
-            "typeToken",
-            t -> t
-                .rootNode(new TypeToken<TypeToken<?>>() {})
-                .addChildBindingPoint(
-                    c -> c
-                        .model(annotatedTypeModel)
-                        .input(invokeStatic(TypeToken.class, "overAnnotatedType", result()))
-                        .output(source().invoke("getAnnotatedDeclaration")))
-                .endNode());
-
-    enumModel = modelFactory
-        .apply(
-            "enum",
-            t -> t
-                .rootNode(new TypeToken<Enum<?>>() {})
-                .concrete(false)
-                .addChildBindingPoint(
-                    c -> c
-                        .name("enumType")
-                        .noInput()
-                        .noOutput()
-                        .type(new TypeToken<Class<? extends Enum<?>>>() {})
-                        .input(
-                            provide(BindingContext.class)
-                                .invoke("getBindingNode")
-                                .invoke("dataType")
-                                .invoke("getRawType")))
-                .addChildBindingPoint(
-                    p -> p
-                        .name("name")
-                        .input(
-                            Expressions
-                                .invokeStatic(
-                                    Enumeration.class,
-                                    "valueOfEnum",
-                                    boundValue("enumType"),
-                                    result()))
-                        .output(source().invoke("getName"))
-                        .model(stringModel))
-                .endNode());
-
-    enumerationModel = modelFactory
-        .apply(
-            "enumeration",
-            t -> t
-                .rootNode(new TypeToken<Enumeration<?>>() {})
-                .concrete(false)
-                .addChildBindingPoint(
-                    c -> c
-                        .name("enumType")
-                        .noInput()
-                        .noOutput()
-                        .type(new TypeToken<Class<? extends Enumeration<?>>>() {})
-                        .input(
-                            provide(BindingContext.class)
-                                .invoke("getBindingNode")
-                                .invoke("dataType")
-                                .invoke("getRawType")))
-                .addChildBindingPoint(
-                    p -> p
-                        .name("name")
-                        .input(
-                            invokeStatic(
-                                Enumeration.class,
-                                "valueOf",
-                                boundValue("enumType"),
-                                result()))
-                        .output(source().invoke("getName"))
-                        .model(stringModel))
-                .endNode());
-
-    rangeModel = modelFactory
-        .apply(
-            "range",
-            t -> t
-                .rootNode(new TypeToken<Interval<Integer>>() {})
-                .addChildBindingPoint(
-                    p -> p
-                        .name("string")
-                        .input(invokeStatic(Interval.class, "parse", result()))
-                        .output(invokeStatic(Interval.class, "compose", source()))
-                        .model(stringModel))
-                .endNode());
-
-    mapModel = null;
-
-    /*
-     * Schema
-     */
-    baseSchema = schemaConfigurator.get().create();
+  @SuppressWarnings("unchecked")
+  private <T> Model<T> getModel(QualifiedName name) {
+    return (Model<T>) baseSchema.models().get(name);
   }
 
   @Override
   public Model<Object> rootModel() {
-    return rootModel;
+    return getModel(ROOT_MODEL);
   }
 
   @Override
   public Model<String> stringModel() {
-    return stringModel;
+    return getModel(STRING_MODEL);
   }
 
   @Override
   public Model<byte[]> binaryModel() {
-    return binaryModel;
+    return getModel(BINARY_MODEL);
   }
 
   @Override
   public Model<BigInteger> integerModel() {
-    return integerModel;
+    return getModel(INTEGER_MODEL);
   }
 
   @Override
   public Model<BigDecimal> decimalModel() {
-    return decimalModel;
+    return getModel(DECIMAL_MODEL);
   }
 
   @Override
   public Model<Integer> intModel() {
-    return intModel;
+    return getModel(INT_MODEL);
   }
 
   @Override
   public Model<Long> longModel() {
-    return longModel;
+    return getModel(LONG_MODEL);
   }
 
   @Override
   public Model<Float> floatModel() {
-    return floatModel;
+    return getModel(FLOAT_MODEL);
   }
 
   @Override
   public Model<Double> doubleModel() {
-    return doubleModel;
+    return getModel(DOUBLE_MODEL);
   }
 
   @Override
   public Model<Boolean> booleanModel() {
-    return booleanModel;
+    return getModel(BOOLEAN_MODEL);
   }
 
   @Override
   public Model<QualifiedName> qualifiedNameModel() {
-    return qualifiedNameModel;
+    return getModel(QUALIFIED_NAME_MODEL);
   }
 
   @Override
   public Model<Package> packageModel() {
-    return packageModel;
+    return getModel(PACKAGE_MODEL);
   }
 
   @Override
   public Model<Class<?>> classModel() {
-    return classModel;
+    return getModel(CLASS_MODEL);
   }
 
   @Override
   public Model<Type> typeModel() {
-    return typeModel;
+    return getModel(TYPE_MODEL);
   }
 
   @Override
   public Model<AnnotatedType> annotatedTypeModel() {
-    return annotatedTypeModel;
+    return getModel(ANNOTATED_TYPE_MODEL);
   }
 
   @Override
   public Model<TypeToken<?>> typeTokenModel() {
-    return typeTokenModel;
+    return getModel(TYPE_TOKEN_MODEL);
   }
 
   @Override
   public Model<Enum<?>> enumModel() {
-    return enumModel;
+    return getModel(ENUM_MODEL);
   }
 
   @Override
   public Model<Enumeration<?>> enumerationModel() {
-    return enumerationModel;
+    return getModel(ENUMERATION_MODEL);
   }
 
   @Override
-  public Model<Interval<Integer>> rangeModel() {
-    return rangeModel;
+  public Model<Interval<Integer>> intervalModel() {
+    return getModel(INTERVAL_MODEL);
   }
 
   @Override
   public Model<Object[]> arrayModel() {
-    return arrayModel;
+    return getModel(ARRAY_MODEL);
   }
 
   @Override
   public Model<Collection<?>> collectionModel() {
-    return collectionModel;
+    return getModel(COLLECTION_MODEL);
   }
 
   @Override
   public Model<List<?>> listModel() {
-    return listModel;
+    return getModel(LIST_MODEL);
   }
 
   @Override
   public Model<Set<?>> setModel() {
-    return setModel;
-  }
-
-  @Override
-  public Model<URI> uriModel() {
-    return uriModel;
-  }
-
-  @Override
-  public Model<URL> urlModel() {
-    return urlModel;
+    return getModel(SET_MODEL);
   }
 
   @Override
   public Model<Map<?, ?>> mapModel() {
-    return mapModel;
+    return getModel(MAP_MODEL);
+  }
+
+  @Override
+  public Model<URI> uriModel() {
+    return getModel(URI_MODEL);
+  }
+
+  @Override
+  public Model<URL> urlModel() {
+    return getModel(URL_MODEL);
   }
 
   public static <K, V> Map.Entry<K, V> mapEntry(K key, V value) {
@@ -623,7 +545,7 @@ public class BaseSchemaImpl implements BaseSchema {
   }
 
   @Override
-  public Stream<Model<?>> models() {
+  public Models models() {
     return baseSchema.models();
   }
 

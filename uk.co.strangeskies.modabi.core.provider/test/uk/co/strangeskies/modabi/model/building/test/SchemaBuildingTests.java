@@ -18,9 +18,8 @@
  */
 package uk.co.strangeskies.modabi.model.building.test;
 
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.result;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.source;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.target;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
 
 import java.util.Set;
@@ -67,15 +66,14 @@ public class SchemaBuildingTests {
         .name(new QualifiedName("SillyBillies"))
         .addModel()
         .name(new QualifiedName("daft"))
-        .rootNode(String.class)
-        .addChildBindingPoint(
+        .type(String.class)
+        .addChild(
             c -> c
                 .name("kid")
-                .model(schemata.getBaseSchema().stringModel())
-                .input(target().assign(result()))
-                .output(source()))
-        .endNode()
-        .endModel(daftModel::set)
+                .model(schemata.getBaseSchema().stringModel().name())
+                .input(object().assign(boundValue()))
+                .output(object()))
+        .endModel()
         .create();
 
     schemata.add(schema);

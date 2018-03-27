@@ -71,7 +71,7 @@ public class Binding<T> {
 
   @Override
   public String toString() {
-    return data + " : " + node.model() + "<" + node.dataType() + ">";
+    return data + " : " + node.model() + "<" + node.type() + ">";
   }
 
   // public void updateData();

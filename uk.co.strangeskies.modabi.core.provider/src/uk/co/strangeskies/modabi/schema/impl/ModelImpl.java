@@ -1,37 +1,49 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
+import static java.util.Optional.of;
+import static uk.co.strangeskies.modabi.schema.Permission.OPEN;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Node;
+import uk.co.strangeskies.modabi.schema.Permission;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.text.parsing.Parser;
 
 public class ModelImpl<T> implements Model<T> {
-  private final NodeImpl rootNode;
   private final QualifiedName name;
-  private final boolean export;
+  private final boolean partial;
+  private final Permission permission;
   private final Model<? super T> baseModel;
   private final TypeToken<T> dataType;
 
   @SuppressWarnings("unchecked")
-  protected ModelImpl(ModelBuilderImpl<T> configurator) {
-    rootNode = configurator.getRootNodeImpl().orElse(new NodeImpl());
+  protected ModelImpl(ModelBuilderImpl configurator) {
     name = configurator.getName().get();
-    export = configurator
-        .overrideModelChildren(Model::export, ModelBuilder::getExport)
-        .or(true)
+    partial = configurator
+        .overrideModelChildren(Model::partial, b -> of(b.isPartial()))
+        .or(false)
+        .get();
+    permission = configurator
+        .overrideModelChildren(Model::permission, ModelBuilder::getPermission)
+        .or(OPEN)
         .get();
     dataType = configurator
-        .overrideModelChildren(Model::dataType, ModelBuilder::getDataType)
+        .overrideModelChildren(Model::type, ModelBuilder::getDataType)
         .mergeOverride((o, b) -> o.withConstraintTo(SUBTYPE, b))
         .or(forClass(Object.class))
         .tryGet()
         .map(t -> (TypeToken<T>) t)
         .get();
-    baseModel = configurator.getBaseModel().orElse(null); // TODO some root model
+    Model<?> baseModel = configurator.getBaseModelImpl().orElse(null); // TODO some root model
+    this.baseModel = (Model<? super T>) baseModel;
   }
 
   @Override
@@ -40,17 +52,17 @@ public class ModelImpl<T> implements Model<T> {
   }
 
   @Override
-  public boolean export() {
-    return export;
+  public boolean partial() {
+    return partial;
   }
 
   @Override
-  public Node rootNode() {
-    return rootNode;
+  public Permission permission() {
+    return permission;
   }
 
   @Override
-  public TypeToken<T> dataType() {
+  public TypeToken<T> type() {
     return dataType;
   }
 
@@ -62,5 +74,40 @@ public class ModelImpl<T> implements Model<T> {
   @Override
   public String toString() {
     return Model.class.getSimpleName() + "(" + name() + ")";
+  }
+
+  @Override
+  public boolean anonymous() {
+    return true;
+  }
+
+  @Override
+  public Parser<?> parser() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Stream<Child<?>> children() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Stream<Child<?>> descendents(List<QualifiedName> names) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Child<?> child(QualifiedName name) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Optional<?> providedValue() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

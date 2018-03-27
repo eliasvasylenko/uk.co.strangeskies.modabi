@@ -32,12 +32,12 @@ public class RootBindingPoint<T> implements BindingPoint<T> {
   }
 
   public RootBindingPoint(Model<T> model) {
-    this.dataType = model.dataType();
+    this.dataType = model.type();
     this.model = model;
   }
 
   @Override
-  public TypeToken<T> dataType() {
+  public TypeToken<T> type() {
     return dataType;
   }
 

@@ -19,7 +19,9 @@
 package uk.co.strangeskies.modabi.schema.meta;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -31,15 +33,19 @@ public interface SchemaBuilder {
 
   SchemaBuilder name(QualifiedName name);
 
-  SchemaBuilder imports(Collection<? extends Class<?>> imports);
+  Optional<QualifiedName> getName();
 
   SchemaBuilder dependencies(Collection<? extends Schema> dependencies);
 
-  ModelBuilder<?> addModel();
+  Stream<Schema> getDependencies();
 
-  default SchemaBuilder addModel(Function<ModelBuilder<?>, ModelBuilder<?>> configuration) {
+  ModelBuilder.NameStep addModel();
+
+  default SchemaBuilder addModel(Function<ModelBuilder.NameStep, ModelBuilder> configuration) {
     return configuration.apply(addModel()).endModel();
   }
+
+  Stream<ModelBuilder> getModels();
 
   /*
    * For simple programmatic generation of schemata:

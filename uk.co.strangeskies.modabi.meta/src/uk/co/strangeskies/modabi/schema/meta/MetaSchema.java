@@ -23,11 +23,25 @@ import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Schema;
 
 public interface MetaSchema extends Schema {
-  QualifiedName QUALIFIED_NAME = new QualifiedName(
-      MetaSchema.class.getSimpleName(),
-      MODABI_NAMESPACE);
+  QualifiedName META_SCHEMA = new QualifiedName(MetaSchema.class.getSimpleName(), MODABI_NAMESPACE);
+
+  QualifiedName BINDING_CONDITION_MODEL = name("bindingCondition");
+  QualifiedName AND_CONDITION_MODEL = name("andCondition");
+  QualifiedName OR_CONDITION_MODEL = name("orCondition");
+
+  QualifiedName SCHEMA_MODEL = name("schema");
+  QualifiedName SCHEMA_BUILDER_MODEL = name("schemaBuilder");
+  QualifiedName MODEL_BUILDER_MODEL = name("modelBuilder");
+  QualifiedName CHILD_BUILDER_MODEL = name("childBuilder");
+  QualifiedName CHILD_SEQUENCE_BUILDER_MODEL = name("childSequenceBuilder");
 
   Model<Schema> getSchemaModel();
 
   Model<SchemaBuilder> getSchemaBuilderModel();
+
+  // TODO iirc Java 9 will allow this to be static
+  @Deprecated
+  static QualifiedName name(String name) {
+    return new QualifiedName(name, META_SCHEMA.getNamespace());
+  }
 }

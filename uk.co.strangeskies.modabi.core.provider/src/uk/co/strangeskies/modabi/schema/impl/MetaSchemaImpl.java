@@ -18,283 +18,186 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.util.Collections.singleton;
-import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.allOf;
-import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
+import static uk.co.strangeskies.modabi.schema.BaseSchema.BOOLEAN_MODEL;
+import static uk.co.strangeskies.modabi.schema.BaseSchema.INTERVAL_MODEL;
+import static uk.co.strangeskies.modabi.schema.BaseSchema.QUALIFIED_NAME_MODEL;
+import static uk.co.strangeskies.modabi.schema.BaseSchema.SET_MODEL;
+import static uk.co.strangeskies.modabi.schema.BaseSchema.STRING_MODEL;
+import static uk.co.strangeskies.modabi.schema.BaseSchema.TYPE_TOKEN_MODEL;
 import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.optional;
-import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.synchronous;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.result;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.source;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.target;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
 
-import java.util.function.Function;
 import java.util.stream.Stream;
 
-import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
-import uk.co.strangeskies.modabi.schema.meta.ChildBindingPointBuilder;
+import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.meta.MetaSchema;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
-import uk.co.strangeskies.property.IdentityProperty;
-import uk.co.strangeskies.property.Property;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class MetaSchemaImpl implements MetaSchema {
-  private interface ModelHelper {
-    <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type);
-  }
-
   private final Schema metaSchema;
-  private Model<Schema> schemaModel;
 
-  public MetaSchemaImpl(SchemaBuilder schemaBuilder, BaseSchema base) {
-    QualifiedName name = QUALIFIED_NAME;
-    Namespace namespace = name.getNamespace();
+  public MetaSchemaImpl(SchemaBuilder schemaBuilder) {
+    schemaBuilder = schemaBuilder.name(META_SCHEMA);
 
-    /*
-     * Schema
-     */
-    Property<SchemaBuilder> schemaConfigurator = new IdentityProperty<>(
-        schemaBuilder.name(name).dependencies(singleton(base)));
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(BINDING_CONDITION_MODEL)
+        .type(new @Infer TypeToken<BindingConditionPrototype>() {})
+        .partial()
+        .endModel();
 
-    /*
-     * Models
-     */
-    ModelHelper modelFactory = new ModelHelper() {
-      @Override
-      public <T> Model<T> apply(String name, Function<ModelBuilder<?>, ModelBuilder<T>> type) {
-        Property<Model<T>> completion = new IdentityProperty<>();
-        schemaConfigurator
-            .set(
-                type
-                    .apply(
-                        schemaConfigurator
-                            .get()
-                            .addModel()
-                            .name(new QualifiedName(name, namespace)))
-                    .endModel(completion::set));
-        return completion.get();
-      }
-    };
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(AND_CONDITION_MODEL)
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild(
+            c -> c
+                .name("conditions")
+                .input(invokeStatic(BindingConditionPrototype.class, "allOf", boundValue()))
+                .model(SET_MODEL)
+                .overrideModel()
+                .addChild(h -> h.name("element").model(BINDING_CONDITION_MODEL))
+                .endOverride())
+        .endModel();
 
-    metaSchema = schemaConfigurator.get().create();
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(OR_CONDITION_MODEL)
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild(
+            c -> c
+                .name("conditions")
+                .input(invokeStatic(BindingConditionPrototype.class, "anyOf", boundValue()))
+                .model(SET_MODEL)
+                .overrideModel()
+                .addChild(h -> h.name("element").model(BINDING_CONDITION_MODEL))
+                .endOverride())
+        .endModel();
 
-    /* Binding Condition Models */
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("requiredCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild()
+        .input(invokeStatic(BindingConditionPrototype.class, "required"))
+        .endChild()
+        .endModel();
 
-    Model<BindingConditionPrototype> bindingConditionModel = modelFactory
-        .apply(
-            "bindingCondition",
-            m -> m
-                .rootNode(new @Infer TypeToken<BindingConditionPrototype>() {})
-                .concrete(false)
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("forbiddenCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild()
+        .input(invokeStatic(BindingConditionPrototype.class, "forbidden"))
+        .endChild()
+        .endModel();
 
-    Model<BindingConditionPrototype> allOfModel = modelFactory
-        .apply(
-            "andCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint(
-                    c -> c
-                        .name("conditions")
-                        .input(invokeStatic(BindingConditionPrototype.class, "allOf", result()))
-                        .model(base.setModel())
-                        .overrideNode()
-                        .addChildBindingPoint(h -> h.name("element").model(bindingConditionModel))
-                        .endNode())
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("optionalCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild()
+        .input(invokeStatic(BindingConditionPrototype.class, "optional"))
+        .endChild()
+        .endModel();
 
-    Model<BindingConditionPrototype> anyOfModel = modelFactory
-        .apply(
-            "andCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint(
-                    c -> c
-                        .name("conditions")
-                        .input(invokeStatic(BindingConditionPrototype.class, "anyOf", result()))
-                        .model(base.setModel())
-                        .overrideNode()
-                        .addChildBindingPoint(h -> h.name("element").model(bindingConditionModel))
-                        .endNode())
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("sortAscendingCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild()
+        .input(invokeStatic(BindingConditionPrototype.class, "ascending"))
+        .endChild()
+        .endModel();
 
-    Model<BindingConditionPrototype> requiredModel = modelFactory
-        .apply(
-            "requiredCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint()
-                .input(invokeStatic(BindingConditionPrototype.class, "required"))
-                .endChild()
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("sortDescendingCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild()
+        .input(invokeStatic(BindingConditionPrototype.class, "descending"))
+        .endChild()
+        .endModel();
 
-    Model<BindingConditionPrototype> forbiddenModel = modelFactory
-        .apply(
-            "forbiddenCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint()
-                .input(invokeStatic(BindingConditionPrototype.class, "forbidden"))
-                .endChild()
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("synchronizedCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild()
+        .input(invokeStatic(BindingConditionPrototype.class, "synchronous"))
+        .endChild()
+        .endModel();
 
-    Model<BindingConditionPrototype> optionalModel = modelFactory
-        .apply(
-            "optionalCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint()
-                .input(invokeStatic(BindingConditionPrototype.class, "optional"))
-                .endChild()
-                .endNode());
-
-    Model<BindingConditionPrototype> sortAscendingModel = modelFactory
-        .apply(
-            "sortAscendingCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint()
-                .input(invokeStatic(BindingConditionPrototype.class, "ascending"))
-                .endChild()
-                .endNode());
-
-    Model<BindingConditionPrototype> sortDescendingModel = modelFactory
-        .apply(
-            "sortDescendingCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint()
-                .input(invokeStatic(BindingConditionPrototype.class, "descending"))
-                .endChild()
-                .endNode());
-
-    Model<BindingConditionPrototype> synchronizedModel = modelFactory
-        .apply(
-            "synchronizedCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint()
-                .input(invokeStatic(BindingConditionPrototype.class, "synchronous"))
-                .endChild()
-                .endNode());
-
-    Model<BindingConditionPrototype> occurrencesModel = modelFactory
-        .apply(
-            "occurrencesCondition",
-            m -> m
-                .rootNode(bindingConditionModel)
-                .addChildBindingPoint(
-                    c -> c
-                        .name("range")
-                        .model(base.rangeModel())
-                        .input(
-                            invokeStatic(BindingConditionPrototype.class, "occurrences", result())))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name("occurrencesCondition")
+        .baseModel(BINDING_CONDITION_MODEL)
+        .addChild(
+            c -> c
+                .name("range")
+                .model(INTERVAL_MODEL)
+                .input(invokeStatic(BindingConditionPrototype.class, "occurrences", boundValue())))
+        .endModel();
 
     /* Node Models */
 
-    Model<ModelBuilder<?>> metaModelBase = modelFactory
-        .apply(
-            "metaModelBase",
-            m -> m
-                .export(false)
-                .rootNode(new TypeToken<ModelBuilder<?>>() {})
-                .concrete(false)
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(CHILD_BUILDER_MODEL)
+        .type(new TypeToken<ChildBuilder<?>>() {})
+        .addChild(c -> c.name("name").model(STRING_MODEL).bindingCondition(optional()))
+        .addChild(c -> c.name("export").model(BOOLEAN_MODEL).bindingCondition(optional()))
+        .addChild(c -> c.name("concrete").model(BOOLEAN_MODEL).bindingCondition(optional()))
+        .addChild(c -> c.name("baseModel").model(QUALIFIED_NAME_MODEL).bindingCondition(optional()))
+        .addChild(c -> c.name("dataType").model(TYPE_TOKEN_MODEL).bindingCondition(optional()))
+        .addChild(c -> c.name("extensible").model(BOOLEAN_MODEL).bindingCondition(optional()))
+        .addChild(
+            c -> c.name("condition").model(BINDING_CONDITION_MODEL).bindingCondition(optional()))
+        .addChild(
+            c -> c
+                .name("value")
+                // TODO .rootNode(base.bufferedDataModel())
+                .input(object().invoke("provideValue", boundValue()))
+                .output(object().invoke("getProvidedValue"))
+                .bindingCondition(optional()))
+        .endModel();
 
-    Model<ChildBindingPointBuilder<?>> bindingPointModel = modelFactory
-        .apply(
-            "bindingPoint",
-            m -> m
-                .rootNode(new TypeToken<ChildBindingPointBuilder<?>>() {})
-                .addChildBindingPoint(
-                    c -> c.name("name").model(base.stringModel()).bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c.name("export").model(base.booleanModel()).bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c.name("concrete").model(base.booleanModel()).bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c.name("baseModel").model(metaModelBase).bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c
-                        .name("dataType")
-                        .model(base.typeTokenModel())
-                        .bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c
-                        .name("extensible")
-                        .model(base.booleanModel())
-                        .bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c
-                        .name("condition")
-                        .model(bindingConditionModel)
-                        .bindingCondition(optional()))
-                .addChildBindingPoint(
-                    c -> c
-                        .name("value")
-                        // TODO .rootNode(base.bufferedDataModel())
-                        .input(target().invoke("provideValue", result()))
-                        .output(source().invoke("getProvidedValue"))
-                        .bindingCondition(optional()))
-                .endNode());
+    schemaBuilder = schemaBuilder
+        .addModel()
+        .name(MODEL_BUILDER_MODEL)
+        .type(new TypeToken<ModelBuilder>() {})
+        .partial()
+        .endModel();
 
-    Model<NodeBuilder<?>> nodeModel = modelFactory
-        .apply(
-            "node",
-            m -> m
-                .rootNode(new TypeToken<NodeBuilder<?>>() {})
-                .addChildBindingPoint(
-                    b -> b.name("concrete").model(base.booleanModel()).bindingCondition(optional()))
-                .addChildBindingPoint(
-                    b -> b
-                        .name("child")
-                        .model(bindingPointModel)
-                        .noOutput()
-                        .bindingCondition(allOf(synchronous(), occurrences(leftBounded(0)))))
-                .addChildBindingPoint(
-                    b -> b
-                        .name("create")
-                        .noOutput()
-                        .input(target().assign(target().invoke("create"))))
-                .endNode());
-
-    Model<ModelBuilder<?>> metaModel = modelFactory
-        .apply("model", m -> m.rootNode(metaModelBase).endNode());
-
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * TODO replace dataType(String) and getDataTypeString() methods with their
-     * TypeToken equivalents, have a magic "node reference" to "imports" to support
-     * unqualified names
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     */
+    metaSchema = schemaBuilder.create();
   }
+
+  @SuppressWarnings("unchecked")
+  private <T> Model<T> getModel(QualifiedName name) {
+    return (Model<T>) metaSchema.models().get(name);
+  }
+
+  @Override
+  public Model<Schema> getSchemaModel() {
+    return getModel(SCHEMA_MODEL);
+  }
+
+  @Override
+  public Model<SchemaBuilder> getSchemaBuilderModel() {
+    return getModel(SCHEMA_BUILDER_MODEL);
+  }
+
+  /* Schema */
 
   @Override
   public QualifiedName name() {
@@ -307,13 +210,8 @@ public class MetaSchemaImpl implements MetaSchema {
   }
 
   @Override
-  public Stream<Model<?>> models() {
+  public Models models() {
     return metaSchema.models();
-  }
-
-  @Override
-  public Model<Schema> getSchemaModel() {
-    return schemaModel;
   }
 
   @Override
@@ -329,10 +227,5 @@ public class MetaSchemaImpl implements MetaSchema {
   @Override
   public String toString() {
     return name().toString();
-  }
-
-  @Override
-  public Model<SchemaBuilder> getSchemaBuilderModel() {
-    return null;
   }
 }

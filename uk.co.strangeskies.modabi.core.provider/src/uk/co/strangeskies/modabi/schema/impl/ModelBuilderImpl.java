@@ -1,55 +1,71 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.util.Objects.requireNonNull;
+import static java.util.Collections.emptyList;
+import static uk.co.strangeskies.reflection.Methods.findMethod;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Node;
-import uk.co.strangeskies.modabi.schema.impl.NodeBuilderImpl.OverriddenNode;
-import uk.co.strangeskies.modabi.schema.impl.utilities.OverrideBuilder;
+import uk.co.strangeskies.modabi.schema.Permission;
+import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
-import uk.co.strangeskies.modabi.schema.meta.NodeBuilder;
+import uk.co.strangeskies.modabi.schema.meta.ModelBuilder.ChildrenStep;
+import uk.co.strangeskies.modabi.schema.meta.ModelBuilder.NameStep;
+import uk.co.strangeskies.modabi.schema.meta.ModelBuilder.PropertiesStep;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
-import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public class ModelBuilderImpl<T> implements ModelBuilder<T> {
-  private final SchemaBuilderImpl schema;
+public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep, ChildrenStep {
+  private final SchemaBuilderImpl schemaBuilder;
   private final QualifiedName name;
-  private final Boolean export;
+  private final boolean partial;
+  private final Permission permission;
 
-  private final Model<? super T> baseModel;
-  private final TypeToken<T> dataType;
-  private final OverriddenNode rootNode;
+  private final Model<?> baseModel;
+  private final TypeToken<?> dataType;
 
-  public ModelBuilderImpl(SchemaBuilderImpl schema) {
-    this.schema = schema;
+  private final List<ChildImpl<?>> children;
+  private final List<ChildBuilderImpl<?>> childBuilders;
+
+  public ModelBuilderImpl(SchemaBuilderImpl schemaBuilder) {
+    this.schemaBuilder = schemaBuilder;
     name = null;
-    export = null;
+    partial = false;
+    permission = null;
     baseModel = null;
     dataType = null;
-    rootNode = null;
+    children = emptyList();
+    childBuilders = emptyList();
   }
 
   public ModelBuilderImpl(
-      SchemaBuilderImpl schema,
+      SchemaBuilderImpl schemaBuilder,
       QualifiedName name,
-      Boolean export,
-      Model<? super T> baseModel,
-      TypeToken<T> dataType,
-      OverriddenNode rootNode) {
-    this.schema = schema;
+      boolean partial,
+      Permission permission,
+      Model<?> baseModel,
+      TypeToken<?> dataType,
+      List<ChildImpl<?>> children,
+      List<ChildBuilderImpl<?>> childBuilders) {
+    this.schemaBuilder = schemaBuilder;
     this.name = name;
-    this.export = export;
+    this.partial = partial;
+    this.permission = permission;
     this.baseModel = baseModel;
     this.dataType = dataType;
-    this.rootNode = rootNode;
+    this.children = children;
+    this.childBuilders = childBuilders;
+  }
+
+  protected Namespace getDefaultNamespace() {
+    return schemaBuilder.getName().map(QualifiedName::getNamespace).get();
   }
 
   @Override
@@ -58,99 +74,163 @@ public class ModelBuilderImpl<T> implements ModelBuilder<T> {
   }
 
   @Override
-  public ModelBuilder<T> name(QualifiedName name) {
-    return new ModelBuilderImpl<>(schema, name, export, baseModel, dataType, rootNode);
+  public PropertiesStep name(String string) {
+    return name(new QualifiedName(string, getDefaultNamespace()));
   }
 
   @Override
-  public ModelBuilder<T> export(boolean export) {
-    return new ModelBuilderImpl<>(schema, name, export, baseModel, dataType, rootNode);
+  public PropertiesStep name(QualifiedName name) {
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        partial,
+        permission,
+        baseModel,
+        dataType,
+        children,
+        childBuilders);
   }
 
   @Override
-  public Optional<Boolean> getExport() {
-    return Optional.ofNullable(export);
+  public PropertiesStep partial() {
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        true,
+        permission,
+        baseModel,
+        dataType,
+        children,
+        childBuilders);
   }
 
-  protected <U> NodeBuilder<ModelBuilder<U>> rootNodeImpl(
-      TypeToken<U> dataType,
-      Model<? super U> baseModel) {
-    return new NodeBuilderImpl<>(new NodeBuilderContext<ModelBuilder<U>>() {
-      @Override
-      public FunctionalExpressionCompiler expressionCompiler() {
-        return schema.getExpressionCompiler();
-      }
+  @Override
+  public boolean isPartial() {
+    return partial;
+  }
 
-      @Override
-      public Imports imports() {
-        return schema.getImports();
-      }
+  @Override
+  public PropertiesStep permission(Permission permission) {
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        partial,
+        permission,
+        baseModel,
+        dataType,
+        children,
+        childBuilders);
+  }
 
+  @Override
+  public Optional<Permission> getPermission() {
+    return Optional.ofNullable(permission);
+  }
+
+  @Override
+  public ChildBuilder.PropertiesStep<ChildrenStep> addChild() {
+    return new ChildBuilderImpl<>(schemaBuilder, getChildBuilderContext());
+  }
+
+  SchemaBuilderImpl getSchemaBuilder() {
+    return schemaBuilder;
+  }
+
+  ChildBuilderContext<ChildrenStep> getChildBuilderContext() {
+    return new ChildBuilderContext<ChildrenStep>() {
       @Override
-      public Optional<Namespace> namespace() {
+      public Optional<Namespace> defaultNamespace() {
         return getName().map(QualifiedName::getNamespace);
       }
 
       @Override
-      public Optional<Node> overrideNode() {
-        return getBaseModel().map(Model::rootNode);
-      }
+      public ChildrenStep endChild(ChildBuilderImpl<?> child) {
+        List<ChildImpl<?>> newChildren = new ArrayList<>(children.size() + 1);
+        newChildren.addAll(children);
+        newChildren.add(new ChildImpl<>(child));
 
-      @Override
-      public ModelBuilder<U> endNode(NodeBuilderImpl<?> rootNode) {
-        return new ModelBuilderImpl<>(
-            schema,
+        List<ChildBuilderImpl<?>> newChildBuilders = new ArrayList<>(childBuilders.size() + 1);
+        newChildBuilders.addAll(childBuilders);
+        newChildBuilders.add(child);
+
+        return new ModelBuilderImpl(
+            schemaBuilder,
             name,
-            export,
+            partial,
+            permission,
             baseModel,
             dataType,
-            new OverriddenNode(rootNode));
+            newChildren,
+            newChildBuilders);
       }
-    });
+    };
   }
 
   @Override
-  public <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type, Model<? super U> baseModel) {
-    return rootNodeImpl(requireNonNull(type), requireNonNull(baseModel));
+  public PropertiesStep baseModel(String name) {
+    return baseModel(new QualifiedName(name, getDefaultNamespace()));
   }
 
   @Override
-  public Optional<Model<? super T>> getBaseModel() {
+  public PropertiesStep baseModel(QualifiedName baseModel) {
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        partial,
+        permission,
+        schemaBuilder.getModel(baseModel),
+        dataType,
+        children,
+        childBuilders);
+  }
+
+  @Override
+  public Optional<QualifiedName> getBaseModel() {
+    return getBaseModelImpl().map(Model::name);
+  }
+
+  public Optional<Model<?>> getBaseModelImpl() {
     return Optional.ofNullable(baseModel);
   }
 
   @Override
-  public <U> NodeBuilder<ModelBuilder<U>> rootNode(TypeToken<U> type) {
-    return rootNodeImpl(requireNonNull(type), null);
+  public PropertiesStep type(TypeToken<?> dataType) {
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        partial,
+        permission,
+        baseModel,
+        dataType,
+        children,
+        childBuilders);
   }
 
   @Override
-  public Optional<NodeBuilderImpl<?>> getRootNode() {
-    return Optional.ofNullable(rootNode).map(n -> n.builder);
-  }
-
-  protected Optional<NodeImpl> getRootNodeImpl() {
-    return Optional.ofNullable(rootNode).map(n -> n.node);
-  }
-
-  @Override
-  public Optional<TypeToken<T>> getDataType() {
+  public Optional<TypeToken<?>> getDataType() {
     return Optional.ofNullable(dataType);
   }
 
   public <U> OverrideBuilder<U> overrideModelChildren(
-      Function<Model<? super T>, ? extends U> node,
-      Function<ModelBuilder<T>, Optional<? extends U>> builder) {
+      Function<Model<?>, ? extends U> node,
+      Function<ModelBuilder, Optional<? extends U>> builder) {
     return new OverrideBuilder<>(
-        () -> "unnamed property",
-        getBaseModel().map(node),
+        () -> findMethod(Model.class, node::apply).getName(),
+        getBaseModelImpl().map(node),
         builder.apply(this));
   }
 
   @Override
-  public SchemaBuilder endModel(Consumer<Model<T>> completion) {
-    ModelImpl<T> model = new ModelImpl<>(this);
-    completion.accept(model);
-    return schema.endModel(model);
+  public SchemaBuilder endModel() {
+    return schemaBuilder.endModel(this);
+  }
+
+  @Override
+  public Stream<? extends ChildBuilder<?>> getChildren() {
+    return childBuilders.stream();
+  }
+
+  public Stream<? extends Child<?>> getChildrenImpl() {
+    return children.stream();
   }
 }

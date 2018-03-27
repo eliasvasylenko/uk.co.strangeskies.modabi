@@ -212,6 +212,7 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
 
       int actualArgumentCount = (int) executable.getParameters().count();
       if (executable.isVariableArityInvocation()) {
+        int arraySize = arguments.size() - actualArgumentCount + 1;
         /*
          * TODO logic to pop the last k items from the stack, add them to an array, then
          * push that array onto the stack.

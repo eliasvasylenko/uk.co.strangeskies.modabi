@@ -35,7 +35,6 @@ package uk.co.strangeskies.modabi.expression;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.expression.Expressions.literal;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
@@ -51,15 +50,11 @@ class AnnotatedTypeExpression implements Expression {
   public AnnotatedTypeExpression(AnnotatedType annotatedType) {
     Type type = annotatedType.getType();
 
-    if (type instanceof Class<?>) {
-      List<Expression> arguments = new ArrayList<>();
-      arguments.add(literal((Class<?>) type));
-      arguments.addAll(getAnnotationExpressions(annotatedType.getAnnotations()));
+    List<Expression> arguments = new ArrayList<>();
+    arguments.add(new TypeExpression(type));
+    arguments.addAll(getAnnotationExpressions(annotatedType.getAnnotations()));
 
-      expression = invokeStatic(AnnotatedTypes.class, "annotated", arguments);
-    }
-
-    throw new IllegalArgumentException();
+    expression = invokeStatic(AnnotatedTypes.class, "annotated", arguments);
   }
 
   private List<Expression> getAnnotationExpressions(Annotation[] annotations) {

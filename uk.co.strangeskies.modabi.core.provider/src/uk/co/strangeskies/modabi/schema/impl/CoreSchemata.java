@@ -36,7 +36,7 @@ public class CoreSchemata {
 
   public CoreSchemata(Supplier<SchemaBuilder> schemaBuilder) {
     baseSchema = new BaseSchemaImpl(schemaBuilder.get());
-    metaSchema = new MetaSchemaImpl(schemaBuilder.get(), baseSchema);
+    metaSchema = new MetaSchemaImpl(schemaBuilder.get());
   }
 
   public BaseSchema baseSchema() {

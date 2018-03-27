@@ -11,7 +11,7 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.BindingContext;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.reflection.token.TypeArgument;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -42,7 +42,7 @@ public class ValidationCondition<T> implements BindingCondition<T> {
     return new BindingConditionEvaluation<T>() {
       public void failProcess() {
         throw new BindingException(
-            MESSAGES.validationFailed((ChildBindingPoint<?>) state.getBindingPoint(), expression),
+            MESSAGES.validationFailed((Child<?>) state.getBindingPoint(), expression),
             state);
       }
 

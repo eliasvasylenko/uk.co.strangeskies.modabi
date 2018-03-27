@@ -47,9 +47,7 @@ import uk.co.strangeskies.modabi.expression.MutableExpression;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingExpressions {
-  public static final String TARGET_VALUE = "target";
-  public static final String RESULT_VALUE = "result";
-  public static final String SOURCE_VALUE = "source";
+  public static final String OBJECT_VALUE = "object";
   public static final String PARENT_VALUE = "parent";
   public static final String PROVIDE_METHOD = "provide";
   public static final String BOUND_PREFIX = "$";
@@ -68,20 +66,16 @@ public class BindingExpressions {
     return invokeNamed(PROVIDE_METHOD, typeToken(typeToken));
   }
 
-  public static MutableExpression target() {
-    return named(TARGET_VALUE);
-  }
-
-  public static Expression result() {
-    return named(RESULT_VALUE);
-  }
-
-  public static Expression source() {
-    return named(SOURCE_VALUE);
+  public static MutableExpression object() {
+    return named(OBJECT_VALUE);
   }
 
   public static Expression parent() {
     return named(PARENT_VALUE);
+  }
+
+  public static Expression boundValue() {
+    return named(BOUND_PREFIX);
   }
 
   public static Expression boundValue(String bindingPoint) {

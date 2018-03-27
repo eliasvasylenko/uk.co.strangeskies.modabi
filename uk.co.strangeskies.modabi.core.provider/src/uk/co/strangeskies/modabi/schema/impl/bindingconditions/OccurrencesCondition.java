@@ -8,7 +8,7 @@ import uk.co.strangeskies.modabi.schema.BindingCondition;
 import uk.co.strangeskies.modabi.schema.BindingConditionEvaluation;
 import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
 import uk.co.strangeskies.modabi.schema.BindingContext;
-import uk.co.strangeskies.modabi.schema.ChildBindingPoint;
+import uk.co.strangeskies.modabi.schema.Child;
 
 /**
  * A rule to specify that a binding point must be processed a number of times
@@ -30,7 +30,7 @@ public class OccurrencesCondition<T> implements BindingCondition<T> {
 
       public void failProcess() {
         throw new BindingException(
-            MESSAGES.mustHaveDataWithinRange((ChildBindingPoint<?>) state.getBindingPoint(), range),
+            MESSAGES.mustHaveDataWithinRange((Child<?>) state.getBindingPoint(), range),
             state);
       }
 

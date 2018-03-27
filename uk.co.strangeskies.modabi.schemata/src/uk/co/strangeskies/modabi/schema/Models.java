@@ -20,6 +20,7 @@ package uk.co.strangeskies.modabi.schema;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +43,11 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
     classModels = new MultiHashMap<>(LinkedHashSet::new);
   }
 
+  public Models(Collection<? extends Model<?>> modelSet) {
+    this();
+    modelSet.forEach(this::add);
+  }
+
   @Override
   protected void add(Model<?> element) {
     synchronized (getMutex()) {
@@ -56,8 +62,8 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
 
     derivedModels.addToAll(models.stream().map(Model::name).collect(Collectors.toSet()), model);
 
-    if (model.rootNode().concrete())
-      classModels.add(model.dataType().getType(), model);
+    if (!model.partial())
+      classModels.add(model.type().getType(), model);
   }
 
   @SuppressWarnings("unchecked")
@@ -79,7 +85,7 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
   private static <T> BindingPoint<T> build(Model<?> model, TypeToken<T> type) {
     return new BindingPoint<T>() {
       @Override
-      public TypeToken<T> dataType() {
+      public TypeToken<T> type() {
         return type;
       }
 
@@ -92,7 +98,7 @@ public class Models extends NamedSet<QualifiedName, Model<?>> {
   }
 
   public static <T> BindingPoint<T> getBindingPoint(Model<T> model) {
-    return build(model, model.dataType());
+    return build(model, model.type());
   }
 
   public static <T> BindingPoint<? extends T> getInputBindingPoint(
