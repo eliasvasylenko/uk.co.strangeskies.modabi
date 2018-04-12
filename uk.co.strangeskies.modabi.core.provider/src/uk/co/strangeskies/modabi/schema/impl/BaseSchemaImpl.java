@@ -21,7 +21,7 @@ package uk.co.strangeskies.modabi.schema.impl;
 import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.occurrences;
+import static uk.co.strangeskies.modabi.schema.BindingConstraintSpecification.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.parent;
@@ -80,7 +80,6 @@ public class BaseSchemaImpl implements BaseSchema {
         .name(STRING_MODEL)
         .type(String.class)
         .addChild()
-        .name(STRING_MODEL)
         .input(provide(new TypeToken<Supplier<String>>() {}).invoke("get"))
         .output(provide(new TypeToken<Consumer<String>>() {}).invoke("accept", object()))
         .endChild()
@@ -205,7 +204,7 @@ public class BaseSchemaImpl implements BaseSchema {
                 .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
                 .input(object().invoke("add", boundValue()))
                 .output(object().iterate())
-                .bindingCondition(occurrences(leftBounded(0))))
+                .bindingConstraint(occurrences(leftBounded(0))))
         .addChild(
             c -> c
                 .name("toArray")
@@ -227,7 +226,7 @@ public class BaseSchemaImpl implements BaseSchema {
                 .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
                 .input(object().invoke("add", boundValue()))
                 .output(object().iterate())
-                .bindingCondition(occurrences(leftBounded(0))))
+                .bindingConstraint(occurrences(leftBounded(0))))
         .endModel()
 
         .addModel()

@@ -1,9 +1,0 @@
--plugin.eclipse.fx.2.4.0: \
-\
-		aQute.bnd.repository.p2.provider.P2Repository;\
-			name				=		"E(fx)clipse Tooling 2.4.0";\
-			url					=       http://download.eclipse.org/efxclipse/updates-released/2.4.0/site,\
-\
-		aQute.bnd.repository.p2.provider.P2Repository;\
-			name				=		"E(fx)clipse Runtime 2.4.0";\
-			url					=       http://download.eclipse.org/efxclipse/runtime-released/2.4.0/site

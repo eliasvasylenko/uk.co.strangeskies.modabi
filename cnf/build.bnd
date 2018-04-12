@@ -1,33 +1,52 @@
 ########################
 ## BND BUILD SETTINGS ##
 ########################
-
 ## Java Compiler Options
-javac.source: 1.8
-javac.target: 1.8
+javac.source:		9
+javac.target:		9
+javac.compliance:	9
+javac.debug:		on
+
+Git-Descriptor:		${system-allow-fail;git describe --dirty --always}
+Git-SHA:			${system-allow-fail;git rev-list -1 HEAD}
+-diffignore: Git-Descriptor,Git-SHA
 
 ## Bnd Options
 -sources: true
 
-bnd-release = https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact
+-include: ${workspace}/copyright.properties
+copyright.work.name		=	${project.name}
+copyright.year			=	${tstamp;yyyy}
+copyright				=	Copyright (c) ${copyright.holder.name} (2014, ${copyright.year}). All Rights Reserved.
 
-copyright.year = ${tstamp;yyyy}
-copyright = Copyright (c) Strange Skies (2014, ${copyright.year}). All Rights Reserved.
-
-groupid: uk.co.strangeskies.modabi
+# Maven info. The maven artifactId defaults to Bundle-SymbolicName
+-groupid:	uk.co.strangeskies
+-pom:		version=${versionmask;===s;${@version}}-SNAPSHOT
 
 modabi-version: 1.0.0
 modabi-version-ceiling: 2.0.0
 
-Bundle-Vendor: Strange Skies http://strangeskies.co.uk/
-Bundle-Copyright: ${copyright}
-Bundle-License: LGPL <http://www.gnu.org/licenses/>
-Bundle-Version: ${modabi-version}.${tstamp}
+Bundle-Version:		${modabi-version}.${tstamp}
 
-# Disable ALL Eclipse split package attributes, to ensure we import from the "aggregator" bundle(s).
-Import-Package:\
-	*;ui.workbench=!;common=!;registry=!;texteditor=!;text=!
+Bundle-Vendor:		Strange Skies http://strangeskies.co.uk/
+Bundle-Copyright:	${copyright}
+Bundle-License:\
+	LGPL;\
+	link					=	http://www.gnu.org/licenses/
+Bundle-DocURL:		https://github.com/StrangeSkies/uk.co.strangeskies.modabi/wiki
+Bundle-SCM:\
+	url						=	https://github.com/strangeskies/uk.co.strangeskies.modabi, \
+	connection				=	scm:git:https://github.com/strangeskies/uk.co.strangeskies.modabi.git, \
+	developerConnection		=	scm:git:git@github.com:strangeskies/uk.co.strangeskies.modabi.git
+Bundle-Developers:\
+    eliasvasylenko;\
+        email				=	eliasvasylenko@gmail.com; \
+        name				=	"Elias N Vasylenko"; \
+        organization		=	"Strange Skies"; \
+        organizationUrl		=	http://strangeskies.co.uk; \
+        roles				=	"architect,developer"
 
+-dsannotations: *
 -dsannotations-options: inherit
 
 ## To enable baselining, uncomment the following lines:
@@ -62,23 +81,21 @@ Import-Package:\
 		releaseUrls			=	https://oss.jfrog.org/artifactory/libs-release;\
 		snapshotUrls		=	https://oss.jfrog.org/artifactory/libs-snapshot
 
-## Run requirement groups:
--runrequires.base:\
-	osgi.identity;filter:='(&(osgi.identity=osgi.enroute.logger.simple.provider)(version>=0))'
+# Run requirement groups:
+runreq.base=\
+	bnd.identity; osgi.enroute.logger.simple.provider,\
+	bnd.identity; uk.co.strangeskies.osgi.provider
 
 ## Build path groups:
 -buildpath.base=\
-	osgi.enroute.base.api;version=latest
+	osgi.enroute.base.api
 
-testpath.base=\
+-testpath.base=\
 	org.jmockit:jmockit,\
 	osgi.enroute.junit.wrapper,\
 	osgi.enroute.hamcrest.wrapper,\
-	org.hamcrest:java-hamcrest
-	
--testpath.base=${testpath.base}
-
-include.ss: jar:file:///${replace;${repo;uk.co.strangeskies.build;latest};%;%25}!/include
+	org.hamcrest:java-hamcrest,\
+	org.assertj.core
 
 pluginpath.modabi: \
 	${workspace}/uk.co.strangeskies.modabi.bnd/generated/uk.co.strangeskies.modabi.bnd.${1}.jar

@@ -45,7 +45,7 @@ Export-Package: \
 	uk.co.strangeskies.modabi.expression.impl,\
 	uk.co.strangeskies.modabi.binding.impl,\
 	uk.co.strangeskies.modabi.schema.impl,\
-	uk.co.strangeskies.modabi.schema.impl.bindingconditions,\
+	uk.co.strangeskies.modabi.schema.impl.bindingconstraints,\
 	uk.co.strangeskies.modabi.schema.impl.utilities
 
 -runrequires: \

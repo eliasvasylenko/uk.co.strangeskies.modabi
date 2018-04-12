@@ -15,9 +15,13 @@ public class BindingFunctionImpl implements BindingFunction {
   }
 
   public static class BindingFunctionCapture {
-    public Object target;
+    public Object object;
 
     public BindingContext context;
+
+    public <T> T provide(TypeToken<T> type) {
+      return context.provide(type).getObject();
+    }
   }
 
   private final Expression expression;
@@ -106,7 +110,7 @@ public class BindingFunctionImpl implements BindingFunction {
   @Override
   public void apply(BindingContext context) {
     BindingFunctionCapture capture = new BindingFunctionCapture();
-    capture.target = context.getBindingObject();
+    capture.object = context.getBindingObject();
     capture.context = context;
     bindingFunction.capture(capture).getInstance().bind();
   }

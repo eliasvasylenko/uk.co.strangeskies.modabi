@@ -18,12 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
-import java.util.Optional;
-
-import uk.co.strangeskies.modabi.Namespace;
-
 public interface ChildBuilderContext<E> {
-  Optional<Namespace> defaultNamespace();
-
   E endChild(ChildBuilderImpl<?> child);
 }

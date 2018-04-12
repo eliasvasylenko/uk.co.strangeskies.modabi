@@ -25,14 +25,14 @@ import static uk.co.strangeskies.modabi.schema.BaseSchema.QUALIFIED_NAME_MODEL;
 import static uk.co.strangeskies.modabi.schema.BaseSchema.SET_MODEL;
 import static uk.co.strangeskies.modabi.schema.BaseSchema.STRING_MODEL;
 import static uk.co.strangeskies.modabi.schema.BaseSchema.TYPE_TOKEN_MODEL;
-import static uk.co.strangeskies.modabi.schema.BindingConditionPrototype.optional;
+import static uk.co.strangeskies.modabi.schema.BindingConstraintSpecification.optional;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
 
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
@@ -52,7 +52,7 @@ public class MetaSchemaImpl implements MetaSchema {
     schemaBuilder = schemaBuilder
         .addModel()
         .name(BINDING_CONDITION_MODEL)
-        .type(new @Infer TypeToken<BindingConditionPrototype>() {})
+        .type(new @Infer TypeToken<BindingConstraintSpecification>() {})
         .partial()
         .endModel();
 
@@ -63,7 +63,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .addChild(
             c -> c
                 .name("conditions")
-                .input(invokeStatic(BindingConditionPrototype.class, "allOf", boundValue()))
+                .input(invokeStatic(BindingConstraintSpecification.class, "allOf", boundValue()))
                 .model(SET_MODEL)
                 .overrideModel()
                 .addChild(h -> h.name("element").model(BINDING_CONDITION_MODEL))
@@ -77,7 +77,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .addChild(
             c -> c
                 .name("conditions")
-                .input(invokeStatic(BindingConditionPrototype.class, "anyOf", boundValue()))
+                .input(invokeStatic(BindingConstraintSpecification.class, "anyOf", boundValue()))
                 .model(SET_MODEL)
                 .overrideModel()
                 .addChild(h -> h.name("element").model(BINDING_CONDITION_MODEL))
@@ -89,7 +89,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .name("requiredCondition")
         .baseModel(BINDING_CONDITION_MODEL)
         .addChild()
-        .input(invokeStatic(BindingConditionPrototype.class, "required"))
+        .input(invokeStatic(BindingConstraintSpecification.class, "required"))
         .endChild()
         .endModel();
 
@@ -98,7 +98,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .name("forbiddenCondition")
         .baseModel(BINDING_CONDITION_MODEL)
         .addChild()
-        .input(invokeStatic(BindingConditionPrototype.class, "forbidden"))
+        .input(invokeStatic(BindingConstraintSpecification.class, "forbidden"))
         .endChild()
         .endModel();
 
@@ -107,7 +107,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .name("optionalCondition")
         .baseModel(BINDING_CONDITION_MODEL)
         .addChild()
-        .input(invokeStatic(BindingConditionPrototype.class, "optional"))
+        .input(invokeStatic(BindingConstraintSpecification.class, "optional"))
         .endChild()
         .endModel();
 
@@ -116,7 +116,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .name("sortAscendingCondition")
         .baseModel(BINDING_CONDITION_MODEL)
         .addChild()
-        .input(invokeStatic(BindingConditionPrototype.class, "ascending"))
+        .input(invokeStatic(BindingConstraintSpecification.class, "ascending"))
         .endChild()
         .endModel();
 
@@ -125,7 +125,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .name("sortDescendingCondition")
         .baseModel(BINDING_CONDITION_MODEL)
         .addChild()
-        .input(invokeStatic(BindingConditionPrototype.class, "descending"))
+        .input(invokeStatic(BindingConstraintSpecification.class, "descending"))
         .endChild()
         .endModel();
 
@@ -134,7 +134,7 @@ public class MetaSchemaImpl implements MetaSchema {
         .name("synchronizedCondition")
         .baseModel(BINDING_CONDITION_MODEL)
         .addChild()
-        .input(invokeStatic(BindingConditionPrototype.class, "synchronous"))
+        .input(invokeStatic(BindingConstraintSpecification.class, "synchronous"))
         .endChild()
         .endModel();
 
@@ -146,7 +146,7 @@ public class MetaSchemaImpl implements MetaSchema {
             c -> c
                 .name("range")
                 .model(INTERVAL_MODEL)
-                .input(invokeStatic(BindingConditionPrototype.class, "occurrences", boundValue())))
+                .input(invokeStatic(BindingConstraintSpecification.class, "occurrences", boundValue())))
         .endModel();
 
     /* Node Models */
@@ -155,21 +155,21 @@ public class MetaSchemaImpl implements MetaSchema {
         .addModel()
         .name(CHILD_BUILDER_MODEL)
         .type(new TypeToken<ChildBuilder<?>>() {})
-        .addChild(c -> c.name("name").model(STRING_MODEL).bindingCondition(optional()))
-        .addChild(c -> c.name("export").model(BOOLEAN_MODEL).bindingCondition(optional()))
-        .addChild(c -> c.name("concrete").model(BOOLEAN_MODEL).bindingCondition(optional()))
-        .addChild(c -> c.name("baseModel").model(QUALIFIED_NAME_MODEL).bindingCondition(optional()))
-        .addChild(c -> c.name("dataType").model(TYPE_TOKEN_MODEL).bindingCondition(optional()))
-        .addChild(c -> c.name("extensible").model(BOOLEAN_MODEL).bindingCondition(optional()))
+        .addChild(c -> c.name("name").model(STRING_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("export").model(BOOLEAN_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("concrete").model(BOOLEAN_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("baseModel").model(QUALIFIED_NAME_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("dataType").model(TYPE_TOKEN_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("extensible").model(BOOLEAN_MODEL).bindingConstraint(optional()))
         .addChild(
-            c -> c.name("condition").model(BINDING_CONDITION_MODEL).bindingCondition(optional()))
+            c -> c.name("condition").model(BINDING_CONDITION_MODEL).bindingConstraint(optional()))
         .addChild(
             c -> c
                 .name("value")
                 // TODO .rootNode(base.bufferedDataModel())
                 .input(object().invoke("provideValue", boundValue()))
                 .output(object().invoke("getProvidedValue"))
-                .bindingCondition(optional()))
+                .bindingConstraint(optional()))
         .endModel();
 
     schemaBuilder = schemaBuilder

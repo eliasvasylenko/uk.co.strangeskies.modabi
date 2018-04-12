@@ -1,9 +1,7 @@
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.QualifiedName;
-
 public interface Child<T> extends BindingPoint<T> {
-  QualifiedName name();
+  String name();
 
   /**
    * If a binding point is specified to be ordered then the order in which items
@@ -15,7 +13,7 @@ public interface Child<T> extends BindingPoint<T> {
    * not semantically significant and may be discarded by the binding process.
    * 
    * <p>
-   * For a binding point with zero or one {@link #bindingCondition() occurrences}
+   * For a binding point with zero or one {@link #bindingConstraint() occurrences}
    * whether or not it is ordered makes no difference.
    * 
    * <p>
@@ -25,16 +23,6 @@ public interface Child<T> extends BindingPoint<T> {
    * @return true if the binding point is ordered, false if it is unordered
    */
   boolean ordered();
-
-  /**
-   * If the binding point is extensible then it cannot also provide an
-   * {@link #override() override}. The actual exact model which is bound to the
-   * node is flexible, it may be any model which fully extends the {@link #model()
-   * model} of the binding point.
-   * 
-   * @return
-   */
-  boolean extensible();
 
   BindingFunction inputExpression();
 
@@ -46,7 +34,5 @@ public interface Child<T> extends BindingPoint<T> {
    * 
    * @return
    */
-  BindingCondition<T> bindingCondition();
-
-  Model<?> parent();
+  BindingConstraint<T> bindingConstraint();
 }

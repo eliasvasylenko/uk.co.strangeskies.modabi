@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !m! tag:modabi.strangeskies.co.uk,2014:
+---
+name: '!m!Expressions'
+
+imports:
+- uk.co.strangeskies.reflection.token.TypeToken.Infer
+- java.util.Collection
+- java.util.List
+
+dependencies:
+- BaseSchema
+
+models:
+  '!m!expression':
+    type: Expression<@Infer ?>
+    partial: true
+
+  '!m!multiplication':
+    base: '!m!expression'
+    pattern: $factor ("*" $factor)+
+    children:
+    - factor:
+        model: '!m!expression'
+        input: target = new Multiplication($factor[])
+
+  '!m!addition':
+    base: '!m!expression'
+    pattern: $addend ("+" $addend)+
+    children:
+    - addend:
+        model: '!m!expression'
+        input: target = new Addition($addend[])
+
+  '!m!subtraction':
+    base: '!m!expression'
+    pattern: $minuend '-' $subtrahend
+    children:
+    - minuend:
+        model: '!m!expression'
+        input: void
+    - subtrahend:
+        model: '!m!expression'
+        input: target = new Addition($minuend, $subtrahend)
+
+  '!m!division':
+    base: '!m!expression'
+    pattern: $dividend '/' $divisor
+    children:
+    - dividend:
+        model: '!m!expression'
+        input: void
+    - divisor:
+        model: '!m!expression'
+        input: target = new Division($dividend, $divisor)
+
+  '!m!integer':
+    base: '!m!expression'
+    pattern: '[0-9]+'
+    children:
+    - integer:
+        model: '!m!expression'
+        input: target = Integer.parseInt(@String)

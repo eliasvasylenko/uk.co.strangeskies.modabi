@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !m! tag:modabi.strangeskies.co.uk,2014:
+---
+name: "!m!Scripting"
+
+dependencies:
+- BaseSchema
+
+imports:
+- java.lang.Object
+
+- javax.script.ScriptEngineManager
+- javax.script.ScriptEngine
+- javax.script.Invocable
+
+- uk.co.strangeskies.reflection.token.TypeToken
+- uk.co.strangeskies.reflection.token.TypeToken.Infer
+
+- uk.co.strangeskies.modabi.scripting.ScriptObject
+- uk.co.strangeskies.modabi.scripting.ScriptObjectBuilder
+- uk.co.strangeskies.modabi.processing.ProcessingContext
+- uk.co.strangeskies.modabi.schema.Model
+
+models:
+  '!m!script':
+    type: '@Infer ?'
+    abstractness: ABSTRACT
+    children:
+    - name:
+        condition: '?'
+        model: '!m!string'
+        input: '@ScriptObjectBuilder.objectName($)'
+    - script:
+        model: '!m!string'
+        condition: !m!requirement optional
+    - resource:
+        model: '!m!string'
+        condition: !m!notBound $script
+    - language:
+        model: '!m!string'
+        condition: !m!or
+        ? !m!bound $script
+        ? !m!and
+          ? !m!notBound $script
+          ? !m!requirement optional

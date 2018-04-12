@@ -1,19 +1,20 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static java.util.Optional.of;
+import static java.util.stream.Stream.concat;
 import static uk.co.strangeskies.modabi.schema.Permission.OPEN;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
-import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.Child;
+import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Permission;
-import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.parsing.Parser;
 
@@ -27,21 +28,21 @@ public class ModelImpl<T> implements Model<T> {
   @SuppressWarnings("unchecked")
   protected ModelImpl(ModelBuilderImpl configurator) {
     name = configurator.getName().get();
-    partial = configurator
-        .overrideModelChildren(Model::partial, b -> of(b.isPartial()))
-        .or(false)
-        .get();
+
+    partial = configurator.isPartial();
+
     permission = configurator
-        .overrideModelChildren(Model::permission, ModelBuilder::getPermission)
-        .or(OPEN)
-        .get();
-    dataType = configurator
-        .overrideModelChildren(Model::type, ModelBuilder::getDataType)
-        .mergeOverride((o, b) -> o.withConstraintTo(SUBTYPE, b))
-        .or(forClass(Object.class))
-        .tryGet()
-        .map(t -> (TypeToken<T>) t)
-        .get();
+        .getPermission()
+        .or(() -> configurator.getBaseModelImpl().map(Model::permission))
+        .orElse(OPEN);
+
+    TypeToken<?> dataType = concat(
+        configurator.getDataType().stream(),
+        configurator.getBaseModelImpl().map(Model::type).stream())
+            .reduce((o, b) -> o.withConstraintTo(SUBTYPE, b))
+            .orElseThrow(() -> new ModabiSchemaException(""));
+    this.dataType = (TypeToken<T>) dataType;
+
     Model<?> baseModel = configurator.getBaseModelImpl().orElse(null); // TODO some root model
     this.baseModel = (Model<? super T>) baseModel;
   }

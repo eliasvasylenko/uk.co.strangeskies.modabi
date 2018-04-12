@@ -10,20 +10,21 @@ import java.util.Deque;
 import java.util.List;
 
 import uk.co.strangeskies.mathematics.Interval;
+import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.schema.BindingCondition;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
-import uk.co.strangeskies.modabi.schema.BindingConditionVisitor;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.AllOfCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.AnyOfCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.ForbiddenCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.IsBoundCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.IsNotBoundCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.OccurrencesCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.SortCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.SynchronizedCondition;
-import uk.co.strangeskies.modabi.schema.impl.bindingconditions.ValidationCondition;
+import uk.co.strangeskies.modabi.schema.BindingConstraintVisitor;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.AllOfConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.AnyOfConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.ForbiddenConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.IsBoundConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.IsNotBoundConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.OccurrencesConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.SortCondition;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.SynchronizedConstraint;
+import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.ValidationConstraint;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingConditionFactory<T> {
@@ -35,47 +36,47 @@ public class BindingConditionFactory<T> {
     this.compiler = compiler;
   }
 
-  public BindingCondition<T> create(BindingConditionPrototype builder) {
+  public BindingConstraint<T> create(BindingConstraintSpecification builder) {
     BindingConditionVisitorImpl visitor = new BindingConditionVisitorImpl();
     return visitor.visit(builder);
   }
 
-  class BindingConditionVisitorImpl implements BindingConditionVisitor {
-    Deque<BindingCondition<T>> conditionStack = new ArrayDeque<>();
+  class BindingConditionVisitorImpl implements BindingConstraintVisitor {
+    Deque<BindingConstraint<T>> conditionStack = new ArrayDeque<>();
 
-    protected BindingCondition<T> visit(BindingConditionPrototype prototype) {
+    protected BindingConstraint<T> visit(BindingConstraintSpecification prototype) {
       prototype.accept(this);
       return conditionStack.pop();
     }
 
-    protected List<BindingCondition<T>> visitAll(
-        Collection<? extends BindingConditionPrototype> prototypes) {
+    protected List<BindingConstraint<T>> visitAll(
+        Collection<? extends BindingConstraintSpecification> prototypes) {
       return prototypes.stream().map(this::visit).collect(toList());
     }
 
     @Override
-    public void allOf(Collection<? extends BindingConditionPrototype> conditions) {
-      conditionStack.push(new AllOfCondition<>(visitAll(conditions)));
+    public void allOf(Collection<? extends BindingConstraintSpecification> conditions) {
+      conditionStack.push(new AllOfConstraint<>(visitAll(conditions)));
     }
 
     @Override
-    public void anyOf(Collection<? extends BindingConditionPrototype> conditions) {
-      conditionStack.push(new AnyOfCondition<>(visitAll(conditions)));
+    public void anyOf(Collection<? extends BindingConstraintSpecification> conditions) {
+      conditionStack.push(new AnyOfConstraint<>(visitAll(conditions)));
     }
 
     @Override
     public void forbidden() {
-      conditionStack.push(new ForbiddenCondition<>());
+      conditionStack.push(new ForbiddenConstraint<>());
     }
 
     @Override
     public void optional() {
-      conditionStack.push(new OccurrencesCondition<>(bounded(0, 1)));
+      conditionStack.push(new OccurrencesConstraint<>(bounded(0, 1)));
     }
 
     @Override
     public void required() {
-      conditionStack.push(new OccurrencesCondition<>(leftBounded(1)));
+      conditionStack.push(new OccurrencesConstraint<>(leftBounded(1)));
     }
 
     @Override
@@ -97,27 +98,27 @@ public class BindingConditionFactory<T> {
 
     @Override
     public void occurrences(Interval<Integer> range) {
-      conditionStack.push(new OccurrencesCondition<>(range));
+      conditionStack.push(new OccurrencesConstraint<>(range));
     }
 
     @Override
-    public void isBound() {
-      conditionStack.push(new IsBoundCondition<>(null));
+    public void isBound(QualifiedName name) {
+      conditionStack.push(new IsBoundConstraint<>(null));
     }
 
     @Override
-    public void isNotBound() {
-      conditionStack.push(new IsNotBoundCondition<>(null));
+    public void isNotBound(QualifiedName name) {
+      conditionStack.push(new IsNotBoundConstraint<>(null));
     }
 
     @Override
     public void validated(Expression predicate) {
-      conditionStack.push(new ValidationCondition<>(predicate, type, compiler));
+      conditionStack.push(new ValidationConstraint<>(predicate, type, compiler));
     }
 
     @Override
     public void synchronous() {
-      conditionStack.push(new SynchronizedCondition<>());
+      conditionStack.push(new SynchronizedConstraint<>());
     }
   }
 }

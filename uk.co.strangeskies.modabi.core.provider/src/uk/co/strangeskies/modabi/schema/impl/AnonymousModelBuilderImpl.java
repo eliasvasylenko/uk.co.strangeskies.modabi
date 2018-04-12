@@ -1,13 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static uk.co.strangeskies.reflection.Methods.findMethod;
-
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
-import uk.co.strangeskies.modabi.Namespace;
-import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder.ChildrenStep;
 import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
@@ -40,11 +34,6 @@ public class AnonymousModelBuilderImpl<E> implements AnonymousModelBuilder<E>, C
         modelBuilder.getSchemaBuilder(),
         new ChildBuilderContext<ChildrenStep<E>>() {
           @Override
-          public Optional<Namespace> defaultNamespace() {
-            return componentContext.defaultNamespace();
-          }
-
-          @Override
           public ChildrenStep<E> endChild(ChildBuilderImpl<?> child) {
             return new AnonymousModelBuilderImpl<>(
                 context,
@@ -54,15 +43,6 @@ public class AnonymousModelBuilderImpl<E> implements AnonymousModelBuilder<E>, C
                 (ModelBuilderImpl) componentContext.endChild(child));
           }
         });
-  }
-
-  public <U> OverrideBuilder<U> overrideModelChildren(
-      Function<Model<?>, ? extends U> node,
-      Function<AnonymousModelBuilder<?>, Optional<? extends U>> builder) {
-    return new OverrideBuilder<>(
-        () -> findMethod(Model.class, node::apply).getName(),
-        modelBuilder.getBaseModelImpl().map(node),
-        builder.apply(this));
   }
 
   @Override

@@ -7,7 +7,7 @@ import java.util.Optional;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder.ChildrenStep;
@@ -20,16 +20,15 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   private final SchemaBuilderImpl schemaBuilder;
   private final ChildBuilderContext<E> context;
 
-  private final QualifiedName name;
+  private final String name;
 
-  private final Boolean extensible;
   private final Model<?> model;
   private final TypeToken<?> type;
 
   private final Expression input;
   private final Expression output;
 
-  private final BindingConditionPrototype bindingCondition;
+  private final BindingConstraintSpecification bindingCondition;
   private final Boolean ordered;
 
   private final Model<?> modelOverride;
@@ -39,7 +38,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
     this.schemaBuilder = schemaBuilder;
     this.context = context;
     this.name = null;
-    this.extensible = null;
     this.model = null;
     this.type = null;
     this.input = null;
@@ -53,20 +51,18 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   public ChildBuilderImpl(
       SchemaBuilderImpl schemaBuilder,
       ChildBuilderContext<E> context,
-      QualifiedName name,
-      Boolean extensible,
+      String name,
       Model<?> model,
       TypeToken<?> type,
       Expression inputExpression,
       Expression outputExpression,
-      BindingConditionPrototype bindingCondition,
+      BindingConstraintSpecification bindingCondition,
       Boolean ordered,
       Model<?> modelOverride,
       AnonymousModelBuilder<?> modelOverrideBuilder) {
     this.schemaBuilder = schemaBuilder;
     this.context = context;
     this.name = name;
-    this.extensible = extensible;
     this.model = model;
     this.type = type;
     this.input = inputExpression;
@@ -83,7 +79,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
         schemaBuilder,
         context,
         name,
-        extensible,
         model,
         type,
         input,
@@ -115,7 +110,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
         schemaBuilder,
         context,
         name,
-        extensible,
         model,
         type,
         input,
@@ -151,7 +145,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
         schemaBuilder,
         context,
         name,
-        extensible,
         model,
         type,
         input,
@@ -168,13 +161,12 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   }
 
   @Override
-  public ChildBuilder.PropertiesStep<E> bindingCondition(
-      BindingConditionPrototype bindingCondition) {
+  public ChildBuilder.PropertiesStep<E> bindingConstraint(
+      BindingConstraintSpecification bindingCondition) {
     return new ChildBuilderImpl<>(
         schemaBuilder,
         context,
         name,
-        extensible,
         model,
         type,
         input,
@@ -186,7 +178,7 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   }
 
   @Override
-  public Optional<BindingConditionPrototype> getBindingCondition() {
+  public Optional<BindingConstraintSpecification> getBindingConstraint() {
     return ofNullable(bindingCondition);
   }
 
@@ -196,44 +188,16 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   }
 
   @Override
-  public Optional<QualifiedName> getName() {
+  public Optional<String> getName() {
     return Optional.ofNullable(name);
   }
 
   @Override
-  public final ChildBuilder.PropertiesStep<E> name(String name) {
-    return name(new QualifiedName(name, context.defaultNamespace().get()));
-  }
-
-  @Override
-  public ChildBuilder.PropertiesStep<E> name(QualifiedName name) {
+  public ChildBuilder.PropertiesStep<E> name(String name) {
     return new ChildBuilderImpl<>(
         schemaBuilder,
         context,
         name,
-        extensible,
-        model,
-        type,
-        input,
-        output,
-        bindingCondition,
-        ordered,
-        modelOverride,
-        modelOverrideBuilder);
-  }
-
-  @Override
-  public Optional<Boolean> getExtensible() {
-    return Optional.ofNullable(extensible);
-  }
-
-  @Override
-  public ChildBuilder.PropertiesStep<E> extensible(boolean extensible) {
-    return new ChildBuilderImpl<>(
-        schemaBuilder,
-        context,
-        name,
-        extensible,
         model,
         type,
         input,
@@ -264,7 +228,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
         schemaBuilder,
         context,
         name,
-        extensible,
         model,
         type,
         input,
@@ -287,7 +250,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
         schemaBuilder,
         context,
         name,
-        extensible,
         schemaBuilder.getModel(modelName),
         type,
         input,
@@ -306,7 +268,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
             schemaBuilder,
             context,
             name,
-            extensible,
             model,
             type,
             input,

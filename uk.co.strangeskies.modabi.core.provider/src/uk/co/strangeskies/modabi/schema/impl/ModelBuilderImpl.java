@@ -1,12 +1,10 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.Collections.emptyList;
-import static uk.co.strangeskies.reflection.Methods.findMethod;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
@@ -139,15 +137,27 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
   ChildBuilderContext<ChildrenStep> getChildBuilderContext() {
     return new ChildBuilderContext<ChildrenStep>() {
       @Override
-      public Optional<Namespace> defaultNamespace() {
-        return getName().map(QualifiedName::getNamespace);
-      }
-
-      @Override
       public ChildrenStep endChild(ChildBuilderImpl<?> child) {
+        Child<?> overriddenChild = (baseModel == null || name == null)
+            ? null
+            : baseModel.child(name);
+
+        /*
+         * TODO end child and decide how override behavior works
+         * 
+         * 1) if this overrides an existing node, the input/output should already be
+         * defined there. All we need to do is add bounds to the inference if those
+         * expressions mentioned any inference variables.
+         * 
+         * 2) otherwise the node must be added to the end of the sequence, so we take
+         * the after types from the last node in the parent and use those as our before
+         * types. Simple!
+         * 
+         */
+
         List<ChildImpl<?>> newChildren = new ArrayList<>(children.size() + 1);
         newChildren.addAll(children);
-        newChildren.add(new ChildImpl<>(child));
+        newChildren.add(new ChildImpl<>(child, overriddenChild));
 
         List<ChildBuilderImpl<?>> newChildBuilders = new ArrayList<>(childBuilders.size() + 1);
         newChildBuilders.addAll(childBuilders);
@@ -209,15 +219,6 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
   @Override
   public Optional<TypeToken<?>> getDataType() {
     return Optional.ofNullable(dataType);
-  }
-
-  public <U> OverrideBuilder<U> overrideModelChildren(
-      Function<Model<?>, ? extends U> node,
-      Function<ModelBuilder, Optional<? extends U>> builder) {
-    return new OverrideBuilder<>(
-        () -> findMethod(Model.class, node::apply).getName(),
-        getBaseModelImpl().map(node),
-        builder.apply(this));
   }
 
   @Override

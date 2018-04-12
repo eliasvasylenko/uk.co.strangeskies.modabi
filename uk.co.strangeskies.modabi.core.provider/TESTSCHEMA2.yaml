@@ -1,0 +1,142 @@
+%YAML 1.1
+%TAG ! tag:modabi.strangeskies.co.uk,2014:
+---
+name: '!PeriodicTable'
+
+imports:
+- uk.co.strangeskies.reflection.token.TypeToken.Infer
+- java.util.Collection
+- java.util.List
+- uk.co.saiman.chemistry.Element.Group
+- uk.co.saiman.chemistry.PeriodicTable
+- uk.co.saiman.chemistry.Element
+- uk.co.saiman.chemistry.isotope.Isotope
+
+dependencies:
+- BaseSchema
+
+models:
+  '!sai!isotope':
+    type: Isotope
+    pattern: '[ $sai:massNumber ; $sai:mass ; $sai:abundance ]'
+    children:
+    - massNumber:
+        input: void
+        model: int
+    - mass:
+        input: void
+        model: double
+    - abundance:
+        input: void
+        model: double
+    - ~:
+        input: new Isotope($massNumber, $mass, $abundance)
+
+  '!sai!element':
+    type: Element
+    children:
+    - ~:
+        input: new Element()
+    - atomicNumber:
+        model: '!!int'
+        input: target = target.withAtomicNumber($)
+    - name:
+        model: '!!string'
+        condition: !requirement conditional
+        input: target = target.withName($)
+    - symbol:
+        model: '!!string'
+        input: target = target.withSymbol($)
+    - isotopes:
+        ordered: true
+        override:
+          children:
+          - isotope:
+              model: '!isotope'
+              key: ~
+              condition: !and
+              ? !occurences 0..
+              ? !sorted '(a, b) -> b.getMassNumber() - a.getMassNumber()'
+              output: 'target.getIsotopes()[]'
+              input: target = target.withIsotope($[])
+    - group:
+        model: enum
+        dataType: Group
+        input: taret = target.withGroup($)
+
+  '!sai!periodicTable':
+    type: PeriodicTable
+    children:
+    - ~:
+        input: new PeriodicTable()
+    - name:
+        model: '!!string'
+    - elements:
+        ordered: true
+        override:
+          children:
+          - element:
+              model: element
+              key: name
+              output: 'source.getElements()[]'
+              input: target.getElements().add($)
+              constraint: !and
+              ? !occurences 0..
+              ? !sorted (a, b) -> b.getAtomicNumber() - a.getAtomicNumber()
+
+  '!!seq':
+    type: List<@Infer ?>
+    partial: true
+    ordered: true
+    children:
+    - element:
+        key: ~
+        output: 'object[]'
+        input: Arrays.asList($)
+        constraint: !occurences 0..
+
+  '!!set':
+    type: Set<@Infer ?>
+    partial: true
+    children:
+    - element:
+        partial: true
+        key: $
+        output: 'object[]'
+        input: Arrays.asList($)
+        constraint: !occurences 0..
+
+# valid values for !key!:
+#
+# 'name'      to map from the name of the child (the default)
+# '$<child>'  to map from the value of an inner child
+# '$'         to map from whole child (i.e. be a set)
+# '~'         no key! (may need explicit '?' to mark maps when unordered)
+
+exampleTable: !periodicTable
+  name: Default Table
+  elements:
+  - Hydrogen:
+      atomicNumber: 1
+      symbol: H
+      !isotopes isotopes:
+      - !isotope
+        massNumber: 1
+        mass: 1.0234
+        abundance: 0.9
+      - !isotope
+        massNumber: 2
+        mass: 2.0345
+        abundance: 0.1
+      group: NONMETAL
+  - Helium:
+      atomicNumber: 2
+      symbol: He
+      isotopes:
+      - massNumber: 2
+        mass: 2.0234
+        abundance: 0.9
+      - massNumber: 3
+        mass: 3.0345
+        abundance: 0.1
+      group: NOBLE_GAS

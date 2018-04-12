@@ -1,13 +1,12 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
 import static java.util.Arrays.asList;
+import static uk.co.strangeskies.modabi.expression.Expressions.literal;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.BOUND_PREFIX;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.OBJECT_VALUE;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.PARENT_VALUE;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.qualifiedName;
 import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
 
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
 import uk.co.strangeskies.modabi.expression.Preprocessor;
@@ -30,12 +29,12 @@ public class BindingFunctionPreprocessor implements Preprocessor {
     return expressionVisitor;
   }
 
-  private Expression rawBindingExpression(QualifiedName bindingPoint) {
+  private Expression rawBindingExpression(String bindingPoint) {
     return v -> v
         .visitInvocation(
             c -> c.visitNamed("context"),
             "getBoundObject",
-            asList(qualifiedName(bindingPoint)));
+            asList(literal(bindingPoint)));
   }
 
   private void visitBoundExpression(Child<?> bindingPoint) {

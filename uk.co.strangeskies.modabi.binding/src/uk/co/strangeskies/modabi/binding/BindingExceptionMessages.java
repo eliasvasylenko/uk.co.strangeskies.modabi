@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.binding;
 
-import java.lang.reflect.Executable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -30,7 +29,6 @@ import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.schema.BindingPoint;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Node;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.properties.PropertyConfiguration;
 import uk.co.strangeskies.text.properties.PropertyConfiguration.KeyCase;
@@ -50,22 +48,13 @@ public interface BindingExceptionMessages {
       Collection<? extends Model<?>> candidates,
       TypeToken<?> type);
 
-  String cannotInvoke(
-      Executable inputMethod,
-      TypeToken<?> targetType,
-      Node node,
-      List<?> parameters);
-
   String mustHaveData(QualifiedName node);
 
   String mustNotHaveData(BindingPoint<?> bindingPoint);
 
   String noProviderFound(TypeToken<?> type);
 
-  <T> String mustBeOrdered(
-      Child<T> node,
-      T lastItem,
-      Class<? extends Comparator<?>> order);
+  <T> String mustBeOrdered(Child<T> node, T lastItem, Class<? extends Comparator<?>> order);
 
   default String mustHaveDataWithinRange(Child<?> node, Interval<Integer> range) {
     return mustHaveDataWithinRange(node.name(), Interval.compose(range));

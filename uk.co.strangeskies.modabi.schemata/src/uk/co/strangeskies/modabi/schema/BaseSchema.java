@@ -142,7 +142,7 @@ public interface BaseSchema extends Schema {
 
   Model<TypeToken<?>> typeTokenModel();
 
-  // TODO iirc Java 9 will allow this to be static
+  // TODO iirc Java 9 will allow this to be private
   @Deprecated
   static QualifiedName name(String name) {
     return new QualifiedName(name, BASE_SCHEMA.getNamespace());

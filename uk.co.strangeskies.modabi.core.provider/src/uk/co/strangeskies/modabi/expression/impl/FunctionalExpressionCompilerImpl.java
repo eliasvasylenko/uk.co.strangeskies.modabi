@@ -26,7 +26,6 @@ import org.osgi.service.component.annotations.Component;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.expression.ExpressionException;
 import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
-import uk.co.strangeskies.modabi.expression.ExpressionWriter;
 import uk.co.strangeskies.modabi.expression.functional.FunctionCapture;
 import uk.co.strangeskies.modabi.expression.functional.FunctionImplementation;
 import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
@@ -73,6 +72,7 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
 
     System.out.println("=======================================");
     TypeToken<?> returnType = visitor.compileStep(expression).type;
+    System.out.println("*************** " + returnType);
     List<Instructions> instructions = new ArrayList<>(visitor.instructions);
 
     /*
@@ -171,15 +171,12 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
 
     private void completeStep(TypeToken<?> type, Instructions step) {
       instructions.add(step);
-      System.out.println("  ++");
       stack.add(new InstructionDescription(type));
       maximumStackSize = Math.max(maximumStackSize, stack.size());
     }
 
     private InstructionDescription compileStep(Expression expression) {
-      System.out.println("->  " + new ExpressionWriter().evaluate(expression));
       expression.evaluate(this);
-      System.out.println("  --      @ " + stack.get(stack.size() - 1).type);
       return stack.remove(stack.size() - 1);
     }
 
@@ -208,16 +205,22 @@ public class FunctionalExpressionCompilerImpl implements FunctionalExpressionCom
       @SuppressWarnings("unchecked")
       ExecutableToken<Object, ?> executable = (ExecutableToken<Object, ?>) executables
           .get()
-          .collect(resolveOverload(argumentTypes));
+          .map(ExecutableToken::infer)
+          .collect(resolveOverload(argumentTypes))
+          .resolve();
+
+      System.out.println(" %   " + executable);
 
       int actualArgumentCount = (int) executable.getParameters().count();
       if (executable.isVariableArityInvocation()) {
         int arraySize = arguments.size() - actualArgumentCount + 1;
-        /*
-         * TODO logic to pop the last k items from the stack, add them to an array, then
-         * push that array onto the stack.
-         */
-        throw new UnsupportedOperationException();
+        instructions.add(c -> {
+          Object[] varargs = new Object[arraySize];
+          for (int i = varargs.length - 1; i >= 0; i--) {
+            varargs[i] = c.pop();
+          }
+          c.push(varargs);
+        });
       }
 
       if (receiver != null) {

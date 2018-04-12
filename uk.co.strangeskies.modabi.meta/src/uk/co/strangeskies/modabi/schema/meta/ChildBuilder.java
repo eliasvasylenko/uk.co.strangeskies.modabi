@@ -7,21 +7,17 @@ import java.util.Optional;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.schema.BindingConditionPrototype;
+import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder.ChildrenStep;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public interface ChildBuilder<E> {
   interface PropertiesStep<E> extends OverrideStep<E> {
-    PropertiesStep<E> name(QualifiedName name);
-
     PropertiesStep<E> name(String name);
 
     PropertiesStep<E> ordered(boolean ordered);
 
-    PropertiesStep<E> extensible(boolean extensible);
-
-    PropertiesStep<E> bindingCondition(BindingConditionPrototype condition);
+    PropertiesStep<E> bindingConstraint(BindingConstraintSpecification condition);
 
     PropertiesStep<E> noInput();
 
@@ -46,13 +42,11 @@ public interface ChildBuilder<E> {
     ChildrenStep<ChildBuilder<E>> overrideModel();
   }
 
-  Optional<QualifiedName> getName();
+  Optional<String> getName();
 
   Optional<Boolean> getOrdered();
 
-  Optional<Boolean> getExtensible();
-
-  Optional<BindingConditionPrototype> getBindingCondition();
+  Optional<BindingConstraintSpecification> getBindingConstraint();
 
   Optional<Expression> getInput();
 
