@@ -14,11 +14,7 @@ Bundle-Description: \
 	uk.co.strangeskies.reflection;version=latest,\
 	uk.co.strangeskies.reflection.token;version=latest,\
 	uk.co.strangeskies.modabi.schemata;version=latest,\
-	uk.co.strangeskies.modabi.expression;version=latest,\
-	uk.co.strangeskies.modabi.common;version=latest,\
-	uk.co.strangeskies.modabi.expressions
-	uk.co.strangeskies.modabi.schemata;version=latest,\
-	uk.co.strangeskies.modabi.expression;version=latest,\
+	uk.co.strangeskies.modabi.expressions;version=latest,\
 	uk.co.strangeskies.modabi.common;version=latest
 
 Export-Package: \
