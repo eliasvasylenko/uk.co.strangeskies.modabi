@@ -90,6 +90,20 @@ public class Expressions {
     return literalImpl(value);
   }
 
+  public static MutableExpression getStaticField(Class<?> declaringClass, String field) {
+    return new MutableExpression() {
+      @Override
+      public void evaluate(ExpressionVisitor visitor) {
+        visitor.visitStaticField(declaringClass, field);
+      }
+
+      @Override
+      public Expression assign(Expression value) {
+        return v -> v.visitStaticFieldAssignment(declaringClass, field, value);
+      }
+    };
+  }
+
   public static Expression invokeConstructor(Class<?> declaringClass, Expression... arguments) {
     return invokeConstructor(declaringClass, asList(arguments));
   }

@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder.ChildrenStep;
 import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
-import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 
 public class AnonymousModelBuilderImpl<E> implements AnonymousModelBuilder<E>, ChildrenStep<E> {
   private final AnonymousModelBuilderContext<E> context;
@@ -27,20 +26,13 @@ public class AnonymousModelBuilderImpl<E> implements AnonymousModelBuilder<E>, C
 
   @Override
   public ChildBuilder.PropertiesStep<ChildrenStep<E>> addChild() {
-    ChildBuilderContext<ModelBuilder.ChildrenStep> componentContext = modelBuilder
-        .getChildBuilderContext();
-
     return new ChildBuilderImpl<>(
         modelBuilder.getSchemaBuilder(),
         new ChildBuilderContext<ChildrenStep<E>>() {
           @Override
           public ChildrenStep<E> endChild(ChildBuilderImpl<?> child) {
-            return new AnonymousModelBuilderImpl<>(
-                context,
-
-                // TODO can do better than a cast
-
-                (ModelBuilderImpl) componentContext.endChild(child));
+            modelBuilder.endChild(child);
+            return new AnonymousModelBuilderImpl<>(context, modelBuilder.endChild(child));
           }
         });
   }

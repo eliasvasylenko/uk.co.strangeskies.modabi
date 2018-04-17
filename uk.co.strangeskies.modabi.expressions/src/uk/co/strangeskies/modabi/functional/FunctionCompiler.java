@@ -1,6 +1,4 @@
-package uk.co.strangeskies.modabi.expression.functional;
-
-import java.util.List;
+package uk.co.strangeskies.modabi.functional;
 
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -26,7 +24,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
  * 
  * @author Elias N Vasylenko
  */
-public interface FunctionalExpressionCompiler {
+public interface FunctionCompiler {
   /**
    * @param implementationType
    *          a functional interface to be implemented according to the expression
@@ -41,8 +39,4 @@ public interface FunctionalExpressionCompiler {
       Expression expression,
       TypeToken<T> implementationType,
       TypeToken<C> captureScope);
-
-  default void a() {
-    compile(null, null, new TypeToken<List<?>>() {}).capture((List<String>) null);
-  }
 }

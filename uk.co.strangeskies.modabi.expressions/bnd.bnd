@@ -15,4 +15,5 @@ Bundle-Description: \
 
 Export-Package: \
 	uk.co.strangeskies.modabi.expression,\
-	uk.co.strangeskies.modabi.expression.functional
+	uk.co.strangeskies.modabi.functional,\
+	uk.co.strangeskies.modabi.instruction

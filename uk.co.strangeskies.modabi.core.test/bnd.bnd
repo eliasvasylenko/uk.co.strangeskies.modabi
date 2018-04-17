@@ -54,18 +54,18 @@ Test-Cases: ${test-cases}
 	META-INF/schemata=schemata
 
 -runrequires: \
-	${req;biz.aQute.tester},\
-	${req;osgi.enroute.logger.simple.provider},\
-	${req;uk.co.strangeskies.osgi.provider},\
-	${req;org.apache.felix.gogo.command},\
-	${req;org.apache.felix.gogo.runtime},\
-	${req;org.apache.felix.gogo.shell},\
-	${req;uk.co.strangeskies.modabi.io.json},\
-	${req;uk.co.strangeskies.modabi.io.xml},\
-	${req;uk.co.strangeskies.modabi.extender},\
-	${req;uk.co.strangeskies.modabi.core.provider},\
-	${req;uk.co.strangeskies.modabi.core.api},\
-	${req;uk.co.strangeskies.modabi.testing}
+	bnd.identity; biz.aQute.tester,\
+	bnd.identity; osgi.enroute.logger.simple.provider,\
+	bnd.identity; uk.co.strangeskies.osgi.provider,\
+	bnd.identity; org.apache.felix.gogo.command,\
+	bnd.identity; org.apache.felix.gogo.runtime,\
+	bnd.identity; org.apache.felix.gogo.shell,\
+	bnd.identity; uk.co.strangeskies.modabi.io.json,\
+	bnd.identity; uk.co.strangeskies.modabi.io.xml,\
+	bnd.identity; uk.co.strangeskies.modabi.extender,\
+	bnd.identity; uk.co.strangeskies.modabi.core.provider,\
+	bnd.identity; uk.co.strangeskies.modabi.core.api,\
+	bnd.identity; uk.co.strangeskies.modabi.testing
 
 -runfw: org.apache.felix.framework;version='[5.2.0,5.2.0]'
 

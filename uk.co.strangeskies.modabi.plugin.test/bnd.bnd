@@ -45,17 +45,17 @@ Test-Cases: ${test-cases}
 	uk.co.strangeskies.modabi.core.provider
 
 -runrequires: \
-	${req;biz.aQute.tester},\
-	${req;osgi.enroute.logger.simple.provider},\
-	${req;uk.co.strangeskies.osgi.consolelog},\
-	${req;uk.co.strangeskies.osgi.logging},\
-	${req;org.apache.felix.gogo.command},\
-	${req;org.apache.felix.gogo.runtime},\
-	${req;org.apache.felix.gogo.shell},\
-	${req;uk.co.strangeskies.modabi.io.xml},\
-	${req;uk.co.strangeskies.modabi.core.provider},\
-	${req;uk.co.strangeskies.modabi.core.api},\
-	${req;uk.co.strangeskies.modabi.plugin}
+	bnd.identity; biz.aQute.tester,\
+	bnd.identity; osgi.enroute.logger.simple.provider,\
+	bnd.identity; uk.co.strangeskies.osgi.consolelog,\
+	bnd.identity; uk.co.strangeskies.osgi.logging,\
+	bnd.identity; org.apache.felix.gogo.command,\
+	bnd.identity; org.apache.felix.gogo.runtime,\
+	bnd.identity; org.apache.felix.gogo.shell,\
+	bnd.identity; uk.co.strangeskies.modabi.io.xml,\
+	bnd.identity; uk.co.strangeskies.modabi.core.provider,\
+	bnd.identity; uk.co.strangeskies.modabi.core.api,\
+	bnd.identity; uk.co.strangeskies.modabi.plugin
 
 -runfw: org.apache.felix.framework;version='[5.2.0,5.2.0]'
 -runbundles: \

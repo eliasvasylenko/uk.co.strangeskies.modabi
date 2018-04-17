@@ -12,7 +12,7 @@ import java.util.List;
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingConstraintVisitor;
 import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.AllOfConstraint;
 import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.AnyOfConstraint;
@@ -29,9 +29,9 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingConditionFactory<T> {
   private final TypeToken<T> type;
-  private final FunctionalExpressionCompiler compiler;
+  private final FunctionCompiler compiler;
 
-  public BindingConditionFactory(TypeToken<T> type, FunctionalExpressionCompiler compiler) {
+  public BindingConditionFactory(TypeToken<T> type, FunctionCompiler compiler) {
     this.type = type;
     this.compiler = compiler;
   }

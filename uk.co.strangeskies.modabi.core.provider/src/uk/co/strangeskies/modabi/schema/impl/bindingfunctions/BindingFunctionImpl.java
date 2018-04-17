@@ -1,13 +1,24 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
+import static java.util.stream.Collectors.toList;
+import static uk.co.strangeskies.modabi.instruction.InstructionCompiler.forScope;
+import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
+import static uk.co.strangeskies.reflection.Annotations.from;
+import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
+import java.util.List;
+
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.functional.FunctionCapture;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCapture;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
+import uk.co.strangeskies.modabi.instruction.Instructions;
+import uk.co.strangeskies.modabi.instruction.Scope;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
+import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class BindingFunctionImpl implements BindingFunction {
   public interface BindingFunctionInterface {
@@ -24,6 +35,7 @@ public class BindingFunctionImpl implements BindingFunction {
     }
   }
 
+  private final TypeToken<?> objectType;
   private final Expression expression;
   private final FunctionCapture<BindingFunctionCapture, BindingFunctionInterface> bindingFunction;
 
@@ -89,17 +101,52 @@ public class BindingFunctionImpl implements BindingFunction {
    * 
    */
   public BindingFunctionImpl(
-      BindingFunctionContext context,
+      ChildLookup context,
+      TypeToken<?> objectType,
       Expression expression,
-      FunctionalExpressionCompiler compiler) {
+      FunctionCompiler compiler) {
+    this.objectType = objectType;
+    TypeToken<?> objectAssignedType = forAnnotatedType(wildcard(from(Infer.class)));
+
     this.expression = expression;
     Expression processedExpression = visitor -> expression
-        .evaluate(new BindingFunctionPreprocessor(visitor, context));
+        .evaluate(
+            new BindingFunctionPreprocessor(visitor, context, objectType, objectAssignedType));
+
+    new Scope() {
+      @Override
+      public Instructions lookupVariableAssignment(String variableName, Instructions value) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public Instructions lookupVariable(String variableName) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      @Override
+      public Instructions lookupInvocation(String invocationName, List<Instructions> arguments) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+    };
+
+    Instructions instructions = forScope(scope).compile(processedExpression);
     this.bindingFunction = compiler
         .compile(
-            processedExpression,
+            instructions,
             forClass(BindingFunctionInterface.class),
             forClass(BindingFunctionCapture.class));
+
+    System.out
+        .println(
+            bindingFunction
+                .getBounds()
+                .getBoundsOn((InferenceVariable) objectAssignedType.getType())
+                .getUpperBounds()
+                .collect(toList()));
   }
 
   @Override
@@ -117,13 +164,11 @@ public class BindingFunctionImpl implements BindingFunction {
 
   @Override
   public TypeToken<?> getTypeBefore() {
-    // TODO Auto-generated method stub
-    return null;
+    return objectType;
   }
 
   @Override
   public TypeToken<?> getTypeAfter() {
-    // TODO Auto-generated method stub
     return null;
   }
 }

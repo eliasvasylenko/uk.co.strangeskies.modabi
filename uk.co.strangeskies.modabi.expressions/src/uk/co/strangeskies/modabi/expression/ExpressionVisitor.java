@@ -23,7 +23,11 @@ public interface ExpressionVisitor {
 
   void visitField(Expression receiver, String variable);
 
+  void visitStaticField(Class<?> type, String variable);
+
   void visitFieldAssignment(Expression receiver, String variable, Expression value);
+
+  void visitStaticFieldAssignment(Class<?> type, String variable, Expression value);
 
   void visitInvocation(Expression receiver, String method, List<Expression> arguments);
 

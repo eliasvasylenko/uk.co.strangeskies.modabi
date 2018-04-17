@@ -27,8 +27,6 @@ public interface ChildBuilder<E> {
 
     PropertiesStep<E> noOutput();
 
-    PropertiesStep<E> model(String name);
-
     PropertiesStep<E> model(QualifiedName name);
 
     default PropertiesStep<E> type(Type type) {

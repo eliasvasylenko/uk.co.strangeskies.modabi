@@ -6,14 +6,14 @@ import java.util.Deque;
 import java.util.List;
 
 public class ExecutionContext {
-  private final List<Instructions> instructions;
+  private final List<Instruction> instructions;
   private final Object capture;
   private final Object[] arguments;
 
   private int instructionPointer;
   private final Deque<Object> stack;
 
-  public ExecutionContext(List<Instructions> instructions, Object capture, Object[] arguments) {
+  public ExecutionContext(List<Instruction> instructions, Object capture, Object[] arguments) {
     this.instructionPointer = 0;
     this.instructions = instructions;
 

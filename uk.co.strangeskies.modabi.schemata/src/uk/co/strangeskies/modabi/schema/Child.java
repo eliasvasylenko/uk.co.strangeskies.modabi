@@ -3,6 +3,8 @@ package uk.co.strangeskies.modabi.schema;
 public interface Child<T> extends BindingPoint<T> {
   String name();
 
+  int index();
+
   /**
    * If a binding point is specified to be ordered then the order in which items
    * are iterated for output, or formatted for input, is considered semantically

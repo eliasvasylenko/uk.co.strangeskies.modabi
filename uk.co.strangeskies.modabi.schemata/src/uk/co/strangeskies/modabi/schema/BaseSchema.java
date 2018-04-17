@@ -99,7 +99,8 @@ public interface BaseSchema extends Schema {
 
   Model<List<?>> listModel();
 
-  Model<Set<?>> setModel();
+  // TODO the ? extends seems to be required as an eclipse bug?
+  Model<? extends Set<?>> setModel();
 
   Model<Map<?, ?>> mapModel();
 

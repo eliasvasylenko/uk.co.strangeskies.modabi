@@ -18,69 +18,12 @@
  */
 package uk.co.strangeskies.modabi.binding.impl;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
-import uk.co.strangeskies.modabi.ModabiException;
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.binding.Provider;
-import uk.co.strangeskies.modabi.binding.provisions.ImportWriter;
-import uk.co.strangeskies.modabi.binding.provisions.IncludeWriter;
-import uk.co.strangeskies.modabi.binding.provisions.ReferenceWriter;
-import uk.co.strangeskies.modabi.schema.Binding;
-import uk.co.strangeskies.modabi.schema.BindingContext;
-import uk.co.strangeskies.modabi.schema.Child;
-import uk.co.strangeskies.modabi.schema.Model;
 
 public class OutputProviders {
-  public Function<BindingContext, IncludeWriter> includeWriter() {
-    return context -> new IncludeWriter() {
-      @Override
-      public void include(Collection<? extends Binding<?>> bindings) {
-        for (Binding<?> binding : bindings) {
-          context.bindings().add(binding);
-
-          // TODO try figure out if/why this was necessary...
-          context
-              .output()
-              .ifPresent(o -> o.registerNamespaceHint(binding.getModel().name().getNamespace()));
-        }
-      }
-    };
-  }
-
-  public Function<BindingContext, ImportWriter> importWriter() {
-    return context -> new ImportWriter() {
-      @Override
-      public <U> String referenceImport(Model<U> model, List<QualifiedName> idDomain, U object) {
-        List<Child<?>> node = model.descendents(idDomain);
-
-        return null; // TODO
-      }
-    };
-  }
-
-  public Function<BindingContext, ReferenceWriter> referenceWriter() {
-    return context -> new ReferenceWriter() {
-      @Override
-      public <U> String reference(Model<U> model, List<QualifiedName> idDomain, U object) {
-        if (!context.bindings().getModelBindings(model).contains(object))
-          throw new ModabiException(
-              "Cannot find any instance '" + object + "' bound to model '" + model.name()
-                  + "' from '" + context.bindings().getModelBindings(model) + "'");
-
-        return importWriter().apply(context).referenceImport(model, idDomain, object);
-      }
-    };
-  }
-
   public Stream<Provider> getProviders() {
-    return Stream
-        .of(
-            Provider.over(ReferenceWriter.class, referenceWriter()),
-            Provider.over(ImportWriter.class, importWriter()),
-            Provider.over(IncludeWriter.class, includeWriter()));
+    return Stream.empty();
   }
 }

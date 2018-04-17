@@ -45,6 +45,16 @@ public class ExpressionWriter implements ExpressionVisitor {
   }
 
   @Override
+  public void visitStaticField(Class<?> type, String variable) {
+    complete(type.getName() + "." + variable);
+  }
+
+  @Override
+  public void visitStaticFieldAssignment(Class<?> type, String variable, Expression value) {
+    complete(type.getName() + "." + variable + " = " + evaluate(value));
+  }
+
+  @Override
   public void visitInvocation(Expression receiver, String method, List<Expression> arguments) {
     complete(evaluate(receiver) + "." + method + evaluateArguments(arguments));
   }

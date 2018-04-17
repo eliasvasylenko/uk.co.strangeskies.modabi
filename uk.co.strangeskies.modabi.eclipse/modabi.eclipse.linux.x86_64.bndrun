@@ -2,7 +2,7 @@
 platform: linux64
 
 -runrequires: ${runreq.modabi},\
-	${req;org.eclipse.jdt.junit}
+	bnd.identity; org.eclipse.jdt.junit
 
 -runvm: ${runvm.modabi}
 

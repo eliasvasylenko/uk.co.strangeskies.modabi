@@ -24,7 +24,6 @@ import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.modabi.schema.BindingConstraintSpecification.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.parent;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.provide;
 import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
 import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
@@ -50,7 +49,6 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.BindingContext;
-import uk.co.strangeskies.modabi.schema.BindingExpressions;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
@@ -93,8 +91,7 @@ public class BaseSchemaImpl implements BaseSchema {
             c -> c
                 .model(STRING_MODEL)
                 .input(
-                    BindingExpressions
-                        .object()
+                    object()
                         .assign(
                             invokeStatic(Base64.class, "getDecoder")
                                 .invoke("decode", boundValue())))
@@ -132,7 +129,7 @@ public class BaseSchemaImpl implements BaseSchema {
             c -> c
                 .model(STRING_MODEL)
                 .input(object().assign(invokeStatic(Integer.class, "parseInt", boundValue())))
-                .output(object().invoke("toString")))
+                .output(invokeStatic(Integer.class, "toString", object())))
         .endModel();
 
     schemaBuilder = schemaBuilder
@@ -143,7 +140,7 @@ public class BaseSchemaImpl implements BaseSchema {
             c -> c
                 .model(STRING_MODEL)
                 .input(object().assign(invokeStatic(Long.class, "parseLong", boundValue())))
-                .output(object().invoke("toString")))
+                .output(invokeStatic(Long.class, "toString", object())))
         .endModel();
 
     schemaBuilder = schemaBuilder
@@ -154,7 +151,7 @@ public class BaseSchemaImpl implements BaseSchema {
             c -> c
                 .model(STRING_MODEL)
                 .input(object().assign(invokeStatic(Float.class, "parseFloat", boundValue())))
-                .output(object().invoke("toString")))
+                .output(invokeStatic(Float.class, "toString", object())))
         .endModel();
 
     schemaBuilder = schemaBuilder
@@ -165,7 +162,7 @@ public class BaseSchemaImpl implements BaseSchema {
             c -> c
                 .model(STRING_MODEL)
                 .input(object().assign(invokeStatic(Double.class, "parseDouble", boundValue())))
-                .output(object().invoke("toString")))
+                .output(invokeStatic(Double.class, "toString", object())))
         .endModel();
 
     schemaBuilder = schemaBuilder
@@ -176,7 +173,7 @@ public class BaseSchemaImpl implements BaseSchema {
             c -> c
                 .model(STRING_MODEL)
                 .input(object().assign(invokeStatic(Boolean.class, "parseBoolean", boundValue())))
-                .output(object().invoke("toString")))
+                .output(invokeStatic(Boolean.class, "toString", object())))
         .endModel();
 
     schemaBuilder = schemaBuilder
@@ -195,8 +192,8 @@ public class BaseSchemaImpl implements BaseSchema {
         .name(ARRAY_MODEL)
         .type(new @Infer TypeToken<Object[]>() {})
         .addChild()
-        .input(provide(new TypeToken<List<?>>() {}))
-        .output(invokeStatic(Arrays.class, "asList", parent()))
+        .input(object().assign(provide(new TypeToken<List<?>>() {})))
+        .output(object().assign(invokeStatic(Arrays.class, "asList", object())))
         .endChild()
         .addChild(
             c -> c

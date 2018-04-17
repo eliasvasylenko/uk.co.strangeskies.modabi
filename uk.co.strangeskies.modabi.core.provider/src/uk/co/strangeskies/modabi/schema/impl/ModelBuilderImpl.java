@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
   private final Model<?> baseModel;
   private final TypeToken<?> dataType;
 
-  private final List<ChildImpl<?>> children;
+  private final List<Child<?>> children;
   private final List<ChildBuilderImpl<?>> childBuilders;
 
   public ModelBuilderImpl(SchemaBuilderImpl schemaBuilder) {
@@ -50,7 +51,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
       Permission permission,
       Model<?> baseModel,
       TypeToken<?> dataType,
-      List<ChildImpl<?>> children,
+      List<Child<?>> children,
       List<ChildBuilderImpl<?>> childBuilders) {
     this.schemaBuilder = schemaBuilder;
     this.name = name;
@@ -127,53 +128,37 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
 
   @Override
   public ChildBuilder.PropertiesStep<ChildrenStep> addChild() {
-    return new ChildBuilderImpl<>(schemaBuilder, getChildBuilderContext());
+    return new ChildBuilderImpl<>(schemaBuilder, this::endChild);
   }
 
   SchemaBuilderImpl getSchemaBuilder() {
     return schemaBuilder;
   }
 
-  ChildBuilderContext<ChildrenStep> getChildBuilderContext() {
-    return new ChildBuilderContext<ChildrenStep>() {
-      @Override
-      public ChildrenStep endChild(ChildBuilderImpl<?> child) {
-        Child<?> overriddenChild = (baseModel == null || name == null)
-            ? null
-            : baseModel.child(name);
+  ModelBuilderImpl endChild(ChildBuilderImpl<?> child) {
+    List<Child<?>> overriddenChildren = (baseModel == null)
+        ? emptyList()
+        : baseModel.children().skip(children.size()).collect(toList());
+    ChildImpl<?> newChild = new ChildImpl<>(child, children, overriddenChildren, dataType);
 
-        /*
-         * TODO end child and decide how override behavior works
-         * 
-         * 1) if this overrides an existing node, the input/output should already be
-         * defined there. All we need to do is add bounds to the inference if those
-         * expressions mentioned any inference variables.
-         * 
-         * 2) otherwise the node must be added to the end of the sequence, so we take
-         * the after types from the last node in the parent and use those as our before
-         * types. Simple!
-         * 
-         */
+    List<Child<?>> newChildren = new ArrayList<>(newChild.index());
+    newChildren.addAll(children);
+    newChildren.addAll(overriddenChildren.subList(0, newChild.index() - newChildren.size()));
+    newChildren.add(newChild);
 
-        List<ChildImpl<?>> newChildren = new ArrayList<>(children.size() + 1);
-        newChildren.addAll(children);
-        newChildren.add(new ChildImpl<>(child, overriddenChild));
+    List<ChildBuilderImpl<?>> newChildBuilders = new ArrayList<>(childBuilders.size() + 1);
+    newChildBuilders.addAll(childBuilders);
+    newChildBuilders.add(child);
 
-        List<ChildBuilderImpl<?>> newChildBuilders = new ArrayList<>(childBuilders.size() + 1);
-        newChildBuilders.addAll(childBuilders);
-        newChildBuilders.add(child);
-
-        return new ModelBuilderImpl(
-            schemaBuilder,
-            name,
-            partial,
-            permission,
-            baseModel,
-            dataType,
-            newChildren,
-            newChildBuilders);
-      }
-    };
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        partial,
+        permission,
+        baseModel,
+        dataType,
+        newChildren,
+        newChildBuilders);
   }
 
   @Override

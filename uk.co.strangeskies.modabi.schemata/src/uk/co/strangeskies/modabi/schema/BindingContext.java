@@ -18,7 +18,6 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypedObject;
 
@@ -27,7 +26,7 @@ public interface BindingContext {
 
   boolean isProvided(TypeToken<?> type);
 
-  TypedObject<?> getBoundObject(QualifiedName binidingPoint);
+  TypedObject<?> getBoundObject(int bindingPoint);
 
   /**
    * @return the nearest binding point to which we are binding

@@ -4,7 +4,6 @@ import static java.util.Arrays.asList;
 import static uk.co.strangeskies.modabi.expression.Expressions.literal;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.BOUND_PREFIX;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.OBJECT_VALUE;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.PARENT_VALUE;
 import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
 
 import uk.co.strangeskies.modabi.expression.Expression;
@@ -12,16 +11,23 @@ import uk.co.strangeskies.modabi.expression.ExpressionVisitor;
 import uk.co.strangeskies.modabi.expression.Preprocessor;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingFunctionPreprocessor implements Preprocessor {
   private final ExpressionVisitor expressionVisitor;
-  private final BindingFunctionContext context;
+  private final ChildLookup childLookup;
+  private final TypeToken<?> objectType;
+  private final TypeToken<?> objectAssignedType;
 
   public BindingFunctionPreprocessor(
       ExpressionVisitor expressionVisitor,
-      BindingFunctionContext context) {
+      ChildLookup context,
+      TypeToken<?> objectType,
+      TypeToken<?> objectAssignedType) {
     this.expressionVisitor = expressionVisitor;
-    this.context = context;
+    this.childLookup = context;
+    this.objectType = objectType;
+    this.objectAssignedType = objectAssignedType;
   }
 
   @Override
@@ -29,7 +35,7 @@ public class BindingFunctionPreprocessor implements Preprocessor {
     return expressionVisitor;
   }
 
-  private Expression rawBindingExpression(String bindingPoint) {
+  private Expression rawBindingExpression(int bindingPoint) {
     return v -> v
         .visitInvocation(
             c -> c.visitNamed("context"),
@@ -40,20 +46,20 @@ public class BindingFunctionPreprocessor implements Preprocessor {
   private void visitBoundExpression(Child<?> bindingPoint) {
     Preprocessor.super.visitCast(
         bindingPoint.type(),
-        rawBindingExpression(bindingPoint.name()).invoke("getObject"));
+        rawBindingExpression(bindingPoint.index()).invoke("getObject"));
   }
 
   @Override
   public void visitNamed(String name) {
     if (name.equals(OBJECT_VALUE)) {
-      visitor().visitCast(context.typeBefore(), v -> v.visitNamed(OBJECT_VALUE));
-
-    } else if (name.equals(PARENT_VALUE)) {
-      throw new UnsupportedOperationException("PARENT not supported yet");
+      visitor().visitCast(objectType, v -> v.visitNamed(OBJECT_VALUE));
 
     } else if (name.startsWith(BOUND_PREFIX)) {
-      name = name.substring(BOUND_PREFIX.length());
-      visitBoundExpression(context.getChild(name));
+      String boundName = name.substring(BOUND_PREFIX.length());
+      visitBoundExpression(
+          childLookup
+              .getChild(boundName)
+              .orElseThrow(() -> new ModabiSchemaException(MESSAGES.cannotResolveVariable(name))));
 
     } else {
       Preprocessor.super.visitNamed(name);
@@ -63,10 +69,7 @@ public class BindingFunctionPreprocessor implements Preprocessor {
   @Override
   public void visitNamedAssignment(String name, Expression value) {
     if (name.equals(OBJECT_VALUE)) {
-      visitor().visitNamedAssignment(OBJECT_VALUE, process(value.check(context.typeBefore())));
-
-    } else if (name.equals(PARENT_VALUE)) {
-      throw new UnsupportedOperationException("PARENT not supported yet");
+      visitor().visitNamedAssignment(OBJECT_VALUE, process(value.check(objectAssignedType)));
 
     } else if (name.startsWith(BOUND_PREFIX)) {
       throw new ModabiSchemaException(MESSAGES.cannotAssignToBoundObject());

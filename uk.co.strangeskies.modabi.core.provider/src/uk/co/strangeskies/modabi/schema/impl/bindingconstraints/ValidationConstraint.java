@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingConstraint;
 import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.modabi.schema.BindingContext;
@@ -28,7 +28,7 @@ public class ValidationConstraint<T> implements BindingConstraint<T> {
   public ValidationConstraint(
       Expression expression,
       TypeToken<T> type,
-      FunctionalExpressionCompiler compiler) {
+      FunctionCompiler compiler) {
     this.expression = expression;
     this.test = compiler
         .compile(

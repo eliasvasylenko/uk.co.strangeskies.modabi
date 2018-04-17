@@ -129,4 +129,8 @@ public interface ModabiSchemaExceptionProperties {
   String noChildFound(QualifiedName qualifiedName);
 
   String cannotAssignToBoundObject();
+
+  String cannotAssignToParentObject();
+
+  String childNameAlreadyExists(String name);
 }

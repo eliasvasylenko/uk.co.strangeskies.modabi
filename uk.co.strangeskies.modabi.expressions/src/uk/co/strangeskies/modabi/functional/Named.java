@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.expression.functional;
+package uk.co.strangeskies.modabi.functional;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.LOCAL_VARIABLE;

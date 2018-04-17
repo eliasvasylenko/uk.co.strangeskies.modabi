@@ -6,8 +6,6 @@ import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;

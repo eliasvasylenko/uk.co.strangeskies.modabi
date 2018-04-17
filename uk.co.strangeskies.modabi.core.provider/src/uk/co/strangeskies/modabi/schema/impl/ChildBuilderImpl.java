@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder;
@@ -130,7 +130,7 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
     return hasNoOutput() ? Optional.empty() : Optional.ofNullable(output);
   }
 
-  protected FunctionalExpressionCompiler getExpressionCompiler() {
+  protected FunctionCompiler getExpressionCompiler() {
     return schemaBuilder.getExpressionCompiler();
   }
 
@@ -236,12 +236,6 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
         ordered,
         modelOverride,
         modelOverrideBuilder);
-  }
-
-  @Override
-  public ChildBuilder.PropertiesStep<E> model(String name) {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override

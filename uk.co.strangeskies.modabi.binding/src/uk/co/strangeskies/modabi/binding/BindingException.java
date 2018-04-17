@@ -19,6 +19,7 @@
 package uk.co.strangeskies.modabi.binding;
 
 import static java.lang.System.lineSeparator;
+import static java.util.Arrays.asList;
 
 import java.util.Collection;
 
@@ -35,15 +36,15 @@ public class BindingException extends ModabiException {
 
   private final BindingContext state;
   private final String bindingObjects;
-  private final String bindingNodes;
+  private final String bindingPoints;
 
   public BindingException(String message, BindingContext state, Throwable cause) {
     super(message, cause);
 
     this.state = state;
 
-    bindingObjects = MESSAGES.bindingObjects(state.getBindingObjectStack());
-    bindingNodes = MESSAGES.bindingNodes(state.getBindingNodeStack());
+    bindingObjects = MESSAGES.bindingObjects(asList(state.getBindingObject()));
+    bindingPoints = MESSAGES.bindingNodes(asList(state.getBindingPoint()));
   }
 
   public BindingException(String message, BindingContext state) {
@@ -56,13 +57,13 @@ public class BindingException extends ModabiException {
 
   @Override
   public String getMessage() {
-    return super.getMessage() + lineSeparator() + bindingObjects + lineSeparator() + bindingNodes;
+    return super.getMessage() + lineSeparator() + bindingObjects + lineSeparator() + bindingPoints;
   }
 
   @Override
   public String getLocalizedMessage() {
     return super.getLocalizedMessage() + lineSeparator() + bindingObjects + lineSeparator()
-        + bindingNodes;
+        + bindingPoints;
   }
 
   public BindingContext getState() {

@@ -2,7 +2,7 @@ package uk.co.strangeskies.modabi.schema.impl.bindingconstraints;
 
 import static uk.co.strangeskies.modabi.expression.Expressions.named;
 
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
@@ -12,7 +12,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
  * @author Elias N Vasylenko
  */
 public class AscendingSortConstraint<T extends Comparable<? super T>> extends SortCondition<T> {
-  public AscendingSortConstraint(FunctionalExpressionCompiler compiler) {
+  public AscendingSortConstraint(FunctionCompiler compiler) {
     super(named("a").invoke("compareTo", named("b")), new TypeToken<T>() {}, compiler);
   }
 }

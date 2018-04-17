@@ -1,4 +1,4 @@
-package uk.co.strangeskies.modabi.expression.functional;
+package uk.co.strangeskies.modabi.functional;
 
 import uk.co.strangeskies.reflection.BoundSet;
 import uk.co.strangeskies.reflection.token.TypeToken;

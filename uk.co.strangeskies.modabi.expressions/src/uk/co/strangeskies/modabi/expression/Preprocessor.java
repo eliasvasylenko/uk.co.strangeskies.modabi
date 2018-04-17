@@ -55,6 +55,16 @@ public interface Preprocessor extends ExpressionVisitor {
   }
 
   @Override
+  default void visitStaticField(Class<?> type, String variable) {
+    visitor().visitStaticField(type, variable);
+  }
+
+  @Override
+  default void visitStaticFieldAssignment(Class<?> type, String variable, Expression value) {
+    visitor().visitStaticFieldAssignment(type, variable, value);
+  }
+
+  @Override
   default void visitInvocation(Expression receiver, String method, List<Expression> arguments) {
     visitor().visitInvocation(process(receiver), method, processList(arguments));
   }

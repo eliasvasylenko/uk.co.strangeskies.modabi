@@ -8,11 +8,11 @@ runreq.modabi:\
 	${runreq.eclipse.help},\
 	${runreq.eclipse.sdk},\
 	${runreq.eclipse.${platform}},\
-	${req;osgi.enroute.logger.simple.provider},\
-	${req;uk.co.strangeskies.modabi.eclipse},\
-	${req;uk.co.strangeskies.modabi.eclipse.xml},\
-	${req;uk.co.strangeskies.modabi.core.provider},\
-	${req;uk.co.strangeskies.modabi.io.xml}
+	bnd.identity; osgi.enroute.logger.simple.provider,\
+	bnd.identity; uk.co.strangeskies.modabi.eclipse,\
+	bnd.identity; uk.co.strangeskies.modabi.eclipse.xml,\
+	bnd.identity; uk.co.strangeskies.modabi.core.provider,\
+	bnd.identity; uk.co.strangeskies.modabi.io.xml
 
 runvm.modabi:\
 	-Xmx1024m

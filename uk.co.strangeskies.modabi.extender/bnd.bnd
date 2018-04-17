@@ -18,13 +18,13 @@ Private-Package: \
 	uk.co.strangeskies.modabi.extender
 
 -runrequires: \
-	${req;osgi.enroute.logger.simple.provider},\
-	${req;uk.co.strangeskies.osgi.provider},\
-	${req;org.apache.felix.gogo.command},\
-	${req;org.apache.felix.gogo.runtime},\
-	${req;org.apache.felix.gogo.shell},\
-	${req;biz.aQute.tester},\
-	${req;uk.co.strangeskies.modabi.scripting}
+	bnd.identity; osgi.enroute.logger.simple.provider,\
+	bnd.identity; uk.co.strangeskies.osgi.provider,\
+	bnd.identity; org.apache.felix.gogo.command,\
+	bnd.identity; org.apache.felix.gogo.runtime,\
+	bnd.identity; org.apache.felix.gogo.shell,\
+	bnd.identity; biz.aQute.tester,\
+	bnd.identity; uk.co.strangeskies.modabi.scripting
 
 -runee: JavaSE-1.8
 -runfw: org.eclipse.osgi

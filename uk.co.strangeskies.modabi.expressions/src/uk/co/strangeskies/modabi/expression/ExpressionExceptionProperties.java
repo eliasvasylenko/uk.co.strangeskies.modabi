@@ -12,4 +12,12 @@ public interface ExpressionExceptionProperties {
   String cannotPerformAssignment(TypeToken<?> to, TypeToken<?> from);
 
   String cannotResolveField(TypeToken<?> type, String variable);
+
+  String cannotResolveStaticField(Class<?> type, String variable);
+
+  String expressionIsAlreadyCompleted();
+
+  String expressionIsNotCompleted();
+
+  String illegalLiteralType(Class<?> type);
 }

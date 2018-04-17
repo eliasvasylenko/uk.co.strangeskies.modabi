@@ -48,7 +48,6 @@ import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingExpressions {
   public static final String OBJECT_VALUE = "object";
-  public static final String PARENT_VALUE = "parent";
   public static final String PROVIDE_METHOD = "provide";
   public static final String BOUND_PREFIX = "$";
 
@@ -68,10 +67,6 @@ public class BindingExpressions {
 
   public static MutableExpression object() {
     return named(OBJECT_VALUE);
-  }
-
-  public static Expression parent() {
-    return named(PARENT_VALUE);
   }
 
   public static Expression boundValue() {

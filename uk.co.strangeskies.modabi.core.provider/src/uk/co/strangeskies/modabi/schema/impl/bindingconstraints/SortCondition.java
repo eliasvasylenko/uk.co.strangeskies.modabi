@@ -6,7 +6,7 @@ import java.util.Comparator;
 
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingConstraint;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
 import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
@@ -22,7 +22,7 @@ public class SortCondition<T> implements BindingConstraint<T> {
   public SortCondition(
       Expression expression,
       TypeToken<T> type,
-      FunctionalExpressionCompiler compiler) {
+      FunctionCompiler compiler) {
     this.expression = expression;
     this.comparator = compiler
         .compile(

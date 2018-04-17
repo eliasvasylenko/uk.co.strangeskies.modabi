@@ -38,11 +38,14 @@ import static uk.co.strangeskies.reflection.ParameterizedTypes.getAllTypeArgumen
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
 import uk.co.strangeskies.reflection.ParameterizedTypes;
+import uk.co.strangeskies.reflection.WildcardTypes;
 
 class TypeExpression implements Expression {
   private final Expression expression;
@@ -52,14 +55,38 @@ class TypeExpression implements Expression {
       expression = literal((Class<?>) type);
 
     } else if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+
       List<Expression> arguments = new ArrayList<>();
-      arguments.add(literal((Class<?>) ((ParameterizedType) type).getRawType()));
-      getAllTypeArguments((ParameterizedType) type)
+      arguments.add(literal((Class<?>) parameterizedType.getRawType()));
+      getAllTypeArguments(parameterizedType)
           .map(Entry::getValue)
           .map(TypeExpression::new)
           .forEach(arguments::add);
 
       expression = invokeStatic(ParameterizedTypes.class, "parameterizeUnchecked", arguments);
+
+    } else if (type instanceof WildcardType) {
+      WildcardType wildcardType = (WildcardType) type;
+
+      if (wildcardType.getLowerBounds().length > 0) {
+        List<Expression> arguments = new ArrayList<>();
+        Arrays
+            .stream(wildcardType.getLowerBounds())
+            .map(TypeExpression::new)
+            .forEach(arguments::add);
+
+        expression = invokeStatic(WildcardTypes.class, "wildcardSuper", arguments);
+
+      } else {
+        List<Expression> arguments = new ArrayList<>();
+        Arrays
+            .stream(wildcardType.getUpperBounds())
+            .map(TypeExpression::new)
+            .forEach(arguments::add);
+
+        expression = invokeStatic(WildcardTypes.class, "wildcardExtending", arguments);
+      }
 
     } else {
       throw new IllegalArgumentException("Unsupported type " + type);

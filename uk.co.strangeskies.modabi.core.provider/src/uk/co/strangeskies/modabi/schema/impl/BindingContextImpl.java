@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.binding.Provider;
 import uk.co.strangeskies.modabi.io.StructuredDataReader;
@@ -185,9 +184,9 @@ public class BindingContextImpl implements BindingContext {
         input,
         output);
   }
-  
+
   @Override
-  public TypedObject<?> getBoundObject(QualifiedName binidingPoint) {
+  public TypedObject<?> getBoundObject(int bindingPoint) {
     // TODO Auto-generated method stub
     return null;
   }

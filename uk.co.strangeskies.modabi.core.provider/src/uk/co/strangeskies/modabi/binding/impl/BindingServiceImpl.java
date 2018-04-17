@@ -5,8 +5,8 @@ import org.osgi.service.component.annotations.Component;
 import uk.co.strangeskies.modabi.binding.BindingService;
 import uk.co.strangeskies.modabi.binding.InputBinder;
 import uk.co.strangeskies.modabi.binding.OutputBinder;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
-import uk.co.strangeskies.modabi.expression.impl.FunctionalExpressionCompilerImpl;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompilerImpl;
 import uk.co.strangeskies.modabi.io.DataFormat;
 import uk.co.strangeskies.modabi.io.DataFormats;
 import uk.co.strangeskies.modabi.schema.Schemata;
@@ -87,7 +87,7 @@ public class BindingServiceImpl implements BindingService {
   public BindingServiceImpl() {
     dataFormats = new DataFormatsImpl();
 
-    FunctionalExpressionCompiler expressionCompiler = new FunctionalExpressionCompilerImpl();
+    FunctionCompiler expressionCompiler = new FunctionCompilerImpl();
     SchemaBuilderImpl schemaBuilder = new SchemaBuilderImpl(expressionCompiler);
     CoreSchemata core = new CoreSchemata(() -> schemaBuilder);
     schemata = new Schemata(core.baseSchema());

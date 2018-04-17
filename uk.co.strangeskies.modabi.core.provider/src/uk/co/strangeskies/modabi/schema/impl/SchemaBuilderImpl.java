@@ -35,7 +35,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.expression.functional.FunctionalExpressionCompiler;
+import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
@@ -53,9 +53,9 @@ public class SchemaBuilderImpl implements SchemaBuilder {
 
   // TODO constructor injection
   @Reference
-  private FunctionalExpressionCompiler expressionCompiler;
+  private FunctionCompiler expressionCompiler;
 
-  public SchemaBuilderImpl(FunctionalExpressionCompiler expressionCompiler) {
+  public SchemaBuilderImpl(FunctionCompiler expressionCompiler) {
     this.expressionCompiler = expressionCompiler;
 
     name = null;
@@ -70,7 +70,7 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   }
 
   private SchemaBuilderImpl(
-      FunctionalExpressionCompiler expressionCompiler,
+      FunctionCompiler expressionCompiler,
       QualifiedName qualifiedName,
       Map<ModelBuilderImpl, ModelImpl<?>> models,
       Set<Schema> dependencies) {
@@ -186,12 +186,11 @@ public class SchemaBuilderImpl implements SchemaBuilder {
     return upcastStream(models.keySet().stream());
   }
 
-  protected FunctionalExpressionCompiler getExpressionCompiler() {
+  protected FunctionCompiler getExpressionCompiler() {
     return expressionCompiler;
   }
 
   protected Model<?> getModel(QualifiedName baseModel) {
-    // TODO Auto-generated method stub
-    return null;
+    return models.values().stream().filter(m -> m.name().equals(baseModel)).findAny().get();
   }
 }

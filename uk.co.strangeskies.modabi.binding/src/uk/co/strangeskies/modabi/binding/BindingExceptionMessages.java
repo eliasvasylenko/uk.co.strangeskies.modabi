@@ -52,15 +52,15 @@ public interface BindingExceptionMessages {
 
   String mustNotHaveData(BindingPoint<?> bindingPoint);
 
-  String noProviderFound(TypeToken<?> type);
-
-  <T> String mustBeOrdered(Child<T> node, T lastItem, Class<? extends Comparator<?>> order);
-
   default String mustHaveDataWithinRange(Child<?> node, Interval<Integer> range) {
     return mustHaveDataWithinRange(node.name(), Interval.compose(range));
   }
 
-  String mustHaveDataWithinRange(QualifiedName name, String compose);
+  String mustHaveDataWithinRange(String name, String compose);
+
+  String noProviderFound(TypeToken<?> type);
+
+  <T> String mustBeOrdered(Child<T> node, T lastItem, Class<? extends Comparator<?>> order);
 
   String cannotBindRemainingData(List<String> dataSource);
 

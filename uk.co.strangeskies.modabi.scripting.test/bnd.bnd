@@ -51,11 +51,11 @@ Import-Package: \
 Test-Cases: ${test-cases}
 
 -runrequires: \
-	${req;biz.aQute.tester},\
-	${req;uk.co.strangeskies.scripting.engine.javascript},\
-	${req;uk.co.strangeskies.modabi.scripting.test},\
-	${req;uk.co.strangeskies.osgi.provider},\
-	${req;org.apache.aries.spifly.dynamic.bundle}
+	bnd.identity; biz.aQute.tester,\
+	bnd.identity; uk.co.strangeskies.scripting.engine.javascript,\
+	bnd.identity; uk.co.strangeskies.modabi.scripting.test,\
+	bnd.identity; uk.co.strangeskies.osgi.provider,\
+	bnd.identity; org.apache.aries.spifly.dynamic.bundle
 
 -runbundles: \
 	biz.aQute.tester;version='[3.0.0,3.0.1)',\
