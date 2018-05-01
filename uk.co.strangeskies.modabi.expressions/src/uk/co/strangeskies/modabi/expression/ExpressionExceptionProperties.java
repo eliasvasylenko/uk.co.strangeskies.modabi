@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.expression;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -20,4 +21,10 @@ public interface ExpressionExceptionProperties {
   String expressionIsNotCompleted();
 
   String illegalLiteralType(Class<?> type);
+
+  String cannotResolveInvocation(String invocationName, List<?> collect);
+
+  String cannotResolveVariable(String variableName, TypeToken<?> assignedType);
+
+  String cannotResolveVariable(String variableName);
 }

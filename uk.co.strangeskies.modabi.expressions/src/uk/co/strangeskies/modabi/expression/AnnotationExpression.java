@@ -67,7 +67,12 @@ public class AnnotationExpression implements Expression {
   }
 
   @Override
-  public void evaluate(ExpressionVisitor visitor) {
-    expression.evaluate(visitor);
+  public Instructions compile(Scope scope) {
+    return expression.compile(scope);
+  }
+
+  @Override
+  public String toString() {
+    return expression.toString();
   }
 }

@@ -59,28 +59,17 @@ import uk.co.strangeskies.reflection.token.TypeToken;
  * @author Elias N Vasylenko
  */
 public interface Expression {
-  void evaluate(ExpressionVisitor visitor);
+  Instructions compile(Scope scope);
+
+  @Override
+  String toString();
 
   default MutableExpression getField(String field) {
-    return new MutableExpression() {
-      @Override
-      public void evaluate(ExpressionVisitor visitor) {
-        visitor.visitField(Expression.this, field);
-      }
-
-      @Override
-      public Expression assign(Expression value) {
-        return v -> v.visitFieldAssignment(Expression.this, field, value);
-      }
-    };
+    return new FieldExpression(this, field);
   }
 
   default Expression cast(TypeToken<?> type) {
-    return v -> v.visitCast(type, this);
-  }
-
-  default Expression check(TypeToken<?> type) {
-    return v -> v.visitCheck(type, this);
+    return new CastExpression(this, type);
   }
 
   default Expression invoke(String methodName, Expression... arguments) {
@@ -88,7 +77,7 @@ public interface Expression {
   }
 
   default <R> Expression invoke(String methodName, List<Expression> arguments) {
-    return v -> v.visitInvocation(this, methodName, arguments);
+    return new MethodInvocationExpression(this, methodName, arguments);
   }
 
   /**
@@ -112,6 +101,6 @@ public interface Expression {
    *         instance
    */
   default Expression iterate() {
-    return v -> v.visitIteration(this);
+    return new IterationExpression(this);
   }
 }

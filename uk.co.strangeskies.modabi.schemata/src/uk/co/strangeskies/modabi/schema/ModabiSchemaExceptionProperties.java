@@ -120,6 +120,8 @@ public interface ModabiSchemaExceptionProperties {
 
   String cannotResolveVariable(String name);
 
+  String cannotResolveInvocation(String name, List<TypeToken<?>> arguments);
+
   String cannotPerformCast(TypeToken<?> to, TypeToken<?> from);
 
   String cannotPerformAssignment(TypeToken<?> to, TypeToken<?> from);

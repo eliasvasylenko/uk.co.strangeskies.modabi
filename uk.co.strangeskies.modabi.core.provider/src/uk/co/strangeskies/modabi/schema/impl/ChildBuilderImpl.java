@@ -1,6 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.Optional.ofNullable;
+import static uk.co.strangeskies.modabi.expression.Expressions.voidExpression;
 
 import java.util.Optional;
 
@@ -15,7 +16,7 @@ import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
-  private static final Expression NO_IO = v -> {};
+  private static final Expression NO_IO = voidExpression();
 
   private final SchemaBuilderImpl schemaBuilder;
   private final ChildBuilderContext<E> context;

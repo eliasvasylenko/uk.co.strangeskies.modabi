@@ -1,6 +1,9 @@
 package uk.co.strangeskies.modabi.functional;
 
+import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
+
 import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.expression.Preprocessor;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 /**
@@ -33,10 +36,22 @@ public interface FunctionCompiler {
    * @return an implementation of the interface of the given type, implemented
    *         according to the given expression
    */
-  <T> FunctionImplementation<T> compile(Expression expression, TypeToken<T> implementationType);
+  default <T> FunctionImplementation<T> compile(
+      Expression expression,
+      TypeToken<T> implementationType) {
+    return compile(expression, implementationType, forClass(void.class)).capture(null);
+  }
+
+  default <T, C> FunctionCapture<C, T> compile(
+      Expression expression,
+      TypeToken<T> implementationType,
+      TypeToken<C> captureScope) {
+    return compile(expression, s -> s, implementationType, captureScope);
+  }
 
   <T, C> FunctionCapture<C, T> compile(
       Expression expression,
+      Preprocessor preprocessor,
       TypeToken<T> implementationType,
       TypeToken<C> captureScope);
 }

@@ -1,24 +1,13 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
-import static java.util.stream.Collectors.toList;
-import static uk.co.strangeskies.modabi.instruction.InstructionCompiler.forScope;
-import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
-import static uk.co.strangeskies.reflection.Annotations.from;
-import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
-
-import java.util.List;
 
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.functional.FunctionCapture;
 import uk.co.strangeskies.modabi.functional.FunctionCompiler;
-import uk.co.strangeskies.modabi.instruction.Instructions;
-import uk.co.strangeskies.modabi.instruction.Scope;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
-import uk.co.strangeskies.reflection.InferenceVariable;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class BindingFunctionImpl implements BindingFunction {
   public interface BindingFunctionInterface {
@@ -106,47 +95,15 @@ public class BindingFunctionImpl implements BindingFunction {
       Expression expression,
       FunctionCompiler compiler) {
     this.objectType = objectType;
-    TypeToken<?> objectAssignedType = forAnnotatedType(wildcard(from(Infer.class)));
-
     this.expression = expression;
-    Expression processedExpression = visitor -> expression
-        .evaluate(
-            new BindingFunctionPreprocessor(visitor, context, objectType, objectAssignedType));
-
-    new Scope() {
-      @Override
-      public Instructions lookupVariableAssignment(String variableName, Instructions value) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      @Override
-      public Instructions lookupVariable(String variableName) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      @Override
-      public Instructions lookupInvocation(String invocationName, List<Instructions> arguments) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-    };
-
-    Instructions instructions = forScope(scope).compile(processedExpression);
     this.bindingFunction = compiler
         .compile(
-            instructions,
+            expression,
+            new BindingFunctionPreprocessor(context, objectType),
             forClass(BindingFunctionInterface.class),
             forClass(BindingFunctionCapture.class));
 
-    System.out
-        .println(
-            bindingFunction
-                .getBounds()
-                .getBoundsOn((InferenceVariable) objectAssignedType.getType())
-                .getUpperBounds()
-                .collect(toList()));
+    System.out.println(expression);
   }
 
   @Override

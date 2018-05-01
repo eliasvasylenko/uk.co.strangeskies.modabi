@@ -30,7 +30,7 @@ import org.junit.Test;
 import mockit.Injectable;
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.binding.impl.BindingServiceImpl;
-import uk.co.strangeskies.modabi.expression.impl.FunctionalExpressionCompilerImpl;
+import uk.co.strangeskies.modabi.functional.FunctionCompilerImpl;
 import uk.co.strangeskies.modabi.io.StructuredDataWriter;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Schema;
@@ -49,7 +49,7 @@ public class SchemaBuildingTests {
 
   @Test
   public void buildBaseSchemataTest() {
-    SchemaBuilder builder = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl());
+    SchemaBuilder builder = new SchemaBuilderImpl(new FunctionCompilerImpl());
     new CoreSchemata(() -> builder);
   }
 
@@ -57,12 +57,12 @@ public class SchemaBuildingTests {
   public void bindOutBaseSchemaTest() {
     Property<Model<String>> daftModel = new IdentityProperty<>();
 
-    SchemaBuilder builder = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl());
+    SchemaBuilder builder = new SchemaBuilderImpl(new FunctionCompilerImpl());
     CoreSchemata coreSchemata = new CoreSchemata(() -> builder);
     Schemata schemata = new Schemata(coreSchemata.baseSchema());
     schemata.add(coreSchemata.metaSchema());
 
-    Schema schema = new SchemaBuilderImpl(new FunctionalExpressionCompilerImpl())
+    Schema schema = new SchemaBuilderImpl(new FunctionCompilerImpl())
         .name(new QualifiedName("SillyBillies"))
         .addModel()
         .name(new QualifiedName("daft"))

@@ -34,74 +34,75 @@ package uk.co.strangeskies.modabi.expression;
 
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import uk.co.strangeskies.reflection.token.ExecutableToken;
+import uk.co.strangeskies.reflection.token.TypeArgument;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public class Expressions {
+public final class Expressions {
   private Expressions() {}
 
   public static Expression nullLiteral() {
-    return v -> v.visitNull();
+    return new NullLiteralExpression();
   }
 
-  private static Expression literalImpl(Object value) {
-    return v -> v.visitLiteral(value);
-  }
+  public static Expression tryLiteral(Object value) {
+    if (value instanceof String)
+      return literal((String) value);
 
-  public static Expression tryLiteral(Object object) {
-    if (object instanceof String || object instanceof Integer || object instanceof Float
-        || object instanceof Long || object instanceof Double || object instanceof Byte
-        || object instanceof Character || object instanceof Class<?>) {
-      return literalImpl(object);
-    }
-    throw new IllegalArgumentException();
+    else if (value instanceof Integer)
+      return literal((int) value);
+
+    else if (value instanceof Long)
+      return literal((long) value);
+
+    else if (value instanceof Float)
+      return literal((float) value);
+
+    else if (value instanceof Double)
+      return literal((double) value);
+
+    else if (value instanceof Character)
+      return literal((char) value);
+
+    else if (value instanceof Class<?>)
+      return literal((Class<?>) value);
+
+    throw new IllegalArgumentException(value.toString());
   }
 
   public static Expression literal(String value) {
-    return literalImpl(value);
+    return new StringLiteralExpression(value);
   }
 
   public static Expression literal(int value) {
-    return literalImpl(value);
-  }
-
-  public static Expression literal(float value) {
-    return literalImpl(value);
+    return new IntLiteralExpression(value);
   }
 
   public static Expression literal(long value) {
-    return literalImpl(value);
+    return new LongLiteralExpression(value);
+  }
+
+  public static Expression literal(float value) {
+    return new FloatLiteralExpression(value);
   }
 
   public static Expression literal(double value) {
-    return literalImpl(value);
-  }
-
-  public static Expression literal(byte value) {
-    return literalImpl(value);
+    return new DoubleLiteralExpression(value);
   }
 
   public static Expression literal(char value) {
-    return literalImpl(value);
+    return new CharLiteralExpression(value);
   }
 
   public static <T> Expression literal(Class<T> value) {
-    return literalImpl(value);
+    return new ClassLiteralExpression(value);
   }
 
-  public static MutableExpression getStaticField(Class<?> declaringClass, String field) {
-    return new MutableExpression() {
-      @Override
-      public void evaluate(ExpressionVisitor visitor) {
-        visitor.visitStaticField(declaringClass, field);
-      }
-
-      @Override
-      public Expression assign(Expression value) {
-        return v -> v.visitStaticFieldAssignment(declaringClass, field, value);
-      }
-    };
+  public static MutableExpression getStaticField(Class<?> declaringClass, String fieldName) {
+    return new StaticFieldExpression(declaringClass, fieldName);
   }
 
   public static Expression invokeConstructor(Class<?> declaringClass, Expression... arguments) {
@@ -119,7 +120,7 @@ public class Expressions {
    *         executable with the given argument expressions
    */
   public static Expression invokeConstructor(Class<?> declaringClass, List<Expression> arguments) {
-    return v -> v.visitConstructorInvocation(declaringClass, arguments);
+    return new ConstructorInvocationExpression(declaringClass, arguments);
   }
 
   public static Expression invokeStatic(
@@ -143,7 +144,7 @@ public class Expressions {
       Class<?> declaringClass,
       String methodName,
       List<Expression> arguments) {
-    return v -> v.visitStaticInvocation(declaringClass, methodName, arguments);
+    return new StaticMethodInvocationExpression(declaringClass, methodName, arguments);
   }
 
   public static Expression invokeNamed(String methodName, Expression... arguments) {
@@ -151,30 +152,59 @@ public class Expressions {
   }
 
   public static Expression invokeNamed(String methodName, List<Expression> arguments) {
-    return v -> v.visitNamedInvocation(methodName, arguments);
+    return new NamedInvocationExpression(methodName, arguments);
   }
 
-  public static MutableExpression named(String name) {
-    return new MutableExpression() {
-      @Override
-      public void evaluate(ExpressionVisitor visitor) {
-        visitor.visitNamed(name);
-      }
-
-      @Override
-      public Expression assign(Expression value) {
-        return v -> v.visitNamedAssignment(name, value);
-      }
-    };
+  public static MutableExpression named(String variableName) {
+    return new NamedExpression(variableName);
   }
 
   public static Expression typeToken(TypeToken<?> token) {
-    return v -> v
-        .visitCast(
-            token.getThisTypeToken(),
-            invokeStatic(
-                TypeToken.class,
-                "forAnnotatedType",
-                new AnnotatedTypeExpression(token.getAnnotatedDeclaration())));
+    return new CastExpression(
+        invokeStatic(
+            TypeToken.class,
+            "forAnnotatedType",
+            new AnnotatedTypeExpression(token.getAnnotatedDeclaration())),
+        getTypeTokenType(token));
+  }
+
+  private static <T> TypeToken<TypeToken<T>> getTypeTokenType(TypeToken<T> token) {
+    return new TypeToken<TypeToken<T>>() {}.withTypeArguments(new TypeArgument<T>(token) {});
+  }
+
+  public static Expression voidExpression() {
+    return new VoidExpression();
+  }
+
+  public static List<Instructions> argumentInstructionSequence(
+      ExecutableToken<?, ?> executable,
+      List<Instructions> argumentInstructions) {
+
+    if (!executable.isVariableArityInvocation()) {
+      return argumentInstructions;
+
+    } else {
+      int argumentCount = argumentInstructions.size();
+      int parameterCount = (int) executable.getParameters().count();
+
+      ArrayList<Instructions> instructionSequence = new ArrayList<>(parameterCount);
+
+      for (int i = 0; i < parameterCount - 1; i++) {
+        instructionSequence.add(argumentInstructions.get(i));
+      }
+
+      TypeToken<?> arrayType = executable.getParameters().reduce((a, b) -> b).get().getTypeToken();
+
+      instructionSequence
+          .add(
+              new Instructions(
+                  arrayType,
+                  v -> v
+                      .newArray(
+                          arrayType,
+                          argumentInstructions.subList(parameterCount, argumentCount))));
+
+      return instructionSequence;
+    }
   }
 }
