@@ -8,17 +8,17 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 
 public interface BindingConstraintVisitor {
-  default void allOf(BindingConstraintSpecification... conditions) {
+  default void allOf(BindingConstraint... conditions) {
     allOf(Arrays.asList(conditions));
   }
 
-  default void anyOf(BindingConstraintSpecification... conditions) {
+  default void anyOf(BindingConstraint... conditions) {
     anyOf(Arrays.asList(conditions));
   }
 
-  void allOf(Collection<? extends BindingConstraintSpecification> conditions);
+  void allOf(Collection<? extends BindingConstraint> conditions);
 
-  void anyOf(Collection<? extends BindingConstraintSpecification> conditions);
+  void anyOf(Collection<? extends BindingConstraint> conditions);
 
   void forbidden();
 

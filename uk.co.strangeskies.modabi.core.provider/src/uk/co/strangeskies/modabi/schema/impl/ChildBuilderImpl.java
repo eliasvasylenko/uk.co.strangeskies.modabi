@@ -1,14 +1,13 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.Optional.ofNullable;
-import static uk.co.strangeskies.modabi.expression.Expressions.voidExpression;
 
 import java.util.Optional;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.functional.FunctionCompiler;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder.ChildrenStep;
@@ -16,8 +15,6 @@ import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
-  private static final Expression NO_IO = voidExpression();
-
   private final SchemaBuilderImpl schemaBuilder;
   private final ChildBuilderContext<E> context;
 
@@ -29,7 +26,7 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   private final Expression input;
   private final Expression output;
 
-  private final BindingConstraintSpecification bindingCondition;
+  private final BindingConstraint bindingCondition;
   private final Boolean ordered;
 
   private final Model<?> modelOverride;
@@ -57,7 +54,7 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
       TypeToken<?> type,
       Expression inputExpression,
       Expression outputExpression,
-      BindingConstraintSpecification bindingCondition,
+      BindingConstraint bindingCondition,
       Boolean ordered,
       Model<?> modelOverride,
       AnonymousModelBuilder<?> modelOverrideBuilder) {
@@ -91,18 +88,8 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   }
 
   @Override
-  public ChildBuilder.PropertiesStep<E> noInput() {
-    return input(NO_IO);
-  }
-
-  @Override
   public Optional<Expression> getInput() {
-    return hasNoInput() ? Optional.empty() : Optional.ofNullable(input);
-  }
-
-  @Override
-  public boolean hasNoInput() {
-    return input == NO_IO;
+    return Optional.ofNullable(input);
   }
 
   @Override
@@ -122,22 +109,12 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   }
 
   @Override
-  public ChildBuilder.PropertiesStep<E> noOutput() {
-    return output(NO_IO);
-  }
-
-  @Override
   public Optional<Expression> getOutput() {
-    return hasNoOutput() ? Optional.empty() : Optional.ofNullable(output);
+    return Optional.ofNullable(output);
   }
 
   protected FunctionCompiler getExpressionCompiler() {
     return schemaBuilder.getExpressionCompiler();
-  }
-
-  @Override
-  public boolean hasNoOutput() {
-    return output == NO_IO;
   }
 
   @Override
@@ -163,7 +140,7 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
 
   @Override
   public ChildBuilder.PropertiesStep<E> bindingConstraint(
-      BindingConstraintSpecification bindingCondition) {
+      BindingConstraint bindingCondition) {
     return new ChildBuilderImpl<>(
         schemaBuilder,
         context,
@@ -179,7 +156,7 @@ public class ChildBuilderImpl<E> implements ChildBuilder.PropertiesStep<E> {
   }
 
   @Override
-  public Optional<BindingConstraintSpecification> getBindingConstraint() {
+  public Optional<BindingConstraint> getBindingConstraint() {
     return ofNullable(bindingCondition);
   }
 

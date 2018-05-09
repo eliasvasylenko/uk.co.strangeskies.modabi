@@ -18,47 +18,28 @@
  */
 package uk.co.strangeskies.modabi.schema.impl;
 
-import static uk.co.strangeskies.mathematics.Interval.leftBounded;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.schema.BindingConstraintSpecification.occurrences;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.provide;
-import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
-import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
 
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.expression.Expressions;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Models;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
-import uk.co.strangeskies.reflection.AnnotatedTypes;
-import uk.co.strangeskies.reflection.Annotations;
-import uk.co.strangeskies.reflection.Types;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.reflection.token.TypeToken.Infer;
-import uk.co.strangeskies.utility.Enumeration;
 
 public class BaseSchemaImpl implements BaseSchema {
   private final Schema baseSchema;
@@ -178,199 +159,29 @@ public class BaseSchemaImpl implements BaseSchema {
 
     schemaBuilder = schemaBuilder
         .addModel()
-        .name(QUALIFIED_NAME_MODEL)
-        .type(QualifiedName.class)
-        .addChild(
-            c -> c
-                .model(STRING_MODEL)
-                .input(object().assign(invokeStatic(Boolean.class, "parseBoolean", boundValue())))
-                .output(object().invoke("toString")))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(ARRAY_MODEL)
-        .type(new @Infer TypeToken<Object[]>() {})
-        .addChild()
-        .input(object().assign(provide(new TypeToken<List<?>>() {})))
-        .output(object().assign(invokeStatic(Arrays.class, "asList", object())))
-        .endChild()
-        .addChild(
-            c -> c
-                .name("element")
-                .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-                .input(object().invoke("add", boundValue()))
-                .output(object().iterate())
-                .bindingConstraint(occurrences(leftBounded(0))))
-        .addChild(
-            c -> c
-                .name("toArray")
-                .type(void.class)
-                .input(object().assign(object().invoke("toArray")))
-                .noOutput())
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(COLLECTION_MODEL)
-        .type(new @Infer TypeToken<Collection<?>>() {})
-        .addChild()
-        .input(provide())
-        .endChild()
-        .addChild(
-            c -> c
-                .name("element")
-                .type(forAnnotatedType(wildcard(Annotations.from(Infer.class))))
-                .input(object().invoke("add", boundValue()))
-                .output(object().iterate())
-                .bindingConstraint(occurrences(leftBounded(0))))
-        .endModel()
-
-        .addModel()
-        .name(LIST_MODEL)
-        .type(new @Infer TypeToken<List<?>>() {})
-        .baseModel("collection")
-        .endModel()
-
-        .addModel()
-        .name(SET_MODEL)
-        .type(new @Infer TypeToken<Set<?>>() {})
-        .baseModel("collection")
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(URI_MODEL)
-        .type(URI.class)
-        .addChild(
-            u -> u
-                .name("uriString")
-                .model(STRING_MODEL)
-                .input(object().assign(invokeConstructor(URI.class, boundValue())))
-                .output(object().invoke("toString")))
-        .endModel()
-
-        .addModel()
-        .name(URL_MODEL)
-        .type(URL.class)
-        .addChild(
-            u -> u
-                .name("urlString")
-                .model(STRING_MODEL)
-                .input(object().assign(invokeConstructor(URL.class, boundValue())))
-                .output(object().invoke("toString")))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(PACKAGE_MODEL)
-        .type(Package.class)
-        .addChild(
-            p -> p
-                .name("name")
-                .model(STRING_MODEL)
-                .input(invokeStatic(Package.class, "getPackage"))
-                .output(object().invoke("getName")))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(TYPE_MODEL)
-        .type(Type.class)
-        .addChild(
-            p -> p
-                .name("name")
-                .model(STRING_MODEL)
-                .input(invokeStatic(Types.class, "fromString", boundValue()))
-                .output(invokeStatic(Types.class, "toString", object())))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(CLASS_MODEL)
-        .type(new TypeToken<Class<?>>() {})
-        .baseModel(TYPE_MODEL)
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(ANNOTATED_TYPE_MODEL)
-        .type(AnnotatedType.class)
-        .addChild(
-            p -> p
-                .name("name")
-                .model(STRING_MODEL)
-                .input(invokeStatic(AnnotatedTypes.class, "fromString", boundValue()))
-                .output(invokeStatic(AnnotatedTypes.class, "toString", object())))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(TYPE_TOKEN_MODEL)
-        .type(new TypeToken<TypeToken<?>>() {})
-        .addChild(
-            c -> c
-                .model(ANNOTATED_TYPE_MODEL)
-                .input(invokeStatic(TypeToken.class, "overAnnotatedType", boundValue()))
-                .output(object().invoke("getAnnotatedDeclaration")))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
         .name(ENUM_MODEL)
         .type(new TypeToken<Enum<?>>() {})
         .partial()
         .addChild(
             c -> c
                 .name("enumType")
-                .noInput()
-                .noOutput()
+                .output(object().invoke("getDeclaringClass"))
                 .type(new TypeToken<Class<? extends Enum<?>>>() {})
                 .input(
                     provide(BindingContext.class)
-                        .invoke("getBindingNode")
-                        .invoke("dataType")
-                        .invoke("getRawType")))
-        .addChild(
-            p -> p
-                .name("name")
-                .input(
-                    Expressions
-                        .invokeStatic(
-                            Enumeration.class,
-                            "valueOfEnum",
-                            boundValue("enumType"),
-                            boundValue()))
-                .output(object().invoke("getName"))
-                .model(STRING_MODEL))
-        .endModel();
-
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(ENUMERATION_MODEL)
-        .type(new TypeToken<Enumeration<?>>() {})
-        .partial()
-        .addChild(
-            c -> c
-                .name("enumType")
-                .noInput()
-                .noOutput()
-                .type(new TypeToken<Class<? extends Enumeration<?>>>() {})
-                .input(
-                    provide(BindingContext.class)
-                        .invoke("getBindingNode")
-                        .invoke("dataType")
-                        .invoke("getRawType")))
+                        .invoke("getBindingPoint")
+                        .invoke("type")
+                        .invoke("getErasedType")))
         .addChild(
             p -> p
                 .name("name")
                 .input(
                     invokeStatic(
-                        Enumeration.class,
-                        "valueOf",
+                        BaseSchema.class,
+                        "valueOfEnum",
                         boundValue("enumType"),
                         boundValue()))
-                .output(object().invoke("getName"))
+                .output(object().invoke("name"))
                 .model(STRING_MODEL))
         .endModel();
 
@@ -445,87 +256,13 @@ public class BaseSchemaImpl implements BaseSchema {
   }
 
   @Override
-  public Model<QualifiedName> qualifiedNameModel() {
-    return getModel(QUALIFIED_NAME_MODEL);
-  }
-
-  @Override
-  public Model<Package> packageModel() {
-    return getModel(PACKAGE_MODEL);
-  }
-
-  @Override
-  public Model<Class<?>> classModel() {
-    return getModel(CLASS_MODEL);
-  }
-
-  @Override
-  public Model<Type> typeModel() {
-    return getModel(TYPE_MODEL);
-  }
-
-  @Override
-  public Model<AnnotatedType> annotatedTypeModel() {
-    return getModel(ANNOTATED_TYPE_MODEL);
-  }
-
-  @Override
-  public Model<TypeToken<?>> typeTokenModel() {
-    return getModel(TYPE_TOKEN_MODEL);
-  }
-
-  @Override
   public Model<Enum<?>> enumModel() {
     return getModel(ENUM_MODEL);
   }
 
   @Override
-  public Model<Enumeration<?>> enumerationModel() {
-    return getModel(ENUMERATION_MODEL);
-  }
-
-  @Override
   public Model<Interval<Integer>> intervalModel() {
     return getModel(INTERVAL_MODEL);
-  }
-
-  @Override
-  public Model<Object[]> arrayModel() {
-    return getModel(ARRAY_MODEL);
-  }
-
-  @Override
-  public Model<Collection<?>> collectionModel() {
-    return getModel(COLLECTION_MODEL);
-  }
-
-  @Override
-  public Model<List<?>> listModel() {
-    return getModel(LIST_MODEL);
-  }
-
-  @Override
-  public Model<Set<?>> setModel() {
-    return getModel(SET_MODEL);
-  }
-
-  @Override
-  public Model<Map<?, ?>> mapModel() {
-    return getModel(MAP_MODEL);
-  }
-
-  @Override
-  public Model<URI> uriModel() {
-    return getModel(URI_MODEL);
-  }
-
-  @Override
-  public Model<URL> urlModel() {
-    return getModel(URL_MODEL);
-  }
-
-  public static <K, V> Map.Entry<K, V> mapEntry(K key, V value) {
-    return null;
   }
 
   /* Schema */

@@ -37,8 +37,8 @@ class ConstructorInvocationExpression implements Expression {
         .infer()
         .constructors()
         .map(ExecutableToken::infer)
-        .collect(resolveOverload(argumentTypes))
-        .resolve();
+        .collect(resolveOverload(argumentTypes));
+    executable.resolve();
 
     return new Instructions(
         executable.getReturnType(),

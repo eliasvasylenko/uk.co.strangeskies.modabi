@@ -16,32 +16,36 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.meta;
+package uk.co.strangeskies.modabi.schema;
+
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface MetaSchema extends Schema {
-  QualifiedName META_SCHEMA = name("Meta");
+public interface ReflectionSchema extends Schema {
+  QualifiedName REFLECTION_SCHEMA = name("Reflection");
 
-  QualifiedName QUALIFIED_NAME_MODEL = name("qualifiedName");
+  QualifiedName PACKAGE_MODEL = name("package");
 
-  QualifiedName BINDING_CONDITION_MODEL = name("bindingCondition");
-  QualifiedName AND_CONDITION_MODEL = name("andCondition");
-  QualifiedName OR_CONDITION_MODEL = name("orCondition");
+  Model<Package> packageModel();
 
-  QualifiedName SCHEMA_MODEL = name("schema");
-  QualifiedName SCHEMA_BUILDER_MODEL = name("schemaBuilder");
-  QualifiedName MODEL_BUILDER_MODEL = name("modelBuilder");
-  QualifiedName CHILD_BUILDER_MODEL = name("childBuilder");
-  QualifiedName CHILD_SEQUENCE_BUILDER_MODEL = name("childSequenceBuilder");
+  QualifiedName CLASS_MODEL = name("class");
 
-  Model<QualifiedName> qualifiedNameModel();
+  Model<Class<?>> classModel();
 
-  Model<Schema> schemaModel();
+  QualifiedName TYPE_MODEL = name("type");
 
-  Model<SchemaBuilder> schemaBuilderModel();
+  Model<Type> typeModel();
+
+  QualifiedName ANNOTATED_TYPE_MODEL = name("annotatedType");
+
+  Model<AnnotatedType> annotatedTypeModel();
+
+  QualifiedName TYPE_TOKEN_MODEL = name("typeToken");
+
+  Model<TypeToken<?>> typeTokenModel();
 
   private static QualifiedName name(String name) {
     return new QualifiedName(name, MODABI_NAMESPACE);

@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.expression.Expression;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
 import uk.co.strangeskies.modabi.schema.meta.AnonymousModelBuilder.ChildrenStep;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -17,15 +17,11 @@ public interface ChildBuilder<E> {
 
     PropertiesStep<E> ordered(boolean ordered);
 
-    PropertiesStep<E> bindingConstraint(BindingConstraintSpecification condition);
-
-    PropertiesStep<E> noInput();
+    PropertiesStep<E> bindingConstraint(BindingConstraint condition);
 
     PropertiesStep<E> input(Expression expression);
 
     PropertiesStep<E> output(Expression expression);
-
-    PropertiesStep<E> noOutput();
 
     PropertiesStep<E> model(QualifiedName name);
 
@@ -44,15 +40,11 @@ public interface ChildBuilder<E> {
 
   Optional<Boolean> getOrdered();
 
-  Optional<BindingConstraintSpecification> getBindingConstraint();
+  Optional<BindingConstraint> getBindingConstraint();
 
   Optional<Expression> getInput();
 
-  boolean hasNoInput();
-
   Optional<Expression> getOutput();
-
-  boolean hasNoOutput();
 
   Optional<QualifiedName> getModel();
 

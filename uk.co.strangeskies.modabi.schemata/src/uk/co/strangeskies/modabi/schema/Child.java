@@ -36,5 +36,5 @@ public interface Child<T> extends BindingPoint<T> {
    * 
    * @return
    */
-  BindingConstraint<T> bindingConstraint();
+  BindingProcedure<T> bindingConstraint();
 }

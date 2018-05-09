@@ -18,6 +18,8 @@
  */
 package uk.co.strangeskies.modabi.schema.meta;
 
+import static java.util.Arrays.asList;
+
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
@@ -34,6 +36,10 @@ public interface SchemaBuilder {
   SchemaBuilder name(QualifiedName name);
 
   Optional<QualifiedName> getName();
+
+  default SchemaBuilder dependencies(Schema... dependencies) {
+    return dependencies(asList(dependencies));
+  }
 
   SchemaBuilder dependencies(Collection<? extends Schema> dependencies);
 

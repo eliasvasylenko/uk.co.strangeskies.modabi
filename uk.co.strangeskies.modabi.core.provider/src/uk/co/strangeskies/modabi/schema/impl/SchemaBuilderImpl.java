@@ -191,6 +191,12 @@ public class SchemaBuilderImpl implements SchemaBuilder {
   }
 
   protected Model<?> getModel(QualifiedName baseModel) {
-    return models.values().stream().filter(m -> m.name().equals(baseModel)).findAny().get();
+    return Stream
+        .concat(
+            models.values().stream(),
+            dependencies.stream().map(Schema::models).flatMap(Models::getAll))
+        .filter(m -> m.name().equals(baseModel))
+        .findAny()
+        .get();
   }
 }

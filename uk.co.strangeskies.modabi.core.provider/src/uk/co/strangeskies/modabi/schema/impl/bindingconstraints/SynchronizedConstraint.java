@@ -1,10 +1,10 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingconstraints;
 
 import uk.co.strangeskies.modabi.schema.BindingConstraintVisitor;
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
-import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
 
 /**
  * A binding condition which only allows processing of each item to proceed once
@@ -12,10 +12,10 @@ import uk.co.strangeskies.modabi.schema.BindingProcedure;
  * 
  * @author Elias N Vasylenko
  */
-public class SynchronizedConstraint<T> implements BindingConstraint<T> {
+public class SynchronizedConstraint<T> implements BindingProcedure<T> {
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
-    return new BindingProcedure<T>() {
+  public BindingProcess<T> procedeWithState(BindingContext state) {
+    return new BindingProcess<T>() {
       private boolean locked = false;
 
       @Override
@@ -42,7 +42,7 @@ public class SynchronizedConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
+  public BindingConstraint getConstraint() {
     return BindingConstraintVisitor::synchronous;
   }
 }

@@ -23,8 +23,8 @@ import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.OccurrencesConst
 import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.SortCondition;
 import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.SynchronizedConstraint;
 import uk.co.strangeskies.modabi.schema.impl.bindingconstraints.ValidationConstraint;
+import uk.co.strangeskies.modabi.schema.BindingProcedure;
 import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
 public class BindingConditionFactory<T> {
@@ -36,31 +36,31 @@ public class BindingConditionFactory<T> {
     this.compiler = compiler;
   }
 
-  public BindingConstraint<T> create(BindingConstraintSpecification builder) {
+  public BindingProcedure<T> create(BindingConstraint builder) {
     BindingConditionVisitorImpl visitor = new BindingConditionVisitorImpl();
     return visitor.visit(builder);
   }
 
   class BindingConditionVisitorImpl implements BindingConstraintVisitor {
-    Deque<BindingConstraint<T>> conditionStack = new ArrayDeque<>();
+    Deque<BindingProcedure<T>> conditionStack = new ArrayDeque<>();
 
-    protected BindingConstraint<T> visit(BindingConstraintSpecification prototype) {
+    protected BindingProcedure<T> visit(BindingConstraint prototype) {
       prototype.accept(this);
       return conditionStack.pop();
     }
 
-    protected List<BindingConstraint<T>> visitAll(
-        Collection<? extends BindingConstraintSpecification> prototypes) {
+    protected List<BindingProcedure<T>> visitAll(
+        Collection<? extends BindingConstraint> prototypes) {
       return prototypes.stream().map(this::visit).collect(toList());
     }
 
     @Override
-    public void allOf(Collection<? extends BindingConstraintSpecification> conditions) {
+    public void allOf(Collection<? extends BindingConstraint> conditions) {
       conditionStack.push(new AllOfConstraint<>(visitAll(conditions)));
     }
 
     @Override
-    public void anyOf(Collection<? extends BindingConstraintSpecification> conditions) {
+    public void anyOf(Collection<? extends BindingConstraint> conditions) {
       conditionStack.push(new AnyOfConstraint<>(visitAll(conditions)));
     }
 

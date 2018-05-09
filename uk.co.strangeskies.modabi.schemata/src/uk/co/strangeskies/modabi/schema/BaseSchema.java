@@ -18,134 +18,78 @@
  */
 package uk.co.strangeskies.modabi.schema;
 
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.utility.Enumeration;
 
 public interface BaseSchema extends Schema {
-  public static final QualifiedName BASE_SCHEMA = new QualifiedName(
-      BaseSchema.class.getSimpleName(),
-      MODABI_NAMESPACE);
+  QualifiedName BASE_SCHEMA = name("Base");
 
   QualifiedName ROOT_MODEL = name("root");
 
   Model<Object> rootModel();
 
   /*
-   * Primitives
+   * Numerics
    */
   QualifiedName INTEGER_MODEL = name("integer");
-  QualifiedName DECIMAL_MODEL = name("decimal");
-  QualifiedName INT_MODEL = name("int");
-  QualifiedName LONG_MODEL = name("long");
-  QualifiedName FLOAT_MODEL = name("float");
-  QualifiedName DOUBLE_MODEL = name("double");
-  QualifiedName BOOLEAN_MODEL = name("boolean");
 
   Model<BigInteger> integerModel();
 
+  QualifiedName DECIMAL_MODEL = name("decimal");
+
   Model<BigDecimal> decimalModel();
+
+  QualifiedName INT_MODEL = name("int");
 
   Model<Integer> intModel();
 
+  QualifiedName LONG_MODEL = name("long");
+
   Model<Long> longModel();
+
+  QualifiedName FLOAT_MODEL = name("float");
 
   Model<Float> floatModel();
 
+  QualifiedName DOUBLE_MODEL = name("double");
+
   Model<Double> doubleModel();
 
+  QualifiedName BOOLEAN_MODEL = name("boolean");
+
   Model<Boolean> booleanModel();
+
+  QualifiedName INTERVAL_MODEL = name("interval");
+
+  Model<Interval<Integer>> intervalModel();
 
   /*
    * Basics
    */
   QualifiedName STRING_MODEL = name("string");
-  QualifiedName BINARY_MODEL = name("binary");
-  QualifiedName ENUM_MODEL = name("enum");
-  QualifiedName ENUMERATION_MODEL = name("enumeration");
 
   Model<String> stringModel();
 
+  QualifiedName BINARY_MODEL = name("binary");
+
   Model<byte[]> binaryModel();
+
+  QualifiedName ENUM_MODEL = name("enum");
 
   Model<Enum<?>> enumModel();
 
-  Model<Enumeration<?>> enumerationModel();
+  private static QualifiedName name(String name) {
+    return new QualifiedName(name, MODABI_NAMESPACE);
+  }
 
-  /*
-   * Collections
-   */
-  QualifiedName ARRAY_MODEL = name("array");
-  QualifiedName COLLECTION_MODEL = name("collection");
-  QualifiedName LIST_MODEL = name("list");
-  QualifiedName SET_MODEL = name("set");
-  QualifiedName MAP_MODEL = name("map");
-
-  Model<Object[]> arrayModel();
-
-  Model<Collection<?>> collectionModel();
-
-  Model<List<?>> listModel();
-
-  // TODO the ? extends seems to be required as an eclipse bug?
-  Model<? extends Set<?>> setModel();
-
-  Model<Map<?, ?>> mapModel();
-
-  /*
-   * External library
-   */
-  QualifiedName URI_MODEL = name("uri");
-  QualifiedName URL_MODEL = name("url");
-
-  Model<URI> uriModel();
-
-  Model<URL> urlModel();
-
-  /*
-   * Internal library
-   */
-  QualifiedName QUALIFIED_NAME_MODEL = name("qualifiedName");
-  QualifiedName INTERVAL_MODEL = name("interval");
-
-  Model<QualifiedName> qualifiedNameModel();
-
-  Model<Interval<Integer>> intervalModel();
-
-  /*
-   * Reflection
-   */
-  QualifiedName PACKAGE_MODEL = name("package");
-  QualifiedName CLASS_MODEL = name("class");
-  QualifiedName TYPE_MODEL = name("type");
-  QualifiedName ANNOTATED_TYPE_MODEL = name("annotatedType");
-  QualifiedName TYPE_TOKEN_MODEL = name("typeToken");
-
-  Model<Package> packageModel();
-
-  Model<Class<?>> classModel();
-
-  Model<Type> typeModel();
-
-  Model<AnnotatedType> annotatedTypeModel();
-
-  Model<TypeToken<?>> typeTokenModel();
-
-  // TODO iirc Java 9 will allow this to be private
-  @Deprecated
-  static QualifiedName name(String name) {
-    return new QualifiedName(name, BASE_SCHEMA.getNamespace());
+  static <T extends Enum<?>> T valueOfEnum(Class<T> enumType, String name) {
+    @SuppressWarnings("rawtypes")
+    Class rawEnumType = enumType;
+    @SuppressWarnings("unchecked")
+    T result = (T) Enum.valueOf(rawEnumType, name);
+    return result;
   }
 }

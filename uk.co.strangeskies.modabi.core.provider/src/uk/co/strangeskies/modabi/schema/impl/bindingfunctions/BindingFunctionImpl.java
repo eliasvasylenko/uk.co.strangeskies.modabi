@@ -1,5 +1,6 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
+import static java.util.Objects.requireNonNull;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
 
 import uk.co.strangeskies.modabi.expression.Expression;
@@ -8,10 +9,11 @@ import uk.co.strangeskies.modabi.functional.FunctionCompiler;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 public class BindingFunctionImpl implements BindingFunction {
   public interface BindingFunctionInterface {
-    void bind();
+    TypedObject<?> bind();
   }
 
   public static class BindingFunctionCapture {
@@ -24,7 +26,8 @@ public class BindingFunctionImpl implements BindingFunction {
     }
   }
 
-  private final TypeToken<?> objectType;
+  private final TypeToken<?> typeBefore;
+  private final TypeToken<?> typeAfter;
   private final Expression expression;
   private final FunctionCapture<BindingFunctionCapture, BindingFunctionInterface> bindingFunction;
 
@@ -94,16 +97,21 @@ public class BindingFunctionImpl implements BindingFunction {
       TypeToken<?> objectType,
       Expression expression,
       FunctionCompiler compiler) {
-    this.objectType = objectType;
-    this.expression = expression;
-    this.bindingFunction = compiler
+    this.typeBefore = requireNonNull(objectType);
+    this.expression = requireNonNull(expression);
+
+    BindingFunctionPreprocessor preprocessor = new BindingFunctionPreprocessor(
+        requireNonNull(context),
+        objectType);
+
+    this.bindingFunction = requireNonNull(compiler)
         .compile(
             expression,
-            new BindingFunctionPreprocessor(context, objectType),
+            preprocessor,
             forClass(BindingFunctionInterface.class),
             forClass(BindingFunctionCapture.class));
 
-    System.out.println(expression);
+    this.typeAfter = preprocessor.getAssignedObjectType();
   }
 
   @Override
@@ -112,20 +120,20 @@ public class BindingFunctionImpl implements BindingFunction {
   }
 
   @Override
-  public void apply(BindingContext context) {
+  public TypedObject<?> apply(BindingContext context) {
     BindingFunctionCapture capture = new BindingFunctionCapture();
     capture.object = context.getBindingObject();
     capture.context = context;
-    bindingFunction.capture(capture).getInstance().bind();
+    return bindingFunction.capture(capture).getInstance().bind();
   }
 
   @Override
   public TypeToken<?> getTypeBefore() {
-    return objectType;
+    return typeBefore;
   }
 
   @Override
   public TypeToken<?> getTypeAfter() {
-    return null;
+    return typeAfter;
   }
 }

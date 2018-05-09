@@ -4,10 +4,10 @@ import static uk.co.strangeskies.modabi.binding.BindingException.MESSAGES;
 
 import uk.co.strangeskies.mathematics.Interval;
 import uk.co.strangeskies.modabi.binding.BindingException;
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
-import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
 import uk.co.strangeskies.modabi.schema.Child;
 
 /**
@@ -16,7 +16,7 @@ import uk.co.strangeskies.modabi.schema.Child;
  * 
  * @author Elias N Vasylenko
  */
-public class OccurrencesConstraint<T> implements BindingConstraint<T> {
+public class OccurrencesConstraint<T> implements BindingProcedure<T> {
   private final Interval<Integer> range;
 
   public OccurrencesConstraint(Interval<Integer> range) {
@@ -24,8 +24,8 @@ public class OccurrencesConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
-    return new BindingProcedure<T>() {
+  public BindingProcess<T> procedeWithState(BindingContext state) {
+    return new BindingProcess<T>() {
       private int count = 0;
 
       public void failProcess() {
@@ -54,7 +54,7 @@ public class OccurrencesConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
+  public BindingConstraint getConstraint() {
     return v -> v.occurrences(range);
   }
 }

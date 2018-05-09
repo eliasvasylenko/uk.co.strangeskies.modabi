@@ -36,15 +36,13 @@ class MethodInvocationExpression implements Expression {
         .map(m -> m.getResultType())
         .collect(toList());
 
-    System.out.println(receiverInstructions.getResultType() + " .. " + methodName);
-
     ExecutableToken<?, ?> executable = receiverInstructions
         .getResultType()
         .methods()
         .filter(anyMethod().named(methodName))
         .map(ExecutableToken::infer)
-        .collect(resolveOverload(argumentTypes))
-        .resolve();
+        .collect(resolveOverload(argumentTypes));
+    executable.resolve();
 
     return new Instructions(
         executable.getReturnType(),

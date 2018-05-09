@@ -264,7 +264,7 @@ public class FunctionCompilerImpl implements FunctionCompiler {
       int i;
       do {
         i = instructionPointer;
-        instructions.get(i).visit(this);
+        //Finstructions.get(i).visit(this);
       } while (i == instructionPointer++);
     }
 

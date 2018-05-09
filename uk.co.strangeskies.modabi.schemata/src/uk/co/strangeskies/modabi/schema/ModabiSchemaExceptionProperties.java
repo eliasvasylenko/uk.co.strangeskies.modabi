@@ -135,4 +135,6 @@ public interface ModabiSchemaExceptionProperties {
   String cannotAssignToParentObject();
 
   String childNameAlreadyExists(String name);
+
+  String cannotRepeatAssignmentToBindingObject();
 }

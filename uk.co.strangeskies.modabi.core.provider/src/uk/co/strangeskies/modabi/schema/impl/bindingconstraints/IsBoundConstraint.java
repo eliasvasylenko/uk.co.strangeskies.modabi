@@ -1,12 +1,12 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingconstraints;
 
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
-import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
 import uk.co.strangeskies.modabi.schema.Child;
 
-public class IsBoundConstraint<T> implements BindingConstraint<T> {
+public class IsBoundConstraint<T> implements BindingProcedure<T> {
   private final Child<?> target;
 
   public IsBoundConstraint(Child<?> target) {
@@ -14,12 +14,12 @@ public class IsBoundConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
+  public BindingProcess<T> procedeWithState(BindingContext state) {
     throw new UnsupportedOperationException(); // TODO
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
+  public BindingConstraint getConstraint() {
     throw new UnsupportedOperationException(); // TODO
   }
 }

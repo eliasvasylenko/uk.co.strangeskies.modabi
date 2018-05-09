@@ -7,10 +7,10 @@ import java.util.function.Predicate;
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.functional.FunctionCompiler;
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
-import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.reflection.token.TypeArgument;
 import uk.co.strangeskies.reflection.token.TypeToken;
@@ -21,7 +21,7 @@ import uk.co.strangeskies.reflection.token.TypeToken;
  * 
  * @author Elias N Vasylenko
  */
-public class ValidationConstraint<T> implements BindingConstraint<T> {
+public class ValidationConstraint<T> implements BindingProcedure<T> {
   private final Expression expression;
   private final Predicate<T> test;
 
@@ -38,8 +38,8 @@ public class ValidationConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
-    return new BindingProcedure<T>() {
+  public BindingProcess<T> procedeWithState(BindingContext state) {
+    return new BindingProcess<T>() {
       public void failProcess() {
         throw new BindingException(
             MESSAGES.validationFailed((Child<?>) state.getBindingPoint(), expression),
@@ -62,7 +62,7 @@ public class ValidationConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
+  public BindingConstraint getConstraint() {
     return v -> v.validated(expression);
   }
 }

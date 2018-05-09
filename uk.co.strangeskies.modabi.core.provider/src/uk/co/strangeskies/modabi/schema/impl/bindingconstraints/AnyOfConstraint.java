@@ -12,26 +12,26 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import uk.co.strangeskies.modabi.binding.BindingException;
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
-import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
 
-public class AnyOfConstraint<T> implements BindingConstraint<T> {
-  private final List<BindingConstraint<? super T>> conditions;
+public class AnyOfConstraint<T> implements BindingProcedure<T> {
+  private final List<BindingProcedure<? super T>> conditions;
 
-  public AnyOfConstraint(Collection<? extends BindingConstraint<? super T>> conditions) {
+  public AnyOfConstraint(Collection<? extends BindingProcedure<? super T>> conditions) {
     this.conditions = new ArrayList<>(conditions);
   }
 
-  public List<BindingConstraint<? super T>> getConditions() {
+  public List<BindingProcedure<? super T>> getConditions() {
     return conditions;
   }
 
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
-    return new BindingProcedure<T>() {
-      private List<BindingProcedure<? super T>> conditionEvaluations = conditions
+  public BindingProcess<T> procedeWithState(BindingContext state) {
+    return new BindingProcess<T>() {
+      private List<BindingProcess<? super T>> conditionEvaluations = conditions
           .stream()
           .map(c -> c.procedeWithState(state))
           .collect(Collectors.toCollection(ArrayList::new));
@@ -40,7 +40,7 @@ public class AnyOfConstraint<T> implements BindingConstraint<T> {
 
       @Override
       public void beginProcessingNext() {
-        tryMultiple(BindingProcedure::beginProcessingNext);
+        tryMultiple(BindingProcess::beginProcessingNext);
       }
 
       @Override
@@ -50,13 +50,13 @@ public class AnyOfConstraint<T> implements BindingConstraint<T> {
 
       @Override
       public void endProcessing() {
-        tryMultiple(BindingProcedure::endProcessing);
+        tryMultiple(BindingProcess::endProcessing);
       }
 
-      private void tryMultiple(Consumer<BindingProcedure<? super T>> process) {
-        for (Iterator<BindingProcedure<? super T>> evaluationIterator = conditionEvaluations
+      private void tryMultiple(Consumer<BindingProcess<? super T>> process) {
+        for (Iterator<BindingProcess<? super T>> evaluationIterator = conditionEvaluations
             .iterator(); evaluationIterator.hasNext();) {
-          BindingProcedure<? super T> evaluation = evaluationIterator.next();
+          BindingProcess<? super T> evaluation = evaluationIterator.next();
 
           try {
             process.accept(evaluation);
@@ -74,7 +74,7 @@ public class AnyOfConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
-    return v -> v.anyOf(conditions.stream().map(c -> c.getSpecification()).collect(toList()));
+  public BindingConstraint getConstraint() {
+    return v -> v.anyOf(conditions.stream().map(c -> c.getConstraint()).collect(toList()));
   }
 }

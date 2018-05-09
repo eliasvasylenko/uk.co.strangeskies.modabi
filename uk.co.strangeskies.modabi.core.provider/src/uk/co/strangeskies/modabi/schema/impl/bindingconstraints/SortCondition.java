@@ -7,15 +7,15 @@ import java.util.Comparator;
 import uk.co.strangeskies.modabi.binding.BindingException;
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.modabi.functional.FunctionCompiler;
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
 import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.reflection.token.TypeArgument;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public class SortCondition<T> implements BindingConstraint<T> {
+public class SortCondition<T> implements BindingProcedure<T> {
   private final Expression expression;
   private final Comparator<? super T> comparator;
 
@@ -32,8 +32,8 @@ public class SortCondition<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
-    return new BindingProcedure<T>() {
+  public BindingProcess<T> procedeWithState(BindingContext state) {
+    return new BindingProcess<T>() {
       private T previousBinding;
 
       @Override
@@ -66,7 +66,7 @@ public class SortCondition<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
+  public BindingConstraint getConstraint() {
     return v -> v.sorted(expression);
   }
 }

@@ -1,15 +1,13 @@
 package uk.co.strangeskies.modabi.schema.impl.bindingfunctions;
 
 import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
 import static uk.co.strangeskies.modabi.expression.Expressions.literal;
 import static uk.co.strangeskies.modabi.expression.Expressions.named;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.BOUND_PREFIX;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.OBJECT_VALUE;
 import static uk.co.strangeskies.modabi.schema.BindingExpressions.PROVIDE_METHOD;
 import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
-import static uk.co.strangeskies.reflection.AnnotatedWildcardTypes.wildcard;
-import static uk.co.strangeskies.reflection.Annotations.from;
-import static uk.co.strangeskies.reflection.token.TypeToken.forAnnotatedType;
 
 import java.util.List;
 
@@ -19,17 +17,15 @@ import uk.co.strangeskies.modabi.expression.Scope;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
 import uk.co.strangeskies.reflection.token.TypeToken;
-import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
 public class BindingFunctionPreprocessor implements Preprocessor {
   private final ChildLookup childLookup;
   private final TypeToken<?> objectType;
-  private final TypeToken<?> objectAssignedType;
+  private TypeToken<?> assignedObjectType;
 
   public BindingFunctionPreprocessor(ChildLookup context, TypeToken<?> objectType) {
-    this.childLookup = context;
-    this.objectType = objectType;
-    this.objectAssignedType = forAnnotatedType(wildcard(from(Infer.class)));
+    this.childLookup = requireNonNull(context);
+    this.objectType = requireNonNull(objectType);
   }
 
   @Override
@@ -70,9 +66,12 @@ public class BindingFunctionPreprocessor implements Preprocessor {
       @Override
       public Instructions lookupVariableAssignment(String variableName, Instructions value) {
         if (variableName.equals(OBJECT_VALUE)) {
-          boolean isIterated = false; // TODO just visit "value"
-          if (isIterated) {
-            // TODO
+          if (assignedObjectType != null) {
+            throw new ModabiSchemaException(MESSAGES.cannotRepeatAssignmentToBindingObject());
+          }
+          assignedObjectType = value.getResultType();
+          if (isIterated(value)) {
+            // TODO ensure assigned type is assignable to object type
           }
           return new Instructions(value.getResultType(), v -> v.putNamed(OBJECT_VALUE, value));
 
@@ -82,6 +81,11 @@ public class BindingFunctionPreprocessor implements Preprocessor {
         } else {
           return Scope.super.lookupVariableAssignment(variableName, value);
         }
+      }
+
+      private boolean isIterated(Instructions value) {
+        // TODO Auto-generated method stub
+        return false;
       }
 
       @SuppressWarnings("unchecked")
@@ -115,5 +119,13 @@ public class BindingFunctionPreprocessor implements Preprocessor {
         return (TypeToken<T>) innerArgument;
       }
     };
+  }
+
+  public TypeToken<?> getAssignedObjectType() {
+    if (assignedObjectType == null) {
+      return objectType;
+    } else {
+      return assignedObjectType;
+    }
   }
 }

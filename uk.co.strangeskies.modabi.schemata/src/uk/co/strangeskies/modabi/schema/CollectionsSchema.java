@@ -16,32 +16,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema.meta;
+package uk.co.strangeskies.modabi.schema;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import uk.co.strangeskies.modabi.QualifiedName;
-import uk.co.strangeskies.modabi.schema.Model;
-import uk.co.strangeskies.modabi.schema.Schema;
 
-public interface MetaSchema extends Schema {
-  QualifiedName META_SCHEMA = name("Meta");
+public interface CollectionsSchema extends Schema {
+  QualifiedName COLLECTIONS_SCHEMA = name("Collections");
 
-  QualifiedName QUALIFIED_NAME_MODEL = name("qualifiedName");
+  QualifiedName LIST_MODEL = name("list");
 
-  QualifiedName BINDING_CONDITION_MODEL = name("bindingCondition");
-  QualifiedName AND_CONDITION_MODEL = name("andCondition");
-  QualifiedName OR_CONDITION_MODEL = name("orCondition");
+  Model<List<?>> listModel();
 
-  QualifiedName SCHEMA_MODEL = name("schema");
-  QualifiedName SCHEMA_BUILDER_MODEL = name("schemaBuilder");
-  QualifiedName MODEL_BUILDER_MODEL = name("modelBuilder");
-  QualifiedName CHILD_BUILDER_MODEL = name("childBuilder");
-  QualifiedName CHILD_SEQUENCE_BUILDER_MODEL = name("childSequenceBuilder");
+  QualifiedName SET_MODEL = name("set");
 
-  Model<QualifiedName> qualifiedNameModel();
+  // TODO the ? extends seems to be required as an eclipse bug?
+  Model<? extends Set<?>> setModel();
 
-  Model<Schema> schemaModel();
+  QualifiedName MAP_MODEL = name("map");
 
-  Model<SchemaBuilder> schemaBuilderModel();
+  Model<Map<?, ?>> mapModel();
 
   private static QualifiedName name(String name) {
     return new QualifiedName(name, MODABI_NAMESPACE);

@@ -1,7 +1,7 @@
 package uk.co.strangeskies.modabi.schema.impl;
 
 import static java.util.stream.Stream.concat;
-import static uk.co.strangeskies.modabi.schema.BindingConstraintSpecification.allOf;
+import static uk.co.strangeskies.modabi.schema.BindingConstraint.allOf;
 import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.SUBTYPE;
 import static uk.co.strangeskies.reflection.token.TypeToken.forClass;
@@ -11,8 +11,8 @@ import java.util.Optional;
 
 import uk.co.strangeskies.collection.stream.StreamUtilities;
 import uk.co.strangeskies.modabi.expression.Expression;
+import uk.co.strangeskies.modabi.schema.BindingProcedure;
 import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
 import uk.co.strangeskies.modabi.schema.BindingFunction;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
@@ -29,7 +29,7 @@ public class ChildImpl<T> implements Child<T> {
   private final Model<? super T> model;
 
   private final boolean ordered;
-  private final BindingConstraint<T> condition;
+  private final BindingProcedure<T> condition;
   private final BindingFunction input;
   private final BindingFunction output;
 
@@ -95,9 +95,9 @@ public class ChildImpl<T> implements Child<T> {
                 .filter(c -> c.name().equals(name))
                 .findFirst();
 
-    BindingConstraintSpecification conditionPrototype = concat(
+    BindingConstraint conditionPrototype = concat(
         configurator.getBindingConstraint().stream(),
-        overriddenChild.map(c -> c.bindingConstraint().getSpecification()).stream())
+        overriddenChild.map(c -> c.bindingConstraint().getConstraint()).stream())
             .reduce((a, b) -> allOf(a, b))
             .orElseGet(() -> v -> v.required());
     // TODO shouldn't have to 'recompile' overridden constraint
@@ -111,13 +111,19 @@ public class ChildImpl<T> implements Child<T> {
       }
       return c.inputExpression();
     }).orElseGet(() -> {
+      TypeToken<?> objectType = previousChildren.isEmpty()
+          ? forClass(void.class)
+          : previousChildren.get(previousChildren.size() - 1).inputExpression().getTypeAfter();
+
+      if (type.getType().equals(void.class)) {
+        return new VoidBindingFunction(objectType);
+      }
+
       Expression inputExpression = configurator.getInput().orElseGet(() -> {
         throw new UnsupportedOperationException(
             "Generate input expression from name / binding object");
       });
-      TypeToken<?> objectType = previousChildren.isEmpty()
-          ? forClass(void.class)
-          : previousChildren.get(previousChildren.size() - 1).inputExpression().getTypeAfter();
+
       return new BindingFunctionImpl(
           childLookup,
           objectType,
@@ -132,13 +138,19 @@ public class ChildImpl<T> implements Child<T> {
       }
       return c.outputExpression();
     }).orElseGet(() -> {
-      Expression outputExpression = configurator.getOutput().orElseGet(() -> {
-        throw new UnsupportedOperationException(
-            "Generate input expression from name / binding object");
-      });
       TypeToken<?> objectType = previousChildren.isEmpty()
           ? parentType
           : previousChildren.get(previousChildren.size() - 1).outputExpression().getTypeAfter();
+
+      if (type.getType().equals(void.class)) {
+        return new VoidBindingFunction(objectType);
+      }
+
+      Expression outputExpression = configurator.getOutput().orElseGet(() -> {
+        throw new UnsupportedOperationException(
+            "Generate output expression from name / binding object");
+      });
+
       return new BindingFunctionImpl(
           childLookup,
           objectType,
@@ -178,7 +190,7 @@ public class ChildImpl<T> implements Child<T> {
   }
 
   @Override
-  public BindingConstraint<T> bindingConstraint() {
+  public BindingProcedure<T> bindingConstraint() {
     return condition;
   }
 

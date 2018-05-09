@@ -2,6 +2,7 @@ package uk.co.strangeskies.modabi.schema;
 
 import uk.co.strangeskies.modabi.expression.Expression;
 import uk.co.strangeskies.reflection.token.TypeToken;
+import uk.co.strangeskies.reflection.token.TypedObject;
 
 public interface BindingFunction {
   TypeToken<?> getTypeBefore();
@@ -13,5 +14,5 @@ public interface BindingFunction {
    */
   Expression getExpression();
 
-  void apply(BindingContext context);
+  TypedObject<?> apply(BindingContext context);
 }

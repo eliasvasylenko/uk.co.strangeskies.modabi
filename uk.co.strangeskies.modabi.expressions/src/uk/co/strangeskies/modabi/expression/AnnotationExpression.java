@@ -33,6 +33,7 @@
 package uk.co.strangeskies.modabi.expression;
 
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
+import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.modabi.expression.Expressions.literal;
 import static uk.co.strangeskies.modabi.expression.Expressions.tryLiteral;
 import static uk.co.strangeskies.reflection.Annotations.getModifiedProperties;
@@ -63,7 +64,7 @@ public class AnnotationExpression implements Expression {
       arguments.add(invokeConstructor(AnnotationProperty.class, literal(property.name()), value));
     });
 
-    expression = invokeConstructor(Annotations.class, arguments);
+    expression = invokeStatic(Annotations.class, "from", arguments);
   }
 
   @Override

@@ -10,33 +10,33 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import uk.co.strangeskies.modabi.binding.BindingException;
-import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.BindingConstraintSpecification;
-import uk.co.strangeskies.modabi.schema.BindingContext;
 import uk.co.strangeskies.modabi.schema.BindingProcedure;
+import uk.co.strangeskies.modabi.schema.BindingConstraint;
+import uk.co.strangeskies.modabi.schema.BindingContext;
+import uk.co.strangeskies.modabi.schema.BindingProcess;
 
-public class AllOfConstraint<T> implements BindingConstraint<T> {
-  private final List<BindingConstraint<? super T>> conditions;
+public class AllOfConstraint<T> implements BindingProcedure<T> {
+  private final List<BindingProcedure<? super T>> conditions;
 
-  public AllOfConstraint(Collection<? extends BindingConstraint<? super T>> conditions) {
+  public AllOfConstraint(Collection<? extends BindingProcedure<? super T>> conditions) {
     this.conditions = new ArrayList<>(conditions);
   }
 
-  public List<BindingConstraint<? super T>> getConditions() {
+  public List<BindingProcedure<? super T>> getConditions() {
     return conditions;
   }
 
   @Override
-  public BindingProcedure<T> procedeWithState(BindingContext state) {
-    return new BindingProcedure<T>() {
-      private final List<BindingProcedure<? super T>> conditionEvaluations = conditions
+  public BindingProcess<T> procedeWithState(BindingContext state) {
+    return new BindingProcess<T>() {
+      private final List<BindingProcess<? super T>> conditionEvaluations = conditions
           .stream()
           .map(c -> c.procedeWithState(state))
           .collect(toList());
 
       @Override
       public void beginProcessingNext() {
-        tryMultiple(BindingProcedure::beginProcessingNext);
+        tryMultiple(BindingProcess::beginProcessingNext);
       }
 
       @Override
@@ -46,13 +46,13 @@ public class AllOfConstraint<T> implements BindingConstraint<T> {
 
       @Override
       public void endProcessing() {
-        tryMultiple(BindingProcedure::endProcessing);
+        tryMultiple(BindingProcess::endProcessing);
       }
 
-      private void tryMultiple(Consumer<BindingProcedure<? super T>> process) {
+      private void tryMultiple(Consumer<BindingProcess<? super T>> process) {
         Set<Exception> exceptions = new HashSet<>();
 
-        for (BindingProcedure<? super T> evaluation : conditionEvaluations) {
+        for (BindingProcess<? super T> evaluation : conditionEvaluations) {
           try {
             process.accept(evaluation);
           } catch (Exception e) {
@@ -68,7 +68,7 @@ public class AllOfConstraint<T> implements BindingConstraint<T> {
   }
 
   @Override
-  public BindingConstraintSpecification getSpecification() {
-    return v -> v.allOf(conditions.stream().map(c -> c.getSpecification()).collect(toList()));
+  public BindingConstraint getConstraint() {
+    return v -> v.allOf(conditions.stream().map(c -> c.getConstraint()).collect(toList()));
   }
 }

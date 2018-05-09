@@ -39,8 +39,8 @@ class StaticMethodInvocationExpression implements Expression {
     ExecutableToken<?, ?> executable = staticMethods(type)
         .filter(anyMethod().named(methodName))
         .map(ExecutableToken::infer)
-        .collect(resolveOverload(argumentTypes))
-        .resolve();
+        .collect(resolveOverload(argumentTypes));
+    executable.resolve();
 
     return new Instructions(
         executable.getReturnType(),
