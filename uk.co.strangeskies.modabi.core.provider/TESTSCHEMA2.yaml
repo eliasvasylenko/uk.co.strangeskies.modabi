@@ -110,8 +110,8 @@ models:
 #
 # 'name'      to map from the name of the child (the default)
 # '$<child>'  to map from the value of an inner child
-# '$'         to map from whole child (i.e. be a set)
-# '~'         no key! (may need explicit '?' to mark maps when unordered)
+# '$'         to map from whole child to nothing (i.e. be a set)
+# '~'         no key! (may need explicit '?' to mark values which are maps when unordered)
 
 exampleTable: !periodicTable
   name: Default Table
@@ -119,7 +119,7 @@ exampleTable: !periodicTable
   - Hydrogen:
       atomicNumber: 1
       symbol: H
-      !isotopes isotopes:
+      isotopes: !isotopes
       - !isotope
         massNumber: 1
         mass: 1.0234
@@ -140,3 +140,45 @@ exampleTable: !periodicTable
         mass: 3.0345
         abundance: 0.1
       group: NOBLE_GAS
+
+
+exampleTable: #periodicTable
+{
+  :name "Default Table"
+  :elements {
+    'Hydrogen' {
+      :atomicNumber 1
+      :symbol 'H'
+      :isotopes #isotopes [
+        #isotope {
+          :massNumber 1
+          :mass 1.0234
+          :abundance 0.9
+        }
+        #isotope {
+          :massNumber 2
+          :mass 2.0345
+          :abundance 0.1
+        }
+      ]
+      :group 'NONMETAL'
+    }
+    'Helium' {
+      :atomicNumber 2
+      :symbol 'He'
+      :isotopes [
+        {
+          :massNumber 2
+          :mass 2.0234
+          :abundance 0.9
+        }
+        {
+          :massNumber 3
+          :mass 3.0345
+          :abundance 0.1
+        }
+      ]
+      :group 'NOBLE_GAS'
+    }
+  }
+}
