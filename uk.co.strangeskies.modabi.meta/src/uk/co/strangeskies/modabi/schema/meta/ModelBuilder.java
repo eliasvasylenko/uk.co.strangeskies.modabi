@@ -8,6 +8,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.grammar.AnonymousSymbol;
+import uk.co.strangeskies.modabi.grammar.Sequence;
 import uk.co.strangeskies.modabi.schema.Permission;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
@@ -32,6 +34,16 @@ public interface ModelBuilder {
     }
 
     PropertiesStep type(TypeToken<?> type);
+
+    /**
+     * Production rules for models should only produce {@link AnonymousSymbol
+     * anonymous symbols}, including {@link ChildSymbol child symbols}.
+     * 
+     * @param production the base production rule from which a grammar can be built
+     *                   for the model
+     * @return the next build step
+     */
+    PropertiesStep production(Sequence production);
   }
 
   interface ChildrenStep extends ModelBuilder {
@@ -52,6 +64,8 @@ public interface ModelBuilder {
   Optional<QualifiedName> getBaseModel();
 
   Optional<TypeToken<?>> getDataType();
+
+  Optional<Sequence> getProduction();
 
   Stream<? extends ChildBuilder<?>> getChildren();
 

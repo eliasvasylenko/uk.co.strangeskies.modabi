@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.Namespace;
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.grammar.Sequence;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Permission;
@@ -30,6 +31,8 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
   private final Model<?> baseModel;
   private final TypeToken<?> dataType;
 
+  private final Sequence production;
+
   private final List<Child<?>> children;
   private final List<ChildBuilderImpl<?>> childBuilders;
 
@@ -40,6 +43,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
     permission = null;
     baseModel = null;
     dataType = null;
+    production = null;
     children = emptyList();
     childBuilders = emptyList();
   }
@@ -51,6 +55,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
       Permission permission,
       Model<?> baseModel,
       TypeToken<?> dataType,
+      Sequence production,
       List<Child<?>> children,
       List<ChildBuilderImpl<?>> childBuilders) {
     this.schemaBuilder = schemaBuilder;
@@ -59,6 +64,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
     this.permission = permission;
     this.baseModel = baseModel;
     this.dataType = dataType;
+    this.production = production;
     this.children = children;
     this.childBuilders = childBuilders;
   }
@@ -86,6 +92,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
         permission,
         baseModel,
         dataType,
+        production,
         children,
         childBuilders);
   }
@@ -99,6 +106,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
         permission,
         baseModel,
         dataType,
+        production,
         children,
         childBuilders);
   }
@@ -117,6 +125,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
         permission,
         baseModel,
         dataType,
+        production,
         children,
         childBuilders);
   }
@@ -157,6 +166,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
         permission,
         baseModel,
         dataType,
+        production,
         newChildren,
         newChildBuilders);
   }
@@ -175,6 +185,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
         permission,
         schemaBuilder.getModel(baseModel),
         dataType,
+        production,
         children,
         childBuilders);
   }
@@ -197,6 +208,7 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
         permission,
         baseModel,
         dataType,
+        production,
         children,
         childBuilders);
   }
@@ -204,6 +216,25 @@ public class ModelBuilderImpl implements ModelBuilder, NameStep, PropertiesStep,
   @Override
   public Optional<TypeToken<?>> getDataType() {
     return Optional.ofNullable(dataType);
+  }
+
+  @Override
+  public PropertiesStep production(Sequence production) {
+    return new ModelBuilderImpl(
+        schemaBuilder,
+        name,
+        partial,
+        permission,
+        baseModel,
+        dataType,
+        production,
+        children,
+        childBuilders);
+  }
+
+  @Override
+  public Optional<Sequence> getProduction() {
+    return Optional.ofNullable(production);
   }
 
   @Override

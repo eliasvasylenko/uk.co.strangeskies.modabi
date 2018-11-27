@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.grammar.Sequence;
 import uk.co.strangeskies.modabi.schema.Child;
 import uk.co.strangeskies.modabi.schema.ModabiSchemaException;
 import uk.co.strangeskies.modabi.schema.Model;
@@ -106,6 +107,12 @@ public class ModelImpl<T> implements Model<T> {
 
   @Override
   public Optional<?> providedValue() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Optional<Sequence> production() {
     // TODO Auto-generated method stub
     return null;
   }

@@ -20,9 +20,9 @@ package uk.co.strangeskies.modabi.schema.impl;
 
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.provide;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.object;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.provide;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

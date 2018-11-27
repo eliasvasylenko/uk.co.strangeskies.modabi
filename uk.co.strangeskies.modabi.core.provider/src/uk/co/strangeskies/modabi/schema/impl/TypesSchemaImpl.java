@@ -21,9 +21,9 @@ package uk.co.strangeskies.modabi.schema.impl;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeConstructor;
 import static uk.co.strangeskies.modabi.expression.Expressions.invokeStatic;
 import static uk.co.strangeskies.modabi.schema.BaseSchema.STRING_MODEL;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.provide;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.object;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.provide;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
@@ -33,18 +33,19 @@ import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Models;
-import uk.co.strangeskies.modabi.schema.ReflectionSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
+import uk.co.strangeskies.modabi.schema.types.ReflectionSchema;
+import uk.co.strangeskies.modabi.schema.types.TypesSchema;
 import uk.co.strangeskies.reflection.AnnotatedTypeParser;
 import uk.co.strangeskies.reflection.Imports;
 import uk.co.strangeskies.reflection.TypeParser;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public class ReflectionSchemaImpl implements ReflectionSchema {
+public class TypesSchemaImpl implements TypesSchema {
   private final Schema collectionsSchema;
 
-  public ReflectionSchemaImpl(SchemaBuilder schemaBuilder, BaseSchema baseSchema) {
+  public TypesSchemaImpl(SchemaBuilder schemaBuilder, BaseSchema baseSchema) {
     schemaBuilder = schemaBuilder.name(REFLECTION_SCHEMA).dependencies(baseSchema);
 
     schemaBuilder = schemaBuilder
@@ -71,17 +72,11 @@ public class ReflectionSchemaImpl implements ReflectionSchema {
                     invokeConstructor(TypeParser.class, provide(Imports.class))
                         .invoke("type")
                         .invoke("parse", boundValue()))
-                .output(
-                    invokeConstructor(TypeParser.class, provide(Imports.class))
-                        .invoke("toString", object())))
+                .output(invokeConstructor(TypeParser.class, provide(Imports.class)).invoke("toString", object())))
         .endModel();
 
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(CLASS_MODEL)
-        .type(new TypeToken<Class<?>>() {})
-        .baseModel(TYPE_MODEL)
-        .endModel();
+    schemaBuilder = schemaBuilder.addModel().name(CLASS_MODEL).type(new TypeToken<Class<?>>() {
+    }).baseModel(TYPE_MODEL).endModel();
 
     schemaBuilder = schemaBuilder
         .addModel()
@@ -96,14 +91,11 @@ public class ReflectionSchemaImpl implements ReflectionSchema {
                         .invoke("type")
                         .invoke("parse", boundValue()))
                 .output(
-                    invokeConstructor(AnnotatedTypeParser.class, provide(Imports.class))
-                        .invoke("toString", object())))
+                    invokeConstructor(AnnotatedTypeParser.class, provide(Imports.class)).invoke("toString", object())))
         .endModel();
 
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(TYPE_TOKEN_MODEL)
-        .type(new TypeToken<TypeToken<?>>() {})
+    schemaBuilder = schemaBuilder.addModel().name(TYPE_TOKEN_MODEL).type(new TypeToken<TypeToken<?>>() {
+    })
         .addChild(
             c -> c
                 .model(ANNOTATED_TYPE_MODEL)

@@ -13,9 +13,9 @@ Bundle-Description: \
 	uk.co.strangeskies.mathematics;version=latest,\
 	uk.co.strangeskies.reflection;version=latest,\
 	uk.co.strangeskies.reflection.token;version=latest,\
-	uk.co.strangeskies.modabi.schemata;version=latest,\
-	uk.co.strangeskies.modabi.expressions;version=latest,\
-	uk.co.strangeskies.modabi.common;version=latest
+	uk.co.strangeskies.modabi.schemata;version=project,\
+	uk.co.strangeskies.modabi.expressions;version=project,\
+	uk.co.strangeskies.modabi.common;version=project
 
 Export-Package: \
 	uk.co.strangeskies.modabi.schema.meta

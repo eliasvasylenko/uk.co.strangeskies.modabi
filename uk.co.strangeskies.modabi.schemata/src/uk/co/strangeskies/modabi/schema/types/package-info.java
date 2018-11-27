@@ -16,31 +16,5 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import uk.co.strangeskies.modabi.QualifiedName;
-
-public interface CollectionsSchema extends Schema {
-  QualifiedName COLLECTIONS_SCHEMA = name("Collections");
-
-  QualifiedName LIST_MODEL = name("list");
-
-  Model<List<?>> listModel();
-
-  QualifiedName SET_MODEL = name("set");
-
-  // TODO the ? extends seems to be required as an eclipse bug?
-  Model<? extends Set<?>> setModel();
-
-  QualifiedName MAP_MODEL = name("map");
-
-  Model<Map<?, ?>> mapModel();
-
-  private static QualifiedName name(String name) {
-    return new QualifiedName(name, MODABI_NAMESPACE);
-  }
-}
+@org.osgi.annotation.versioning.Version("1.0.0")
+package uk.co.strangeskies.modabi.schema.types;

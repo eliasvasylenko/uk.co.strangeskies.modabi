@@ -21,10 +21,10 @@ package uk.co.strangeskies.modabi.schema.impl;
 import java.util.function.Supplier;
 
 import uk.co.strangeskies.modabi.schema.BaseSchema;
-import uk.co.strangeskies.modabi.schema.CollectionsSchema;
-import uk.co.strangeskies.modabi.schema.ReflectionSchema;
+import uk.co.strangeskies.modabi.schema.collections.CollectionsSchema;
 import uk.co.strangeskies.modabi.schema.meta.MetaSchema;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
+import uk.co.strangeskies.modabi.schema.types.TypesSchema;
 
 /**
  * Class for bootstrapping core schemata, i.e. an implementation of
@@ -35,18 +35,14 @@ import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
 public class CoreSchemata {
   private final BaseSchema baseSchema;
   private final CollectionsSchema collectionsSchema;
-  private final ReflectionSchema reflectionSchema;
+  private final TypesSchema reflectionSchema;
   private final MetaSchema metaSchema;
 
   public CoreSchemata(Supplier<SchemaBuilder> schemaBuilder) {
     baseSchema = new BaseSchemaImpl(schemaBuilder.get());
-    reflectionSchema = new ReflectionSchemaImpl(schemaBuilder.get(), baseSchema);
+    reflectionSchema = new TypesSchemaImpl(schemaBuilder.get(), baseSchema);
     collectionsSchema = new CollectionsSchemaImpl(schemaBuilder.get(), baseSchema);
-    metaSchema = new MetaSchemaImpl(
-        schemaBuilder.get(),
-        baseSchema,
-        collectionsSchema,
-        reflectionSchema);
+    metaSchema = new MetaSchemaImpl(schemaBuilder.get(), baseSchema, collectionsSchema, reflectionSchema);
   }
 
   public BaseSchema baseSchema() {

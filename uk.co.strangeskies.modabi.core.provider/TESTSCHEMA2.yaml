@@ -146,7 +146,7 @@ exampleTable: #periodicTable
 {
   :name "Default Table"
   :elements {
-    'Hydrogen' {
+    Hydrogen {
       :atomicNumber 1
       :symbol 'H'
       :isotopes #isotopes [
@@ -163,7 +163,7 @@ exampleTable: #periodicTable
       ]
       :group 'NONMETAL'
     }
-    'Helium' {
+    Helium {
       :atomicNumber 2
       :symbol 'He'
       :isotopes [

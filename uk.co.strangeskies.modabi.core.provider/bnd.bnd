@@ -12,6 +12,7 @@ Bundle-Description: \
 	uk.co.strangeskies.modabi.binding;version=project,\
 	uk.co.strangeskies.modabi.meta;version=project,\
 	uk.co.strangeskies.modabi.expressions;version=project,\
+	uk.co.strangeskies.modabi.grammar;version=project,\
 \
 	uk.co.strangeskies.utilities;version=latest,\
 	uk.co.strangeskies.collections;version=latest,\

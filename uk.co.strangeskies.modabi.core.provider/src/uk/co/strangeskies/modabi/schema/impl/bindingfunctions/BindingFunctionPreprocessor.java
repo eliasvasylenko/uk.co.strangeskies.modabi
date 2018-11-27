@@ -4,10 +4,10 @@ import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static uk.co.strangeskies.modabi.expression.Expressions.literal;
 import static uk.co.strangeskies.modabi.expression.Expressions.named;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.BOUND_PREFIX;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.OBJECT_VALUE;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.PROVIDE_METHOD;
 import static uk.co.strangeskies.modabi.schema.ModabiSchemaException.MESSAGES;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.BOUND_PREFIX;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.OBJECT_VALUE;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.PROVIDE_METHOD;
 
 import java.util.List;
 

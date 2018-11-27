@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.grammar.Sequence;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.text.parsing.Parser;
 
@@ -32,6 +33,8 @@ public interface Model<T> {
   Model<? super T> baseModel();
 
   Parser<?> parser();
+
+  Optional<Symbol> symbol();
 
   Stream<Child<?>> children();
 

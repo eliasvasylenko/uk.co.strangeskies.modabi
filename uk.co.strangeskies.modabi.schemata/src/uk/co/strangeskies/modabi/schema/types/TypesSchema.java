@@ -16,15 +16,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with uk.co.strangeskies.modabi.core.api.  If not, see <http://www.gnu.org/licenses/>.
  */
-package uk.co.strangeskies.modabi.schema;
+package uk.co.strangeskies.modabi.schema.types;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 
 import uk.co.strangeskies.modabi.QualifiedName;
+import uk.co.strangeskies.modabi.schema.Model;
+import uk.co.strangeskies.modabi.schema.Schema;
 import uk.co.strangeskies.reflection.token.TypeToken;
 
-public interface ReflectionSchema extends Schema {
+public interface TypesSchema extends Schema {
   QualifiedName REFLECTION_SCHEMA = name("Reflection");
 
   QualifiedName PACKAGE_MODEL = name("package");

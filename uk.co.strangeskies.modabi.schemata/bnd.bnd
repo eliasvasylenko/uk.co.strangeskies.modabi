@@ -14,10 +14,13 @@ Bundle-Description: \
 	uk.co.strangeskies.reflection;version=latest,\
 	uk.co.strangeskies.reflection.token;version=latest,\
 \
-	uk.co.strangeskies.modabi.expressions;version=latest,\
-	uk.co.strangeskies.modabi.common;version=latest
+	uk.co.strangeskies.modabi.expressions;version=project,\
+	uk.co.strangeskies.modabi.common;version=project
 
-Export-Package: uk.co.strangeskies.modabi.schema
+Export-Package: \
+	uk.co.strangeskies.modabi.schema,\
+	uk.co.strangeskies.modabi.schema.collections,\
+	uk.co.strangeskies.modabi.schema.types
 
 -includeresource: \
 	res

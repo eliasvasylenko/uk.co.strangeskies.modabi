@@ -18,8 +18,8 @@
  */
 package uk.co.strangeskies.modabi.model.building.test;
 
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.object;
 import static uk.co.strangeskies.reflection.ConstraintFormula.Kind.LOOSE_COMPATIBILILTY;
 
 import java.util.Set;

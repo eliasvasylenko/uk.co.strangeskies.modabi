@@ -23,25 +23,25 @@ import static uk.co.strangeskies.modabi.schema.BaseSchema.BOOLEAN_MODEL;
 import static uk.co.strangeskies.modabi.schema.BaseSchema.INTERVAL_MODEL;
 import static uk.co.strangeskies.modabi.schema.BaseSchema.STRING_MODEL;
 import static uk.co.strangeskies.modabi.schema.BindingConstraint.optional;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.boundValue;
-import static uk.co.strangeskies.modabi.schema.BindingExpressions.object;
-import static uk.co.strangeskies.modabi.schema.CollectionsSchema.SET_MODEL;
-import static uk.co.strangeskies.modabi.schema.ReflectionSchema.TYPE_TOKEN_MODEL;
+import static uk.co.strangeskies.modabi.schema.collections.CollectionsSchema.SET_MODEL;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.boundValue;
+import static uk.co.strangeskies.modabi.schema.meta.BindingExpressions.object;
+import static uk.co.strangeskies.modabi.schema.types.TypesSchema.TYPE_TOKEN_MODEL;
 
 import java.util.stream.Stream;
 
 import uk.co.strangeskies.modabi.QualifiedName;
 import uk.co.strangeskies.modabi.schema.BaseSchema;
 import uk.co.strangeskies.modabi.schema.BindingConstraint;
-import uk.co.strangeskies.modabi.schema.CollectionsSchema;
 import uk.co.strangeskies.modabi.schema.Model;
 import uk.co.strangeskies.modabi.schema.Models;
-import uk.co.strangeskies.modabi.schema.ReflectionSchema;
 import uk.co.strangeskies.modabi.schema.Schema;
+import uk.co.strangeskies.modabi.schema.collections.CollectionsSchema;
 import uk.co.strangeskies.modabi.schema.meta.ChildBuilder;
 import uk.co.strangeskies.modabi.schema.meta.MetaSchema;
 import uk.co.strangeskies.modabi.schema.meta.ModelBuilder;
 import uk.co.strangeskies.modabi.schema.meta.SchemaBuilder;
+import uk.co.strangeskies.modabi.schema.types.TypesSchema;
 import uk.co.strangeskies.reflection.token.TypeToken;
 import uk.co.strangeskies.reflection.token.TypeToken.Infer;
 
@@ -52,10 +52,8 @@ public class MetaSchemaImpl implements MetaSchema {
       SchemaBuilder schemaBuilder,
       BaseSchema baseSchema,
       CollectionsSchema collectionsSchema,
-      ReflectionSchema reflectionSchema) {
-    schemaBuilder = schemaBuilder
-        .name(META_SCHEMA)
-        .dependencies(baseSchema, collectionsSchema, reflectionSchema);
+      TypesSchema typesSchema) {
+    schemaBuilder = schemaBuilder.name(META_SCHEMA).dependencies(baseSchema, collectionsSchema, typesSchema);
 
     schemaBuilder = schemaBuilder
         .addModel()
@@ -71,7 +69,8 @@ public class MetaSchemaImpl implements MetaSchema {
     schemaBuilder = schemaBuilder
         .addModel()
         .name(BINDING_CONDITION_MODEL)
-        .type(new @Infer TypeToken<BindingConstraint>() {})
+        .type(new @Infer TypeToken<BindingConstraint>() {
+        })
         .partial()
         .endModel();
 
@@ -170,19 +169,15 @@ public class MetaSchemaImpl implements MetaSchema {
 
     /* Node Models */
 
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(CHILD_BUILDER_MODEL)
-        .type(new TypeToken<ChildBuilder<?>>() {})
+    schemaBuilder = schemaBuilder.addModel().name(CHILD_BUILDER_MODEL).type(new TypeToken<ChildBuilder<?>>() {
+    })
         .addChild(c -> c.name("name").model(STRING_MODEL).bindingConstraint(optional()))
         .addChild(c -> c.name("export").model(BOOLEAN_MODEL).bindingConstraint(optional()))
         .addChild(c -> c.name("concrete").model(BOOLEAN_MODEL).bindingConstraint(optional()))
-        .addChild(
-            c -> c.name("baseModel").model(QUALIFIED_NAME_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("baseModel").model(QUALIFIED_NAME_MODEL).bindingConstraint(optional()))
         .addChild(c -> c.name("dataType").model(TYPE_TOKEN_MODEL).bindingConstraint(optional()))
         .addChild(c -> c.name("extensible").model(BOOLEAN_MODEL).bindingConstraint(optional()))
-        .addChild(
-            c -> c.name("condition").model(BINDING_CONDITION_MODEL).bindingConstraint(optional()))
+        .addChild(c -> c.name("condition").model(BINDING_CONDITION_MODEL).bindingConstraint(optional()))
         .addChild(
             c -> c
                 .name("value")
@@ -192,12 +187,8 @@ public class MetaSchemaImpl implements MetaSchema {
                 .bindingConstraint(optional()))
         .endModel();
 
-    schemaBuilder = schemaBuilder
-        .addModel()
-        .name(MODEL_BUILDER_MODEL)
-        .type(new TypeToken<ModelBuilder>() {})
-        .partial()
-        .endModel();
+    schemaBuilder = schemaBuilder.addModel().name(MODEL_BUILDER_MODEL).type(new TypeToken<ModelBuilder>() {
+    }).partial().endModel();
 
     metaSchema = schemaBuilder.create();
   }
